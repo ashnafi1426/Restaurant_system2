@@ -18,12 +18,9 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->string('website')->nullable();
-            $table->decimal('tax_rate', 5, 2)
-                ->default(0);
-            $table->decimal('service_charge_percent', 5, 2)
-                ->default(0);
-            $table->time('check_in_time')
-                ->default('14:00:00');
+            $table->decimal('tax_rate', 5, 2)->default(0);
+            $table->decimal('service_charge_percent', 5, 2)->default(0);
+            $table->time('check_in_time')->default('14:00:00');
             $table->time('check_out_time')
                 ->default('11:00:00');
             $table->timestamps();

@@ -10,13 +10,10 @@ return new class extends Migration
     {
         Schema::create('rooms', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('room_number')
-                ->unique();
+            $table->string('room_number')->unique();
             $table->uuid('room_type_id');
-            $table->integer('floor')
-                ->nullable();
-            $table->text('description')
-                ->nullable();
+            $table->integer('floor')->nullable();
+            $table->text('description')->nullable();
             $table->enum('status', [
                 'available',
                 'reserved',
