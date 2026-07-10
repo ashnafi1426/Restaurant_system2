@@ -12,8 +12,7 @@ use App\Http\Controllers\Api\ReceptionController;
 use App\Http\Controllers\Api\MenuItemController;
 use App\Http\Controllers\Api\GuestOrderController;
 use App\Http\Controllers\Api\OrderController;
-
-
+use App\Http\Controllers\Api\KitchenController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::prefix('guest')->group(function () {
@@ -59,7 +58,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/menu-items/{menuItem}/toggle-availability', [MenuItemController::class,'toggleAvailability']);
         Route::delete('/menu-items/{menuItem}', [MenuItemController::class,'destroy']);
     });
+    Route::middleware('role:chef')->group(function () {
+       Route::prefix('kitchen')->group(function(){
+       Route::get('/orders',[KitchenController::class,'index']);
+       Route::get('/statistics',[KitchenController::class,'statistics']);
+       Route::patch('/orders/{order}/start',[KitchenController::class,'start']);
+       Route::patch('/orders/{order}/ready',[KitchenController::class,'ready']);
+       Route::patch('/orders/{order}/complete',[KitchenController::class,'complete']);
+       });
+    });
     Route::middleware('role:receptionist')->group(function(){
+         Route::get('/menu-items', [MenuItemController::class,'index']);
+        Route::post('/menu-items', [MenuItemController::class,'store']);
+        Route::get('/menu-items/statistics', [MenuItemController::class,'statistics']);
+        Route::get('/menu-items/{menuItem}', [MenuItemController::class,'show']);
         Route::get('/orders',[OrderController::class, 'index']);
     Route::post('/orders',[OrderController::class, 'store']);
     Route::get('/orders/{id}',[OrderController::class, 'show']);

@@ -19,28 +19,47 @@ class RoomController extends Controller
     */
     public function index(Request $request)
     {
+        // Always eager load room_type to avoid N+1 queries
         $query = Room::with('roomType');
+
+        // Search by room number, floor, description, or status
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(room_number) LIKE ?', ['%' . strtolower($search) . '%'])
+                  ->orWhereRaw('LOWER(description) LIKE ?', ['%' . strtolower($search) . '%'])
+                  ->orWhereRaw('LOWER(status) LIKE ?', ['%' . strtolower($search) . '%'])
+                  ->orWhere('floor', 'LIKE', '%' . $search . '%');
+            });
+        }
 
         // Only filter by status if explicitly specified in request
         // For admin room management, show all rooms
         // For receptionist reservations, pass status=available
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('status', $request->input('status'));
         }
 
         if ($request->filled('room_type_id')) {
-            $query->where('room_type_id', $request->room_type_id);
+            $query->where('room_type_id', $request->input('room_type_id'));
         }
 
         // Show both active and inactive rooms for admin management
         // Only filter if explicitly requested
         if ($request->filled('is_active')) {
-            $query->where('is_active', $request->is_active);
+            $query->where('is_active', $request->input('is_active'));
         }
 
-        $rooms = $query->latest()->paginate(
-            $request->get('per_page', 10)
-        );
+        // For admin views (no pagination specified or high limit), return all rooms
+        // This ensures search and filters work on complete dataset
+        $perPage = $request->input('per_page', 100); // Default to 100 instead of 10
+        
+        // If explicitly requesting a small page size, respect it
+        if ($request->filled('page') && $request->input('per_page')) {
+            $perPage = $request->input('per_page');
+        }
+
+        $rooms = $query->latest()->paginate($perPage);
 
         return RoomResource::collection($rooms);
     }

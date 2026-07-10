@@ -21,8 +21,30 @@ class Room extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+    
     public function roomType()
     {
         return $this->belongsTo(RoomType::class);
+    }
+
+    /**
+     * Scope to search rooms by multiple criteria
+     * Searches: room_number, floor, description, status, room_type name
+     */
+    public function scopeSearch($query, $searchTerm)
+    {
+        if (!$searchTerm) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($searchTerm) {
+            $q->whereRaw('LOWER(room_number) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
+              ->orWhereRaw('LOWER(description) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
+              ->orWhereRaw('LOWER(status) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
+              ->orWhere('floor', 'LIKE', '%' . $searchTerm . '%')
+              ->orWhereHas('roomType', function ($query) use ($searchTerm) {
+                  $query->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($searchTerm) . '%']);
+              });
+        });
     }
 }
