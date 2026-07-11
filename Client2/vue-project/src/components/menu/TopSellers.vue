@@ -1,41 +1,41 @@
 <template>
-  <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-    <div class="flex items-center justify-between mb-4">
+  <div class="bg-white rounded-lg sm:rounded-xl p-3 sm:p-5 border border-slate-200 shadow-sm">
+    <div class="flex items-center justify-between mb-2 sm:mb-4">
       <h3
-        class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2"
+        class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 truncate"
       >
-        <v-icon size="16" color="amber">mdi-trophy</v-icon>
-        Top Sellers
+        <v-icon size="14" sm:size="16" color="amber">mdi-trophy</v-icon>
+        <span class="hidden sm:inline">Top Sellers</span><span class="sm:hidden">Top</span>
       </h3>
-      <span class="text-xs font-bold text-slate-400">Last 30 Days</span>
+      <span class="text-xs font-bold text-slate-400 hidden sm:inline">Last 30 Days</span>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="flex items-center justify-center py-12">
-      <v-progress-circular indeterminate color="slate-400" size="32" width="3" />
+    <div v-if="loading" class="flex items-center justify-center py-8 sm:py-12">
+      <v-progress-circular indeterminate color="slate-400" size="28" sm:size="32" width="3" />
     </div>
 
     <!-- Empty State -->
     <div
       v-else-if="topSellers.length === 0"
-      class="flex flex-col items-center justify-center py-12 text-center"
+      class="flex flex-col items-center justify-center py-8 sm:py-12 text-center"
     >
-      <v-icon size="32" color="slate-300">mdi-silverware-fork-knife</v-icon>
+      <v-icon size="28" sm:size="32" color="slate-300">mdi-silverware-fork-knife</v-icon>
       <p class="text-xs text-slate-500 mt-2">No sales data yet</p>
     </div>
 
     <!-- Top Sellers List -->
-    <div v-else class="space-y-4">
-      <div v-for="(dish, index) in topSellers" :key="dish.id" class="flex items-center gap-3">
+    <div v-else class="space-y-2 sm:space-y-4">
+      <div v-for="(dish, index) in topSellers" :key="dish.id" class="flex items-center gap-2 sm:gap-3">
         <!-- Rank Badge -->
         <div class="relative flex-shrink-0">
           <img
             :src="dish.image || 'https://via.placeholder.com/44'"
-            class="w-11 h-11 rounded-xl object-cover bg-slate-50 border border-slate-100 shadow-sm"
+            class="w-9 sm:w-11 h-9 sm:h-11 rounded-lg sm:rounded-xl object-cover bg-slate-50 border border-slate-100 shadow-sm"
             alt=""
           />
           <div
-            class="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full flex items-center justify-center font-black text-xs border-2 border-white shadow-md"
+            class="absolute -top-1 sm:-top-1.5 -left-1 sm:-left-1.5 w-5 h-5 rounded-full flex items-center justify-center font-black text-xs border-2 border-white shadow-md"
             :class="getRankClass(index)"
           >
             {{ index + 1 }}
@@ -44,13 +44,13 @@
 
         <!-- Dish Info -->
         <div class="flex-1 min-w-0">
-          <div class="text-xs font-bold text-slate-800 truncate">{{ dish.name }}</div>
+          <div class="text-xs sm:text-sm font-bold text-slate-800 truncate">{{ dish.name }}</div>
           <div class="text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-1">
-            <v-icon size="12">mdi-shopping-outline</v-icon>
-            {{ dish.total_orders }} Orders
+            <v-icon size="10" sm:size="12">mdi-shopping-outline</v-icon>
+            <span class="hidden sm:inline">{{ dish.total_orders }} Orders</span><span class="sm:hidden">{{ dish.total_orders }}</span>
           </div>
           <!-- Progress Bar -->
-          <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden">
+          <div class="w-full bg-slate-100 h-1 sm:h-1.5 rounded-full mt-1 overflow-hidden">
             <div
               class="h-full rounded-full transition-all duration-500"
               :class="getProgressClass(index)"
@@ -61,8 +61,8 @@
 
         <!-- Order Count Badge -->
         <div class="text-right flex-shrink-0">
-          <div class="text-sm font-bold text-slate-900">{{ dish.total_orders }}</div>
-          <div class="text-xs text-slate-500">orders</div>
+          <div class="text-xs sm:text-sm font-bold text-slate-900">{{ dish.total_orders }}</div>
+          <div class="text-xs text-slate-500 hidden sm:block">orders</div>
         </div>
       </div>
     </div>

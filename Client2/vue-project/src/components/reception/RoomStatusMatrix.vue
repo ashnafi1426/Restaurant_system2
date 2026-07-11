@@ -28,32 +28,32 @@ const statusLabels: Record<string, string> = {
 </script>
 
 <template>
-  <div class="bg-blue-50 rounded-lg border border-blue-200 p-6 shadow-sm">
+  <div class="bg-blue-50 rounded-lg border border-blue-200 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-5 pb-4 border-b border-blue-200">
-      <h3 class="text-lg font-bold text-gray-900">Room Status Matrix</h3>
-      <div class="flex gap-3 items-center">
+    <div class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 pb-3 sm:pb-4 md:pb-5 border-b border-blue-200 flex-col sm:flex-row gap-2 sm:gap-0">
+      <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900">Room Status Matrix</h3>
+      <div class="flex gap-2 sm:gap-3 items-center flex-wrap justify-center sm:justify-end">
         <!-- Legend -->
-        <div class="flex items-center gap-2">
-          <div class="w-3 h-3 rounded-full bg-teal-600"></div>
-          <span class="text-xs text-gray-600 font-medium">Available</span>
+        <div class="hidden sm:flex items-center gap-1 md:gap-2">
+          <div class="w-2 h-2 md:w-3 md:h-3 rounded-full bg-teal-600"></div>
+          <span class="text-xs md:text-sm text-gray-600 font-medium">Available</span>
         </div>
-        <div class="flex items-center gap-2">
-          <div class="w-3 h-3 rounded-full bg-slate-600"></div>
-          <span class="text-xs text-gray-600 font-medium">Occupied</span>
+        <div class="hidden sm:flex items-center gap-1 md:gap-2">
+          <div class="w-2 h-2 md:w-3 md:h-3 rounded-full bg-slate-600"></div>
+          <span class="text-xs md:text-sm text-gray-600 font-medium">Occupied</span>
         </div>
-        <div class="flex items-center gap-2">
-          <div class="w-3 h-3 rounded-full bg-red-600"></div>
-          <span class="text-xs text-gray-600 font-medium">Dirty</span>
+        <div class="hidden md:flex items-center gap-1 md:gap-2">
+          <div class="w-2 h-2 md:w-3 md:h-3 rounded-full bg-red-600"></div>
+          <span class="text-xs md:text-sm text-gray-600 font-medium">Dirty</span>
         </div>
-        <div class="flex items-center gap-2">
-          <div class="w-3 h-3 rounded-full bg-red-700"></div>
-          <span class="text-xs text-gray-600 font-medium">Maintenance</span>
+        <div class="hidden lg:flex items-center gap-1 md:gap-2">
+          <div class="w-2 h-2 md:w-3 md:h-3 rounded-full bg-red-700"></div>
+          <span class="text-xs md:text-sm text-gray-600 font-medium">Maintenance</span>
         </div>
         <button
-          class="text-xs px-3 py-1 text-teal-600 hover:text-teal-700 font-bold rounded transition"
+          class="text-xs md:text-sm px-2 sm:px-3 md:px-4 py-1 md:py-1.5 text-teal-600 hover:text-teal-700 font-bold rounded transition min-h-10"
         >
-          All Floors
+          Filters
         </button>
       </div>
     </div>
@@ -61,13 +61,13 @@ const statusLabels: Record<string, string> = {
     <!-- Room Grid -->
     <div
       v-if="props.rooms.length > 0"
-      class="grid gap-2 mb-4"
-      style="grid-template-columns: repeat(auto-fill, minmax(54px, 1fr))"
+      class="grid gap-2 sm:gap-2.5 md:gap-3 mb-4"
+      style="grid-template-columns: repeat(auto-fill, minmax(48px, 1fr))"
     >
       <button
         v-for="room in props.rooms"
         :key="room.id"
-        :class="`${getRoomStatusColor(room.status)} text-xs font-bold py-3 px-2 rounded transition duration-200 cursor-pointer`"
+        :class="`${getRoomStatusColor(room.status)} text-xs md:text-sm font-bold py-2 md:py-3 px-1 md:px-2 rounded transition duration-200 cursor-pointer min-h-10`"
         :title="`Room ${room.room_number} - ${statusLabels[room.status]}`"
       >
         {{ room.room_number }}
@@ -75,14 +75,14 @@ const statusLabels: Record<string, string> = {
     </div>
 
     <!-- Empty State -->
-    <div v-else class="text-center py-8">
-      <p class="text-sm text-gray-500">No rooms available</p>
+    <div v-else class="text-center py-6 sm:py-8 md:py-10">
+      <p class="text-xs sm:text-sm md:text-base text-gray-500">No rooms available</p>
     </div>
 
     <!-- Footer -->
-    <div class="flex justify-between items-center text-xs pt-4 border-t border-gray-200">
+    <div class="flex justify-between items-center text-xs md:text-sm pt-3 sm:pt-4 md:pt-5 border-t border-gray-200 flex-col sm:flex-row gap-2 sm:gap-0">
       <p class="text-gray-500 font-medium">Last updated: 2 mins ago</p>
-      <button class="text-teal-600 hover:text-teal-700 font-bold">Open Full Interactive Map</button>
+      <button class="text-teal-600 hover:text-teal-700 font-bold min-h-10">Open Map</button>
     </div>
   </div>
 </template>

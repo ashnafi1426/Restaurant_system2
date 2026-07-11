@@ -83,76 +83,76 @@ onBeforeUnmount(() => {
   <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
     <!-- Header -->
     <div
-      class="flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white px-6 py-4"
+      class="flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5"
     >
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3 md:gap-4">
         <div class="rounded-lg bg-purple-100 p-2">
-          <span class="material-symbols-rounded text-purple-600">event</span>
+          <span class="material-symbols-rounded text-sm md:text-base text-purple-600">event</span>
         </div>
         <div>
-          <h2 class="text-lg font-semibold text-slate-800">Reservation Records</h2>
-          <p class="text-sm text-slate-500">Complete list of hotel reservations</p>
+          <h2 class="text-base sm:text-lg md:text-xl font-semibold text-slate-800">Reservation Records</h2>
+          <p class="hidden sm:block text-xs md:text-sm text-slate-500">Complete list of hotel reservations</p>
         </div>
       </div>
-      <div v-if="!loading && reservations.length > 0" class="text-sm text-slate-500">
+      <div v-if="!loading && reservations.length > 0" class="text-xs md:text-sm text-slate-500 whitespace-nowrap">
         {{ reservations.length }} reservation{{ reservations.length !== 1 ? 's' : '' }}
       </div>
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="flex flex-col items-center justify-center p-16 text-slate-500">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
-      <p class="font-medium">Loading reservations...</p>
+    <div v-if="loading" class="flex flex-col items-center justify-center p-8 sm:p-12 md:p-16 text-slate-500">
+      <div class="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 border-b-2 border-purple-600 mb-3 md:mb-4"></div>
+      <p class="font-medium text-sm md:text-base">Loading reservations...</p>
     </div>
 
     <!-- Empty -->
-    <div v-else-if="reservations.length === 0" class="p-16 text-center">
+    <div v-else-if="reservations.length === 0" class="p-8 sm:p-12 md:p-16 text-center">
       <div
-        class="mx-auto w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-4"
+        class="mx-auto w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-slate-100 flex items-center justify-center mb-3 md:mb-4"
       >
-        <span class="material-symbols-rounded text-4xl text-slate-400">event_busy</span>
+        <span class="material-symbols-rounded text-2xl sm:text-3xl md:text-4xl text-slate-400">event_busy</span>
       </div>
-      <h3 class="text-xl font-semibold text-slate-700 mb-2">No Reservations Found</h3>
-      <p class="text-slate-500">No reservation records match your current filters</p>
+      <h3 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-700 mb-2">No Reservations Found</h3>
+      <p class="text-xs sm:text-sm md:text-base text-slate-500">No reservation records match your current filters</p>
     </div>
 
     <!-- Table -->
-    <div v-else class="overflow-x-auto">
+    <div v-else class="overflow-x-auto -mx-4 sm:mx-0">
       <table class="min-w-full divide-y divide-slate-200">
         <thead class="bg-slate-50">
           <tr>
             <th
-              class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider"
             >
               Booking Reference
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              class="hidden sm:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider"
             >
               Guest
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              class="hidden md:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider"
             >
               Room
             </th>
             <th
-              class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              class="hidden lg:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-left text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider"
             >
               Dates
             </th>
             <th
-              class="px-6 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              class="hidden lg:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider"
             >
               Guests
             </th>
             <th
-              class="px-6 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider"
+              class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider"
             >
               Status
             </th>
             <th
-              class="px-6 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider w-24"
+              class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wider w-10 md:w-24"
             >
               Actions
             </th>

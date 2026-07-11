@@ -1,10 +1,10 @@
 <template>
-  <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
     <!-- Category Card -->
     <div
       v-for="cat in categories"
       :key="cat.id"
-      class="bg-white rounded-xl p-4 border transition hover:shadow-md cursor-pointer flex flex-col justify-between"
+      class="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border transition hover:shadow-md cursor-pointer flex flex-col justify-between"
       :class="[
         'border-2',
         selectedCategory === cat.id
@@ -16,41 +16,41 @@
       tabindex="0"
     >
       <!-- Header: Icon & Label -->
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-bold text-slate-500 tracking-wider uppercase truncate flex-1">
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-xs font-bold text-slate-500 tracking-wider uppercase truncate flex-1 line-clamp-2">
           {{ cat.label }}
         </span>
         <div
-          class="ml-2 w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+          class="ml-1 w-6 sm:w-7 md:w-8 h-6 sm:h-7 md:h-8 rounded-lg flex items-center justify-center flex-shrink-0"
           :class="getCategoryBgColor(cat.id)"
         >
-          <v-icon :size="18" :color="getCategoryIconColor(cat.id)">
+          <v-icon :size="14" sm:size="16" md:size="18" :color="getCategoryIconColor(cat.id)">
             {{ getCategoryIcon(cat.id) }}
           </v-icon>
         </div>
       </div>
 
       <!-- Item Count -->
-      <div class="mt-4">
-        <span class="text-2xl font-extrabold text-slate-800">{{ cat.count }}</span>
+      <div class="mt-3 sm:mt-4">
+        <span class="text-xl sm:text-2xl font-extrabold text-slate-800">{{ cat.count }}</span>
         <span class="text-xs text-slate-500 ml-1">Items</span>
       </div>
     </div>
 
     <!-- Add New Category Card (Optional) -->
     <div
-      class="bg-white rounded-xl p-4 border-2 border-dashed border-slate-300 hover:border-purple-300 transition cursor-pointer flex flex-col justify-between hover:bg-purple-50 group"
+      class="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border-2 border-dashed border-slate-300 hover:border-purple-300 transition cursor-pointer flex flex-col justify-between hover:bg-purple-50 group"
       role="button"
       tabindex="0"
     >
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between gap-2">
         <span class="text-xs font-bold text-slate-500 tracking-wider uppercase">New</span>
-        <v-icon size="20" color="slate" class="group-hover:text-purple-600 transition">
+        <v-icon size="18" sm:size="20" color="slate" class="group-hover:text-purple-600 transition">
           mdi-plus-circle
         </v-icon>
       </div>
-      <div class="mt-4">
-        <span class="text-2xl font-extrabold text-slate-400 group-hover:text-purple-600 transition"
+      <div class="mt-3 sm:mt-4">
+        <span class="text-xl sm:text-2xl font-extrabold text-slate-400 group-hover:text-purple-600 transition"
           >+</span
         >
       </div>

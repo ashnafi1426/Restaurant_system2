@@ -117,18 +117,20 @@ watch(
 </script>
 
 <template>
-  <div class="bg-white rounded-lg border border-gray-200 p-6">
-    <div class="flex justify-between items-start mb-6">
+  <div class="bg-white rounded-lg border border-gray-200 px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4 mb-4 sm:mb-5 md:mb-6">
       <div>
-        <h3 class="text-lg font-semibold text-gray-900">Monthly Revenue</h3>
-        <p class="text-sm text-gray-600 mt-1">Annual comparison of fiscal performance</p>
+        <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900">Monthly Revenue</h3>
+        <p class="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Annual comparison of fiscal performance</p>
       </div>
       <button
-        class="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded hover:bg-gray-200 transition-colors"
+        class="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 text-gray-700 text-xs sm:text-sm font-medium rounded hover:bg-gray-200 transition-colors whitespace-nowrap"
       >
         Last 6 Months
       </button>
     </div>
-    <Bar :data="chartData" :options="chartOptions" />
+    <div class="overflow-x-auto">
+      <Bar :data="chartData" :options="chartOptions" />
+    </div>
   </div>
 </template>

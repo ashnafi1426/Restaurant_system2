@@ -38,19 +38,19 @@ const iconMap: Record<string, string> = {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg border border-gray-200 p-5 shadow-sm hover:shadow-md transition">
+  <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm hover:shadow-md transition">
     <!-- Title (uppercase, small) -->
-    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">{{ title }}</p>
+    <p class="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-widest mb-2 sm:mb-3 md:mb-4">{{ title }}</p>
 
     <!-- Value and Icon -->
-    <div class="flex items-end justify-between gap-3">
+    <div class="flex items-end justify-between gap-2 sm:gap-3 md:gap-4">
       <div class="flex-1">
-        <p :class="`${colorMap[color].text} text-6xl font-bold leading-none`">{{ value }}</p>
-        <p class="text-xs text-gray-500 mt-2 font-medium">{{ subtext }}</p>
+        <p :class="`${colorMap[color].text} text-4xl sm:text-5xl md:text-6xl font-bold leading-none`">{{ value }}</p>
+        <p class="text-xs sm:text-sm md:text-base text-gray-500 mt-1 sm:mt-2 md:mt-3 font-medium">{{ subtext }}</p>
       </div>
       <!-- Icon SVG -->
       <div class="flex-shrink-0">
-        <svg class="w-5 h-5" :class="colorMap[color].icon" fill="currentColor" viewBox="0 0 24 24">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" :class="colorMap[color].icon" fill="currentColor" viewBox="0 0 24 24">
           <path :d="iconMap[icon]" />
         </svg>
       </div>

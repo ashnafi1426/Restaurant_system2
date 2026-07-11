@@ -1,174 +1,109 @@
-export type OrderStatus =
-  | 'pending'
-  | 'preparing'
-  | 'ready'
-  | 'served'
-  | 'cancelled'
-
-export type PaymentType =
-  | 'room_charge'
-  | 'cash'
-  | 'card'
-export interface OrderGuest {
-  id: string
-  name: string
-  email?: string
-  phone?: string
-}
-export interface OrderRoom {
-  id: string
-  room_number: string
-}
-export interface OrderReservation {
-  id: string
-}
-
-export interface OrderMenuItem {
-  id: string
-  name: string
-  image?: string | null
-  price: number
-}
-
 export interface OrderItem {
-  id: string
-
+  id?: string
   menu_item_id: string
-
-  menu_item_name?: string
-
-  menu_item_image?: string | null
-
   quantity: number
-
-  item_price: number
-
-  line_total: number
-
-  notes?: string | null
-}
-export interface Order {
-  id: string
-
-  order_number: string
-
-  status: OrderStatus
-
-  payment_type: PaymentType
-
-  reservation: OrderReservation
-
-  guest: OrderGuest
-
-  room: OrderRoom
-
-  subtotal: number
-
-  tax: number
-
-  discount: number
-
-  total: number
-
-  notes?: string | null
-
-  order_time: string
-
-  served_at?: string | null
-
-  cancelled_at?: string | null
-
-  created_at: string
-
-  updated_at: string
-
-  items: OrderItem[]
-}
-export interface CreateOrderItemRequest {
-  menu_item_id: string
-
-  quantity: number
-
+  item_price_at_order?: number
+  price?: number
+  line_total?: number
   notes?: string
+  name?: string
+  menu_item?: {
+    id: string
+    name: string
+  }
 }
 
 export interface CreateOrderRequest {
   reservation_id: string
-
   guest_id: string
-
   room_id: string
-
+  payment_type?: string
   notes?: string
-
-  items: CreateOrderItemRequest[]
+  items: Array<{
+    menu_item_id: string
+    quantity: number
+    notes?: string
+  }>
 }
-export interface UpdateOrderItemRequest {
+
+export interface UpdateOrderRequest extends CreateOrderRequest {
   id?: string
-
-  menu_item_id: string
-
-  quantity: number
-
-  notes?: string
 }
 
-export interface UpdateOrderRequest {
-  reservation_id: string
-
-  guest_id: string
-
-  room_id: string
-
-  notes?: string
-
-  items: UpdateOrderItemRequest[]
-}
-export interface ChangeOrderStatusRequest {
-  status: OrderStatus
-}
-export interface PaginationMeta {
-  current_page: number
-  last_page: number
-  per_page: number
-  total: number
-}
-export interface OrderCollectionResponse {
-  success: boolean
-  message: string
-  data: Order[]
-  meta: PaginationMeta
-}
 export interface OrderResponse {
   success: boolean
-
-  message: string
-
   data: Order
 }
+
+export interface OrderCollectionResponse {
+  data: Order[]
+  meta?: {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+  }
+}
+
+export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled'
+
+export interface OrderFilters {
+  search?: string
+  status?: string
+  payment_type?: string
+  room_id?: string
+  date_from?: string
+  date_to?: string
+  page?: number
+  per_page?: number
+}
+
 export interface OrderStatistics {
   total_orders: number
-
   pending_orders: number
-
   preparing_orders: number
-
   ready_orders: number
-
   served_orders: number
-
   cancelled_orders: number
-
   total_revenue: number
 }
 
-export interface OrderFilters {
-  search: string
-  status: OrderStatus | ''
-  payment_type: PaymentType | ''
+export interface Order {
+  id: string
+  order_number: string
+  reservation_id: string
+  guest_id: string
   room_id: string
-  date_from: string
-  date_to: string
-  page: number
-  per_page: number
+  order_time: string
+  status: 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled'
+  payment_type: 'room_charge' | 'cash' | 'card'
+  subtotal: number
+  tax: number
+  discount: number
+  total: number
+  notes?: string
+  served_at?: string | null
+  cancelled_at?: string | null
+  created_at: string
+  updated_at: string
+  items?: OrderItem[]
+  guest?: {
+    id: string
+    first_name: string
+    last_name: string
+    email?: string
+    phone?: string
+    full_name?: string
+  }
+  room?: {
+    id: string
+    room_number: string
+    room_type?: {
+      id: string
+      name: string
+    }
+  }
+  reservation?: {
+    id: string
+  }
 }

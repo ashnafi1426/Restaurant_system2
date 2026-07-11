@@ -1,12 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
+import AboutPage from "../views/guest/About.vue"
+import GuestHome from '../views/guest/Home.vue'
+import contactPage from "../views/guest/Contact.vue"
 import LoginView from '../views/LoginView.vue'
 import AdminDashboard from '../views/Admin/AdminDashboard.vue'
+import orderManagment from '../views/Admin/order/OrderManagment.vue'
 import ReceptionDashboard from '../views/receptionist/reception/ReceptionDashboard.vue'
 import MenuManagement from '../views/Admin/menu/MenuView.vue'
 import AddMenuItemView from '../views/Admin/menu/AddMenuItemView.vue'
 import CashierDashboard from '../views/Cashier/CashierDashboard.vue'
-import ChefDashboard from '../views/chef/ChefDashboard.vue'
+import kitchenDashboard from '../views/kitchen/kitchenDashboard.vue'
+import FoodOrdersView from '../views/kitchen/FoodOrdersView.vue'
+import PendingOrdersView from '../views/kitchen/PendingOrdersView.vue'
+import PreparingOrdersView from '../views/kitchen/PreparingOrdersView.vue'
+import ServedOrdersView from '../views/kitchen/ServedOrdersView.vue'
 import ManagerDashboard from '../views/manager/ManagerDashboard.vue'
 import UserList from '../views/admin/users/UserList.vue'
 import CreateUser from '../views/admin/users/CreateUser.vue'
@@ -27,11 +34,27 @@ import ReservationListPage from '../views/receptionist/reservation/ReservationLi
 import ReservationCreatePage from '../views/receptionist/reservation/ReservationCreate.vue'
 import ReservationEditPage from '../views/receptionist/reservation/ReservationEdit.vue'
 import CheckInView from '../views/receptionist/checkIn/checkInView.vue'
+import AddOrder from '@/views/Admin/order/AddOrder.vue'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/',
+      name: 'home',
+      component: GuestHome,
+    },
+    {
+      path: '/about',
+      name: 'About',
+      component: AboutPage,
+    },
+     {
+      path: '/contact',
+      name: 'contact',
+      component: contactPage,
+    },
+    {
+      path: '/login',
       name: 'login',
       component: LoginView,
     },
@@ -92,7 +115,43 @@ const router = createRouter({
     {
       path: '/chef',
       name: 'chef-dashboard',
-      component: ChefDashboard,
+      component: kitchenDashboard,
+      meta: {
+        requiresAuth: true,
+        role: 'chef',
+      },
+    },
+    {
+      path: '/chef/food-orders',
+      name: 'chef-food-orders',
+      component: FoodOrdersView,
+      meta: {
+        requiresAuth: true,
+        role: 'chef',
+      },
+    },
+    {
+      path: '/chef/pending-orders',
+      name: 'chef-pending-orders',
+      component: PendingOrdersView,
+      meta: {
+        requiresAuth: true,
+        role: 'chef',
+      },
+    },
+    {
+      path: '/chef/preparing-orders',
+      name: 'chef-preparing-orders',
+      component: PreparingOrdersView,
+      meta: {
+        requiresAuth: true,
+        role: 'chef',
+      },
+    },
+    {
+      path: '/chef/served-orders',
+      name: 'chef-served-orders',
+      component: ServedOrdersView,
       meta: {
         requiresAuth: true,
         role: 'chef',
@@ -263,7 +322,7 @@ const router = createRouter({
     },
     {
       path: '/:pathMatch(.*)*',
-      redirect: '/',
+      redirect: '/login',
     },
     {
       path: '/check-in',
@@ -274,6 +333,34 @@ const router = createRouter({
         requiresAuth: true,
       },
     },
+
+    {
+      path: '/orders',
+      name: 'orders',
+      component: orderManagment,
+      meta: {
+        title: 'order In Management',
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/orders/create',
+      name: 'create-order',
+      component: AddOrder,
+      meta: { title: 'Create Order' },
+    },
+    {
+      path: '/orders/:id/edit',
+      name: 'edit-order',
+      component: AddOrder,
+      meta: { title: 'Edit Order' },
+    },
+    {
+      path: '/orders/:id/view',
+      name: 'view-order',
+      component: AddOrder,
+      meta: { title: 'View Order' },
+    },
   ],
 })
 
@@ -282,7 +369,7 @@ router.beforeEach((to) => {
   const user = JSON.parse(localStorage.getItem('user') || 'null')
 
   if (to.meta.requiresAuth && !token) {
-    return '/'
+    return '/login'
   }
 
   if (to.meta.role && user?.role !== to.meta.role) {
@@ -299,7 +386,7 @@ router.beforeEach((to) => {
     } else if (user?.role === 'chef') {
       return '/chef'
     }
-    return '/'
+    return '/login'
   }
 
   return true

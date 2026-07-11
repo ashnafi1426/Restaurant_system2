@@ -52,17 +52,44 @@ const filteredGuests = computed(() => {
   )
 })
 
-// Filter rooms based on search (by room number, type, or id)
+// Filter rooms based on search (by room number, floor, type, status, or id)
 const filteredRooms = computed(() => {
   if (!roomSearch.value.trim()) return props.rooms
 
-  const search = roomSearch.value.toLowerCase()
-  return props.rooms.filter(
-    (r) =>
-      (r.room_number && r.room_number.toString().includes(search)) ||
-      (r.room_type?.name && r.room_type.name.toLowerCase().includes(search)) ||
-      (r.id && r.id.toLowerCase().includes(search)),
-  )
+  let search = roomSearch.value.toLowerCase()
+  
+  // Remove "room" or "rm" prefix if user typed it
+  if (search.startsWith('room ')) {
+    search = search.replace('room ', '').trim()
+  }
+  if (search.startsWith('rm ')) {
+    search = search.replace('rm ', '').trim()
+  }
+  
+  return props.rooms.filter((r) => {
+    if (!r) return false
+    
+    try {
+      const roomNumber = r.room_number ? String(r.room_number).toLowerCase() : ''
+      const roomType = r.room_type?.name ? String(r.room_type.name).toLowerCase() : ''
+      const floor = r.floor ? String(r.floor).toLowerCase() : ''
+      const status = r.status ? String(r.status).toLowerCase() : ''
+      const description = r.description ? String(r.description).toLowerCase() : ''
+      const id = r.id ? String(r.id).toLowerCase() : ''
+      
+      return (
+        roomNumber.includes(search) ||
+        roomType.includes(search) ||
+        floor.includes(search) ||
+        status.includes(search) ||
+        description.includes(search) ||
+        id.includes(search)
+      )
+    } catch (e) {
+      console.error('Error filtering room:', r, e)
+      return false
+    }
+  })
 })
 
 const formatRoomDisplay = (room: Room): string => {
@@ -83,7 +110,7 @@ const selectGuest = (guest: Guest) => {
 }
 
 const selectRoom = (room: Room) => {
-  form.value.room_id = room.id || room.roomid
+  form.value.room_id = room.id
   roomSearch.value = ''
   showRoomDropdown.value = false
 }
@@ -135,18 +162,18 @@ const submit = () => {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-sm border p-6 space-y-6">
+  <div class="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6">
     <!-- Title -->
     <div>
-      <h2 class="text-xl font-semibold">Reservation Form</h2>
-      <p class="text-gray-500 text-sm">Create or update hotel reservation</p>
+      <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900">Reservation Form</h2>
+      <p class="text-xs sm:text-sm text-slate-500 mt-1">Create or update hotel reservation</p>
     </div>
 
     <!-- Guest + Room -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
       <!-- Guest Search -->
       <div class="relative">
-        <label class="block text-sm font-medium text-gray-700 mb-2">
+        <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
           Guest <span class="text-red-500">*</span>
         </label>
 
@@ -155,23 +182,23 @@ const submit = () => {
           type="text"
           v-model="guestSearch"
           @focus="showGuestDropdown = true"
-          placeholder="Search by name, email, phone, or ID..."
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          :class="{ 'border-red-500': !form.guest_id && form.guest_id !== '' }"
+          placeholder="Search by name, email, phone..."
+          class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+          :class="{ 'border-red-500 ring-2 ring-red-200': !form.guest_id && form.guest_id !== '' }"
         />
 
         <!-- Selected Guest Display -->
-        <div v-if="selectedGuest && !showGuestDropdown" class="text-xs text-gray-600 mt-1">
+        <div v-if="selectedGuest && !showGuestDropdown" class="text-xs text-slate-600 mt-1">
           ✓ Selected: {{ formatGuestDisplay(selectedGuest) }}
         </div>
 
         <!-- Search Results Dropdown -->
         <div
           v-if="showGuestDropdown"
-          class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
+          class="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
         >
           <!-- No results -->
-          <div v-if="filteredGuests.length === 0" class="p-3 text-gray-500 text-center">
+          <div v-if="filteredGuests.length === 0" class="p-3 sm:p-4 text-slate-500 text-center text-xs sm:text-sm">
             No guests found
           </div>
 
@@ -180,21 +207,21 @@ const submit = () => {
             v-for="guest in filteredGuests"
             :key="guest.id"
             @click="selectGuest(guest)"
-            class="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 text-sm"
+            class="p-2 sm:p-3 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-b-0 text-xs sm:text-sm transition duration-150"
             :class="{ 'bg-blue-100': form.guest_id === guest.id }"
           >
-            <div class="font-medium">{{ guest.first_name }} {{ guest.last_name }}</div>
-            <div class="text-xs text-gray-600">
+            <div class="font-medium text-slate-900">{{ guest.first_name }} {{ guest.last_name }}</div>
+            <div class="text-xs text-slate-600 mt-0.5">
               {{ guest.email || guest.phone || 'No contact' }}
             </div>
-            <div class="text-xs text-gray-500">ID: {{ guest.id }}</div>
+            <div class="text-xs text-slate-500">ID: {{ guest.id }}</div>
           </div>
         </div>
       </div>
 
       <!-- Room Search -->
       <div class="relative">
-        <label class="block text-sm font-medium text-gray-700 mb-2">
+        <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
           Room <span class="text-red-500">*</span>
         </label>
 
@@ -203,23 +230,23 @@ const submit = () => {
           type="text"
           v-model="roomSearch"
           @focus="showRoomDropdown = true"
-          placeholder="Search by room number, type, or ID..."
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          :class="{ 'border-red-500': !form.room_id && form.room_id !== '' }"
+          placeholder="Search by room number, type..."
+          class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+          :class="{ 'border-red-500 ring-2 ring-red-200': !form.room_id && form.room_id !== '' }"
         />
 
         <!-- Selected Room Display -->
-        <div v-if="selectedRoom && !showRoomDropdown" class="text-xs text-gray-600 mt-1">
+        <div v-if="selectedRoom && !showRoomDropdown" class="text-xs text-slate-600 mt-1">
           ✓ Selected: {{ formatRoomDisplay(selectedRoom) }}
         </div>
 
         <!-- Search Results Dropdown -->
         <div
           v-if="showRoomDropdown"
-          class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
+          class="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
         >
           <!-- No results -->
-          <div v-if="filteredRooms.length === 0" class="p-3 text-gray-500 text-center">
+          <div v-if="filteredRooms.length === 0" class="p-3 sm:p-4 text-slate-500 text-center text-xs sm:text-sm">
             No rooms found
           </div>
 
@@ -228,78 +255,109 @@ const submit = () => {
             v-for="room in filteredRooms"
             :key="room.id || room.roomid"
             @click="selectRoom(room)"
-            class="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 text-sm"
+            class="p-2 sm:p-3 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-b-0 text-xs sm:text-sm transition duration-150"
             :class="{ 'bg-blue-100': form.room_id === (room.id || room.roomid) }"
           >
-            <div class="font-medium">Room {{ room.room_number }}</div>
-            <div class="text-xs text-gray-600">
+            <div class="font-medium text-slate-900">Room {{ room.room_number }}</div>
+            <div class="text-xs text-slate-600 mt-0.5">
               {{ room.room_type?.name }} - {{ room.room_type?.capacity }} guests
             </div>
-            <div class="text-xs text-gray-500">{{ formatRoomDisplay(room) }}</div>
+            <div class="text-xs text-slate-500">{{ formatRoomDisplay(room) }}</div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Dates -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
       <!-- Check In -->
       <div>
-        <label class="text-sm font-medium">Check In</label>
-        <input type="date" v-model="form.check_in_date" class="w-full border rounded px-3 py-2" />
-        <p v-if="isPastDate" class="text-red-500 text-sm">Check-in cannot be in the past</p>
+        <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+          Check In <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="date"
+          v-model="form.check_in_date"
+          class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+          :min="today"
+        />
+        <p v-if="isPastDate" class="text-red-500 text-xs sm:text-sm mt-1">
+          ⚠️ Check-in cannot be in the past
+        </p>
       </div>
 
       <!-- Check Out -->
       <div>
-        <label class="text-sm font-medium">Check Out</label>
-        <input type="date" v-model="form.check_out_date" class="w-full border rounded px-3 py-2" />
-        <p v-if="!isValidDateRange" class="text-red-500 text-sm">
-          Check-out must be after check-in
+        <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+          Check Out <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="date"
+          v-model="form.check_out_date"
+          class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+          :min="form.check_in_date || today"
+        />
+        <p v-if="!isValidDateRange" class="text-red-500 text-xs sm:text-sm mt-1">
+          ⚠️ Check-out must be after check-in
         </p>
       </div>
     </div>
 
     <!-- Guests Count -->
     <div>
-      <label class="text-sm font-medium">Number of Guests</label>
+      <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+        Number of Guests <span class="text-red-500">*</span>
+      </label>
       <input
         type="number"
         v-model="form.number_of_guests"
-        class="w-full border rounded px-3 py-2"
+        class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
         min="1"
+        max="99"
       />
     </div>
 
     <!-- Special Requests -->
     <div>
-      <label class="text-sm font-medium">Special Requests</label>
+      <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+        Special Requests <span class="text-slate-500 text-xs">(Optional)</span>
+      </label>
       <textarea
         v-model="form.special_requests"
         rows="3"
-        class="w-full border rounded px-3 py-2"
-        placeholder="Any special requirements..."
+        class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 resize-none"
+        placeholder="Any special requirements or preferences..."
       ></textarea>
     </div>
 
     <!-- Nights Display -->
-    <div class="bg-gray-50 p-3 rounded border text-sm">
-      Total Nights:
-      <span class="font-semibold">{{ nights }}</span>
+    <div class="bg-gradient-to-r from-blue-50 to-blue-100/50 p-3 sm:p-4 rounded-lg border border-blue-200 text-xs sm:text-sm">
+      <div class="flex justify-between items-center">
+        <span class="text-slate-700 font-medium">Total Nights:</span>
+        <span class="text-lg sm:text-xl font-bold text-blue-600">{{ nights }} {{ nights === 1 ? 'night' : 'nights' }}</span>
+      </div>
     </div>
 
     <!-- Actions -->
-    <div class="flex justify-end gap-3">
-      <button type="button" class="px-5 py-2 border rounded hover:bg-gray-100">Cancel</button>
+    <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
+      <button
+        type="button"
+        class="px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-700 transition duration-200"
+      >
+        Cancel
+      </button>
 
       <button
         type="button"
         @click="submit"
-        :disabled="loading"
-        class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+        :disabled="loading || !isValidDateRange || isPastDate || !form.guest_id || !form.room_id"
+        class="px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
       >
-        <span v-if="loading">Saving...</span>
-        <span v-else>Save Reservation</span>
+        <span v-if="loading" class="inline-flex items-center gap-2">
+          <span class="animate-spin">⌛</span>
+          Saving...
+        </span>
+        <span v-else>💾 Save Reservation</span>
       </button>
     </div>
   </div>

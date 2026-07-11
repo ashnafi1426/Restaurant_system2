@@ -26,7 +26,7 @@ import {
   CircleDollarSign,
   Percent,
   CalendarCheck,
-  FileSpreadsheet
+  FileSpreadsheet,
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -39,7 +39,7 @@ const menuIcons: Record<string, Component> = {
   Rooms: Hotel,
   'Room Types': BedDouble,
   Reports: FileText,
-  Restaurant: UtensilsCrossed, // Fixed missing mapping from the original script
+  Restaurant: UtensilsCrossed,
   Guests: Contact,
   Reservations: CalendarDays,
   'Check In': LogIn,
@@ -76,6 +76,7 @@ const menus = computed(() => {
         { name: 'Reservations', path: '/reservations', icon: 'Reservations' },
         { name: 'Check In', path: '/check-in', icon: 'Check In' },
         { name: 'Check Out', path: '/check-out', icon: 'Check Out' },
+        { name: 'Orders', path: '/orders', icon: 'Food Orders' },
       ]
     case 'cashier':
       return [
@@ -88,10 +89,10 @@ const menus = computed(() => {
     case 'chef':
       return [
         { name: 'Dashboard', path: '/chef', icon: 'Dashboard' },
-        { name: 'Food Orders', path: '/food-orders', icon: 'Food Orders' },
-        { name: 'Pending Orders', path: '/pending-orders', icon: 'Pending Orders' },
-        { name: 'Preparing Orders', path: '/preparing-orders', icon: 'Preparing Orders' },
-        { name: 'Served Orders', path: '/served-orders', icon: 'Served Orders' },
+        { name: 'Food Orders', path: '/chef/food-orders', icon: 'Food Orders' },
+        { name: 'Pending Orders', path: '/chef/pending-orders', icon: 'Pending Orders' },
+        { name: 'Preparing Orders', path: '/chef/preparing-orders', icon: 'Preparing Orders' },
+        { name: 'Served Orders', path: '/chef/served-orders', icon: 'Served Orders' },
       ]
     case 'manager':
       return [
@@ -113,26 +114,28 @@ const isActive = (path: string): boolean => {
 
 <template>
   <aside
-    class="w-64 h-screen sticky top-0 left-0 bg-zinc-950 border-r border-zinc-800/60 text-zinc-200 flex flex-col relative select-none flex-shrink-0"
+    class="w-64 h-screen sticky top-0 left-0 bg-white border-r border-gray-200 text-gray-700 flex flex-col relative select-none flex-shrink-0 shadow-sm hidden lg:flex"
   >
-    <div class="flex items-center gap-3 px-5 h-16 border-b border-zinc-800/50 flex-shrink-0">
+    <!-- Header / Brand -->
+    <div class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-5 h-14 sm:h-16 border-b border-gray-200 flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50">
       <div
-        class="w-8 h-8 bg-gradient-to-br from-indigo-500 via-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/10 flex-shrink-0 ring-1 ring-white/10"
+        class="w-8 sm:w-9 h-8 sm:h-9 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0"
       >
-        <Hotel class="w-4 h-4 text-white" :stroke-width="2.5" />
+        <Hotel class="w-4 sm:w-5 h-4 sm:h-5 text-white" :stroke-width="2.5" />
       </div>
 
       <div class="min-w-0 flex flex-col">
-        <h1 class="font-semibold text-sm text-zinc-100 tracking-tight leading-tight">Hotel HMS</h1>
-        <p class="text-[10px] text-zinc-400 font-semibold uppercase tracking-[0.10em] mt-0.5">
+        <h1 class="font-bold text-sm sm:text-base text-gray-800 tracking-tight leading-tight truncate">Hotel HMS</h1>
+        <p class="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-[0.08em] mt-0.5">
           {{ auth.user?.role || 'Management' }}
         </p>
       </div>
     </div>
 
-    <nav class="flex-1 px-3 py-4 overflow-y-auto space-y-6">
+    <!-- Navigation -->
+    <nav class="flex-1 px-2 sm:px-3 py-4 sm:py-5 overflow-y-auto space-y-4 sm:space-y-6">
       <div>
-        <p class="px-3 text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
+        <p class="px-2 sm:px-3 text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-[0.12em] mb-2 sm:mb-3">
           Main Menu
         </p>
 
@@ -141,40 +144,44 @@ const isActive = (path: string): boolean => {
             v-for="menu in menus"
             :key="menu.path"
             :to="menu.path"
-            class="group relative flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 text-[13px] font-medium border border-transparent"
+            class="group relative flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg transition-all duration-200 text-xs sm:text-sm font-medium border border-transparent"
             :class="[
               isActive(menu.path)
-                ? 'bg-zinc-800 text-white border-zinc-700/50 shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900',
+                ? 'bg-blue-50 text-blue-700 border-blue-200/60 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50',
             ]"
           >
+            <!-- Active indicator bar -->
             <div
-              class="absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-blue-500 transition-transform scale-y-0"
+              class="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-blue-600 transition-transform scale-y-0"
               :class="{ 'scale-y-100': isActive(menu.path) }"
             ></div>
 
+            <!-- Icon -->
             <component
               :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
-              class="w-[18px] h-[18px] flex-shrink-0 transition-colors duration-200"
+              class="w-4 sm:w-[18px] h-4 sm:h-[18px] flex-shrink-0 transition-colors duration-200"
               :class="[
-                isActive(menu.path) ? 'text-blue-400' : 'text-zinc-500 group-hover:text-zinc-400',
+                isActive(menu.path) ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600',
               ]"
               :stroke-width="1.75"
             />
 
-            <span class="flex-1 transition-transform group-hover:translate-x-0.5 duration-200">
+            <!-- Menu Name -->
+            <span class="flex-1 transition-transform group-hover:translate-x-0.5 duration-200 truncate">
               {{ menu.name }}
             </span>
 
+            <!-- Badges -->
             <span
               v-if="menu.name === 'Pending Orders'"
-              class="text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full"
+              class="text-[8px] sm:text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0"
             >
               12
             </span>
             <span
               v-if="menu.name === 'Check In'"
-              class="text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full"
+              class="text-[8px] sm:text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0"
             >
               5
             </span>
@@ -183,30 +190,32 @@ const isActive = (path: string): boolean => {
       </div>
     </nav>
 
-    <div class="px-3 py-3 border-t border-zinc-800/50 flex-shrink-0">
+    <!-- Logout Button -->
+    <div class="px-2 sm:px-3 py-2 sm:py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50/50">
       <button
         @click="auth.logout()"
-        class="w-full group flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 border border-transparent transition-all duration-200"
+        class="w-full group flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 border border-transparent transition-all duration-200"
       >
-        <LogOut 
-          class="w-[18px] h-[18px] flex-shrink-0 text-zinc-500 group-hover:text-zinc-400 transition-colors duration-200" 
-          :stroke-width="1.75" 
+        <LogOut
+          class="w-4 sm:w-[18px] h-4 sm:h-[18px] flex-shrink-0 text-gray-400 group-hover:text-gray-600 transition-colors duration-200"
+          :stroke-width="1.75"
         />
-        <span>Logout</span>
+        <span class="hidden sm:inline">Logout</span>
       </button>
     </div>
 
-    <div class="px-5 py-3 border-t border-zinc-800/50 bg-zinc-950 flex-shrink-0">
+    <!-- Footer -->
+    <div class="px-3 sm:px-4 md:px-5 py-2 sm:py-3 border-t border-gray-200 bg-gray-50/50 flex-shrink-0">
       <div class="flex items-center justify-between">
-        <span class="text-[10px] font-medium text-zinc-600 tracking-wide">v2.0.0</span>
-        <div class="flex items-center gap-2">
-          <span class="relative flex h-1.5 w-1.5">
+        <span class="text-[8px] sm:text-[10px] font-medium text-gray-400 tracking-wide">v2.0.0</span>
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <span class="relative flex h-1.5 sm:h-2 w-1.5 sm:w-2">
             <span
-              class="absolute inline-flex h-full w-full rounded-full bg-emerald-500/40 opacity-75 animate-ping"
+              class="absolute inline-flex h-full w-full rounded-full bg-emerald-400/60 animate-ping"
             ></span>
-            <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+            <span class="relative inline-flex rounded-full h-1.5 sm:h-2 w-1.5 sm:w-2 bg-emerald-500"></span>
           </span>
-          <span class="text-[10px] font-medium text-zinc-400">System Live</span>
+          <span class="text-[8px] sm:text-[10px] font-medium text-gray-500 hidden sm:inline">System Live</span>
         </div>
       </div>
     </div>
@@ -221,15 +230,21 @@ nav::-webkit-scrollbar-track {
   background: transparent;
 }
 nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.05);
+  background: #e5e7eb;
   border-radius: 9999px;
 }
 nav::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: #d1d5db;
 }
 .router-link-active:focus-visible,
 button:focus-visible {
-  outline: 2px solid rgb(59, 130, 246);
-  outline-offset: -1px;
+  outline: 2px solid rgb(37, 99, 235);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+.router-link-active,
+button {
+  transition: all 0.15s ease;
 }
 </style>

@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import type {
-  OrderFilters,
-  OrderStatus,
-  PaymentType,
-} from '@/types/order'
+import type { OrderFilters, OrderStatus, PaymentType } from '@/types/order'
 
 /*
 |--------------------------------------------------------------------------
@@ -118,20 +114,14 @@ function reset(): void {
 </script>
 
 <template>
-  <div
-    class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
-  >
-    <div
-      class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6"
-    >
+  <div class="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm">
+    <div class="grid grid-cols-1 gap-3 sm:gap-4 md:gap-5 lg:gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       <!-- ===================================================== -->
       <!-- Search -->
       <!-- ===================================================== -->
 
-      <div class="xl:col-span-2">
-        <label
-          class="mb-2 block text-sm font-medium text-gray-700"
-        >
+      <div class="lg:col-span-2">
+        <label class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700">
           Search
         </label>
 
@@ -139,8 +129,8 @@ function reset(): void {
           v-model="localFilters.search"
           type="text"
           placeholder="Order number, guest..."
-          class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-indigo-500 focus:outline-none"
-        >
+          class="w-full rounded-lg border border-gray-300 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-10"
+        />
       </div>
 
       <!-- ===================================================== -->
@@ -148,21 +138,15 @@ function reset(): void {
       <!-- ===================================================== -->
 
       <div>
-        <label
-          class="mb-2 block text-sm font-medium text-gray-700"
-        >
+        <label class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700">
           Status
         </label>
 
         <select
           v-model="localFilters.status"
-          class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-indigo-500 focus:outline-none"
+          class="w-full rounded-lg border border-gray-300 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-10"
         >
-          <option
-            v-for="status in statusOptions"
-            :key="status.value"
-            :value="status.value"
-          >
+          <option v-for="status in statusOptions" :key="status.value" :value="status.value">
             {{ status.label }}
           </option>
         </select>
@@ -173,21 +157,15 @@ function reset(): void {
       <!-- ===================================================== -->
 
       <div>
-        <label
-          class="mb-2 block text-sm font-medium text-gray-700"
-        >
+        <label class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700">
           Payment
         </label>
 
         <select
           v-model="localFilters.payment_type"
-          class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-indigo-500 focus:outline-none"
+          class="w-full rounded-lg border border-gray-300 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-10"
         >
-          <option
-            v-for="payment in paymentOptions"
-            :key="payment.value"
-            :value="payment.value"
-          >
+          <option v-for="payment in paymentOptions" :key="payment.value" :value="payment.value">
             {{ payment.label }}
           </option>
         </select>
@@ -198,17 +176,15 @@ function reset(): void {
       <!-- ===================================================== -->
 
       <div>
-        <label
-          class="mb-2 block text-sm font-medium text-gray-700"
-        >
+        <label class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700">
           From
         </label>
 
         <input
           v-model="localFilters.date_from"
           type="date"
-          class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-indigo-500 focus:outline-none"
-        >
+          class="w-full rounded-lg border border-gray-300 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-10"
+        />
       </div>
 
       <!-- ===================================================== -->
@@ -216,17 +192,15 @@ function reset(): void {
       <!-- ===================================================== -->
 
       <div>
-        <label
-          class="mb-2 block text-sm font-medium text-gray-700"
-        >
+        <label class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700">
           To
         </label>
 
         <input
           v-model="localFilters.date_to"
           type="date"
-          class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-indigo-500 focus:outline-none"
-        >
+          class="w-full rounded-lg border border-gray-300 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-10"
+        />
       </div>
     </div>
 
@@ -234,13 +208,11 @@ function reset(): void {
     <!-- Actions -->
     <!-- ======================================================= -->
 
-    <div
-      class="mt-6 flex flex-wrap justify-end gap-3"
-    >
+    <div class="mt-4 sm:mt-5 md:mt-6 lg:mt-8 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-end">
       <button
         type="button"
         :disabled="loading"
-        class="rounded-lg border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+        class="rounded-lg border border-gray-300 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 min-h-10"
         @click="reset"
       >
         Reset
@@ -249,7 +221,7 @@ function reset(): void {
       <button
         type="button"
         :disabled="loading"
-        class="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+        class="rounded-lg bg-indigo-600 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 min-h-10"
         @click="search"
       >
         Search

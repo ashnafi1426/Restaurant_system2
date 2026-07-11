@@ -6,6 +6,10 @@ export const roomService = {
     return api.get('/rooms', { params })
   },
 
+  searchRooms(searchTerm: string, params: any = {}) {
+    return api.get('/rooms', { params: { ...params, search: searchTerm } })
+  },
+
   getRoom(id: string) {
     return api.get(`/rooms/${String(id)}`)
   },

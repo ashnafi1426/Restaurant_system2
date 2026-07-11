@@ -37,9 +37,43 @@ onMounted(async () => {
 
 const filteredRooms = computed(() => {
   console.log('[ROOMLIST] Computing filtered rooms from:', roomStore.rooms.length, 'rooms')
-  return roomStore.rooms.filter((room) =>
-    room.room_number.toLowerCase().includes(search.value.toLowerCase()),
-  )
+  
+  if (!search.value.trim()) {
+    return roomStore.rooms
+  }
+
+  let searchQuery = search.value.toLowerCase()
+  
+  // Remove "room" or "rm" prefix if user typed it
+  if (searchQuery.startsWith('room ')) {
+    searchQuery = searchQuery.replace('room ', '').trim()
+  }
+  if (searchQuery.startsWith('rm ')) {
+    searchQuery = searchQuery.replace('rm ', '').trim()
+  }
+  
+  return roomStore.rooms.filter((room) => {
+    if (!room) return false
+    
+    try {
+      const roomNumber = room.room_number ? String(room.room_number).toLowerCase() : ''
+      const roomType = room.room_type?.name ? String(room.room_type.name).toLowerCase() : ''
+      const floor = room.floor ? String(room.floor).toLowerCase() : ''
+      const status = room.status ? String(room.status).toLowerCase() : ''
+      const description = room.description ? String(room.description).toLowerCase() : ''
+      
+      return (
+        roomNumber.includes(searchQuery) ||
+        roomType.includes(searchQuery) ||
+        floor.includes(searchQuery) ||
+        status.includes(searchQuery) ||
+        description.includes(searchQuery)
+      )
+    } catch (e) {
+      console.error('Error filtering room:', room, e)
+      return false
+    }
+  })
 })
 
 const createRoom = () => {

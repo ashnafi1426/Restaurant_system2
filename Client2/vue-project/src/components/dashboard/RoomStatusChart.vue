@@ -75,56 +75,56 @@ updateChart()
 </script>
 
 <template>
-  <div class="bg-white rounded-lg border border-gray-200 p-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-6">Room Status</h3>
+  <div class="bg-white rounded-lg border border-gray-200 px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8">
+    <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900 mb-4 sm:mb-5 md:mb-6">Room Status</h3>
 
     <div class="flex flex-col items-center justify-center">
       <!-- Chart -->
-      <div class="w-full max-w-xs h-56 flex items-center justify-center">
-        <div class="relative w-48 h-48">
+      <div class="w-full max-w-xs h-40 sm:h-48 md:h-56 flex items-center justify-center">
+        <div class="relative w-32 sm:w-40 md:w-48 h-32 sm:h-40 md:h-48">
           <Doughnut :data="chartData" :options="chartOptions" />
           <!-- Center text -->
           <div
             class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
           >
-            <p class="text-3xl font-bold text-gray-900">{{ total }}</p>
-            <p class="text-xs text-gray-600 mt-1">Total Rooms</p>
+            <p class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">{{ total }}</p>
+            <p class="text-xs sm:text-xs md:text-sm text-gray-600 mt-1">Total Rooms</p>
           </div>
         </div>
       </div>
 
       <!-- Statistics -->
-      <div class="w-full space-y-2 mt-6">
-        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+      <div class="w-full space-y-2 mt-4 sm:mt-5 md:mt-6">
+        <div class="flex items-center justify-between p-2 sm:p-3 md:p-4 bg-gray-50 rounded-lg">
           <div class="flex items-center gap-2">
-            <div class="w-3 h-3 rounded-full bg-teal-600"></div>
-            <span class="text-sm font-medium text-gray-700">Occupied</span>
+            <div class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-teal-600 flex-shrink-0"></div>
+            <span class="text-xs sm:text-sm font-medium text-gray-700 truncate">Occupied</span>
           </div>
-          <span class="text-sm font-bold text-gray-900">{{ props.occupied }}</span>
+          <span class="text-xs sm:text-sm font-bold text-gray-900 flex-shrink-0">{{ props.occupied }}</span>
         </div>
 
-        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+        <div class="flex items-center justify-between p-2 sm:p-3 md:p-4 bg-gray-50 rounded-lg">
           <div class="flex items-center gap-2">
-            <div class="w-3 h-3 rounded-full bg-blue-300"></div>
-            <span class="text-sm font-medium text-gray-700">Available</span>
+            <div class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-300 flex-shrink-0"></div>
+            <span class="text-xs sm:text-sm font-medium text-gray-700 truncate">Available</span>
           </div>
-          <span class="text-sm font-bold text-gray-900">{{ props.available }}</span>
+          <span class="text-xs sm:text-sm font-bold text-gray-900 flex-shrink-0">{{ props.available }}</span>
         </div>
 
-        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+        <div class="flex items-center justify-between p-2 sm:p-3 md:p-4 bg-gray-50 rounded-lg">
           <div class="flex items-center gap-2">
-            <div class="w-3 h-3 rounded-full bg-amber-500"></div>
-            <span class="text-sm font-medium text-gray-700">Reserved</span>
+            <div class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-500 flex-shrink-0"></div>
+            <span class="text-xs sm:text-sm font-medium text-gray-700 truncate">Reserved</span>
           </div>
-          <span class="text-sm font-bold text-gray-900">{{ props.reserved }}</span>
+          <span class="text-xs sm:text-sm font-bold text-gray-900 flex-shrink-0">{{ props.reserved }}</span>
         </div>
 
-        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+        <div class="flex items-center justify-between p-2 sm:p-3 md:p-4 bg-gray-50 rounded-lg">
           <div class="flex items-center gap-2">
-            <div class="w-3 h-3 rounded-full bg-amber-400"></div>
-            <span class="text-sm font-medium text-gray-700">Maintenance</span>
+            <div class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-400 flex-shrink-0"></div>
+            <span class="text-xs sm:text-sm font-medium text-gray-700 truncate">Maintenance</span>
           </div>
-          <span class="text-sm font-bold text-gray-900">{{ props.maintenance }}</span>
+          <span class="text-xs sm:text-sm font-bold text-gray-900 flex-shrink-0">{{ props.maintenance }}</span>
         </div>
       </div>
     </div>

@@ -40,7 +40,7 @@ const loadMeta = async () => {
     await guestStore.fetchGuests({ per_page: 1000 })
     guests.value = guestStore.guests
 
-    await roomStore.fetchRooms()
+    await roomStore.fetchRooms({ per_page: 100 }) // Request all rooms for complete search
     rooms.value = roomStore.rooms
   } catch (error: any) {}
 }

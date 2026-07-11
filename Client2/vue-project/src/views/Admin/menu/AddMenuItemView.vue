@@ -8,7 +8,11 @@
             {{ isEditMode ? 'Edit Menu Item' : 'Add New Menu Item' }}
           </h1>
           <p class="text-slate-600 mt-1">
-            {{ isEditMode ? 'Update the menu item details' : 'Create a new menu item for your restaurant' }}
+            {{
+              isEditMode
+                ? 'Update the menu item details'
+                : 'Create a new menu item for your restaurant'
+            }}
           </p>
         </div>
         <button
@@ -23,7 +27,9 @@
     <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center py-12">
       <div class="flex flex-col items-center gap-4">
-        <div class="w-12 h-12 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin"></div>
+        <div
+          class="w-12 h-12 border-4 border-emerald-200 border-t-emerald-500 rounded-full animate-spin"
+        ></div>
         <p class="text-slate-600">Loading menu item...</p>
       </div>
     </div>
@@ -45,7 +51,10 @@
               <div class="space-y-4">
                 <!-- Item Name -->
                 <div>
-                  <label for="name" class="block text-xs font-semibold text-slate-600 uppercase mb-2">
+                  <label
+                    for="name"
+                    class="block text-xs font-semibold text-slate-600 uppercase mb-2"
+                  >
                     Item Name <span class="text-red-500">*</span>
                   </label>
                   <input
@@ -63,7 +72,10 @@
                 <div class="grid grid-cols-2 gap-4">
                   <!-- Price -->
                   <div>
-                    <label for="price" class="block text-xs font-semibold text-slate-600 uppercase mb-2">
+                    <label
+                      for="price"
+                      class="block text-xs font-semibold text-slate-600 uppercase mb-2"
+                    >
                       Price <span class="text-red-500">*</span>
                     </label>
                     <div class="flex items-center gap-2">
@@ -84,7 +96,10 @@
 
                   <!-- Category -->
                   <div>
-                    <label for="category" class="block text-xs font-semibold text-slate-600 uppercase mb-2">
+                    <label
+                      for="category"
+                      class="block text-xs font-semibold text-slate-600 uppercase mb-2"
+                    >
                       Category <span class="text-red-500">*</span>
                     </label>
                     <select
@@ -98,7 +113,9 @@
                         {{ cat.label }}
                       </option>
                     </select>
-                    <p v-if="errors.category" class="text-red-600 text-xs mt-1">{{ errors.category }}</p>
+                    <p v-if="errors.category" class="text-red-600 text-xs mt-1">
+                      {{ errors.category }}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -106,7 +123,10 @@
 
             <!-- Description -->
             <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-              <label for="description" class="block text-xs font-semibold text-slate-600 uppercase mb-2">
+              <label
+                for="description"
+                class="block text-xs font-semibold text-slate-600 uppercase mb-2"
+              >
                 Description <span class="text-slate-400">(optional)</span>
               </label>
               <textarea
@@ -132,7 +152,10 @@
                     class="w-4 h-4 rounded accent-emerald-500 cursor-pointer"
                   />
                   <label for="is_available" class="cursor-pointer">
-                    <span class="text-sm font-medium" :class="formData.is_available ? 'text-emerald-600' : 'text-slate-600'">
+                    <span
+                      class="text-sm font-medium"
+                      :class="formData.is_available ? 'text-emerald-600' : 'text-slate-600'"
+                    >
                       {{ formData.is_available ? '✓ Published' : '○ Draft' }}
                     </span>
                   </label>
@@ -205,12 +228,22 @@
                   :class="[
                     isDragOver
                       ? 'border-emerald-500 bg-emerald-50'
-                      : 'border-slate-300 bg-slate-50 hover:border-slate-400'
+                      : 'border-slate-300 bg-slate-50 hover:border-slate-400',
                   ]"
                 >
                   <div class="flex flex-col items-center gap-2">
-                    <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <svg
+                      class="w-8 h-8 text-slate-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
                     <p class="text-xs font-medium text-slate-900">Drop image here</p>
                     <p class="text-xs text-slate-500">or click to browse</p>
@@ -267,7 +300,10 @@
             :disabled="!isFormValid || submitting"
             class="px-8 py-2 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
           >
-            <span v-if="submitting" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <span
+              v-if="submitting"
+              class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+            ></span>
             <span>{{ submitting ? 'Saving...' : isEditMode ? 'Update Item' : 'Add Item' }}</span>
           </button>
         </div>
@@ -339,7 +375,8 @@ const categoryOptions = [
 const isFormValid = computed(() => {
   return (
     formData.value.name.trim().length > 0 &&
-    formData.value.price && parseFloat(formData.value.price) > 0 &&
+    formData.value.price &&
+    parseFloat(formData.value.price) > 0 &&
     formData.value.category.length > 0
   )
 })
@@ -358,16 +395,16 @@ const loadMenuItemForEdit = async () => {
   loading.value = true
   try {
     const response = await menuService.getMenus({ id: editingItemId.value })
-    
+
     // Extract the item from response
     let item: MenuItem | null = null
-    
+
     if (response.data.data && Array.isArray(response.data.data)) {
       item = response.data.data.find((i: MenuItem) => i.id === editingItemId.value)
     } else if (response.data.data && !Array.isArray(response.data.data)) {
       item = response.data.data
     }
-    
+
     if (item) {
       formData.value.name = item.name
       formData.value.description = item.description || ''
@@ -375,7 +412,7 @@ const loadMenuItemForEdit = async () => {
       formData.value.category = item.category
       formData.value.is_available = item.is_available
       formData.value.dietary_tags = item.dietary_tags || []
-      
+
       if (item.image) {
         imagePreview.value = item.image
         // Check if image is a URL or a local file
@@ -398,7 +435,7 @@ const loadMenuItemForEdit = async () => {
 const onFileSelected = (event: Event) => {
   const input = event.target as HTMLInputElement
   const files = input.files
-  
+
   if (files && files.length > 0) {
     const file = files[0]
     processImageFile(file)
@@ -418,7 +455,7 @@ const onDragLeave = (event: DragEvent) => {
 const onDrop = (event: DragEvent) => {
   event.preventDefault()
   isDragOver.value = false
-  
+
   const files = event.dataTransfer?.files
   if (files && files.length > 0) {
     const file = files[0]
@@ -438,12 +475,12 @@ const processImageFile = (file: File) => {
     errors.value.image = 'Image must be less than 5MB'
     return
   }
-  
+
   formData.value.image = file
   formData.value.image_url = ''
   formData.value.image_input_type = 'upload'
   errors.value.image = ''
-  
+
   // Create preview
   const reader = new FileReader()
   reader.onload = (e) => {
@@ -469,19 +506,19 @@ const removeImage = () => {
 
 const validateForm = (): boolean => {
   errors.value = {}
-  
+
   if (!formData.value.name.trim()) {
     errors.value.name = 'Name is required'
   }
-  
+
   if (!formData.value.price || parseFloat(formData.value.price) <= 0) {
     errors.value.price = 'Price must be greater than 0'
   }
-  
+
   if (!formData.value.category) {
     errors.value.category = 'Category is required'
   }
-  
+
   return Object.keys(errors.value).length === 0
 }
 
@@ -489,13 +526,13 @@ const submitForm = async () => {
   if (!validateForm()) {
     return
   }
-  
+
   submitting.value = true
-  
+
   try {
     // Prepare form data
     let payload: FormData | Record<string, any>
-    
+
     if (formData.value.image) {
       // Use FormData for file upload
       payload = new FormData()
@@ -505,13 +542,13 @@ const submitForm = async () => {
       payload.append('category', formData.value.category)
       payload.append('is_available', formData.value.is_available ? '1' : '0')
       payload.append('image', formData.value.image)
-      
+
       console.log('📤 FormData payload prepared for file upload')
       console.log('✅ File:', formData.value.image.name)
       console.log('✅ Name:', formData.value.name)
       console.log('✅ Category:', formData.value.category)
       console.log('✅ Price:', formData.value.price)
-      
+
       if (formData.value.dietary_tags.length > 0) {
         formData.value.dietary_tags.forEach((tag) => {
           ;(payload as FormData).append('dietary_tags[]', tag)
@@ -541,7 +578,7 @@ const submitForm = async () => {
       }
       console.log('⚠️ No image provided')
     }
-    
+
     if (isEditMode.value) {
       // Update existing item
       await menuStore.updateMenuItem(editingItemId.value, payload)
@@ -549,18 +586,18 @@ const submitForm = async () => {
       // Create new item
       await menuStore.createMenuItem(payload)
     }
-    
+
     // Refresh menu items
     await menuStore.fetchMenuItems()
-    
+
     // Redirect to menu view
     router.push({ name: 'admin-menu' })
   } catch (error: any) {
     console.error('❌ Error submitting form:', error)
-    
+
     // Log ALL error response data
     console.error('🔍 Full error response:', error.response?.data)
-    
+
     // Log validation errors if available
     if (error.response?.data?.errors) {
       console.error('📋 Validation Errors:', error.response.data.errors)
@@ -568,7 +605,7 @@ const submitForm = async () => {
     } else if (error.response?.data?.message) {
       console.error('📋 Error Message:', error.response.data.message)
     }
-    
+
     errors.value.general = error.response?.data?.message || 'Failed to save menu item'
   } finally {
     submitting.value = false

@@ -23,7 +23,6 @@
           </router-link>
         </div>
       </div>
-
       <div class="w-full mx-auto max-w-7xl px-4 sm:px-6 py-8">
         <!-- Main Content Actions Header -->
         <MenuHeader
@@ -35,7 +34,6 @@
           @export="exportMenus"
           @manage-categories="manageCategories"
         />
-
         <!-- Performance Statistics Component -->
         <div class="mt-8">
           <MenuStats
@@ -109,23 +107,34 @@
             />
 
             <!-- Pagination Info -->
-            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-4">
+            <div
+              class="px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-4"
+            >
               <p class="text-sm text-slate-600">
                 Showing <span class="font-semibold">{{ store.pagination.from || 1 }}</span> to
-                <span class="font-semibold">{{ store.pagination.to || store.menuItems.length }}</span> of
-                <span class="font-semibold">{{ store.pagination.total }}</span> items
+                <span class="font-semibold">{{
+                  store.pagination.to || store.menuItems.length
+                }}</span>
+                of <span class="font-semibold">{{ store.pagination.total }}</span> items
               </p>
-              
+
               <!-- Pagination Controls -->
               <div class="flex items-center gap-2">
                 <!-- Previous Button -->
                 <button
-                  @click="currentPage--; loadMenu()"
+                  @click="
+                    () => {
+                      currentPage--
+                      loadMenu()
+                    }
+                  "
                   :disabled="currentPage === 1 || store.loading"
                   class="px-3 py-1 text-sm font-semibold rounded-lg border border-slate-200 transition"
-                  :class="currentPage === 1
-                    ? 'text-slate-400 bg-slate-50 cursor-not-allowed'
-                    : 'text-slate-700 bg-white hover:bg-slate-50 cursor-pointer'"
+                  :class="
+                    currentPage === 1
+                      ? 'text-slate-400 bg-slate-50 cursor-not-allowed'
+                      : 'text-slate-700 bg-white hover:bg-slate-50 cursor-pointer'
+                  "
                 >
                   ← Previous
                 </button>
@@ -135,12 +144,19 @@
                   <button
                     v-for="page in generatePageNumbers()"
                     :key="page"
-                    @click="currentPage = page; loadMenu()"
+                    @click="
+                      () => {
+                        currentPage = page
+                        loadMenu()
+                      }
+                    "
                     :disabled="store.loading"
                     class="w-8 h-8 text-sm font-semibold rounded-lg border transition"
-                    :class="currentPage === page
-                      ? 'bg-indigo-600 text-white border-indigo-600'
-                      : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-50'"
+                    :class="
+                      currentPage === page
+                        ? 'bg-indigo-600 text-white border-indigo-600'
+                        : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-50'
+                    "
                   >
                     {{ page }}
                   </button>
@@ -148,12 +164,19 @@
 
                 <!-- Next Button -->
                 <button
-                  @click="currentPage++; loadMenu()"
+                  @click="
+                    () => {
+                      currentPage++
+                      loadMenu()
+                    }
+                  "
                   :disabled="currentPage === store.pagination.last_page || store.loading"
                   class="px-3 py-1 text-sm font-semibold rounded-lg border border-slate-200 transition"
-                  :class="currentPage === store.pagination.last_page
-                    ? 'text-slate-400 bg-slate-50 cursor-not-allowed'
-                    : 'text-slate-700 bg-white hover:bg-slate-50 cursor-pointer'"
+                  :class="
+                    currentPage === store.pagination.last_page
+                      ? 'text-slate-400 bg-slate-50 cursor-not-allowed'
+                      : 'text-slate-700 bg-white hover:bg-slate-50 cursor-pointer'
+                  "
                 >
                   Next →
                 </button>
@@ -164,7 +187,12 @@
                 <label class="text-sm font-semibold text-slate-600">Items per page:</label>
                 <select
                   v-model.number="pageSize"
-                  @change="currentPage = 1; loadMenu()"
+                  @change="
+                    () => {
+                      currentPage = 1
+                      loadMenu()
+                    }
+                  "
                   :disabled="store.loading"
                   class="px-3 py-1 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-700"
                 >
@@ -209,7 +237,7 @@ const pageSize = ref<number>(10)
  */
 function filterByCategory(category: string | null) {
   selectedCategory.value = category
-  currentPage.value = 1  // Reset to page 1 when filtering
+  currentPage.value = 1 // Reset to page 1 when filtering
   loadMenu()
 }
 
@@ -299,20 +327,20 @@ function generatePageNumbers() {
   const pages: number[] = []
   const totalPages = store.pagination.last_page
   const currentP = currentPage.value
-  
+
   // Always show first page
   pages.push(1)
-  
+
   // Show pages around current page
   for (let i = Math.max(2, currentP - 1); i <= Math.min(totalPages - 1, currentP + 1); i++) {
     if (!pages.includes(i)) pages.push(i)
   }
-  
+
   // Always show last page if more than 1
   if (totalPages > 1 && !pages.includes(totalPages)) {
     pages.push(totalPages)
   }
-  
+
   return pages.sort((a, b) => a - b)
 }
 

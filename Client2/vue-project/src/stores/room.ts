@@ -18,10 +18,27 @@ export const useRoomStore = defineStore('rooms', {
         const response = await roomService.getRooms(params)
         console.log('📡 [ROOM STORE] Full API response:', response)
         console.log('[ROOM STORE] response.data:', response.data)
-        console.log('📋 [ROOM STORE] response.data.data:', response.data.data)
 
-        const roomsData = response.data.data || response.data
-        console.log('[ROOM STORE] Rooms to assign:', roomsData)
+        // Handle paginated response from Laravel
+        let roomsData = response.data
+        
+        // Check if response is paginated (has 'data' key from pagination)
+        if (response.data && response.data.data && Array.isArray(response.data.data)) {
+          console.log('📋 [ROOM STORE] Detected paginated response')
+          roomsData = response.data.data
+        }
+        // Check if response.data is directly the rooms array
+        else if (Array.isArray(response.data)) {
+          console.log('📋 [ROOM STORE] Detected direct array response')
+          roomsData = response.data
+        }
+        // Fallback to response.data.data if it exists
+        else if (response.data.data) {
+          console.log('📋 [ROOM STORE] Using response.data.data')
+          roomsData = response.data.data
+        }
+        
+        console.log('[ROOM STORE] Final rooms data:', roomsData)
         console.log(
           ' [ROOM STORE] Number of rooms:',
           Array.isArray(roomsData) ? roomsData.length : 'NOT AN ARRAY',
@@ -30,9 +47,23 @@ export const useRoomStore = defineStore('rooms', {
         if (Array.isArray(roomsData) && roomsData.length > 0) {
           console.log('[ROOM STORE] First room:', roomsData[0])
           console.log('🆔 [ROOM STORE] First room ID:', roomsData[0].id)
+          console.log('📍 [ROOM STORE] First room number:', roomsData[0].room_number)
+          console.log('📍 [ROOM STORE] First room type:', roomsData[0].room_type)
+          
+          // Verify each room has required data
+          roomsData.forEach((room: any, index: number) => {
+            if (!room.room_number) {
+              console.warn(`⚠️ [ROOM STORE] Room ${index} has no room_number!`, room)
+            }
+            if (!room.room_type) {
+              console.warn(`⚠️ [ROOM STORE] Room ${index} (${room.room_number}) has no room_type!`, room)
+            }
+          })
+        } else {
+          console.warn('⚠️ [ROOM STORE] No rooms returned or not an array!')
         }
 
-        this.rooms = roomsData
+        this.rooms = roomsData || []
         console.log(' [ROOM STORE] Rooms assigned, current rooms:', this.rooms)
       } catch (error: any) {
         const statusCode = error.response?.status
@@ -48,6 +79,28 @@ export const useRoomStore = defineStore('rooms', {
           this.error = ` Error fetching rooms: ${message}`
         }
         console.error(' [ROOM STORE] Error fetching rooms:', error)
+        this.rooms = []
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async searchRooms(searchTerm: string, params: any = {}) {
+      this.loading = true
+      this.error = null
+      try {
+        console.log('[ROOM STORE] Searching rooms with term:', searchTerm)
+        const response = await roomService.searchRooms(searchTerm, params)
+        console.log('📡 [ROOM STORE] Search response:', response)
+
+        const roomsData = response.data.data || response.data
+        this.rooms = roomsData
+        console.log('[ROOM STORE] Search found:', Array.isArray(roomsData) ? roomsData.length : 0, 'rooms')
+      } catch (error: any) {
+        const message = error.response?.data?.message || error.message
+        this.error = ` Error searching rooms: ${message}`
+        console.error('[ROOM STORE] Error searching rooms:', error)
         this.rooms = []
         throw error
       } finally {
