@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-
 const route = useRoute()
 
 const mobileMenu = ref(false)
@@ -17,8 +16,8 @@ const menus = [
     route: '/rooms',
   },
   {
-    title: 'Restaurant',
-    route: '/restaurant',
+    title: 'Gallery',
+    route: '/gallery',
   },
   {
     title: 'About',
@@ -55,28 +54,19 @@ onUnmounted(() => {
   <header
     class="fixed inset-x-0 top-0 z-50 transition-all duration-300"
     :class="
-      scrolled
-        ? 'bg-white shadow-lg'
-        : 'bg-gradient-to-b from-black/70 via-black/20 to-transparent'
+      scrolled ? 'bg-white shadow-lg' : 'bg-gradient-to-b from-black/70 via-black/20 to-transparent'
     "
   >
-    <div
-      class="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-10"
-    >
+    <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-10">
       <!-- =========================== -->
       <!-- Logo -->
       <!-- =========================== -->
 
-      <RouterLink
-        to="/"
-        class="flex items-center gap-3"
-      >
+      <RouterLink to="/" class="flex items-center gap-3">
         <div
           class="flex h-12 w-12 items-center justify-center rounded-full border border-amber-400 bg-white/10 backdrop-blur-md"
         >
-          <span class="text-xl font-bold text-amber-400">
-            H
-          </span>
+          <span class="text-xl font-bold text-amber-400"> H </span>
         </div>
 
         <div>
@@ -110,8 +100,8 @@ onUnmounted(() => {
             route.path === menu.route
               ? 'text-amber-500'
               : scrolled
-              ? 'text-slate-700 hover:text-amber-500'
-              : 'text-white hover:text-amber-400'
+                ? 'text-slate-700 hover:text-amber-500'
+                : 'text-white hover:text-amber-400'
           "
         >
           {{ menu.title }}
@@ -124,17 +114,10 @@ onUnmounted(() => {
 
       <div class="hidden items-center gap-4 lg:flex">
         <RouterLink
-          to="/reservation"
+          to="/rooms"
           class="rounded-full border border-amber-500 px-6 py-3 text-sm font-semibold text-amber-500 transition hover:bg-amber-500 hover:text-white"
         >
           Book Now
-        </RouterLink>
-
-        <RouterLink
-          to="/my-reservation"
-          class="rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-600"
-        >
-          My Reservation
         </RouterLink>
       </div>
 
@@ -142,10 +125,7 @@ onUnmounted(() => {
       <!-- Mobile Button -->
       <!-- =========================== -->
 
-      <button
-        class="lg:hidden"
-        @click="toggleMenu"
-      >
+      <button class="lg:hidden" @click="toggleMenu">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-8 w-8"
@@ -176,10 +156,7 @@ onUnmounted(() => {
       leave-from-class="opacity-100 translate-y-0"
       leave-to-class="opacity-0 -translate-y-3"
     >
-      <div
-        v-if="mobileMenu"
-        class="border-t bg-white shadow-xl lg:hidden"
-      >
+      <div v-if="mobileMenu" class="border-t bg-white shadow-xl lg:hidden">
         <div class="space-y-2 px-6 py-6">
           <RouterLink
             v-for="menu in menus"
@@ -192,7 +169,7 @@ onUnmounted(() => {
           </RouterLink>
 
           <RouterLink
-            to="/reservation"
+            to="/rooms"
             class="mt-4 block rounded-lg bg-amber-500 py-3 text-center font-semibold text-white"
             @click="closeMenu"
           >

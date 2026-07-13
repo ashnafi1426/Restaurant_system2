@@ -7,14 +7,6 @@ import type {
 } from '../types/guest'
 import api from '../api/auth'
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-
 export const getGuests = async (filters: GuestFilter = {}): Promise<GuestListResponse> => {
   const response = await api.get('/guests', {
     params: filters,

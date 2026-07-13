@@ -23,9 +23,15 @@ const getActivityColor = (index: number) => {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg border border-gray-200 px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8 relative">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-6">
-      <h3 class="text-xs sm:text-xs md:text-sm lg:text-base font-semibold text-gray-900 uppercase tracking-wide">
+  <div
+    class="bg-white rounded-lg border border-gray-200 px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8 relative"
+  >
+    <div
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-6"
+    >
+      <h3
+        class="text-xs sm:text-xs md:text-sm lg:text-base font-semibold text-gray-900 uppercase tracking-wide"
+      >
         STAFF ACTIVITY
       </h3>
       <router-link
@@ -57,7 +63,9 @@ const getActivityColor = (index: number) => {
 
         <!-- Content -->
         <div class="flex-1 min-w-0">
-          <p class="text-xs sm:text-sm font-semibold text-gray-900 truncate">{{ activity.staff_name }}</p>
+          <p class="text-xs sm:text-sm font-semibold text-gray-900 truncate">
+            {{ activity.staff_name }}
+          </p>
           <p class="text-xs text-gray-600 mt-0.5 truncate">{{ activity.action }}</p>
           <p class="text-xs text-gray-400 mt-1">{{ activity.timestamp }}</p>
         </div>

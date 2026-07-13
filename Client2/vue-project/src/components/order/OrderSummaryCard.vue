@@ -27,9 +27,13 @@ function formatCurrency(value: number): string {
     <!-- ===================================================== -->
 
     <div class="border-b border-gray-200 px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6">
-      <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900">Order Summary</h3>
+      <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900">
+        Order Summary
+      </h3>
 
-      <p class="mt-1 text-xs sm:text-sm md:text-base text-gray-500">Financial summary of the current order.</p>
+      <p class="mt-1 text-xs sm:text-sm md:text-base text-gray-500">
+        Financial summary of the current order.
+      </p>
     </div>
 
     <!-- ===================================================== -->
@@ -82,7 +86,9 @@ function formatCurrency(value: number): string {
       <!-- Grand Total -->
 
       <div class="flex items-center justify-between">
-        <span class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900">Grand Total</span>
+        <span class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900"
+          >Grand Total</span
+        >
 
         <span class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-indigo-600">
           {{ formatCurrency(total) }}

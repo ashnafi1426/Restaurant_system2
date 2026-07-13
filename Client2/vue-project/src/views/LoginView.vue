@@ -63,7 +63,9 @@ const login = async (): Promise<void> => {
 
     router.push(roleRoutes[role] || '/')
   } catch (error: any) {
-    errors.value.general = error?.response?.data?.message || 'Invalid email or password'
+    console.error('[LOGIN] Error:', error)
+    console.error('[LOGIN] Error response:', error.response?.data)
+    errors.value.general = error?.message || 'Invalid email or password'
   } finally {
     loading.value = false
   }

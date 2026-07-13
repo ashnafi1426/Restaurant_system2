@@ -23,9 +23,15 @@ const formatTime = (date: string) => {
 <template>
   <div class="bg-blue-50 rounded-lg border border-blue-200 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 pb-3 sm:pb-4 md:pb-5 border-b border-blue-200">
-      <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900">Today's Arrivals</h3>
-      <span class="text-xs sm:text-sm md:text-base font-bold text-teal-600">{{ arrivals.length }} Total</span>
+    <div
+      class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 pb-3 sm:pb-4 md:pb-5 border-b border-blue-200"
+    >
+      <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900">
+        Today's Arrivals
+      </h3>
+      <span class="text-xs sm:text-sm md:text-base font-bold text-teal-600"
+        >{{ arrivals.length }} Total</span
+      >
     </div>
 
     <!-- Arrivals List -->
@@ -71,8 +77,13 @@ const formatTime = (date: string) => {
     </div>
 
     <!-- View All Link -->
-    <div v-if="arrivals.length > 3" class="mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-gray-200">
-      <button class="w-full py-2 sm:py-2.5 md:py-3 min-h-10 text-xs sm:text-sm md:text-base font-bold text-teal-600 hover:text-teal-700 transition">
+    <div
+      v-if="arrivals.length > 3"
+      class="mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-gray-200"
+    >
+      <button
+        class="w-full py-2 sm:py-2.5 md:py-3 min-h-10 text-xs sm:text-sm md:text-base font-bold text-teal-600 hover:text-teal-700 transition"
+      >
         View All Arrivals
       </button>
     </div>

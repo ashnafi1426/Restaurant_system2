@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, type Component } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 
 // Import necessary Lucide components
@@ -29,8 +29,20 @@ import {
   FileSpreadsheet,
 } from 'lucide-vue-next'
 
+// Define emits
+const emit = defineEmits<{
+  navigate: []
+}>()
+
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
+
+// Handler for navigation
+const handleNavigate = () => {
+  emit('navigate')
+  console.log('📱 Navigation clicked - closing sidebar')
+}
 
 // Map string identifiers to their respective Lucide component definitions
 const menuIcons: Record<string, Component> = {
@@ -64,7 +76,7 @@ const menus = computed(() => {
       return [
         { name: 'Dashboard', path: '/admin', icon: 'Dashboard' },
         { name: 'Users', path: '/users', icon: 'Users' },
-        { name: 'Rooms', path: '/rooms', icon: 'Rooms' },
+        { name: 'Rooms', path: '/Admin/rooms', icon: 'Rooms' },
         { name: 'Room Types', path: '/room-types', icon: 'Room Types' },
         { name: 'Reports', path: '/reports', icon: 'Reports' },
         { name: 'Menu Management', path: '/menu-management', icon: 'Restaurant' },
@@ -114,10 +126,12 @@ const isActive = (path: string): boolean => {
 
 <template>
   <aside
-    class="w-64 h-screen sticky top-0 left-0 bg-white border-r border-gray-200 text-gray-700 flex flex-col relative select-none flex-shrink-0 shadow-sm hidden lg:flex"
+    class="w-64 h-screen bg-white border-r border-gray-200 text-gray-700 flex flex-col relative select-none flex-shrink-0 shadow-sm"
   >
     <!-- Header / Brand -->
-    <div class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-5 h-14 sm:h-16 border-b border-gray-200 flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50">
+    <div
+      class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-5 h-14 sm:h-16 border-b border-gray-200 flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50"
+    >
       <div
         class="w-8 sm:w-9 h-8 sm:h-9 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0"
       >
@@ -125,8 +139,14 @@ const isActive = (path: string): boolean => {
       </div>
 
       <div class="min-w-0 flex flex-col">
-        <h1 class="font-bold text-sm sm:text-base text-gray-800 tracking-tight leading-tight truncate">Hotel HMS</h1>
-        <p class="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-[0.08em] mt-0.5">
+        <h1
+          class="font-bold text-sm sm:text-base text-gray-800 tracking-tight leading-tight truncate"
+        >
+          Hotel HMS
+        </h1>
+        <p
+          class="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-[0.08em] mt-0.5"
+        >
           {{ auth.user?.role || 'Management' }}
         </p>
       </div>
@@ -135,7 +155,9 @@ const isActive = (path: string): boolean => {
     <!-- Navigation -->
     <nav class="flex-1 px-2 sm:px-3 py-4 sm:py-5 overflow-y-auto space-y-4 sm:space-y-6">
       <div>
-        <p class="px-2 sm:px-3 text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-[0.12em] mb-2 sm:mb-3">
+        <p
+          class="px-2 sm:px-3 text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-[0.12em] mb-2 sm:mb-3"
+        >
           Main Menu
         </p>
 
@@ -144,6 +166,7 @@ const isActive = (path: string): boolean => {
             v-for="menu in menus"
             :key="menu.path"
             :to="menu.path"
+            @click="handleNavigate"
             class="group relative flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg transition-all duration-200 text-xs sm:text-sm font-medium border border-transparent"
             :class="[
               isActive(menu.path)
@@ -168,7 +191,9 @@ const isActive = (path: string): boolean => {
             />
 
             <!-- Menu Name -->
-            <span class="flex-1 transition-transform group-hover:translate-x-0.5 duration-200 truncate">
+            <span
+              class="flex-1 transition-transform group-hover:translate-x-0.5 duration-200 truncate"
+            >
               {{ menu.name }}
             </span>
 
@@ -205,17 +230,25 @@ const isActive = (path: string): boolean => {
     </div>
 
     <!-- Footer -->
-    <div class="px-3 sm:px-4 md:px-5 py-2 sm:py-3 border-t border-gray-200 bg-gray-50/50 flex-shrink-0">
+    <div
+      class="px-3 sm:px-4 md:px-5 py-2 sm:py-3 border-t border-gray-200 bg-gray-50/50 flex-shrink-0"
+    >
       <div class="flex items-center justify-between">
-        <span class="text-[8px] sm:text-[10px] font-medium text-gray-400 tracking-wide">v2.0.0</span>
+        <span class="text-[8px] sm:text-[10px] font-medium text-gray-400 tracking-wide"
+          >v2.0.0</span
+        >
         <div class="flex items-center gap-1.5 sm:gap-2">
           <span class="relative flex h-1.5 sm:h-2 w-1.5 sm:w-2">
             <span
               class="absolute inline-flex h-full w-full rounded-full bg-emerald-400/60 animate-ping"
             ></span>
-            <span class="relative inline-flex rounded-full h-1.5 sm:h-2 w-1.5 sm:w-2 bg-emerald-500"></span>
+            <span
+              class="relative inline-flex rounded-full h-1.5 sm:h-2 w-1.5 sm:w-2 bg-emerald-500"
+            ></span>
           </span>
-          <span class="text-[8px] sm:text-[10px] font-medium text-gray-500 hidden sm:inline">System Live</span>
+          <span class="text-[8px] sm:text-[10px] font-medium text-gray-500 hidden sm:inline"
+            >System Live</span
+          >
         </div>
       </div>
     </div>

@@ -62,8 +62,12 @@ const goToPage = (page: number) => {
 <template>
   <div class="bg-blue-50 rounded-lg border border-blue-200 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 flex-col sm:flex-row gap-2 sm:gap-0">
-      <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900">Recent Guest Requests</h3>
+    <div
+      class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 flex-col sm:flex-row gap-2 sm:gap-0"
+    >
+      <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900">
+        Recent Guest Requests
+      </h3>
       <div class="text-xs sm:text-sm md:text-base text-gray-600 font-medium">
         Showing {{ (currentPage - 1) * itemsPerPage + 1 }}-{{
           Math.min(currentPage * itemsPerPage, reservations.length)
@@ -77,14 +81,46 @@ const goToPage = (page: number) => {
       <table class="w-full text-xs sm:text-sm md:text-base">
         <thead>
           <tr class="border-b-2 border-gray-300 bg-gray-50">
-            <th class="text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm">BOOKING REF</th>
-            <th class="text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm">GUEST</th>
-            <th class="hidden sm:table-cell text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm">ROOM</th>
-            <th class="hidden md:table-cell text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm">CHECK-IN</th>
-            <th class="hidden lg:table-cell text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm">CHECK-OUT</th>
-            <th class="hidden lg:table-cell text-center py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm">NIGHTS</th>
-            <th class="text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm">STATUS</th>
-            <th class="text-center py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm">ACTION</th>
+            <th
+              class="text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm"
+            >
+              BOOKING REF
+            </th>
+            <th
+              class="text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm"
+            >
+              GUEST
+            </th>
+            <th
+              class="hidden sm:table-cell text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm"
+            >
+              ROOM
+            </th>
+            <th
+              class="hidden md:table-cell text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm"
+            >
+              CHECK-IN
+            </th>
+            <th
+              class="hidden lg:table-cell text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm"
+            >
+              CHECK-OUT
+            </th>
+            <th
+              class="hidden lg:table-cell text-center py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm"
+            >
+              NIGHTS
+            </th>
+            <th
+              class="text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm"
+            >
+              STATUS
+            </th>
+            <th
+              class="text-center py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 text-xs md:text-sm"
+            >
+              ACTION
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -95,7 +131,9 @@ const goToPage = (page: number) => {
           >
             <!-- Booking Reference -->
             <td class="py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5">
-              <p class="text-xs sm:text-sm md:text-base font-bold text-blue-600">{{ reservation.booking_reference }}</p>
+              <p class="text-xs sm:text-sm md:text-base font-bold text-blue-600">
+                {{ reservation.booking_reference }}
+              </p>
             </td>
 
             <!-- Guest (Compact) -->
@@ -119,22 +157,32 @@ const goToPage = (page: number) => {
 
             <!-- Room -->
             <td class="hidden sm:table-cell py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5">
-              <p class="text-xs sm:text-sm md:text-base font-semibold text-gray-900">{{ reservation.room?.room_number }}</p>
+              <p class="text-xs sm:text-sm md:text-base font-semibold text-gray-900">
+                {{ reservation.room?.room_number }}
+              </p>
             </td>
 
             <!-- Check-in Date -->
             <td class="hidden md:table-cell py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5">
-              <p class="text-xs sm:text-sm md:text-base text-gray-700">{{ formatDate(reservation.check_in_date) }}</p>
+              <p class="text-xs sm:text-sm md:text-base text-gray-700">
+                {{ formatDate(reservation.check_in_date) }}
+              </p>
             </td>
 
             <!-- Check-out Date -->
             <td class="hidden lg:table-cell py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5">
-              <p class="text-xs sm:text-sm md:text-base text-gray-700">{{ formatDate(reservation.check_out_date) }}</p>
+              <p class="text-xs sm:text-sm md:text-base text-gray-700">
+                {{ formatDate(reservation.check_out_date) }}
+              </p>
             </td>
 
             <!-- Nights -->
-            <td class="hidden lg:table-cell py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 text-center">
-              <span class="text-xs sm:text-sm md:text-base font-bold text-gray-900">{{ reservation.total_nights }}</span>
+            <td
+              class="hidden lg:table-cell py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 text-center"
+            >
+              <span class="text-xs sm:text-sm md:text-base font-bold text-gray-900">{{
+                reservation.total_nights
+              }}</span>
             </td>
 
             <!-- Status Badge -->
@@ -148,8 +196,14 @@ const goToPage = (page: number) => {
 
             <!-- Action Button -->
             <td class="py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 text-center">
-              <button class="text-gray-500 hover:text-gray-700 transition p-1 md:p-2 min-h-10 flex items-center justify-center w-full">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
+              <button
+                class="text-gray-500 hover:text-gray-700 transition p-1 md:p-2 min-h-10 flex items-center justify-center w-full"
+              >
+                <svg
+                  class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
                   />
@@ -171,7 +225,9 @@ const goToPage = (page: number) => {
       v-if="reservations.length > 0"
       class="flex items-center justify-between mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-blue-200 flex-col sm:flex-row gap-2 sm:gap-0"
     >
-      <div class="text-xs sm:text-sm md:text-base text-gray-600">Page {{ currentPage }} of {{ totalPages }}</div>
+      <div class="text-xs sm:text-sm md:text-base text-gray-600">
+        Page {{ currentPage }} of {{ totalPages }}
+      </div>
       <div class="flex gap-1 flex-wrap justify-center">
         <button
           @click="goToPage(currentPage - 1)"

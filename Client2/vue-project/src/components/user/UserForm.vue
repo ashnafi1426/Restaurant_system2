@@ -76,7 +76,10 @@ const getFieldError = (fieldName: string): string | null => {
           ]"
           :disabled="loading"
         />
-        <p v-if="getFieldError('first_name')" class="mt-1 text-xs text-red-600 flex items-center gap-1">
+        <p
+          v-if="getFieldError('first_name')"
+          class="mt-1 text-xs text-red-600 flex items-center gap-1"
+        >
           <span>❌</span> {{ getFieldError('first_name') }}
         </p>
       </div>
@@ -96,7 +99,10 @@ const getFieldError = (fieldName: string): string | null => {
           ]"
           :disabled="loading"
         />
-        <p v-if="getFieldError('last_name')" class="mt-1 text-xs text-red-600 flex items-center gap-1">
+        <p
+          v-if="getFieldError('last_name')"
+          class="mt-1 text-xs text-red-600 flex items-center gap-1"
+        >
           <span>❌</span> {{ getFieldError('last_name') }}
         </p>
       </div>
@@ -154,16 +160,19 @@ const getFieldError = (fieldName: string): string | null => {
           type="password"
           :required="!initialData?.email"
           minlength="8"
-          :placeholder="
-            initialData?.email ? 'Leave blank to keep current' : 'Minimum 8 characters'
-          "
+          :placeholder="initialData?.email ? 'Leave blank to keep current' : 'Minimum 8 characters'"
           :class="[
             'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
-            getFieldError('password_hash') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
+            getFieldError('password_hash')
+              ? 'border-red-500 ring-2 ring-red-200'
+              : 'border-slate-300',
           ]"
           :disabled="loading"
         />
-        <p v-if="getFieldError('password_hash')" class="mt-1 text-xs text-red-600 flex items-center gap-1">
+        <p
+          v-if="getFieldError('password_hash')"
+          class="mt-1 text-xs text-red-600 flex items-center gap-1"
+        >
           <span>❌</span> {{ getFieldError('password_hash') }}
         </p>
       </div>
@@ -180,11 +189,16 @@ const getFieldError = (fieldName: string): string | null => {
           placeholder="Re-enter password"
           :class="[
             'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
-            getFieldError('password_confirmation') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
+            getFieldError('password_confirmation')
+              ? 'border-red-500 ring-2 ring-red-200'
+              : 'border-slate-300',
           ]"
           :disabled="loading"
         />
-        <p v-if="getFieldError('password_confirmation')" class="mt-1 text-xs text-red-600 flex items-center gap-1">
+        <p
+          v-if="getFieldError('password_confirmation')"
+          class="mt-1 text-xs text-red-600 flex items-center gap-1"
+        >
           <span>❌</span> {{ getFieldError('password_confirmation') }}
         </p>
       </div>
@@ -217,7 +231,9 @@ const getFieldError = (fieldName: string): string | null => {
     </div>
 
     <!-- Active Status Checkbox -->
-    <div class="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-lg">
+    <div
+      class="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-lg"
+    >
       <input
         v-model="form.is_active"
         type="checkbox"
@@ -226,12 +242,13 @@ const getFieldError = (fieldName: string): string | null => {
         :disabled="loading"
       />
       <div class="flex-1 min-w-0">
-        <label for="active-checkbox" class="text-xs sm:text-sm font-semibold text-slate-900 cursor-pointer">
+        <label
+          for="active-checkbox"
+          class="text-xs sm:text-sm font-semibold text-slate-900 cursor-pointer"
+        >
           Active User
         </label>
-        <p class="text-xs text-slate-500 mt-0.5">
-          Inactive users cannot log in to the system
-        </p>
+        <p class="text-xs text-slate-500 mt-0.5">Inactive users cannot log in to the system</p>
       </div>
     </div>
 

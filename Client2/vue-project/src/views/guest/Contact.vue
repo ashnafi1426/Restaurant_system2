@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import LandingNavbar from '@/components/landing/LandingNavbar.vue'
+// import LandingNavbar from '@/components/landing/LandingNavbar.vue'
 import ContactSection from '@/components/landing/ContactSection.vue'
-import Footer from '@/components/landing/Footer.vue'
-import GuestLayout from '@/Layouts/GuestLayout.vue'
-
+// import Footer from '@/components/landing/Footer.vue'
+import GuestLayout from '@/layouts/GuestLayout.vue'
 </script>
 <template>
   <GuestLayout>
-  <div class="bg-white">
-    <ContactSection />
-  </div>
-    </GuestLayout>
+    <div class="bg-white">
+      <ContactSection />
+    </div>
+  </GuestLayout>
 </template>

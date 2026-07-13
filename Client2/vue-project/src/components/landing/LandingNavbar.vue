@@ -37,11 +37,18 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const menuOpen = ref(false)
+const router = useRouter()
 
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value
+}
+
+const navigateToRooms = () => {
+  router.push('/roomsPage')
+  menuOpen.value = false
 }
 </script>
 

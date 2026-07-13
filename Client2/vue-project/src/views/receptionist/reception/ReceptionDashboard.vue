@@ -7,7 +7,7 @@ import TodaysArrivals from '@/components/reception/TodaysArrivals.vue'
 import TodaysDepartures from '@/components/reception/TodaysDepartures.vue'
 import RoomStatusMatrix from '@/components/reception/RoomStatusMatrix.vue'
 import RecentReservations from '@/components/reception/RecentReservations.vue'
-
+import NotificationCenter from '@/components/reception/NotificationCenter.vue'
 import { getReceptionDashboard } from '@/services/receptionService'
 import type { ReceptionDashboardData } from '@/types/reception'
 
@@ -86,7 +86,6 @@ onMounted(loadDashboard)
           <div v-for="i in 6" :key="i" class="h-32 bg-gray-200 rounded-lg animate-pulse"></div>
         </div>
       </div>
-
       <!-- Error State -->
       <div
         v-else-if="errorOccurred"

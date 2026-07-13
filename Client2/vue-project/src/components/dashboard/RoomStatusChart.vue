@@ -75,8 +75,14 @@ updateChart()
 </script>
 
 <template>
-  <div class="bg-white rounded-lg border border-gray-200 px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8">
-    <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900 mb-4 sm:mb-5 md:mb-6">Room Status</h3>
+  <div
+    class="bg-white rounded-lg border border-gray-200 px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8"
+  >
+    <h3
+      class="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900 mb-4 sm:mb-5 md:mb-6"
+    >
+      Room Status
+    </h3>
 
     <div class="flex flex-col items-center justify-center">
       <!-- Chart -->
@@ -100,7 +106,9 @@ updateChart()
             <div class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-teal-600 flex-shrink-0"></div>
             <span class="text-xs sm:text-sm font-medium text-gray-700 truncate">Occupied</span>
           </div>
-          <span class="text-xs sm:text-sm font-bold text-gray-900 flex-shrink-0">{{ props.occupied }}</span>
+          <span class="text-xs sm:text-sm font-bold text-gray-900 flex-shrink-0">{{
+            props.occupied
+          }}</span>
         </div>
 
         <div class="flex items-center justify-between p-2 sm:p-3 md:p-4 bg-gray-50 rounded-lg">
@@ -108,7 +116,9 @@ updateChart()
             <div class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-blue-300 flex-shrink-0"></div>
             <span class="text-xs sm:text-sm font-medium text-gray-700 truncate">Available</span>
           </div>
-          <span class="text-xs sm:text-sm font-bold text-gray-900 flex-shrink-0">{{ props.available }}</span>
+          <span class="text-xs sm:text-sm font-bold text-gray-900 flex-shrink-0">{{
+            props.available
+          }}</span>
         </div>
 
         <div class="flex items-center justify-between p-2 sm:p-3 md:p-4 bg-gray-50 rounded-lg">
@@ -116,7 +126,9 @@ updateChart()
             <div class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-500 flex-shrink-0"></div>
             <span class="text-xs sm:text-sm font-medium text-gray-700 truncate">Reserved</span>
           </div>
-          <span class="text-xs sm:text-sm font-bold text-gray-900 flex-shrink-0">{{ props.reserved }}</span>
+          <span class="text-xs sm:text-sm font-bold text-gray-900 flex-shrink-0">{{
+            props.reserved
+          }}</span>
         </div>
 
         <div class="flex items-center justify-between p-2 sm:p-3 md:p-4 bg-gray-50 rounded-lg">
@@ -124,7 +136,9 @@ updateChart()
             <div class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-400 flex-shrink-0"></div>
             <span class="text-xs sm:text-sm font-medium text-gray-700 truncate">Maintenance</span>
           </div>
-          <span class="text-xs sm:text-sm font-bold text-gray-900 flex-shrink-0">{{ props.maintenance }}</span>
+          <span class="text-xs sm:text-sm font-bold text-gray-900 flex-shrink-0">{{
+            props.maintenance
+          }}</span>
         </div>
       </div>
     </div>

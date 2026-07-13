@@ -1,71 +1,169 @@
 <script setup lang="ts">
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoomStore } from '@/stores/room'
 import RoomHero from '@/components/guest/RoomHero.vue'
-import RoomSearchBar from '@/components/guest/RoomSearchBar.vue'
-import RoomFilters from '@/components/guest/RoomFilters.vue'
+// import RoomSearchBar from '@/components/guest/RoomSearchBar.vue'
+// import RoomFilters from '@/components/guest/RoomFilters.vue'
 import RoomGrid from '@/components/guest/RoomGrid.vue'
 import RoomPagination from '@/components/guest/RoomPagination.vue'
-import RoomCTA from '@/components/guest/RoomCTA.vue'
-import NoRoomsFound from '@/components/guest/NoRoomsFound.vue'
+// import RoomCTA from '@/components/guest/RoomCTA.vue'
+// import NoRoomsFound from '@/components/guest/NoRoomsFound.vue'
+import GuestLayout from '@/layouts/GuestLayout.vue'
 
-import { ref, computed } from 'vue'
+const roomStore = useRoomStore()
 
-/**
- * Temporary state.
- * Later this will come from roomStore.
- */
-const rooms = ref<any[]>([
-  {}, {}, {}, {}, {}, {}
-])
+const search = ref('')
+const selectedType = ref('All')
+const selectedCapacity = ref('All')
+const currentPage = ref(1)
 
-const loading = ref(false)
+// Get rooms from store
+const rooms = computed(() => roomStore.rooms)
+const loading = computed(() => roomStore.loading)
+const error = computed(() => roomStore.error)
 
-/**
- * Later:
- * const filteredRooms = computed(() => roomStore.filteredRooms)
- */
-const filteredRooms = computed(() => rooms.value)
+// Filter rooms based on search and filters
+const filteredRooms = computed(() => {
+  return rooms.value.filter((room: any) => {
+    // Safely get room name from various possible fields
+    const roomName = (room.room_name || room.name || `Room ${room.room_number}`).toLowerCase()
+    const matchesSearch = roomName.includes(search.value.toLowerCase())
+
+    // Get room type - could be string or object
+    const roomType =
+      typeof room.room_type === 'string' ? room.room_type : room.room_type?.name || 'Standard'
+
+    const matchesType = selectedType.value === 'All' || roomType === selectedType.value
+
+    // Get capacity - could be direct or nested in room_type
+    const capacity = room.capacity || room.room_type?.capacity || 2
+
+    const matchesCapacity =
+      selectedCapacity.value === 'All' || capacity >= Number(selectedCapacity.value)
+
+    return matchesSearch && matchesType && matchesCapacity
+  })
+})
+
+// Pagination
+const itemsPerPage = ref(9)
+
+const paginatedRooms = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredRooms.value.slice(start, end)
+})
+
+const pagination = computed(() => {
+  const total = filteredRooms.value.length
+  const lastPage = Math.ceil(total / itemsPerPage.value) || 1
+
+  return {
+    current_page: currentPage.value,
+    last_page: lastPage,
+    per_page: itemsPerPage.value,
+    total: total,
+    from: (currentPage.value - 1) * itemsPerPage.value + 1,
+    to: Math.min(currentPage.value * itemsPerPage.value, total),
+  }
+})
+
+// Load rooms from backend
+async function loadRooms() {
+  try {
+    await roomStore.fetchRooms({ page: currentPage.value, per_page: itemsPerPage.value })
+    currentPage.value = 1 // Reset to first page when filter changes
+  } catch (err) {
+    console.error('Failed to load rooms:', err)
+  }
+}
+
+function loadPage(page: number) {
+  currentPage.value = page
+}
+
+function clearFilters() {
+  search.value = ''
+  selectedType.value = 'All'
+  selectedCapacity.value = 'All'
+  currentPage.value = 1
+}
+
+// Fetch rooms on mount
+onMounted(() => {
+  loadRooms()
+})
+
+// Reset to page 1 when filters change
+watch([search, selectedType, selectedCapacity], () => {
+  currentPage.value = 1
+})
 </script>
 
 <template>
-  <div class="bg-slate-50">
+  <GuestLayout>
+    <div class="bg-slate-50">
+      <!-- Hero -->
+      <RoomHero />
 
-    <!-- Hero -->
-    <RoomHero />
-    <RoomSearchBar />
-    <RoomFilters />
-    <section class="py-16">
+      <!-- Search -->
+      <section class="mx-auto -mt-16 max-w-7xl px-6 relative z-20">
+        <RoomSearchBar v-model="search" />
+      </section>
 
-      <div class="mx-auto max-w-7xl px-6">
-
-        <!-- Loading -->
-        <div
-          v-if="loading"
-          class="flex justify-center py-24"
-        >
-          <div
-            class="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent"
-          />
-        </div>
-        <NoRoomsFound
-          v-else-if="filteredRooms.length === 0"
+      <!-- Filters -->
+      <section class="mx-auto mt-12 max-w-7xl px-6">
+        <RoomFilters
+          :type="selectedType"
+          :capacity="selectedCapacity"
+          @update:type="selectedType = $event"
+          @update:capacity="selectedCapacity = $event"
         />
-        <RoomGrid
-          v-else
-          :rooms="filteredRooms"
-        />
-        <div
-          v-if="filteredRooms.length"
-          class="mt-16"
-        >
-          <RoomPagination />
+      </section>
+
+      <!-- Loading State -->
+      <section v-if="loading" class="mx-auto mt-10 max-w-7xl px-6">
+        <div class="flex justify-center py-20">
+          <div class="flex flex-col items-center gap-4">
+            <div
+              class="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent"
+            />
+            <p class="text-slate-600">Loading rooms...</p>
+          </div>
         </div>
+      </section>
 
-      </div>
+      <!-- Error State -->
+      <section v-else-if="error" class="mx-auto mt-10 max-w-7xl px-6">
+        <div class="rounded-lg bg-red-50 border border-red-200 p-6 text-center">
+          <p class="text-red-700 font-medium">{{ error }}</p>
+          <button
+            @click="loadRooms"
+            class="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          >
+            Try Again
+          </button>
+        </div>
+      </section>
 
-    </section>
+      <!-- Rooms -->
+      <section v-else id="rooms-section" class="mx-auto mt-10 max-w-7xl px-6">
+        <RoomGrid v-if="paginatedRooms.length" :rooms="paginatedRooms" />
+        <NoRoomsFound v-else @clear-filters="clearFilters" />
+      </section>
 
-    <!-- Bottom CTA -->
-    <RoomCTA />
+      <!-- Pagination -->
+      <section
+        v-if="paginatedRooms.length && pagination.last_page > 1"
+        class="mx-auto mt-16 max-w-7xl px-6"
+      >
+        <RoomPagination :meta="pagination" @change-page="loadPage" />
+      </section>
 
-  </div>
+      <!-- CTA -->
+      <section class="mx-auto mt-20 mb-20 max-w-7xl px-6">
+        <RoomCTA />
+      </section>
+    </div>
+  </GuestLayout>
 </template>

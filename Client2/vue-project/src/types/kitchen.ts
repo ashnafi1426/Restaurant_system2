@@ -4,12 +4,7 @@
 |--------------------------------------------------------------------------
 */
 
-export type KitchenOrderStatus =
-  | 'pending'
-  | 'preparing'
-  | 'ready'
-  | 'served'
-  | 'cancelled'
+export type KitchenOrderStatus = 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled'
 
 /*
 |--------------------------------------------------------------------------
@@ -122,7 +117,6 @@ export interface KitchenOrder {
 */
 
 export interface KitchenStatistics {
-
   pending_orders: number
 
   preparing_orders: number
@@ -142,11 +136,9 @@ export interface KitchenStatistics {
   today_ready: number
 
   today_served: number
-
 }
 
 export interface KitchenDashboardResponse {
-
   pending: KitchenOrder[]
 
   preparing: KitchenOrder[]
@@ -154,26 +146,21 @@ export interface KitchenDashboardResponse {
   ready: KitchenOrder[]
 
   served: KitchenOrder[]
-
 }
 export interface KitchenApiResponse<T> {
-
   success: boolean
 
   message: string
 
   data: T
-
 }
 export interface KitchenFilters {
   search: string
   status: KitchenOrderStatus | ''
   room: string
   guest: string
-
 }
 export interface KitchenState {
-
   pendingOrders: KitchenOrder[]
   preparingOrders: KitchenOrder[]
   readyOrders: KitchenOrder[]

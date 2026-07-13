@@ -27,7 +27,10 @@ onMounted(async () => {
       </div>
 
       <!-- Orders Grid -->
-      <div v-if="completedOrders?.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        v-if="completedOrders?.length"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
         <div
           v-for="order in completedOrders"
           :key="order.id"
@@ -43,13 +46,17 @@ onMounted(async () => {
             </div>
             <div class="text-right">
               <p class="text-xs text-slate-500">Served</p>
-              <p class="text-sm font-semibold text-green-600">{{ new Date(order.order_time).toLocaleTimeString() }}</p>
+              <p class="text-sm font-semibold text-green-600">
+                {{ new Date(order.order_time).toLocaleTimeString() }}
+              </p>
             </div>
           </div>
 
           <!-- Guest Info -->
           <div v-if="order.guest" class="mb-4 pb-4 border-b border-slate-200">
-            <p class="text-sm text-slate-600">Guest: <span class="font-semibold">{{ order.guest.full_name }}</span></p>
+            <p class="text-sm text-slate-600">
+              Guest: <span class="font-semibold">{{ order.guest.full_name }}</span>
+            </p>
           </div>
 
           <!-- Items Summary -->
@@ -70,7 +77,9 @@ onMounted(async () => {
 
           <!-- Status Badge -->
           <div class="mt-4">
-            <span class="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
+            <span
+              class="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold"
+            >
               ✅ Served
             </span>
           </div>

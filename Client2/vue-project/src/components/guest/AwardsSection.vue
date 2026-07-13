@@ -13,61 +13,64 @@ const awards: Award[] = [
     title: 'Best Luxury Hotel',
     year: 2023,
     icon: '🏆',
-    description: 'Awarded for exceptional service and luxury experience'
+    description: 'Awarded for exceptional service and luxury experience',
   },
   {
     id: 2,
     title: 'Excellence in Hospitality',
     year: 2022,
     icon: '⭐',
-    description: 'Recognition for outstanding guest satisfaction'
+    description: 'Recognition for outstanding guest satisfaction',
   },
   {
     id: 3,
     title: 'Sustainable Tourism',
     year: 2021,
     icon: '🌱',
-    description: 'Award for environmental responsibility and green practices'
+    description: 'Award for environmental responsibility and green practices',
   },
   {
     id: 4,
     title: 'Best Fine Dining',
     year: 2023,
     icon: '🍽️',
-    description: 'Recognition for culinary excellence and innovation'
+    description: 'Recognition for culinary excellence and innovation',
   },
   {
     id: 5,
     title: 'Innovation Award',
     year: 2022,
     icon: '💡',
-    description: 'Award for technological advancement and digital experience'
+    description: 'Award for technological advancement and digital experience',
   },
   {
     id: 6,
     title: 'Guest Choice Award',
     year: 2023,
     icon: '❤️',
-    description: 'Voted favorite hotel by our valued guests'
-  }
+    description: 'Voted favorite hotel by our valued guests',
+  },
 ]
 </script>
 
 <template>
   <section class="bg-slate-50 py-12 sm:py-16 md:py-20 lg:py-24">
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10">
-
       <!-- Header -->
       <div class="mx-auto mb-8 sm:mb-12 md:mb-16 max-w-3xl text-center">
-        <p class="mb-2 sm:mb-4 text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-amber-600">
+        <p
+          class="mb-2 sm:mb-4 text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-amber-600"
+        >
           Recognition
         </p>
         <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-slate-900">
           Awards & Accolades
         </h2>
-        <p class="mt-3 sm:mt-4 md:mt-6 text-sm sm:text-base md:text-lg leading-6 sm:leading-7 md:leading-8 text-slate-500">
-          Our commitment to excellence has been recognized by prestigious organizations
-          and satisfied guests worldwide.
+        <p
+          class="mt-3 sm:mt-4 md:mt-6 text-sm sm:text-base md:text-lg leading-6 sm:leading-7 md:leading-8 text-slate-500"
+        >
+          Our commitment to excellence has been recognized by prestigious organizations and
+          satisfied guests worldwide.
         </p>
       </div>
 
@@ -84,7 +87,9 @@ const awards: Award[] = [
           </div>
 
           <!-- Year -->
-          <p class="text-xs sm:text-sm font-semibold text-amber-600 uppercase tracking-widest mb-2 sm:mb-3">
+          <p
+            class="text-xs sm:text-sm font-semibold text-amber-600 uppercase tracking-widest mb-2 sm:mb-3"
+          >
             {{ award.year }}
           </p>
 
@@ -99,7 +104,6 @@ const awards: Award[] = [
           </p>
         </div>
       </div>
-
     </div>
   </section>
 </template>

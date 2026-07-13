@@ -1,12 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-
-/*
-|--------------------------------------------------------------------------
-| Types
-|--------------------------------------------------------------------------
-*/
-
 interface OrderItem {
   id?: string
 
@@ -136,24 +129,38 @@ function closeDialog() {
       >
         <!-- Header -->
 
-        <div class="flex items-center justify-between border-b border-gray-200 px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6">
+        <div
+          class="flex items-center justify-between border-b border-gray-200 px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6"
+        >
           <div>
-            <h2 class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-800">Order Details</h2>
+            <h2 class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-800">
+              Order Details
+            </h2>
 
-            <p class="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500">Order #{{ order?.order_number }}</p>
+            <p class="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500">
+              Order #{{ order?.order_number }}
+            </p>
           </div>
 
-          <button @click="closeDialog" class="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors inline-flex items-center justify-center flex-shrink-0 min-h-10">
+          <button
+            @click="closeDialog"
+            class="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors inline-flex items-center justify-center flex-shrink-0 min-h-10"
+          >
             ✕
           </button>
         </div>
 
         <!-- Body -->
 
-        <div class="overflow-y-auto px-4 sm:px-5 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6 lg:py-8" v-if="order">
+        <div
+          class="overflow-y-auto px-4 sm:px-5 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6 lg:py-8"
+          v-if="order"
+        >
           <!-- Status -->
 
-          <div class="mb-4 sm:mb-5 md:mb-6 lg:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 md:gap-6 rounded-lg bg-gray-50 p-3 sm:p-4 md:p-5 lg:p-6">
+          <div
+            class="mb-4 sm:mb-5 md:mb-6 lg:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 md:gap-6 rounded-lg bg-gray-50 p-3 sm:p-4 md:p-5 lg:p-6"
+          >
             <div>
               <p class="text-xs sm:text-sm md:text-base text-gray-500">Current Status</p>
 
@@ -177,9 +184,15 @@ function closeDialog() {
           <!-- Guest Information -->
 
           <section class="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-            <h3 class="mb-3 sm:mb-4 text-xs sm:text-sm md:text-base font-semibold uppercase text-gray-600">Guest Information</h3>
+            <h3
+              class="mb-3 sm:mb-4 text-xs sm:text-sm md:text-base font-semibold uppercase text-gray-600"
+            >
+              Guest Information
+            </h3>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 lg:gap-6"
+            >
               <div>
                 <p class="text-xs sm:text-sm text-gray-500">Name</p>
 
@@ -211,11 +224,15 @@ function closeDialog() {
           <!-- Reservation + Room -->
 
           <section class="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-            <h3 class="mb-3 sm:mb-4 text-xs sm:text-sm md:text-base font-semibold uppercase text-gray-600">
+            <h3
+              class="mb-3 sm:mb-4 text-xs sm:text-sm md:text-base font-semibold uppercase text-gray-600"
+            >
               Reservation Information
             </h3>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 lg:gap-6"
+            >
               <div>
                 <p class="text-xs sm:text-sm text-gray-500">Booking Reference</p>
 
@@ -235,7 +252,9 @@ function closeDialog() {
               <div>
                 <p class="text-xs sm:text-sm text-gray-500">Room</p>
 
-                <p class="mt-0.5 sm:mt-1 font-medium text-xs sm:text-sm md:text-base">Room {{ order.room?.room_number }}</p>
+                <p class="mt-0.5 sm:mt-1 font-medium text-xs sm:text-sm md:text-base">
+                  Room {{ order.room?.room_number }}
+                </p>
               </div>
             </div>
           </section>
@@ -243,19 +262,39 @@ function closeDialog() {
           <!-- Items -->
 
           <section class="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-            <h3 class="mb-3 sm:mb-4 text-xs sm:text-sm md:text-base font-semibold uppercase text-gray-600">Order Items</h3>
+            <h3
+              class="mb-3 sm:mb-4 text-xs sm:text-sm md:text-base font-semibold uppercase text-gray-600"
+            >
+              Order Items
+            </h3>
 
             <div class="overflow-x-auto -mx-4 sm:mx-0 rounded-lg border border-gray-200">
               <table class="w-full text-xs sm:text-sm md:text-base">
                 <thead class="bg-gray-50">
                   <tr>
-                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left font-semibold text-gray-600">Item</th>
+                    <th
+                      class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left font-semibold text-gray-600"
+                    >
+                      Item
+                    </th>
 
-                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-center font-semibold text-gray-600">Qty</th>
+                    <th
+                      class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-center font-semibold text-gray-600"
+                    >
+                      Qty
+                    </th>
 
-                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-right font-semibold text-gray-600">Price</th>
+                    <th
+                      class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-right font-semibold text-gray-600"
+                    >
+                      Price
+                    </th>
 
-                    <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-right font-semibold text-gray-600">Subtotal</th>
+                    <th
+                      class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-right font-semibold text-gray-600"
+                    >
+                      Subtotal
+                    </th>
                   </tr>
                 </thead>
 
@@ -285,7 +324,11 @@ function closeDialog() {
           <!-- Summary -->
 
           <section class="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-            <h3 class="mb-3 sm:mb-4 text-xs sm:text-sm md:text-base font-semibold uppercase text-gray-600">Summary</h3>
+            <h3
+              class="mb-3 sm:mb-4 text-xs sm:text-sm md:text-base font-semibold uppercase text-gray-600"
+            >
+              Summary
+            </h3>
 
             <div class="space-y-2 sm:space-y-3 rounded-lg bg-gray-50 p-3 sm:p-4 md:p-5 lg:p-6">
               <div class="flex justify-between text-xs sm:text-sm md:text-base">
@@ -312,7 +355,9 @@ function closeDialog() {
                 </span>
               </div>
 
-              <div class="flex justify-between border-t border-gray-200 pt-2 sm:pt-3 text-sm sm:text-base md:text-lg font-bold">
+              <div
+                class="flex justify-between border-t border-gray-200 pt-2 sm:pt-3 text-sm sm:text-base md:text-lg font-bold"
+              >
                 <span>Total</span>
 
                 <span>
@@ -325,9 +370,15 @@ function closeDialog() {
           <!-- Notes -->
 
           <section v-if="order.notes" class="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-            <h3 class="mb-2 sm:mb-3 text-xs sm:text-sm md:text-base font-semibold uppercase text-gray-600">Notes</h3>
+            <h3
+              class="mb-2 sm:mb-3 text-xs sm:text-sm md:text-base font-semibold uppercase text-gray-600"
+            >
+              Notes
+            </h3>
 
-            <div class="rounded-lg bg-gray-50 p-3 sm:p-4 md:p-5 lg:p-6 text-xs sm:text-sm md:text-base text-gray-700">
+            <div
+              class="rounded-lg bg-gray-50 p-3 sm:p-4 md:p-5 lg:p-6 text-xs sm:text-sm md:text-base text-gray-700"
+            >
               {{ order.notes }}
             </div>
           </section>
@@ -335,7 +386,9 @@ function closeDialog() {
 
         <!-- Footer -->
 
-        <div class="flex justify-end gap-2 sm:gap-3 border-t border-gray-200 bg-gray-50 px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6">
+        <div
+          class="flex justify-end gap-2 sm:gap-3 border-t border-gray-200 bg-gray-50 px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6"
+        >
           <button
             @click="closeDialog"
             class="rounded-lg bg-gray-800 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-medium text-white hover:bg-gray-900 transition-colors min-h-10 inline-flex items-center"

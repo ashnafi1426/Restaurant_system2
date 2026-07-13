@@ -6,14 +6,22 @@
     :style="{ width: '90vw', maxWidth: '450px' }"
     :breakpoints="{ '960px': '90vw', '640px': '95vw' }"
     :pt="{
-      header: { class: 'border-b border-gray-200 dark:border-gray-700 px-4 sm:px-5 md:px-6 py-3 sm:py-4 md:py-5' },
+      header: {
+        class:
+          'border-b border-gray-200 dark:border-gray-700 px-4 sm:px-5 md:px-6 py-3 sm:py-4 md:py-5',
+      },
       content: { class: 'px-4 sm:px-5 md:px-6 py-4 sm:py-5 md:py-6' },
-      footer: { class: 'border-t border-gray-200 dark:border-gray-700 px-4 sm:px-5 md:px-6 py-3 sm:py-4 md:py-5' },
+      footer: {
+        class:
+          'border-t border-gray-200 dark:border-gray-700 px-4 sm:px-5 md:px-6 py-3 sm:py-4 md:py-5',
+      },
     }"
   >
     <div class="space-y-3 sm:space-y-4 md:space-y-5">
       <div>
-        <label class="block text-xs sm:text-sm md:text-base font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2 md:mb-3">
+        <label
+          class="block text-xs sm:text-sm md:text-base font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2 md:mb-3"
+        >
           Current Status
         </label>
         <div class="flex items-center gap-1.5 sm:gap-2 md:gap-3">
@@ -27,7 +35,9 @@
       </div>
 
       <div>
-        <label class="block text-xs sm:text-sm md:text-base font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2 md:mb-3">
+        <label
+          class="block text-xs sm:text-sm md:text-base font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2 md:mb-3"
+        >
           New Status
         </label>
         <select
@@ -63,7 +73,14 @@
 
     <template #footer>
       <div class="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-end">
-        <Button label="Cancel" severity="secondary" text @click="closeDialog" :disabled="loading" class="min-h-10 text-xs sm:text-sm" />
+        <Button
+          label="Cancel"
+          severity="secondary"
+          text
+          @click="closeDialog"
+          :disabled="loading"
+          class="min-h-10 text-xs sm:text-sm"
+        />
         <Button
           label="Update Status"
           severity="primary"

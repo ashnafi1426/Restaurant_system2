@@ -30,22 +30,22 @@ export default {
   },
 
   async confirmReservation(id: string) {
-    const response = await api.post(`/reservations/${id}/confirm`)
+    const response = await api.post(`/admin-reservations/${id}/confirm`)
     return response.data
   },
 
   async checkInReservation(id: string) {
-    const response = await api.post(`/reservations/${id}/check-in`)
+    const response = await api.post(`/admin-reservations/${id}/check-in`)
     return response.data
   },
 
   async checkOutReservation(id: string) {
-    const response = await api.post(`/reservations/${id}/check-out`)
+    const response = await api.post(`/admin-reservations/${id}/check-out`)
     return response.data
   },
 
   async cancelReservation(id: string) {
-    const response = await api.post(`/reservations/${id}/cancel`)
+    const response = await api.post(`/admin-reservations/${id}/cancel`)
     return response.data
   },
 }

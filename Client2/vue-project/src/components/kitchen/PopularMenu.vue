@@ -23,11 +23,16 @@
               class="h-8 w-8 sm:h-10 sm:w-10 rounded object-cover flex-shrink-0"
               @error="handleImageError"
             />
-            <div v-else class="h-8 w-8 sm:h-10 sm:w-10 rounded bg-gradient-to-br from-slate-300 to-slate-400 flex-shrink-0"></div>
-            
+            <div
+              v-else
+              class="h-8 w-8 sm:h-10 sm:w-10 rounded bg-gradient-to-br from-slate-300 to-slate-400 flex-shrink-0"
+            ></div>
+
             <!-- Item Info -->
             <div class="flex-1 min-w-0">
-              <p class="font-semibold text-slate-900 text-xs sm:text-sm truncate">{{ item.name }}</p>
+              <p class="font-semibold text-slate-900 text-xs sm:text-sm truncate">
+                {{ item.name }}
+              </p>
               <p class="text-xs text-slate-500 truncate hidden sm:block">{{ item.category }}</p>
             </div>
           </div>
@@ -59,24 +64,27 @@ const { orders } = storeToRefs(kitchenStore)
  * Groups items by name and counts occurrences, uses image from first occurrence
  */
 const popularItems = computed(() => {
-  const itemCount: Record<string, { name: string; category: string; orders: number; image: string | null }> = {}
-  
-  orders.value.forEach(order => {
-    order.items?.forEach(item => {
+  const itemCount: Record<
+    string,
+    { name: string; category: string; orders: number; image: string | null }
+  > = {}
+
+  orders.value.forEach((order) => {
+    order.items?.forEach((item) => {
       if (item.name) {
         if (!itemCount[item.name]) {
           itemCount[item.name] = {
             name: item.name,
             category: item.category || 'Unknown',
             orders: 0,
-            image: item.image || null,  // Use actual image from backend
+            image: item.image || null, // Use actual image from backend
           }
         }
         itemCount[item.name].orders += item.quantity || 1
       }
     })
   })
-  
+
   // Return top 3 items by order count
   return Object.values(itemCount)
     .sort((a, b) => b.orders - a.orders)

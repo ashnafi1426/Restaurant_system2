@@ -6,13 +6,12 @@ export default {
   },
 
   createMenu(data: any) {
-    console.log('📤 createMenu called with:', data instanceof FormData ? 'FormData' : 'JSON')
-    console.log('📄 Payload:', data)
+    console.log('createMenu called with:', data instanceof FormData ? 'FormData' : 'JSON')
+    console.log('Payload:', data)
 
     // FormData for file uploads
     if (data instanceof FormData) {
-      console.log('✅ Sending as FormData with multipart/form-data')
-      // Don't set Content-Type header - let axios handle it with boundary
+      console.log('Sending as FormData with multipart/form-data')
       return api.post('/menu-items', data, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -33,8 +32,8 @@ export default {
   },
 
   updateMenu(id: string, data: any) {
-    console.log('📤 updateMenu called with ID:', id)
-    console.log('📄 Payload:', data instanceof FormData ? 'FormData' : 'JSON')
+    console.log('updateMenu called with ID:', id)
+    console.log('Payload:', data instanceof FormData ? 'FormData' : 'JSON')
 
     // FormData for file uploads
     if (data instanceof FormData) {
@@ -46,7 +45,6 @@ export default {
         transformRequest: [(d) => d], // Don't transform FormData
       })
     }
-
     // Check if image_url is present (URL-based image)
     if (data?.image_url) {
       console.log('🔗 Updating with image_url:', data.image_url)

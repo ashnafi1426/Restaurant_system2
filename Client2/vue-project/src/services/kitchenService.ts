@@ -15,10 +15,7 @@ class KitchenService {
   */
 
   async getOrders(): Promise<KitchenDashboardResponse> {
-    const response =
-      await api.get<
-        KitchenApiResponse<KitchenDashboardResponse>
-      >('/kitchen/orders')
+    const response = await api.get<KitchenApiResponse<KitchenDashboardResponse>>('/kitchen/orders')
 
     return response.data.data
   }
@@ -30,10 +27,7 @@ class KitchenService {
   */
 
   async getStatistics(): Promise<KitchenStatistics> {
-    const response =
-      await api.get<
-        KitchenApiResponse<KitchenStatistics>
-      >('/kitchen/statistics')
+    const response = await api.get<KitchenApiResponse<KitchenStatistics>>('/kitchen/statistics')
 
     return response.data.data
   }
@@ -44,13 +38,10 @@ class KitchenService {
   |--------------------------------------------------------------------------
   */
 
-  async startPreparing(
-    orderId: string,
-  ): Promise<KitchenOrder> {
-    const response =
-      await api.patch<
-        KitchenApiResponse<KitchenOrder>
-      >(`/kitchen/orders/${orderId}/start`)
+  async startPreparing(orderId: string): Promise<KitchenOrder> {
+    const response = await api.patch<KitchenApiResponse<KitchenOrder>>(
+      `/kitchen/orders/${orderId}/start`,
+    )
 
     return response.data.data
   }
@@ -61,13 +52,10 @@ class KitchenService {
   |--------------------------------------------------------------------------
   */
 
-  async markReady(
-    orderId: string,
-  ): Promise<KitchenOrder> {
-    const response =
-      await api.patch<
-        KitchenApiResponse<KitchenOrder>
-      >(`/kitchen/orders/${orderId}/ready`)
+  async markReady(orderId: string): Promise<KitchenOrder> {
+    const response = await api.patch<KitchenApiResponse<KitchenOrder>>(
+      `/kitchen/orders/${orderId}/ready`,
+    )
 
     return response.data.data
   }
@@ -78,13 +66,10 @@ class KitchenService {
   |--------------------------------------------------------------------------
   */
 
-  async markServed(
-    orderId: string,
-  ): Promise<KitchenOrder> {
-    const response =
-      await api.patch<
-        KitchenApiResponse<KitchenOrder>
-      >(`/kitchen/orders/${orderId}/complete`)
+  async markServed(orderId: string): Promise<KitchenOrder> {
+    const response = await api.patch<KitchenApiResponse<KitchenOrder>>(
+      `/kitchen/orders/${orderId}/complete`,
+    )
 
     return response.data.data
   }
@@ -96,11 +81,7 @@ class KitchenService {
   */
 
   async refresh() {
-    const [orders, statistics] =
-      await Promise.all([
-        this.getOrders(),
-        this.getStatistics(),
-      ])
+    const [orders, statistics] = await Promise.all([this.getOrders(), this.getStatistics()])
 
     return {
       orders,

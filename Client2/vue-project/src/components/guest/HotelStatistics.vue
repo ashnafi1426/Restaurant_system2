@@ -3,30 +3,29 @@ const statistics = [
   {
     value: '150+',
     label: 'Luxury Rooms',
-    icon: '🛏️'
+    icon: '🛏️',
   },
   {
     value: '98%',
     label: 'Guest Satisfaction',
-    icon: '⭐'
+    icon: '⭐',
   },
   {
     value: '25+',
     label: 'Years Experience',
-    icon: '🎖️'
+    icon: '🎖️',
   },
   {
     value: '50+',
     label: 'Staff Members',
-    icon: '👥'
-  }
+    icon: '👥',
+  },
 ]
 </script>
 
 <template>
   <section class="bg-gradient-to-r from-slate-900 to-slate-800 py-12 sm:py-16 md:py-20">
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10">
-
       <!-- Stats Grid -->
       <div class="grid gap-8 sm:gap-10 md:gap-12 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
         <div
@@ -50,7 +49,6 @@ const statistics = [
           </p>
         </div>
       </div>
-
     </div>
   </section>
 </template>

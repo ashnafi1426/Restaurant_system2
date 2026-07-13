@@ -246,7 +246,7 @@ onMounted(() => {
               Manage hotel reservations, check-ins and guest stays
             </p>
           </div>
-          <div class="flex gap-3">
+          <!-- <div class="flex gap-3">
             <button
               @click="createReservation"
               class="flex items-center gap-2 rounded-lg bg-white text-purple-600 px-6 py-3 hover:bg-purple-50 transition shadow-lg"
@@ -254,7 +254,7 @@ onMounted(() => {
               <span class="material-symbols-rounded text-xl">add</span>
               <span class="font-semibold">New Reservation</span>
             </button>
-          </div>
+          </div> -->
         </div>
       </div>
 

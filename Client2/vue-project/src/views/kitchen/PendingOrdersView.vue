@@ -32,7 +32,10 @@ async function startPreparing(orderId: string) {
       </div>
 
       <!-- Orders Grid -->
-      <div v-if="pendingOrders?.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        v-if="pendingOrders?.length"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
         <div
           v-for="order in pendingOrders"
           :key="order.id"
@@ -48,13 +51,17 @@ async function startPreparing(orderId: string) {
             </div>
             <div class="text-right">
               <p class="text-xs text-slate-500">Time</p>
-              <p class="text-sm font-semibold text-amber-600">{{ new Date(order.order_time).toLocaleTimeString() }}</p>
+              <p class="text-sm font-semibold text-amber-600">
+                {{ new Date(order.order_time).toLocaleTimeString() }}
+              </p>
             </div>
           </div>
 
           <!-- Guest Info -->
           <div v-if="order.guest" class="mb-4 pb-4 border-b border-slate-200">
-            <p class="text-sm text-slate-600">Guest: <span class="font-semibold">{{ order.guest.full_name }}</span></p>
+            <p class="text-sm text-slate-600">
+              Guest: <span class="font-semibold">{{ order.guest.full_name }}</span>
+            </p>
           </div>
 
           <!-- Items -->
@@ -62,7 +69,9 @@ async function startPreparing(orderId: string) {
             <p class="text-xs font-semibold text-slate-500 uppercase">Items</p>
             <div v-for="item in order.items" :key="item.id" class="text-sm text-slate-700">
               <span class="font-semibold">{{ item.quantity }}x</span> {{ item.name }}
-              <span v-if="item.notes" class="block text-xs text-amber-600 mt-1">📝 {{ item.notes }}</span>
+              <span v-if="item.notes" class="block text-xs text-amber-600 mt-1"
+                >📝 {{ item.notes }}</span
+              >
             </div>
           </div>
 

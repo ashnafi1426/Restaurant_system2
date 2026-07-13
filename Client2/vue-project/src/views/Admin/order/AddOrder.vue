@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { useOrderStore } from '@/stores/orderStore'
 import { useReservationStore } from '@/stores/reservationStore'
 import { useGuestStore } from '@/stores/guestStore'
@@ -58,6 +58,11 @@ const form = reactive<OrderForm>({
 const selectedMenuItemId = ref('')
 const selectedQuantity = ref(1)
 
+// Helper function for setTimeout (usable in template event handlers)
+function setTimeoutHelper(callback: () => void, delay: number) {
+  setTimeout(callback, delay)
+}
+
 // Search states
 const guestSearch = ref('')
 const reservationSearch = ref('')
@@ -70,35 +75,37 @@ const showRoomDropdown = ref(false)
 const filteredGuests = computed(() => {
   if (!guestSearch.value.trim()) return guestStore.guests
   const query = guestSearch.value.toLowerCase()
-  return guestStore.guests.filter((guest) =>
-    `${guest.first_name} ${guest.last_name}`.toLowerCase().includes(query) ||
-    guest.id.toLowerCase().includes(query) ||
-    (guest.email && guest.email.toLowerCase().includes(query))
+  return guestStore.guests.filter(
+    (guest) =>
+      `${guest.first_name} ${guest.last_name}`.toLowerCase().includes(query) ||
+      guest.id.toLowerCase().includes(query) ||
+      (guest.email && guest.email.toLowerCase().includes(query)),
   )
 })
 
 const filteredReservations = computed(() => {
   if (!reservationSearch.value.trim()) return reservationStore.reservations
   const query = reservationSearch.value.toLowerCase()
-  return reservationStore.reservations.filter((res) =>
-    res.booking_reference.toLowerCase().includes(query) ||
-    (res.guest?.first_name && `${res.guest.first_name} ${res.guest.last_name}`.toLowerCase().includes(query))
+  return reservationStore.reservations.filter(
+    (res) =>
+      res.booking_reference.toLowerCase().includes(query) ||
+      (res.guest?.first_name &&
+        `${res.guest.first_name} ${res.guest.last_name}`.toLowerCase().includes(query)),
   )
 })
 
 const filteredRooms = computed(() => {
   let query = roomSearch.value.trim().toLowerCase()
-  
+
   console.log('🔍 [FILTER] Search query:', query)
   console.log('🔍 [FILTER] Total rooms available:', roomStore.rooms.length)
-  
+
   // If no search query, return all active rooms
   if (!query) {
-    const activeRooms = roomStore.rooms.filter(room => room.is_active !== false)
+    const activeRooms = roomStore.rooms.filter((room) => room.is_active !== false)
     console.log('🔍 [FILTER] No search - returning active rooms:', activeRooms.length)
     return activeRooms
   }
-
   // Remove "room" or "rm" prefix if user typed it (e.g., "room 202" → "202")
   if (query.startsWith('room ')) {
     query = query.replace('room ', '').trim()
@@ -108,22 +115,19 @@ const filteredRooms = computed(() => {
     query = query.replace('rm ', '').trim()
     console.log('🔍 [FILTER] Removed "rm " prefix, new query:', query)
   }
-
   const results = roomStore.rooms.filter((room) => {
     // Ensure room exists
     if (!room) {
-      console.log('🔍 [FILTER] Room is falsy, skipping')
+      console.log('[FILTER] Room is falsy, skipping')
       return false
     }
-    
-    console.log('🔍 [FILTER] Checking room:', {
+    console.log('[FILTER] Checking room:', {
       id: room.id,
       room_number: room.room_number,
       floor: room.floor,
       status: room.status,
       room_type_name: room.room_type?.name,
     })
-    
     try {
       // Safe string conversion for all fields
       const roomNumber = room.room_number ? String(room.room_number).toLowerCase() : ''
@@ -132,45 +136,37 @@ const filteredRooms = computed(() => {
       const status = room.status ? String(room.status).toLowerCase() : ''
       const description = room.description ? String(room.description).toLowerCase() : ''
       const id = room.id ? String(room.id).toLowerCase() : ''
-      
-      const matches = (
+      const matches =
         roomNumber.includes(query) ||
         roomType.includes(query) ||
         floor.includes(query) ||
         status.includes(query) ||
         description.includes(query) ||
         id.includes(query)
-      )
-      
       if (matches) {
         console.log(`✅ [FILTER] MATCH! Room ${room.room_number} matched query "${query}"`, {
           roomNumber,
           matches,
         })
       }
-      
       return matches
     } catch (e) {
       console.error('❌ [FILTER] Error filtering room:', room, e)
       return false
     }
   })
-  
   console.log(`🔍 [FILTER] Results: ${results.length} rooms matched "${query}"`)
   return results
 })
-
 // Get display text for selections
 const selectedReservationText = computed(() => {
   const res = reservationStore.reservations.find((r) => r.id === form.reservation_id)
   return res ? res.booking_reference : ''
 })
-
 const selectedGuestText = computed(() => {
   const guest = guestStore.guests.find((g) => g.id === form.guest_id)
   return guest ? `${guest.first_name} ${guest.last_name}` : ''
 })
-
 const selectedRoomText = computed(() => {
   const room = roomStore.rooms.find((r) => r.id === form.room_id)
   if (!room) return ''
@@ -179,37 +175,31 @@ const selectedRoomText = computed(() => {
   }
   return `Room ${room.room_number}`
 })
-
 // Select functions
 function selectReservation(reservationId: string) {
   form.reservation_id = reservationId
   showReservationDropdown.value = false
   reservationSearch.value = ''
 }
-
 function selectGuest(guestId: string) {
   form.guest_id = guestId
   showGuestDropdown.value = false
   guestSearch.value = ''
 }
-
 function selectRoom(roomId: string) {
   form.room_id = roomId
   showRoomDropdown.value = false
   roomSearch.value = ''
 }
-
 // Handle search input changes
 function handleReservationInput(value: string) {
   reservationSearch.value = value
   showReservationDropdown.value = true
 }
-
 function handleGuestInput(value: string) {
   guestSearch.value = value
   showGuestDropdown.value = true
 }
-
 function handleRoomInput(value: string) {
   roomSearch.value = value
   showRoomDropdown.value = true
@@ -218,7 +208,6 @@ function handleRoomInput(value: string) {
   console.log('📋 All rooms count:', roomStore.rooms.length)
   console.log('📋 First room:', roomStore.rooms[0])
 }
-
 // Computed totals
 const subtotal = computed(() => {
   return form.items.reduce((total, item) => {
@@ -273,8 +262,6 @@ function populateForm(order: Order) {
   form.notes = order.notes || ''
   form.items = order.items ? structuredClone(order.items) : []
 }
-
-// Reset form
 function resetForm() {
   form.reservation_id = ''
   form.guest_id = ''
@@ -290,18 +277,23 @@ async function initializePage() {
   try {
     // Load all required data
     console.log('📦 Starting data initialization...')
-    
+
     await Promise.all([
       reservationStore.fetchReservations(),
       guestStore.fetchGuests(),
       roomStore.fetchRooms({ per_page: 100 }), // Request all rooms for complete search
-      menuStore.fetchMenuItems(),
+      menuStore.fetchMenuItems({ per_page: 100 }), // ✅ FETCH MENU ITEMS!
     ])
 
-    console.log('✅ Data loaded')
-    console.log('🏨 Total rooms loaded:', roomStore.rooms.length)
-    console.log('🏨 First room:', roomStore.rooms[0])
-    console.log('🏨 All rooms:', roomStore.rooms)
+    console.log('Data loaded')
+    console.log('Total rooms loaded:', roomStore.rooms.length)
+    console.log(' First room:', roomStore.rooms[0])
+    console.log(' All rooms:', roomStore.rooms)
+    console.log('Total menu items loaded:', menuStore.menuItems.length)
+    console.log(' Menu items:', menuStore.menuItems)
+    if (menuStore.menuItems.length === 0) {
+      console.warn('⚠️ WARNING: No menu items loaded! Check backend API.')
+    }
 
     // If editing or viewing, load the order
     if (orderId.value) {
@@ -333,14 +325,14 @@ function addItemToOrder() {
     alert('Menu item not found')
     return
   }
-
   // Check if item already exists in order
-  const existingItemIndex = form.items.findIndex((item) => item.menu_item_id === selectedMenuItemId.value)
-  
+  const existingItemIndex = form.items.findIndex(
+    (item) => item.menu_item_id === selectedMenuItemId.value,
+  )
   if (existingItemIndex >= 0) {
     // Update quantity if item already exists
     form.items[existingItemIndex].quantity += selectedQuantity.value
-    form.items[existingItemIndex].line_total = 
+    form.items[existingItemIndex].line_total =
       form.items[existingItemIndex].quantity * form.items[existingItemIndex].item_price_at_order
   } else {
     // Add new item
@@ -416,7 +408,6 @@ function validateForm(): boolean {
 // Save order (Create or Update)
 async function saveOrder() {
   if (!validateForm()) return
-
   submitting.value = true
   try {
     const payload = preparePayload()
@@ -518,25 +509,23 @@ onMounted(() => {
 
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-gray-50 px-6 py-8">
-      <!-- PAGE HEADER -->
-
+    <div class="min-h-screen bg-gray-50 px-4 sm:px-6 py-6 sm:py-8">
+      <!-- PAGE HEADER - Responsive -->
       <div class="mx-auto mb-6 max-w-7xl">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900">
               {{ pageTitle }}
             </h1>
-
-            <p class="mt-1 text-sm text-gray-500">
+            <p class="mt-1 text-xs sm:text-sm text-gray-500">
               {{ pageSubtitle }}
             </p>
           </div>
 
-          <div class="flex gap-3">
+          <div class="flex gap-2 sm:gap-3 flex-wrap">
             <button
               @click="cancelOrder"
-              class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+              class="rounded-lg border border-gray-300 bg-white px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
             >
               Cancel
             </button>
@@ -545,7 +534,7 @@ onMounted(() => {
               v-if="!isViewMode"
               @click="saveOrder"
               :disabled="submitting"
-              class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition"
+              class="rounded-lg bg-blue-600 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition"
             >
               {{ submitting ? 'Saving...' : isEditMode ? 'Update Order' : 'Create Order' }}
             </button>
@@ -590,10 +579,14 @@ onMounted(() => {
 
               <div class="relative">
                 <input
-                  :value="form.reservation_id && !showReservationDropdown ? selectedReservationText : reservationSearch"
+                  :value="
+                    form.reservation_id && !showReservationDropdown
+                      ? selectedReservationText
+                      : reservationSearch
+                  "
                   @input="(e) => handleReservationInput((e.target as HTMLInputElement).value)"
                   @focus="showReservationDropdown = !isViewMode"
-                  @blur="() => setTimeout(() => (showReservationDropdown = false), 300)"
+                  @blur="() => setTimeoutHelper(() => (showReservationDropdown = false), 300)"
                   @keydown.escape="showReservationDropdown = false"
                   :disabled="isViewMode"
                   type="text"
@@ -606,15 +599,25 @@ onMounted(() => {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  ></path>
                 </svg>
               </div>
 
               <div
-                v-if="showReservationDropdown && (reservationSearch || filteredReservations.length > 0)"
+                v-if="
+                  showReservationDropdown && (reservationSearch || filteredReservations.length > 0)
+                "
                 class="absolute top-full left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl z-50"
               >
-                <div v-if="filteredReservations.length === 0" class="px-4 py-3 text-sm text-gray-500">
+                <div
+                  v-if="filteredReservations.length === 0"
+                  class="px-4 py-3 text-sm text-gray-500"
+                >
                   No reservations found
                 </div>
                 <div
@@ -643,7 +646,7 @@ onMounted(() => {
                   :value="form.guest_id && !showGuestDropdown ? selectedGuestText : guestSearch"
                   @input="(e) => handleGuestInput((e.target as HTMLInputElement).value)"
                   @focus="showGuestDropdown = !isViewMode"
-                  @blur="() => setTimeout(() => (showGuestDropdown = false), 300)"
+                  @blur="() => setTimeoutHelper(() => (showGuestDropdown = false), 300)"
                   @keydown.escape="showGuestDropdown = false"
                   :disabled="isViewMode"
                   type="text"
@@ -656,7 +659,12 @@ onMounted(() => {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  ></path>
                 </svg>
               </div>
 
@@ -673,7 +681,9 @@ onMounted(() => {
                   @click="selectGuest(guest.id)"
                   class="cursor-pointer px-4 py-3 hover:bg-blue-50 border-b border-gray-100 last:border-0 transition"
                 >
-                  <div class="font-medium text-gray-900">{{ guest.first_name }} {{ guest.last_name }}</div>
+                  <div class="font-medium text-gray-900">
+                    {{ guest.first_name }} {{ guest.last_name }}
+                  </div>
                   <div class="text-xs text-gray-500">{{ guest.id }}</div>
                 </div>
               </div>
@@ -691,7 +701,7 @@ onMounted(() => {
                   :value="form.room_id && !showRoomDropdown ? selectedRoomText : roomSearch"
                   @input="(e) => handleRoomInput((e.target as HTMLInputElement).value)"
                   @focus="showRoomDropdown = !isViewMode"
-                  @blur="() => setTimeout(() => (showRoomDropdown = false), 300)"
+                  @blur="() => setTimeoutHelper(() => (showRoomDropdown = false), 300)"
                   @keydown.escape="showRoomDropdown = false"
                   :disabled="isViewMode"
                   type="text"
@@ -704,7 +714,12 @@ onMounted(() => {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  ></path>
                 </svg>
               </div>
 
@@ -726,17 +741,20 @@ onMounted(() => {
                       ({{ room.room_type.name }})
                     </span>
                   </div>
-                  
+
                   <!-- Additional Info -->
                   <div class="text-xs text-gray-500 mt-1">
                     <span v-if="room.floor">Floor {{ room.floor }}</span>
                     <span v-if="room.status" class="ml-2">
-                      <span :class="{
-                        'bg-green-100 text-green-700': room.status === 'available',
-                        'bg-red-100 text-red-700': room.status === 'occupied',
-                        'bg-yellow-100 text-yellow-700': room.status === 'reserved',
-                        'bg-gray-100 text-gray-700': room.status === 'maintenance',
-                      }" class="px-2 py-1 rounded text-xs">
+                      <span
+                        :class="{
+                          'bg-green-100 text-green-700': room.status === 'available',
+                          'bg-red-100 text-red-700': room.status === 'occupied',
+                          'bg-yellow-100 text-yellow-700': room.status === 'reserved',
+                          'bg-gray-100 text-gray-700': room.status === 'maintenance',
+                        }"
+                        class="px-2 py-1 rounded text-xs"
+                      >
                         {{ room.status_label || room.status }}
                       </span>
                     </span>
@@ -749,9 +767,7 @@ onMounted(() => {
                 v-if="showRoomDropdown && roomSearch && filteredRooms.length === 0"
                 class="absolute top-full left-0 right-0 mt-1 rounded-lg border border-gray-200 bg-white shadow-xl z-50 p-4"
               >
-                <p class="text-sm text-gray-500">
-                  No rooms found matching "{{ roomSearch }}"
-                </p>
+                <p class="text-sm text-gray-500">No rooms found matching "{{ roomSearch }}"</p>
                 <p class="text-xs text-gray-400 mt-2">
                   Try searching by room number, floor, or status
                 </p>
@@ -840,11 +856,7 @@ onMounted(() => {
                     class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   >
                     <option value="">Select a menu item</option>
-                    <option
-                      v-for="item in menuStore.menuItems"
-                      :key="item.id"
-                      :value="item.id"
-                    >
+                    <option v-for="item in menuStore.menuItems" :key="item.id" :value="item.id">
                       {{ item.name }} - ${{ item.price.toFixed(2) }}
                     </option>
                   </select>

@@ -29,11 +29,59 @@ watch(
   },
 )
 
-// Only show reservations that are confirmed AND room is available
+// Only show reservations that are confirmed
+// Room availability is validated server-side during check-in
 const checkableReservations = computed(() => {
-  return props.reservations.filter(
-    (r) => r.status === 'confirmed' && r.room?.status === 'available',
+  console.log('🔍 [CHECKIN DIALOG] Computing checkable reservations...')
+  console.log('📥 [CHECKIN DIALOG] Props reservations received:', props.reservations.length)
+
+  if (props.reservations.length === 0) {
+    console.warn('⚠️  [CHECKIN DIALOG] NO RESERVATIONS PROVIDED TO DIALOG!')
+    return []
+  }
+
+  // Log first 3 reservations for debugging
+  console.log('📋 [CHECKIN DIALOG] Sample reservations:')
+  props.reservations.slice(0, 3).forEach((r: any) => {
+    console.log(`  - ID: ${r.id}`)
+    console.log(`    Status: ${r.status}`)
+    console.log(`    Room ID: ${r.room?.id}`)
+    console.log(`    Room Status: ${r.room?.status}`)
+    console.log(`    Room Number: ${r.room?.room_number}`)
+    console.log(`    Guest: ${r.guest?.full_name}`)
+  })
+
+  const result = props.reservations.filter((r: any) => {
+    const statusCheck = r.status === 'confirmed'
+
+    if (!statusCheck) {
+      console.log(`  ❌ ${r.id}: FAILS status check (${r.status} !== 'confirmed')`)
+    }
+    if (statusCheck) {
+      console.log(`  ✅ ${r.id}: PASSES status check - will be shown`)
+    }
+
+    return statusCheck
+  })
+
+  console.log(
+    `✅ [CHECKIN DIALOG] Total checkable reservations: ${result.length} out of ${props.reservations.length}`,
   )
+
+  if (result.length === 0 && props.reservations.length > 0) {
+    console.warn('⚠️  [CHECKIN DIALOG] NO CONFIRMED RESERVATIONS FOUND!')
+    console.log('📊 [CHECKIN DIALOG] Reservation status breakdown:')
+    const statuses = new Map()
+    props.reservations.forEach((r: any) => {
+      const key = `${r.status}`
+      statuses.set(key, (statuses.get(key) || 0) + 1)
+    })
+    statuses.forEach((count, status) => {
+      console.log(`   ${status}: ${count}`)
+    })
+  }
+
+  return result
 })
 
 const filteredReservations = computed(() => {
@@ -58,14 +106,23 @@ async function confirmCheckIn() {
   try {
     console.log(' [DIALOG] Attempting check-in with reservation:', reservation.value)
     console.log(' [DIALOG] Reservation ID:', reservation.value.id)
+    console.log(' [DIALOG] Reservation ID type:', typeof reservation.value.id)
+    console.log(' [DIALOG] Reservation details:')
+    console.log('   - Status:', reservation.value.status)
+    console.log('   - Guest:', reservation.value.guest?.full_name)
+    console.log('   - Room:', reservation.value.room?.room_number)
+    console.log('   - Check-in date:', reservation.value.check_in_date)
+
     await store.checkInGuest(reservation.value.id)
     emit('success')
     emit('update:modelValue', false)
   } catch (err: any) {
-    const errorMsg = err.response?.data?.message || err.message || 'Failed to check in guest'
+    const errorMsg = err.message || 'Failed to check in guest'
     error.value = errorMsg
-    console.error(' Check-in error:', errorMsg)
-    console.error(' Full error details:', err)
+    console.error(' [DIALOG] Check-in error:', errorMsg)
+    console.error(' [DIALOG] Full error details:', err)
+    console.error(' [DIALOG] Error response:', err.response?.data)
+    console.error(' [DIALOG] Error status:', err.response?.status)
   } finally {
     loading.value = false
   }
@@ -148,7 +205,7 @@ function closeDialog() {
               >
                 <p class="text-sm text-amber-800 font-semibold">No Available Reservations</p>
                 <p class="text-xs text-amber-700 mt-1">
-                  Only confirmed reservations with available rooms can be checked in.
+                  No confirmed reservations found. Please create or confirm a reservation first.
                 </p>
               </div>
               <div v-else class="border border-slate-300 rounded-lg max-h-40 overflow-y-auto">

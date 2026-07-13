@@ -13,8 +13,8 @@
       <p class="hero-subtitle">SINCE 1924</p>
       <h1 class="hero-title">Luxury Hotel Experience</h1>
       <p class="hero-description">
-        Experience the height of heritage and modern sophistication in our meticulously curated suites. Book your perfect
-        stay today.
+        Experience the height of heritage and modern sophistication in our meticulously curated
+        suites. Book your perfect stay today.
       </p>
 
       <div class="hero-buttons">

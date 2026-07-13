@@ -26,7 +26,11 @@
 
     <!-- Top Sellers List -->
     <div v-else class="space-y-2 sm:space-y-4">
-      <div v-for="(dish, index) in topSellers" :key="dish.id" class="flex items-center gap-2 sm:gap-3">
+      <div
+        v-for="(dish, index) in topSellers"
+        :key="dish.id"
+        class="flex items-center gap-2 sm:gap-3"
+      >
         <!-- Rank Badge -->
         <div class="relative flex-shrink-0">
           <img
@@ -47,7 +51,8 @@
           <div class="text-xs sm:text-sm font-bold text-slate-800 truncate">{{ dish.name }}</div>
           <div class="text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-1">
             <v-icon size="10" sm:size="12">mdi-shopping-outline</v-icon>
-            <span class="hidden sm:inline">{{ dish.total_orders }} Orders</span><span class="sm:hidden">{{ dish.total_orders }}</span>
+            <span class="hidden sm:inline">{{ dish.total_orders }} Orders</span
+            ><span class="sm:hidden">{{ dish.total_orders }}</span>
           </div>
           <!-- Progress Bar -->
           <div class="w-full bg-slate-100 h-1 sm:h-1.5 rounded-full mt-1 overflow-hidden">

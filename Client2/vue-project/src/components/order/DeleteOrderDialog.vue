@@ -6,9 +6,15 @@
     :style="{ width: '90vw', maxWidth: '450px' }"
     :breakpoints="{ '960px': '90vw', '640px': '95vw' }"
     :pt="{
-      header: { class: 'border-b border-gray-200 dark:border-gray-700 px-4 sm:px-5 md:px-6 py-3 sm:py-4 md:py-5' },
+      header: {
+        class:
+          'border-b border-gray-200 dark:border-gray-700 px-4 sm:px-5 md:px-6 py-3 sm:py-4 md:py-5',
+      },
       content: { class: 'px-4 sm:px-5 md:px-6 py-4 sm:py-5 md:py-6' },
-      footer: { class: 'border-t border-gray-200 dark:border-gray-700 px-4 sm:px-5 md:px-6 py-3 sm:py-4 md:py-5' },
+      footer: {
+        class:
+          'border-t border-gray-200 dark:border-gray-700 px-4 sm:px-5 md:px-6 py-3 sm:py-4 md:py-5',
+      },
     }"
   >
     <div class="space-y-3 sm:space-y-4 md:space-y-5">
@@ -19,16 +25,25 @@
       </div>
 
       <div class="text-center">
-        <h3 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100">Confirm Deletion</h3>
-        <p class="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-300 mt-1 sm:mt-2 md:mt-3">
+        <h3 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100">
+          Confirm Deletion
+        </h3>
+        <p
+          class="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-300 mt-1 sm:mt-2 md:mt-3"
+        >
           Are you sure you want to delete this order?
         </p>
       </div>
 
-      <div v-if="order" class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 sm:p-3 md:p-4 space-y-1.5 sm:space-y-2 md:space-y-3">
+      <div
+        v-if="order"
+        class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 sm:p-3 md:p-4 space-y-1.5 sm:space-y-2 md:space-y-3"
+      >
         <div class="flex justify-between text-xs sm:text-sm md:text-base">
           <span class="text-gray-600 dark:text-gray-400">Order ID:</span>
-          <span class="font-medium text-gray-900 dark:text-gray-100 truncate ml-2">#{{ order.id }}</span>
+          <span class="font-medium text-gray-900 dark:text-gray-100 truncate ml-2"
+            >#{{ order.id }}</span
+          >
         </div>
         <div class="flex justify-between text-xs sm:text-sm md:text-base">
           <span class="text-gray-600 dark:text-gray-400">Customer:</span>
@@ -56,7 +71,9 @@
       <div
         class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-2 sm:p-3 md:p-4"
       >
-        <p class="text-xs sm:text-sm md:text-base text-red-700 dark:text-red-300 flex items-start gap-2 sm:gap-2.5">
+        <p
+          class="text-xs sm:text-sm md:text-base text-red-700 dark:text-red-300 flex items-start gap-2 sm:gap-2.5"
+        >
           <i class="pi pi-exclamation-circle mt-0.5 flex-shrink-0"></i>
           <span
             >This action is irreversible. All data associated with this order will be permanently
@@ -68,8 +85,21 @@
 
     <template #footer>
       <div class="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-end">
-        <Button label="Cancel" severity="secondary" text @click="closeDialog" :disabled="loading" class="min-h-10 text-xs sm:text-sm" />
-        <Button label="Delete Order" severity="danger" @click="handleDelete" :loading="loading" class="min-h-10 text-xs sm:text-sm">
+        <Button
+          label="Cancel"
+          severity="secondary"
+          text
+          @click="closeDialog"
+          :disabled="loading"
+          class="min-h-10 text-xs sm:text-sm"
+        />
+        <Button
+          label="Delete Order"
+          severity="danger"
+          @click="handleDelete"
+          :loading="loading"
+          class="min-h-10 text-xs sm:text-sm"
+        >
           <template #icon>
             <i class="pi pi-trash"></i>
           </template>

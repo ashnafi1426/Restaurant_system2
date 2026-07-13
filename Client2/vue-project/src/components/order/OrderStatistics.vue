@@ -28,7 +28,9 @@ function formatCurrency(value: number): string {
 </script>
 
 <template>
-  <div class="grid grid-cols-1 gap-2 sm:gap-3 md:gap-4 lg:gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 px-4 sm:px-6 md:px-8 lg:px-10">
+  <div
+    class="grid grid-cols-1 gap-2 sm:gap-3 md:gap-4 lg:gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 px-4 sm:px-6 md:px-8 lg:px-10"
+  >
     <!-- ======================================================= -->
     <!-- Total Orders -->
     <!-- ======================================================= -->
@@ -52,7 +54,10 @@ function formatCurrency(value: number): string {
 
       <div v-if="loading" class="mt-4 h-8 sm:h-9 md:h-10 animate-pulse rounded bg-yellow-200" />
 
-      <h2 v-else class="mt-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-yellow-700">
+      <h2
+        v-else
+        class="mt-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-yellow-700"
+      >
         {{ statistics.pending_orders }}
       </h2>
     </div>
@@ -94,7 +99,10 @@ function formatCurrency(value: number): string {
 
       <div v-if="loading" class="mt-4 h-8 sm:h-9 md:h-10 animate-pulse rounded bg-indigo-200" />
 
-      <h2 v-else class="mt-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-indigo-700">
+      <h2
+        v-else
+        class="mt-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-indigo-700"
+      >
         {{ statistics.served_orders }}
       </h2>
     </div>
@@ -108,7 +116,10 @@ function formatCurrency(value: number): string {
 
       <div v-if="loading" class="mt-4 h-8 sm:h-9 md:h-10 animate-pulse rounded bg-emerald-200" />
 
-      <h2 v-else class="mt-4 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-emerald-700">
+      <h2
+        v-else
+        class="mt-4 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-emerald-700"
+      >
         {{ formatCurrency(statistics.total_revenue) }}
       </h2>
     </div>

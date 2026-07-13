@@ -20,7 +20,9 @@ const emit = defineEmits<{
     class="group rounded-lg sm:rounded-xl md:rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg hover:border-purple-300 transition-all duration-300"
   >
     <!-- Image Container -->
-    <div class="relative h-32 sm:h-40 md:h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
+    <div
+      class="relative h-32 sm:h-40 md:h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden"
+    >
       <!-- Image -->
       <img
         v-if="item.image_url"
@@ -31,7 +33,9 @@ const emit = defineEmits<{
 
       <!-- Placeholder when no image -->
       <div v-else class="absolute inset-0 flex items-center justify-center">
-        <v-icon size="40" sm:size="50" md:size="64" color="slate-300">mdi-silverware-fork-knife</v-icon>
+        <v-icon size="40" sm:size="50" md:size="64" color="slate-300"
+          >mdi-silverware-fork-knife</v-icon
+        >
       </div>
 
       <!-- Availability Badge -->
@@ -43,9 +47,14 @@ const emit = defineEmits<{
           ]"
         >
           <div
-            :class="['w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full', item.is_available ? 'bg-green-600' : 'bg-red-600']"
+            :class="[
+              'w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full',
+              item.is_available ? 'bg-green-600' : 'bg-red-600',
+            ]"
           />
-          <span class="hidden sm:inline">{{ item.is_available ? 'Available' : 'Unavailable' }}</span>
+          <span class="hidden sm:inline">{{
+            item.is_available ? 'Available' : 'Unavailable'
+          }}</span>
           <span class="sm:hidden">{{ item.is_available ? 'In' : 'Out' }}</span>
         </div>
       </div>
@@ -63,7 +72,11 @@ const emit = defineEmits<{
         </span>
       </div>
       <!-- Title -->
-      <h3 class="text-xs sm:text-sm md:text-base font-bold text-slate-900 line-clamp-2 mb-1 sm:mb-2">{{ item.name }}</h3>
+      <h3
+        class="text-xs sm:text-sm md:text-base font-bold text-slate-900 line-clamp-2 mb-1 sm:mb-2"
+      >
+        {{ item.name }}
+      </h3>
       <!-- Description -->
       <p class="text-xs text-slate-600 line-clamp-2 mb-2 sm:mb-3 flex-1">
         {{ item.description || 'No description provided' }}
@@ -73,7 +86,9 @@ const emit = defineEmits<{
       <div class="pt-2 sm:pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
         <!-- Price -->
         <div>
-          <p class="text-lg sm:text-xl md:text-2xl font-black text-purple-600">${{ item.price.toFixed(2) }}</p>
+          <p class="text-lg sm:text-xl md:text-2xl font-black text-purple-600">
+            ${{ item.price.toFixed(2) }}
+          </p>
         </div>
 
         <!-- Action Buttons -->

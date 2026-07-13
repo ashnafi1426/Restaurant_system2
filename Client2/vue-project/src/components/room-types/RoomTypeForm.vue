@@ -57,7 +57,10 @@ const submit = () => {
           Price Per Night <span class="text-red-500">*</span>
         </label>
         <div class="relative">
-          <span class="absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs sm:text-sm font-medium">₹</span>
+          <span
+            class="absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs sm:text-sm font-medium"
+            >₹</span
+          >
           <input
             type="number"
             v-model="form.base_price_per_night"
@@ -88,7 +91,9 @@ const submit = () => {
     </div>
 
     <!-- Active Checkbox -->
-    <div class="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-lg">
+    <div
+      class="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-lg"
+    >
       <input
         type="checkbox"
         v-model="form.is_active"
@@ -96,7 +101,10 @@ const submit = () => {
         class="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 sm:mt-0 accent-blue-600 cursor-pointer"
       />
       <div class="flex-1 min-w-0">
-        <label for="active-checkbox" class="text-xs sm:text-sm font-semibold text-slate-900 cursor-pointer">
+        <label
+          for="active-checkbox"
+          class="text-xs sm:text-sm font-semibold text-slate-900 cursor-pointer"
+        >
           Active Room Type
         </label>
         <p class="text-xs text-slate-500 mt-0.5">

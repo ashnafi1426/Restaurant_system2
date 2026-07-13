@@ -48,10 +48,16 @@ const getInitialColor = (initials: string) => {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg border border-gray-200 px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-6">
+  <div
+    class="bg-white rounded-lg border border-gray-200 px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8"
+  >
+    <div
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-6"
+    >
       <div>
-        <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900">Recent Reservations</h3>
+        <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900">
+          Recent Reservations
+        </h3>
       </div>
       <router-link
         to="/admin/reservations"
@@ -69,17 +75,29 @@ const getInitialColor = (initials: string) => {
       <table class="w-full">
         <thead>
           <tr class="border-b border-gray-200">
-            <th class="text-left py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase">Guest</th>
-            <th class="text-left py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase hidden sm:table-cell">
+            <th
+              class="text-left py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase"
+            >
+              Guest
+            </th>
+            <th
+              class="text-left py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase hidden sm:table-cell"
+            >
               Room Type
             </th>
-            <th class="text-left py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase hidden md:table-cell">
+            <th
+              class="text-left py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase hidden md:table-cell"
+            >
               Check In
             </th>
-            <th class="text-left py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase">
+            <th
+              class="text-left py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase"
+            >
               Status
             </th>
-            <th class="text-right py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase">
+            <th
+              class="text-right py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase"
+            >
               Amount
             </th>
           </tr>
@@ -98,19 +116,27 @@ const getInitialColor = (initials: string) => {
                     'w-8 sm:w-9 md:w-10 h-8 sm:h-9 md:h-10 rounded-full flex items-center justify-center flex-shrink-0',
                   ]"
                 >
-                  <span class="text-xs sm:text-xs md:text-sm font-semibold">{{ reservation.guest.initials }}</span>
+                  <span class="text-xs sm:text-xs md:text-sm font-semibold">{{
+                    reservation.guest.initials
+                  }}</span>
                 </div>
                 <div class="min-w-0">
-                  <p class="text-xs sm:text-sm font-medium text-gray-900 truncate">{{ reservation.guest.name }}</p>
+                  <p class="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                    {{ reservation.guest.name }}
+                  </p>
                   <p class="text-xs text-gray-500 truncate">{{ reservation.booking_reference }}</p>
                 </div>
               </div>
             </td>
             <td class="py-3 sm:py-4 md:py-5 px-4 sm:px-6 md:px-8 lg:px-10 hidden sm:table-cell">
-              <span class="text-xs sm:text-sm text-gray-700 truncate">{{ reservation.room_type }}</span>
+              <span class="text-xs sm:text-sm text-gray-700 truncate">{{
+                reservation.room_type
+              }}</span>
             </td>
             <td class="py-3 sm:py-4 md:py-5 px-4 sm:px-6 md:px-8 lg:px-10 hidden md:table-cell">
-              <span class="text-xs sm:text-sm text-gray-700">{{ formatDate(reservation.check_in_date) }}</span>
+              <span class="text-xs sm:text-sm text-gray-700">{{
+                formatDate(reservation.check_in_date)
+              }}</span>
             </td>
             <td class="py-3 sm:py-4 md:py-5 px-4 sm:px-6 md:px-8 lg:px-10">
               <span

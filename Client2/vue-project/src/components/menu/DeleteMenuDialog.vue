@@ -9,12 +9,16 @@
     >
       <!-- Warning Icon -->
       <div class="flex justify-center mb-3 sm:mb-4">
-        <div class="w-14 sm:w-16 h-14 sm:h-16 rounded-full bg-red-50 flex items-center justify-center">
+        <div
+          class="w-14 sm:w-16 h-14 sm:h-16 rounded-full bg-red-50 flex items-center justify-center"
+        >
           <v-icon size="28" sm:size="32" color="red">mdi-alert-circle</v-icon>
         </div>
       </div>
       <!-- Title -->
-      <h3 class="text-base sm:text-lg font-bold text-slate-800 mb-1.5 sm:mb-2">Delete Menu Item?</h3>
+      <h3 class="text-base sm:text-lg font-bold text-slate-800 mb-1.5 sm:mb-2">
+        Delete Menu Item?
+      </h3>
 
       <!-- Description -->
       <p class="text-xs sm:text-sm text-slate-600 mb-4 sm:mb-6 leading-relaxed">

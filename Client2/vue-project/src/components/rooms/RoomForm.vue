@@ -110,7 +110,9 @@ const save = () => {
         <p v-else-if="form.room_number" class="text-green-500 text-xs mt-1 flex items-center gap-1">
           <span>✓</span> This room number is available
         </p>
-        <p class="text-slate-600 text-xs mt-1">Next available: <strong>#{{ suggestNextRoomNumber() }}</strong></p>
+        <p class="text-slate-600 text-xs mt-1">
+          Next available: <strong>#{{ suggestNextRoomNumber() }}</strong>
+        </p>
       </div>
 
       <!-- Floor -->
@@ -140,7 +142,9 @@ const save = () => {
         >
           <option value="">Select Room Type</option>
           <option v-for="type in roomTypes" :key="type.id" :value="type.id">
-            {{ type.name }} - ₹{{ parseFloat(type.base_price_per_night).toLocaleString('en-IN') }}/night
+            {{ type.name }} - ₹{{
+              parseFloat(type.base_price_per_night).toLocaleString('en-IN')
+            }}/night
           </option>
         </select>
         <p v-if="!form.room_type_id" class="text-orange-500 text-xs mt-1 flex items-center gap-1">
@@ -181,7 +185,9 @@ const save = () => {
     </div>
 
     <!-- Active Checkbox -->
-    <div class="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-lg">
+    <div
+      class="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-lg"
+    >
       <input
         type="checkbox"
         v-model="form.is_active"
@@ -189,12 +195,13 @@ const save = () => {
         class="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 sm:mt-0 accent-blue-600 cursor-pointer"
       />
       <div class="flex-1 min-w-0">
-        <label for="active-checkbox" class="text-xs sm:text-sm font-semibold text-slate-900 cursor-pointer">
+        <label
+          for="active-checkbox"
+          class="text-xs sm:text-sm font-semibold text-slate-900 cursor-pointer"
+        >
           Active Room
         </label>
-        <p class="text-xs text-slate-500 mt-0.5">
-          Room will be available for bookings
-        </p>
+        <p class="text-xs text-slate-500 mt-0.5">Room will be available for bookings</p>
       </div>
     </div>
 

@@ -1,5 +1,7 @@
 <template>
-  <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-2.5 md:gap-3 w-full px-4 sm:px-0">
+  <div
+    class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-2.5 md:gap-3 w-full px-4 sm:px-0"
+  >
     <!-- Search Bar with Icon -->
     <div class="relative flex-1 min-w-[200px] sm:min-w-[260px]">
       <v-icon
@@ -19,8 +21,12 @@
     </div>
 
     <!-- Category Filter -->
-    <div class="flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-initial min-w-[150px] sm:min-w-auto">
-      <v-icon size="16" sm:size="18" class="text-slate-500 flex-shrink-0 hidden sm:block">mdi-tag</v-icon>
+    <div
+      class="flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-initial min-w-[150px] sm:min-w-auto"
+    >
+      <v-icon size="16" sm:size="18" class="text-slate-500 flex-shrink-0 hidden sm:block"
+        >mdi-tag</v-icon
+      >
       <select
         :value="category"
         @change="$emit('update:category', ($event.target as HTMLSelectElement).value)"
@@ -32,8 +38,12 @@
     </div>
 
     <!-- Status Filter -->
-    <div class="flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-initial min-w-[150px] sm:min-w-auto">
-      <v-icon size="16" sm:size="18" class="text-slate-500 flex-shrink-0 hidden sm:block">mdi-check-circle</v-icon>
+    <div
+      class="flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-initial min-w-[150px] sm:min-w-auto"
+    >
+      <v-icon size="16" sm:size="18" class="text-slate-500 flex-shrink-0 hidden sm:block"
+        >mdi-check-circle</v-icon
+      >
       <select
         :value="status"
         @change="$emit('update:status', ($event.target as HTMLSelectElement).value)"

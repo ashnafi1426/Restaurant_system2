@@ -38,7 +38,9 @@ const formatDate = (date: string) => {
     <!-- Header -->
     <div class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5">
       <h3 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900">Active Guests</h3>
-      <span class="text-xs sm:text-sm md:text-base text-gray-600 font-medium">{{ checkIns.length }} Active</span>
+      <span class="text-xs sm:text-sm md:text-base text-gray-600 font-medium"
+        >{{ checkIns.length }} Active</span
+      >
     </div>
 
     <!-- Check-ins List -->
@@ -50,7 +52,9 @@ const formatDate = (date: string) => {
       >
         <!-- Avatar -->
         <div class="flex-shrink-0">
-          <div class="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-teal-100 flex items-center justify-center">
+          <div
+            class="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-teal-100 flex items-center justify-center"
+          >
             <span class="text-xs sm:text-sm md:text-base font-bold text-teal-700">
               {{ getInitials(checkIn.guest?.first_name || 'U', checkIn.guest?.last_name || 'N') }}
             </span>
@@ -87,8 +91,13 @@ const formatDate = (date: string) => {
     </div>
 
     <!-- View All Link -->
-    <div v-if="checkIns.length > 5" class="mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-gray-100">
-      <button class="w-full py-2 sm:py-2.5 md:py-3 min-h-10 text-xs sm:text-sm md:text-base font-medium text-teal-600 hover:text-teal-700 transition">
+    <div
+      v-if="checkIns.length > 5"
+      class="mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-gray-100"
+    >
+      <button
+        class="w-full py-2 sm:py-2.5 md:py-3 min-h-10 text-xs sm:text-sm md:text-base font-medium text-teal-600 hover:text-teal-700 transition"
+      >
         View All Guests
       </button>
     </div>

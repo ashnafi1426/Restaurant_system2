@@ -195,7 +195,9 @@ function closeDialog() {
         class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 sm:py-4 md:py-6 px-4 sm:px-6 flex items-center justify-between"
       >
         <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-          <span class="text-lg sm:text-xl md:text-2xl flex-shrink-0">{{ editMode ? '✏️' : '➕' }}</span>
+          <span class="text-lg sm:text-xl md:text-2xl flex-shrink-0">{{
+            editMode ? '✏️' : '➕'
+          }}</span>
           <span class="text-base sm:text-lg md:text-xl font-bold truncate">{{ dialogTitle }}</span>
         </div>
         <button
@@ -212,7 +214,9 @@ function closeDialog() {
         <div class="space-y-3 sm:space-y-5">
           <!-- Item Name Field -->
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"> 🍽️ Item Name * </label>
+            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
+              🍽️ Item Name *
+            </label>
             <v-text-field
               v-model="form.name"
               maxlength="50"
@@ -249,7 +253,9 @@ function closeDialog() {
 
             <!-- Category -->
             <div>
-              <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"> 🏷️ Category * </label>
+              <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
+                🏷️ Category *
+              </label>
               <v-select
                 v-model="form.category"
                 :items="[
@@ -271,7 +277,9 @@ function closeDialog() {
 
           <!-- Description -->
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"> 📝 Description </label>
+            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
+              📝 Description
+            </label>
             <v-textarea
               v-model="form.description"
               maxlength="500"
@@ -287,7 +295,9 @@ function closeDialog() {
 
           <!-- Image URL -->
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"> 🖼️ Image URL </label>
+            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
+              🖼️ Image URL
+            </label>
             <v-text-field
               v-model="form.image"
               type="url"
@@ -309,7 +319,9 @@ function closeDialog() {
           </div>
 
           <!-- Available Toggle -->
-          <div class="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <div
+            class="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 rounded-lg border border-slate-200"
+          >
             <v-checkbox v-model="form.is_available" class="mt-0" />
             <span class="text-xs sm:text-sm font-medium text-slate-700"> Available for order </span>
             <span class="ml-auto text-lg">

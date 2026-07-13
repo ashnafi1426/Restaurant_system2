@@ -15,21 +15,13 @@ import type {
 export const useOrderStore = defineStore('order', () => {
   const orders = ref<Order[]>([])
   const selectedOrder = ref<Order | null>(null)
-
   const loading = ref(false)
-
   const submitting = ref(false)
-
   const deleting = ref(false)
-
   const changingStatus = ref(false)
-
   const currentPage = ref(1)
-
   const lastPage = ref(1)
-
   const perPage = ref(10)
-
   const total = ref(0)
   const filters = ref<OrderFilters>({
     search: '',

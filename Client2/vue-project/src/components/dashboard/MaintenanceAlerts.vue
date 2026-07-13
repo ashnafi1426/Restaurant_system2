@@ -49,8 +49,14 @@ const getSeverityIconColor = (severity: string) => {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg border border-gray-200 px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8">
-    <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900 mb-3 sm:mb-4 md:mb-5">MAINTENANCE ALERTS</h3>
+  <div
+    class="bg-white rounded-lg border border-gray-200 px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8"
+  >
+    <h3
+      class="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900 mb-3 sm:mb-4 md:mb-5"
+    >
+      MAINTENANCE ALERTS
+    </h3>
 
     <div v-if="alerts.length === 0" class="text-center py-6 sm:py-8 md:py-10">
       <p class="text-gray-500 text-xs sm:text-sm md:text-base">No active alerts</p>
@@ -60,7 +66,10 @@ const getSeverityIconColor = (severity: string) => {
       <div
         v-for="alert in alerts"
         :key="alert.id"
-        :class="[getSeverityColor(alert.severity), 'px-3 sm:px-4 md:px-5 py-3 sm:py-4 rounded-lg border']"
+        :class="[
+          getSeverityColor(alert.severity),
+          'px-3 sm:px-4 md:px-5 py-3 sm:py-4 rounded-lg border',
+        ]"
       >
         <div class="flex gap-2 sm:gap-3 md:gap-4">
           <!-- Icon -->
@@ -76,7 +85,12 @@ const getSeverityIconColor = (severity: string) => {
 
           <!-- Content -->
           <div class="flex-1 min-w-0">
-            <h4 :class="[getSeverityBadgeColor(alert.severity), 'text-xs sm:text-sm md:text-base font-semibold']">
+            <h4
+              :class="[
+                getSeverityBadgeColor(alert.severity),
+                'text-xs sm:text-sm md:text-base font-semibold',
+              ]"
+            >
               {{ alert.title }}
             </h4>
             <p class="text-xs sm:text-xs md:text-sm text-gray-600 mt-1">{{ alert.description }}</p>

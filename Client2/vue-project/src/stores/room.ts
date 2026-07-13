@@ -21,7 +21,7 @@ export const useRoomStore = defineStore('rooms', {
 
         // Handle paginated response from Laravel
         let roomsData = response.data
-        
+
         // Check if response is paginated (has 'data' key from pagination)
         if (response.data && response.data.data && Array.isArray(response.data.data)) {
           console.log('📋 [ROOM STORE] Detected paginated response')
@@ -37,7 +37,7 @@ export const useRoomStore = defineStore('rooms', {
           console.log('📋 [ROOM STORE] Using response.data.data')
           roomsData = response.data.data
         }
-        
+
         console.log('[ROOM STORE] Final rooms data:', roomsData)
         console.log(
           ' [ROOM STORE] Number of rooms:',
@@ -49,14 +49,23 @@ export const useRoomStore = defineStore('rooms', {
           console.log('🆔 [ROOM STORE] First room ID:', roomsData[0].id)
           console.log('📍 [ROOM STORE] First room number:', roomsData[0].room_number)
           console.log('📍 [ROOM STORE] First room type:', roomsData[0].room_type)
-          
+          console.log('📍 [ROOM STORE] First room type name:', roomsData[0].room_type?.name)
+
           // Verify each room has required data
           roomsData.forEach((room: any, index: number) => {
             if (!room.room_number) {
               console.warn(`⚠️ [ROOM STORE] Room ${index} has no room_number!`, room)
             }
             if (!room.room_type) {
-              console.warn(`⚠️ [ROOM STORE] Room ${index} (${room.room_number}) has no room_type!`, room)
+              console.warn(
+                `⚠️ [ROOM STORE] Room ${index} (${room.room_number}) has no room_type!`,
+                room,
+              )
+            } else {
+              console.log(
+                `✓ [ROOM STORE] Room ${index} (${room.room_number}) room_type:`,
+                room.room_type.name,
+              )
             }
           })
         } else {
@@ -96,7 +105,11 @@ export const useRoomStore = defineStore('rooms', {
 
         const roomsData = response.data.data || response.data
         this.rooms = roomsData
-        console.log('[ROOM STORE] Search found:', Array.isArray(roomsData) ? roomsData.length : 0, 'rooms')
+        console.log(
+          '[ROOM STORE] Search found:',
+          Array.isArray(roomsData) ? roomsData.length : 0,
+          'rooms',
+        )
       } catch (error: any) {
         const message = error.response?.data?.message || error.message
         this.error = ` Error searching rooms: ${message}`

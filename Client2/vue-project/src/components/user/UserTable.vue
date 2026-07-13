@@ -56,39 +56,63 @@ onBeforeUnmount(() => {
       <table class="w-full">
         <thead class="bg-slate-50/80 border-b border-slate-200">
           <tr>
-            <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+            <th
+              class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600"
+            >
               Name
             </th>
-            <th class="hidden sm:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+            <th
+              class="hidden sm:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600"
+            >
               Email
             </th>
-            <th class="hidden md:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+            <th
+              class="hidden md:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600"
+            >
               Phone
             </th>
-            <th class="hidden lg:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+            <th
+              class="hidden lg:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600"
+            >
               Role
             </th>
-            <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+            <th
+              class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600"
+            >
               Status
             </th>
-            <th class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
+            <th
+              class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-600"
+            >
               Actions
             </th>
           </tr>
         </thead>
 
         <tbody class="divide-y divide-slate-200">
-          <tr v-for="user in users" :key="user.id" class="hover:bg-slate-50/60 transition duration-150">
-            <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-medium text-xs sm:text-sm md:text-base text-slate-900">
+          <tr
+            v-for="user in users"
+            :key="user.id"
+            class="hover:bg-slate-50/60 transition duration-150"
+          >
+            <td
+              class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-medium text-xs sm:text-sm md:text-base text-slate-900"
+            >
               {{ user.full_name }}
             </td>
-            <td class="hidden sm:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs sm:text-sm text-slate-600">
+            <td
+              class="hidden sm:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs sm:text-sm text-slate-600"
+            >
               {{ user.email }}
             </td>
-            <td class="hidden md:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs sm:text-sm text-slate-600">
+            <td
+              class="hidden md:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs sm:text-sm text-slate-600"
+            >
               {{ user.phone }}
             </td>
-            <td class="hidden lg:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs sm:text-sm capitalize text-slate-600">
+            <td
+              class="hidden lg:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs sm:text-sm capitalize text-slate-600"
+            >
               {{ user.role }}
             </td>
 
@@ -97,12 +121,19 @@ onBeforeUnmount(() => {
                 v-if="user.is_active"
                 class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-xs font-medium bg-green-50 text-green-700 border border-green-200"
               >
-                <span class="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-green-500 mr-1 sm:mr-1.5"></span>
+                <span
+                  class="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-green-500 mr-1 sm:mr-1.5"
+                ></span>
                 Active
               </span>
 
-              <span v-else class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-xs font-medium bg-red-50 text-red-700 border border-red-200">
-                <span class="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-red-500 mr-1 sm:mr-1.5"></span>
+              <span
+                v-else
+                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-xs font-medium bg-red-50 text-red-700 border border-red-200"
+              >
+                <span
+                  class="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-red-500 mr-1 sm:mr-1.5"
+                ></span>
                 Inactive
               </span>
             </td>
@@ -151,7 +182,11 @@ onBeforeUnmount(() => {
         No users found
       </div>
 
-      <div v-for="user in users" :key="user.id" class="border-b border-slate-200 last:border-b-0 p-4 sm:p-5 hover:bg-slate-50/50 transition duration-150">
+      <div
+        v-for="user in users"
+        :key="user.id"
+        class="border-b border-slate-200 last:border-b-0 p-4 sm:p-5 hover:bg-slate-50/50 transition duration-150"
+      >
         <!-- Name and Status -->
         <div class="flex items-start justify-between gap-2 mb-3">
           <div class="flex-1 min-w-0">
@@ -166,7 +201,10 @@ onBeforeUnmount(() => {
             Active
           </span>
 
-          <span v-else class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200 flex-shrink-0 ml-2">
+          <span
+            v-else
+            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200 flex-shrink-0 ml-2"
+          >
             <span class="h-1.5 w-1.5 rounded-full bg-red-500 mr-1"></span>
             Inactive
           </span>

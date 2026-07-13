@@ -28,21 +28,13 @@ const emit = defineEmits<{
 
 const router = useRouter()
 
-const formattedPrice = computed(() =>
-  `$${props.room.price.toFixed(2)}`
-)
+const formattedPrice = computed(() => `$${props.room.price.toFixed(2)}`)
 
 const availabilityClass = computed(() =>
-  props.room.available
-    ? 'bg-green-100 text-green-700'
-    : 'bg-red-100 text-red-700'
+  props.room.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700',
 )
 
-const availabilityText = computed(() =>
-  props.room.available
-    ? 'Available'
-    : 'Fully Booked'
-)
+const availabilityText = computed(() => (props.room.available ? 'Available' : 'Fully Booked'))
 
 function viewDetails() {
   emit('details', props.room)
@@ -64,12 +56,7 @@ function reserveRoom() {
   >
     <!-- Image -->
     <div class="relative">
-
-      <img
-        :src="room.image"
-        :alt="room.name"
-        class="h-72 w-full object-cover"
-      >
+      <img :src="room.image" :alt="room.name" class="h-72 w-full object-cover" />
 
       <div
         class="absolute left-4 top-4 rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-white"
@@ -83,161 +70,83 @@ function reserveRoom() {
       >
         {{ availabilityText }}
       </div>
-
     </div>
 
     <!-- Body -->
     <div class="p-6">
-
-      <div
-        class="mb-3 flex items-center justify-between"
-      >
-        <h2
-          class="text-2xl font-bold text-slate-900"
-        >
+      <div class="mb-3 flex items-center justify-between">
+        <h2 class="text-2xl font-bold text-slate-900">
           {{ room.name }}
         </h2>
 
-        <span
-          class="text-2xl font-bold text-amber-600"
-        >
+        <span class="text-2xl font-bold text-amber-600">
           {{ formattedPrice }}
         </span>
-
       </div>
 
-      <p
-        class="mb-6 text-slate-500"
-      >
-        Per Night
-      </p>
+      <p class="mb-6 text-slate-500">Per Night</p>
 
       <!-- Rating -->
-      <div
-        class="mb-6 flex items-center gap-2"
-      >
+      <div class="mb-6 flex items-center gap-2">
+        <span class="text-yellow-500"> ★★★★★ </span>
 
-        <span class="text-yellow-500">
-          ★★★★★
-        </span>
-
-        <span
-          class="font-medium text-slate-700"
-        >
+        <span class="font-medium text-slate-700">
           {{ room.rating }}
         </span>
 
-        <span
-          class="text-slate-400"
-        >
-          ({{ room.reviews }} Reviews)
-        </span>
-
+        <span class="text-slate-400"> ({{ room.reviews }} Reviews) </span>
       </div>
 
       <!-- Information -->
-      <div
-        class="grid grid-cols-2 gap-4"
-      >
+      <div class="grid grid-cols-2 gap-4">
+        <div class="rounded-xl bg-slate-100 p-4">
+          <p class="text-sm text-slate-500">Guests</p>
 
-        <div
-          class="rounded-xl bg-slate-100 p-4"
-        >
-          <p
-            class="text-sm text-slate-500"
-          >
-            Guests
-          </p>
-
-          <p
-            class="mt-1 font-semibold"
-          >
+          <p class="mt-1 font-semibold">
             {{ room.capacity }}
           </p>
         </div>
 
-        <div
-          class="rounded-xl bg-slate-100 p-4"
-        >
-          <p
-            class="text-sm text-slate-500"
-          >
-            Room Size
-          </p>
+        <div class="rounded-xl bg-slate-100 p-4">
+          <p class="text-sm text-slate-500">Room Size</p>
 
-          <p
-            class="mt-1 font-semibold"
-          >
-            {{ room.size }} m²
-          </p>
+          <p class="mt-1 font-semibold">{{ room.size }} m²</p>
         </div>
 
-        <div
-          class="rounded-xl bg-slate-100 p-4"
-        >
-          <p
-            class="text-sm text-slate-500"
-          >
-            Bed
-          </p>
+        <div class="rounded-xl bg-slate-100 p-4">
+          <p class="text-sm text-slate-500">Bed</p>
 
-          <p
-            class="mt-1 font-semibold"
-          >
+          <p class="mt-1 font-semibold">
             {{ room.bed_type }}
           </p>
         </div>
 
-        <div
-          class="rounded-xl bg-slate-100 p-4"
-        >
-          <p
-            class="text-sm text-slate-500"
-          >
-            Type
-          </p>
+        <div class="rounded-xl bg-slate-100 p-4">
+          <p class="text-sm text-slate-500">Type</p>
 
-          <p
-            class="mt-1 font-semibold"
-          >
+          <p class="mt-1 font-semibold">
             {{ room.room_type }}
           </p>
         </div>
-
       </div>
 
       <!-- Amenities -->
-      <div
-        class="mt-8"
-      >
+      <div class="mt-8">
+        <h3 class="mb-3 font-semibold text-slate-900">Amenities</h3>
 
-        <h3
-          class="mb-3 font-semibold text-slate-900"
-        >
-          Amenities
-        </h3>
-
-        <div
-          class="flex flex-wrap gap-2"
-        >
-
+        <div class="flex flex-wrap gap-2">
           <span
-            v-for="item in room.amenities.slice(0,5)"
+            v-for="item in room.amenities.slice(0, 5)"
             :key="item"
             class="rounded-full bg-amber-100 px-3 py-1 text-sm text-amber-700"
           >
             {{ item }}
           </span>
-
         </div>
-
       </div>
 
       <!-- Buttons -->
-      <div
-        class="mt-8 grid grid-cols-2 gap-4"
-      >
-
+      <div class="mt-8 grid grid-cols-2 gap-4">
         <button
           @click="viewDetails"
           class="rounded-xl border border-amber-500 py-3 font-semibold text-amber-600 transition hover:bg-amber-500 hover:text-white"
@@ -252,10 +161,7 @@ function reserveRoom() {
         >
           Reserve Now
         </button>
-
       </div>
-
     </div>
-
   </div>
 </template>

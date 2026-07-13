@@ -1,7 +1,11 @@
 <template>
-  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8">
+  <div
+    class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8"
+  >
     <div>
-      <h1 class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100">
+      <h1
+        class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100"
+      >
         Order Management
       </h1>
       <p class="mt-1 text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400">

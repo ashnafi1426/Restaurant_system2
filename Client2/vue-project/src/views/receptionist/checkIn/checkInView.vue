@@ -29,7 +29,28 @@ const filters = ref({
 
 // Get only confirmed reservations for check-in
 const availableReservations = computed(() => {
-  return reservationStore.reservations.filter((r: any) => r.status === 'confirmed')
+  console.log('🎯 [CHECKIN VIEW COMPUTED] Computing availableReservations...')
+  console.log('   Store has', reservationStore.reservations.length, 'total reservations')
+
+  const filtered = reservationStore.reservations.filter((r: any) => {
+    const isConfirmed = r.status === 'confirmed'
+    if (!isConfirmed) {
+      console.log(`   ❌ ${r.id}: status is "${r.status}", not "confirmed"`)
+    }
+    return isConfirmed
+  })
+
+  console.log(`✅ [CHECKIN VIEW COMPUTED] Found ${filtered.length} confirmed reservations`)
+
+  if (filtered.length === 0 && reservationStore.reservations.length > 0) {
+    console.warn('⚠️  [CHECKIN VIEW COMPUTED] NO CONFIRMED RESERVATIONS FOUND!')
+    console.log('📊 [CHECKIN VIEW COMPUTED] Status breakdown:')
+    reservationStore.reservations.forEach((r: any) => {
+      console.log(`   - ${r.id}: status="${r.status}"`)
+    })
+  }
+
+  return filtered
 })
 
 const totalCheckIns = computed(() => store.statistics.total_check_ins)
@@ -71,6 +92,19 @@ const loadReservations = async () => {
     console.log(' [CHECKIN VIEW] Reservations loaded')
     console.log(' [CHECKIN VIEW] Total reservations:', reservationStore.reservations.length)
 
+    if (reservationStore.reservations.length === 0) {
+      console.warn('⚠️  [CHECKIN VIEW] NO RESERVATIONS LOADED FROM API!')
+      console.log('📊 [CHECKIN VIEW] Store state:')
+      console.log('   - reservations:', reservationStore.reservations)
+      console.log('   - loading:', reservationStore.loading)
+      return
+    }
+
+    // Log detailed structure of first reservation to understand data shape
+    console.log(' [CHECKIN VIEW] DETAILED STRUCTURE OF FIRST RESERVATION:')
+    const first = reservationStore.reservations[0]
+    console.log(JSON.stringify(first, null, 2))
+
     // Log details of available ones
     const checkable = reservationStore.reservations.filter(
       (r: any) => r.status === 'confirmed' && r.room?.status === 'available',
@@ -80,15 +114,27 @@ const loadReservations = async () => {
       checkable.length,
     )
 
+    // Log all confirmed reservations regardless of room status for debugging
+    const allConfirmed = reservationStore.reservations.filter((r: any) => r.status === 'confirmed')
+    console.log(' [CHECKIN VIEW] All confirmed reservations:', allConfirmed.length)
+    allConfirmed.forEach((r: any) => {
+      console.log(
+        `  - ${r.id}: room.status=${r.room?.status}, room_id=${r.room?.id}, room_number=${r.room?.room_number}`,
+      )
+    })
+
     if (checkable.length === 0) {
       console.warn('  [CHECKIN VIEW] No checkable reservations found')
       console.log('   - Total reservations:', reservationStore.reservations.length)
-      console.log(
-        '   - Sample reservation statuses:',
-        reservationStore.reservations
-          .slice(0, 3)
-          .map((r: any) => `${r.id}: status=${r.status}, room.status=${r.room?.status}`),
-      )
+      console.log('   - Confirmed reservations:', allConfirmed.length)
+
+      if (allConfirmed.length > 0) {
+        console.warn('   - ISSUE: Confirmed reservations exist but none have available rooms!')
+        console.log('   - Room statuses for confirmed reservations:')
+        allConfirmed.forEach((r: any) => {
+          console.log(`     ${r.id}: room.status="${r.room?.status}"`)
+        })
+      }
     }
   } catch (error) {
     console.error(' Error loading reservations:', error)
@@ -169,6 +215,8 @@ const resetFilters = async () => {
 
 onMounted(async () => {
   await refreshPage()
+  // Force refresh of reservations to get latest confirmed status
+  reservationStore.reservations = []
   await loadReservations()
 })
 </script>

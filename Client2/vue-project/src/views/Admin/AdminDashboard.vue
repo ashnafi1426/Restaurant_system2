@@ -56,14 +56,14 @@ onMounted(loadDashboard)
 
 <template>
   <DashboardLayout>
-    <div class="w-full bg-gray-50 -mx-6 -my-6 px-6 py-6">
+    <div class="w-full bg-gray-50 -mx-4 sm:-mx-6 -my-4 sm:-my-6 px-4 sm:px-6 py-4 sm:py-6">
       <!-- Loading State -->
-      <div v-if="loading" class="animate-pulse space-y-6">
+      <div v-if="loading" class="animate-pulse space-y-4 sm:space-y-6">
         <div class="h-8 bg-gray-200 rounded w-1/3"></div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           <div v-for="i in 4" :key="i" class="h-32 bg-gray-200 rounded-lg"></div>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
           <div class="h-80 bg-gray-200 rounded-lg"></div>
           <div class="h-80 bg-gray-200 rounded-lg"></div>
         </div>
@@ -85,26 +85,29 @@ onMounted(loadDashboard)
           </svg>
         </div>
         <h3 class="text-lg font-semibold text-gray-900">Failed to load dashboard</h3>
-        <p class="text-gray-600 mt-2 mb-6">
+        <p class="text-gray-600 mt-2 mb-6 text-sm">
           Unable to fetch your dashboard data. Please try again.
         </p>
       </div>
 
       <!-- Main Content -->
-      <div v-else-if="dashboard" class="space-y-6">
+      <div v-else-if="dashboard" class="space-y-4 sm:space-y-6">
         <!-- Header Section -->
-        <div class="mb-6">
-          <h1 class="text-3xl font-bold text-gray-900 mb-1">Administrator Dashboard</h1>
-          <p class="text-gray-600 text-sm mb-4">
+        <div class="mb-4 sm:mb-6">
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Administrator Dashboard</h1>
+          <p class="text-gray-600 text-xs sm:text-sm mb-4">
             Real-time property performance and operational overview.
           </p>
 
-          <!-- Action Buttons Row -->
-          <div class="flex gap-2 flex-wrap items-center">
+          <!-- Action Buttons Row - Responsive Grid -->
+          <div
+            class="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-wrap items-stretch sm:items-center"
+          >
+            <!-- Refresh Button -->
             <button
               @click="refreshDashboard"
               :disabled="refreshing"
-              class="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+              class="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center"
               title="Refresh dashboard"
             >
               <SvgIcon
@@ -119,36 +122,44 @@ onMounted(loadDashboard)
             <!-- New Booking Button (Primary) -->
             <button
               @click="createNewBooking"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+              class="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors flex items-center gap-2 justify-center sm:justify-start"
               title="Create a new reservation"
             >
               <span class="text-base">+</span>
-              New Booking
+              <span>New Booking</span>
             </button>
 
+            <!-- Add User Button -->
             <router-link
               to="/users/create"
-              class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1"
+              class="px-3 sm:px-4 py-2 bg-white border border-gray-300 text-gray-700 text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1 justify-center sm:justify-start whitespace-nowrap"
             >
-              + Add User
+              <span>+</span>
+              <span>Add User</span>
             </router-link>
+
+            <!-- Add Room Button -->
             <router-link
               to="/rooms/create"
-              class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1"
+              class="px-3 sm:px-4 py-2 bg-white border border-gray-300 text-gray-700 text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1 justify-center sm:justify-start whitespace-nowrap"
             >
-              + Add Room
+              <span>+</span>
+              <span>Add Room</span>
             </router-link>
+
+            <!-- Add Room Type Button -->
             <router-link
               to="/room-types/create"
-              class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-1"
+              class="px-3 sm:px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors flex items-center gap-1 justify-center sm:justify-start whitespace-nowrap"
             >
-              + Add Room Type
+              <span>+</span>
+              <span>Add Room Type</span>
             </router-link>
           </div>
         </div>
 
-        <!-- 4 Stat Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- 4 Stat Cards - Responsive Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           <AdminStatCard
             title="Total Users"
             :value="dashboard.overview.totalUsers"
@@ -179,8 +190,8 @@ onMounted(loadDashboard)
           />
         </div>
 
-        <!-- Charts Row -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Charts Row - Stack on Mobile -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
           <MonthlyRevenueChart :data="dashboard.monthlyRevenue" />
           <RoomStatusChart
             :occupied="dashboard.roomStatistics.occupied"
@@ -190,12 +201,12 @@ onMounted(loadDashboard)
           />
         </div>
 
-        <!-- Bottom Row: Reservations and Sidebar -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Bottom Row: Reservations and Sidebar - Stack on Mobile -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
           <div class="lg:col-span-2">
             <RecentReservationsTable :reservations="dashboard.recentReservations" />
           </div>
-          <div class="space-y-6">
+          <div class="space-y-3 sm:space-y-4 lg:space-y-6">
             <StaffActivityWidget :activities="dashboard.staffActivity" />
             <MaintenanceAlerts :alerts="dashboard.maintenanceAlerts" />
           </div>

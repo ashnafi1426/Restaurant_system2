@@ -2,18 +2,27 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
+import NotificationCenter from '@/components/reception/NotificationCenter.vue'
+
 const auth = useAuthStore()
 const router = useRouter()
 const profileOpen = ref(false)
+const emit = defineEmits<{
+  toggleSidebar: []
+}>()
+
 const toggleProfile = () => {
   profileOpen.value = !profileOpen.value
 }
+
 const logout = async () => {
   profileOpen.value = false
-
   await auth.logout()
-
   router.push('/')
+}
+
+const toggleMobileSidebar = () => {
+  emit('toggleSidebar')
 }
 </script>
 <template>
@@ -22,9 +31,20 @@ const logout = async () => {
   >
     <!-- Left -->
     <div class="flex items-center gap-3 sm:gap-4 md:gap-6 min-w-0">
+      <!-- Mobile Hamburger Menu -->
+      <button
+        @click="toggleMobileSidebar"
+        class="flex lg:hidden h-9 w-9 items-center justify-center rounded-lg border border-slate-200 transition hover:bg-slate-100 flex-shrink-0"
+        title="Toggle sidebar"
+      >
+        <span class="material-symbols-rounded text-slate-600 text-xl"> menu </span>
+      </button>
+
       <!-- Page Title -->
       <div class="min-w-0">
-        <h1 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-800 truncate">Dashboard</h1>
+        <h1 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-800 truncate">
+          Dashboard
+        </h1>
 
         <p class="text-xs sm:text-sm text-slate-500 hidden sm:block">Hotel Management System</p>
       </div>
@@ -48,13 +68,7 @@ const logout = async () => {
       </div>
 
       <!-- Notifications -->
-      <button
-        class="relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg border border-slate-200 transition hover:bg-slate-100 flex-shrink-0"
-      >
-        <span class="material-symbols-rounded text-slate-600 text-sm sm:text-base"> notifications </span>
-
-        <span class="absolute right-1 top-1 sm:right-2 sm:top-2 h-1.5 sm:h-2 w-1.5 sm:w-2 rounded-full bg-slate-700"></span>
-      </button>
+      <NotificationCenter />
 
       <!-- Settings -->
       <button
@@ -85,7 +99,11 @@ const logout = async () => {
             <p class="text-xs text-slate-500 hidden md:block">Administrator</p>
           </div>
 
-          <span class="material-symbols-rounded text-slate-500 text-sm sm:text-base flex-shrink-0 hidden sm:inline"> expand_more </span>
+          <span
+            class="material-symbols-rounded text-slate-500 text-sm sm:text-base flex-shrink-0 hidden sm:inline"
+          >
+            expand_more
+          </span>
         </button>
 
         <!-- Profile Dropdown -->
@@ -118,7 +136,9 @@ const logout = async () => {
           <button
             class="flex w-full items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-5 py-2 sm:py-3 text-left text-xs sm:text-sm text-slate-700 transition hover:bg-slate-100"
           >
-            <span class="material-symbols-rounded text-sm sm:text-base flex-shrink-0"> person </span>
+            <span class="material-symbols-rounded text-sm sm:text-base flex-shrink-0">
+              person
+            </span>
 
             Profile
           </button>
@@ -126,7 +146,9 @@ const logout = async () => {
           <button
             class="flex w-full items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-5 py-2 sm:py-3 text-left text-xs sm:text-sm text-slate-700 transition hover:bg-slate-100"
           >
-            <span class="material-symbols-rounded text-sm sm:text-base flex-shrink-0"> settings </span>
+            <span class="material-symbols-rounded text-sm sm:text-base flex-shrink-0">
+              settings
+            </span>
 
             Settings
           </button>
@@ -145,7 +167,9 @@ const logout = async () => {
             @click="logout"
             class="flex w-full items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-5 py-2 sm:py-3 text-left text-xs sm:text-sm text-slate-700 transition hover:bg-slate-100"
           >
-            <span class="material-symbols-rounded text-sm sm:text-base flex-shrink-0"> logout </span>
+            <span class="material-symbols-rounded text-sm sm:text-base flex-shrink-0">
+              logout
+            </span>
             Logout
           </button>
         </div>

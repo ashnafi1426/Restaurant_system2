@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, reactive } from 'vue'
 
 import type { Reservation } from '@/types/reservation'
-import type { Guest } from '@/types/guest'
 import type { Room } from '@/types/room'
 
 interface Props {
   modelValue: Reservation
-  guests: Guest[]
   rooms: Room[]
   loading?: boolean
 }
@@ -23,41 +21,28 @@ const form = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
-// Search states
-const guestSearch = ref('')
+// Guest registration
+const registrationError = ref('')
+const registrationSuccess = ref('')
+
+// New guest registration form
+const newGuestForm = reactive({
+  first_name: '',
+  last_name: '',
+  email: '',
+  phone: '',
+})
+
+// Room search states
 const roomSearch = ref('')
-const showGuestDropdown = ref(false)
 const showRoomDropdown = ref(false)
-
-// Get selected guest and room display info
-const selectedGuest = computed(() => {
-  return props.guests.find((g) => g.id === form.value.guest_id)
-})
-
-const selectedRoom = computed(() => {
-  return props.rooms.find((r) => (r.id || r.roomid) === form.value.room_id)
-})
-
-// Filter guests based on search (by name, email, phone, or id)
-const filteredGuests = computed(() => {
-  if (!guestSearch.value.trim()) return props.guests
-
-  const search = guestSearch.value.toLowerCase()
-  return props.guests.filter(
-    (g) =>
-      `${g.first_name} ${g.last_name}`.toLowerCase().includes(search) ||
-      (g.email && g.email.toLowerCase().includes(search)) ||
-      (g.phone && g.phone.toLowerCase().includes(search)) ||
-      (g.id && g.id.toLowerCase().includes(search)),
-  )
-})
 
 // Filter rooms based on search (by room number, floor, type, status, or id)
 const filteredRooms = computed(() => {
   if (!roomSearch.value.trim()) return props.rooms
 
   let search = roomSearch.value.toLowerCase()
-  
+
   // Remove "room" or "rm" prefix if user typed it
   if (search.startsWith('room ')) {
     search = search.replace('room ', '').trim()
@@ -65,18 +50,24 @@ const filteredRooms = computed(() => {
   if (search.startsWith('rm ')) {
     search = search.replace('rm ', '').trim()
   }
-  
+
   return props.rooms.filter((r) => {
     if (!r) return false
-    
+
     try {
       const roomNumber = r.room_number ? String(r.room_number).toLowerCase() : ''
-      const roomType = r.room_type?.name ? String(r.room_type.name).toLowerCase() : ''
+      let roomType = ''
+      if (typeof r.room_type === 'string' && r.room_type) {
+        roomType = (r.room_type as string).toLowerCase()
+      } else if (r.room_type && typeof r.room_type === 'object' && 'name' in r.room_type) {
+        const name = (r.room_type as any).name
+        roomType = String(name).toLowerCase()
+      }
       const floor = r.floor ? String(r.floor).toLowerCase() : ''
       const status = r.status ? String(r.status).toLowerCase() : ''
       const description = r.description ? String(r.description).toLowerCase() : ''
       const id = r.id ? String(r.id).toLowerCase() : ''
-      
+
       return (
         roomNumber.includes(search) ||
         roomType.includes(search) ||
@@ -93,20 +84,14 @@ const filteredRooms = computed(() => {
 })
 
 const formatRoomDisplay = (room: Room): string => {
-  const roomType = room.room_type?.name || 'Unknown'
-  const capacity = room.room_type?.capacity || 0
-  const price = room.room_type?.base_price_per_night || 0
-  return `Room ${room.room_number} - ${roomType} (${capacity} guests, $${price}/night)`
-}
-
-const formatGuestDisplay = (guest: Guest): string => {
-  return `${guest.first_name} ${guest.last_name} (${guest.email || guest.phone || 'No contact'})`
-}
-
-const selectGuest = (guest: Guest) => {
-  form.value.guest_id = guest.id
-  guestSearch.value = ''
-  showGuestDropdown.value = false
+  const roomNumber = room.room_number || 'N/A'
+  const roomType =
+    typeof room.room_type === 'string' ? room.room_type : room.room_type?.name || 'Unknown'
+  const capacity =
+    room.room_type && typeof room.room_type === 'object' ? room.room_type.capacity : 0
+  const price =
+    room.room_type && typeof room.room_type === 'object' ? room.room_type.base_price_per_night : 0
+  return `Room ${roomNumber} - ${roomType} (${capacity} guests, $${price}/night)`
 }
 
 const selectRoom = (room: Room) => {
@@ -138,7 +123,61 @@ const nights = computed(() => {
   return Math.max(diff / (1000 * 60 * 60 * 24), 0)
 })
 
+// Register new guest
+async function registerGuest() {
+  registrationError.value = ''
+  registrationSuccess.value = ''
+
+  // Validate required fields
+  if (!newGuestForm.first_name || !newGuestForm.last_name || !newGuestForm.phone) {
+    registrationError.value = 'First name, last name, and phone are required'
+    return
+  }
+
+  try {
+    const response = await fetch('http://127.0.0.1:8000/api/guests', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newGuestForm),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      registrationError.value = error.message || 'Failed to register guest'
+      return
+    }
+
+    const data = await response.json()
+    const newGuest = data.data
+
+    // Set the guest_id in the form
+    form.value.guest_id = newGuest.id
+
+    registrationSuccess.value = `✓ Guest registered successfully! Welcome, ${newGuest.first_name} ${newGuest.last_name}`
+
+    // Reset form after 2 seconds
+    setTimeout(() => {
+      registrationSuccess.value = ''
+      // Reset registration form
+      Object.assign(newGuestForm, {
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone: '',
+      })
+    }, 2000)
+  } catch (error: any) {
+    registrationError.value = error.message || 'Failed to register guest. Please try again.'
+  }
+}
+
 const submit = () => {
+  if (props.loading) {
+    return
+  }
+
   if (isPastDate.value) {
     return
   }
@@ -148,7 +187,7 @@ const submit = () => {
   }
 
   if (!form.value.guest_id) {
-    alert('Please select a guest')
+    alert('Please register as a guest to continue')
     return
   }
 
@@ -162,108 +201,158 @@ const submit = () => {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6">
+  <div
+    class="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6"
+  >
     <!-- Title -->
     <div>
       <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900">Reservation Form</h2>
-      <p class="text-xs sm:text-sm text-slate-500 mt-1">Create or update hotel reservation</p>
+      <p class="text-xs sm:text-sm text-slate-500 mt-1">Complete your booking details</p>
     </div>
 
-    <!-- Guest + Room -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
-      <!-- Guest Search -->
-      <div class="relative">
-        <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
-          Guest <span class="text-red-500">*</span>
-        </label>
+    <!-- Guest Registration Form (Required) -->
+    <div class="border-2 border-blue-300 bg-blue-50 rounded-lg p-4 sm:p-6">
+      <!-- Header -->
+      <h3 class="text-base sm:text-lg font-semibold text-slate-900 mb-4">Guest Information</h3>
 
-        <!-- Search Input -->
-        <input
-          type="text"
-          v-model="guestSearch"
-          @focus="showGuestDropdown = true"
-          placeholder="Search by name, email, phone..."
-          class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-          :class="{ 'border-red-500 ring-2 ring-red-200': !form.guest_id && form.guest_id !== '' }"
-        />
-
-        <!-- Selected Guest Display -->
-        <div v-if="selectedGuest && !showGuestDropdown" class="text-xs text-slate-600 mt-1">
-          ✓ Selected: {{ formatGuestDisplay(selectedGuest) }}
-        </div>
-
-        <!-- Search Results Dropdown -->
-        <div
-          v-if="showGuestDropdown"
-          class="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
-        >
-          <!-- No results -->
-          <div v-if="filteredGuests.length === 0" class="p-3 sm:p-4 text-slate-500 text-center text-xs sm:text-sm">
-            No guests found
-          </div>
-
-          <!-- Guest options -->
-          <div
-            v-for="guest in filteredGuests"
-            :key="guest.id"
-            @click="selectGuest(guest)"
-            class="p-2 sm:p-3 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-b-0 text-xs sm:text-sm transition duration-150"
-            :class="{ 'bg-blue-100': form.guest_id === guest.id }"
-          >
-            <div class="font-medium text-slate-900">{{ guest.first_name }} {{ guest.last_name }}</div>
-            <div class="text-xs text-slate-600 mt-0.5">
-              {{ guest.email || guest.phone || 'No contact' }}
-            </div>
-            <div class="text-xs text-slate-500">ID: {{ guest.id }}</div>
-          </div>
-        </div>
+      <!-- Error Alert -->
+      <div
+        v-if="registrationError"
+        class="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-red-700 text-xs sm:text-sm"
+      >
+        {{ registrationError }}
       </div>
 
-      <!-- Room Search -->
-      <div class="relative">
-        <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
-          Room <span class="text-red-500">*</span>
-        </label>
+      <!-- Success Alert -->
+      <div
+        v-if="registrationSuccess"
+        class="mb-4 rounded-lg bg-green-50 border border-green-200 p-3 text-green-700 text-xs sm:text-sm"
+      >
+        {{ registrationSuccess }}
+      </div>
 
-        <!-- Search Input -->
-        <input
-          type="text"
-          v-model="roomSearch"
-          @focus="showRoomDropdown = true"
-          placeholder="Search by room number, type..."
-          class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
-          :class="{ 'border-red-500 ring-2 ring-red-200': !form.room_id && form.room_id !== '' }"
-        />
-
-        <!-- Selected Room Display -->
-        <div v-if="selectedRoom && !showRoomDropdown" class="text-xs text-slate-600 mt-1">
-          ✓ Selected: {{ formatRoomDisplay(selectedRoom) }}
+      <!-- Registration Form Fields -->
+      <div class="space-y-4">
+        <!-- First & Last Name -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div>
+            <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
+              First Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              v-model="newGuestForm.first_name"
+              type="text"
+              placeholder="John"
+              class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
+              Last Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              v-model="newGuestForm.last_name"
+              type="text"
+              placeholder="Doe"
+              class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
         </div>
 
-        <!-- Search Results Dropdown -->
-        <div
-          v-if="showRoomDropdown"
-          class="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
-        >
-          <!-- No results -->
-          <div v-if="filteredRooms.length === 0" class="p-3 sm:p-4 text-slate-500 text-center text-xs sm:text-sm">
-            No rooms found
+        <!-- Email & Phone -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div>
+            <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
+              Email <span class="text-slate-500 text-xs">(Optional)</span>
+            </label>
+            <input
+              v-model="newGuestForm.email"
+              type="email"
+              placeholder="john@example.com"
+              class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
+          <div>
+            <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
+              Phone <span class="text-red-500">*</span>
+            </label>
+            <input
+              v-model="newGuestForm.phone"
+              type="tel"
+              placeholder="+1 (555) 123-4567"
+              class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
 
-          <!-- Room options -->
-          <div
-            v-for="room in filteredRooms"
-            :key="room.id || room.roomid"
-            @click="selectRoom(room)"
-            class="p-2 sm:p-3 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-b-0 text-xs sm:text-sm transition duration-150"
-            :class="{ 'bg-blue-100': form.room_id === (room.id || room.roomid) }"
-          >
-            <div class="font-medium text-slate-900">Room {{ room.room_number }}</div>
-            <div class="text-xs text-slate-600 mt-0.5">
-              {{ room.room_type?.name }} - {{ room.room_type?.capacity }} guests
-            </div>
-            <div class="text-xs text-slate-500">{{ formatRoomDisplay(room) }}</div>
+        <!-- Register Button -->
+        <button
+          type="button"
+          @click="registerGuest"
+          class="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-xs sm:text-sm transition-all"
+        >
+          ✓ Register & Continue
+        </button>
+      </div>
+
+      <!-- Info Text -->
+      <p class="mt-4 text-xs sm:text-sm text-slate-600 text-center">
+        Your information helps us provide better service during your stay
+      </p>
+    </div>
+
+    <!-- Room Selection -->
+    <div class="relative">
+      <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
+        Room <span class="text-red-500">*</span>
+      </label>
+
+      <!-- Search Input -->
+      <input
+        type="text"
+        v-model="roomSearch"
+        @focus="showRoomDropdown = true"
+        placeholder="Search by room number, type..."
+        class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+        :class="{ 'border-red-500 ring-2 ring-red-200': !form.room_id && form.room_id !== '' }"
+      />
+
+      <!-- Selected Room Display -->
+      <div v-if="form.room_id && !showRoomDropdown" class="text-xs text-slate-600 mt-1">
+        ✓ Selected:
+        {{
+          filteredRooms.find((r) => r.id === form.room_id)
+            ? formatRoomDisplay(filteredRooms.find((r) => r.id === form.room_id)!)
+            : 'Loading...'
+        }}
+      </div>
+
+      <!-- Search Results Dropdown -->
+      <div
+        v-if="showRoomDropdown"
+        class="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
+      >
+        <!-- No results -->
+        <div
+          v-if="filteredRooms.length === 0"
+          class="p-3 sm:p-4 text-slate-500 text-center text-xs sm:text-sm"
+        >
+          No rooms found
+        </div>
+
+        <!-- Room options -->
+        <div
+          v-for="room in filteredRooms"
+          :key="room.id"
+          @click="selectRoom(room)"
+          class="p-2 sm:p-3 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-b-0 text-xs sm:text-sm transition duration-150"
+          :class="{ 'bg-blue-100': form.room_id === room.id }"
+        >
+          <div class="font-medium text-slate-900">Room {{ room.room_number }}</div>
+          <div class="text-xs text-slate-600 mt-0.5">
+            {{ room.room_type?.name }} - {{ room.room_type?.capacity }} guests
           </div>
+          <div class="text-xs text-slate-500">{{ formatRoomDisplay(room) }}</div>
         </div>
       </div>
     </div>
@@ -331,10 +420,14 @@ const submit = () => {
     </div>
 
     <!-- Nights Display -->
-    <div class="bg-gradient-to-r from-blue-50 to-blue-100/50 p-3 sm:p-4 rounded-lg border border-blue-200 text-xs sm:text-sm">
+    <div
+      class="bg-gradient-to-r from-blue-50 to-blue-100/50 p-3 sm:p-4 rounded-lg border border-blue-200 text-xs sm:text-sm"
+    >
       <div class="flex justify-between items-center">
         <span class="text-slate-700 font-medium">Total Nights:</span>
-        <span class="text-lg sm:text-xl font-bold text-blue-600">{{ nights }} {{ nights === 1 ? 'night' : 'nights' }}</span>
+        <span class="text-lg sm:text-xl font-bold text-blue-600"
+          >{{ nights }} {{ nights === 1 ? 'night' : 'nights' }}</span
+        >
       </div>
     </div>
 

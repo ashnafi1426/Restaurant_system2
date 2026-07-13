@@ -1,7 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import AboutPage from "../views/guest/About.vue"
+import AboutPage from '../views/guest/About.vue'
+import roomPage from '../views/guest/Room.vue'
+// import RestaurantPage from '../views/guest/Reservation.vue'
 import GuestHome from '../views/guest/Home.vue'
-import contactPage from "../views/guest/Contact.vue"
+import contactPage from '../views/guest/Contact.vue'
+import GalleryPage from '../views/guest/Gallary.vue'
 import LoginView from '../views/LoginView.vue'
 import AdminDashboard from '../views/Admin/AdminDashboard.vue'
 import orderManagment from '../views/Admin/order/OrderManagment.vue'
@@ -43,15 +46,41 @@ const router = createRouter({
       name: 'home',
       component: GuestHome,
     },
+    // {
+    //   path: '/reservation',
+    //   name: 'guest-reservation',
+    //   component: RestaurantPage,
+    // },
+    // {
+    //   path: '/my-reservation',
+    //   name: 'my-reservations',
+    //   component: RestaurantPage,
+    // },
+    {
+      path: '/rooms',
+      name: 'guest-rooms',
+      component: roomPage,
+    },
+    {
+      path: '/roomsPage',
+      name: 'room',
+      component: roomPage,
+    },
     {
       path: '/about',
       name: 'About',
       component: AboutPage,
     },
-     {
+
+    {
       path: '/contact',
       name: 'contact',
       component: contactPage,
+    },
+    {
+      path: '/gallery',
+      name: 'gallery',
+      component: GalleryPage,
     },
     {
       path: '/login',
@@ -193,7 +222,8 @@ const router = createRouter({
       },
     },
     {
-      path: '/rooms',
+      path: '/admin/rooms',
+      name: 'admin-rooms',
       component: RoomList,
       meta: {
         requiresAuth: true,
@@ -347,19 +377,31 @@ const router = createRouter({
       path: '/orders/create',
       name: 'create-order',
       component: AddOrder,
-      meta: { title: 'Create Order' },
+      meta: { 
+        title: 'Create Order',
+        requiresAuth: true,
+        roles: ['admin', 'receptionist'],
+      },
     },
     {
       path: '/orders/:id/edit',
       name: 'edit-order',
       component: AddOrder,
-      meta: { title: 'Edit Order' },
+      meta: { 
+        title: 'Edit Order',
+        requiresAuth: true,
+        roles: ['admin', 'receptionist'],
+      },
     },
     {
       path: '/orders/:id/view',
       name: 'view-order',
       component: AddOrder,
-      meta: { title: 'View Order' },
+      meta: { 
+        title: 'View Order',
+        requiresAuth: true,
+        roles: ['admin', 'receptionist'],
+      },
     },
   ],
 })

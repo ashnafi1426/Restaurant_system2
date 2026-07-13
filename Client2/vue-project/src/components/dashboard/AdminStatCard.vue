@@ -29,16 +29,33 @@ const colorMap: Record<string, string> = {
   >
     <div class="flex items-start justify-between gap-2 sm:gap-3 md:gap-4">
       <div class="flex-1 min-w-0">
-        <p class="text-xs sm:text-xs md:text-sm lg:text-base font-semibold text-gray-500 uppercase tracking-wide mb-1 sm:mb-2">{{ title }}</p>
-        <h3 class="text-2xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 sm:mb-2 truncate">{{ value }}</h3>
-        <p v-if="trend && trend !== 0" class="text-xs sm:text-xs md:text-sm lg:text-base text-green-600 font-semibold">
+        <p
+          class="text-xs sm:text-xs md:text-sm lg:text-base font-semibold text-gray-500 uppercase tracking-wide mb-1 sm:mb-2"
+        >
+          {{ title }}
+        </p>
+        <h3
+          class="text-2xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 sm:mb-2 truncate"
+        >
+          {{ value }}
+        </h3>
+        <p
+          v-if="trend && trend !== 0"
+          class="text-xs sm:text-xs md:text-sm lg:text-base text-green-600 font-semibold"
+        >
           <span v-if="trend > 0">↑ {{ trend }}%</span>
           <span v-else>↓ {{ Math.abs(trend) }}%</span>
           <span class="hidden sm:inline">vs last month</span>
           <span class="sm:hidden">prev</span>
         </p>
       </div>
-      <SvgIcon :class="[colorMap[color] || colorMap.teal]" type="mdi" :path="icon" :size="28" class="sm:w-8 md:w-9 lg:w-10 flex-shrink-0" />
+      <SvgIcon
+        :class="[colorMap[color] || colorMap.teal]"
+        type="mdi"
+        :path="icon"
+        :size="28"
+        class="sm:w-8 md:w-9 lg:w-10 flex-shrink-0"
+      />
     </div>
   </div>
 </template>

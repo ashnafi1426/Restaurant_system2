@@ -10,7 +10,6 @@ defineProps<{
   perPage: number
   total: number
 }>()
-
 const emit = defineEmits<{
   (e: 'view', order: Order): void
   (e: 'edit', order: Order): void
@@ -285,7 +284,9 @@ function handleClickOutside() {
           <tr v-else-if="orders.length === 0">
             <td colspan="8" class="px-4 py-16 text-center">
               <div class="flex flex-col items-center justify-center">
-                <div class="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-gray-100">
+                <div
+                  class="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-gray-100"
+                >
                   <svg
                     class="w-8 h-8 sm:w-10 sm:h-10 text-gray-400"
                     fill="none"
@@ -300,8 +301,12 @@ function handleClickOutside() {
                     />
                   </svg>
                 </div>
-                <h3 class="mt-3 sm:mt-4 text-base sm:text-lg font-semibold text-gray-900">No Orders Found</h3>
-                <p class="mt-1 text-xs sm:text-sm text-gray-500">No orders match your current filters.</p>
+                <h3 class="mt-3 sm:mt-4 text-base sm:text-lg font-semibold text-gray-900">
+                  No Orders Found
+                </h3>
+                <p class="mt-1 text-xs sm:text-sm text-gray-500">
+                  No orders match your current filters.
+                </p>
               </div>
             </td>
           </tr>
@@ -361,13 +366,18 @@ function handleClickOutside() {
                 class="inline-flex items-center gap-1 rounded-full px-2 sm:px-2.5 py-1 text-xs font-medium"
                 :class="statusClass(order.status)"
               >
-                <span class="h-1.5 w-1.5 rounded-full flex-shrink-0" :class="statusDot(order.status)"></span>
+                <span
+                  class="h-1.5 w-1.5 rounded-full flex-shrink-0"
+                  :class="statusDot(order.status)"
+                ></span>
                 <span class="truncate">{{ statusLabel(order.status) }}</span>
               </span>
             </td>
 
             <!-- Total -->
-            <td class="hidden sm:table-cell px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 text-right align-top">
+            <td
+              class="hidden sm:table-cell px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 text-right align-top"
+            >
               <span class="font-semibold text-xs sm:text-sm md:text-base text-gray-900">
                 {{ formatCurrency(order.total) }}
               </span>
@@ -404,7 +414,12 @@ function handleClickOutside() {
                     @click="viewOrder(order)"
                     class="flex w-full items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700"
                   >
-                    <svg class="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      class="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -426,7 +441,12 @@ function handleClickOutside() {
                     @click="editOrder(order)"
                     class="flex w-full items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 transition-colors hover:bg-amber-50 hover:text-amber-700"
                   >
-                    <svg class="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      class="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -442,7 +462,12 @@ function handleClickOutside() {
                     @click="changeStatus(order)"
                     class="flex w-full items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 transition-colors hover:bg-green-50 hover:text-green-700"
                   >
-                    <svg class="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      class="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -461,7 +486,12 @@ function handleClickOutside() {
                     @click="deleteOrder(order)"
                     class="flex w-full items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
                   >
-                    <svg class="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      class="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
@@ -521,7 +551,12 @@ function handleClickOutside() {
           :disabled="currentPage === 1"
           @click="previousPage(currentPage)"
         >
-          <svg class="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            class="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -534,7 +569,9 @@ function handleClickOutside() {
 
         <!-- Page Info -->
         <div class="flex items-center gap-1 sm:gap-1.5">
-          <span class="rounded-lg bg-blue-600 px-2 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-sm min-h-10 inline-flex items-center">
+          <span
+            class="rounded-lg bg-blue-600 px-2 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-sm min-h-10 inline-flex items-center"
+          >
             {{ currentPage }}
           </span>
           <span class="text-xs sm:text-sm text-gray-500">of</span>
@@ -553,7 +590,12 @@ function handleClickOutside() {
           @click="nextPage(currentPage, lastPage)"
         >
           <span class="hidden sm:inline">Next</span>
-          <svg class="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            class="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               stroke-linecap="round"
               stroke-linejoin="round"

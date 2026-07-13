@@ -1,30 +1,31 @@
 ﻿<template>
   <DashboardLayout>
     <div class="min-h-screen bg-slate-50">
-      <!-- Header Area -->
+      <!-- Header Area - Responsive -->
       <div
-        class="bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 px-4 sm:px-6 py-5 shadow-sm"
+        class="bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 px-4 sm:px-6 py-4 sm:py-5 shadow-sm"
       >
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div class="flex items-center gap-3">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div class="flex items-center gap-2 sm:gap-3">
             <div
-              class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-md"
+              class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-md flex-shrink-0"
             >
-              <!-- Replaced Vuetify Icon with pure HTML/Emoji Visual Anchor -->
               <span class="text-xl text-white">🍴</span>
             </div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900">Menu Management</h1>
+            <h1 class="text-lg sm:text-2xl font-black text-slate-900">Menu Management</h1>
           </div>
           <router-link
             to="/admin/menu/add"
-            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition"
+            class="px-3 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition text-sm sm:text-base"
           >
             ➕ Add Menu Item
           </router-link>
         </div>
       </div>
-      <div class="w-full mx-auto max-w-7xl px-4 sm:px-6 py-8">
-        <!-- Main Content Actions Header -->
+
+      <!-- Main Content - Responsive -->
+      <div class="w-full mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
+        <!-- Header Section -->
         <MenuHeader
           :total="store.statistics.total_items"
           title="Menu Management"
@@ -34,8 +35,9 @@
           @export="exportMenus"
           @manage-categories="manageCategories"
         />
-        <!-- Performance Statistics Component -->
-        <div class="mt-8">
+
+        <!-- Statistics Section -->
+        <div class="mt-6 sm:mt-8">
           <MenuStats
             :statistics="store.statistics"
             :selected-category="selectedCategory"
@@ -44,15 +46,16 @@
           />
         </div>
 
-        <!-- Categorization Filter Section -->
-        <div class="mt-8">
-          <div class="mb-8">
+        <!-- Filter Section -->
+        <div class="mt-6 sm:mt-8">
+          <div class="mb-6 sm:mb-8">
             <MenuCategoryTabs :selected="selectedCategory" @select="filterByCategory" />
           </div>
 
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <!-- Section Title -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
-              <h2 class="text-xl font-bold text-slate-900">
+              <h2 class="text-lg sm:text-xl font-bold text-slate-900">
                 {{
                   selectedCategory
                     ? selectedCategory.charAt(0).toUpperCase() +
@@ -61,15 +64,20 @@
                     : 'All Items'
                 }}
               </h2>
-              <p class="text-sm text-slate-600 mt-1">{{ store.menuItems.length }} items</p>
+              <p class="text-xs sm:text-sm text-slate-600 mt-1">
+                {{ store.menuItems.length }} items
+              </p>
             </div>
           </div>
         </div>
 
-        <!-- Display Grid Status Area -->
+        <!-- Display Content Area -->
         <div class="mt-8">
-          <!-- Loading State Spinner built using raw Tailwind CSS animation -->
-          <div v-if="store.loading" class="flex flex-col items-center justify-center py-16 gap-3">
+          <!-- Loading State -->
+          <div
+            v-if="store.loading"
+            class="flex flex-col items-center justify-center py-12 sm:py-16 gap-3"
+          >
             <div
               class="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"
             ></div>
@@ -78,26 +86,26 @@
             >
           </div>
 
-          <!-- Empty Fallback Interface Block -->
+          <!-- Empty State -->
           <div
             v-else-if="store.menuItems.length === 0"
-            class="text-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm px-4"
+            class="text-center py-12 sm:py-20 bg-white rounded-2xl border border-slate-200 shadow-sm px-4"
           >
-            <span class="text-4xl block mb-3">🍽️</span>
-            <p class="text-2xl font-bold text-slate-900 mb-1">No Items Found</p>
-            <p class="text-sm text-slate-400 mb-6">
+            <span class="text-3xl sm:text-4xl block mb-3">🍽️</span>
+            <p class="text-lg sm:text-2xl font-bold text-slate-900 mb-1">No Items Found</p>
+            <p class="text-xs sm:text-sm text-slate-400 mb-6">
               There are no dishes matching this selection yet.
             </p>
             <router-link
               to="/admin/menu/add"
-              class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow transition"
+              class="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition"
             >
               ➕ Create Item
             </router-link>
           </div>
 
-          <!-- Table Display -->
-          <div v-else class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <!-- Table Display - Responsive Overflow -->
+          <div v-else class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
             <MenuTable
               :items="store.menuItems"
               :loading="store.loading"
@@ -106,11 +114,10 @@
               @toggle="toggleAvailability"
             />
 
-            <!-- Pagination Info -->
-            <div
-              class="px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-4"
-            >
-              <p class="text-sm text-slate-600">
+            <!-- Pagination Section - Responsive Layout -->
+            <div class="border-t border-slate-200 px-4 sm:px-6 py-3 sm:py-4 space-y-4 sm:space-y-0">
+              <!-- Info Row -->
+              <p class="text-xs sm:text-sm text-slate-600">
                 Showing <span class="font-semibold">{{ store.pagination.from || 1 }}</span> to
                 <span class="font-semibold">{{
                   store.pagination.to || store.menuItems.length
@@ -118,96 +125,99 @@
                 of <span class="font-semibold">{{ store.pagination.total }}</span> items
               </p>
 
-              <!-- Pagination Controls -->
-              <div class="flex items-center gap-2">
-                <!-- Previous Button -->
-                <button
-                  @click="
-                    () => {
-                      currentPage--
-                      loadMenu()
-                    }
-                  "
-                  :disabled="currentPage === 1 || store.loading"
-                  class="px-3 py-1 text-sm font-semibold rounded-lg border border-slate-200 transition"
-                  :class="
-                    currentPage === 1
-                      ? 'text-slate-400 bg-slate-50 cursor-not-allowed'
-                      : 'text-slate-700 bg-white hover:bg-slate-50 cursor-pointer'
-                  "
-                >
-                  ← Previous
-                </button>
-
-                <!-- Page Numbers -->
-                <div class="flex items-center gap-1">
+              <!-- Pagination Controls - Stack on Mobile -->
+              <div
+                class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
+              >
+                <!-- Previous/Next Buttons -->
+                <div class="flex items-center gap-2">
                   <button
-                    v-for="page in generatePageNumbers()"
-                    :key="page"
                     @click="
                       () => {
-                        currentPage = page
+                        currentPage--
+                        loadMenu()
+                      }
+                    "
+                    :disabled="currentPage === 1 || store.loading"
+                    class="px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-slate-200 transition"
+                    :class="
+                      currentPage === 1
+                        ? 'text-slate-400 bg-slate-50 cursor-not-allowed'
+                        : 'text-slate-700 bg-white hover:bg-slate-50 cursor-pointer'
+                    "
+                  >
+                    ← Prev
+                  </button>
+
+                  <!-- Page Numbers - Hidden on very small screens -->
+                  <div class="hidden sm:flex items-center gap-1">
+                    <button
+                      v-for="page in generatePageNumbers()"
+                      :key="page"
+                      @click="
+                        () => {
+                          currentPage = page
+                          loadMenu()
+                        }
+                      "
+                      :disabled="store.loading"
+                      class="w-8 h-8 text-xs sm:text-sm font-semibold rounded-lg border transition"
+                      :class="
+                        currentPage === page
+                          ? 'bg-indigo-600 text-white border-indigo-600'
+                          : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-50'
+                      "
+                    >
+                      {{ page }}
+                    </button>
+                  </div>
+
+                  <button
+                    @click="
+                      () => {
+                        currentPage++
+                        loadMenu()
+                      }
+                    "
+                    :disabled="currentPage === store.pagination.last_page || store.loading"
+                    class="px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-slate-200 transition"
+                    :class="
+                      currentPage === store.pagination.last_page
+                        ? 'text-slate-400 bg-slate-50 cursor-not-allowed'
+                        : 'text-slate-700 bg-white hover:bg-slate-50 cursor-pointer'
+                    "
+                  >
+                    Next →
+                  </button>
+                </div>
+
+                <!-- Page Size Selector - Full Width on Mobile -->
+                <div class="flex items-center gap-2">
+                  <label class="text-xs sm:text-sm font-semibold text-slate-600 whitespace-nowrap"
+                    >Per page:</label
+                  >
+                  <select
+                    v-model.number="pageSize"
+                    @change="
+                      () => {
+                        currentPage = 1
                         loadMenu()
                       }
                     "
                     :disabled="store.loading"
-                    class="w-8 h-8 text-sm font-semibold rounded-lg border transition"
-                    :class="
-                      currentPage === page
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-50'
-                    "
+                    class="px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-700"
                   >
-                    {{ page }}
-                  </button>
+                    <option :value="10">10</option>
+                    <option :value="25">25</option>
+                    <option :value="50">50</option>
+                    <option :value="100">100</option>
+                  </select>
                 </div>
-
-                <!-- Next Button -->
-                <button
-                  @click="
-                    () => {
-                      currentPage++
-                      loadMenu()
-                    }
-                  "
-                  :disabled="currentPage === store.pagination.last_page || store.loading"
-                  class="px-3 py-1 text-sm font-semibold rounded-lg border border-slate-200 transition"
-                  :class="
-                    currentPage === store.pagination.last_page
-                      ? 'text-slate-400 bg-slate-50 cursor-not-allowed'
-                      : 'text-slate-700 bg-white hover:bg-slate-50 cursor-pointer'
-                  "
-                >
-                  Next →
-                </button>
-              </div>
-
-              <!-- Page Size Selector -->
-              <div class="flex items-center gap-2">
-                <label class="text-sm font-semibold text-slate-600">Items per page:</label>
-                <select
-                  v-model.number="pageSize"
-                  @change="
-                    () => {
-                      currentPage = 1
-                      loadMenu()
-                    }
-                  "
-                  :disabled="store.loading"
-                  class="px-3 py-1 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-700"
-                >
-                  <option :value="10">10</option>
-                  <option :value="25">25</option>
-                  <option :value="50">50</option>
-                  <option :value="100">100</option>
-                </select>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- No more dialog here - using view instead -->
     </div>
   </DashboardLayout>
 </template>

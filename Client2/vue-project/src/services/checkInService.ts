@@ -62,6 +62,8 @@ export default {
   checkIn(reservation_id: string) {
     console.log(' [SERVICE] checkIn called with reservation_id:', reservation_id)
     console.log(' [SERVICE] Payload being sent:', { reservation_id })
+    console.log(' [SERVICE] Reservation ID type:', typeof reservation_id)
+    console.log(' [SERVICE] Reservation ID length:', reservation_id?.length)
 
     return api
       .post('/check-ins', {
@@ -78,10 +80,21 @@ export default {
         console.error(' [SERVICE] Error status:', error.response?.status)
         console.error(' [SERVICE] Error data:', error.response?.data)
         console.error(' [SERVICE] Error message:', error.response?.data?.message || error.message)
+        console.error(' [SERVICE] Error errors:', error.response?.data?.errors)
         console.error(' [SERVICE] Full error:', error)
 
-        // Throw error with better message
-        const errorMsg = error.response?.data?.message || error.message || 'Check-in failed'
+        // Throw error with detailed message
+        let errorMsg = error.response?.data?.message || error.message || 'Check-in failed'
+
+        // If validation errors exist, append them
+        if (error.response?.data?.errors) {
+          const errors = error.response.data.errors
+          const errorList = Object.entries(errors)
+            .map(([key, msgs]: any) => `${key}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+            .join(' | ')
+          errorMsg = `${errorMsg}. Validation errors: ${errorList}`
+        }
+
         const customError = new Error(errorMsg)
         throw customError
       })

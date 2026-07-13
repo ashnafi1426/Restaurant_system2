@@ -90,18 +90,30 @@ onBeforeUnmount(() => {
           <span class="material-symbols-rounded text-sm md:text-base text-purple-600">event</span>
         </div>
         <div>
-          <h2 class="text-base sm:text-lg md:text-xl font-semibold text-slate-800">Reservation Records</h2>
-          <p class="hidden sm:block text-xs md:text-sm text-slate-500">Complete list of hotel reservations</p>
+          <h2 class="text-base sm:text-lg md:text-xl font-semibold text-slate-800">
+            Reservation Records
+          </h2>
+          <p class="hidden sm:block text-xs md:text-sm text-slate-500">
+            Complete list of hotel reservations
+          </p>
         </div>
       </div>
-      <div v-if="!loading && reservations.length > 0" class="text-xs md:text-sm text-slate-500 whitespace-nowrap">
+      <div
+        v-if="!loading && reservations.length > 0"
+        class="text-xs md:text-sm text-slate-500 whitespace-nowrap"
+      >
         {{ reservations.length }} reservation{{ reservations.length !== 1 ? 's' : '' }}
       </div>
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="flex flex-col items-center justify-center p-8 sm:p-12 md:p-16 text-slate-500">
-      <div class="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 border-b-2 border-purple-600 mb-3 md:mb-4"></div>
+    <div
+      v-if="loading"
+      class="flex flex-col items-center justify-center p-8 sm:p-12 md:p-16 text-slate-500"
+    >
+      <div
+        class="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 border-b-2 border-purple-600 mb-3 md:mb-4"
+      ></div>
       <p class="font-medium text-sm md:text-base">Loading reservations...</p>
     </div>
 
@@ -110,10 +122,16 @@ onBeforeUnmount(() => {
       <div
         class="mx-auto w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-slate-100 flex items-center justify-center mb-3 md:mb-4"
       >
-        <span class="material-symbols-rounded text-2xl sm:text-3xl md:text-4xl text-slate-400">event_busy</span>
+        <span class="material-symbols-rounded text-2xl sm:text-3xl md:text-4xl text-slate-400"
+          >event_busy</span
+        >
       </div>
-      <h3 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-700 mb-2">No Reservations Found</h3>
-      <p class="text-xs sm:text-sm md:text-base text-slate-500">No reservation records match your current filters</p>
+      <h3 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-700 mb-2">
+        No Reservations Found
+      </h3>
+      <p class="text-xs sm:text-sm md:text-base text-slate-500">
+        No reservation records match your current filters
+      </p>
     </div>
 
     <!-- Table -->

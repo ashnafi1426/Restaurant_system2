@@ -115,13 +115,17 @@ function reset(): void {
 
 <template>
   <div class="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm">
-    <div class="grid grid-cols-1 gap-3 sm:gap-4 md:gap-5 lg:gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+    <div
+      class="grid grid-cols-1 gap-3 sm:gap-4 md:gap-5 lg:gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
+    >
       <!-- ===================================================== -->
       <!-- Search -->
       <!-- ===================================================== -->
 
       <div class="lg:col-span-2">
-        <label class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700">
+        <label
+          class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700"
+        >
           Search
         </label>
 
@@ -138,7 +142,9 @@ function reset(): void {
       <!-- ===================================================== -->
 
       <div>
-        <label class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700">
+        <label
+          class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700"
+        >
           Status
         </label>
 
@@ -157,7 +163,9 @@ function reset(): void {
       <!-- ===================================================== -->
 
       <div>
-        <label class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700">
+        <label
+          class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700"
+        >
           Payment
         </label>
 
@@ -176,7 +184,9 @@ function reset(): void {
       <!-- ===================================================== -->
 
       <div>
-        <label class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700">
+        <label
+          class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700"
+        >
           From
         </label>
 
@@ -192,7 +202,9 @@ function reset(): void {
       <!-- ===================================================== -->
 
       <div>
-        <label class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700">
+        <label
+          class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700"
+        >
           To
         </label>
 
@@ -208,7 +220,9 @@ function reset(): void {
     <!-- Actions -->
     <!-- ======================================================= -->
 
-    <div class="mt-4 sm:mt-5 md:mt-6 lg:mt-8 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-end">
+    <div
+      class="mt-4 sm:mt-5 md:mt-6 lg:mt-8 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-end"
+    >
       <button
         type="button"
         :disabled="loading"

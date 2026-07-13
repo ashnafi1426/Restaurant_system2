@@ -3,7 +3,10 @@
     <div
       v-for="stat in stats"
       :key="stat.key"
-      :class="['rounded-lg border-l-4 px-3 sm:px-4 md:px-5 py-3 sm:py-4 bg-white shadow-sm hover:shadow-md transition', stat.color]"
+      :class="[
+        'rounded-lg border-l-4 px-3 sm:px-4 md:px-5 py-3 sm:py-4 bg-white shadow-sm hover:shadow-md transition',
+        stat.color,
+      ]"
     >
       <p class="text-xs font-bold uppercase tracking-widest text-slate-600">{{ stat.label }}</p>
       <div class="mt-1.5 sm:mt-2 flex items-end justify-between">

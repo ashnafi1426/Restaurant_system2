@@ -1,5 +1,7 @@
 <template>
-  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+  <div
+    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4"
+  >
     <!-- Category Card -->
     <div
       v-for="cat in categories"
@@ -17,7 +19,9 @@
     >
       <!-- Header: Icon & Label -->
       <div class="flex items-center justify-between gap-2">
-        <span class="text-xs font-bold text-slate-500 tracking-wider uppercase truncate flex-1 line-clamp-2">
+        <span
+          class="text-xs font-bold text-slate-500 tracking-wider uppercase truncate flex-1 line-clamp-2"
+        >
           {{ cat.label }}
         </span>
         <div
@@ -50,7 +54,8 @@
         </v-icon>
       </div>
       <div class="mt-3 sm:mt-4">
-        <span class="text-xl sm:text-2xl font-extrabold text-slate-400 group-hover:text-purple-600 transition"
+        <span
+          class="text-xl sm:text-2xl font-extrabold text-slate-400 group-hover:text-purple-600 transition"
           >+</span
         >
       </div>

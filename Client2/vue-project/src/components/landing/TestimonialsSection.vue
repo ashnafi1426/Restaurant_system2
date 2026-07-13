@@ -3,8 +3,8 @@
     <div class="testimonial-content">
       <div class="quote-icon">"</div>
       <p class="quote-text">
-        "Our stay at Luxe Heritage was absolutely unforgettable. From the impeccable service to the exquisite dining
-        experience, every moment was perfection. We can't wait to return."
+        "Our stay at Luxe Heritage was absolutely unforgettable. From the impeccable service to the
+        exquisite dining experience, every moment was perfection. We can't wait to return."
       </p>
       <p class="quote-author">— Sarah Mitchell, CEO</p>
     </div>

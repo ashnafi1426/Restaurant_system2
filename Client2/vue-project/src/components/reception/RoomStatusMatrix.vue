@@ -30,8 +30,12 @@ const statusLabels: Record<string, string> = {
 <template>
   <div class="bg-blue-50 rounded-lg border border-blue-200 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 pb-3 sm:pb-4 md:pb-5 border-b border-blue-200 flex-col sm:flex-row gap-2 sm:gap-0">
-      <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900">Room Status Matrix</h3>
+    <div
+      class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 pb-3 sm:pb-4 md:pb-5 border-b border-blue-200 flex-col sm:flex-row gap-2 sm:gap-0"
+    >
+      <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900">
+        Room Status Matrix
+      </h3>
       <div class="flex gap-2 sm:gap-3 items-center flex-wrap justify-center sm:justify-end">
         <!-- Legend -->
         <div class="hidden sm:flex items-center gap-1 md:gap-2">
@@ -80,7 +84,9 @@ const statusLabels: Record<string, string> = {
     </div>
 
     <!-- Footer -->
-    <div class="flex justify-between items-center text-xs md:text-sm pt-3 sm:pt-4 md:pt-5 border-t border-gray-200 flex-col sm:flex-row gap-2 sm:gap-0">
+    <div
+      class="flex justify-between items-center text-xs md:text-sm pt-3 sm:pt-4 md:pt-5 border-t border-gray-200 flex-col sm:flex-row gap-2 sm:gap-0"
+    >
       <p class="text-gray-500 font-medium">Last updated: 2 mins ago</p>
       <button class="text-teal-600 hover:text-teal-700 font-bold min-h-10">Open Map</button>
     </div>
