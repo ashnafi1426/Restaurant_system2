@@ -18,69 +18,84 @@ class AuthController extends Controller
             'email' => $request->email,
             'password_length' => strlen($request->password),
             'password_chars' => mb_strlen($request->password),
+            'timestamp' => now(),
         ]);
 
-        $user = User::where(
-            'email',
-            $request->email
-        )->first();
-        
-        if (!$user) {
-            \Log::warning('Login: User not found', ['email' => $request->email]);
+        try {
+            $user = User::where(
+                'email',
+                $request->email
+            )->first();
+            
+            if (!$user) {
+                \Log::warning('Login: User not found', ['email' => $request->email]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid credentials'
+                ], 401);
+            }
+
+            $passwordMatches = Hash::check(
+                $request->password,
+                $user->password_hash
+            );
+            
+            \Log::info('Login: Password check', [
+                'user_email' => $user->email,
+                'attempted_password' => $request->password,
+                'password_hash' => substr($user->password_hash, 0, 20) . '...',
+                'match' => $passwordMatches ? 'YES' : 'NO',
+            ]);
+
+            if (!$passwordMatches) {
+                \Log::warning('Login: Password mismatch', ['email' => $request->email]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid credentials'
+                ], 401);
+            }
+
+            if (!$user->is_active) {
+                \Log::warning('Login: Account disabled', ['email' => $request->email]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Account disabled'
+                ], 403);
+            }
+
+            $user->update([
+                'last_login' => now()
+            ]);
+            
+            $token = $user
+                ->createToken('hotel_token')
+                ->plainTextToken;
+
+            \Log::info('Login: Success', [
+                'user_email' => $user->email,
+                'token' => substr($token, 0, 20) . '...',
+                'timestamp' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Login successful',
+                'token' => $token,
+                'user' => new AuthResource($user)
+            ]);
+        } catch (\Exception $exception) {
+            \Log::error('Login: Exception', [
+                'email' => $request->email,
+                'error_message' => $exception->getMessage(),
+                'error_file' => $exception->getFile(),
+                'error_line' => $exception->getLine(),
+            ]);
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid credentials'
-            ], 401);
+                'message' => 'Login error. Please try again.'
+            ], 500);
         }
-
-        $passwordMatches = Hash::check(
-            $request->password,
-            $user->password_hash
-        );
-        
-        \Log::info('Login: Password check', [
-            'user_email' => $user->email,
-            'attempted_password' => $request->password,
-            'password_hash' => substr($user->password_hash, 0, 20) . '...',
-            'match' => $passwordMatches ? 'YES' : 'NO',
-        ]);
-
-        if (!$passwordMatches) {
-            \Log::warning('Login: Password mismatch', ['email' => $request->email]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid credentials'
-            ], 401);
-        }
-
-        if (!$user->is_active) {
-            \Log::warning('Login: Account disabled', ['email' => $request->email]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Account disabled'
-            ], 403);
-        }
-
-        $user->update([
-            'last_login' => now()
-        ]);
-        $token = $user
-            ->createToken('hotel_token')
-            ->plainTextToken;
-
-        \Log::info('Login: Success', [
-            'user_email' => $user->email,
-            'token' => substr($token, 0, 20) . '...',
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Login successful',
-
-            'token' => $token,
-
-            'user' => new AuthResource($user)
-        ]);
     }
 
     /**

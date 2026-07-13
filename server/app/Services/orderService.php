@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\Reservation;
 use App\Models\MenuItem;
+use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
@@ -210,6 +212,10 @@ public function create(array $data): Order
             'total' => $total,
 
         ]);
+        
+        // Notify chefs of the new order
+        $this->notifyChefs($order);
+        
         DB::commit();
         return $order->fresh()->load([
 
@@ -230,6 +236,28 @@ public function create(array $data): Order
         DB::rollBack();
 
         throw $exception;
+    }
+}
+
+/**
+ * Notify all chefs of a new order
+ */
+private function notifyChefs(Order $order): void
+{
+    try {
+        $chefs = User::where('role', 'chef')->get();
+        
+        foreach ($chefs as $chef) {
+            Notification::create([
+                'user_id' => $chef->id,
+                'type' => 'order_created',
+                'title' => 'New Order',
+                'message' => 'Order #' . $order->order_number . ' has been created for processing',
+                'read' => false,
+            ]);
+        }
+    } catch (\Exception $e) {
+        \Log::error('Failed to notify chefs of new order: ' . $e->getMessage());
     }
 }
 /**

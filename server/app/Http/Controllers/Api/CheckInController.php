@@ -70,8 +70,17 @@ class CheckInController extends Controller
     {
         \Log::info('[CHECK-IN] POST request received', [
             'reservation_id' => $request->reservation_id,
+            'reservation_id_type' => gettype($request->reservation_id),
             'request_data' => $request->all(),
+            'all_inputs' => $request->all(),
         ]);
+
+        // Debug: Check if reservation_id exists in request
+        if (!$request->has('reservation_id')) {
+            \Log::error('[CHECK-IN] WARNING: reservation_id is missing from request!', [
+                'keys' => array_keys($request->all()),
+            ]);
+        }
 
         DB::beginTransaction();
 
@@ -111,12 +120,16 @@ class CheckInController extends Controller
             }
             \Log::info(' [CHECK-IN] Validation 1 passed: reservation status is confirmed');
 
-            if ($reservation->room->status !== 'available') {
+            // Allow both 'available' and 'reserved' status for check-in
+            // 'reserved' means room is reserved for a confirmed booking
+            // 'available' means completely unbooked
+            $allowedStatuses = ['available', 'reserved'];
+            if (!in_array($reservation->room->status, $allowedStatuses)) {
                 $msg = "Selected room is not available. Room status is: {$reservation->room->status}";
-                \Log::error(' [CHECK-IN] Validation failed: room status', ['room_status' => $reservation->room->status, 'message' => $msg]);
+                \Log::error(' [CHECK-IN] Validation failed: room status', ['room_status' => $reservation->room->status, 'allowed_statuses' => $allowedStatuses, 'message' => $msg]);
                 throw new Exception($msg);
             }
-            \Log::info(' [CHECK-IN] Validation 2 passed: room status is available');
+            \Log::info(' [CHECK-IN] Validation 2 passed: room status is available or reserved', ['room_status' => $reservation->room->status]);
 
             if (
                 CheckIn::where(

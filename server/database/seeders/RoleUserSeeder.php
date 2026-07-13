@@ -11,7 +11,7 @@ class RoleUserSeeder extends Seeder
 {
     public function run(): void
     {
-        // // Admin User
+        // Admin User
         // User::create([
         //     'id' => Str::uuid(),
         //     'first_name' => 'System',
@@ -46,7 +46,6 @@ class RoleUserSeeder extends Seeder
         //     'role' => 'cashier',
         //     'is_active' => true
         // ]);
-
         // // Manager User
         // User::create([
         //     'id' => Str::uuid(),
