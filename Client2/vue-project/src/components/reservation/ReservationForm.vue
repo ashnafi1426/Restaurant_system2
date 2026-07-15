@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, reactive } from 'vue'
+import api from '@/api/auth'
 
 import type { Reservation } from '@/types/reservation'
 import type { Room } from '@/types/room'

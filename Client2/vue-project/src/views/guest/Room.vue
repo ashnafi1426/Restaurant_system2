@@ -2,14 +2,9 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoomStore } from '@/stores/room'
 import RoomHero from '@/components/guest/RoomHero.vue'
-// import RoomSearchBar from '@/components/guest/RoomSearchBar.vue'
-// import RoomFilters from '@/components/guest/RoomFilters.vue'
 import RoomGrid from '@/components/guest/RoomGrid.vue'
 import RoomPagination from '@/components/guest/RoomPagination.vue'
-// import RoomCTA from '@/components/guest/RoomCTA.vue'
-// import NoRoomsFound from '@/components/guest/NoRoomsFound.vue'
 import GuestLayout from '@/layouts/GuestLayout.vue'
-
 const roomStore = useRoomStore()
 
 const search = ref('')

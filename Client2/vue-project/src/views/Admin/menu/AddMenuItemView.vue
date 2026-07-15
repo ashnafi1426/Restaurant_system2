@@ -596,7 +596,7 @@ const submitForm = async () => {
     console.error('❌ Error submitting form:', error)
 
     // Log ALL error response data
-    console.error('🔍 Full error response:', error.response?.data)
+    console.error(' Full error response:', error.response?.data)
 
     // Log validation errors if available
     if (error.response?.data?.errors) {

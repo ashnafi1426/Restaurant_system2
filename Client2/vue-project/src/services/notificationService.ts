@@ -69,12 +69,22 @@ export const notificationService = {
   ) {
     let failureCount = 0
     const maxFailures = 3
+    const seenNotificationIds = new Set<string>() // Track which notifications we've already seen
 
     const intervalId = setInterval(async () => {
       try {
         const response = await api.get('/notifications/latest')
         if (response.data && response.data.data) {
-          callback(response.data.data)
+          const notification = response.data.data
+          
+          // Only call the callback for new notifications we haven't seen before
+          if (notification.id && !seenNotificationIds.has(notification.id)) {
+            seenNotificationIds.add(notification.id)
+            callback(notification)
+            console.log('🔔 [NOTIFICATION SERVICE] New notification shown:', notification.id)
+          } else {
+            console.log('🔕 [NOTIFICATION SERVICE] Duplicate notification skipped:', notification.id)
+          }
           failureCount = 0 // Reset on success
         }
       } catch (error: any) {

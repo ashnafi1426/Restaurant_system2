@@ -15,6 +15,10 @@ export interface Room {
   status: RoomStatus
   is_active?: boolean
   status_label?: string
+  qr_token?: string
+  qr_image_path?: string
+  qr_code_url?: string
+  qr_generated_at?: string
   created_at?: string
   updated_at?: string
 }

@@ -97,23 +97,23 @@ const filteredReservations = computed(() => {
 const filteredRooms = computed(() => {
   let query = roomSearch.value.trim().toLowerCase()
 
-  console.log('🔍 [FILTER] Search query:', query)
-  console.log('🔍 [FILTER] Total rooms available:', roomStore.rooms.length)
+  console.log(' [FILTER] Search query:', query)
+  console.log(' [FILTER] Total rooms available:', roomStore.rooms.length)
 
   // If no search query, return all active rooms
   if (!query) {
     const activeRooms = roomStore.rooms.filter((room) => room.is_active !== false)
-    console.log('🔍 [FILTER] No search - returning active rooms:', activeRooms.length)
+    console.log(' [FILTER] No search - returning active rooms:', activeRooms.length)
     return activeRooms
   }
   // Remove "room" or "rm" prefix if user typed it (e.g., "room 202" → "202")
   if (query.startsWith('room ')) {
     query = query.replace('room ', '').trim()
-    console.log('🔍 [FILTER] Removed "room " prefix, new query:', query)
+    console.log(' [FILTER] Removed "room " prefix, new query:', query)
   }
   if (query.startsWith('rm ')) {
     query = query.replace('rm ', '').trim()
-    console.log('🔍 [FILTER] Removed "rm " prefix, new query:', query)
+    console.log(' [FILTER] Removed "rm " prefix, new query:', query)
   }
   const results = roomStore.rooms.filter((room) => {
     // Ensure room exists
@@ -155,7 +155,7 @@ const filteredRooms = computed(() => {
       return false
     }
   })
-  console.log(`🔍 [FILTER] Results: ${results.length} rooms matched "${query}"`)
+  console.log(` [FILTER] Results: ${results.length} rooms matched "${query}"`)
   return results
 })
 // Get display text for selections
@@ -203,7 +203,7 @@ function handleGuestInput(value: string) {
 function handleRoomInput(value: string) {
   roomSearch.value = value
   showRoomDropdown.value = true
-  console.log('🔍 Room search:', value)
+  console.log(' Room search:', value)
   console.log('📋 Filtered rooms count:', filteredRooms.value.length)
   console.log('📋 All rooms count:', roomStore.rooms.length)
   console.log('📋 First room:', roomStore.rooms[0])

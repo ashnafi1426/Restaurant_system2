@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import DashboardLayout from '../../../layouts/DashboardLayout.vue'
 import RoomStatusBadge from '../../../components/rooms/RoomStatusBadge.vue'
-
+import QRCodeDownload from '../../../components/rooms/QRCodeDownload.vue'
 import { roomService } from '../../../services/roomService'
 import type { Room } from '../../../types/room'
 
@@ -146,6 +146,11 @@ onMounted(loadRoom)
           <p class="leading-6 sm:leading-7 text-sm sm:text-base text-slate-600">
             {{ room.description || 'No description available.' }}
           </p>
+        </div>
+
+        <!-- QR Code Section -->
+        <div class="border-t">
+          <QRCodeDownload :room="room" />
         </div>
 
         <!-- Footer - Responsive Grid -->

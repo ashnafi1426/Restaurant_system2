@@ -10,7 +10,6 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   alerts: () => [],
 })
-
 const getSeverityIcon = (severity: string) => {
   const icons: Record<string, string> = {
     high: mdiAlertOctagon,
@@ -19,7 +18,6 @@ const getSeverityIcon = (severity: string) => {
   }
   return icons[severity] || mdiAlert
 }
-
 const getSeverityColor = (severity: string) => {
   const colors: Record<string, string> = {
     high: 'bg-red-50 border-red-200',
@@ -28,7 +26,6 @@ const getSeverityColor = (severity: string) => {
   }
   return colors[severity] || 'bg-gray-50 border-gray-200'
 }
-
 const getSeverityBadgeColor = (severity: string) => {
   const colors: Record<string, string> = {
     high: 'text-red-700',

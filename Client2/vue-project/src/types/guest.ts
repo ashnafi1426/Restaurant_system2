@@ -52,3 +52,42 @@ export interface GuestFilter {
   page?: number
   per_page?: number
 }
+
+// ===========================================
+// MENU & ORDER TYPES
+// ===========================================
+
+// Guest menu item interface
+export interface MenuItem {
+  id: string
+  name: string
+  description: string
+  price: number
+  image: string | null
+  category: string
+  is_available: boolean
+}
+
+// Order interface
+export interface Order {
+  id: string | number
+  order_number?: string
+  room_number?: string
+  total: number
+  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered'
+  items?: OrderItem[]
+  created_at?: string
+}
+
+// Order item interface
+export interface OrderItem {
+  menu_item_id: string
+  quantity: number
+  item_price_at_order?: number
+  line_total?: number
+}
+
+// Cart item for guest ordering
+export interface CartItem extends MenuItem {
+  quantity: number
+}

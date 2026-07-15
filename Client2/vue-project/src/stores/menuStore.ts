@@ -26,13 +26,8 @@ export const useMenuStore = defineStore('menu', () => {
     per_page: 10,
     total: 0,
   })
-
   const loading = ref(false)
   const saving = ref(false)
-
-  /* ----------------------------------------
-   * Computed
-   * -------------------------------------- */
   const hasMenuItems = computed(() => menuItems.value.length > 0)
 
   /* ----------------------------------------
@@ -42,9 +37,7 @@ export const useMenuStore = defineStore('menu', () => {
     loading.value = true
     try {
       const response = await menuService.getMenus(filters)
-      console.log('📦 Menu API Response:', response.data)
-
-      // Laravel paginate response format
+      console.log('Menu API Response:', response.data)
       if (response.data.data && response.data.meta) {
         menuItems.value = Array.isArray(response.data.data) ? response.data.data : []
         // Store pagination metadata
@@ -54,9 +47,8 @@ export const useMenuStore = defineStore('menu', () => {
           per_page: response.data.meta.per_page,
           total: response.data.meta.total,
         }
-        console.log('📄 Pagination:', pagination.value)
+        console.log('Pagination:', pagination.value)
       } else if (response.data.data) {
-        // Format: { data: [...] }
         menuItems.value = Array.isArray(response.data.data) ? response.data.data : []
       } else if (Array.isArray(response.data)) {
         // Format: [...] direct array
@@ -75,10 +67,6 @@ export const useMenuStore = defineStore('menu', () => {
       loading.value = false
     }
   }
-
-  /* ----------------------------------------
-   * Fetch Statistics
-   * -------------------------------------- */
   async function fetchStatistics() {
     try {
       const response = await menuService.statistics()

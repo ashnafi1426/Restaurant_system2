@@ -19,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register view namespace for email templates
+        view()->addNamespace('mail', resource_path('views/emails'));
     }
 }

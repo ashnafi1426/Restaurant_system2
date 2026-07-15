@@ -32,7 +32,7 @@ watch(
 // Only show reservations that are confirmed
 // Room availability is validated server-side during check-in
 const checkableReservations = computed(() => {
-  console.log('🔍 [CHECKIN DIALOG] Computing checkable reservations...')
+  console.log(' [CHECKIN DIALOG] Computing checkable reservations...')
   console.log('📥 [CHECKIN DIALOG] Props reservations received:', props.reservations.length)
 
   if (props.reservations.length === 0) {

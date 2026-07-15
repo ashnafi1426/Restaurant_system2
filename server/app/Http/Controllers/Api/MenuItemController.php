@@ -13,19 +13,10 @@ use Illuminate\Support\Facades\Storage;
 
 class MenuItemController extends Controller
 {
-    /**
-     * Display a listing of menu items.
-     */
+   
     public function index(Request $request)
     {
         $query = MenuItem::query();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Search
-        |--------------------------------------------------------------------------
-        */
-
         if ($request->filled('search')) {
 
             $search = trim($request->search);

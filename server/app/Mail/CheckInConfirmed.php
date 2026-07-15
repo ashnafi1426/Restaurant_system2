@@ -4,13 +4,12 @@ namespace App\Mail;
 
 use App\Models\Reservation;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class CheckInConfirmed extends Mailable implements ShouldQueue
+class CheckInConfirmed extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -41,7 +40,7 @@ class CheckInConfirmed extends Mailable implements ShouldQueue
                 'room' => $this->reservation->room,
                 'checkOutDate' => $this->reservation->check_out_date->format('F j, Y'),
                 'roomNumber' => $this->reservation->room->room_number,
-                'roomType' => $this->reservation->room->room_type->name ?? 'Standard',
+                'roomType' => $this->reservation->room->roomType?->name ?? 'Standard',
                 'hotelName' => config('app.name'),
                 'hotelPhone' => env('HOTEL_PHONE', '+1-800-000-0000'),
                 'hotelEmail' => env('HOTEL_EMAIL', 'info@hotel.com'),

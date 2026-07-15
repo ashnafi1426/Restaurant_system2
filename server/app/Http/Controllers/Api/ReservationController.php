@@ -8,12 +8,10 @@ use App\Http\Requests\UpdateReservationRequest;
 use App\Http\Resources\ReservationCollection;
 use App\Http\Resources\ReservationResource;
 use App\Models\Reservation;
-use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-
-
+use Illuminate\Support\Facades\Log;
 class ReservationController extends Controller
 {
     public function index(Request $request)
@@ -136,56 +134,73 @@ class ReservationController extends Controller
     }
     public function checkIn(Reservation $reservation)
     {
-    if(!$reservation->canCheckIn()){
-
-        return response()->json([
-            'message'=>'Reservation cannot be checked in.'
-        ],422);
-    }
-    DB::transaction(function() use($reservation){
-        // Update reservation status
-        $reservation->update([
-            'status'=>'checked_in'
-        ]);
-        
-        // Update room status
-        $reservation->room()->update([
-            'status'=>'occupied'
-        ]);
-        
-        // Create CheckIn record if not exists
-        if (!$reservation->checkIn) {
-            \App\Models\CheckIn::create([
-                'reservation_id' => $reservation->id,
-                'guest_id' => $reservation->guest_id,
-                'room_id' => $reservation->room_id,
-                'checked_in_at' => now(),
-                'expected_check_out_at' => $reservation->check_out_date,
-            ]);
-            \Log::info(' [RESERVATION] CheckIn record created for reservation', [
-                'reservation_id' => $reservation->id,
-            ]);
+        if(!$reservation->canCheckIn()){
+            return response()->json([
+                'message'=>'Reservation cannot be checked in.'
+            ],422);
         }
 
-        // Send check-in email to guest
-        try {
-            \Mail::to($reservation->guest->email)
-                ->send(new \App\Mail\CheckInConfirmed($reservation));
+        DB::transaction(function() use($reservation){
+            // Update reservation status
+            $reservation->update([
+                'status'=>'checked_in'
+            ]);
             
-            \Log::info('📧 [RESERVATION] Check-in email sent', [
+            // Update room status
+            $reservation->room()->update([
+                'status'=>'occupied'
+            ]);
+            
+            // Create CheckIn record if not exists
+            if (!$reservation->checkIn) {
+                \App\Models\CheckIn::create([
+                    'reservation_id' => $reservation->id,
+                    'guest_id' => $reservation->guest_id,
+                    'room_id' => $reservation->room_id,
+                    'checked_in_at' => now(),
+                    'expected_check_out_at' => $reservation->check_out_date,
+                ]);
+                Log::info(' [RESERVATION] CheckIn record created for reservation', [
+                    'reservation_id' => $reservation->id,
+                ]);
+            }
+        });
+
+        // Send check-in email AFTER transaction (outside transaction scope)
+        try {
+            // Ensure room and room type relationships are loaded
+            $reservation->load(['room', 'room.roomType', 'guest']);
+            
+            Log::info('📧 [RESERVATION] Preparing to send check-in email', [
                 'reservation_id' => $reservation->id,
                 'guest_email' => $reservation->guest->email,
             ]);
+            
+            Mail::to($reservation->guest->email)
+                ->send(new \App\Mail\CheckInConfirmed($reservation));
+            
+            Log::info('📧 [RESERVATION] Check-in email sent successfully', [
+                'reservation_id' => $reservation->id,
+                'guest_email' => $reservation->guest->email,
+                'timestamp' => now()->toIso8601String(),
+            ]);
         } catch (\Exception $e) {
-            \Log::error('📧 [RESERVATION] Failed to send check-in email: ' . $e->getMessage());
+            Log::error('📧 [RESERVATION] FAILED to send check-in email', [
+                'reservation_id' => $reservation->id,
+                'guest_email' => $reservation->guest->email,
+                'error_message' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+            ]);
         }
-    });
-    return new ReservationResource(
-        $reservation->fresh([
-            'guest',
-            'room'
-        ])
-    );
+
+        return new ReservationResource(
+            $reservation->fresh([
+                'guest',
+                'room'
+            ])
+        );
     }
 
     public function confirm(Reservation $reservation)
@@ -196,27 +211,48 @@ class ReservationController extends Controller
             ], 422);
         }
 
+        // Update reservation status and create notifications
         DB::transaction(function () use ($reservation) {
             $reservation->update([
                 'status' => 'confirmed',
             ]);
 
-            // Send confirmation email to guest
-            try {
-                \Mail::to($reservation->guest->email)
-                    ->send(new \App\Mail\ReservationConfirmed($reservation));
-                
-                \Log::info('📧 [RESERVATION] Confirmation email sent', [
-                    'reservation_id' => $reservation->id,
-                    'guest_email' => $reservation->guest->email,
-                ]);
-            } catch (\Exception $e) {
-                \Log::error('📧 [RESERVATION] Failed to send confirmation email: ' . $e->getMessage());
-            }
-
             // Create notification for receptionist dashboard
             $this->createConfirmationNotification($reservation);
         });
+
+        // Send confirmation email ONLY to the target guest (reservation guest)
+        try {
+            // Ensure room and room type relationships are loaded
+            $reservation->load(['room', 'room.roomType', 'guest']);
+            
+            Log::info('📧 [RESERVATION] Preparing to send confirmation email', [
+                'reservation_id' => $reservation->id,
+                'guest_email' => $reservation->guest->email,
+                'guest_name' => $reservation->guest->first_name . ' ' . $reservation->guest->last_name,
+                'queue_connection' => config('queue.default'),
+                'mail_driver' => config('mail.default'),
+            ]);
+            
+            Mail::to($reservation->guest->email)
+                ->send(new \App\Mail\ReservationConfirmed($reservation));
+            
+            Log::info('📧 [RESERVATION] Confirmation email sent successfully', [
+                'reservation_id' => $reservation->id,
+                'guest_email' => $reservation->guest->email,
+                'guest_name' => "{$reservation->guest->first_name} {$reservation->guest->last_name}",
+                'timestamp' => now()->toIso8601String(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('📧 [RESERVATION] FAILED to send confirmation email', [
+                'reservation_id' => $reservation->id,
+                'guest_email' => $reservation->guest->email,
+                'error_message' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+            ]);
+        }
 
         return new ReservationResource(
             $reservation->fresh([
@@ -248,24 +284,40 @@ class ReservationController extends Controller
                 $reservation->checkIn()->update([
                     'checked_out_at' => now(),
                 ]);
-                \Log::info(' [RESERVATION] CheckIn record updated for checkout', [
+                Log::info(' [RESERVATION] CheckIn record updated for checkout', [
                     'reservation_id' => $reservation->id,
                 ]);
-            }
-
-            // Send check-out email to guest
-            try {
-                \Mail::to($reservation->guest->email)
-                    ->send(new \App\Mail\CheckOutNotification($reservation));
-                
-                \Log::info('📧 [RESERVATION] Check-out email sent', [
-                    'reservation_id' => $reservation->id,
-                    'guest_email' => $reservation->guest->email,
-                ]);
-            } catch (\Exception $e) {
-                \Log::error('📧 [RESERVATION] Failed to send check-out email: ' . $e->getMessage());
             }
         });
+
+        // Send check-out email AFTER transaction (outside transaction scope)
+        try {
+            // Ensure room and room type relationships are loaded
+            $reservation->load(['room', 'room.roomType', 'guest']);
+            
+            Log::info('📧 [RESERVATION] Preparing to send check-out email', [
+                'reservation_id' => $reservation->id,
+                'guest_email' => $reservation->guest->email,
+            ]);
+            
+            Mail::to($reservation->guest->email)
+                ->send(new \App\Mail\CheckOutNotification($reservation));
+            
+            Log::info('📧 [RESERVATION] Check-out email sent successfully', [
+                'reservation_id' => $reservation->id,
+                'guest_email' => $reservation->guest->email,
+                'timestamp' => now()->toIso8601String(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('📧 [RESERVATION] FAILED to send check-out email', [
+                'reservation_id' => $reservation->id,
+                'guest_email' => $reservation->guest->email,
+                'error_message' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+            ]);
+        }
 
         return new ReservationResource(
             $reservation->fresh([
@@ -319,19 +371,19 @@ class ReservationController extends Controller
                         'reservation_id' => $reservation->id,
                         'guest_name' => $reservation->guest->first_name . ' ' . $reservation->guest->last_name,
                         'room_number' => $reservation->room->room_number,
-                        'room_type' => $reservation->room->room_type->name ?? 'Unknown',
+                        'room_type' => $reservation->room->roomType?->name ?? 'Unknown',
                         'check_in_date' => $reservation->check_in_date,
                         'check_out_date' => $reservation->check_out_date,
                     ]
                 );
             }
 
-            \Log::info('Notifications created for new reservation', [
+            Log::info('Notifications created for new reservation', [
                 'reservation_id' => $reservation->id,
                 'receptionists_count' => count($receptionists),
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error creating reservation notification: ' . $e->getMessage());
+            Log::error('Error creating reservation notification: ' . $e->getMessage());
         }
     }
 
@@ -354,19 +406,19 @@ class ReservationController extends Controller
                         'reservation_id' => $reservation->id,
                         'guest_name' => $reservation->guest->first_name . ' ' . $reservation->guest->last_name,
                         'room_number' => $reservation->room->room_number,
-                        'room_type' => $reservation->room->room_type->name ?? 'Unknown',
+                        'room_type' => $reservation->room->roomType?->name ?? 'Unknown',
                         'check_in_date' => $reservation->check_in_date,
                         'check_out_date' => $reservation->check_out_date,
                     ]
                 );
             }
 
-            \Log::info('✓ [RESERVATION] Confirmation notifications created', [
+            Log::info('✓ [RESERVATION] Confirmation notifications created', [
                 'reservation_id' => $reservation->id,
                 'receptionists_count' => count($receptionists),
             ]);
         } catch (\Exception $e) {
-            \Log::error('✗ [RESERVATION] Error creating confirmation notification: ' . $e->getMessage());
+            Log::error('✗ [RESERVATION] Error creating confirmation notification: ' . $e->getMessage());
         }
     }
 }

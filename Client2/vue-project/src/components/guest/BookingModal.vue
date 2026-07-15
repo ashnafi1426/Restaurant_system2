@@ -352,7 +352,7 @@ async function submitBooking() {
     console.log('📝 [BOOKING] Creating guest with:', { firstName, lastName })
 
     // First, check if guest with this email already exists
-    console.log('🔍 [BOOKING] Checking if guest exists with email:', bookingForm.value.guestEmail)
+    console.log(' [BOOKING] Checking if guest exists with email:', bookingForm.value.guestEmail)
     await guestStore.fetchGuests({ search: bookingForm.value.guestEmail })
 
     let createdGuest = guestStore.guests.find((g: any) => g.email === bookingForm.value.guestEmail)

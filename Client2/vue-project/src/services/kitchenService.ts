@@ -74,12 +74,6 @@ class KitchenService {
     return response.data.data
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Refresh Dashboard
-  |--------------------------------------------------------------------------
-  */
-
   async refresh() {
     const [orders, statistics] = await Promise.all([this.getOrders(), this.getStatistics()])
 

@@ -5,6 +5,7 @@ import roomPage from '../views/guest/Room.vue'
 import GuestHome from '../views/guest/Home.vue'
 import contactPage from '../views/guest/Contact.vue'
 import GalleryPage from '../views/guest/Gallary.vue'
+import QROrderingPage from '../views/guest/QROrderingPage.vue'
 import LoginView from '../views/LoginView.vue'
 import AdminDashboard from '../views/Admin/AdminDashboard.vue'
 import orderManagment from '../views/Admin/order/OrderManagment.vue'
@@ -38,6 +39,7 @@ import ReservationCreatePage from '../views/receptionist/reservation/Reservation
 import ReservationEditPage from '../views/receptionist/reservation/ReservationEdit.vue'
 import CheckInView from '../views/receptionist/checkIn/checkInView.vue'
 import AddOrder from '@/views/Admin/order/AddOrder.vue'
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -401,6 +403,15 @@ const router = createRouter({
         title: 'View Order',
         requiresAuth: true,
         roles: ['admin', 'receptionist'],
+      },
+    },
+    {
+      path: '/order/:qrToken',
+      name: 'guest-qr-order',
+      component: QROrderingPage,
+      meta: {
+        title: 'Room Service Menu',
+        requiresAuth: false,
       },
     },
   ],

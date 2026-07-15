@@ -23,7 +23,9 @@ class Order extends Model
         'room_id',
         'order_time',
         'status',
+        'source',
         'notes',
+        'special_requests',
         'payment_type',
         'subtotal',
         'tax',
@@ -31,6 +33,7 @@ class Order extends Model
         'total',
         'served_at',
         'cancelled_at',
+        'user_id',
     ];
 
     protected $casts = [

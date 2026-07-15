@@ -19,6 +19,10 @@ class RoomResource extends JsonResource
             'is_active' => $this->is_active,
             'status_label' => ucfirst($this->status),
             'room_type' => new RoomTypeResource($this->whenLoaded('roomType')),
+            'qr_token' => $this->qr_token,
+            'qr_image_path' => $this->qr_image_path,
+            'qr_code_url' => $this->qr_code_url,
+            'qr_generated_at' => optional($this->qr_generated_at)->format('Y-m-d H:i:s'),
             'created_at' => optional($this->created_at)->format('Y-m-d H:i:s'),
             'updated_at' => optional($this->updated_at)->format('Y-m-d H:i:s'),
         ];

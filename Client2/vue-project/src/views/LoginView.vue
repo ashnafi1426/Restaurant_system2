@@ -52,7 +52,6 @@ const login = async (): Promise<void> => {
   try {
     await auth.login(email.value, password.value)
     const role = auth.user?.role
-
     const roleRoutes: Record<string, string> = {
       admin: '/admin',
       receptionist: '/receptionist',
@@ -60,7 +59,6 @@ const login = async (): Promise<void> => {
       chef: '/chef',
       manager: '/manager',
     }
-
     router.push(roleRoutes[role] || '/')
   } catch (error: any) {
     console.error('[LOGIN] Error:', error)
@@ -133,8 +131,6 @@ const login = async (): Promise<void> => {
             {{ errors.general }}
           </div>
         </div>
-
-        <!-- Email Field - Compact -->
         <div class="mb-3.5">
           <label class="block mb-1 text-xs font-semibold text-slate-700"> Email Address </label>
           <div class="relative">
