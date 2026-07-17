@@ -2,12 +2,12 @@
   <DashboardLayout>
     <!-- Page Header -->
     <template #header>
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 class="text-3xl font-bold text-slate-900">
+          <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900">
             {{ isEditMode ? 'Edit Menu Item' : 'Add New Menu Item' }}
           </h1>
-          <p class="text-slate-600 mt-1">
+          <p class="text-xs sm:text-sm text-slate-600 mt-1">
             {{
               isEditMode
                 ? 'Update the menu item details'
@@ -17,7 +17,7 @@
         </div>
         <button
           @click="goBack"
-          class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors"
+          class="px-3 sm:px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
         >
           ← Back to Menu
         </button>
@@ -41,13 +41,13 @@
         <p class="text-red-700 font-medium">{{ errors.general }}</p>
       </div>
 
-      <form @submit.prevent="submitForm" class="space-y-6">
-        <!-- Main Content Row: Left Form + Right Image -->
-        <div class="flex gap-6">
-          <!-- LEFT SIDE: Form Fields -->
-          <div class="flex-1 space-y-6">
+      <form @submit.prevent="submitForm" class="space-y-4 sm:space-y-6">
+        <!-- Main Content Row: Left Form + Right Image (Responsive Stack) -->
+        <div class="flex flex-col lg:flex-row lg:gap-6">
+          <!-- LEFT SIDE: Form Fields (Full width on mobile, flex-1 on desktop) -->
+          <div class="w-full lg:flex-1 space-y-4 sm:space-y-6">
             <!-- Item Name & Price -->
-            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm">
               <div class="space-y-4">
                 <!-- Item Name -->
                 <div>
@@ -68,8 +68,8 @@
                   <p v-if="errors.name" class="text-red-600 text-xs mt-1">{{ errors.name }}</p>
                 </div>
 
-                <!-- Price & Category Row -->
-                <div class="grid grid-cols-2 gap-4">
+                <!-- Price & Category Row (Responsive Grid) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <!-- Price -->
                   <div>
                     <label
@@ -96,19 +96,34 @@
 
                   <!-- Category -->
                   <div>
-                    <label
-                      for="category"
-                      class="block text-xs font-semibold text-slate-600 uppercase mb-2"
-                    >
-                      Category <span class="text-red-500">*</span>
-                    </label>
+                    <div class="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                      <label
+                        for="category"
+                        class="block text-xs font-semibold text-slate-600 uppercase"
+                      >
+                        Category <span class="text-red-500">*</span>
+                      </label>
+                      <button
+                        type="button"
+                        @click="navigateToAddCategory"
+                        class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1 whitespace-nowrap"
+                        title="Manage categories"
+                      >
+                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <span class="hidden sm:inline">Manage</span>
+                      </button>
+                    </div>
                     <select
                       id="category"
                       v-model="formData.category"
-                      class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                      :disabled="categoriesLoading"
+                      class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm disabled:bg-slate-100 disabled:text-slate-500"
                       :class="{ 'border-red-500 focus:ring-red-500': errors.category }"
                     >
-                      <option value="">Select category...</option>
+                      <option v-if="categoriesLoading" value="">Loading categories...</option>
+                      <option v-else value="">Select category...</option>
                       <option v-for="cat in categoryOptions" :key="cat.value" :value="cat.value">
                         {{ cat.label }}
                       </option>
@@ -122,7 +137,7 @@
             </div>
 
             <!-- Description -->
-            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+            <div class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm">
               <label
                 for="description"
                 class="block text-xs font-semibold text-slate-600 uppercase mb-2"
@@ -138,8 +153,8 @@
               ></textarea>
             </div>
             <!-- Publish Status -->
-            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-              <div class="flex items-center justify-between">
+            <div class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                 <div>
                   <label class="text-sm font-semibold text-slate-900">Status</label>
                   <p class="text-xs text-slate-600 mt-1">Item visibility on menu</p>
@@ -164,9 +179,9 @@
             </div>
           </div>
 
-          <!-- RIGHT SIDE: Image Upload -->
-          <div class="w-80">
-            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm sticky top-6">
+          <!-- RIGHT SIDE: Image Upload (Full width on mobile, fixed width on desktop) -->
+          <div class="w-full lg:w-80 mt-4 sm:mt-6 lg:mt-0">
+            <div class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm lg:sticky lg:top-6">
               <label class="block text-xs font-semibold text-slate-600 uppercase mb-4">
                 Item Image
               </label>
@@ -177,12 +192,12 @@
                   <img
                     :src="imagePreview"
                     alt="Preview"
-                    class="w-full h-48 object-cover rounded-lg border-2 border-emerald-200"
+                    class="w-full h-40 sm:h-48 object-cover rounded-lg border-2 border-emerald-200"
                   />
                   <button
                     type="button"
                     @click="removeImage"
-                    class="absolute -top-2 -right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg text-sm font-bold"
+                    class="absolute -top-2 -right-2 w-6 h-6 sm:w-7 sm:h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg text-xs sm:text-sm font-bold"
                   >
                     ✕
                   </button>
@@ -194,7 +209,7 @@
                 <button
                   type="button"
                   @click="formData.image_input_type = 'upload'"
-                  class="flex-1 px-3 py-2 rounded-lg font-semibold text-sm transition-all"
+                  class="flex-1 px-3 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all"
                   :class="
                     formData.image_input_type === 'upload'
                       ? 'bg-emerald-500 text-white hover:bg-emerald-600'
@@ -206,7 +221,7 @@
                 <button
                   type="button"
                   @click="formData.image_input_type = 'url'"
-                  class="flex-1 px-3 py-2 rounded-lg font-semibold text-sm transition-all"
+                  class="flex-1 px-3 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all"
                   :class="
                     formData.image_input_type === 'url'
                       ? 'bg-emerald-500 text-white hover:bg-emerald-600'
@@ -224,7 +239,7 @@
                   @dragover="onDragOver"
                   @dragleave="onDragLeave"
                   @drop="onDrop"
-                  class="border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer"
+                  class="border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors cursor-pointer"
                   :class="[
                     isDragOver
                       ? 'border-emerald-500 bg-emerald-50'
@@ -233,7 +248,7 @@
                 >
                   <div class="flex flex-col items-center gap-2">
                     <svg
-                      class="w-8 h-8 text-slate-400"
+                      class="w-6 sm:w-8 h-6 sm:h-8 text-slate-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -245,7 +260,7 @@
                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
-                    <p class="text-xs font-medium text-slate-900">Drop image here</p>
+                    <p class="text-xs sm:text-sm font-medium text-slate-900">Drop image here</p>
                     <p class="text-xs text-slate-500">or click to browse</p>
                   </div>
                   <input
@@ -260,7 +275,7 @@
                 <button
                   type="button"
                   @click="fileInputRef?.click()"
-                  class="w-full px-3 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 text-sm font-medium text-slate-700 transition-colors"
+                  class="w-full px-3 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 text-xs sm:text-sm font-medium text-slate-700 transition-colors"
                 >
                   Choose file...
                 </button>
@@ -286,19 +301,19 @@
           </div>
         </div>
 
-        <!-- Form Actions -->
-        <div class="flex gap-3 items-center justify-end mt-8 pt-6 border-t border-slate-200">
+        <!-- Form Actions (Responsive Layout) -->
+        <div class="flex flex-col-reverse sm:flex-row gap-3 items-stretch sm:items-center sm:justify-end mt-8 pt-6 border-t border-slate-200">
           <button
             type="button"
             @click="goBack"
-            class="px-6 py-2 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors"
+            class="px-4 sm:px-6 py-2 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm"
           >
             Cancel
           </button>
           <button
             type="submit"
             :disabled="!isFormValid || submitting"
-            class="px-8 py-2 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            class="px-6 sm:px-8 py-2 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 text-sm"
           >
             <span
               v-if="submitting"
@@ -317,6 +332,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import menuService from '@/services/menuService'
+import categoryService from '@/services/categoryService'
 import { useMenuStore } from '@/stores/menuStore'
 import type { MenuItem } from '@/types/menu'
 
@@ -332,7 +348,7 @@ const formData = ref({
   name: '',
   description: '',
   price: '',
-  category: 'breakfast',
+  category: '',
   is_available: true,
   dietary_tags: [] as string[],
   image: null as File | null,
@@ -345,6 +361,8 @@ const loading = ref(false)
 const submitting = ref(false)
 const errors = ref<Record<string, string>>({})
 const isDragOver = ref(false)
+const categories = ref<Array<{ id: string; name: string; slug: string }>>([])
+const categoriesLoading = ref(false)
 
 // Edit mode
 const isEditMode = computed(() => !!route.query.id)
@@ -361,15 +379,13 @@ const dietaryTagsOptions = [
   { value: 'low-carb', label: 'Low Carb' },
 ]
 
-// Category options
-const categoryOptions = [
-  { value: 'breakfast', label: 'Breakfast' },
-  { value: 'lunch', label: 'Lunch' },
-  { value: 'dinner', label: 'Dinner' },
-  { value: 'dessert', label: 'Dessert' },
-  { value: 'drinks', label: 'Drinks' },
-  { value: 'appetizers', label: 'Appetizers' },
-]
+// Category options - computed from database
+const categoryOptions = computed(() => {
+  return categories.value.map((cat) => ({
+    value: cat.slug,
+    label: cat.name,
+  }))
+})
 
 // Computed
 const isFormValid = computed(() => {
@@ -611,8 +627,34 @@ const goBack = () => {
   router.push({ name: 'admin-menu' })
 }
 
+// Navigate to add category page
+const navigateToAddCategory = () => {
+  router.push({ name: 'admin-menu-add-category' })
+}
+
+// Load categories from database
+const loadCategories = async () => {
+  categoriesLoading.value = true
+  try {
+    const response = await categoryService.getCategories({ is_active: true })
+    if (response.data?.data && Array.isArray(response.data.data)) {
+      categories.value = response.data.data
+      // Set default category to first one if available
+      if (categories.value.length > 0 && !formData.value.category) {
+        formData.value.category = categories.value[0].slug
+      }
+    }
+  } catch (error) {
+    console.error('Error loading categories:', error)
+    // Show error but don't block the form
+  } finally {
+    categoriesLoading.value = false
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
+  await loadCategories()
   if (isEditMode.value) {
     await loadMenuItemForEdit()
   }

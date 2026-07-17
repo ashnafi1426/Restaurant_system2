@@ -1,22 +1,30 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
+import categoryService from '@/services/categoryService'
+
+interface Category {
+  id: string
+  name: string
+  slug: string
+  is_active: boolean
+}
 
 interface Props {
   active: string
-  categories?: string[]
-  loading?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  categories: () => ['all', 'breakfast', 'lunch', 'dinner', 'drinks', 'dessert'],
-  loading: false,
-})
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: 'change', category: string): void
 }>()
 
-// Enhanced category labels with emojis
+// State
+const categories = ref<Category[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
+
+// Enhanced category labels with emojis - fallback mapping
 const categoryLabels: Record<string, string> = {
   all: '🍽️ All',
   breakfast: '🥐 Breakfast',
@@ -25,11 +33,10 @@ const categoryLabels: Record<string, string> = {
   drinks: '🥤 Drinks',
   dessert: '🍰 Dessert',
   appetizer: '🥗 Appetizer',
+  appetizers: '🥗 Appetizers',
   snacks: '🍿 Snacks',
   beverage: '☕ Beverage',
   beverages: '☕ Beverages',
-  'all day': '🌅 All Day',
-  'fine dining': '🍷 Fine Dining',
   coffee: '☕ Coffee',
   tea: '🫖 Tea',
   juice: '🧃 Juice',
@@ -55,10 +62,13 @@ const categoryLabels: Record<string, string> = {
 /**
  * Get label for a category with intelligent fallback
  */
-const getLabel = (category: string) => {
+const getLabel = (category: Category | string) => {
   if (!category) return '📌 All'
   
-  const normalized = category.toLowerCase().trim()
+  const categoryName = typeof category === 'string' ? category : category.name
+  const categorySlug = typeof category === 'string' ? category : category.slug
+  
+  const normalized = categorySlug.toLowerCase().trim()
   
   // Direct match
   if (categoryLabels[normalized]) {
@@ -68,16 +78,33 @@ const getLabel = (category: string) => {
   // Check for partial matches (e.g., "beverages" -> "🥤 Beverages")
   for (const [key, label] of Object.entries(categoryLabels)) {
     if (normalized.includes(key) || key.includes(normalized)) {
-      // Extract emoji from label and use original category name
       const emoji = label.split(' ')[0]
-      const formatted = category.charAt(0).toUpperCase() + category.slice(1)
-      return `${emoji} ${formatted}`
+      return `${emoji} ${categoryName}`
     }
   }
   
   // Default format
-  const formatted = category.charAt(0).toUpperCase() + category.slice(1)
-  return `📌 ${formatted}`
+  return `📌 ${categoryName}`
+}
+const loadCategories = async () => {
+  loading.value = true
+  error.value = null
+  try {
+    const response = await categoryService.getCategories({ is_active: true })
+    
+    if (response.data?.data && Array.isArray(response.data.data)) {
+      categories.value = response.data.data
+      console.log(`[CategorySlider] Loaded ${categories.value.length} categories from backend`)
+    } else {
+      error.value = 'No categories found'
+      console.warn('[CategorySlider] No categories in response')
+    }
+  } catch (err: any) {
+    error.value = err.message || 'Failed to load categories'
+    console.error('[CategorySlider] Error loading categories:', err)
+  } finally {
+    loading.value = false
+  }
 }
 
 /**
@@ -91,21 +118,36 @@ const handleCategoryChange = (category: string) => {
 /**
  * Check if category is active
  */
-const isActive = computed(() => (category: string) => {
-  return props.active?.toLowerCase() === category.toLowerCase()
+const isActive = computed(() => (categoryOrSlug: Category | string) => {
+  const slug = typeof categoryOrSlug === 'string' ? categoryOrSlug : categoryOrSlug.slug
+  return props.active?.toLowerCase() === slug.toLowerCase()
+})
+
+/**
+ * Load categories on mount
+ */
+onMounted(() => {
+  loadCategories()
 })
 </script>
 
 <template>
-  <section class="py-4 bg-white border-b border-gray-200">
-    <div class="overflow-x-auto pb-2 px-4 md:px-8">
-      <div class="flex gap-2 md:gap-3 min-w-max">
+  <section class="py-3 sm:py-4 bg-white border-b border-gray-200">
+    <div class="overflow-x-auto pb-2 px-3 sm:px-4 md:px-8">
+      <div v-if="error" class="flex items-center gap-2 text-red-600 text-xs sm:text-sm px-4 py-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>{{ error }}</span>
+      </div>
+
+      <div v-else class="flex gap-2 md:gap-3 min-w-max">
         <!-- All Categories Button -->
         <button
           @click="handleCategoryChange('all')"
           :disabled="loading"
           :class="[
-            'px-4 md:px-6 py-2 md:py-3 rounded-full font-semibold whitespace-nowrap transition-all duration-300 text-sm md:text-base',
+            'px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 rounded-full font-semibold whitespace-nowrap transition-all duration-300 text-xs sm:text-sm md:text-base',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             isActive('all')
               ? 'bg-amber-700 text-white shadow-lg scale-105'
@@ -116,27 +158,27 @@ const isActive = computed(() => (category: string) => {
           {{ getLabel('all') }}
         </button>
 
-        <!-- Dynamic Category Buttons -->
+        <!-- Dynamic Category Buttons from Backend -->
         <button
           v-for="category in categories"
-          :key="category"
-          @click="handleCategoryChange(category)"
+          :key="category.id"
+          @click="handleCategoryChange(category.slug)"
           :disabled="loading"
           :class="[
-            'px-4 md:px-6 py-2 md:py-3 rounded-full font-semibold whitespace-nowrap transition-all duration-300 text-sm md:text-base',
+            'px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 rounded-full font-semibold whitespace-nowrap transition-all duration-300 text-xs sm:text-sm md:text-base',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             isActive(category)
               ? 'bg-amber-700 text-white shadow-lg scale-105'
               : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-amber-600 hover:shadow-md'
           ]"
-          :aria-label="`Filter by ${category}`"
+          :aria-label="`Filter by ${category.name}`"
           :aria-pressed="isActive(category)"
         >
           {{ getLabel(category) }}
         </button>
 
         <!-- Loading Indicator -->
-        <div v-if="loading" class="px-4 py-2 md:py-3 flex items-center gap-2 text-gray-500">
+        <div v-if="loading" class="px-3 sm:px-4 py-1.5 sm:py-2 md:py-3 flex items-center gap-2 text-gray-500">
           <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
           </svg>

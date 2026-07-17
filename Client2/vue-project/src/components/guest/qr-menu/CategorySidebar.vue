@@ -17,7 +17,6 @@
           </span>
           <span class="text-sm font-medium truncate">{{ category.name }}</span>
         </span>
-        
         <!-- Right - Count Badge -->
         <span v-if="category.count" class="count-badge flex-shrink-0">{{ category.count }}</span>
       </button>
@@ -387,7 +386,7 @@ button:focus-visible {
 
 /*
 |--------------------------------------------------------------------------
-| Mobile Responsive
+| Mobile Responsive - Enhanced Mobile First
 |--------------------------------------------------------------------------
 */
 
@@ -398,12 +397,21 @@ button:focus-visible {
     width: 100%;
     max-height: none;
     transform: none !important;
+    padding: 12px;
+    border-radius: 20px;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  .category-sidebar {
+    padding: 12px;
+    border-radius: 18px;
+  }
+
   .category-button {
-    padding: 0.6rem 0.875rem;
+    padding: 10px 12px;
+    font-size: 13px;
+    border-radius: 10px;
   }
   
   .icon-box {
@@ -417,9 +425,41 @@ button:focus-visible {
   }
   
   .count-badge {
-    min-width: 24px;
-    height: 20px;
-    font-size: 0.6rem;
+    min-width: 22px;
+    height: 18px;
+    font-size: 11px;
+    padding: 0 6px;
+  }
+}
+
+@media (max-width: 640px) {
+  .category-sidebar {
+    padding: 10px;
+    border-radius: 16px;
+    gap: 4px;
+  }
+
+  .category-button {
+    padding: 8px 10px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  
+  .icon-box {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .icon-box svg {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .count-badge {
+    min-width: 20px;
+    height: 16px;
+    font-size: 10px;
+    padding: 0 4px;
   }
 }
 

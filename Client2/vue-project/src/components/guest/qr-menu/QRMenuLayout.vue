@@ -54,25 +54,26 @@
 
       </aside>
 
-      <!-- Mobile Toggle - Hidden on Desktop -->
-      <button 
-        class="lg:hidden fixed top-20 left-4 z-40 p-2 hover:bg-gray-100 rounded-lg transition"
-        @click="sidebarOpen = !sidebarOpen"
-      >
-        <svg v-if="!sidebarOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-        <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
-
-      <!-- Overlay (Mobile) - Click to close -->
-      <div 
+      <!-- Mobile Sidebar (Slide-out) -->
+      <div
         v-if="sidebarOpen"
-        @click="sidebarOpen = false"
         class="fixed inset-0 bg-black/50 z-30 lg:hidden top-20"
+        @click="sidebarOpen = false"
       ></div>
+
+      <aside
+        class="fixed left-0 top-20 w-64 sm:w-72 h-auto bg-white border-r border-gray-100 z-40 overflow-y-auto lg:hidden transition-transform duration-300"
+        :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full']"
+      >
+        <div class="w-full p-4 sm:p-6 space-y-4">
+          <CategorySidebar
+            :categories="categories"
+            :selected-category-id="selectedCategory"
+            :total-items="allMenuItems.length"
+            @category-selected="handleCategorySelectedMobile"
+          />
+        </div>
+      </aside>
 
       <!-- RIGHT CONTENT - Full Width on Mobile, Adjusted on Desktop -->
       <main class="w-full lg:ml-48 bg-white px-4 lg:px-6">
@@ -544,6 +545,11 @@ const handleLogout = () => {
 
 const handleCategorySelected = (categoryId: string | null) => {
   selectedCategory.value = categoryId
+}
+
+const handleCategorySelectedMobile = (categoryId: string | null) => {
+  selectedCategory.value = categoryId
+  sidebarOpen.value = false // Close sidebar after selection
 }
 
 const handleSearchQueryChanged = (query: string) => {

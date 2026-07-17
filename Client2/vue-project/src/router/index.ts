@@ -12,6 +12,7 @@ import orderManagment from '../views/Admin/order/OrderManagment.vue'
 import ReceptionDashboard from '../views/receptionist/reception/ReceptionDashboard.vue'
 import MenuManagement from '../views/Admin/menu/MenuView.vue'
 import AddMenuItemView from '../views/Admin/menu/AddMenuItemView.vue'
+import AddCategoryView from '../views/Admin/menu/AddCategoryView.vue'
 import CashierDashboard from '../views/Cashier/CashierDashboard.vue'
 import kitchenDashboard from '../views/kitchen/kitchenDashboard.vue'
 import FoodOrdersView from '../views/kitchen/FoodOrdersView.vue'
@@ -121,6 +122,15 @@ const router = createRouter({
       path: '/admin/menu/add',
       name: 'admin-menu-add',
       component: AddMenuItemView,
+      meta: {
+        requiresAuth: true,
+        role: 'admin',
+      },
+    },
+    {
+      path: '/admin/menu/add-category',
+      name: 'admin-menu-add-category',
+      component: AddCategoryView,
       meta: {
         requiresAuth: true,
         role: 'admin',

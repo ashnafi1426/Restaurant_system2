@@ -10,6 +10,7 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'select', category: string | null): void
+  (e: 'manage-categories'): void
 }>()
 
 const store = useMenuStore()
@@ -94,6 +95,7 @@ const categories = computed(() => {
 
       <!-- Action Create Category Pill Button -->
       <button
+        @click="emit('manage-categories')"
         class="px-3 sm:px-5 py-2 sm:py-2.5 min-h-10 rounded-lg sm:rounded-xl font-bold text-xs tracking-wide bg-slate-50 border border-slate-200 border-dashed text-slate-400 hover:border-slate-400 hover:text-slate-600 transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap"
       >
         <span>＋</span>

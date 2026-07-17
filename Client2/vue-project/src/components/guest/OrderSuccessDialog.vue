@@ -6,6 +6,7 @@ interface Props {
   orderId: number | string
   roomNumber?: string
   estimatedMinutes?: number
+  totalAmount?: number
 }
 
 const props = withDefaults(
@@ -13,6 +14,7 @@ const props = withDefaults(
   {
     roomNumber: '',
     estimatedMinutes: 20,
+    totalAmount: 0,
   }
 )
 
@@ -31,6 +33,10 @@ const trackOrder = () => {
 
 const formattedOrder = computed(() => {
   return `#${props.orderId}`
+})
+
+const formattedPrice = computed(() => {
+  return `$${(props.totalAmount || 0).toFixed(2)}`
 })
 </script>
 <template>
@@ -97,11 +103,11 @@ const formattedOrder = computed(() => {
           <!-- Body -->
           <div class="space-y-3 p-4">
             <!-- Info Cards -->
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div
                 class="rounded-xl border border-amber-100 bg-amber-50 py-3 text-center"
               >
-                <p class="text-[11px] uppercase text-gray-500">
+                <p class="text-[10px] uppercase text-gray-500 font-semibold">
                   Room
                 </p>
 
@@ -113,7 +119,7 @@ const formattedOrder = computed(() => {
               <div
                 class="rounded-xl border border-blue-100 bg-blue-50 py-3 text-center"
               >
-                <p class="text-[11px] uppercase text-gray-500">
+                <p class="text-[10px] uppercase text-gray-500 font-semibold">
                   ETA
                 </p>
 
@@ -125,12 +131,24 @@ const formattedOrder = computed(() => {
               <div
                 class="rounded-xl border border-green-100 bg-green-50 py-3 text-center"
               >
-                <p class="text-[11px] uppercase text-gray-500">
+                <p class="text-[10px] uppercase text-gray-500 font-semibold">
                   Status
                 </p>
 
                 <p class="mt-1 text-lg">
                   👨‍🍳
+                </p>
+              </div>
+
+              <div
+                class="rounded-xl border border-purple-100 bg-purple-50 py-3 text-center"
+              >
+                <p class="text-[10px] uppercase text-gray-500 font-semibold">
+                  Total
+                </p>
+
+                <p class="mt-1 text-lg font-bold text-purple-700">
+                  {{ formattedPrice }}
                 </p>
               </div>
             </div>
@@ -185,6 +203,21 @@ const formattedOrder = computed(() => {
             >
               <p class="text-xs leading-5 text-gray-600">
                 Your meal will be delivered directly to your room shortly.
+              </p>
+            </div>
+
+            <!-- Total Amount Display -->
+            <div
+              class="rounded-xl border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 p-4 text-center"
+            >
+              <p class="text-xs uppercase tracking-wide text-gray-600 font-semibold mb-1">
+                Order Total
+              </p>
+              <p class="text-3xl font-bold text-purple-700">
+                {{ formattedPrice }}
+              </p>
+              <p class="text-xs text-gray-500 mt-2">
+                Including tax and service charge
               </p>
             </div>
           </div>

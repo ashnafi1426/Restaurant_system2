@@ -131,9 +131,21 @@ const addToCart = () => {
 .image-section {
   position: relative;
   width: 100%;
-  height: 224px;
+  height: 180px;
   overflow: hidden;
-  border-radius: 24px 24px 0 0;
+  border-radius: 20px 20px 0 0;
+}
+
+@media (min-width: 640px) {
+  .image-section {
+    height: 200px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .image-section {
+    height: 224px;
+  }
 }
 
 .food-image {
@@ -152,18 +164,44 @@ const addToCart = () => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 20px;
-  gap: 12px;
+  padding: 14px;
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .content-section {
+    padding: 16px;
+    gap: 11px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .content-section {
+    padding: 20px;
+    gap: 12px;
+  }
 }
 
 /* Food Name */
 .food-name {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
   color: #111827;
   margin: 0;
   line-height: 1.4;
   transition: color 0.3s ease;
+}
+
+@media (min-width: 640px) {
+  .food-name {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .food-name {
+    font-size: 18px;
+  }
 }
 
 .card-container:hover .food-name {
@@ -172,7 +210,7 @@ const addToCart = () => {
 
 /* Description (2 lines) */
 .description {
-  font-size: 14px;
+  font-size: 12px;
   color: #6b7280;
   margin: 0;
   line-clamp: 2;
@@ -183,30 +221,68 @@ const addToCart = () => {
   flex: 1;
 }
 
+@media (min-width: 640px) {
+  .description {
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .description {
+    font-size: 14px;
+  }
+}
+
 /* Bottom Section */
 .bottom-section {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
-  padding-top: 12px;
+  gap: 10px;
+  padding-top: 10px;
   border-top: 1px solid #f3f4f6;
+}
+
+@media (min-width: 640px) {
+  .bottom-section {
+    gap: 11px;
+    padding-top: 11px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bottom-section {
+    gap: 12px;
+    padding-top: 12px;
+  }
 }
 
 /* Price */
 .price {
-  font-size: 28px;
+  font-size: 20px;
   font-weight: 900;
   color: #d97706;
   letter-spacing: -0.5px;
 }
 
+@media (min-width: 640px) {
+  .price {
+    font-size: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .price {
+    font-size: 28px;
+  }
+}
+
 /* Add Button - Gold Square */
 .add-button {
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border-radius: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   color: white;
   border: none;
@@ -218,6 +294,22 @@ const addToCart = () => {
   box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
   position: relative;
   overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .add-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .add-button {
+    width: 44px;
+    height: 44px;
+    border-radius: 16px;
+  }
 }
 
 .add-button:hover:not(:disabled) {
@@ -237,13 +329,23 @@ const addToCart = () => {
 }
 
 .button-icon {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   stroke: currentColor;
 }
 
-.button-icon.spinner {
-  animation: spin 1s linear infinite;
+@media (min-width: 640px) {
+  .button-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .button-icon {
+    width: 24px;
+    height: 24px;
+  }
 }
 
 @keyframes spin {
@@ -252,47 +354,7 @@ const addToCart = () => {
   }
 }
 
-/* Responsive */
-@media (max-width: 640px) {
-  .image-section {
-    height: 200px;
-  }
-
-  .content-section {
-    padding: 16px;
-  }
-
-  .food-name {
-    font-size: 16px;
-  }
-
-  .description {
-    font-size: 13px;
-  }
-
-  .price {
-    font-size: 24px;
-  }
-
-  .add-button {
-    width: 40px;
-    height: 40px;
-  }
-
-  .button-icon {
-    width: 20px;
-    height: 20px;
-  }
-}
-
-/* Focus states for accessibility */
-.add-button:focus-visible {
-  outline: 2px solid #fbbf24;
-  outline-offset: 2px;
-}
-
-/* Smooth card appearance */
-.card-container {
-  background: linear-gradient(135deg, #ffffff 0%, #fafaf9 100%);
+.button-icon.spinner {
+  animation: spin 1s linear infinite;
 }
 </style>
