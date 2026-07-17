@@ -115,10 +115,22 @@ class MenuItemController extends Controller
                 'all_input' => $request->all(),
             ]);
 
+            // Get category_id from category slug
+            $category = \App\Models\Category::where('slug', $request->category)->first();
+            if (!$category) {
+                \Log::error('❌ Category not found', ['slug' => $request->category]);
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid category selected.',
+                ], 422);
+            }
+
             $data = [
                 'name' => $request->name,
                 'description' => $request->description,
-                'category' => $request->category,
+                'category_id' => $category->id,
+                'category' => $request->category, // Keep for backward compatibility
                 'price' => (float) $request->price,
                 'is_available' => $request->boolean('is_available', true),
             ];
@@ -170,6 +182,7 @@ class MenuItemController extends Controller
                 'id' => $menuItem->id,
                 'name' => $menuItem->name,
                 'image' => $menuItem->image,
+                'category_id' => $menuItem->category_id,
             ]);
 
             DB::commit();
@@ -240,19 +253,24 @@ class MenuItemController extends Controller
         DB::beginTransaction();
 
         try {
+            // Get category_id from category slug
+            $category = \App\Models\Category::where('slug', $request->category)->first();
+            if (!$category) {
+                \Log::error('❌ Category not found', ['slug' => $request->category]);
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid category selected.',
+                ], 422);
+            }
 
             $data = [
-
                 'name' => $request->name,
-
                 'description' => $request->description,
-
-                'category' => $request->category,
-
+                'category_id' => $category->id,
+                'category' => $request->category, // Keep for backward compatibility
                 'price' => $request->price,
-
                 'is_available' => $request->boolean('is_available'),
-
             ];
 
             // Handle image upload or URL

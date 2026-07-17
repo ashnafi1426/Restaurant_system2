@@ -34,7 +34,8 @@ class UpdateMenuItemRequest extends FormRequest
 
             'category' => [
                 'required',
-                'in:breakfast,lunch,dinner,drinks,dessert,appetizers',
+                'string',
+                'exists:categories,slug,is_active,1',
             ],
 
             'price' => [
@@ -42,7 +43,6 @@ class UpdateMenuItemRequest extends FormRequest
                 'numeric',
                 'min:0',
             ],
-
             'image' => [
                 'nullable',
                 'image',
@@ -74,7 +74,7 @@ class UpdateMenuItemRequest extends FormRequest
 
             'category.required' => 'Please select a category.',
 
-            'category.in' => 'Invalid menu category.',
+            'category.exists' => 'The selected category is invalid or inactive.',
 
             'price.required' => 'Price is required.',
 
