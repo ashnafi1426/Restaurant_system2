@@ -102,20 +102,32 @@ class StoreMenuItemRequest extends FormRequest
     {
         return [
             function ($validator) {
-                \Log::info('📋 Validation check', [
-                    'has_image' => $this->hasFile('image'),
-                    'image_value' => $this->file('image') ? 'File object' : 'null',
-                    'image_url_filled' => $this->filled('image_url'),
+                \Log::info('📋 Validation check in after() method', [
+                    'has_file_image' => $this->hasFile('image'),
+                    'filled_image_url' => $this->filled('image_url'),
                     'all_keys' => array_keys($this->all()),
-                    'all_input' => $this->all(),
                 ]);
 
-                if (!$this->hasFile('image') && !$this->filled('image_url')) {
-                    \Log::error('❌ Validation failed: No image provided');
+                $hasImage = $this->hasFile('image');
+                $hasImageUrl = $this->filled('image_url');
+
+                if (!$hasImage && !$hasImageUrl) {
+                    \Log::error('❌ Validation failed: No image provided', [
+                        'has_file_image' => $hasImage,
+                        'filled_image_url' => $hasImageUrl,
+                        'image_value' => $this->input('image'),
+                        'image_url_value' => $this->input('image_url'),
+                    ]);
+                    
                     $validator->errors()->add(
                         'image',
                         'Either upload an image file or provide an image URL.'
                     );
+                } else {
+                    \Log::info('✅ Image validation passed', [
+                        'has_image' => $hasImage,
+                        'has_image_url' => $hasImageUrl,
+                    ]);
                 }
             },
         ];

@@ -112,45 +112,63 @@ class MenuItemController extends Controller
                 'category' => $request->category,
                 'has_image' => $request->hasFile('image'),
                 'has_image_url' => $request->filled('image_url'),
+                'all_input' => $request->all(),
             ]);
 
             $data = [
                 'name' => $request->name,
                 'description' => $request->description,
                 'category' => $request->category,
-                'price' => $request->price,
+                'price' => (float) $request->price,
                 'is_available' => $request->boolean('is_available', true),
             ];
+
+            \Log::info('📝 Data prepared for creation', $data);
 
             // Handle image upload or URL
             if ($request->hasFile('image')) {
                 \Log::info('📸 Image file detected', [
                     'size' => $request->file('image')->getSize(),
                     'mime' => $request->file('image')->getMimeType(),
+                    'original_name' => $request->file('image')->getClientOriginalName(),
                 ]);
 
-                $path = $request->file('image')->store(
-                    'menu-items',
-                    'public'
-                );
+                try {
+                    $path = $request->file('image')->store(
+                        'menu-items',
+                        'public'
+                    );
 
-                \Log::info('✅ Image stored successfully', [
-                    'path' => $path,
-                ]);
+                    \Log::info('✅ Image stored successfully', [
+                        'path' => $path,
+                    ]);
 
-                $data['image'] = $path;
+                    $data['image'] = $path;
+                } catch (\Exception $e) {
+                    \Log::error('❌ Image upload failed', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                    throw $e;
+                }
             } elseif ($request->filled('image_url')) {
                 \Log::info('🔗 Image URL provided', [
                     'url' => $request->image_url,
                 ]);
 
                 $data['image'] = $request->image_url;
+            } else {
+                \Log::error('❌ No image source provided');
+                throw new \Exception('Either upload an image file or provide an image URL.');
             }
+
+            \Log::info('🔍 Attempting to create MenuItem with:', $data);
 
             $menuItem = MenuItem::create($data);
 
-            \Log::info('✅ MenuItem created', [
+            \Log::info('✅ MenuItem created successfully', [
                 'id' => $menuItem->id,
+                'name' => $menuItem->name,
                 'image' => $menuItem->image,
             ]);
 
@@ -162,10 +180,22 @@ class MenuItemController extends Controller
                 'data' => new MenuItemResource($menuItem),
             ], 201);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            \Log::error('❌ Validation Error', [
+                'errors' => $e->errors(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            \Log::error('❌ Store failed', [
+            \Log::error('❌ Store failed - Unexpected Error', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -174,8 +204,13 @@ class MenuItemController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create menu item.',
+                'message' => 'Failed to create menu item: ' . $e->getMessage(),
                 'error' => $e->getMessage(),
+                'details' => config('app.debug') ? [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => explode("\n", $e->getTraceAsString()),
+                ] : null,
             ], 500);
         }
     }

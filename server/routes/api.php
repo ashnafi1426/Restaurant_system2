@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\CheckInController;
 use App\Http\Controllers\Api\ReceptionController;
 use App\Http\Controllers\Api\MenuItemController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\KitchenController;
@@ -48,7 +49,6 @@ Route::prefix('guest')->group(function () {
     // Create order with token
     Route::post('/orders', [GuestOrderController::class, 'createOrder']);
     
-    // Get order status
     Route::get('/orders/{qrToken}/status', [GuestOrderController::class, 'getOrderStatus']);
 });
 
@@ -61,7 +61,7 @@ Route::prefix('qr-code')->group(function () {
     Route::get('/generate/{roomId}', [QRCodeController::class, 'generateForRoom']);
     
     // Generate QR codes for all rooms
-    Route::get('/generate-all', [QRCodeController::class, 'generateAll']);
+    // Route::get('/generate-all', [QRCodeController::class, 'generateAll']);
     
     // Get QR code data (room info + token)
     Route::get('/data/{roomId}', [QRCodeController::class, 'getQRCodeData']);
@@ -73,10 +73,6 @@ Route::prefix('qr-code')->group(function () {
 //     Route::get('/orders/{token}/{id}',[GuestOrderController::class, 'show']);
 //     Route::get('/orders/history/{token}',[GuestOrderController::class,'history']);
 // });
-
-// =====================================================
-// PROTECTED ROUTES - Require Authentication
-// =====================================================
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -146,7 +142,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
         Route::put('/read-all', [NotificationController::class, 'markAllAsRead']);
         Route::delete('/clear-all', [NotificationController::class, 'clearAll']);
-        
         // Generic routes last
         Route::get('/', [NotificationController::class, 'index']);
         Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
@@ -160,14 +155,23 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/menu-items', [MenuItemController::class, 'index']);
         Route::get('/menu-items/statistics', [MenuItemController::class, 'statistics']);
     });
-
     Route::middleware('role:admin')->group(function(){
-        // Admin-only menu item write operations
         Route::post('/menu-items', [MenuItemController::class, 'store']);
         Route::get('/menu-items/{menuItem}', [MenuItemController::class, 'show']);
         Route::put('/menu-items/{menuItem}', [MenuItemController::class, 'update']);
         Route::patch('/menu-items/{menuItem}/toggle-availability', [MenuItemController::class, 'toggleAvailability']);
         Route::delete('/menu-items/{menuItem}', [MenuItemController::class, 'destroy']);
+
+        // =====================================================
+        // CATEGORY ROUTES
+        // =====================================================
+        Route::get('/categories', [CategoryController::class, 'index']);
+        Route::post('/categories', [CategoryController::class, 'store']);
+        Route::get('/categories/{category}', [CategoryController::class, 'show']);
+        Route::put('/categories/{category}', [CategoryController::class, 'update']);
+        Route::patch('/categories/{category}/toggle', [CategoryController::class, 'toggle']);
+        Route::post('/categories/reorder', [CategoryController::class, 'reorder']);
+        Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
     });
 
     // =====================================================

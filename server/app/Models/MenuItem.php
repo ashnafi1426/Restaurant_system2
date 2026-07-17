@@ -27,6 +27,8 @@ class MenuItem extends Model
 
         'category',
 
+        'category_id',
+
         'price',
 
         'image',
@@ -41,6 +43,20 @@ class MenuItem extends Model
         'is_available' => 'boolean',
 
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Menu item belongs to a category
+     */
+    public function categoryRelation()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
 
     /*
     |--------------------------------------------------------------------------
