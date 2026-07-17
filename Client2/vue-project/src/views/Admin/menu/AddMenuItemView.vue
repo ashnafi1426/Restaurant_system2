@@ -567,16 +567,11 @@ const submitForm = async () => {
       }
       console.log('📤 JSON payload prepared for URL image', payload)
     } else {
-      // No image provided
-      payload = {
-        name: formData.value.name,
-        description: formData.value.description,
-        price: parseFloat(formData.value.price),
-        category: formData.value.category,
-        is_available: formData.value.is_available,
-        dietary_tags: formData.value.dietary_tags,
-      }
-      console.log('⚠️ No image provided')
+      // No image provided - use placeholder image
+      console.error('❌ Validation Error: No image provided. Please upload an image file or provide an image URL.')
+      errors.value.image = 'Please upload an image file or provide an image URL'
+      submitting.value = false
+      return
     }
 
     if (isEditMode.value) {

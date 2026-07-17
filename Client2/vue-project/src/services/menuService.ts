@@ -11,7 +11,11 @@ export default {
 
     // FormData for file uploads
     if (data instanceof FormData) {
-      console.log('Sending as FormData with multipart/form-data')
+      console.log('✅ Sending as FormData with multipart/form-data')
+      console.log('FormData entries:')
+      for (let [key, value] of data) {
+        console.log(`  ${key}:`, value instanceof File ? `File: ${value.name}` : value)
+      }
       return api.post('/menu-items', data, {
         headers: {
           'Content-Type': 'multipart/form-data',

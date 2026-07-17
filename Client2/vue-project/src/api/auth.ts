@@ -31,6 +31,11 @@ api.interceptors.request.use(
       console.log(' [API INTERCEPTOR] Current User Role:', userData.role)
     }
 
+    // Ensure proper content type for FormData
+    if (!(config.data instanceof FormData)) {
+      config.headers['Content-Type'] = 'application/json'
+    }
+
     console.log(' [API INTERCEPTOR] Request to:', config.url)
     console.log(' [API INTERCEPTOR] Request headers:', config.headers)
 
