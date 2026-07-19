@@ -1,5 +1,4 @@
 export type RoomStatus = 'available' | 'occupied' | 'reserved' | 'maintenance'
-
 export interface Room {
   id: string
   room_number: string

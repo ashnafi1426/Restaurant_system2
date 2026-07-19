@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+
 interface Testimonial {
-  id: number
+  id: string
   name: string
   country: string
   image: string
@@ -8,30 +10,35 @@ interface Testimonial {
   comment: string
 }
 
-const testimonials: Testimonial[] = [
+const testimonials = ref<Testimonial[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
+
+// Mock data fallback (for now, since we might not have a backend endpoint for testimonials)
+const mockTestimonials: Testimonial[] = [
   {
-    id: 1,
+    id: '1',
     name: 'Emily Johnson',
     country: 'United States',
-    image: '/images/testimonials/guest1.jpg',
+    image: '/images/avatar.png',
     rating: 5,
     comment:
       'The hotel exceeded every expectation. The room was spotless, the staff were incredibly friendly, and the restaurant served amazing food. I will definitely return.',
   },
   {
-    id: 2,
+    id: '2',
     name: 'Michael Brown',
     country: 'Canada',
-    image: '/images/testimonials/guest2.jpg',
+    image: '/images/avatar.png',
     rating: 5,
     comment:
       'Beautiful hotel with excellent facilities. The check-in process was smooth, and the panoramic view from our room was unforgettable.',
   },
   {
-    id: 3,
+    id: '3',
     name: 'Sophia Martinez',
     country: 'Spain',
-    image: '/images/testimonials/guest3.jpg',
+    image: '/images/avatar.png',
     rating: 5,
     comment:
       "One of the best luxury hotels I've ever stayed in. Comfortable rooms, professional staff, and exceptional hospitality throughout our stay.",
@@ -41,6 +48,37 @@ const testimonials: Testimonial[] = [
 function stars(count: number) {
   return '★'.repeat(count)
 }
+
+/**
+ * Load testimonials from backend
+ * Currently using mock data as fallback since testimonials endpoint may not exist
+ */
+async function loadTestimonials() {
+  loading.value = true
+  error.value = null
+
+  try {
+    // For now, use mock testimonials
+    // In the future, replace with: const response = await testimonialService.getTestimonials()
+    testimonials.value = mockTestimonials
+    console.log(`[Testimonial] Loaded ${testimonials.value.length} testimonials`)
+  } catch (err: any) {
+    error.value = err.message || 'Failed to load testimonials'
+    console.error('[Testimonial] Error loading testimonials:', err)
+    
+    // Fallback to mock data
+    testimonials.value = mockTestimonials
+  } finally {
+    loading.value = false
+  }
+}
+
+/**
+ * Load testimonials on mount
+ */
+onMounted(() => {
+  loadTestimonials()
+})
 </script>
 
 <template>
@@ -66,8 +104,13 @@ function stars(count: number) {
         </p>
       </div>
 
+      <!-- Loading -->
+      <div v-if="loading" class="flex justify-center py-12">
+        <div class="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+      </div>
+
       <!-- Testimonials -->
-      <div class="grid gap-6 sm:gap-8 md:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div v-if="!loading && testimonials.length > 0" class="grid gap-6 sm:gap-8 md:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <article
           v-for="guest in testimonials"
           :key="guest.id"
@@ -104,6 +147,10 @@ function stars(count: number) {
             </div>
           </div>
         </article>
+      </div>
+
+      <div v-if="!loading && testimonials.length === 0" class="text-center py-12">
+        <p class="text-slate-500">{{ error || 'No testimonials available at this time' }}</p>
       </div>
 
       <!-- Bottom Statistics -->

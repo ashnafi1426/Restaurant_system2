@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 
 const router = useRouter()
 
+// Hotel highlights - these are mostly static but structured for potential backend integration
 const highlights = [
   {
     icon: '🏨',
@@ -26,6 +28,9 @@ const highlights = [
   },
 ]
 
+// Experience section images - could be fetched from backend
+const experienceImage = ref('/images/facilities/restaurant.jpg')
+
 function discoverMore() {
   router.push('/about')
 }
@@ -43,7 +48,7 @@ function discoverMore() {
           <!-- Main Image -->
 
           <img
-            src="/images/facilities/restaurant.jpg"
+            :src="experienceImage"
             alt="Luxury Hotel"
             class="h-48 sm:h-56 md:h-64 lg:h-80 w-full rounded-2xl sm:rounded-3xl lg:rounded-4xl object-cover shadow-lg sm:shadow-xl md:shadow-2xl"
           />

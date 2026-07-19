@@ -106,16 +106,28 @@ export const useKitchenStore = defineStore('kitchen', () => {
     */
 
   async function startPreparing(orderId: string) {
+    console.log(`📍 [STORE] startPreparing called for order: ${orderId}`)
     actionLoading.value = orderId
-
     error.value = null
 
     try {
+      console.log(`🔵 [STORE] Calling API for order ${orderId}...`)
       const updatedOrder = await kitchenService.startPreparing(orderId)
-
+      
+      console.log(`✅ [STORE] API Response received:`, updatedOrder)
+      console.log(`📊 [STORE] Order status changed to: ${updatedOrder.status}`)
+      
       updateOrder(updatedOrder)
+      console.log(`✅ [STORE] Order updated in local state`)
     } catch (err: any) {
-      error.value = err?.response?.data?.message ?? err.message ?? 'Failed to start preparing order'
+      const errorMsg = err?.response?.data?.message ?? err.message ?? 'Failed to start preparing order'
+      error.value = errorMsg
+      console.error(`❌ [STORE] Error occurred:`, {
+        message: errorMsg,
+        status: err?.response?.status,
+        data: err?.response?.data,
+        fullError: err,
+      })
     } finally {
       actionLoading.value = null
     }
@@ -128,16 +140,21 @@ export const useKitchenStore = defineStore('kitchen', () => {
     */
 
   async function markReady(orderId: string) {
+    console.log(`📍 [STORE] markReady called for order: ${orderId}`)
     actionLoading.value = orderId
 
     error.value = null
 
     try {
+      console.log(`🔵 [STORE] Calling API for order ${orderId}...`)
       const updatedOrder = await kitchenService.markReady(orderId)
-
+      
+      console.log(`✅ [STORE] API Response received, order status: ${updatedOrder.status}`)
       updateOrder(updatedOrder)
     } catch (err: any) {
-      error.value = err?.response?.data?.message ?? err.message ?? 'Failed to mark order ready'
+      const errorMsg = err?.response?.data?.message ?? err.message ?? 'Failed to mark order ready'
+      error.value = errorMsg
+      console.error(`❌ [STORE] Error occurred:`, errorMsg)
     } finally {
       actionLoading.value = null
     }
@@ -150,16 +167,21 @@ export const useKitchenStore = defineStore('kitchen', () => {
     */
 
   async function markServed(orderId: string) {
+    console.log(`📍 [STORE] markServed called for order: ${orderId}`)
     actionLoading.value = orderId
 
     error.value = null
 
     try {
+      console.log(`🔵 [STORE] Calling API for order ${orderId}...`)
       const updatedOrder = await kitchenService.markServed(orderId)
-
+      
+      console.log(`✅ [STORE] API Response received, order status: ${updatedOrder.status}`)
       updateOrder(updatedOrder)
     } catch (err: any) {
-      error.value = err?.response?.data?.message ?? err.message ?? 'Failed to complete order'
+      const errorMsg = err?.response?.data?.message ?? err.message ?? 'Failed to complete order'
+      error.value = errorMsg
+      console.error(`❌ [STORE] Error occurred:`, errorMsg)
     } finally {
       actionLoading.value = null
     }

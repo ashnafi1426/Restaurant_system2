@@ -20,14 +20,149 @@ const emit = defineEmits<{
 const selectedFilter = ref('all')
 const searchQuery = ref('')
 
+// Pagination state
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
+// Track which order is being processed for individual button states
+const processingOrderId = ref<string | null>(null)
+
+const isProcessing = computed(() => (orderId: string) => {
+  return processingOrderId.value === orderId
+})
+
+// Combine all orders with their status
+const allOrdersWithStatus = computed(() => {
+  const orders: Array<KitchenOrder & { status: string }> = []
+  
+  props.pendingOrders?.forEach(order => orders.push({ ...order, status: 'pending' }))
+  props.preparingOrders?.forEach(order => orders.push({ ...order, status: 'preparing' }))
+  props.readyOrders?.forEach(order => orders.push({ ...order, status: 'ready' }))
+  props.completedOrders?.forEach(order => orders.push({ ...order, status: 'served' }))
+  
+  return orders
+})
+
+// Filter and search orders
+const filteredOrders = computed(() => {
+  let filtered = allOrdersWithStatus.value
+  
+  // Filter by status
+  if (selectedFilter.value !== 'all') {
+    filtered = filtered.filter(order => order.status === selectedFilter.value)
+  }
+  
+  // Filter by search query (room number or items)
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(order => 
+      order.room?.room_number?.toString().includes(query) ||
+      order.items?.some(item => item.name?.toLowerCase().includes(query))
+    )
+  }
+  
+  return filtered
+})
+
+// Pagination computed properties
+const totalPages = computed(() => {
+  return Math.ceil((filteredOrders.value?.length || 0) / itemsPerPage.value)
+})
+
+const paginatedOrders = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return (filteredOrders.value || []).slice(start, end)
+})
+
+const startItem = computed(() => {
+  return (currentPage.value - 1) * itemsPerPage.value + 1
+})
+
+const endItem = computed(() => {
+  return Math.min(currentPage.value * itemsPerPage.value, filteredOrders.value?.length || 0)
+})
+
+const hasNextPage = computed(() => currentPage.value < totalPages.value)
+const hasPrevPage = computed(() => currentPage.value > 1)
+
+const goToNextPage = () => {
+  if (hasNextPage.value) {
+    currentPage.value++
+  }
+}
+
+const goToPrevPage = () => {
+  if (hasPrevPage.value) {
+    currentPage.value--
+  }
+}
+
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changeItemsPerPage = (newAmount: number) => {
+  itemsPerPage.value = newAmount
+  currentPage.value = 1 // Reset to first page
+}
+
+// Helper function to get page numbers to display
+const getPaginationRange = (): number[] => {
+  const range: number[] = []
+  const start = Math.max(2, currentPage.value - 1)
+  const end = Math.min(totalPages.value - 1, currentPage.value + 1)
+
+  for (let i = start; i <= end; i++) {
+    range.push(i)
+  }
+
+  return range
+}
+
+async function handleStartPreparing(order: KitchenOrder) {
+  processingOrderId.value = order.id
+  try {
+    emit('start', order)
+  } finally {
+    setTimeout(() => {
+      processingOrderId.value = null
+    }, 500)
+  }
+}
+
+async function handleMarkReady(order: KitchenOrder) {
+  processingOrderId.value = order.id
+  try {
+    emit('ready', order)
+  } finally {
+    setTimeout(() => {
+      processingOrderId.value = null
+    }, 500)
+  }
+}
+
+async function handleMarkServed(order: KitchenOrder) {
+  processingOrderId.value = order.id
+  try {
+    emit('served', order)
+  } finally {
+    setTimeout(() => {
+      processingOrderId.value = null
+    }, 500)
+  }
+}
+
 function getTimeRemaining(orderTime: string): string {
   try {
     const orderDate = new Date(orderTime)
     const now = new Date()
     const diff = Math.floor((now.getTime() - orderDate.getTime()) / 1000 / 60)
-    return `${String(diff).padStart(2, '0')}:${String(Math.floor(now.getSeconds() % 60)).padStart(2, '0')} MINS`
+    return `${String(diff).padStart(2, '0')}:${String(Math.floor(now.getSeconds() % 60)).padStart(2, '0')} mins`
   } catch {
-    return '-- MINS'
+    return '-- mins'
   }
 }
 
@@ -35,280 +170,347 @@ function getItemsPreview(items: any[]): string {
   if (!items?.length) return 'No items'
   return items.map((i) => `${i.quantity}x ${i.name}`).join(', ')
 }
+
+function getStatusColor(status: string): string {
+  const colors: Record<string, string> = {
+    pending: 'bg-amber-100 text-amber-800',
+    preparing: 'bg-blue-100 text-blue-800',
+    ready: 'bg-green-100 text-green-800',
+    served: 'bg-slate-100 text-slate-800'
+  }
+  return colors[status] || 'bg-gray-100 text-gray-800'
+}
+
+function getStatusBgRow(status: string): string {
+  const colors: Record<string, string> = {
+    pending: 'hover:bg-amber-50',
+    preparing: 'hover:bg-blue-50',
+    ready: 'hover:bg-green-50',
+    served: 'hover:bg-slate-50'
+  }
+  return colors[status] || 'hover:bg-gray-50'
+}
 </script>
 
 <template>
   <div class="space-y-4 sm:space-y-5 md:space-y-6">
-    <!-- Title and Filter -->
-    <div
-      class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3"
-    >
+    <!-- Header Section -->
+    <div class="space-y-4">
+      <!-- Title -->
       <div class="min-w-0">
         <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
-          🍳 Live Kitchen Queue
+          🍳 Your Kitchen Orders
           <span class="text-xs sm:text-sm text-red-500 font-semibold">●</span>
         </h2>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">Only showing orders assigned to you</p>
       </div>
-      <button
-        class="px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-blue-50 text-blue-600 font-bold text-xs sm:text-sm rounded-lg hover:bg-blue-100 transition whitespace-nowrap"
-      >
-        FILTER: ALL ORDERS
-      </button>
+
+      <!-- Controls: Search and Filter -->
+      <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <!-- Search Input -->
+        <div class="flex-1">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search by room number or dish name..."
+            class="w-full px-3 sm:px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        <!-- Status Filter -->
+        <div class="flex gap-2">
+          <button
+            v-for="status in ['all', 'pending', 'preparing', 'ready', 'served']"
+            :key="status"
+            @click="selectedFilter = status"
+            :class="[
+              'px-3 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition',
+              selectedFilter === status
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            ]"
+          >
+            {{ status.toUpperCase() }}
+            <span v-if="status === 'all'" class="ml-1 text-xs">
+              ({{ filteredOrders.length }})
+            </span>
+            <span v-else class="ml-1 text-xs">
+              ({{ filteredOrders.filter(o => o.status === status).length }})
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Kanban Columns -->
-    <div class="grid grid-cols-1 gap-2 sm:gap-3 md:gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <!-- PENDING COLUMN -->
-      <div class="rounded-lg bg-white shadow-md overflow-hidden">
-        <!-- Column Header -->
-        <div class="bg-amber-50 border-b-4 border-amber-400 px-3 sm:px-4 py-2 sm:py-3">
-          <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-amber-900">
-            Pending
-          </h3>
-        </div>
+    <!-- Table Container -->
+    <div class="rounded-lg bg-white shadow-md overflow-hidden overflow-x-auto">
+      <table class="w-full text-sm">
+        <!-- Table Header -->
+        <thead>
+          <tr class="bg-slate-100 border-b-2 border-slate-200">
+            <th class="px-3 sm:px-4 py-3 text-left font-bold text-slate-700">Room</th>
+            <th class="px-3 sm:px-4 py-3 text-left font-bold text-slate-700">Guest</th>
+            <th class="px-3 sm:px-4 py-3 text-left font-bold text-slate-700">Items</th>
+            <th class="px-3 sm:px-4 py-3 text-left font-bold text-slate-700">Time</th>
+            <th class="px-3 sm:px-4 py-3 text-center font-bold text-slate-700">Action</th>
+            <th class="px-3 sm:px-4 py-3 text-center font-bold text-slate-700">Status</th>
+          </tr>
+        </thead>
 
-        <!-- Orders List -->
-        <div
-          class="p-2 sm:p-3 space-y-2 sm:space-y-3 max-h-[300px] sm:max-h-[400px] md:max-h-[600px] overflow-y-auto"
-        >
-          <div
-            v-for="order in pendingOrders"
+        <!-- Table Body -->
+        <tbody>
+          <tr
+            v-for="order in paginatedOrders"
             :key="order.id"
-            class="bg-amber-50 border-2 border-amber-200 rounded-lg p-2 sm:p-3 md:p-4 cursor-pointer hover:shadow-lg transition-all"
+            :class="[
+              'border-b border-slate-200 transition cursor-pointer',
+              getStatusBgRow(order.status)
+            ]"
             @click="emit('view', order)"
           >
-            <!-- Priority Badge -->
-            <div
-              v-if="order.notes"
-              class="inline-block bg-red-100 text-red-700 text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded mb-1 sm:mb-2"
-            >
-              ⚠️ <span class="hidden sm:inline">PRIORITY - ROOM</span
-              ><span class="sm:hidden">PRIORITY</span>
-            </div>
-            <div v-else class="text-xs font-bold text-amber-600 mb-1 sm:mb-2">
-              ROOM {{ order.room?.room_number || '?' }}
-            </div>
+            <!-- Room Number -->
+            <td class="px-3 sm:px-4 py-3">
+              <div class="font-semibold text-slate-900">
+                {{ order.room?.room_number || '—' }}
+              </div>
+              <div v-if="order.notes" class="text-xs text-red-600 font-bold">⚠️ PRIORITY</div>
+            </td>
 
-            <!-- Chef Special Badge -->
-            <div
-              v-if="order.notes"
-              class="inline-block ml-1 sm:ml-2 bg-amber-100 text-amber-700 text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded"
-            >
-              CHEF <span class="hidden sm:inline">SPECIAL</span>
-            </div>
+            <!-- Guest Name -->
+            <td class="px-3 sm:px-4 py-3">
+              <div class="text-slate-700">
+                {{ order.room?.guest || 'QR Guest' }}
+              </div>
+            </td>
 
-            <!-- Time -->
-            <p class="text-xs sm:text-sm font-bold text-amber-900 mt-1 sm:mt-2">
-              {{ getTimeRemaining(order.order_time) }}
-            </p>
-
-            <!-- Items -->
-            <div class="mt-2 sm:mt-3 space-y-0.5 sm:space-y-1 text-xs text-amber-800">
-              <p
-                v-for="(item, idx) in (order.items || []).slice(0, 3)"
-                :key="idx"
-                class="font-medium truncate"
-              >
-                {{ item.quantity }}x {{ item.name }}
-                <span v-if="item.notes" class="text-amber-600 hidden sm:inline"
-                  >({{ item.notes }})</span
+            <!-- Items Column -->
+            <td class="px-3 sm:px-4 py-3">
+              <div class="text-slate-700 max-w-xs">
+                <div
+                  v-for="(item, idx) in (order.items || []).slice(0, 2)"
+                  :key="idx"
+                  class="truncate text-sm"
                 >
-              </p>
-              <p v-if="(order.items || []).length > 3" class="text-amber-600 font-semibold text-xs">
-                +{{ (order.items || []).length - 3 }} more
-              </p>
-            </div>
+                  {{ item.quantity }}x {{ item.name }}
+                  <span v-if="item.notes" class="text-xs text-slate-500 ml-1"
+                    >({{ item.notes }})</span
+                  >
+                </div>
+                <div v-if="(order.items || []).length > 2" class="text-xs text-slate-500 font-semibold">
+                  +{{ (order.items || []).length - 2 }} more items
+                </div>
+              </div>
+            </td>
 
-            <!-- Action Button -->
-            <button
-              @click.stop="emit('start', order)"
-              :disabled="processing"
-              class="mt-2 sm:mt-3 md:mt-4 w-full bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-bold py-1.5 sm:py-2 rounded-lg transition text-xs sm:text-sm"
-            >
-              START <span class="hidden sm:inline">PREPARING</span>
-            </button>
-          </div>
+            <!-- Time Column -->
+            <td class="px-3 sm:px-4 py-3">
+              <div class="font-bold text-slate-900">
+                {{ getTimeRemaining(order.order_time) }}
+              </div>
+            </td>
 
-          <div
-            v-if="!pendingOrders?.length"
-            class="text-center py-6 sm:py-8 md:py-12 text-amber-400"
-          >
-            <p class="text-xs sm:text-sm">✓ No pending orders</p>
-          </div>
-        </div>
-      </div>
+            <!-- Action Column -->
+            <td class="px-3 sm:px-4 py-3">
+              <div class="flex justify-center gap-2">
+                <!-- Start Preparing Button -->
+                <button
+                  v-if="order.status === 'pending'"
+                  @click.stop="handleStartPreparing(order)"
+                  :disabled="isProcessing(order.id) || processing"
+                  class="px-2 sm:px-3 py-1.5 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 disabled:cursor-not-allowed text-white font-bold rounded text-xs transition flex items-center gap-1"
+                >
+                  <span v-if="isProcessing(order.id)" class="inline-block animate-spin">⟳</span>
+                  <span v-else>START</span>
+                </button>
 
-      <!-- PREPARING COLUMN -->
-      <div class="rounded-lg bg-white shadow-md overflow-hidden">
-        <!-- Column Header -->
-        <div class="bg-blue-50 border-b-4 border-blue-400 px-3 sm:px-4 py-2 sm:py-3">
-          <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-blue-900">
-            Preparing
-          </h3>
-        </div>
+                <!-- Mark Ready Button -->
+                <button
+                  v-else-if="order.status === 'preparing'"
+                  @click.stop="handleMarkReady(order)"
+                  :disabled="isProcessing(order.id) || processing"
+                  class="px-2 sm:px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-bold rounded text-xs transition flex items-center gap-1"
+                >
+                  <span v-if="isProcessing(order.id)" class="inline-block animate-spin">⟳</span>
+                  <span v-else>READY</span>
+                </button>
 
-        <!-- Orders List -->
-        <div
-          class="p-2 sm:p-3 space-y-2 sm:space-y-3 max-h-[300px] sm:max-h-[400px] md:max-h-[600px] overflow-y-auto"
-        >
-          <div
-            v-for="order in preparingOrders"
-            :key="order.id"
-            class="bg-blue-50 border-2 border-blue-200 rounded-lg p-2 sm:p-3 md:p-4 cursor-pointer hover:shadow-lg transition-all"
-            @click="emit('view', order)"
-          >
-            <!-- Room Info -->
-            <div class="text-xs font-bold text-blue-600 mb-1 sm:mb-2 truncate">
-              TABLE {{ order.room?.room_number || '?' }} -
-              <span class="hidden sm:inline">MAIN HALL</span>
-            </div>
+                <!-- Mark Served Button -->
+                <button
+                  v-else-if="order.status === 'ready'"
+                  @click.stop="handleMarkServed(order)"
+                  :disabled="isProcessing(order.id) || processing"
+                  class="px-2 sm:px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white font-bold rounded text-xs transition flex items-center gap-1"
+                >
+                  <span v-if="isProcessing(order.id)" class="inline-block animate-spin">⟳</span>
+                  <span v-else>SERVE</span>
+                </button>
 
-            <!-- Time -->
-            <p class="text-xs sm:text-sm font-bold text-blue-900 mt-1">
-              {{ getTimeRemaining(order.order_time) }}
-            </p>
+                <!-- View Details Button (for served) -->
+                <button
+                  v-else
+                  @click.stop="emit('view', order)"
+                  class="px-2 sm:px-3 py-1.5 bg-slate-400 hover:bg-slate-500 text-white font-bold rounded text-xs transition"
+                >
+                  VIEW
+                </button>
+              </div>
+            </td>
 
-            <!-- Items -->
-            <div class="mt-2 sm:mt-3 space-y-0.5 sm:space-y-1 text-xs text-blue-800">
-              <p
-                v-for="(item, idx) in (order.items || []).slice(0, 3)"
-                :key="idx"
-                class="font-medium truncate"
+            <!-- Status Column -->
+            <td class="px-3 sm:px-4 py-3 text-center">
+              <span
+                :class="[
+                  'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold',
+                  getStatusColor(order.status)
+                ]"
               >
-                {{ item.quantity }}x {{ item.name }}
-              </p>
-              <p v-if="(order.items || []).length > 3" class="text-blue-600 font-semibold text-xs">
-                +{{ (order.items || []).length - 3 }} more
-              </p>
-            </div>
+                <span v-if="order.status === 'pending'" class="text-lg">⏳</span>
+                <span v-else-if="order.status === 'preparing'" class="text-lg">👨‍🍳</span>
+                <span v-else-if="order.status === 'ready'" class="text-lg">✓</span>
+                <span v-else class="text-lg">✓✓</span>
+                {{ order.status.toUpperCase() }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-            <!-- Action Button -->
+      <!-- Empty State -->
+      <div v-if="filteredOrders.length === 0" class="text-center py-12 bg-slate-50">
+        <p class="text-slate-500 text-sm">
+          {{
+            searchQuery
+              ? 'No orders match your search'
+              : `No ${selectedFilter === 'all' ? 'orders' : selectedFilter + ' orders'} found`
+          }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Pagination Section -->
+    <div v-if="filteredOrders.length > 0" class="rounded-lg bg-white shadow-md p-4 sm:p-6">
+      <div class="flex flex-col lg:flex-row items-center justify-between gap-4 sm:gap-6">
+        <!-- Left: Items per page selector -->
+        <div class="flex items-center gap-3">
+          <label for="itemsPerPage" class="text-sm font-semibold text-slate-700">Items per page:</label>
+          <select
+            id="itemsPerPage"
+            :value="itemsPerPage"
+            @change="changeItemsPerPage(Number(($event.target as HTMLSelectElement).value))"
+            class="px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+            <option value="25">25</option>
+          </select>
+        </div>
+
+        <!-- Center: Page info and pagination buttons -->
+        <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+          <!-- Previous Button -->
+          <button
+            @click="goToPrevPage"
+            :disabled="!hasPrevPage"
+            class="px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            ← Previous
+          </button>
+
+          <!-- Page Numbers -->
+          <div class="flex items-center gap-1">
+            <!-- First page -->
             <button
-              @click.stop="emit('ready', order)"
-              :disabled="processing"
-              class="mt-2 sm:mt-3 md:mt-4 w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-1.5 sm:py-2 rounded-lg transition text-xs sm:text-sm"
+              @click="goToPage(1)"
+              :class="[
+                'px-2.5 py-2 rounded-lg text-sm font-semibold transition',
+                currentPage === 1
+                  ? 'bg-blue-600 text-white'
+                  : 'border border-slate-300 text-slate-700 hover:bg-slate-50',
+              ]"
             >
-              MARK <span class="hidden sm:inline">READY</span>
+              1
+            </button>
+
+            <!-- Ellipsis if needed -->
+            <span v-if="currentPage > 3" class="px-1 text-slate-500">...</span>
+
+            <!-- Pages around current -->
+            <button
+              v-for="page in getPaginationRange()"
+              :key="page"
+              @click="goToPage(page)"
+              :class="[
+                'px-2.5 py-2 rounded-lg text-sm font-semibold transition',
+                currentPage === page
+                  ? 'bg-blue-600 text-white'
+                  : 'border border-slate-300 text-slate-700 hover:bg-slate-50',
+              ]"
+            >
+              {{ page }}
+            </button>
+
+            <!-- Ellipsis if needed -->
+            <span v-if="currentPage < totalPages - 2" class="px-1 text-slate-500">...</span>
+
+            <!-- Last page -->
+            <button
+              v-if="totalPages > 1"
+              @click="goToPage(totalPages)"
+              :class="[
+                'px-2.5 py-2 rounded-lg text-sm font-semibold transition',
+                currentPage === totalPages
+                  ? 'bg-blue-600 text-white'
+                  : 'border border-slate-300 text-slate-700 hover:bg-slate-50',
+              ]"
+            >
+              {{ totalPages }}
             </button>
           </div>
 
-          <div
-            v-if="!preparingOrders?.length"
-            class="text-center py-6 sm:py-8 md:py-12 text-blue-400"
+          <!-- Next Button -->
+          <button
+            @click="goToNextPage"
+            :disabled="!hasNextPage"
+            class="px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
-            <p class="text-xs sm:text-sm">No orders cooking</p>
-          </div>
+            Next →
+          </button>
+        </div>
+
+        <!-- Right: Results info -->
+        <div class="text-sm font-semibold text-slate-600 whitespace-nowrap">
+          Showing <span class="text-blue-600">{{ startItem }}-{{ endItem }}</span> of
+          <span class="text-blue-600">{{ filteredOrders.length }}</span>
         </div>
       </div>
+    </div>
 
-      <!-- READY COLUMN -->
-      <div class="rounded-lg bg-white shadow-md overflow-hidden">
-        <!-- Column Header -->
-        <div class="bg-green-50 border-b-4 border-green-400 px-3 sm:px-4 py-2 sm:py-3">
-          <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-green-900">
-            Ready
-          </h3>
-        </div>
-
-        <!-- Orders List -->
-        <div
-          class="p-2 sm:p-3 space-y-2 sm:space-y-3 max-h-[300px] sm:max-h-[400px] md:max-h-[600px] overflow-y-auto"
-        >
-          <div
-            v-for="order in readyOrders"
-            :key="order.id"
-            class="bg-green-50 border-2 border-green-200 rounded-lg p-2 sm:p-3 md:p-4 cursor-pointer hover:shadow-lg transition-all"
-            @click="emit('view', order)"
-          >
-            <!-- Status Badge -->
-            <span
-              class="inline-block bg-green-200 text-green-700 text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded"
-            >
-              ✓ <span class="hidden sm:inline">READY</span>
-            </span>
-
-            <!-- Room Info -->
-            <div class="text-xs font-bold text-green-600 mt-1 sm:mt-2 mb-1 truncate">
-              TABLE {{ order.room?.room_number || '?' }} -
-              <span class="hidden sm:inline">READY</span>
-            </div>
-
-            <!-- Time -->
-            <p class="text-xs sm:text-sm font-bold text-green-900 mt-1">
-              {{ getTimeRemaining(order.order_time) }}
-            </p>
-
-            <!-- Items -->
-            <div class="mt-2 sm:mt-3 space-y-0.5 sm:space-y-1 text-xs text-green-800">
-              <p
-                v-for="(item, idx) in (order.items || []).slice(0, 3)"
-                :key="idx"
-                class="font-medium truncate"
-              >
-                {{ item.quantity }}x {{ item.name }}
-              </p>
-              <p v-if="(order.items || []).length > 3" class="text-green-600 font-semibold text-xs">
-                +{{ (order.items || []).length - 3 }} more
-              </p>
-            </div>
-
-            <!-- Action Button -->
-            <button
-              @click.stop="emit('served', order)"
-              :disabled="processing"
-              class="mt-2 sm:mt-3 md:mt-4 w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold py-1.5 sm:py-2 rounded-lg transition text-xs sm:text-sm"
-            >
-              MARK <span class="hidden sm:inline">SERVED</span>
-            </button>
-          </div>
-
-          <div v-if="!readyOrders?.length" class="text-center py-6 sm:py-8 md:py-12 text-green-400">
-            <p class="text-xs sm:text-sm">No orders ready</p>
-          </div>
+    <!-- Summary Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+      <div class="bg-amber-50 rounded-lg p-3 sm:p-4 text-center">
+        <div class="text-xs sm:text-sm text-amber-700 font-semibold">Pending</div>
+        <div class="text-lg sm:text-xl font-bold text-amber-900">
+          {{ pendingOrders?.length || 0 }}
         </div>
       </div>
-
-      <!-- SERVED COLUMN -->
-      <div class="rounded-lg bg-white shadow-md overflow-hidden">
-        <!-- Column Header -->
-        <div class="bg-slate-50 border-b-4 border-slate-300 px-3 sm:px-4 py-2 sm:py-3">
-          <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-900">
-            Served
-          </h3>
+      <div class="bg-blue-50 rounded-lg p-3 sm:p-4 text-center">
+        <div class="text-xs sm:text-sm text-blue-700 font-semibold">Preparing</div>
+        <div class="text-lg sm:text-xl font-bold text-blue-900">
+          {{ preparingOrders?.length || 0 }}
         </div>
-
-        <!-- Orders List -->
-        <div
-          class="p-2 sm:p-3 space-y-2 sm:space-y-3 max-h-[300px] sm:max-h-[400px] md:max-h-[600px] overflow-y-auto"
-        >
-          <div
-            v-for="order in (completedOrders || []).slice(0, 10)"
-            :key="order.id"
-            class="bg-slate-50 border-2 border-slate-200 rounded-lg p-2 sm:p-3 cursor-pointer hover:shadow-lg transition-all opacity-75"
-            @click="emit('view', order)"
-          >
-            <!-- Status -->
-            <span class="text-xs font-bold text-slate-600"
-              >✓ <span class="hidden sm:inline">Order</span> completed</span
-            >
-
-            <!-- Room Info -->
-            <div class="text-xs font-bold text-slate-600 mt-1">
-              ROOM {{ order.room?.room_number || '?' }}
-            </div>
-
-            <!-- Items Summary -->
-            <p class="text-xs text-slate-700 mt-1 sm:mt-2 line-clamp-2 truncate">
-              {{ getItemsPreview(order.items || []) }}
-            </p>
-          </div>
-
-          <div
-            v-if="!completedOrders?.length"
-            class="text-center py-6 sm:py-8 md:py-12 text-slate-400"
-          >
-            <p class="text-xs sm:text-sm">No completed orders</p>
-          </div>
+      </div>
+      <div class="bg-green-50 rounded-lg p-3 sm:p-4 text-center">
+        <div class="text-xs sm:text-sm text-green-700 font-semibold">Ready</div>
+        <div class="text-lg sm:text-xl font-bold text-green-900">
+          {{ readyOrders?.length || 0 }}
+        </div>
+      </div>
+      <div class="bg-slate-50 rounded-lg p-3 sm:p-4 text-center">
+        <div class="text-xs sm:text-sm text-slate-700 font-semibold">Served</div>
+        <div class="text-lg sm:text-xl font-bold text-slate-900">
+          {{ completedOrders?.length || 0 }}
         </div>
       </div>
     </div>

@@ -51,7 +51,7 @@ const formattedPrice = computed(() => {
     >
       <div
         v-if="modelValue"
-        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-3"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black p-3"
       >
         <div
           class="relative w-full max-w-sm max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-[0_25px_70px_rgba(0,0,0,.45)]"

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useKitchenStore } from '@/stores/kitchenStore'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import KitchenHeader from '@/components/kitchen/KitchenHeader.vue'
 import KitchenStats from '@/components/kitchen/KitchenStats.vue'
 import KitchenQueue from '@/components/kitchen/KitchenQueue.vue'
+import RecentOrdersActivity from '@/components/kitchen/RecentOrdersActivity.vue'
 import PopularMenu from '@/components/kitchen/PopularMenu.vue'
 import KitchenEfficiency from '@/components/kitchen/KitchenEfficiency.vue'
 import KitchenFooterBar from '@/components/kitchen/KitchenFooterBar.vue'
@@ -30,6 +31,14 @@ const autoRefresh = ref(true)
 const refreshing = ref(false)
 let refreshTimer: number | undefined
 
+// Combine all orders for recent activity feed
+const allOrders = computed(() => [
+  ...(pendingOrders.value || []),
+  ...(preparingOrders.value || []),
+  ...(readyOrders.value || []),
+  ...(completedOrders.value || []),
+])
+
 async function refreshDashboard() {
   refreshing.value = true
   try {
@@ -40,18 +49,27 @@ async function refreshDashboard() {
 }
 
 async function startPreparing(order: KitchenOrder) {
-  await kitchenStore.startPreparing(order.id)
-  await refreshDashboard()
+  try {
+    await kitchenStore.startPreparing(order.id)
+  } catch (error: any) {
+    console.error('Failed to start preparing:', error)
+  }
 }
 
 async function markReady(order: KitchenOrder) {
-  await kitchenStore.markReady(order.id)
-  await refreshDashboard()
+  try {
+    await kitchenStore.markReady(order.id)
+  } catch (error: any) {
+    console.error('Failed to mark ready:', error)
+  }
 }
 
 async function markServed(order: KitchenOrder) {
-  await kitchenStore.markServed(order.id)
-  await refreshDashboard()
+  try {
+    await kitchenStore.markServed(order.id)
+  } catch (error: any) {
+    console.error('Failed to mark served:', error)
+  }
 }
 
 function openOrder(order: KitchenOrder) {
@@ -122,6 +140,7 @@ onBeforeUnmount(() => {
 
         <!-- Right Sidebar -->
         <div class="space-y-6 xl:col-span-3">
+          <RecentOrdersActivity :orders="allOrders" />
           <PopularMenu />
           <KitchenEfficiency :statistics="statistics" />
         </div>

@@ -8,7 +8,6 @@ export const useRoomStore = defineStore('rooms', {
     loading: false,
     error: null as string | null,
   }),
-
   actions: {
     async fetchRooms(params: any = {}) {
       this.loading = true

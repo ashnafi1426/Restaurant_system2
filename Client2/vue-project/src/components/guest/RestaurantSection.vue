@@ -1,40 +1,21 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import menuService from '@/services/menuService'
 
 const router = useRouter()
 
 interface MenuItem {
-  id: number
+  id: string
   name: string
   image: string
   description: string
   price: number
 }
 
-const featuredMenu: MenuItem[] = [
-  {
-    id: 1,
-    name: 'Grilled Beef Steak',
-    image: '/images/food/burger.jpg',
-    description:
-      'Premium grilled beef served with seasonal vegetables and our chef’s signature sauce.',
-    price: 28,
-  },
-  {
-    id: 2,
-    name: 'Seafood Pasta',
-    image: '/images/food/pizza.jpg',
-    description: 'Fresh seafood combined with creamy Italian pasta and herbs.',
-    price: 22,
-  },
-  {
-    id: 3,
-    name: 'Chocolate Lava Cake',
-    image: '/images/food/dessert.jpg',
-    description: 'Warm chocolate cake with a rich molten center and vanilla ice cream.',
-    price: 12,
-  },
-]
+const featuredMenu = ref<MenuItem[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
 
 function reserveTable() {
   router.push('/reservation')
@@ -51,6 +32,50 @@ function formatPrice(price: number) {
     maximumFractionDigits: 0,
   }).format(price)
 }
+
+/**
+ * Load featured menu items from backend
+ */
+async function loadFeaturedMenu() {
+  loading.value = true
+  error.value = null
+
+  try {
+    const response = await menuService.getMenuItems({ per_page: 3, is_active: true })
+    
+    if (response.data?.data && Array.isArray(response.data.data)) {
+      // Take first 3 items as featured
+      featuredMenu.value = response.data.data.slice(0, 3).map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        image: item.image || '/images/placeholder.png',
+        description: item.description || 'Delicious menu item',
+        price: item.price || 0,
+      }))
+      
+      console.log(`[RestaurantSection] Loaded ${featuredMenu.value.length} featured menu items from backend`)
+    } else {
+      // Fallback to empty or default items
+      error.value = 'No menu items available'
+      console.warn('[RestaurantSection] No menu items found in response')
+    }
+  } catch (err: any) {
+    error.value = err.message || 'Failed to load menu items'
+    console.error('[RestaurantSection] Error loading menu items:', err)
+    
+    // Still show section but with empty items
+    featuredMenu.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+/**
+ * Load menu on mount
+ */
+onMounted(() => {
+  loadFeaturedMenu()
+})
 </script>
 
 <template>
@@ -123,7 +148,11 @@ function formatPrice(price: number) {
       </div>
 
       <!-- Featured Dishes -->
-      <div class="grid gap-4 sm:gap-6 md:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div v-if="loading" class="flex justify-center py-12">
+        <div class="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+      </div>
+
+      <div v-if="!loading && featuredMenu.length > 0" class="grid gap-4 sm:gap-6 md:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <article
           v-for="item in featuredMenu"
           :key="item.id"
@@ -157,6 +186,10 @@ function formatPrice(price: number) {
             </p>
           </div>
         </article>
+      </div>
+
+      <div v-if="!loading && featuredMenu.length === 0" class="text-center py-12">
+        <p class="text-slate-500">{{ error || 'No menu items available at this time' }}</p>
       </div>
 
       <!-- Bottom CTA -->

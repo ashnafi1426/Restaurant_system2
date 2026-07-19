@@ -23,8 +23,10 @@
             :guest-email="guestEmail"
             :guest-avatar="guestAvatar"
             :initial-room="roomNumber"
+            :categories="categories"
             @search="handleSearch"
             @room-selected="handleRoomSelected"
+            @category-selected="handleCategorySelected"
             @logout="handleLogout"
             class="bg-white border-0"
           />
@@ -155,35 +157,8 @@
           </div>
 
           <!-- Quick Category Pills (Mobile) -->
-          <div class="lg:hidden mt-3 sm:mt-4 overflow-x-auto pb-2 hide-scrollbar">
-            <div class="flex gap-1.5 sm:gap-2 min-w-max">
-              <button
-                v-for="cat in categories.filter(c => c.id !== null)"
-                :key="cat.id"
-                @click="handleCategorySelected(cat.id)"
-                class="flex items-center gap-1.5 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all whitespace-nowrap"
-                :class="[
-                  selectedCategory === cat.id
-                    ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30'
-                    : 'bg-white text-slate-700 hover:bg-amber-50 hover:text-amber-700 shadow-sm'
-                ]"
-              >
-                <span>{{ cat.icon }}</span>
-                <span>{{ cat.name }}</span>
-                <span 
-                  v-if="cat.count && cat.count > 0"
-                  class="ml-0.5 rounded-full px-1.5 py-0.5 text-[10px]"
-                  :class="[
-                    selectedCategory === cat.id 
-                      ? 'bg-white/20 text-white' 
-                      : 'bg-slate-100 text-slate-500'
-                  ]"
-                >
-                  {{ cat.count }}
-                </span>
-              </button>
-            </div>
-          </div>
+          <!-- Hidden for now - categories shown in mobile sidebar instead -->
+          <!-- Will be re-enabled if needed for mobile view -->
 
           <!-- Filter Bar -->
           <!-- <div class="mt-3 sm:mt-4"> -->
@@ -391,15 +366,74 @@ const allMenuItems = ref<MenuItem[]>([])
 const errorMessage = ref('')
 const sidebarOpen = ref(false)
 
-// Categories
-const categories = ref<Category[]>([
-  { id: null, name: 'All Categories', icon: '📋', count: 0 },
-  { id: 'breakfast', name: 'Breakfast', icon: '🍳', count: 0 },
-  { id: 'lunch', name: 'Lunch', icon: '🥘', count: 0 },
-  { id: 'dinner', name: 'Dinner', icon: '🍽️', count: 0 },
-  { id: 'drinks', name: 'Beverages', icon: '🍷', count: 0 },
-  { id: 'dessert', name: 'Desserts', icon: '🍰', count: 0 }
-])
+// Categories - Fetch from backend
+const categories = ref<Category[]>([])
+const loadingCategories = ref(false)
+
+/**
+ * Load categories from backend API
+ */
+const loadCategories = async () => {
+  loadingCategories.value = true
+  try {
+    // Debug logging
+    console.log('[QRMenuLayout] Fetching categories from API...')
+    
+    const response = await api.get('/api/categories?is_active=true')
+    
+    console.log('[QRMenuLayout] API Response:', response)
+    
+    if (response.data?.data && Array.isArray(response.data.data)) {
+      // Map backend categories to frontend format
+      const backendCategories = response.data.data.map((cat: any) => ({
+        id: cat.slug || cat.id, // Use slug as ID for filtering
+        name: cat.name,
+        icon: cat.icon || '🍽️',
+        count: cat.menu_items_count || 0 // Menu items count from backend
+      }))
+      
+      // Add "All Categories" option at the beginning
+      categories.value = [
+        { id: null, name: 'All Categories', icon: '📋', count: 0 },
+        ...backendCategories
+      ]
+      
+      console.log(`[QRMenuLayout] ✅ Loaded ${backendCategories.length} categories from backend:`, categories.value)
+    } else {
+      console.warn('[QRMenuLayout] ⚠️ No categories in response, using fallback defaults')
+      // Use fallback categories if no data
+      categories.value = [
+        { id: null, name: 'All Categories', icon: '📋', count: 0 },
+        { id: 'breakfast', name: 'Breakfast', icon: '☀️', count: 0 },
+        { id: 'lunch', name: 'Lunch', icon: '🍔', count: 0 },
+        { id: 'dinner', name: 'Dinner', icon: '🍲', count: 0 },
+        { id: 'appetizers', name: 'Appetizers', icon: '🥗', count: 0 },
+        { id: 'pizza', name: 'Pizza', icon: '🍕', count: 0 },
+        { id: 'pasta', name: 'Pasta', icon: '🍝', count: 0 },
+        { id: 'desserts', name: 'Desserts', icon: '🍰', count: 0 },
+        { id: 'drinks', name: 'Beverages', icon: '🍷', count: 0 }
+      ]
+    }
+  } catch (error: any) {
+    console.error('[QRMenuLayout] ❌ Error loading categories:', error.message, error.response?.data)
+    
+    // Use fallback categories on error
+    console.log('[QRMenuLayout] Using fallback categories due to API error')
+    categories.value = [
+      { id: null, name: 'All Categories', icon: '📋', count: 0 },
+      { id: 'breakfast', name: 'Breakfast', icon: '☀️', count: 0 },
+      { id: 'lunch', name: 'Lunch', icon: '🍔', count: 0 },
+      { id: 'dinner', name: 'Dinner', icon: '🍲', count: 0 },
+      { id: 'appetizers', name: 'Appetizers', icon: '🥗', count: 0 },
+      { id: 'pizza', name: 'Pizza', icon: '🍕', count: 0 },
+      { id: 'pasta', name: 'Pasta', icon: '🍝', count: 0 },
+      { id: 'desserts', name: 'Desserts', icon: '🍰', count: 0 },
+      { id: 'drinks', name: 'Beverages', icon: '🍷', count: 0 }
+    ]
+  } finally {
+    loadingCategories.value = false
+  }
+}
 
 const sortOptions = [
   { value: 'popular', label: 'Most Popular' },
@@ -611,8 +645,9 @@ const formatPrice = (price: number): string => {
 // Watch for menu items change - AFTER functions are defined
 watch(allMenuItems, updateCategoryCounts, { immediate: true, deep: true })
 
-// Lifecycle - Load menu items on mount
+// Lifecycle - Load menu items and categories on mount
 onMounted(() => {
+  loadCategories()
   loadMenuItems()
 })
 

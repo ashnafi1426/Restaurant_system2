@@ -13,7 +13,16 @@ onMounted(async () => {
 
 async function markReady(orderId: string) {
   await kitchenStore.markReady(orderId)
-  await kitchenStore.fetchDashboard()
+  // Don't refetch - store updates locally via updateOrder()
+}
+
+const formatTime = (dateTime: string) => {
+  try {
+    const date = new Date(dateTime)
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return '—'
+  }
 }
 </script>
 
@@ -31,79 +40,114 @@ async function markReady(orderId: string) {
         </div>
       </div>
 
-      <!-- Orders Grid -->
-      <div
-        v-if="preparingOrders?.length"
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-      >
-        <div
-          v-for="order in preparingOrders"
-          :key="order.id"
-          class="bg-white rounded-lg border-l-4 border-blue-400 p-6 shadow-md hover:shadow-lg transition"
-        >
-          <!-- Room Info -->
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3 class="text-lg font-bold text-slate-900">
-                {{ order.room?.room_number ? `ROOM ${order.room.room_number}` : '🍽️ TAKEOUT' }}
-              </h3>
-              <p class="text-sm text-slate-500">Order #{{ order.order_number }}</p>
-            </div>
-            <div class="text-right">
-              <p class="text-xs text-slate-500">Time</p>
-              <p class="text-sm font-semibold text-blue-600">
-                {{ new Date(order.order_time).toLocaleTimeString() }}
-              </p>
-            </div>
-          </div>
+      <!-- Table Container -->
+      <div class="rounded-lg bg-white shadow-md overflow-hidden overflow-x-auto">
+        <table v-if="preparingOrders?.length" class="w-full text-sm">
+          <!-- Table Header -->
+          <thead>
+            <tr class="bg-slate-100 border-b-2 border-slate-200">
+              <th class="px-4 py-3 text-left font-bold text-slate-700">Order ID</th>
+              <th class="px-4 py-3 text-left font-bold text-slate-700">Room</th>
+              <th class="px-4 py-3 text-left font-bold text-slate-700">Guest</th>
+              <th class="px-4 py-3 text-left font-bold text-slate-700">Items</th>
+              <th class="px-4 py-3 text-left font-bold text-slate-700">Notes</th>
+              <th class="px-4 py-3 text-left font-bold text-slate-700">Time</th>
+              <th class="px-4 py-3 text-right font-bold text-slate-700">Total</th>
+              <th class="px-4 py-3 text-center font-bold text-slate-700">Action</th>
+            </tr>
+          </thead>
 
-          <!-- Guest Info -->
-          <div v-if="order.guest" class="mb-4 pb-4 border-b border-slate-200">
-            <p class="text-sm text-slate-600">
-              Guest: <span class="font-semibold">{{ order.guest.full_name }}</span>
-            </p>
-          </div>
+          <!-- Table Body -->
+          <tbody>
+            <tr
+              v-for="order in preparingOrders"
+              :key="order.id"
+              class="border-b border-slate-200 transition hover:bg-blue-50"
+            >
+              <!-- Order ID -->
+              <td class="px-4 py-3">
+                <div class="font-mono text-xs font-semibold text-slate-900">
+                  {{ order.order_number }}
+                </div>
+              </td>
 
-          <!-- Items -->
-          <div class="mb-4 space-y-2">
-            <p class="text-xs font-semibold text-slate-500 uppercase">Items</p>
-            <div v-for="item in order.items" :key="item.id" class="text-sm text-slate-700">
-              <span class="font-semibold">{{ item.quantity }}x</span> {{ item.name }}
-              <span v-if="item.notes" class="block text-xs text-blue-600 mt-1"
-                >📝 {{ item.notes }}</span
-              >
-            </div>
-          </div>
+              <!-- Room -->
+              <td class="px-4 py-3">
+                <div class="font-semibold text-slate-900">
+                  {{ order.room?.room_number ? `ROOM ${order.room.room_number}` : '🍽️ TAKEOUT' }}
+                </div>
+              </td>
 
-          <!-- Special Notes -->
-          <div v-if="order.notes" class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded">
-            <p class="text-xs text-amber-700">⚠️ {{ order.notes }}</p>
-          </div>
+              <!-- Guest -->
+              <td class="px-4 py-3">
+                <div class="text-slate-700">
+                  {{ order.guest?.full_name || 'Walk-in Guest' }}
+                </div>
+              </td>
 
-          <!-- Total -->
-          <div class="mb-4 pb-4 border-b border-slate-200">
-            <div class="flex justify-between">
-              <span class="text-slate-600">Total:</span>
-              <span class="font-bold text-slate-900">${{ order.total }}</span>
-            </div>
-          </div>
+              <!-- Items -->
+              <td class="px-4 py-3">
+                <div class="text-slate-700 space-y-1">
+                  <div
+                    v-for="(item, idx) in (order.items || []).slice(0, 2)"
+                    :key="idx"
+                    class="text-sm"
+                  >
+                    <span class="font-semibold">{{ item.quantity }}x</span> {{ item.name }}
+                    <span v-if="item.notes" class="block text-xs text-blue-600 mt-0.5">
+                      📝 {{ item.notes }}
+                    </span>
+                  </div>
+                  <div v-if="(order.items || []).length > 2" class="text-xs text-slate-500 font-semibold">
+                    +{{ (order.items || []).length - 2 }} more items
+                  </div>
+                </div>
+              </td>
 
-          <!-- Action Button -->
-          <button
-            @click="markReady(order.id)"
-            :disabled="actionLoading === order.id"
-            class="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold py-2 rounded-lg transition"
-          >
-            {{ actionLoading === order.id ? 'Marking...' : '✅ MARK READY' }}
-          </button>
+              <!-- Notes -->
+              <td class="px-4 py-3">
+                <div v-if="order.notes" class="text-xs text-amber-600 font-bold">
+                  ⚠️ {{ order.notes }}
+                </div>
+                <div v-else class="text-xs text-slate-400">—</div>
+              </td>
+
+              <!-- Time -->
+              <td class="px-4 py-3">
+                <div class="font-semibold text-slate-900">
+                  {{ formatTime(order.order_time) }}
+                </div>
+              </td>
+
+              <!-- Total -->
+              <td class="px-4 py-3 text-right">
+                <div class="font-bold text-slate-900">
+                  ${{ parseFloat(order.total).toFixed(2) }}
+                </div>
+              </td>
+
+              <!-- Action -->
+              <td class="px-4 py-3 text-center">
+                <button
+                  @click="markReady(order.id)"
+                  :disabled="actionLoading === order.id"
+                  class="px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white font-bold rounded text-xs transition flex items-center justify-center gap-1"
+                >
+                  <span v-if="actionLoading === order.id" class="inline-block animate-spin">⟳</span>
+                  <span v-else>✓</span>
+                  <span class="hidden sm:inline">{{ actionLoading === order.id ? 'MARKING...' : 'READY' }}</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Empty State -->
+        <div v-else class="text-center py-16 bg-slate-50">
+          <p class="text-6xl mb-4">⏳</p>
+          <p class="text-2xl font-bold text-slate-900">No Preparing Orders</p>
+          <p class="text-slate-500 mt-2">All orders are ready or pending!</p>
         </div>
-      </div>
-
-      <!-- Empty State -->
-      <div v-else class="text-center py-16">
-        <p class="text-6xl mb-4">⏳</p>
-        <p class="text-2xl font-bold text-slate-900">No Preparing Orders</p>
-        <p class="text-slate-500 mt-2">All orders are ready or pending!</p>
       </div>
     </div>
   </DashboardLayout>

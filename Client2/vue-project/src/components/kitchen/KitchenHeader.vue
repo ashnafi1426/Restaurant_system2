@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { storeToRefs } from 'pinia'
 
 defineProps<{
   loading?: boolean
@@ -12,6 +14,9 @@ const emit = defineEmits<{
   (e: 'update-menu'): void
   (e: 'new-ticket'): void
 }>()
+
+const authStore = useAuthStore()
+const { user } = storeToRefs(authStore)
 
 const now = ref(new Date())
 let timer: number
@@ -42,6 +47,11 @@ const currentTime = computed(() => {
     second: '2-digit',
   })
 })
+
+const chefName = computed(() => {
+  return user.value?.name || 'Executive Chef'
+})
+
 </script>
 
 <template>
@@ -162,8 +172,8 @@ const currentTime = computed(() => {
             class="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex-shrink-0"
           ></div>
           <div class="hidden text-right md:block min-w-0">
-            <p class="text-xs sm:text-sm font-semibold text-slate-900 truncate">Executive Chef</p>
-            <p class="text-xs text-slate-500 hidden lg:block">Kitchen Lead</p>
+            <p class="text-xs sm:text-sm font-semibold text-slate-900 truncate">{{ chefName }}</p>
+            <p class="text-xs text-slate-500 hidden lg:block">Your Orders Only</p>
           </div>
         </div>
 
