@@ -126,6 +126,7 @@ onMounted(() => {
             :initialData="form"
             :loading="userStore.loading"
             :errors="userStore.errors"
+            :is-edit-mode="true"
             @submit="updateUser"
           />
         </template>

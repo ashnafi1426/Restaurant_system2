@@ -12,12 +12,14 @@ interface UserFormProps {
   }
   loading?: boolean
   errors?: Record<string, string[]>
+  isEditMode?: boolean
 }
 
 const props = withDefaults(defineProps<UserFormProps>(), {
   initialData: () => ({}),
   loading: false,
   errors: () => ({}),
+  isEditMode: false,
 })
 
 const emit = defineEmits(['submit'])
@@ -27,7 +29,7 @@ const form = reactive({
   last_name: props.initialData?.last_name || '',
   email: props.initialData?.email || '',
   phone: props.initialData?.phone || '',
-  password_hash: '',
+  password: '',
   password_confirmation: '',
   role: props.initialData?.role || 'receptionist',
   is_active: props.initialData?.is_active ?? true,
@@ -43,6 +45,9 @@ watch(
       form.phone = newData.phone || ''
       form.role = newData.role || 'receptionist'
       form.is_active = newData.is_active ?? true
+      // Clear password fields on edit mode data load
+      form.password = ''
+      form.password_confirmation = ''
     }
   },
   { deep: true },
@@ -153,38 +158,38 @@ const getFieldError = (fieldName: string): string | null => {
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
       <div>
         <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900">
-          Password <span v-if="!initialData?.email" class="text-red-500">*</span>
+          Password <span v-if="!isEditMode" class="text-red-500">*</span>
         </label>
         <input
-          v-model="form.password_hash"
+          v-model="form.password"
           type="password"
-          :required="!initialData?.email"
+          :required="!isEditMode"
           minlength="8"
-          :placeholder="initialData?.email ? 'Leave blank to keep current' : 'Minimum 8 characters'"
+          :placeholder="isEditMode ? 'Leave blank to keep current' : 'Minimum 8 characters'"
           :class="[
             'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
-            getFieldError('password_hash')
+            getFieldError('password')
               ? 'border-red-500 ring-2 ring-red-200'
               : 'border-slate-300',
           ]"
           :disabled="loading"
         />
         <p
-          v-if="getFieldError('password_hash')"
+          v-if="getFieldError('password')"
           class="mt-1 text-xs text-red-600 flex items-center gap-1"
         >
-          <span>❌</span> {{ getFieldError('password_hash') }}
+          <span>❌</span> {{ getFieldError('password') }}
         </p>
       </div>
 
       <div>
         <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900">
-          Confirm Password <span v-if="!initialData?.email" class="text-red-500">*</span>
+          Confirm Password <span v-if="!isEditMode" class="text-red-500">*</span>
         </label>
         <input
           v-model="form.password_confirmation"
           type="password"
-          :required="!initialData?.email && form.password_hash !== ''"
+          :required="!isEditMode && form.password !== ''"
           minlength="8"
           placeholder="Re-enter password"
           :class="[

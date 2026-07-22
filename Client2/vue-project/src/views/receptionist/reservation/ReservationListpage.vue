@@ -236,25 +236,22 @@ onMounted(() => {
       </nav>
 
       <!-- Header -->
-      <div
-        class="bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl shadow-xl p-8 text-white"
-      >
-        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 class="text-4xl font-bold mb-2">Reservation Management</h1>
-            <p class="text-purple-100 text-lg">
+            <h1 class="text-3xl sm:text-4xl font-bold text-slate-900">Reservations</h1>
+            <p class="text-slate-600 text-base sm:text-lg mt-2">
               Manage hotel reservations, check-ins and guest stays
             </p>
           </div>
-          <!-- <div class="flex gap-3">
-            <button
-              @click="createReservation"
-              class="flex items-center gap-2 rounded-lg bg-white text-purple-600 px-6 py-3 hover:bg-purple-50 transition shadow-lg"
-            >
-              <span class="material-symbols-rounded text-xl">add</span>
-              <span class="font-semibold">New Reservation</span>
-            </button>
-          </div> -->
+          <button
+            @click="createReservation"
+            class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-5 sm:px-6 py-2.5 sm:py-3 font-semibold transition-all shadow-sm hover:shadow-md whitespace-nowrap group"
+          >
+            <span class="material-symbols-rounded text-lg">add</span>
+            <span class="hidden sm:inline">New Reservation</span>
+            <span class="sm:hidden">Add</span>
+          </button>
         </div>
       </div>
 

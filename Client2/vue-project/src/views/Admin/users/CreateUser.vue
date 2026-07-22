@@ -75,7 +75,7 @@ const createUser = async (data: User) => {
             </ul>
           </div>
 
-          <UserForm :loading="userStore.loading" :errors="userStore.errors" @submit="createUser" />
+          <UserForm :loading="userStore.loading" :errors="userStore.errors" :is-edit-mode="false" @submit="createUser" />
         </div>
       </div>
     </div>

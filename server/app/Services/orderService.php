@@ -110,6 +110,49 @@ class OrderService{
 
         return $number;
     }
+
+    /**
+     * Assign chef to order - assigns to chef with least pending orders
+     */
+    private function assignChefToOrder(): ?string
+    {
+        try {
+            $chefs = User::where('role', 'chef')->pluck('id')->toArray();
+            
+            if (empty($chefs)) {
+                return null;
+            }
+
+            // If only one chef, assign to them
+            if (count($chefs) === 1) {
+                return $chefs[0];
+            }
+
+            // Find chef with least pending/preparing orders
+            $chefWorkload = [];
+            foreach ($chefs as $chefId) {
+                $count = Order::where('chef_id', $chefId)
+                    ->whereIn('status', [Order::STATUS_PENDING, Order::STATUS_PREPARING])
+                    ->count();
+                $chefWorkload[$chefId] = $count;
+            }
+
+            // Find chef with minimum workload
+            $selectedChef = array_key_first($chefWorkload);
+            foreach ($chefWorkload as $chefId => $count) {
+                if ($count < $chefWorkload[$selectedChef]) {
+                    $selectedChef = $chefId;
+                }
+            }
+
+            return $selectedChef;
+        } catch (\Exception $e) {
+            \Log::error('Failed to assign chef: ' . $e->getMessage());
+            // Fallback: return first chef
+            $firstChef = User::where('role', 'chef')->first();
+            return $firstChef?->id ?? null;
+        }
+    }
     /**
  * Create a new restaurant order.
  */
@@ -162,7 +205,8 @@ public function create(array $data): Order
             'total' => $total,
 
             'notes' => $data['notes'] ?? null,
-            
+
+            'chef_id' => $this->assignChefToOrder(),
 
         ]);
         foreach ($data['items'] as $item) {

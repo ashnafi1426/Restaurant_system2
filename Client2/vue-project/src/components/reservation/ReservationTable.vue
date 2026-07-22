@@ -19,16 +19,22 @@ const emit = defineEmits<{
   (e: 'check-out', reservation: Reservation): void
   (e: 'cancel', reservation: Reservation): void
 }>()
-const openedMenu = ref<string | null>(null)
 
+// Track which reservation's menu is open
+const openedMenu = ref<string | null>(null)
+// Track hover state for menu button
+const hoveredMenu = ref<string | null>(null)
+// Toggle menu open/close
 const toggleMenu = (id: string) => {
   openedMenu.value = openedMenu.value === id ? null : id
 }
 
+// Close menu
 const closeMenu = () => {
   openedMenu.value = null
 }
 
+// Format date to readable format (e.g., Jan 15, 2024)
 const formatDate = (date: string) => {
   if (!date) return '-'
   const d = new Date(date)
@@ -39,6 +45,7 @@ const formatDate = (date: string) => {
   })
 }
 
+// Calculate number of nights between check-in and check-out
 const calculateNights = (checkIn: string, checkOut: string) => {
   if (!checkIn || !checkOut) return 0
   const start = new Date(checkIn)
@@ -47,22 +54,27 @@ const calculateNights = (checkIn: string, checkOut: string) => {
   return Math.ceil(diff / (1000 * 60 * 60 * 24))
 }
 
+// Check if reservation can be checked in (must be confirmed)
 const canCheckIn = (reservation: Reservation) => {
   return reservation.status === 'confirmed'
 }
 
+// Check if reservation can be checked out (must be checked in)
 const canCheckOut = (reservation: Reservation) => {
   return reservation.status === 'checked_in'
 }
 
+// Check if reservation can be cancelled (pending or confirmed)
 const canCancel = (reservation: Reservation) => {
   return ['pending', 'confirmed'].includes(reservation.status)
 }
 
+// Check if reservation can be confirmed (must be pending)
 const canConfirm = (reservation: Reservation) => {
   return reservation.status === 'pending'
 }
 
+// Handle clicks outside the menu to close it
 const handleClickOutside = (event: MouseEvent) => {
   const target = event.target as HTMLElement
   if (!target.closest('.action-menu')) {
@@ -70,10 +82,12 @@ const handleClickOutside = (event: MouseEvent) => {
   }
 }
 
+// Add click-outside listener on component mount
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
 })
 
+// Remove click-outside listener on component unmount
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
@@ -116,8 +130,6 @@ onBeforeUnmount(() => {
       ></div>
       <p class="font-medium text-sm md:text-base">Loading reservations...</p>
     </div>
-
-    <!-- Empty -->
     <div v-else-if="reservations.length === 0" class="p-8 sm:p-12 md:p-16 text-center">
       <div
         class="mx-auto w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-slate-100 flex items-center justify-center mb-3 md:mb-4"
@@ -267,16 +279,26 @@ onBeforeUnmount(() => {
             </td>
 
             <!-- Actions -->
-            <td class="relative px-6 py-4 text-center">
+            <td class="relative px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center">
               <div class="action-menu inline-block relative">
+                <!-- Three-dot menu button -->
                 <button
                   @click.stop="toggleMenu(reservation.id)"
-                  class="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-slate-100 transition-colors mx-auto"
-                  :class="{ 'bg-slate-100': openedMenu === reservation.id }"
+                  @mouseenter="hoveredMenu = reservation.id"
+                  @mouseleave="hoveredMenu = null"
+                  :aria-label="`Actions for ${reservation.booking_reference}`"
+                  class="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-slate-200 transition-all duration-200 group"
+                  :class="{
+                    'bg-slate-200': openedMenu === reservation.id,
+                    'bg-slate-100': hoveredMenu === reservation.id && openedMenu !== reservation.id,
+                  }"
                 >
-                  <span class="material-symbols-rounded text-slate-600">more_vert</span>
+                  <span class="material-symbols-rounded text-slate-600 group-hover:text-slate-800">
+                    more_vert
+                  </span>
                 </button>
 
+                <!-- Dropdown Menu with Actions -->
                 <transition
                   enter-active-class="transition duration-150 ease-out"
                   leave-active-class="transition duration-100 ease-in"
@@ -287,113 +309,157 @@ onBeforeUnmount(() => {
                 >
                   <div
                     v-if="openedMenu === reservation.id"
-                    class="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
+                    class="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl"
                   >
-                    <!-- View -->
-                    <button
-                      @click="
-                        () => {
-                          emit('view', reservation)
-                          closeMenu()
-                        }
-                      "
-                      class="flex w-full items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors text-left"
-                    >
-                      <span class="material-symbols-rounded text-blue-600">visibility</span>
-                      <span class="font-medium text-slate-700">View Details</span>
-                    </button>
+                    <!-- Primary Actions Section -->
+                    <div class="px-2 py-2">
+                      <!-- View Details -->
+                      <button
+                        @click="
+                          () => {
+                            emit('view', reservation)
+                            closeMenu()
+                          }
+                        "
+                        class="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-blue-50 transition-all text-left group"
+                      >
+                        <span class="material-symbols-rounded text-blue-600 text-xl group-hover:scale-110 transition-transform">
+                          visibility
+                        </span>
+                        <div class="flex-1">
+                          <span class="font-medium text-slate-900 block text-sm">View Details</span>
+                          <span class="text-xs text-slate-500">Full reservation info</span>
+                        </div>
+                      </button>
 
-                    <!-- Edit -->
-                    <button
-                      @click="
-                        () => {
-                          emit('edit', reservation)
-                          closeMenu()
-                        }
-                      "
-                      class="flex w-full items-center gap-3 px-4 py-3 hover:bg-green-50 transition-colors text-left"
-                    >
-                      <span class="material-symbols-rounded text-green-600">edit</span>
-                      <span class="font-medium text-slate-700">Edit Reservation</span>
-                    </button>
-
-                    <div class="border-t border-slate-200"></div>
-
-                    <!-- Confirm -->
-                    <button
-                      v-if="canConfirm(reservation)"
-                      @click="
-                        () => {
-                          emit('confirm', reservation)
-                          closeMenu()
-                        }
-                      "
-                      class="flex w-full items-center gap-3 px-4 py-3 hover:bg-purple-50 transition-colors text-left"
-                    >
-                      <span class="material-symbols-rounded text-purple-600">verified_user</span>
-                      <span class="font-medium text-slate-700">Confirm Reservation</span>
-                    </button>
-
-                    <!-- Check In -->
-                    <button
-                      v-if="canCheckIn(reservation)"
-                      @click="
-                        () => {
-                          emit('check-in', reservation)
-                          closeMenu()
-                        }
-                      "
-                      class="flex w-full items-center gap-3 px-4 py-3 hover:bg-green-50 transition-colors text-left"
-                    >
-                      <span class="material-symbols-rounded text-green-600">login</span>
-                      <span class="font-medium text-slate-700">Check In Guest</span>
-                    </button>
-
-                    <!-- Check Out -->
-                    <button
-                      v-if="canCheckOut(reservation)"
-                      @click="
-                        () => {
-                          emit('check-out', reservation)
-                          closeMenu()
-                        }
-                      "
-                      class="flex w-full items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors text-left"
-                    >
-                      <span class="material-symbols-rounded text-blue-600">logout</span>
-                      <span class="font-medium text-slate-700">Check Out Guest</span>
-                    </button>
-
-                    <!-- Cancel -->
-                    <button
-                      v-if="canCancel(reservation)"
-                      @click="
-                        () => {
-                          emit('cancel', reservation)
-                          closeMenu()
-                        }
-                      "
-                      class="flex w-full items-center gap-3 px-4 py-3 hover:bg-amber-50 transition-colors text-left"
-                    >
-                      <span class="material-symbols-rounded text-amber-600">cancel</span>
-                      <span class="font-medium text-slate-700">Cancel Reservation</span>
-                    </button>
+                      <!-- Edit Reservation -->
+                      <button
+                        @click="
+                          () => {
+                            emit('edit', reservation)
+                            closeMenu()
+                          }
+                        "
+                        class="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-emerald-50 transition-all text-left group"
+                      >
+                        <span class="material-symbols-rounded text-emerald-600 text-xl group-hover:scale-110 transition-transform">
+                          edit
+                        </span>
+                        <div class="flex-1">
+                          <span class="font-medium text-slate-900 block text-sm">Edit</span>
+                          <span class="text-xs text-slate-500">Modify details</span>
+                        </div>
+                      </button>
+                    </div>
 
                     <div class="border-t border-slate-200"></div>
 
-                    <!-- Delete -->
-                    <button
-                      @click="
-                        () => {
-                          emit('delete', reservation)
-                          closeMenu()
-                        }
-                      "
-                      class="flex w-full items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors text-left"
-                    >
-                      <span class="material-symbols-rounded">delete</span>
-                      <span class="font-medium">Delete Reservation</span>
-                    </button>
+                    <!-- Status Actions Section -->
+                    <div class="px-2 py-2">
+                      <!-- Confirm Reservation (only if pending) -->
+                      <button
+                        v-if="canConfirm(reservation)"
+                        @click="
+                          () => {
+                            emit('confirm', reservation)
+                            closeMenu()
+                          }
+                        "
+                        class="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-purple-50 transition-all text-left group"
+                      >
+                        <span class="material-symbols-rounded text-purple-600 text-xl group-hover:scale-110 transition-transform">
+                          verified_user
+                        </span>
+                        <div class="flex-1">
+                          <span class="font-medium text-slate-900 block text-sm">Confirm</span>
+                          <span class="text-xs text-slate-500">Pending → Confirmed</span>
+                        </div>
+                      </button>
+
+                      <!-- Check In Guest (only if confirmed) -->
+                      <button
+                        v-if="canCheckIn(reservation)"
+                        @click="
+                          () => {
+                            emit('check-in', reservation)
+                            closeMenu()
+                          }
+                        "
+                        class="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-green-50 transition-all text-left group"
+                      >
+                        <span class="material-symbols-rounded text-green-600 text-xl group-hover:scale-110 transition-transform">
+                          login
+                        </span>
+                        <div class="flex-1">
+                          <span class="font-medium text-slate-900 block text-sm">Check In</span>
+                          <span class="text-xs text-slate-500">Guest arrival</span>
+                        </div>
+                      </button>
+
+                      <!-- Check Out Guest (only if checked in) -->
+                      <button
+                        v-if="canCheckOut(reservation)"
+                        @click="
+                          () => {
+                            emit('check-out', reservation)
+                            closeMenu()
+                          }
+                        "
+                        class="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-cyan-50 transition-all text-left group"
+                      >
+                        <span class="material-symbols-rounded text-cyan-600 text-xl group-hover:scale-110 transition-transform">
+                          logout
+                        </span>
+                        <div class="flex-1">
+                          <span class="font-medium text-slate-900 block text-sm">Check Out</span>
+                          <span class="text-xs text-slate-500">Guest departure</span>
+                        </div>
+                      </button>
+
+                      <!-- Cancel Reservation (only if pending or confirmed) -->
+                      <button
+                        v-if="canCancel(reservation)"
+                        @click="
+                          () => {
+                            emit('cancel', reservation)
+                            closeMenu()
+                          }
+                        "
+                        class="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-amber-50 transition-all text-left group"
+                      >
+                        <span class="material-symbols-rounded text-amber-600 text-xl group-hover:scale-110 transition-transform">
+                          cancel
+                        </span>
+                        <div class="flex-1">
+                          <span class="font-medium text-slate-900 block text-sm">Cancel</span>
+                          <span class="text-xs text-slate-500">Booking cancellation</span>
+                        </div>
+                      </button>
+                    </div>
+
+                    <div class="border-t border-slate-200"></div>
+
+                    <!-- Danger Actions Section -->
+                    <div class="px-2 py-2">
+                      <!-- Delete Reservation -->
+                      <button
+                        @click="
+                          () => {
+                            emit('delete', reservation)
+                            closeMenu()
+                          }
+                        "
+                        class="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 transition-all text-left group"
+                      >
+                        <span class="material-symbols-rounded text-red-600 text-xl group-hover:scale-110 transition-transform">
+                          delete
+                        </span>
+                        <div class="flex-1">
+                          <span class="font-medium text-red-600 block text-sm">Delete</span>
+                          <span class="text-xs text-slate-500">Permanent removal</span>
+                        </div>
+                      </button>
+                    </div>
                   </div>
                 </transition>
               </div>

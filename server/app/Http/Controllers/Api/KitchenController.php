@@ -27,7 +27,7 @@ class KitchenController extends Controller
 
             $orders = $this
                 ->kitchenService
-                ->getKitchenOrders();
+                ->getKitchenOrders(auth()->user());
 
 
 
@@ -89,13 +89,22 @@ class KitchenController extends Controller
 
         try {
 
+            \Log::info('🟢 [KITCHEN] START Action Received', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'current_status' => $order->status,
+            ]);
+
 
             $updatedOrder =
                 $this
                 ->kitchenService
                 ->startPreparing($order);
 
-
+            \Log::info('✅ [KITCHEN] START Action Completed', [
+                'order_id' => $updatedOrder->id,
+                'new_status' => $updatedOrder->status,
+            ]);
 
             return response()->json([
 
@@ -116,6 +125,12 @@ class KitchenController extends Controller
 
         }catch(Throwable $e){
 
+            \Log::error('❌ [KITCHEN] START Action Failed', [
+                'order_id' => $order->id ?? 'unknown',
+                'error_message' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return response()->json([
 
@@ -135,13 +150,21 @@ class KitchenController extends Controller
 
         try {
 
+            \Log::info('🟢 [KITCHEN] READY Action Received', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'current_status' => $order->status,
+            ]);
 
             $updatedOrder =
                 $this
                 ->kitchenService
                 ->markReady($order);
 
-
+            \Log::info('✅ [KITCHEN] READY Action Completed', [
+                'order_id' => $updatedOrder->id,
+                'new_status' => $updatedOrder->status,
+            ]);
 
             return response()->json([
 
@@ -163,6 +186,10 @@ class KitchenController extends Controller
 
         }catch(Throwable $e){
 
+            \Log::error('❌ [KITCHEN] READY Action Failed', [
+                'order_id' => $order->id ?? 'unknown',
+                'error_message' => $e->getMessage(),
+            ]);
 
             return response()->json([
 
@@ -182,13 +209,21 @@ class KitchenController extends Controller
 
         try {
 
+            \Log::info('🟢 [KITCHEN] COMPLETE Action Received', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'current_status' => $order->status,
+            ]);
 
             $updatedOrder =
                 $this
                 ->kitchenService
                 ->markServed($order);
 
-
+            \Log::info('✅ [KITCHEN] COMPLETE Action Completed', [
+                'order_id' => $updatedOrder->id,
+                'new_status' => $updatedOrder->status,
+            ]);
 
             return response()->json([
 
@@ -210,6 +245,10 @@ class KitchenController extends Controller
 
         }catch(Throwable $e){
 
+            \Log::error('❌ [KITCHEN] COMPLETE Action Failed', [
+                'order_id' => $order->id ?? 'unknown',
+                'error_message' => $e->getMessage(),
+            ]);
 
             return response()->json([
 
@@ -245,7 +284,7 @@ class KitchenController extends Controller
             $statistics =
                 $this
                 ->kitchenService
-                ->statistics();
+                ->statistics(auth()->user());
 
 
 

@@ -8,7 +8,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const badgeClass = computed(() => {
-  const classes = {
+  const classes: Record<string, string> = {
     pending: 'bg-amber-100 text-amber-700 border-amber-200',
     confirmed: 'bg-green-100 text-green-700 border-green-200',
     checked_in: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -19,7 +19,7 @@ const badgeClass = computed(() => {
 })
 
 const statusIcon = computed(() => {
-  const icons = {
+  const icons: Record<string, string> = {
     pending: 'schedule',
     confirmed: 'check_circle',
     checked_in: 'login',
@@ -30,7 +30,7 @@ const statusIcon = computed(() => {
 })
 
 const statusLabel = computed(() => {
-  const labels = {
+  const labels: Record<string, string> = {
     pending: 'Pending',
     confirmed: 'Confirmed',
     checked_in: 'Checked In',

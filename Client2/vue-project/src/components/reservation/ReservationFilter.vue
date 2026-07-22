@@ -8,7 +8,6 @@ interface Guest {
   first_name: string
   last_name: string
 }
-
 interface Room {
   id: string
   room_number: string

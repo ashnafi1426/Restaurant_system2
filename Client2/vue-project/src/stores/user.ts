@@ -63,7 +63,14 @@ export const useUserStore = defineStore('user', {
       this.errors = {}
 
       try {
-        const response = await userService.updateUser(id, user)
+        // For update, only include password if provided
+        const userData = { ...user }
+        if (!userData.password) {
+          delete userData.password
+          delete userData.password_confirmation
+        }
+        
+        const response = await userService.updateUser(id, userData)
         this.user = response.data.data
 
         const index = this.users.findIndex((u) => u.id === id)

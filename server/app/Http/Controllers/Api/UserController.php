@@ -72,7 +72,7 @@ class UserController extends Controller
         $request->phone,
         'password_hash' =>
         Hash::make(
-          $request->password_hash
+          $request->password
         ),
         'role' =>
         $request->role,
@@ -129,8 +129,9 @@ class UserController extends Controller
         $user->role = $request->role;
         $user->is_active = $request->is_active;
 
-        if ($request->filled('password_hash')) {
-            $user->password_hash = $request->password_hash;
+        // Hash the password if provided
+        if ($request->filled('password')) {
+            $user->password_hash = Hash::make($request->password);
         }
 
         $user->save();

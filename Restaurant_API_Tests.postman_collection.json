@@ -1,0 +1,1101 @@
+{
+  "info": {
+    "name": "Restaurant Management System API",
+    "description": "Complete API testing collection for Restaurant Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login as Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"auth_token\", jsonData.token);",
+                  "    pm.environment.set(\"user_id\", jsonData.user.id);",
+                  "    console.log(\"Token saved: \" + jsonData.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "login"]
+            },
+            "description": "Login with admin credentials to get authentication token"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "me"]
+            },
+            "description": "Get currently authenticated user information"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "logout"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. User Management (Admin Only)",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Get paginated list of all users"
+          },
+          "response": []
+        },
+        {
+          "name": "Create User - Valid Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"created_user_id\", jsonData.data.id);",
+                  "    console.log(\"User created with ID: \" + jsonData.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+1234567890\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role\": \"receptionist\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Create a new user with all valid fields"
+          },
+          "response": []
+        },
+        {
+          "name": "Create User - Without Phone (Optional Field)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role\": \"cashier\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Create user without optional phone field"
+          },
+          "response": []
+        },
+        {
+          "name": "Create User - Invalid (Missing Required Fields)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"incomplete@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Should return 422 validation errors"
+          },
+          "response": []
+        },
+        {
+          "name": "Create User - Password Mismatch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\",\n  \"email\": \"test.mismatch@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"differentpassword\",\n  \"role\": \"chef\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Should return 422 - password confirmation does not match"
+          },
+          "response": []
+        },
+        {
+          "name": "Create User - Duplicate Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Duplicate\",\n  \"last_name\": \"User\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role\": \"manager\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Should return 422 - email already exists"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{created_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{created_user_id}}"]
+            },
+            "description": "Get details of a specific user"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe Updated\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+9876543210\",\n  \"role\": \"manager\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/{{created_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{created_user_id}}"]
+            },
+            "description": "Update user details (password is optional)"
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{created_user_id}}/toggle-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{created_user_id}}", "toggle-status"]
+            },
+            "description": "Toggle user active/inactive status"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{created_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{created_user_id}}"]
+            },
+            "description": "Delete a user"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users?search=john&role=receptionist&is_active=true&per_page=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "john"
+                },
+                {
+                  "key": "role",
+                  "value": "receptionist"
+                },
+                {
+                  "key": "is_active",
+                  "value": "true"
+                },
+                {
+                  "key": "per_page",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Search and filter users"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Authorization Tests",
+      "item": [
+        {
+          "name": "Create User Without Token (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role\": \"receptionist\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Should return 401 Unauthenticated"
+          },
+          "response": []
+        },
+        {
+          "name": "Create User With Invalid Token (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid_token_here"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role\": \"receptionist\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Should return 401 Unauthenticated"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Order Management",
+      "item": [
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders?per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15"
+                }
+              ]
+            },
+            "description": "Get paginated list of all orders with optional per_page parameter"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order - Valid Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"created_order_id\", jsonData.data.id);",
+                  "    console.log(\"Order created with ID: \" + jsonData.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservation_id\": \"{{reservation_id}}\",\n  \"guest_id\": \"{{guest_id}}\",\n  \"room_id\": \"{{room_id}}\",\n  \"notes\": \"Special requests: no onions, extra sauce\",\n  \"items\": [\n    {\n      \"menu_item_id\": \"{{menu_item_id_1}}\",\n      \"quantity\": 2,\n      \"notes\": \"Extra spicy\"\n    },\n    {\n      \"menu_item_id\": \"{{menu_item_id_2}}\",\n      \"quantity\": 1,\n      \"notes\": \"Cold drink\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Create a new order with multiple items. Requires valid reservation_id, guest_id, room_id and menu_item_ids"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order - Single Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservation_id\": \"{{reservation_id}}\",\n  \"guest_id\": \"{{guest_id}}\",\n  \"room_id\": \"{{room_id}}\",\n  \"items\": [\n    {\n      \"menu_item_id\": \"{{menu_item_id_1}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Create order with single item (minimum requirement)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order - No Items (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservation_id\": \"{{reservation_id}}\",\n  \"guest_id\": \"{{guest_id}}\",\n  \"room_id\": \"{{room_id}}\",\n  \"items\": []\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Should return 422 - at least one item required"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order - Invalid Quantity (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservation_id\": \"{{reservation_id}}\",\n  \"guest_id\": \"{{guest_id}}\",\n  \"room_id\": \"{{room_id}}\",\n  \"items\": [\n    {\n      \"menu_item_id\": \"{{menu_item_id_1}}\",\n      \"quantity\": 0\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Should return 422 - quantity must be at least 1"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order - Quantity Exceeds Max (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservation_id\": \"{{reservation_id}}\",\n  \"guest_id\": \"{{guest_id}}\",\n  \"room_id\": \"{{room_id}}\",\n  \"items\": [\n    {\n      \"menu_item_id\": \"{{menu_item_id_1}}\",\n      \"quantity\": 150\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Should return 422 - quantity cannot exceed 100"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order - Missing Required Fields (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guest_id\": \"{{guest_id}}\",\n  \"items\": [\n    {\n      \"menu_item_id\": \"{{menu_item_id_1}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Should return 422 - missing reservation_id and room_id"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Order - Invalid Reservation ID (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservation_id\": \"invalid-uuid-12345\",\n  \"guest_id\": \"{{guest_id}}\",\n  \"room_id\": \"{{room_id}}\",\n  \"items\": [\n    {\n      \"menu_item_id\": \"{{menu_item_id_1}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Should return 422 - invalid reservation ID format or doesn't exist"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Order",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{created_order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{created_order_id}}"]
+            },
+            "description": "Get details of a specific order including all items and calculations"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order - Valid Data",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservation_id\": \"{{reservation_id}}\",\n  \"guest_id\": \"{{guest_id}}\",\n  \"room_id\": \"{{room_id}}\",\n  \"notes\": \"Updated: No chili, extra salt\",\n  \"items\": [\n    {\n      \"menu_item_id\": \"{{menu_item_id_1}}\",\n      \"quantity\": 3,\n      \"notes\": \"Well done\"\n    },\n    {\n      \"menu_item_id\": \"{{menu_item_id_2}}\",\n      \"quantity\": 2\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{created_order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{created_order_id}}"]
+            },
+            "description": "Update existing order with new items and notes. Requires reservation_id, guest_id, and room_id (even though they're not modified)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order - Remove Items",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reservation_id\": \"{{reservation_id}}\",\n  \"guest_id\": \"{{guest_id}}\",\n  \"room_id\": \"{{room_id}}\",\n  \"notes\": \"Customer changed mind - keeping only one item\",\n  \"items\": [\n    {\n      \"menu_item_id\": \"{{menu_item_id_1}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{created_order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{created_order_id}}"]
+            },
+            "description": "Update order to remove items by providing only the items to keep"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Order Status - To Preparing",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"preparing\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{created_order_id}}/change-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{created_order_id}}", "change-status"]
+            },
+            "description": "Change order status to 'preparing' (kitchen started preparing)"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Order Status - To Ready",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ready\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{created_order_id}}/change-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{created_order_id}}", "change-status"]
+            },
+            "description": "Change order status to 'ready' (food is ready to serve)"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Order Status - To Served",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"served\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{created_order_id}}/change-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{created_order_id}}", "change-status"]
+            },
+            "description": "Change order status to 'served' (order delivered to guest)"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Order Status - To Pending",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"pending\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{created_order_id}}/change-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{created_order_id}}", "change-status"]
+            },
+            "description": "Change order status to 'pending' (initial state when order created)"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Order Status - Invalid Status (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"invalid_status\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{created_order_id}}/change-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{created_order_id}}", "change-status"]
+            },
+            "description": "Should return 422 - status must be one of: pending, preparing, ready, served, cancelled"
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{created_order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{created_order_id}}"]
+            },
+            "description": "Cancel an existing order (sets status to cancelled)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Orders - Unauthorized (Should Fail)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Should return 401 - no authorization token provided"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "created_user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "created_order_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "reservation_id",
+      "value": "",
+      "type": "string",
+      "description": "Valid UUID of an existing reservation"
+    },
+    {
+      "key": "guest_id",
+      "value": "",
+      "type": "string",
+      "description": "Valid UUID of an existing guest"
+    },
+    {
+      "key": "room_id",
+      "value": "",
+      "type": "string",
+      "description": "Valid UUID of an existing room"
+    },
+    {
+      "key": "menu_item_id_1",
+      "value": "",
+      "type": "string",
+      "description": "Valid UUID of first menu item for testing"
+    },
+    {
+      "key": "menu_item_id_2",
+      "value": "",
+      "type": "string",
+      "description": "Valid UUID of second menu item for testing"
+    }
+  ]
+}

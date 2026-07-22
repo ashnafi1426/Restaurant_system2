@@ -10,37 +10,43 @@ use Illuminate\Database\Eloquent\Collection;
 use App\Services\RestaurantChargeService;
 class KitchenService
 {
-    public function getKitchenOrders(): array
+    public function getKitchenOrders($authUser = null): array
     {
         return [
 
-            'pending' => $this->getOrdersByStatus(Order::STATUS_PENDING),
+            'pending' => $this->getOrdersByStatus(Order::STATUS_PENDING, $authUser),
 
-            'preparing' => $this->getOrdersByStatus(Order::STATUS_PREPARING),
+            'preparing' => $this->getOrdersByStatus(Order::STATUS_PREPARING, $authUser),
 
-            'ready' => $this->getOrdersByStatus(Order::STATUS_READY),
+            'ready' => $this->getOrdersByStatus(Order::STATUS_READY, $authUser),
 
-            'served' => $this->getOrdersByStatus(Order::STATUS_SERVED),
+            'served' => $this->getOrdersByStatus(Order::STATUS_SERVED, $authUser),
 
         ];
     }
-    protected function getOrdersByStatus(string $status): Collection
+    protected function getOrdersByStatus(string $status, $authUser = null): Collection
     {
-        return Order::query()
-
+        $query = Order::query()
             ->with([
                 'guest',
                 'room',
                 'reservation',
                 'orderItems',
                 'orderItems.menuItem',
+                'chef',
             ])
+            ->where('status', $status);
 
-            ->where('status', $status)
+        // Filter by chef if user is a chef
+        if ($authUser && isset($authUser->role) && $authUser->role === 'chef' && isset($authUser->id)) {
+            // Show orders assigned to this chef OR orders without assignment (legacy orders)
+            $query->where(function($q) use ($authUser) {
+                $q->where('chef_id', $authUser->id)
+                  ->orWhereNull('chef_id');
+            });
+        }
 
-            ->latest('order_time')
-
-            ->get();
+        return $query->latest('order_time')->get();
     }
 
     /**
@@ -79,13 +85,28 @@ class KitchenService
     }
     public function startPreparing(Order $order): Order
     {
+        \Log::info('🔵 [SERVICE] startPreparing - Validating order status', [
+            'order_id' => $order->id,
+            'current_status' => $order->status,
+            'expected_status' => Order::STATUS_PENDING,
+        ]);
+
         $this->validateStatusTransition(
             $order,
             Order::STATUS_PENDING
         );
 
+        \Log::info('🟢 [SERVICE] startPreparing - Status validation passed', [
+            'order_id' => $order->id,
+        ]);
+
         $order->update([
             'status' => Order::STATUS_PREPARING,
+        ]);
+
+        \Log::info('✅ [SERVICE] startPreparing - Order status updated', [
+            'order_id' => $order->id,
+            'new_status' => $order->status,
         ]);
 
         // Notify chef that they're starting to prepare
@@ -95,18 +116,40 @@ class KitchenService
             'You started preparing order #' . $order->order_number
         );
 
-        return $this->loadOrderRelations(
-            $order->fresh()
-        );
+        $freshOrder = $this->loadOrderRelations($order->fresh());
+        
+        \Log::info('✅ [SERVICE] startPreparing - Order reloaded with relations', [
+            'order_id' => $freshOrder->id,
+            'status' => $freshOrder->status,
+            'has_items' => count($freshOrder->orderItems) > 0,
+        ]);
+
+        return $freshOrder;
     }
     public function markReady(Order $order): Order
     {
+        \Log::info('🔵 [SERVICE] markReady - Validating order status', [
+            'order_id' => $order->id,
+            'current_status' => $order->status,
+            'expected_status' => Order::STATUS_PREPARING,
+        ]);
+
         $this->validateStatusTransition(
             $order,
             Order::STATUS_PREPARING
         );
+
+        \Log::info('🟢 [SERVICE] markReady - Status validation passed', [
+            'order_id' => $order->id,
+        ]);
+
         $order->update([
             'status' => Order::STATUS_READY,
+        ]);
+
+        \Log::info('✅ [SERVICE] markReady - Order status updated', [
+            'order_id' => $order->id,
+            'new_status' => $order->status,
         ]);
 
         // Notify chef that order is ready
@@ -116,15 +159,30 @@ class KitchenService
             'Order #' . $order->order_number . ' is ready for pickup'
         );
 
-        return $this->loadOrderRelations(
-            $order->fresh()
-        );
+        $freshOrder = $this->loadOrderRelations($order->fresh());
+        
+        \Log::info('✅ [SERVICE] markReady - Order reloaded with relations', [
+            'order_id' => $freshOrder->id,
+            'status' => $freshOrder->status,
+        ]);
+
+        return $freshOrder;
     }
     public function markServed(Order $order): Order{
+    \Log::info('🔵 [SERVICE] markServed - Validating order status', [
+        'order_id' => $order->id,
+        'current_status' => $order->status,
+        'expected_status' => Order::STATUS_READY,
+    ]);
+
     $this->validateStatusTransition(
         $order,
         Order::STATUS_READY
     );
+
+    \Log::info('🟢 [SERVICE] markServed - Status validation passed', [
+        'order_id' => $order->id,
+    ]);
 
     // Update order status first
     $order->update([
@@ -134,6 +192,11 @@ class KitchenService
 
     // Refresh the order with new status
     $order->refresh();
+
+    \Log::info('✅ [SERVICE] markServed - Order status updated', [
+        'order_id' => $order->id,
+        'new_status' => $order->status,
+    ]);
 
     // Notify chef that order is served
     $this->notifyChefs(
@@ -150,27 +213,45 @@ class KitchenService
         \Log::warning('Failed to create restaurant charge for order ' . $order->id . ': ' . $e->getMessage());
     }
 
-    return $this->loadOrderRelations($order);
+    $freshOrder = $this->loadOrderRelations($order);
+    
+    \Log::info('✅ [SERVICE] markServed - Order reloaded with relations', [
+        'order_id' => $freshOrder->id,
+        'status' => $freshOrder->status,
+    ]);
+
+    return $freshOrder;
 }
-    public function statistics(): array
+    public function statistics($authUser = null): array
     {
+        $baseQuery = function() use ($authUser) {
+            if ($authUser && isset($authUser->role) && $authUser->role === 'chef') {
+                // Show stats for orders assigned to this chef OR orders without assignment
+                return Order::where(function($q) use ($authUser) {
+                    $q->where('chef_id', $authUser->id)
+                      ->orWhereNull('chef_id');
+                });
+            }
+            return Order::query();
+        };
+
         return [
-            'pending_orders' => Order::where(
+            'pending_orders' => $baseQuery()->where(
                 'status',
                 Order::STATUS_PENDING
             )->count(),
 
-            'preparing_orders' => Order::where(
+            'preparing_orders' => $baseQuery()->where(
                 'status',
                 Order::STATUS_PREPARING
             )->count(),
 
-            'ready_orders' => Order::where(
+            'ready_orders' => $baseQuery()->where(
                 'status',
                 Order::STATUS_READY
             )->count(),
 
-            'served_orders' => Order::where(
+            'served_orders' => $baseQuery()->where(
                 'status',
                 Order::STATUS_SERVED
             )->count(),
@@ -181,14 +262,14 @@ class KitchenService
             |--------------------------------------------------------------------------
             */
 
-            'total_orders' => Order::count(),
+            'total_orders' => $baseQuery()->count(),
 
-            'today_orders' => Order::whereDate(
+            'today_orders' => $baseQuery()->whereDate(
                 'order_time',
                 today()
             )->count(),
 
-            'today_served' => Order::where(
+            'today_served' => $baseQuery()->where(
                 'status',
                 Order::STATUS_SERVED
             )
@@ -198,7 +279,7 @@ class KitchenService
             )
             ->count(),
 
-            'today_pending' => Order::where(
+            'today_pending' => $baseQuery()->where(
                 'status',
                 Order::STATUS_PENDING
             )
@@ -208,7 +289,7 @@ class KitchenService
             )
             ->count(),
 
-            'today_preparing' => Order::where(
+            'today_preparing' => $baseQuery()->where(
                 'status',
                 Order::STATUS_PREPARING
             )
@@ -218,7 +299,7 @@ class KitchenService
             )
             ->count(),
 
-            'today_ready' => Order::where(
+            'today_ready' => $baseQuery()->where(
                 'status',
                 Order::STATUS_READY
             )

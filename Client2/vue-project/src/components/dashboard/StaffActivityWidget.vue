@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { StaffActivityItem } from '../../types/dashboard'
-import { mdiPlus } from '@mdi/js'
-import SvgIcon from '@jamescoyle/vue-icon'
 
 interface Props {
   activities?: StaffActivityItem[]
@@ -20,64 +18,136 @@ const getActivityColor = (index: number) => {
   ]
   return colors[index % colors.length]
 }
+
+const getActivityBg = (index: number) => {
+  const colors = [
+    'from-teal-50 to-transparent',
+    'from-blue-50 to-transparent',
+    'from-purple-50 to-transparent',
+    'from-pink-50 to-transparent'
+  ]
+  return colors[index % colors.length]
+}
+
+const formatTime = (timestamp: string) => {
+  const date = new Date(timestamp)
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
+  if (minutes < 1) return 'Just now'
+  if (minutes < 60) return `${minutes}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days < 7) return `${days}d ago`
+  return date.toLocaleDateString()
+}
 </script>
 
 <template>
   <div
-    class="bg-white rounded-lg border border-gray-200 px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8 relative"
+    class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8 hover:shadow-md transition-shadow duration-300 relative h-full flex flex-col"
   >
+    <!-- Header Section -->
     <div
-      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-6"
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-5 border-b border-gray-100"
     >
-      <h3
-        class="text-xs sm:text-xs md:text-sm lg:text-base font-semibold text-gray-900 uppercase tracking-wide"
-      >
-        STAFF ACTIVITY
-      </h3>
+      <div>
+        <h3
+          class="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-wide"
+        >
+          Staff Activity
+        </h3>
+        <p class="text-sm text-slate-600 mt-1">Recent staff actions and updates</p>
+      </div>
       <router-link
         to="/admin/activity"
-        class="text-teal-600 hover:text-teal-700 text-xs sm:text-sm font-medium whitespace-nowrap"
+        class="px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white text-xs sm:text-sm font-semibold rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap group"
       >
-        View All
+        <span class="flex items-center gap-2">
+          View All
+          <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </span>
       </router-link>
     </div>
-    <div v-if="activities.length === 0" class="text-center py-6 sm:py-8 md:py-10">
-      <p class="text-gray-500 text-xs sm:text-sm md:text-base">No recent activity</p>
+
+    <!-- Empty State -->
+    <div v-if="activities.length === 0" class="text-center py-16 flex-1 flex items-center justify-center">
+      <div>
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+          <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <p class="text-slate-600 font-medium">No recent activity</p>
+        <p class="text-sm text-slate-500 mt-1">Activity will appear here</p>
+      </div>
     </div>
 
-    <div v-else class="space-y-3 sm:space-y-4 pr-1 sm:pr-2">
+    <!-- Activity List -->
+    <div v-else class="space-y-3 flex-1 overflow-y-auto pr-2">
       <div
         v-for="(activity, index) in activities"
         :key="activity.id"
-        class="flex gap-2 sm:gap-3 items-start"
+        class="flex gap-3 items-start p-3.5 rounded-xl bg-gradient-to-r hover:shadow-md transition-all duration-300 border border-gray-100/50 group"
+        :class="getActivityBg(index)"
       >
         <!-- Avatar -->
         <div
           :class="[
             'bg-gradient-to-br ' + getActivityColor(index),
-            'w-8 sm:w-9 md:w-10 h-8 sm:h-9 md:h-10 rounded-full flex items-center justify-center flex-shrink-0',
+            'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm font-bold text-white text-xs group-hover:scale-110 transition-transform',
           ]"
         >
-          <span class="text-xs font-bold text-white">{{ activity.staff_initials }}</span>
+          {{ activity.staff_initials }}
         </div>
 
         <!-- Content -->
         <div class="flex-1 min-w-0">
-          <p class="text-xs sm:text-sm font-semibold text-gray-900 truncate">
+          <p class="text-sm font-bold text-slate-900 truncate">
             {{ activity.staff_name }}
           </p>
-          <p class="text-xs text-gray-600 mt-0.5 truncate">{{ activity.action }}</p>
-          <p class="text-xs text-gray-400 mt-1">{{ activity.timestamp }}</p>
+          <p class="text-xs text-slate-600 mt-1.5 line-clamp-2 leading-relaxed">
+            {{ activity.action }}
+          </p>
+          <p class="text-[11px] text-slate-400 mt-2 font-medium">
+            {{ formatTime(activity.timestamp) }}
+          </p>
         </div>
       </div>
     </div>
 
-    <!-- Floating Action Button -->
-    <button
-      class="absolute bottom-4 sm:bottom-6 right-4 sm:right-6 w-10 sm:w-11 md:w-12 h-10 sm:h-11 md:h-12 rounded-full bg-teal-600 hover:bg-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group flex-shrink-0"
-      title="Add new activity"
-    >
-      <SvgIcon type="mdi" :path="mdiPlus" :size="20" class="sm:w-5 md:w-6" />
-    </button>
+    <!-- Footer Action -->
+    <div class="mt-4 pt-4 border-t border-gray-100">
+      <button
+        class="w-full px-4 py-2.5 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border border-blue-200 text-blue-700 rounded-lg font-semibold text-sm transition-all duration-300"
+      >
+        <span class="flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Log Activity
+        </span>
+      </button>
+    </div>
   </div>
 </template>
+
+<style scoped>
+div::-webkit-scrollbar {
+  width: 4px;
+}
+div::-webkit-scrollbar-track {
+  background: transparent;
+}
+div::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 9999px;
+}
+div::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+}
+</style>

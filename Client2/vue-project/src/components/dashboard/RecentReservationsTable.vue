@@ -11,13 +11,24 @@ withDefaults(defineProps<Props>(), {
 
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    Pending: 'bg-yellow-100 text-yellow-800',
-    Confirmed: 'bg-green-100 text-green-800',
-    Checked_in: 'bg-blue-100 text-blue-800',
-    Checked_out: 'bg-gray-100 text-gray-800',
-    Cancelled: 'bg-red-100 text-red-800',
+    Pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    Confirmed: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    Checked_in: 'bg-blue-100 text-blue-800 border-blue-200',
+    Checked_out: 'bg-gray-100 text-gray-800 border-gray-200',
+    Cancelled: 'bg-red-100 text-red-800 border-red-200',
   }
-  return colors[status] || 'bg-gray-100 text-gray-800'
+  return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200'
+}
+
+const getStatusIcon = (status: string) => {
+  const icons: Record<string, string> = {
+    Pending: 'clock',
+    Confirmed: 'check',
+    Checked_in: 'login',
+    Checked_out: 'logout',
+    Cancelled: 'x',
+  }
+  return icons[status] || 'circle'
 }
 
 const formatDate = (date: string) => {
@@ -49,105 +60,128 @@ const getInitialColor = (initials: string) => {
 
 <template>
   <div
-    class="bg-white rounded-lg border border-gray-200 px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8"
+    class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8 hover:shadow-md transition-shadow duration-300"
   >
+    <!-- Header Section -->
     <div
-      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-6"
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-5 border-b border-gray-100"
     >
       <div>
-        <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900">
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900">
           Recent Reservations
         </h3>
+        <p class="text-sm text-slate-600 mt-1.5">Latest bookings and status overview</p>
       </div>
       <router-link
         to="/admin/reservations"
-        class="text-teal-600 hover:text-teal-700 text-xs sm:text-sm font-medium whitespace-nowrap"
+        class="px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white text-xs sm:text-sm font-semibold rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap group"
       >
-        View All
+        <span class="flex items-center gap-2">
+          View All
+          <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </span>
       </router-link>
     </div>
 
-    <div v-if="reservations.length === 0" class="text-center py-8 sm:py-10 md:py-12">
-      <p class="text-gray-500 text-xs sm:text-sm md:text-base">No reservations yet</p>
+    <!-- Empty State -->
+    <div v-if="reservations.length === 0" class="text-center py-16">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+        <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <p class="text-slate-600 font-semibold">No reservations yet</p>
+      <p class="text-sm text-slate-500 mt-1">Bookings will appear here once created</p>
     </div>
 
-    <div v-else class="overflow-x-auto -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-10">
+    <!-- Table -->
+    <div v-else class="overflow-x-auto -mx-4 sm:-mx-6 lg:-mx-8">
       <table class="w-full">
+        <!-- Table Header -->
         <thead>
-          <tr class="border-b border-gray-200">
+          <tr class="border-b border-gray-200 bg-slate-50">
             <th
-              class="text-left py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase"
+              class="text-left py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 uppercase tracking-widest"
             >
               Guest
             </th>
             <th
-              class="text-left py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase hidden sm:table-cell"
+              class="text-left py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 uppercase tracking-widest hidden sm:table-cell"
             >
               Room Type
             </th>
             <th
-              class="text-left py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase hidden md:table-cell"
+              class="text-left py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 uppercase tracking-widest hidden md:table-cell"
             >
               Check In
             </th>
             <th
-              class="text-left py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase"
+              class="text-left py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 uppercase tracking-widest"
             >
               Status
             </th>
             <th
-              class="text-right py-2 sm:py-3 md:py-4 px-4 sm:px-6 md:px-8 lg:px-10 text-xs font-semibold text-gray-600 uppercase"
+              class="text-right py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 uppercase tracking-widest"
             >
-              Amount
+              Total
             </th>
           </tr>
         </thead>
+        <!-- Table Body -->
         <tbody class="divide-y divide-gray-100">
           <tr
             v-for="reservation in reservations"
             :key="reservation.id"
-            class="hover:bg-gray-50 transition-colors"
+            class="hover:bg-slate-50/50 transition-colors duration-200 group"
           >
-            <td class="py-3 sm:py-4 md:py-5 px-4 sm:px-6 md:px-8 lg:px-10">
-              <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Guest Column -->
+            <td class="py-4 px-4 sm:px-6 lg:px-8">
+              <div class="flex items-center gap-3">
                 <div
                   :class="[
                     getInitialColor(reservation.guest.initials),
-                    'w-8 sm:w-9 md:w-10 h-8 sm:h-9 md:h-10 rounded-full flex items-center justify-center flex-shrink-0',
+                    'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm shadow-sm group-hover:scale-110 transition-transform',
                   ]"
                 >
-                  <span class="text-xs sm:text-xs md:text-sm font-semibold">{{
-                    reservation.guest.initials
-                  }}</span>
+                  {{ reservation.guest.initials }}
                 </div>
                 <div class="min-w-0">
-                  <p class="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                  <p class="text-sm font-semibold text-slate-900 truncate">
                     {{ reservation.guest.name }}
                   </p>
-                  <p class="text-xs text-gray-500 truncate">{{ reservation.booking_reference }}</p>
+                  <p class="text-xs text-slate-500 truncate font-medium mt-0.5">{{ reservation.booking_reference }}</p>
                 </div>
               </div>
             </td>
-            <td class="py-3 sm:py-4 md:py-5 px-4 sm:px-6 md:px-8 lg:px-10 hidden sm:table-cell">
-              <span class="text-xs sm:text-sm text-gray-700 truncate">{{
+            <!-- Room Type Column -->
+            <td class="py-4 px-4 sm:px-6 lg:px-8 hidden sm:table-cell">
+              <span class="text-sm text-slate-700 font-medium">{{
                 reservation.room_type
               }}</span>
             </td>
-            <td class="py-3 sm:py-4 md:py-5 px-4 sm:px-6 md:px-8 lg:px-10 hidden md:table-cell">
-              <span class="text-xs sm:text-sm text-gray-700">{{
-                formatDate(reservation.check_in_date)
-              }}</span>
+            <!-- Check In Column -->
+            <td class="py-4 px-4 sm:px-6 lg:px-8 hidden md:table-cell">
+              <div>
+                <span class="text-sm text-slate-700 font-medium block">{{
+                  formatDate(reservation.check_in_date)
+                }}</span>
+                <span class="text-xs text-slate-500 mt-0.5 block">Check-in</span>
+              </div>
             </td>
-            <td class="py-3 sm:py-4 md:py-5 px-4 sm:px-6 md:px-8 lg:px-10">
+            <!-- Status Column -->
+            <td class="py-4 px-4 sm:px-6 lg:px-8">
               <span
-                :class="getStatusColor(reservation.status)"
-                class="text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-full inline-block"
+                :class="[getStatusColor(reservation.status), 'text-xs font-bold px-2.5 py-1.5 rounded-full inline-flex items-center gap-1.5 border']"
               >
+                <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                 {{ reservation.status }}
               </span>
             </td>
-            <td class="py-3 sm:py-4 md:py-5 px-4 sm:px-6 md:px-8 lg:px-10 text-right">
-              <span class="text-xs sm:text-sm font-semibold text-gray-900">{{
+            <!-- Amount Column -->
+            <td class="py-4 px-4 sm:px-6 lg:px-8 text-right">
+              <span class="text-sm font-bold text-slate-900">{{
                 formatCurrency(reservation.total_price)
               }}</span>
             </td>

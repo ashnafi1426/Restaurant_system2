@@ -34,6 +34,7 @@ class Order extends Model
         'served_at',
         'cancelled_at',
         'user_id',
+        'chef_id',
     ];
 
     protected $casts = [
@@ -75,6 +76,11 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function chef()
+    {
+        return $this->belongsTo(User::class, 'chef_id');
     }
 
     /*
