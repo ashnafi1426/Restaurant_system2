@@ -123,16 +123,62 @@ class WaiterDashboardController extends Controller
      */
     public function getDashboard(): JsonResponse
     {
-        return $this->handleAction(
-            fn($userId) => $this->dashboardService->getDashboardStats($userId),
-            [
-                'today_stats' => [],
-                'performance' => [],
-                'recent_assignments' => [],
-                'pending_count' => 0,
-                'active_count' => 0,
-            ]
-        );
+        try {
+            $waiterId = $this->getWaiterId();
+            
+            \Log::info('🟠 [CONTROLLER] getDashboard called:', [
+                'user_id' => auth()->id(),
+                'waiter_id' => $waiterId,
+                'timestamp' => now()->toDateTimeString(),
+            ]);
+            
+            if (!$waiterId) {
+                \Log::warning('⚠️ Waiter dashboard requested without a linked waiter profile', [
+                    'user_id' => auth()->id(),
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'today_stats' => [],
+                        'performance' => [],
+                        'recent_assignments' => [],
+                        'pending_count' => 0,
+                        'active_count' => 0,
+                    ],
+                ], 200);
+            }
+
+            $result = $this->dashboardService->getDashboardStats($waiterId);
+            
+            \Log::info('✅ [CONTROLLER] getDashboard returning:', [
+                'waiter_id' => $waiterId,
+                'today_stats' => $result['today_stats'] ?? null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $result,
+            ], 200);
+        } catch (\Throwable $e) {
+            \Log::error('❌ Dashboard action error:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'today_stats' => [],
+                    'performance' => [],
+                    'recent_assignments' => [],
+                    'pending_count' => 0,
+                    'active_count' => 0,
+                ],
+            ], 200);
+        }
     }
 
     /**

@@ -101,25 +101,62 @@ onMounted(async () => {
   try {
     loading.value = true
     error.value = null
-    console.log('[WaiterDashboard] Loading dashboard data...')
+    console.log('🟦 [WaiterDashboard] Loading dashboard data...')
+    
     const dashboardData = await waiterService.getDashboard()
-    console.log('[WaiterDashboard] Dashboard data:', dashboardData)
-    if (dashboardData) {
+    console.log('🟦 [WaiterDashboard] Raw dashboard data:', JSON.stringify(dashboardData, null, 2))
+    console.log('🟦 [WaiterDashboard] today_stats object:', dashboardData?.today_stats)
+    console.log('🟦 [WaiterDashboard] today_stats keys:', Object.keys(dashboardData?.today_stats || {}))
+    
+    if (dashboardData && dashboardData.today_stats) {
+      const ts = dashboardData.today_stats
+      console.log('🟦 [WaiterDashboard] Field values:', {
+        total_assignments: ts.total_assignments,
+        completed_deliveries: ts.completed_deliveries,
+        failed_deliveries: ts.failed_deliveries,
+        rejected_assignments: ts.rejected_assignments,
+        pending_assignments: ts.pending_assignments,
+        active_assignments: ts.active_assignments,
+        on_delivery_count: ts.on_delivery_count,
+        average_delivery_time: ts.average_delivery_time,
+        completion_rate: ts.completion_rate,
+      })
+      
+      const todayDeliveries = dashboardData.today_stats.completed_deliveries || 0
+      const pendingDeliveries = dashboardData.today_stats.pending_assignments || 0
+      const onDelivery = dashboardData.today_stats.on_delivery_count || 0
+      const avgDeliveryTime = Math.round(dashboardData.today_stats.average_delivery_time || 0)
+      
+      console.log('🟦 [WaiterDashboard] Converted values:', {
+        todayDeliveries,
+        pendingDeliveries,
+        onDelivery,
+        avgDeliveryTime,
+      })
+      
       stats.value = {
-        todayDeliveries: dashboardData.today_stats?.completed_deliveries || 0,
-        pendingDeliveries: dashboardData.today_stats?.pending_assignments || 0,
-        onDelivery: dashboardData.today_stats?.on_delivery_count || 0,
-        avgDeliveryTime: Math.round(dashboardData.today_stats?.average_delivery_time || 0),
+        todayDeliveries,
+        pendingDeliveries,
+        onDelivery,
+        avgDeliveryTime,
       }
+      
+      console.log('✅ [WaiterDashboard] Stats updated successfully:', stats.value)
+    } else {
+      console.error('❌ [WaiterDashboard] No today_stats in dashboard data')
+      console.error('❌ [WaiterDashboard] Full response was:', dashboardData)
     }
     
     // Fetch recent assignments
+    console.log('🟦 [WaiterDashboard] Fetching recent assignments...')
     const assignments = await waiterService.getRecentAssignments(5)
-    console.log('[WaiterDashboard] Recent assignments:', assignments)
+    console.log('🟦 [WaiterDashboard] Recent assignments:', assignments)
     recentAssignments.value = assignments || []
+    console.log('✅ [WaiterDashboard] Recent assignments set to:', recentAssignments.value)
     
   } catch (err: any) {
-    console.error('[WaiterDashboard] Error:', err)
+    console.error('❌ [WaiterDashboard] Error loading dashboard:', err)
+    console.error('❌ [WaiterDashboard] Error response:', err.response?.data)
     error.value = err.message || 'Failed to load dashboard'
   } finally {
     loading.value = false

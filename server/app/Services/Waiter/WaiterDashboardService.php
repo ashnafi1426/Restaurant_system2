@@ -65,8 +65,13 @@ class WaiterDashboardService
                 'date' => $today->toDateString(),
             ]);
 
-            $stats = \App\Models\DeliveryTask::where('waiter_id', $waiterId)
-                ->whereDate('assigned_at', $today)
+            // Get today's completed deliveries (completed today, regardless of when assigned)
+            $todayStats = \App\Models\DeliveryTask::where('waiter_id', $waiterId)
+                ->where(function($q) use ($today) {
+                    // Count deliveries completed today OR orders assigned today
+                    $q->whereDate('delivered_at', $today)
+                      ->orWhereDate('assigned_at', $today);
+                })
                 ->selectRaw('
                     COUNT(*) as total_assignments,
                     SUM(CASE WHEN status = "delivered" THEN 1 ELSE 0 END) as completed_deliveries,
@@ -78,24 +83,43 @@ class WaiterDashboardService
                 ')
                 ->first();
 
-            \Log::info('✅ [SERVICE] getTodayStats result:', [
+            // Get current pending and active assignments (all time, not just today)
+            $currentStats = \App\Models\DeliveryTask::where('waiter_id', $waiterId)
+                ->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery'])
+                ->selectRaw('
+                    SUM(CASE WHEN status = "assigned" THEN 1 ELSE 0 END) as pending_assignments,
+                    SUM(CASE WHEN status IN ("accepted", "picked_up", "on_delivery") THEN 1 ELSE 0 END) as active_assignments,
+                    SUM(CASE WHEN status = "on_delivery" THEN 1 ELSE 0 END) as on_delivery_count
+                ')
+                ->first();
+
+            \Log::info('✅ [SERVICE] getTodayStats results:', [
                 'waiter_id' => $waiterId,
-                'stats' => $stats ? $stats->toArray() : null,
+                'today_stats' => $todayStats ? $todayStats->toArray() : null,
+                'current_active_stats' => $currentStats ? $currentStats->toArray() : null,
             ]);
 
-            $completionRate = $stats->total_assignments > 0 
-                ? round(($stats->completed_deliveries / $stats->total_assignments) * 100, 2) 
+            if (!$todayStats && !$currentStats) {
+                \Log::warning('❌ getTodayStats: No data found for waiter', [
+                    'waiter_id' => $waiterId,
+                    'date' => $today->toDateString(),
+                ]);
+                return $this->getDefaultTodayStats();
+            }
+
+            $completionRate = ($todayStats->total_assignments ?? 0) > 0 
+                ? round((($todayStats->completed_deliveries ?? 0) / $todayStats->total_assignments) * 100, 2) 
                 : 0;
 
             return [
-                'total_assignments' => (int)($stats->total_assignments ?? 0),
-                'completed_deliveries' => (int)($stats->completed_deliveries ?? 0),
-                'failed_deliveries' => (int)($stats->failed_deliveries ?? 0),
+                'total_assignments' => (int)($todayStats->total_assignments ?? 0),
+                'completed_deliveries' => (int)($todayStats->completed_deliveries ?? 0),
+                'failed_deliveries' => (int)($todayStats->failed_deliveries ?? 0),
                 'rejected_assignments' => 0,
-                'pending_assignments' => (int)($stats->pending_assignments ?? 0),
-                'active_assignments' => (int)($stats->active_assignments ?? 0),
-                'on_delivery_count' => (int)($stats->on_delivery_count ?? 0),
-                'average_delivery_time' => (float)($stats->average_delivery_time ?? 0),
+                'pending_assignments' => (int)($currentStats->pending_assignments ?? 0),
+                'active_assignments' => (int)($currentStats->active_assignments ?? 0),
+                'on_delivery_count' => (int)($currentStats->on_delivery_count ?? 0),
+                'average_delivery_time' => (float)($todayStats->average_delivery_time ?? 0),
                 'completion_rate' => $completionRate,
             ];
         } catch (\Throwable $e) {

@@ -11,15 +11,22 @@ class WaiterService {
     console.log('🔵 [SERVICE] getDashboard API call initiated')
     try {
       const response = await api.get('/waiter/dashboard')
-      console.log(' [SERVICE] getDashboard response received:', response.data)
+      console.log('✅ [SERVICE] getDashboard response received:', {
+        'status': response.status,
+        'data': response.data,
+        'data.success': response.data?.success,
+        'data.data': response.data?.data,
+        'today_stats': response.data?.data?.today_stats,
+      })
       
       if (response.data && response.data.data) {
+        console.log('📊 [SERVICE] Extracted dashboard data with today_stats:', response.data.data.today_stats)
         return response.data.data
       }
-      console.warn('[SERVICE] getDashboard response missing data field')
+      console.warn('[SERVICE] getDashboard response missing data field', response.data)
       return response.data
     } catch (err: any) {
-      console.error('[SERVICE] getDashboard API error:', {
+      console.error('❌ [SERVICE] getDashboard API error:', {
         status: err.response?.status,
         message: err.response?.data?.message || err.message,
         data: err.response?.data,
