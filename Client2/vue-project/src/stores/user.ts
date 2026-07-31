@@ -69,7 +69,7 @@ export const useUserStore = defineStore('user', {
           delete userData.password
           delete userData.password_confirmation
         }
-        
+
         const response = await userService.updateUser(id, userData)
         this.user = response.data.data
 

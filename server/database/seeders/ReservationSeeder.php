@@ -25,18 +25,21 @@ class ReservationSeeder extends Seeder
         foreach ($guests as $key => $guest) {
             if ($availableRooms->count() > 0) {
                 $room = $availableRooms[$key % $availableRooms->count()];
+                $bookingRef = 'BK-' . now()->format('Ymd') . '-' . str_pad($key + 1, 4, '0', STR_PAD_LEFT);
                 
-                Reservation::create([
-                    'guest_id' => $guest->id,
-                    'room_id' => $room->id,
-                    'created_by' => $user?->id,
-                    'booking_reference' => 'BK-' . now()->format('Ymd') . '-' . str_pad($key + 1, 4, '0', STR_PAD_LEFT),
-                    'check_in_date' => now()->addDays($key),
-                    'check_out_date' => now()->addDays($key + 2),
-                    'number_of_guests' => 1,
-                    'status' => 'confirmed',
-                    'special_requests' => 'Test reservation',
-                ]);
+                Reservation::firstOrCreate(
+                    ['booking_reference' => $bookingRef],
+                    [
+                        'guest_id' => $guest->id,
+                        'room_id' => $room->id,
+                        'created_by' => $user?->id,
+                        'check_in_date' => now()->addDays($key),
+                        'check_out_date' => now()->addDays($key + 2),
+                        'number_of_guests' => 1,
+                        'status' => 'confirmed',
+                        'special_requests' => 'Test reservation',
+                    ]
+                );
             }
         }
     }

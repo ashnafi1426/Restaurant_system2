@@ -27,10 +27,17 @@
         >
           <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <!-- Cart Modal Header -->
-            <div class="sticky top-0 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-4 flex items-center justify-between border-b border-amber-600 z-10">
+            <div
+              class="sticky top-0 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-4 flex items-center justify-between border-b border-amber-600 z-10"
+            >
               <h2 class="text-2xl font-bold flex items-center gap-2">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                  ></path>
                 </svg>
                 Your Cart
               </h2>
@@ -39,19 +46,31 @@
                 class="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
               >
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  ></path>
                 </svg>
               </button>
             </div>
 
             <!-- Cart Items -->
             <div class="divide-y divide-gray-200">
-              <div
-                v-if="cartItems.length === 0"
-                class="px-6 py-12 text-center"
-              >
-                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+              <div v-if="cartItems.length === 0" class="px-6 py-12 text-center">
+                <svg
+                  class="w-16 h-16 text-gray-300 mx-auto mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                  ></path>
                 </svg>
                 <p class="text-gray-500 text-lg font-medium">Your cart is empty</p>
                 <p class="text-gray-400 text-sm mt-1">Add items from the menu to get started</p>
@@ -87,16 +106,28 @@
                         class="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors rounded"
                       >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M20 12H4"
+                          ></path>
                         </svg>
                       </button>
-                      <span class="w-8 text-center font-semibold text-gray-800">{{ item.quantity }}</span>
+                      <span class="w-8 text-center font-semibold text-gray-800">{{
+                        item.quantity
+                      }}</span>
                       <button
                         @click="incrementQuantity(item.id)"
                         class="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors rounded"
                       >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 4v16m8-8H4"
+                          ></path>
                         </svg>
                       </button>
                     </div>
@@ -109,7 +140,12 @@
                   title="Remove from cart"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    ></path>
                   </svg>
                 </button>
               </div>
@@ -132,7 +168,9 @@
                 <span class="font-semibold">{{ formatPrice(serviceCharge) }}</span>
               </div>
 
-              <div class="pt-3 border-t-2 border-gray-300 flex items-center justify-between bg-gradient-to-r from-amber-50 to-transparent p-3 rounded-lg">
+              <div
+                class="pt-3 border-t-2 border-gray-300 flex items-center justify-between bg-gradient-to-r from-amber-50 to-transparent p-3 rounded-lg"
+              >
                 <span class="text-lg font-bold text-gray-800">Total:</span>
                 <span class="text-2xl font-bold text-amber-600">{{ formatPrice(cartTotal) }}</span>
               </div>
@@ -149,11 +187,33 @@
                   :disabled="isPlacingOrder || cartItems.length === 0"
                   class="flex-1 px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  <svg v-if="!isPlacingOrder" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  <svg
+                    v-if="!isPlacingOrder"
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    ></path>
                   </svg>
-                  <svg v-else class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v20m0-20a9.978 9.978 0 00-9 18m18 0a9.978 9.978 0 00-9-18"></path>
+                  <svg
+                    v-else
+                    class="w-5 h-5 animate-spin"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 2v20m0-20a9.978 9.978 0 00-9 18m18 0a9.978 9.978 0 00-9-18"
+                    ></path>
                   </svg>
                   {{ isPlacingOrder ? 'Placing Order...' : 'Place Order' }}
                 </button>
@@ -174,7 +234,9 @@
         >
           <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
             <div class="mb-4 flex justify-center">
-              <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center animate-bounce">
+              <div
+                class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center animate-bounce"
+              >
                 <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"></path>
                 </svg>
@@ -182,7 +244,9 @@
             </div>
 
             <h2 class="text-2xl font-bold text-gray-800 mb-2">Order Placed Successfully!</h2>
-            <p class="text-gray-600 mb-4">Your delicious meal is being prepared and will be delivered to your room shortly.</p>
+            <p class="text-gray-600 mb-4">
+              Your delicious meal is being prepared and will be delivered to your room shortly.
+            </p>
 
             <div class="bg-amber-50 rounded-lg p-4 mb-6 text-left space-y-2">
               <div class="flex justify-between">
@@ -280,7 +344,7 @@ const tax = computed(() => {
 })
 
 const serviceCharge = computed(() => {
-  return subtotal.value * 0.10
+  return subtotal.value * 0.1
 })
 
 const cartTotal = computed(() => {
@@ -303,7 +367,7 @@ const handleLogout = () => {
 }
 
 const handleAddToCart = (item: MenuItem, quantity: number) => {
-  const existingItem = cartItems.value.find(ci => ci.id === item.id)
+  const existingItem = cartItems.value.find((ci) => ci.id === item.id)
   if (existingItem) {
     existingItem.quantity += quantity
   } else {
@@ -320,18 +384,18 @@ const closeCartModal = () => {
 }
 
 const removeFromCart = (itemId: string | number) => {
-  cartItems.value = cartItems.value.filter(item => item.id !== itemId)
+  cartItems.value = cartItems.value.filter((item) => item.id !== itemId)
 }
 
 const incrementQuantity = (itemId: string | number) => {
-  const item = cartItems.value.find(i => i.id === itemId)
+  const item = cartItems.value.find((i) => i.id === itemId)
   if (item) {
     item.quantity++
   }
 }
 
 const decrementQuantity = (itemId: string | number) => {
-  const item = cartItems.value.find(i => i.id === itemId)
+  const item = cartItems.value.find((i) => i.id === itemId)
   if (item && item.quantity > 1) {
     item.quantity--
   } else {
@@ -350,11 +414,11 @@ const handlePlaceOrder = async () => {
   try {
     const orderData = {
       qr_token: qrToken.value,
-      items: cartItems.value.map(item => ({
+      items: cartItems.value.map((item) => ({
         menu_item_id: item.id,
-        quantity: item.quantity
+        quantity: item.quantity,
       })),
-      special_requests: ''
+      special_requests: '',
     }
 
     const response = await api.post('/guest/orders', orderData)
@@ -446,7 +510,8 @@ onMounted(() => {
 }
 
 @keyframes bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {

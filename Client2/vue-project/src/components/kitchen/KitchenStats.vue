@@ -20,13 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Clock,
-  ChefHat,
-  CheckCircle,
-  UtensilsCrossed,
-  XCircle,
-} from 'lucide-vue-next'
+import { Clock, ChefHat, CheckCircle, UtensilsCrossed, XCircle } from 'lucide-vue-next'
 
 const props = defineProps<{
   statistics?: Record<string, any>

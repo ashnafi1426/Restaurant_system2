@@ -41,9 +41,9 @@ class AppetizerMenuItemSeeder extends Seeder
                 'image' => $appetizer['image'],
                 'is_available' => true,
             ]);
-            echo "✅ Created: {$appetizer['name']}\n";
+            echo " Created: {$appetizer['name']}\n";
         }
 
-        echo "\n✅ Appetizer menu items seeded successfully!\n";
+        echo "\n Appetizer menu items seeded successfully!\n";
     }
 }

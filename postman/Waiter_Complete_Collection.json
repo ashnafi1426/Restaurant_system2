@@ -1,0 +1,446 @@
+{
+  "info": {
+    "name": "Restaurant System - Waiter Backend Complete Collection",
+    "description": "Complete testing collection for all waiter-related API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login as Waiter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('WAITER_TOKEN', jsonData.token);",
+                  "    pm.environment.set('WAITER_ID', jsonData.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"waiter1@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Waiter Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "Get Today Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/today",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "today"]
+            }
+          }
+        },
+        {
+          "name": "Get Performance Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/performance",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "performance"]
+            }
+          }
+        },
+        {
+          "name": "Get Recent Assignments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Response has data array', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "if (pm.response.json().data.length > 0) {",
+                  "  var firstTask = pm.response.json().data[0];",
+                  "  pm.test('First task has required fields', function() {",
+                  "    pm.expect(firstTask).to.have.property('id');",
+                  "    pm.expect(firstTask).to.have.property('status');",
+                  "    pm.expect(firstTask).to.have.property('room_number');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/recent-assignments?limit=10",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "recent-assignments"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Kitchen Ready Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/kitchen-ready-orders",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "kitchen-ready-orders"]
+            }
+          }
+        },
+        {
+          "name": "Get Ready for Pickup",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/ready-pickup",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "ready-pickup"]
+            }
+          }
+        },
+        {
+          "name": "Get Pending Pickup Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/pending-pickup",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "pending-pickup"]
+            }
+          }
+        },
+        {
+          "name": "Get On Delivery",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/on-delivery",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "on-delivery"]
+            }
+          }
+        },
+        {
+          "name": "Get Completed Deliveries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/completed",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "completed"]
+            }
+          }
+        },
+        {
+          "name": "Get Failed Deliveries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/failed",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "failed"]
+            }
+          }
+        },
+        {
+          "name": "Get Delivery Timeline",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/timeline",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "timeline"]
+            }
+          }
+        },
+        {
+          "name": "Get Weekly Performance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/weekly-performance",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "weekly-performance"]
+            }
+          }
+        },
+        {
+          "name": "Get Monthly Performance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/monthly-performance",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "monthly-performance"]
+            }
+          }
+        },
+        {
+          "name": "Get Performance Comparison",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/performance-comparison",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "performance-comparison"]
+            }
+          }
+        },
+        {
+          "name": "Get Quick Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/dashboard/quick-stats",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "dashboard", "quick-stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Waiter Assignments",
+      "item": [
+        {
+          "name": "Get All Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/assignments",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "assignments"]
+            }
+          }
+        },
+        {
+          "name": "Get Single Assignment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/assignments/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "assignments", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Pending Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/assignments/pending/list",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "assignments", "pending", "list"]
+            }
+          }
+        },
+        {
+          "name": "Get Active Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/assignments/active/list",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "assignments", "active", "list"]
+            }
+          }
+        },
+        {
+          "name": "Get Today's Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{WAITER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/waiter/assignments/today/list",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "waiter", "assignments", "today", "list"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "WAITER_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "WAITER_ID",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

@@ -2,7 +2,9 @@
   <DashboardLayout>
     <!-- Page Header - Responsive -->
     <template #header>
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+      <div
+        class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4"
+      >
         <div>
           <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Add New Category</h1>
           <p class="text-xs sm:text-sm text-slate-600 mt-1">Create a new menu category</p>
@@ -29,17 +31,17 @@
     <!-- Form Container - Responsive Width -->
     <div v-else class="w-full max-w-2xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
       <!-- Error Alert -->
-      <div v-if="errors.general" class="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div
+        v-if="errors.general"
+        class="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg"
+      >
         <p class="text-red-700 font-medium text-sm sm:text-base">{{ errors.general }}</p>
       </div>
 
       <form @submit.prevent="submitForm" class="space-y-4 sm:space-y-6">
         <!-- Category Name -->
         <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm">
-          <label
-            for="name"
-            class="block text-xs font-semibold text-slate-600 uppercase mb-2"
-          >
+          <label for="name" class="block text-xs font-semibold text-slate-600 uppercase mb-2">
             Category Name <span class="text-red-500">*</span>
           </label>
           <input
@@ -74,10 +76,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <!-- Icon Selection -->
           <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm">
-            <label
-              for="icon"
-              class="block text-xs font-semibold text-slate-600 uppercase mb-2"
-            >
+            <label for="icon" class="block text-xs font-semibold text-slate-600 uppercase mb-2">
               Icon <span class="text-slate-400">(optional)</span>
             </label>
             <select
@@ -147,7 +146,9 @@
         </div>
 
         <!-- Form Actions - Responsive -->
-        <div class="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center justify-end mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200">
+        <div
+          class="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center justify-end mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200"
+        >
           <button
             type="button"
             @click="goBack"
@@ -230,7 +231,7 @@ const submitForm = async () => {
 
     await categoryService.createCategory(payload)
 
-    console.log('✅ Category created successfully')
+    console.log(' Category created successfully')
 
     // Redirect back to menu
     router.push({ name: 'admin-menu' })

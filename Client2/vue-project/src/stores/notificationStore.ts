@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import notificationService from '../services/notificationService'
+import { waiterNotificationService } from '../services/waiterNotificationService'
 import type { NotificationData } from '../services/notificationService'
+import { useAuthStore } from './auth'
 
 export const useNotificationStore = defineStore('notification', () => {
   const notifications = ref<NotificationData[]>([])
@@ -39,13 +41,30 @@ export const useNotificationStore = defineStore('notification', () => {
   })
 
   /**
+   * Get the appropriate service based on user role
+   */
+  const getNotificationService = () => {
+    const authStore = useAuthStore()
+    const userRole = authStore.user?.role
+    
+    if (userRole === 'waiter') {
+      console.log('📬 [NOTIFICATION STORE] Using waiter notification service')
+      return waiterNotificationService
+    } else {
+      console.log('📬 [NOTIFICATION STORE] Using generic notification service')
+      return notificationService
+    }
+  }
+
+  /**
    * Fetch notifications from backend
    */
-  const fetchNotifications = async (limit: number = 10) => {
+  const fetchNotifications = async (page: number = 1) => {
     loading.value = true
     try {
-      console.log('📬 [NOTIFICATION STORE] Fetching notifications...')
-      const response = await notificationService.getNotifications(limit)
+      console.log('📬 [NOTIFICATION STORE] Fetching notifications...', { page })
+      const service = getNotificationService()
+      const response = await service.getNotifications(page)
       console.log('📬 [NOTIFICATION STORE] Response:', response)
 
       // Handle both direct array and wrapped response
@@ -59,7 +78,7 @@ export const useNotificationStore = defineStore('notification', () => {
     } catch (error: any) {
       // Silently handle 403 errors - user may not have notification permission
       if (error.response?.status === 403 || error.response?.status === 401) {
-        console.warn('⚠️ [NOTIFICATION STORE] Notifications not available for this role')
+        console.warn('[NOTIFICATION STORE] Notifications not available for this role')
         notifications.value = []
         return
       }
@@ -75,13 +94,14 @@ export const useNotificationStore = defineStore('notification', () => {
    */
   const fetchUnreadCount = async () => {
     try {
-      const response = await notificationService.getUnreadCount()
-      unreadCount.value = response.data?.count || response.data || 0
+      const service = getNotificationService()
+      const response = await service.getUnreadCount()
+      unreadCount.value = response.data?.unread_count || response.data?.count || 0
       console.log('📬 [NOTIFICATION STORE] Unread count:', unreadCount.value)
     } catch (error: any) {
       // Silently handle 403 errors - user may not have notification permission
       if (error.response?.status === 403 || error.response?.status === 401) {
-        console.warn('⚠️ [NOTIFICATION STORE] Notifications not available for this role')
+        console.warn('[NOTIFICATION STORE] Notifications not available for this role')
         return
       }
       console.error('❌ [NOTIFICATION STORE] Error fetching unread count:', error)
@@ -109,7 +129,8 @@ export const useNotificationStore = defineStore('notification', () => {
   const markNotificationAsRead = async (notificationId: string) => {
     try {
       console.log('✓ [NOTIFICATION STORE] Marking notification as read:', notificationId)
-      await notificationService.markAsRead(notificationId)
+      const service = getNotificationService()
+      await service.markAsRead(notificationId)
 
       // Update local state
       const notification = notifications.value.find((n) => n.id === notificationId)
@@ -133,7 +154,8 @@ export const useNotificationStore = defineStore('notification', () => {
   const markAllAsRead = async () => {
     try {
       console.log('✓ [NOTIFICATION STORE] Marking all as read')
-      await notificationService.markAllAsRead()
+      const service = getNotificationService()
+      await service.markAllAsRead()
 
       // Update local state
       notifications.value.forEach((n) => {
@@ -153,7 +175,8 @@ export const useNotificationStore = defineStore('notification', () => {
   const deleteNotification = async (notificationId: string) => {
     try {
       console.log('🗑️ [NOTIFICATION STORE] Deleting notification:', notificationId)
-      await notificationService.deleteNotification(notificationId)
+      const service = getNotificationService()
+      await service.deleteNotification(notificationId)
 
       // Remove from local state
       const index = notifications.value.findIndex((n) => n.id === notificationId)
@@ -177,7 +200,8 @@ export const useNotificationStore = defineStore('notification', () => {
   const clearAllNotifications = async () => {
     try {
       console.log('🗑️ [NOTIFICATION STORE] Clearing all notifications')
-      await notificationService.clearAll()
+      const service = getNotificationService()
+      await service.clearAll()
       notifications.value = []
       unreadCount.value = 0
       console.log('✓ [NOTIFICATION STORE] Clear all successful')
@@ -192,7 +216,7 @@ export const useNotificationStore = defineStore('notification', () => {
    */
   const startPolling = (interval: number = 5000) => {
     if (pollIntervalId.value) {
-      console.log('⚠️ [NOTIFICATION STORE] Polling already active')
+      console.log('[NOTIFICATION STORE] Polling already active')
       return
     }
 

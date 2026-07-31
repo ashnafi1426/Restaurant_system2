@@ -40,10 +40,10 @@ const availableReservations = computed(() => {
     return isConfirmed
   })
 
-  console.log(`✅ [CHECKIN VIEW COMPUTED] Found ${filtered.length} confirmed reservations`)
+  console.log(` [CHECKIN VIEW COMPUTED] Found ${filtered.length} confirmed reservations`)
 
   if (filtered.length === 0 && reservationStore.reservations.length > 0) {
-    console.warn('⚠️  [CHECKIN VIEW COMPUTED] NO CONFIRMED RESERVATIONS FOUND!')
+    console.warn(' [CHECKIN VIEW COMPUTED] NO CONFIRMED RESERVATIONS FOUND!')
     console.log('📊 [CHECKIN VIEW COMPUTED] Status breakdown:')
     reservationStore.reservations.forEach((r: any) => {
       console.log(`   - ${r.id}: status="${r.status}"`)
@@ -93,7 +93,7 @@ const loadReservations = async () => {
     console.log(' [CHECKIN VIEW] Total reservations:', reservationStore.reservations.length)
 
     if (reservationStore.reservations.length === 0) {
-      console.warn('⚠️  [CHECKIN VIEW] NO RESERVATIONS LOADED FROM API!')
+      console.warn(' [CHECKIN VIEW] NO RESERVATIONS LOADED FROM API!')
       console.log('📊 [CHECKIN VIEW] Store state:')
       console.log('   - reservations:', reservationStore.reservations)
       console.log('   - loading:', reservationStore.loading)

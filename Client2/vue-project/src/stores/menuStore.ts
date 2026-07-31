@@ -54,11 +54,11 @@ export const useMenuStore = defineStore('menu', () => {
         // Format: [...] direct array
         menuItems.value = response.data
       } else {
-        console.warn('⚠️ Unexpected response format:', response.data)
+        console.warn('Unexpected response format:', response.data)
         menuItems.value = []
       }
 
-      console.log('✅ Menu Items Loaded:', menuItems.value.length, 'items')
+      console.log(' Menu Items Loaded:', menuItems.value.length, 'items')
     } catch (error) {
       console.error('❌ Error fetching menu items:', error)
       menuItems.value = []
@@ -80,7 +80,7 @@ export const useMenuStore = defineStore('menu', () => {
         statistics.value = response.data
       }
 
-      console.log('✅ Statistics Loaded:', statistics.value)
+      console.log(' Statistics Loaded:', statistics.value)
     } catch (error) {
       console.error('❌ Error fetching statistics:', error)
       statistics.value = {

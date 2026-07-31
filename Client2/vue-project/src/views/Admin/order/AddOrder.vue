@@ -144,7 +144,7 @@ const filteredRooms = computed(() => {
         description.includes(query) ||
         id.includes(query)
       if (matches) {
-        console.log(`✅ [FILTER] MATCH! Room ${room.room_number} matched query "${query}"`, {
+        console.log(` [FILTER] MATCH! Room ${room.room_number} matched query "${query}"`, {
           roomNumber,
           matches,
         })
@@ -282,7 +282,7 @@ async function initializePage() {
       reservationStore.fetchReservations(),
       guestStore.fetchGuests(),
       roomStore.fetchRooms({ per_page: 100 }), // Request all rooms for complete search
-      menuStore.fetchMenuItems({ per_page: 100 }), // ✅ FETCH MENU ITEMS!
+      menuStore.fetchMenuItems({ per_page: 100 }), //  FETCH MENU ITEMS!
     ])
 
     console.log('Data loaded')
@@ -292,7 +292,7 @@ async function initializePage() {
     console.log('Total menu items loaded:', menuStore.menuItems.length)
     console.log(' Menu items:', menuStore.menuItems)
     if (menuStore.menuItems.length === 0) {
-      console.warn('⚠️ WARNING: No menu items loaded! Check backend API.')
+      console.warn('WARNING: No menu items loaded! Check backend API.')
     }
 
     // If editing or viewing, load the order

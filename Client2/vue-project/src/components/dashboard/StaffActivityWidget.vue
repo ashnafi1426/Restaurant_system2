@@ -24,7 +24,7 @@ const getActivityBg = (index: number) => {
     'from-teal-50 to-transparent',
     'from-blue-50 to-transparent',
     'from-purple-50 to-transparent',
-    'from-pink-50 to-transparent'
+    'from-pink-50 to-transparent',
   ]
   return colors[index % colors.length]
 }
@@ -54,9 +54,7 @@ const formatTime = (timestamp: string) => {
       class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-5 border-b border-gray-100"
     >
       <div>
-        <h3
-          class="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-wide"
-        >
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-wide">
           Staff Activity
         </h3>
         <p class="text-sm text-slate-600 mt-1">Recent staff actions and updates</p>
@@ -67,19 +65,39 @@ const formatTime = (timestamp: string) => {
       >
         <span class="flex items-center gap-2">
           View All
-          <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          <svg
+            class="w-4 h-4 group-hover:translate-x-1 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </span>
       </router-link>
     </div>
 
     <!-- Empty State -->
-    <div v-if="activities.length === 0" class="text-center py-16 flex-1 flex items-center justify-center">
+    <div
+      v-if="activities.length === 0"
+      class="text-center py-16 flex-1 flex items-center justify-center"
+    >
       <div>
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+        <div
+          class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4"
+        >
           <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </div>
         <p class="text-slate-600 font-medium">No recent activity</p>
@@ -127,7 +145,12 @@ const formatTime = (timestamp: string) => {
       >
         <span class="flex items-center justify-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
           </svg>
           Log Activity
         </span>

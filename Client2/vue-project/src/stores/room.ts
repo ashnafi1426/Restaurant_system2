@@ -53,11 +53,11 @@ export const useRoomStore = defineStore('rooms', {
           // Verify each room has required data
           roomsData.forEach((room: any, index: number) => {
             if (!room.room_number) {
-              console.warn(`⚠️ [ROOM STORE] Room ${index} has no room_number!`, room)
+              console.warn(`[ROOM STORE] Room ${index} has no room_number!`, room)
             }
             if (!room.room_type) {
               console.warn(
-                `⚠️ [ROOM STORE] Room ${index} (${room.room_number}) has no room_type!`,
+                `[ROOM STORE] Room ${index} (${room.room_number}) has no room_type!`,
                 room,
               )
             } else {
@@ -68,7 +68,7 @@ export const useRoomStore = defineStore('rooms', {
             }
           })
         } else {
-          console.warn('⚠️ [ROOM STORE] No rooms returned or not an array!')
+          console.warn('[ROOM STORE] No rooms returned or not an array!')
         }
 
         this.rooms = roomsData || []

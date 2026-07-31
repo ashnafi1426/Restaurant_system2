@@ -49,7 +49,7 @@ class ClearMockMenuItemsSeeder extends Seeder
             // Re-enable foreign key checks
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-            echo "\n✅ All menu items deleted from database\n";
+            echo "\n All menu items deleted from database\n";
 
             // Verify deletion
             $afterCount = MenuItem::count();
@@ -64,7 +64,7 @@ class ClearMockMenuItemsSeeder extends Seeder
             echo "   - Drinks: " . MenuItem::where('category', 'drinks')->count() . "\n";
             echo "   - Dessert: " . MenuItem::where('category', 'dessert')->count() . "\n";
 
-            echo "\n✅ Mock menu items cleared successfully!\n";
+            echo "\n Mock menu items cleared successfully!\n";
             echo "   You can now create real menu items via the API.\n\n";
 
         } catch (\Exception $e) {

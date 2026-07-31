@@ -29,7 +29,7 @@
 
       <!-- Info -->
       <div v-if="room.qr_generated_at" class="info">
-        <p>✅ QR Code generated: {{ formatDate(room.qr_generated_at) }}</p>
+        <p> QR Code generated: {{ formatDate(room.qr_generated_at) }}</p>
       </div>
     </div>
 
@@ -54,12 +54,8 @@
     </div>
 
     <!-- Success/Error Messages -->
-    <div v-if="successMessage" class="message success">
-      ✅ {{ successMessage }}
-    </div>
-    <div v-if="errorMessage" class="message error">
-      ❌ {{ errorMessage }}
-    </div>
+    <div v-if="successMessage" class="message success"> {{ successMessage }}</div>
+    <div v-if="errorMessage" class="message error">❌ {{ errorMessage }}</div>
   </div>
 </template>
 
@@ -107,7 +103,7 @@ const loadQRCode = async () => {
         qr_image_path: qrData.qr_image_path,
         qr_generated_at: qrData.qr_generated_at,
       })
-      console.log('✅ QR code loaded:', {
+      console.log(' QR code loaded:', {
         room_id: props.room.id,
         url: qrData.qr_url,
         token: qrData.qr_token,
@@ -149,12 +145,12 @@ const downloadQRCode = async () => {
     }
 
     const blob = await response.blob()
-    
+
     if (blob.size === 0) {
       throw new Error('Downloaded file is empty')
     }
 
-    console.log(`✅ Blob received: ${blob.size} bytes, type: ${blob.type}`)
+    console.log(` Blob received: ${blob.size} bytes, type: ${blob.type}`)
 
     // Create blob URL and trigger download
     const blobUrl = window.URL.createObjectURL(blob)
@@ -162,25 +158,25 @@ const downloadQRCode = async () => {
     link.href = blobUrl
     link.download = `Room_${props.room.room_number}_QR.png`
     link.style.display = 'none'
-    
+
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    
+
     // Clean up blob URL after a short delay
     setTimeout(() => {
       window.URL.revokeObjectURL(blobUrl)
     }, 100)
 
-    successMessage.value = `✅ QR code downloaded: Room_${props.room.room_number}_QR.png`
-    console.log('✅ Download successful for room:', props.room.id)
+    successMessage.value = ` QR code downloaded: Room_${props.room.room_number}_QR.png`
+    console.log(' Download successful for room:', props.room.id)
   } catch (err: any) {
     const message = err.message || 'Failed to download QR code'
     errorMessage.value = message
     console.error('❌ Download Error:', err)
 
     // Fallback: Try direct URL access via storage symlink
-    console.log('⚠️ Fallback: Trying direct storage URL access...')
+    console.log('Fallback: Trying direct storage URL access...')
     try {
       const directUrl = props.room.qr_code_url
       console.log('📥 Direct URL:', directUrl)
@@ -205,8 +201,8 @@ const downloadQRCode = async () => {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(blobUrl)
 
-      successMessage.value = `✅ QR code downloaded: Room_${props.room.room_number}_QR.png (direct)`
-      console.log('✅ Fallback download successful')
+      successMessage.value = ` QR code downloaded: Room_${props.room.room_number}_QR.png (direct)`
+      console.log(' Fallback download successful')
     } catch (fallbackErr: any) {
       console.error('❌ Both methods failed:', fallbackErr)
       errorMessage.value = `Download failed: ${fallbackErr.message}`
@@ -238,7 +234,7 @@ const printQRCode = async () => {
       printWindow.document.write(response.data)
       printWindow.document.close()
       printWindow.focus()
-      
+
       // Delay print dialog to ensure content is loaded
       setTimeout(() => {
         printWindow.print()
@@ -247,7 +243,7 @@ const printQRCode = async () => {
       throw new Error('Could not open print window. Check browser popup settings.')
     }
 
-    successMessage.value = '✅ Print dialog opened - Ready to print'
+    successMessage.value = ' Print dialog opened - Ready to print'
     console.log('Print template opened for room:', props.room.id)
   } catch (err: any) {
     const message = err.response?.data?.message || err.message || 'Failed to open print template'
@@ -278,7 +274,7 @@ const regenerateQRCode = async () => {
         qr_generated_at: qrData.qr_generated_at,
       })
 
-      successMessage.value = `✅ QR code regenerated successfully for Room ${props.room.room_number}`
+      successMessage.value = ` QR code regenerated successfully for Room ${props.room.room_number}`
       console.log('QR regenerated for room:', props.room.id)
     } else {
       throw new Error(response.data.message || 'Regeneration failed')
@@ -320,7 +316,7 @@ watch(
     if (props.room.id) {
       loadQRCode()
     }
-  }
+  },
 )
 </script>
 

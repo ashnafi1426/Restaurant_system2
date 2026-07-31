@@ -24,7 +24,9 @@ const emit = defineEmits<{
 }>()
 
 const featuredItems = computed(() => {
-  return (props.items || []).filter(item => item.badge === '20% OFF' || item.badge === 'Chef\'s Special').slice(0, 3)
+  return (props.items || [])
+    .filter((item) => item.badge === '20% OFF' || item.badge === "Chef's Special")
+    .slice(0, 3)
 })
 
 const getImageUrl = (imagePath?: string | null) => {
@@ -60,12 +62,16 @@ const getImageUrl = (imagePath?: string | null) => {
           />
 
           <!-- Badge -->
-          <span class="absolute top-3 right-3 bg-red-500 text-white font-bold px-3 py-1 rounded-full text-sm">
+          <span
+            class="absolute top-3 right-3 bg-red-500 text-white font-bold px-3 py-1 rounded-full text-sm"
+          >
             {{ item.badge }}
           </span>
 
           <!-- Overlay -->
-          <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+          <div
+            class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100"
+          >
             <button
               @click="emit('add-to-cart', item)"
               class="bg-teal-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-teal-700"
@@ -96,5 +102,4 @@ const getImageUrl = (imagePath?: string | null) => {
   </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

@@ -169,16 +169,25 @@ onMounted(() => {
         class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
         @click.self="closeDialog"
       >
-        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        <div
+          class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+        >
           <!-- Header -->
-          <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between">
+          <div
+            class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between"
+          >
             <h2 class="text-xl font-bold text-white">Manage Categories</h2>
             <button
               @click="closeDialog"
               class="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
             >
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
               </svg>
             </button>
           </div>
@@ -187,12 +196,17 @@ onMounted(() => {
           <div class="flex-1 overflow-y-auto">
             <div class="p-6">
               <!-- Add Form -->
-              <div v-if="showAddForm" class="mb-8 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+              <div
+                v-if="showAddForm"
+                class="mb-8 p-4 bg-indigo-50 rounded-lg border border-indigo-200"
+              >
                 <h3 class="text-lg font-bold text-gray-900 mb-4">{{ formTitle }}</h3>
 
                 <div class="space-y-4">
                   <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Category Name *</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Category Name *</label
+                    >
                     <input
                       v-model="formData.name"
                       type="text"
@@ -202,7 +216,9 @@ onMounted(() => {
                   </div>
 
                   <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2"
+                      >Description</label
+                    >
                     <textarea
                       v-model="formData.description"
                       placeholder="Brief description of the category"
@@ -224,7 +240,9 @@ onMounted(() => {
                     </div>
 
                     <div>
-                      <label class="block text-sm font-semibold text-gray-700 mb-2">Display Order</label>
+                      <label class="block text-sm font-semibold text-gray-700 mb-2"
+                        >Display Order</label
+                      >
                       <input
                         v-model.number="formData.display_order"
                         type="number"
@@ -270,14 +288,21 @@ onMounted(() => {
                   class="mb-6 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition flex items-center gap-2"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 4v16m8-8H4"
+                    ></path>
                   </svg>
                   Add New Category
                 </button>
 
                 <!-- Loading State -->
                 <div v-if="isLoading" class="flex justify-center py-8">
-                  <div class="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                  <div
+                    class="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"
+                  ></div>
                 </div>
 
                 <!-- Categories Table -->
@@ -285,16 +310,32 @@ onMounted(() => {
                   <table class="w-full border-collapse">
                     <thead>
                       <tr class="bg-gray-50 border-b border-gray-200">
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Icon</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Description</th>
-                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Items</th>
-                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Status</th>
-                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Actions</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                          Icon
+                        </th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                          Name
+                        </th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                          Description
+                        </th>
+                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                          Items
+                        </th>
+                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                          Status
+                        </th>
+                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="category in categories" :key="category.id" class="border-b border-gray-200 hover:bg-gray-50">
+                      <tr
+                        v-for="category in categories"
+                        :key="category.id"
+                        class="border-b border-gray-200 hover:bg-gray-50"
+                      >
                         <td class="px-4 py-3">
                           <span class="text-2xl">{{ category.icon }}</span>
                         </td>
@@ -303,7 +344,9 @@ onMounted(() => {
                           {{ category.description || '-' }}
                         </td>
                         <td class="px-4 py-3 text-center">
-                          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                          <span
+                            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                          >
                             {{ category.menu_items_count || 0 }}
                           </span>
                         </td>
@@ -344,7 +387,9 @@ onMounted(() => {
                 <!-- Empty State -->
                 <div v-else class="text-center py-8">
                   <span class="text-4xl block mb-3">📭</span>
-                  <p class="text-gray-600 font-semibold">No categories found. Create your first one!</p>
+                  <p class="text-gray-600 font-semibold">
+                    No categories found. Create your first one!
+                  </p>
                 </div>
               </div>
             </div>

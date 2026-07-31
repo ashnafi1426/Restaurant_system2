@@ -15,6 +15,7 @@ class Room extends Model
         'room_number',
         'room_type_id',
         'floor',
+        'floor_id',
         'description',
         'status',
         'is_active',
@@ -26,6 +27,7 @@ class Room extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'qr_generated_at' => 'datetime',
+        'floor_id' => 'string',
     ];
     
     /**
@@ -39,7 +41,6 @@ class Room extends Model
                 $room->qr_token = self::generateUniqueToken();
             }
         });
-        
         static::created(function ($room) {
             // Generate QR code image after room is created
             try {
@@ -88,6 +89,14 @@ class Room extends Model
     }
     
     /**
+     * Get the hotel floor associated with this room
+     */
+    public function hotelFloor()
+    {
+        return $this->belongsTo(HotelFloor::class, 'floor_id', 'id');
+    }
+    
+    /**
      * Get full QR code image URL
      */
     public function getQRCodeUrlAttribute()
@@ -117,5 +126,31 @@ class Room extends Model
                   $query->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($searchTerm) . '%']);
               });
         });
+    }
+
+    /**
+     * Safely resolve the associated floor ID for this room without parsing the room number.
+     * Prefers direct relationship, falls back to querying the floor attribute.
+     */
+    public function getFloorId(): ?string
+    {
+        if ($this->floor_id) {
+            return $this->floor_id;
+        }
+
+        if ($this->hotelFloor) {
+            return $this->hotelFloor->id;
+        }
+
+        if ($this->floor) {
+            $hotelFloor = HotelFloor::where('floor_number', $this->floor)
+                                    ->orWhere('name', $this->floor)
+                                    ->first();
+            if ($hotelFloor) {
+                return $hotelFloor->id;
+            }
+        }
+
+        return null;
     }
 }

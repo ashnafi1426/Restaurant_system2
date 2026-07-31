@@ -28,13 +28,14 @@ const formatTime = (dateTime: string) => {
 // Filter orders by search query
 const filteredOrders = computed(() => {
   if (!searchQuery.value) return completedOrders.value || []
-  
+
   const query = searchQuery.value.toLowerCase()
-  return (completedOrders.value || []).filter(order =>
-    order.order_number?.toString().includes(query) ||
-    order.room?.room_number?.toString().includes(query) ||
-    order.guest?.full_name?.toLowerCase().includes(query) ||
-    order.items?.some(item => item.name?.toLowerCase().includes(query))
+  return (completedOrders.value || []).filter(
+    (order) =>
+      order.order_number?.toString().includes(query) ||
+      order.room?.room_number?.toString().includes(query) ||
+      order.guest?.full_name?.toLowerCase().includes(query) ||
+      order.items?.some((item) => item.name?.toLowerCase().includes(query)),
   )
 })
 
@@ -141,8 +142,8 @@ const getPaginationRange = (): number[] => {
 
         <!-- Results Counter -->
         <div v-if="filteredOrders.length > 0" class="mt-3 text-sm text-slate-600">
-          Found <span class="font-bold text-green-600">{{ filteredOrders.length }}</span>
-          served order<span v-if="filteredOrders.length !== 1">s</span>
+          Found <span class="font-bold text-green-600">{{ filteredOrders.length }}</span> served
+          order<span v-if="filteredOrders.length !== 1">s</span>
         </div>
         <div v-else-if="searchQuery" class="mt-3 text-sm text-slate-500">
           No orders match "{{ searchQuery }}"
@@ -203,7 +204,10 @@ const getPaginationRange = (): number[] => {
                   >
                     <span class="font-semibold">{{ item.quantity }}x</span> {{ item.name }}
                   </div>
-                  <div v-if="(order.items || []).length > 2" class="text-xs text-slate-500 font-semibold">
+                  <div
+                    v-if="(order.items || []).length > 2"
+                    class="text-xs text-slate-500 font-semibold"
+                  >
                     +{{ (order.items || []).length - 2 }} more items
                   </div>
                 </div>
@@ -225,7 +229,9 @@ const getPaginationRange = (): number[] => {
 
               <!-- Status -->
               <td class="px-4 py-3 text-center">
-                <span class="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
+                <span
+                  class="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold"
+                >
                   ✓ Served
                 </span>
               </td>
@@ -250,7 +256,9 @@ const getPaginationRange = (): number[] => {
         <div class="flex flex-col lg:flex-row items-center justify-between gap-4 sm:gap-6">
           <!-- Left: Items per page selector -->
           <div class="flex items-center gap-3">
-            <label for="itemsPerPage" class="text-sm font-semibold text-slate-700">Items per page:</label>
+            <label for="itemsPerPage" class="text-sm font-semibold text-slate-700"
+              >Items per page:</label
+            >
             <select
               id="itemsPerPage"
               :value="itemsPerPage"

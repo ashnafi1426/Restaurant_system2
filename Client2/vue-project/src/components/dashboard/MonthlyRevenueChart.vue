@@ -170,7 +170,7 @@ const fetchRevenueData = async (timeframe: 'week' | 'month' | 'year') => {
   try {
     loading.value = true
     error.value = null
-    
+
     // Try to fetch from backend API with timeframe parameter
     const response = await api.get('/admin/dashboard/revenue', {
       params: {
@@ -180,7 +180,7 @@ const fetchRevenueData = async (timeframe: 'week' | 'month' | 'year') => {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
     })
-    
+
     // Extract revenue data from response
     if (response.data && Array.isArray(response.data.data)) {
       revenueData.value = response.data.data
@@ -190,7 +190,7 @@ const fetchRevenueData = async (timeframe: 'week' | 'month' | 'year') => {
       // Fallback to sample data if backend doesn't have the endpoint
       revenueData.value = sampleData[timeframe]
     }
-    
+
     updateChart()
   } catch (err: any) {
     console.warn(`Failed to fetch ${timeframe} revenue data from backend, using sample data:`, err)
@@ -205,7 +205,7 @@ const fetchRevenueData = async (timeframe: 'week' | 'month' | 'year') => {
 const updateChart = () => {
   chartData.value.labels = revenueData.value.map((d) => d.month)
   chartData.value.datasets[0].data = revenueData.value.map((d) => d.revenue)
-  
+
   const revenues = revenueData.value.map((d) => d.revenue)
   totalRevenue.value = revenues.reduce((a, b) => a + b, 0)
   averageRevenue.value = revenues.length > 0 ? Math.round(totalRevenue.value / revenues.length) : 0
@@ -250,12 +250,8 @@ watch(
       class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-5 border-b border-gray-100"
     >
       <div class="flex-1">
-        <h3 class="text-xl sm:text-2xl font-bold text-slate-900">
-          Revenue Analytics
-        </h3>
-        <p class="text-sm text-slate-600 mt-1.5">
-          Financial performance and revenue trends
-        </p>
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900">Revenue Analytics</h3>
+        <p class="text-sm text-slate-600 mt-1.5">Financial performance and revenue trends</p>
       </div>
       <div class="flex gap-2 flex-wrap">
         <button
@@ -295,21 +291,27 @@ watch(
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
-      <div class="p-3 sm:p-4 bg-gradient-to-br from-teal-50 to-teal-100/30 rounded-lg border border-teal-200">
+      <div
+        class="p-3 sm:p-4 bg-gradient-to-br from-teal-50 to-teal-100/30 rounded-lg border border-teal-200"
+      >
         <p class="text-xs text-teal-700 font-semibold uppercase tracking-wide">Total Revenue</p>
         <p class="text-xl sm:text-2xl font-bold text-teal-900 mt-1">
           <span v-if="loading" class="text-base">Loading...</span>
           <span v-else>${{ (totalRevenue / 1000).toFixed(1) }}k</span>
         </p>
       </div>
-      <div class="p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-blue-100/30 rounded-lg border border-blue-200">
+      <div
+        class="p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-blue-100/30 rounded-lg border border-blue-200"
+      >
         <p class="text-xs text-blue-700 font-semibold uppercase tracking-wide">Average</p>
         <p class="text-xl sm:text-2xl font-bold text-blue-900 mt-1">
           <span v-if="loading" class="text-base">Loading...</span>
           <span v-else>${{ (averageRevenue / 1000).toFixed(1) }}k</span>
         </p>
       </div>
-      <div class="p-3 sm:p-4 bg-gradient-to-br from-emerald-50 to-emerald-100/30 rounded-lg border border-emerald-200">
+      <div
+        class="p-3 sm:p-4 bg-gradient-to-br from-emerald-50 to-emerald-100/30 rounded-lg border border-emerald-200"
+      >
         <p class="text-xs text-emerald-700 font-semibold uppercase tracking-wide">Peak Revenue</p>
         <p class="text-xl sm:text-2xl font-bold text-emerald-900 mt-1">
           <span v-if="loading" class="text-base">Loading...</span>
@@ -317,14 +319,16 @@ watch(
         </p>
       </div>
     </div>
-    
+
     <!-- Chart Container -->
     <div class="overflow-x-auto -mx-4 sm:-mx-6 lg:-mx-8">
       <div class="px-4 sm:px-6 lg:px-8">
         <div class="min-h-80 sm:min-h-96">
           <div v-if="loading" class="flex items-center justify-center h-full">
             <div class="text-center">
-              <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mx-auto mb-3"></div>
+              <div
+                class="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mx-auto mb-3"
+              ></div>
               <p class="text-slate-600 font-medium">Loading chart data...</p>
             </div>
           </div>

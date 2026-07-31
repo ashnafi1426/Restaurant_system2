@@ -83,11 +83,11 @@ onMounted(async () => {
 async function startPreparing(orderId: string) {
   // Clear previous notification
   notification.value.show = false
-  
+
   try {
     console.log(`🔵 [UI] START button clicked for order: ${orderId}`)
     await kitchenStore.startPreparing(orderId)
-    
+
     // Check if error occurred during the action
     if (error.value) {
       console.error(`❌ [UI] Error from store:`, error.value)
@@ -97,7 +97,7 @@ async function startPreparing(orderId: string) {
         message: error.value,
       }
     } else {
-      console.log(`✅ [UI] Order started successfully`)
+      console.log(` [UI] Order started successfully`)
       notification.value = {
         show: true,
         type: 'success',
@@ -127,7 +127,7 @@ const formatTime = (dateTime: string) => {
 
 <template>
   <DashboardLayout>
-    <!-- ✅ Error Notification Toast -->
+    <!--  Error Notification Toast -->
     <Teleport to="body" v-if="notification.show">
       <div class="fixed top-4 right-4 z-50 animate-fade-in">
         <div
@@ -138,7 +138,9 @@ const formatTime = (dateTime: string) => {
               : 'bg-green-50 text-green-900 border-green-500',
           ]"
         >
-          <span class="text-xl flex-shrink-0">{{ notification.type === 'error' ? '❌' : '✅' }}</span>
+          <span class="text-xl flex-shrink-0">{{
+            notification.type === 'error' ? '❌' : ''
+          }}</span>
           <span class="flex-1">{{ notification.message }}</span>
           <button
             @click="notification.show = false"
@@ -220,7 +222,10 @@ const formatTime = (dateTime: string) => {
                       📝 {{ item.notes }}
                     </span>
                   </div>
-                  <div v-if="(order.items || []).length > 2" class="text-xs text-slate-500 font-semibold">
+                  <div
+                    v-if="(order.items || []).length > 2"
+                    class="text-xs text-slate-500 font-semibold"
+                  >
                     +{{ (order.items || []).length - 2 }} more items
                   </div>
                 </div>
@@ -229,7 +234,7 @@ const formatTime = (dateTime: string) => {
               <!-- Notes -->
               <td class="px-4 py-3">
                 <div v-if="order.notes" class="text-xs text-red-600 font-bold">
-                  ⚠️ {{ order.notes }}
+                  {{ order.notes }}
                 </div>
                 <div v-else class="text-xs text-slate-400">—</div>
               </td>
@@ -257,7 +262,9 @@ const formatTime = (dateTime: string) => {
                 >
                   <span v-if="actionLoading === order.id" class="inline-block animate-spin">⟳</span>
                   <span v-else>👨‍🍳</span>
-                  <span class="hidden sm:inline">{{ actionLoading === order.id ? 'STARTING...' : 'START' }}</span>
+                  <span class="hidden sm:inline">{{
+                    actionLoading === order.id ? 'STARTING...' : 'START'
+                  }}</span>
                 </button>
               </td>
             </tr>
@@ -266,17 +273,22 @@ const formatTime = (dateTime: string) => {
 
         <!-- Empty State -->
         <div v-else class="text-center py-16 bg-slate-50">
-          <p class="text-6xl mb-4">✅</p>
+          <p class="text-6xl mb-4"></p>
           <p class="text-2xl font-bold text-slate-900">No Pending Orders</p>
           <p class="text-slate-500 mt-2">All orders have been started!</p>
         </div>
       </div>
 
       <!-- Pagination Section -->
-      <div v-if="pendingOrders?.length" class="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-4 bg-white rounded-lg shadow-md">
+      <div
+        v-if="pendingOrders?.length"
+        class="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-4 bg-white rounded-lg shadow-md"
+      >
         <!-- Left: Items per page selector -->
         <div class="flex items-center gap-3">
-          <label for="itemsPerPage" class="text-sm font-semibold text-slate-700">Items per page:</label>
+          <label for="itemsPerPage" class="text-sm font-semibold text-slate-700"
+            >Items per page:</label
+          >
           <select
             id="itemsPerPage"
             :value="itemsPerPage"

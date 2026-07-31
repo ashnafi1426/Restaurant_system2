@@ -110,74 +110,147 @@ export const useReservationStore = defineStore('reservation', () => {
   }
 
   const confirmReservation = async (id: string) => {
-    loading.value = true
-
     try {
       console.log(' [STORE] Confirming reservation:', id)
+
+      // Find the reservation index
+      const index = reservations.value.findIndex((r) => r.id === id)
+      if (index === -1) throw new Error('Reservation not found')
+
+      // Optimistic update - update immediately
+      reservations.value[index].status = 'confirmed'
+
       const response = await reservationService.confirmReservation(id)
       console.log(' [STORE] Confirm response:', response)
-      await fetchReservations()
+      console.log(' [STORE] Response type:', typeof response)
+      console.log(' [STORE] Response.data:', response?.data)
+
+      // Backend returns { message, data: ReservationResource }
+      // axios wraps it in response.data, so we get { message, data }
+      const reservationData = response?.data || response
+
+      if (reservationData) {
+        reservations.value[index] = reservationData
+        console.log(' [STORE] Reservation updated:', reservationData)
+      }
+
       return response
     } catch (error: any) {
       console.error(' [STORE] Confirm error:', error.message)
       console.error(' [STORE] Confirm error response:', error.response?.data)
+
+      // Rollback on error - revert status
+      const index = reservations.value.findIndex((r) => r.id === id)
+      if (index !== -1) {
+        reservations.value[index].status = 'pending'
+      }
+
       throw error
-    } finally {
-      loading.value = false
     }
   }
 
   const checkInReservation = async (id: string) => {
-    loading.value = true
-
     try {
       console.log('🔓 [STORE] Checking in reservation:', id)
+
+      // Find the reservation index
+      const index = reservations.value.findIndex((r) => r.id === id)
+      if (index === -1) throw new Error('Reservation not found')
+
+      // Optimistic update
+      reservations.value[index].status = 'checked_in'
+
       const response = await reservationService.checkInReservation(id)
       console.log('🔓 [STORE] Check-in response:', response)
-      await fetchReservations()
+
+      const reservationData = response?.data || response
+
+      if (reservationData) {
+        reservations.value[index] = reservationData
+      }
+
       return response
     } catch (error: any) {
       console.error(' [STORE] Check-in error:', error.message)
       console.error(' [STORE] Check-in error response:', error.response?.data)
+
+      // Rollback
+      const index = reservations.value.findIndex((r) => r.id === id)
+      if (index !== -1) {
+        reservations.value[index].status = 'confirmed'
+      }
+
       throw error
-    } finally {
-      loading.value = false
     }
   }
 
   const checkOutReservation = async (id: string) => {
-    loading.value = true
-
     try {
       console.log('🚪 [STORE] Checking out reservation:', id)
+
+      // Find the reservation index
+      const index = reservations.value.findIndex((r) => r.id === id)
+      if (index === -1) throw new Error('Reservation not found')
+
+      // Optimistic update
+      reservations.value[index].status = 'checked_out'
+
       const response = await reservationService.checkOutReservation(id)
       console.log('🚪 [STORE] Check-out response:', response)
-      await fetchReservations()
+
+      const reservationData = response?.data || response
+
+      if (reservationData) {
+        reservations.value[index] = reservationData
+      }
+
       return response
     } catch (error: any) {
       console.error(' [STORE] Check-out error:', error.message)
       console.error(' [STORE] Check-out error response:', error.response?.data)
+
+      // Rollback
+      const index = reservations.value.findIndex((r) => r.id === id)
+      if (index !== -1) {
+        reservations.value[index].status = 'checked_in'
+      }
+
       throw error
-    } finally {
-      loading.value = false
     }
   }
 
   const cancelReservationAction = async (id: string) => {
-    loading.value = true
-
     try {
       console.log(' [STORE] Cancelling reservation:', id)
+
+      // Find the reservation index
+      const index = reservations.value.findIndex((r) => r.id === id)
+      if (index === -1) throw new Error('Reservation not found')
+
+      // Optimistic update
+      reservations.value[index].status = 'cancelled'
+
       const response = await reservationService.cancelReservation(id)
       console.log(' [STORE] Cancel response:', response)
-      await fetchReservations()
+
+      const reservationData = response?.data || response
+
+      if (reservationData) {
+        reservations.value[index] = reservationData
+      }
+
       return response
     } catch (error: any) {
       console.error(' [STORE] Cancel error:', error.message)
       console.error(' [STORE] Cancel error response:', error.response?.data)
+
+      // Rollback
+      const index = reservations.value.findIndex((r) => r.id === id)
+      if (index !== -1) {
+        reservations.value[index].status = 'confirmed'
+      }
+
       throw error
-    } finally {
-      loading.value = false
     }
   }
 

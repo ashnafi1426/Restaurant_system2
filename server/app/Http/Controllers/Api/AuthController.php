@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Authrequest;
 use App\Http\Resources\AuthResource;
@@ -13,56 +14,48 @@ class AuthController extends Controller
 {
     public function login(Authrequest $request)
     {
-        // Log incoming request
-        \Log::info('Login attempt', [
+        Log::info('Login attempt', [
             'email' => $request->email,
             'password_length' => strlen($request->password),
             'password_chars' => mb_strlen($request->password),
             'timestamp' => now(),
         ]);
-
         try {
             $user = User::where(
                 'email',
                 $request->email
             )->first();
-            
             if (!$user) {
-                \Log::warning('Login: User not found', ['email' => $request->email]);
+                Log::warning('Login: User not found', ['email' => $request->email]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid credentials'
                 ], 401);
             }
-
             $passwordMatches = Hash::check(
                 $request->password,
                 $user->password_hash
             );
-            
-            \Log::info('Login: Password check', [
+            Log::info('Login: Password check', [
                 'user_email' => $user->email,
                 'attempted_password' => $request->password,
                 'password_hash' => substr($user->password_hash, 0, 20) . '...',
                 'match' => $passwordMatches ? 'YES' : 'NO',
             ]);
-
             if (!$passwordMatches) {
-                \Log::warning('Login: Password mismatch', ['email' => $request->email]);
+                Log::warning('Login: Password mismatch', ['email' => $request->email]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid credentials'
                 ], 401);
             }
-
             if (!$user->is_active) {
-                \Log::warning('Login: Account disabled', ['email' => $request->email]);
+                Log::warning('Login: Account disabled', ['email' => $request->email]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Account disabled'
                 ], 403);
             }
-
             $user->update([
                 'last_login' => now()
             ]);
@@ -71,7 +64,7 @@ class AuthController extends Controller
                 ->createToken('hotel_token')
                 ->plainTextToken;
 
-            \Log::info('Login: Success', [
+            Log::info('Login: Success', [
                 'user_email' => $user->email,
                 'token' => substr($token, 0, 20) . '...',
                 'timestamp' => now(),
@@ -84,7 +77,7 @@ class AuthController extends Controller
                 'user' => new AuthResource($user)
             ]);
         } catch (\Exception $exception) {
-            \Log::error('Login: Exception', [
+            Log::error('Login: Exception', [
                 'email' => $request->email,
                 'error_message' => $exception->getMessage(),
                 'error_file' => $exception->getFile(),
@@ -97,10 +90,6 @@ class AuthController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Current User
-     */
     public function me(Request $request)
     {
         return response()->json([

@@ -65,7 +65,7 @@ async function loadTestimonials() {
   } catch (err: any) {
     error.value = err.message || 'Failed to load testimonials'
     console.error('[Testimonial] Error loading testimonials:', err)
-    
+
     // Fallback to mock data
     testimonials.value = mockTestimonials
   } finally {
@@ -106,11 +106,16 @@ onMounted(() => {
 
       <!-- Loading -->
       <div v-if="loading" class="flex justify-center py-12">
-        <div class="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+        <div
+          class="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent"
+        />
       </div>
 
       <!-- Testimonials -->
-      <div v-if="!loading && testimonials.length > 0" class="grid gap-6 sm:gap-8 md:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        v-if="!loading && testimonials.length > 0"
+        class="grid gap-6 sm:gap-8 md:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+      >
         <article
           v-for="guest in testimonials"
           :key="guest.id"

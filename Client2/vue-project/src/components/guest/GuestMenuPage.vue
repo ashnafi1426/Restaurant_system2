@@ -51,7 +51,7 @@ console.log('[GuestMenuPage Init]', {
   routeQrToken: routeQrToken,
   roomNumber: roomNumber.value,
   guestName: guestName.value,
-  localStorage: typeof localStorage !== 'undefined' ? 'available' : 'unavailable'
+  localStorage: typeof localStorage !== 'undefined' ? 'available' : 'unavailable',
 })
 
 /*
@@ -235,7 +235,7 @@ async function loadMenu() {
 
   try {
     if (!qrToken.value) {
-      throw new Error('⚠️ QR token not set. Please set it in localStorage first.')
+      throw new Error('QR token not set. Please set it in localStorage first.')
     }
 
     console.log('[Menu Loading]', {
@@ -274,7 +274,7 @@ async function loadMenu() {
       menuItems.value = allItems
       categories.value = Array.from(cats).sort()
 
-      console.log('[✅ Menu Loaded Successfully]', {
+      console.log('[ Menu Loaded Successfully]', {
         qr_token: qrToken.value,
         total_items: allItems.length,
         categories: categories.value,
@@ -286,9 +286,9 @@ async function loadMenu() {
     const apiMessage = err.response?.data?.message
     const apiError = err.response?.data?.error
     const userMessage = apiMessage || apiError || err.message || 'Failed to load menu'
-    
+
     error.value = userMessage
-    
+
     console.error('[❌ Menu Load Error]', {
       error: userMessage,
       qr_token: qrToken.value,
@@ -322,11 +322,7 @@ onMounted(() => {
     loadMenu()
   }
 })
-
-
 </script>
-
-
 
 <template>
   <div class="min-h-screen bg-gray-50">
@@ -334,8 +330,12 @@ onMounted(() => {
     <div v-if="error" class="bg-red-50 border-l-4 border-red-500 p-4 sticky top-0 z-40">
       <div class="flex items-center gap-3">
         <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 9v2m0 4v2m0-12a9 9 0 110 18 9 9 0 010-18z" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4v2m0-12a9 9 0 110 18 9 9 0 010-18z"
+          />
         </svg>
         <div>
           <h3 class="font-semibold text-red-800">Error Loading Menu</h3>
@@ -380,11 +380,7 @@ onMounted(() => {
       <PopularItems :items="menuItems" @add="addToCart" />
 
       <!-- ALL MENU -->
-      <MenuGrid
-        :items="filteredMenu"
-        :loading="loading"
-        @add="addToCart"
-      />
+      <MenuGrid :items="filteredMenu" :loading="loading" @add="addToCart" />
 
       <!-- FLOATING CART -->
       <FloatingCart :count="cartCount" @open="openCart" />
@@ -407,8 +403,8 @@ onMounted(() => {
       <OrderStatusTimeline v-if="createdOrder" :status="orderStatus" />
 
       <!-- SUCCESS -->
-      <OrderSuccessDialog 
-        v-model="orderSuccess" 
+      <OrderSuccessDialog
+        v-model="orderSuccess"
         :order-id="createdOrder?.id || ''"
         :room-number="roomNumber"
         :estimated-minutes="20"

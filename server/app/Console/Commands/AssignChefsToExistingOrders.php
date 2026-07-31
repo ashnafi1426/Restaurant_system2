@@ -36,7 +36,7 @@ class AssignChefsToExistingOrders extends Command
         $total = $unassignedOrders->count();
 
         if ($total === 0) {
-            $this->info('✅ No unassigned orders found!');
+            $this->info(' No unassigned orders found!');
             return 0;
         }
 
@@ -83,7 +83,7 @@ class AssignChefsToExistingOrders extends Command
         $bar->finish();
         $this->newLine();
 
-        $this->info("✅ Successfully assigned {$assigned} orders to chefs!");
+        $this->info(" Successfully assigned {$assigned} orders to chefs!");
 
         return 0;
     }

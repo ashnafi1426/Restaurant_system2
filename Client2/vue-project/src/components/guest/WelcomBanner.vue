@@ -36,21 +36,13 @@ const currentDate = computed(() => {
 </script>
 
 <template>
-  <div
-    class="relative overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-sm"
-  >
-    <div
-      class="absolute inset-0 bg-gradient-to-r from-teal-50 via-white to-amber-50"
-    />
+  <div class="relative overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-sm">
+    <div class="absolute inset-0 bg-gradient-to-r from-teal-50 via-white to-amber-50" />
 
     <div class="relative p-6 md:p-8">
       <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-
         <div class="flex items-center gap-4">
-
-          <div
-            class="w-16 h-16 rounded-2xl bg-teal-100 flex items-center justify-center text-2xl"
-          >
+          <div class="w-16 h-16 rounded-2xl bg-teal-100 flex items-center justify-center text-2xl">
             👤
           </div>
 
@@ -67,20 +59,14 @@ const currentDate = computed(() => {
               Enjoy freshly prepared meals delivered directly to your room.
             </p>
           </div>
-
         </div>
 
         <div class="flex flex-col gap-3">
-
-          <div
-            class="px-4 py-2 rounded-xl bg-teal-600 text-white font-semibold"
-          >
+          <div class="px-4 py-2 rounded-xl bg-teal-600 text-white font-semibold">
             Room {{ props.roomNumber }}
           </div>
 
-          <div
-            class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm"
-          >
+          <div class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm">
             {{ currentDate }}
           </div>
         </div>

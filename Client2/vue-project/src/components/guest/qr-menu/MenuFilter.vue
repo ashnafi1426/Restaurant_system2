@@ -1,7 +1,9 @@
 <template>
   <div class="luxury-filter-container">
     <!-- Main Toolbar -->
-    <div class="luxury-filter-toolbar bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 px-6 md:px-8 py-5 md:py-6 sticky top-32 z-40">
+    <div
+      class="luxury-filter-toolbar bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 px-6 md:px-8 py-5 md:py-6 sticky top-32 z-40"
+    >
       <!-- Content Container - Horizontal Layout -->
       <div class="flex items-center gap-4 md:gap-6">
         <!-- Sort Dropdown -->
@@ -10,13 +12,34 @@
             @click="showSortDropdown = !showSortDropdown"
             class="flex items-center gap-3 px-5 py-3 border-2 border-gray-200 hover:border-amber-400 rounded-2xl transition-all duration-300 text-sm font-semibold text-gray-700 hover:bg-amber-50 group-hover:shadow-md"
           >
-            <svg class="w-5 h-5 text-gray-600 group-hover:text-amber-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+            <svg
+              class="w-5 h-5 text-gray-600 group-hover:text-amber-500 transition-colors"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+              ></path>
             </svg>
             <span class="hidden sm:inline">{{ currentSort.label }}</span>
             <span class="sm:hidden">Sort</span>
-            <svg class="w-4 h-4 text-gray-600 transition-transform duration-300" :class="{ 'rotate-180': showSortDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+            <svg
+              class="w-4 h-4 text-gray-600 transition-transform duration-300"
+              :class="{ 'rotate-180': showSortDropdown }"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              ></path>
             </svg>
           </button>
 
@@ -34,7 +57,7 @@
                   'w-full text-left px-5 py-3.5 text-sm font-medium transition-all duration-200',
                   currentSort.value === option.value
                     ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-white'
-                    : 'text-gray-700 hover:bg-amber-50 hover:border-l-4 hover:border-amber-400 hover:pl-4'
+                    : 'text-gray-700 hover:bg-amber-50 hover:border-l-4 hover:border-amber-400 hover:pl-4',
                 ]"
               >
                 {{ option.label }}
@@ -44,7 +67,9 @@
         </div>
 
         <!-- Divider -->
-        <div class="hidden sm:block w-px h-8 bg-gradient-to-b from-transparent via-gray-300 to-transparent"></div>
+        <div
+          class="hidden sm:block w-px h-8 bg-gradient-to-b from-transparent via-gray-300 to-transparent"
+        ></div>
 
         <!-- View Mode Toggle - Grid/List -->
         <div class="flex items-center gap-2 bg-gray-100/50 rounded-2xl p-1.5 backdrop-blur-sm">
@@ -54,7 +79,7 @@
               'p-3 rounded-xl transition-all duration-300 font-semibold',
               viewMode === 'grid'
                 ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg hover:shadow-xl hover:from-amber-500 hover:to-amber-700'
-                : 'text-gray-600 hover:text-amber-700 hover:bg-white/50'
+                : 'text-gray-600 hover:text-amber-700 hover:bg-white/50',
             ]"
             title="Grid View"
           >
@@ -68,18 +93,22 @@
               'p-3 rounded-xl transition-all duration-300 font-semibold',
               viewMode === 'list'
                 ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg hover:shadow-xl hover:from-amber-500 hover:to-amber-700'
-                : 'text-gray-600 hover:text-amber-700 hover:bg-white/50'
+                : 'text-gray-600 hover:text-amber-700 hover:bg-white/50',
             ]"
             title="List View"
           >
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2zm0 6a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z"></path>
+              <path
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2zm0 6a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z"
+              ></path>
             </svg>
           </button>
         </div>
 
         <!-- Divider -->
-        <div class="hidden sm:block w-px h-8 bg-gradient-to-b from-transparent via-gray-300 to-transparent"></div>
+        <div
+          class="hidden sm:block w-px h-8 bg-gradient-to-b from-transparent via-gray-300 to-transparent"
+        ></div>
 
         <!-- Active Filter Chips -->
         <div v-if="activeFilters.length > 0" class="flex items-center gap-2 overflow-x-auto pb-1">
@@ -111,15 +140,36 @@
             'ml-auto flex items-center gap-2.5 px-5 py-3 border-2 rounded-2xl transition-all duration-300 text-sm font-semibold group',
             showAdvancedFilters
               ? 'border-amber-500 bg-gradient-to-br from-amber-50 to-transparent text-amber-700 shadow-md'
-              : 'border-gray-200 text-gray-700 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-700'
+              : 'border-gray-200 text-gray-700 hover:border-amber-400 hover:bg-amber-50 hover:text-amber-700',
           ]"
         >
-          <svg class="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+          <svg
+            class="w-5 h-5 group-hover:rotate-12 transition-transform duration-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.5"
+              d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+            ></path>
           </svg>
           <span class="hidden sm:inline">More</span>
-          <svg class="w-4 h-4 transition-transform duration-300" :class="{ 'rotate-180': showAdvancedFilters }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+          <svg
+            class="w-4 h-4 transition-transform duration-300"
+            :class="{ 'rotate-180': showAdvancedFilters }"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.5"
+              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+            ></path>
           </svg>
         </button>
       </div>
@@ -136,7 +186,9 @@
           <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-5 border border-white/30">
             <label class="text-sm font-bold text-gray-900 block mb-4 flex items-center gap-2">
               <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                <path
+                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                ></path>
               </svg>
               Rating
             </label>
@@ -149,7 +201,7 @@
                   'flex-1 px-3 py-3 rounded-xl text-xs font-bold transition-all duration-300',
                   selectedRatings.includes(rating)
                     ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg hover:shadow-xl hover:from-amber-500 hover:to-amber-700'
-                    : 'border-2 border-gray-200 text-gray-700 hover:border-amber-400 hover:bg-amber-50'
+                    : 'border-2 border-gray-200 text-gray-700 hover:border-amber-400 hover:bg-amber-50',
                 ]"
               >
                 {{ rating }}★
@@ -173,14 +225,18 @@
               step="50"
               class="w-full h-2.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-amber-500 hover:accent-amber-600 transition-all"
             />
-            <p class="text-xs text-gray-600 mt-3 text-center font-semibold">Up to {{ maxCalories }} cal</p>
+            <p class="text-xs text-gray-600 mt-3 text-center font-semibold">
+              Up to {{ maxCalories }} cal
+            </p>
           </div>
 
           <!-- Prep Time Filter -->
           <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-5 border border-white/30">
             <label class="text-sm font-bold text-gray-900 block mb-4 flex items-center gap-2">
               <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"></path>
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"
+                ></path>
               </svg>
               Prep Time
             </label>
@@ -200,7 +256,9 @@
           <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-5 border border-white/30">
             <label class="text-sm font-bold text-gray-900 block mb-4 flex items-center gap-2">
               <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"></path>
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"
+                ></path>
               </svg>
               Price
             </label>
@@ -228,8 +286,18 @@
           @click="applyAdvancedFilters"
           class="w-full mt-6 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white py-4 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 group"
         >
-          <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+          <svg
+            class="w-5 h-5 group-hover:rotate-12 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2.5"
+              d="M5 13l4 4L19 7"
+            ></path>
           </svg>
           Apply Advanced Filters
         </button>
@@ -257,9 +325,9 @@ const props = withDefaults(defineProps<Props>(), {
     { value: 'price-low', label: 'Price: Low to High' },
     { value: 'price-high', label: 'Price: High to Low' },
     { value: 'rating', label: 'Highest Rated' },
-    { value: 'newest', label: 'Newest' }
+    { value: 'newest', label: 'Newest' },
   ],
-  initialViewMode: 'grid'
+  initialViewMode: 'grid',
 })
 
 const emit = defineEmits<{
@@ -287,7 +355,7 @@ const selectSort = (option: SortOption) => {
 }
 
 const removeFilter = (filter: string) => {
-  activeFilters.value = activeFilters.value.filter(f => f !== filter)
+  activeFilters.value = activeFilters.value.filter((f) => f !== filter)
 }
 
 const toggleRating = (rating: number) => {
@@ -304,7 +372,7 @@ const applyAdvancedFilters = () => {
     ratings: selectedRatings.value,
     maxCalories: maxCalories.value,
     maxPrepTime: maxPrepTime.value,
-    priceRange: priceRange.value
+    priceRange: priceRange.value,
   })
 
   const filterLabels = []

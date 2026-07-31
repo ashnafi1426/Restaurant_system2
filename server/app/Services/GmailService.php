@@ -1,18 +1,10 @@
 <?php
-
 namespace App\Services;
 
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-
-/**
- * Gmail Service - Sends emails via Gmail SMTP using Laravel Mail
- */
 class GmailService
 {
-    /**
-     * Send email to recipient
-     */
     public function sendEmail($toEmail, $toName, $subject, $htmlBody)
     {
         try {
@@ -38,10 +30,6 @@ class GmailService
             throw $e;
         }
     }
-    
-    /**
-     * Send reservation confirmation email
-     */
     public function sendReservationConfirmation($guest, $reservation)
     {
         $htmlBody = $this->getReservationConfirmationHtml($guest, $reservation);
@@ -53,10 +41,6 @@ class GmailService
             $htmlBody
         );
     }
-    
-    /**
-     * Send check-in confirmation email
-     */
     public function sendCheckInConfirmation($guest, $reservation)
     {
         $htmlBody = $this->getCheckInHtml($guest, $reservation);
@@ -68,10 +52,6 @@ class GmailService
             $htmlBody
         );
     }
-    
-    /**
-     * Send check-out notification email
-     */
     public function sendCheckOutNotification($guest, $reservation)
     {
         $htmlBody = $this->getCheckOutHtml($guest, $reservation);
@@ -83,10 +63,6 @@ class GmailService
             $htmlBody
         );
     }
-    
-    /**
-     * Get HTML for reservation confirmation
-     */
     protected function getReservationConfirmationHtml($guest, $reservation)
     {
         $checkIn = $reservation->check_in_date->format('F j, Y');
@@ -110,10 +86,6 @@ class GmailService
             'hotelWebsite' => env('APP_URL', 'https://hotel.com'),
         ])->render();
     }
-    
-    /**
-     * Get HTML for check-in
-     */
     protected function getCheckInHtml($guest, $reservation)
     {
         $room = $reservation->room;
@@ -133,10 +105,6 @@ class GmailService
             'hotelWebsite' => env('APP_URL', 'https://hotel.com'),
         ])->render();
     }
-    
-    /**
-     * Get HTML for check-out
-     */
     protected function getCheckOutHtml($guest, $reservation)
     {
         $checkIn = $reservation->check_in_date->format('F j, Y');

@@ -372,7 +372,7 @@ const submit = () => {
           :min="today"
         />
         <p v-if="isPastDate" class="text-red-500 text-xs sm:text-sm mt-1">
-          ⚠️ Check-in cannot be in the past
+          Check-in cannot be in the past
         </p>
       </div>
 
@@ -388,7 +388,7 @@ const submit = () => {
           :min="form.check_in_date || today"
         />
         <p v-if="!isValidDateRange" class="text-red-500 text-xs sm:text-sm mt-1">
-          ⚠️ Check-out must be after check-in
+          Check-out must be after check-in
         </p>
       </div>
     </div>

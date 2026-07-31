@@ -4,11 +4,7 @@
     <div class="card-container">
       <!-- Image Section -->
       <div class="image-section">
-        <img
-          :src="item.image"
-          :alt="item.name"
-          class="food-image"
-        />
+        <img :src="item.image" :alt="item.name" class="food-image" />
       </div>
 
       <!-- Content Section -->
@@ -25,16 +21,34 @@
           <span class="price">{{ formatPrice(item.price) }}</span>
 
           <!-- Add Button - Gold Square (NOT full width) -->
-          <button
-            @click.stop="addToCart"
-            :disabled="isAdding"
-            class="add-button"
-          >
-            <svg v-if="!isAdding" class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+          <button @click.stop="addToCart" :disabled="isAdding" class="add-button">
+            <svg
+              v-if="!isAdding"
+              class="button-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M12 4v16m8-8H4"
+              ></path>
             </svg>
-            <svg v-else class="button-icon spinner" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v20m0-20a9.978 9.978 0 00-9 18m18 0a9.978 9.978 0 00-9-18"></path>
+            <svg
+              v-else
+              class="button-icon spinner"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 2v20m0-20a9.978 9.978 0 00-9 18m18 0a9.978 9.978 0 00-9-18"
+              ></path>
             </svg>
           </button>
         </div>

@@ -42,7 +42,7 @@ async function loadFeaturedMenu() {
 
   try {
     const response = await menuService.getMenuItems({ per_page: 3, is_active: true })
-    
+
     if (response.data?.data && Array.isArray(response.data.data)) {
       // Take first 3 items as featured
       featuredMenu.value = response.data.data.slice(0, 3).map((item: any) => ({
@@ -52,8 +52,10 @@ async function loadFeaturedMenu() {
         description: item.description || 'Delicious menu item',
         price: item.price || 0,
       }))
-      
-      console.log(`[RestaurantSection] Loaded ${featuredMenu.value.length} featured menu items from backend`)
+
+      console.log(
+        `[RestaurantSection] Loaded ${featuredMenu.value.length} featured menu items from backend`,
+      )
     } else {
       // Fallback to empty or default items
       error.value = 'No menu items available'
@@ -62,7 +64,7 @@ async function loadFeaturedMenu() {
   } catch (err: any) {
     error.value = err.message || 'Failed to load menu items'
     console.error('[RestaurantSection] Error loading menu items:', err)
-    
+
     // Still show section but with empty items
     featuredMenu.value = []
   } finally {
@@ -149,10 +151,15 @@ onMounted(() => {
 
       <!-- Featured Dishes -->
       <div v-if="loading" class="flex justify-center py-12">
-        <div class="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+        <div
+          class="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent"
+        />
       </div>
 
-      <div v-if="!loading && featuredMenu.length > 0" class="grid gap-4 sm:gap-6 md:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        v-if="!loading && featuredMenu.length > 0"
+        class="grid gap-4 sm:gap-6 md:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+      >
         <article
           v-for="item in featuredMenu"
           :key="item.id"

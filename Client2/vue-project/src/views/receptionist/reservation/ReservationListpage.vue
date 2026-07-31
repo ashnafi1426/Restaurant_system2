@@ -82,7 +82,13 @@ const deleteReservation = async () => {
     await store.deleteReservation(selectedReservation.value.id)
     deleteDialog.value = false
     selectedReservation.value = null
-    await loadReservations()
+
+    // Remove from list instead of full refetch
+    const index = store.reservations.findIndex((r) => r.id === selectedReservation.value?.id)
+    if (index !== -1) {
+      store.reservations.splice(index, 1)
+    }
+
     showMessage('Reservation deleted successfully')
   } catch (error) {
     console.error(' Error deleting reservation:', error)
@@ -96,7 +102,6 @@ const checkIn = async (reservation: Reservation) => {
     console.log('🔓 [CHECK-IN] Current status:', reservation.status)
 
     await store.checkInReservation(reservation.id)
-    await loadReservations()
     showMessage(`${reservation.booking_reference} checked in successfully`)
   } catch (error: any) {
     console.error(' [CHECK-IN] Error:', error)
@@ -114,7 +119,6 @@ const checkOut = async (reservation: Reservation) => {
     console.log('🚪 [CHECK-OUT] Current status:', reservation.status)
 
     await store.checkOutReservation(reservation.id)
-    await loadReservations()
     showMessage(`${reservation.booking_reference} checked out successfully`)
   } catch (error: any) {
     console.error(' [CHECK-OUT] Error:', error)
@@ -132,7 +136,6 @@ const cancelReservation = async (reservation: Reservation) => {
     console.log(' [CANCEL] Current status:', reservation.status)
 
     await store.cancelReservationAction(reservation.id)
-    await loadReservations()
     showMessage(`${reservation.booking_reference} cancelled successfully`)
   } catch (error: any) {
     console.error(' [CANCEL] Error:', error)
@@ -151,7 +154,6 @@ const confirmReservation = async (reservation: Reservation) => {
     console.log(' [CONFIRM] Current status:', reservation.status)
 
     await store.confirmReservation(reservation.id)
-    await loadReservations()
     showMessage(`${reservation.booking_reference} confirmed successfully`)
   } catch (error: any) {
     console.error(' [CONFIRM] Error confirming:', error)

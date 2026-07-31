@@ -44,23 +44,30 @@ const getSeverityIcon = (severity: string) => {
     <!-- Title Section -->
     <div class="flex items-center justify-between gap-3 mb-6 sm:mb-8">
       <div>
-        <h3
-          class="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-wide"
-        >
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-wide">
           Maintenance Alerts
         </h3>
         <p class="text-sm text-slate-600 mt-1">System status and maintenance tasks</p>
       </div>
-      <button class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-semibold rounded-lg transition-colors">
+      <button
+        class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-semibold rounded-lg transition-colors"
+      >
         Clear All
       </button>
     </div>
 
     <!-- Empty State -->
     <div v-if="alerts.length === 0" class="text-center py-16">
-      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4">
+      <div
+        class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4"
+      >
         <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m7 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m7 0a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       </div>
       <p class="text-slate-600 font-semibold text-lg">All systems operational</p>
@@ -80,19 +87,43 @@ const getSeverityIcon = (severity: string) => {
         <div class="flex gap-3 sm:gap-4">
           <!-- Icon -->
           <div class="flex-shrink-0 mt-0.5">
-            <div v-if="alert.severity === 'high'" class="w-6 h-6 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0">
+            <div
+              v-if="alert.severity === 'high'"
+              class="w-6 h-6 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0"
+            >
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0 4v2" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4v2m0 4v2"
+                />
               </svg>
             </div>
-            <div v-else-if="alert.severity === 'medium'" class="w-6 h-6 rounded-full bg-amber-600 flex items-center justify-center flex-shrink-0">
+            <div
+              v-else-if="alert.severity === 'medium'"
+              class="w-6 h-6 rounded-full bg-amber-600 flex items-center justify-center flex-shrink-0"
+            >
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4v2"
+                />
               </svg>
             </div>
-            <div v-else class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+            <div
+              v-else
+              class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0"
+            >
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
           </div>
@@ -104,22 +135,29 @@ const getSeverityIcon = (severity: string) => {
                 <h4 class="text-sm sm:text-base font-bold text-slate-900">
                   {{ alert.title }}
                 </h4>
-                <p class="text-xs sm:text-sm text-slate-600 mt-1.5 leading-relaxed">{{ alert.description }}</p>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1.5 leading-relaxed">
+                  {{ alert.description }}
+                </p>
               </div>
               <span
-                :class="[getSeverityBadgeColor(alert.severity), 'text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap']"
+                :class="[
+                  getSeverityBadgeColor(alert.severity),
+                  'text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap',
+                ]"
               >
                 {{ alert.severity.charAt(0).toUpperCase() + alert.severity.slice(1) }}
               </span>
             </div>
-            
+
             <div class="flex gap-2 mt-3 flex-wrap">
               <button
                 class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
                 :class="
-                  alert.severity === 'high' ? 'bg-red-100 text-red-700 hover:bg-red-200' :
-                  alert.severity === 'medium' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' :
-                  'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                  alert.severity === 'high'
+                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                    : alert.severity === 'medium'
+                      ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                 "
               >
                 ✓ Acknowledge

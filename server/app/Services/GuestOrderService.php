@@ -9,19 +9,8 @@ use Exception;
 
 class GuestOrderService
 {
-    /**
-     * Display the restaurant menu for the scanned QR code.
-     *
-     * @throws Exception
-     */
     public function menu(string $token): array
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Find Room by QR Token
-        |--------------------------------------------------------------------------
-        */
-
         $room = Room::with([
             'activeReservation.guest',
         ])
@@ -33,13 +22,6 @@ class GuestOrderService
                 'Invalid QR code.'
             );
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Verify Active Reservation
-        |--------------------------------------------------------------------------
-        */
-
         $reservation = $room->activeReservation;
 
         if (! $reservation) {
@@ -48,18 +30,11 @@ class GuestOrderService
             );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Verify Check-In Status
-        |--------------------------------------------------------------------------
-        */
-
         if ($reservation->status !== 'checked_in') {
             throw new Exception(
                 'Only checked-in guests can place restaurant orders.'
             );
         }
-
         $categories = MenuCategory::with([
             'menuItems' => function ($query) {
                 $query->where('is_available', true)
@@ -93,11 +68,6 @@ class GuestOrderService
     }
     public function create(array $data): Order
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Find Room
-    |--------------------------------------------------------------------------
-    */
 
     $room = $this->findRoomByToken(
         $data['qr_token']
@@ -139,31 +109,10 @@ class GuestOrderService
         $orderData
     );
 }
-/**
- * Display a guest order.
- *
- * @throws \Exception
- */
-public function show(
-    string $qrToken,
-    string $orderId
-): Order {
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validate QR Token
-    |--------------------------------------------------------------------------
-    */
-
+public function show(string $qrToken,string $orderId): Order {
     $data = $this->validateQrToken(
         $qrToken
     );
-
-    /*
-    |--------------------------------------------------------------------------
-    | Find Order
-    |--------------------------------------------------------------------------
-    */
 
     $order = Order::with([
             'guest',
@@ -186,32 +135,12 @@ public function show(
 
     return $order;
 }
-/**
- * Display the current reservation's order history.
- *
- * @throws \Exception
- */
 public function history(
     string $qrToken,
-    int $perPage = 10
-) {
-
-    /*
-    |--------------------------------------------------------------------------
-    | Validate QR Token
-    |--------------------------------------------------------------------------
-    */
-
+    int $perPage = 10 ) {
     $data = $this->validateQrToken(
         $qrToken
     );
-
-    /*
-    |--------------------------------------------------------------------------
-    | Retrieve Orders
-    |--------------------------------------------------------------------------
-    */
-
     return Order::with([
             'guest',
             'room',

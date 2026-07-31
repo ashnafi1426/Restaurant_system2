@@ -20,23 +20,24 @@ onMounted(async () => {
 
 const filteredOrders = computed(() => {
   let filtered = orders.value || []
-  
+
   // Filter by status
   if (selectedStatus.value !== 'all') {
     filtered = filtered.filter((order) => order.status === selectedStatus.value)
   }
-  
+
   // Filter by search
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter((order) =>
-      order.room?.room_number?.toString().includes(query) ||
-      order.order_number?.toLowerCase().includes(query) ||
-      order.guest?.full_name?.toLowerCase().includes(query) ||
-      order.items?.some((item) => item.name?.toLowerCase().includes(query))
+    filtered = filtered.filter(
+      (order) =>
+        order.room?.room_number?.toString().includes(query) ||
+        order.order_number?.toLowerCase().includes(query) ||
+        order.guest?.full_name?.toLowerCase().includes(query) ||
+        order.items?.some((item) => item.name?.toLowerCase().includes(query)),
     )
   }
-  
+
   return filtered
 })
 
@@ -285,7 +286,10 @@ const getStatusCount = (status: string): number => {
                   >
                     {{ item.quantity }}x {{ item.name }}
                   </div>
-                  <div v-if="(order.items || []).length > 2" class="text-xs text-slate-500 font-semibold">
+                  <div
+                    v-if="(order.items || []).length > 2"
+                    class="text-xs text-slate-500 font-semibold"
+                  >
                     +{{ (order.items || []).length - 2 }} more items
                   </div>
                 </div>
@@ -338,7 +342,9 @@ const getStatusCount = (status: string): number => {
         <div class="flex flex-col lg:flex-row items-center justify-between gap-4 sm:gap-6">
           <!-- Left: Items per page selector -->
           <div class="flex items-center gap-3">
-            <label for="itemsPerPage" class="text-sm font-semibold text-slate-700">Items per page:</label>
+            <label for="itemsPerPage" class="text-sm font-semibold text-slate-700"
+              >Items per page:</label
+            >
             <select
               id="itemsPerPage"
               :value="itemsPerPage"

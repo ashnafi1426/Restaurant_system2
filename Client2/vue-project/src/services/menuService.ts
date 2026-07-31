@@ -11,7 +11,7 @@ export default {
 
     // FormData for file uploads
     if (data instanceof FormData) {
-      console.log('✅ Sending as FormData with multipart/form-data')
+      console.log(' Sending as FormData with multipart/form-data')
       console.log('FormData entries:')
       for (let [key, value] of data) {
         console.log(`  ${key}:`, value instanceof File ? `File: ${value.name}` : value)
@@ -41,7 +41,7 @@ export default {
 
     // FormData for file uploads
     if (data instanceof FormData) {
-      console.log('✅ Sending PUT as FormData (POST with _method=PUT)')
+      console.log(' Sending PUT as FormData (POST with _method=PUT)')
       return api.post(`/menu-items/${id}?_method=PUT`, data, {
         headers: {
           'Content-Type': 'multipart/form-data',

@@ -103,9 +103,9 @@ class TestMenuItemsSeeder extends Seeder
                 'is_available' => true,
             ]);
 
-            echo "✅ Created: {$item['name']} ({$item['category']})\n";
+            echo " Created: {$item['name']} ({$item['category']})\n";
         }
 
-        echo "\n✅ Test menu items seeded successfully!\n";
+        echo "\n Test menu items seeded successfully!\n";
     }
 }

@@ -113,14 +113,15 @@ export const useKitchenStore = defineStore('kitchen', () => {
     try {
       console.log(`🔵 [STORE] Calling API for order ${orderId}...`)
       const updatedOrder = await kitchenService.startPreparing(orderId)
-      
-      console.log(`✅ [STORE] API Response received:`, updatedOrder)
+
+      console.log(` [STORE] API Response received:`, updatedOrder)
       console.log(`📊 [STORE] Order status changed to: ${updatedOrder.status}`)
-      
+
       updateOrder(updatedOrder)
-      console.log(`✅ [STORE] Order updated in local state`)
+      console.log(` [STORE] Order updated in local state`)
     } catch (err: any) {
-      const errorMsg = err?.response?.data?.message ?? err.message ?? 'Failed to start preparing order'
+      const errorMsg =
+        err?.response?.data?.message ?? err.message ?? 'Failed to start preparing order'
       error.value = errorMsg
       console.error(`❌ [STORE] Error occurred:`, {
         message: errorMsg,
@@ -148,8 +149,8 @@ export const useKitchenStore = defineStore('kitchen', () => {
     try {
       console.log(`🔵 [STORE] Calling API for order ${orderId}...`)
       const updatedOrder = await kitchenService.markReady(orderId)
-      
-      console.log(`✅ [STORE] API Response received, order status: ${updatedOrder.status}`)
+
+      console.log(` [STORE] API Response received, order status: ${updatedOrder.status}`)
       updateOrder(updatedOrder)
     } catch (err: any) {
       const errorMsg = err?.response?.data?.message ?? err.message ?? 'Failed to mark order ready'
@@ -175,8 +176,8 @@ export const useKitchenStore = defineStore('kitchen', () => {
     try {
       console.log(`🔵 [STORE] Calling API for order ${orderId}...`)
       const updatedOrder = await kitchenService.markServed(orderId)
-      
-      console.log(`✅ [STORE] API Response received, order status: ${updatedOrder.status}`)
+
+      console.log(` [STORE] API Response received, order status: ${updatedOrder.status}`)
       updateOrder(updatedOrder)
     } catch (err: any) {
       const errorMsg = err?.response?.data?.message ?? err.message ?? 'Failed to complete order'

@@ -19,7 +19,6 @@ import FoodOrdersView from '../views/kitchen/FoodOrdersView.vue'
 import PendingOrdersView from '../views/kitchen/PendingOrdersView.vue'
 import PreparingOrdersView from '../views/kitchen/PreparingOrdersView.vue'
 import ServedOrdersView from '../views/kitchen/ServedOrdersView.vue'
-import ManagerDashboard from '../views/manager/ManagerDashboard.vue'
 import UserList from '../views/admin/users/UserList.vue'
 import CreateUser from '../views/admin/users/CreateUser.vue'
 import EditUser from '../views/admin/users/EditUser.vue'
@@ -41,7 +40,8 @@ import ReservationEditPage from '../views/receptionist/reservation/ReservationEd
 import CheckInView from '../views/receptionist/checkIn/checkInView.vue'
 import AddOrder from '@/views/Admin/order/AddOrder.vue'
 import QRMenu from '../views/guest/QRMenu.vue'
-
+import managerRoutes from './managerRouter'
+import waiterRoutes from './waiterRouter'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -49,6 +49,30 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: GuestHome,
+      beforeEnter: (to, from, next) => {
+        const token = localStorage.getItem('token')
+        const user = JSON.parse(localStorage.getItem('user') || 'null')
+
+        // If user is authenticated, redirect to their dashboard
+        if (token && user) {
+          if (user.role === 'admin') {
+            return next('/admin')
+          } else if (user.role === 'receptionist') {
+            return next('/receptionist')
+          } else if (user.role === 'cashier') {
+            return next('/cashier')
+          } else if (user.role === 'chef') {
+            return next('/chef')
+          } else if (user.role === 'manager') {
+            return next('/manager')
+          } else if (user.role === 'waiter') {
+            return next('/waiter')
+          }
+        }
+
+        // If not authenticated, show guest home page
+        next()
+      },
     },
     // {
     //   path: '/reservation',
@@ -199,15 +223,7 @@ const router = createRouter({
         role: 'chef',
       },
     },
-    {
-      path: '/manager',
-      name: 'manager-dashboard',
-      component: ManagerDashboard,
-      meta: {
-        requiresAuth: true,
-        role: 'manager',
-      },
-    },
+
     {
       path: '/users',
       component: UserList,
@@ -390,7 +406,7 @@ const router = createRouter({
       path: '/orders/create',
       name: 'create-order',
       component: AddOrder,
-      meta: { 
+      meta: {
         title: 'Create Order',
         requiresAuth: true,
         roles: ['admin', 'receptionist'],
@@ -400,7 +416,7 @@ const router = createRouter({
       path: '/orders/:id/edit',
       name: 'edit-order',
       component: AddOrder,
-      meta: { 
+      meta: {
         title: 'Edit Order',
         requiresAuth: true,
         roles: ['admin', 'receptionist'],
@@ -410,7 +426,7 @@ const router = createRouter({
       path: '/orders/:id/view',
       name: 'view-order',
       component: AddOrder,
-      meta: { 
+      meta: {
         title: 'View Order',
         requiresAuth: true,
         roles: ['admin', 'receptionist'],
@@ -434,6 +450,8 @@ const router = createRouter({
         requiresAuth: false,
       },
     },
+    ...managerRoutes,
+    ...waiterRoutes,
   ],
 })
 
@@ -450,7 +468,10 @@ router.beforeEach((to) => {
       ` Access Denied: User role '${user?.role}' is not allowed for '${to.path}'. Required role: '${to.meta.role}'`,
     )
 
-    if (user?.role === 'receptionist') {
+    // Redirect to appropriate dashboard based on role
+    if (user?.role === 'admin') {
+      return '/admin'
+    } else if (user?.role === 'receptionist') {
       return '/receptionist'
     } else if (user?.role === 'cashier') {
       return '/cashier'
@@ -458,6 +479,8 @@ router.beforeEach((to) => {
       return '/manager'
     } else if (user?.role === 'chef') {
       return '/chef'
+    } else if (user?.role === 'waiter') {
+      return '/waiter'
     }
     return '/login'
   }

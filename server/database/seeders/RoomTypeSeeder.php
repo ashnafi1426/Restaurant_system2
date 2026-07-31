@@ -42,10 +42,13 @@ class RoomTypeSeeder extends Seeder
         ];
 
         foreach ($roomTypes as $type) {
-            RoomType::create([
-                'id' => Str::uuid(),
-                ...$type,
-            ]);
+            RoomType::firstOrCreate(
+                ['name' => $type['name']],
+                [
+                    'id' => Str::uuid(),
+                    ...$type,
+                ]
+            );
         }
     }
 }

@@ -24,10 +24,9 @@ class ReservationResource extends JsonResource
 
                 'id' => $this->guest?->id,
 
-                'full_name' => trim(
-                    ($this->guest?->first_name ?? '') . ' ' .
-                    ($this->guest?->last_name ?? '')
-                ),
+                'first_name' => $this->guest?->first_name,
+
+                'last_name' => $this->guest?->last_name,
 
                 'email' => $this->guest?->email,
 

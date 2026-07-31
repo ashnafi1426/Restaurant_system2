@@ -22,10 +22,10 @@ const featuredRooms = computed(() => {
       return isActive
     })
     .slice(0, 3)
-  
+
   // Log data for debugging
   if (filtered.length > 0) {
-    console.log('✅ [FeaturedRoom] Featured rooms loaded:', filtered)
+    console.log(' [FeaturedRoom] Featured rooms loaded:', filtered)
     filtered.forEach((room: Room, idx: number) => {
       console.log(`Room ${idx + 1}:`, {
         id: room.id,
@@ -36,7 +36,7 @@ const featuredRooms = computed(() => {
       })
     })
   }
-  
+
   return filtered
 })
 
@@ -50,12 +50,12 @@ const featuredRooms = computed(() => {
  */
 function getRoomName(room: Room): string {
   if (!room) return 'Room'
-  
+
   // Try room_name first
   if (room.room_number) {
     return `Room ${room.room_number}`
   }
-  
+
   // Fallback to generic
   return 'Luxury Suite'
 }
@@ -65,7 +65,7 @@ function getRoomName(room: Room): string {
  */
 function getRoomPrice(room: Room): number {
   if (!room) return 0
-  
+
   // Price comes from room_type.base_price_per_night
   if (room.room_type && typeof room.room_type === 'object') {
     const price = room.room_type.base_price_per_night
@@ -73,7 +73,7 @@ function getRoomPrice(room: Room): number {
       return Math.round(parseFloat(String(price)))
     }
   }
-  
+
   return 299 // Default fallback
 }
 
@@ -82,14 +82,14 @@ function getRoomPrice(room: Room): number {
  */
 function getRoomType(room: Room): string {
   if (!room) return 'Standard'
-  
+
   // Get room type name - room_type is an object with name property
   if (room.room_type && typeof room.room_type === 'object') {
     if (room.room_type.name) {
       return room.room_type.name
     }
   }
-  
+
   // Fallback
   return 'Standard Room'
 }
@@ -99,14 +99,14 @@ function getRoomType(room: Room): string {
  */
 function getRoomCapacity(room: Room): number {
   if (!room) return 2
-  
+
   // Capacity is in room_type object
   if (room.room_type && typeof room.room_type === 'object') {
     if (room.room_type.capacity) {
       return room.room_type.capacity
     }
   }
-  
+
   return 2 // Default fallback
 }
 
@@ -115,19 +115,19 @@ function getRoomCapacity(room: Room): number {
  */
 function getRoomDescription(room: Room): string {
   if (!room) return 'Comfortable and well-appointed room'
-  
+
   // Try description from room_type first
   if (room.room_type && typeof room.room_type === 'object') {
     if (room.room_type.description) {
       return room.room_type.description
     }
   }
-  
+
   // Try room description
   if (room.description) {
     return room.description
   }
-  
+
   return 'Discover luxury comfort in our carefully designed room'
 }
 
@@ -136,10 +136,10 @@ function getRoomDescription(room: Room): string {
  */
 function getRoomImage(room: Room): string {
   if (!room) return '/images/rooms/deluxe.jpg'
-  
+
   // Get room type name safely
   const roomType = getRoomType(room).toLowerCase()
-  
+
   const imageMap: Record<string, string> = {
     deluxe: '/images/rooms/deluxe.jpg',
     vip: '/images/rooms/suite.jpg',
@@ -165,7 +165,7 @@ function getRoomImage(room: Room): string {
  */
 function getRoomStatus(room: Room): string {
   if (!room) return 'available'
-  
+
   // Status can be: available, occupied, reserved, maintenance
   return room.status || 'available'
 }
@@ -180,7 +180,7 @@ function getStatusBadgeClass(status: string): string {
     reserved: 'bg-yellow-500 text-white',
     maintenance: 'bg-gray-500 text-white',
   }
-  
+
   return statusMap[status] || 'bg-green-500 text-white'
 }
 
@@ -244,10 +244,10 @@ async function loadRooms() {
   try {
     console.log('🔄 [FeaturedRoom] Loading featured rooms...')
     await roomStore.fetchRooms({ per_page: 10 })
-    console.log('✅ [FeaturedRoom] Rooms loaded successfully:', rooms.value)
-    
+    console.log(' [FeaturedRoom] Rooms loaded successfully:', rooms.value)
+
     if (rooms.value.length === 0) {
-      console.warn('⚠️ [FeaturedRoom] No rooms returned from API')
+      console.warn('[FeaturedRoom] No rooms returned from API')
     }
   } catch (err: any) {
     console.error('❌ [FeaturedRoom] Failed to load featured rooms:', err)
@@ -311,12 +311,7 @@ onMounted(() => {
         class="flex flex-col items-center justify-center py-12 sm:py-16 md:py-24"
       >
         <div class="rounded-full bg-slate-100 p-4 mb-4">
-          <svg
-            class="h-8 w-8 text-slate-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg class="h-8 w-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -372,9 +367,7 @@ onMounted(() => {
               <span class="text-amber-500 text-lg sm:text-xl">
                 {{ ratingStars(getRoomRating(room)) }}
               </span>
-              <span class="text-xs sm:text-sm text-slate-500">
-                {{ getRoomRating(room) }}/5
-              </span>
+              <span class="text-xs sm:text-sm text-slate-500"> {{ getRoomRating(room) }}/5 </span>
             </div>
 
             <!-- Room Name -->
@@ -409,16 +402,12 @@ onMounted(() => {
 
               <div class="flex items-center gap-2">
                 <span class="text-lg sm:text-xl">🛏️</span>
-                <span class="text-xs sm:text-sm text-slate-600">
-                  Double Bed
-                </span>
+                <span class="text-xs sm:text-sm text-slate-600"> Double Bed </span>
               </div>
 
               <div class="flex items-center gap-2">
                 <span class="text-lg sm:text-xl">📐</span>
-                <span class="text-xs sm:text-sm text-slate-600">
-                  Spacious
-                </span>
+                <span class="text-xs sm:text-sm text-slate-600"> Spacious </span>
               </div>
 
               <div class="flex items-center gap-2">

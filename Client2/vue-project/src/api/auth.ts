@@ -50,6 +50,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     console.log('[API INTERCEPTOR] Response received:', response.status)
+    console.log('[API INTERCEPTOR] Response URL:', response.config.url)
+    console.log('[API INTERCEPTOR] Response data:', response.data)
     return response
   },
   (error) => {
@@ -59,6 +61,14 @@ api.interceptors.response.use(
       console.error('[API INTERCEPTOR] No response from server:', error.message)
     } else {
       console.error('[API INTERCEPTOR] Response error:', error.response.status)
+      
+      // Log detailed 422 validation errors
+      if (error.response.status === 422) {
+        console.error('[API INTERCEPTOR] 422 Validation Errors:', error.response.data)
+        if (error.response.data?.errors) {
+          console.table(error.response.data.errors)
+        }
+      }
     }
     return Promise.reject(error)
   },

@@ -5,7 +5,9 @@ defineEmits<{
 </script>
 
 <template>
-  <div class="text-center py-16 bg-gradient-to-br from-gray-50 to-teal-50 rounded-2xl border-2 border-gray-200">
+  <div
+    class="text-center py-16 bg-gradient-to-br from-gray-50 to-teal-50 rounded-2xl border-2 border-gray-200"
+  >
     <!-- Icon -->
     <div class="text-7xl mb-4">🛒</div>
 
@@ -40,5 +42,4 @@ defineEmits<{
   </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

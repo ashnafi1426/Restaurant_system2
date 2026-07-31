@@ -119,7 +119,9 @@ function downloadVoucher() {
           </div>
 
           <h1 class="text-xl font-bold text-gray-900 mb-1">Booking is confirm by receptionist</h1>
-          <p class="text-sm text-gray-500">Your reservation is complete and waiting up to reception approved</p>
+          <p class="text-sm text-gray-500">
+            Your reservation is complete and waiting up to reception approved
+          </p>
         </div>
         <!-- Booking Details -->
         <div class="px-6 py-5 space-y-4 flex-1 overflow-y-auto">

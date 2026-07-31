@@ -31,11 +31,11 @@ const handleInput = (event: Event) => {
   <section class="py-0.5 px-4 sm:px-6">
     <div class="max-w-3xl mx-auto">
       <!-- Search Bar - Ultra Compact Professional -->
-      <div class="flex items-center gap-1.5 bg-gradient-to-r from-white to-slate-50 rounded-md border border-slate-200 px-2 py-0.5 hover:border-teal-400 hover:shadow-sm focus-within:border-teal-500 focus-within:shadow-md focus-within:ring-1 focus-within:ring-teal-500 transition-all duration-200">
+      <div
+        class="flex items-center gap-1.5 bg-gradient-to-r from-white to-slate-50 rounded-md border border-slate-200 px-2 py-0.5 hover:border-teal-400 hover:shadow-sm focus-within:border-teal-500 focus-within:shadow-md focus-within:ring-1 focus-within:ring-teal-500 transition-all duration-200"
+      >
         <!-- Search Icon -->
-        <span class="material-symbols-rounded text-slate-400 text-sm flex-shrink-0">
-          search
-        </span>
+        <span class="material-symbols-rounded text-slate-400 text-sm flex-shrink-0"> search </span>
 
         <!-- Input Field - Minimal -->
         <input
@@ -48,15 +48,13 @@ const handleInput = (event: Event) => {
 
         <!-- Clear Button - Minimal -->
         <transition name="fade">
-          <button 
+          <button
             v-if="modelValue"
             @click="emit('update:modelValue', '')"
             class="p-0.5 text-slate-400 hover:text-slate-600 rounded transition-all flex-shrink-0"
             title="Clear"
           >
-            <span class="material-symbols-rounded text-xs">
-              close
-            </span>
+            <span class="material-symbols-rounded text-xs"> close </span>
           </button>
         </transition>
       </div>

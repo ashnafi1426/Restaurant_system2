@@ -18,15 +18,31 @@
     <!-- Empty State -->
     <div v-else-if="displayedItems.length === 0" class="empty-state">
       <div class="empty-illustration">
-        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <svg
+          width="120"
+          height="120"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <path
+            d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          ></path>
         </svg>
       </div>
       <h3 class="empty-title">No items found</h3>
-      <p class="empty-message">Try adjusting your filters or search query to find what you're looking for</p>
+      <p class="empty-message">
+        Try adjusting your filters or search query to find what you're looking for
+      </p>
       <button @click="clearFilters" class="empty-button">
         <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          ></path>
         </svg>
         Clear Filters
       </button>
@@ -52,7 +68,12 @@
         class="pagination-button pagination-nav"
       >
         <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2.5"
+            d="M15 19l-7-7 7-7"
+          ></path>
         </svg>
       </button>
 
@@ -65,7 +86,7 @@
           :class="[
             'pagination-page',
             page === '...' ? 'pagination-dots' : '',
-            currentPage === page ? 'pagination-active' : ''
+            currentPage === page ? 'pagination-active' : '',
           ]"
           :disabled="page === '...'"
         >
@@ -80,7 +101,12 @@
         class="pagination-button pagination-nav"
       >
         <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2.5"
+            d="M9 5l7 7-7 7"
+          ></path>
         </svg>
       </button>
     </div>
@@ -123,7 +149,7 @@ const props = withDefaults(defineProps<Props>(), {
   viewMode: 'grid',
   isLoading: false,
   itemsPerPage: 12,
-  gridId: 'menu-grid'
+  gridId: 'menu-grid',
 })
 
 const emit = defineEmits<{
@@ -169,7 +195,11 @@ const pageNumbers = computed(() => {
       pages.push('...')
     }
 
-    for (let i = Math.max(2, currentPage.value - 1); i <= Math.min(totalPages.value - 1, currentPage.value + 1); i++) {
+    for (
+      let i = Math.max(2, currentPage.value - 1);
+      i <= Math.min(totalPages.value - 1, currentPage.value + 1);
+      i++
+    ) {
       if (!pages.includes(i)) {
         pages.push(i)
       }
@@ -337,7 +367,8 @@ const clearFilters = () => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

@@ -134,11 +134,11 @@ async function submit() {
     if (editMode && props.menuItem?.id) {
       // Update existing item
       await menuService.updateMenu(props.menuItem.id, payload)
-      showNotification('✅ Menu item updated successfully!', 'success')
+      showNotification(' Menu item updated successfully!', 'success')
     } else {
       // Create new item
       await menuService.createMenu(payload)
-      showNotification('✅ Menu item created successfully!', 'success')
+      showNotification(' Menu item created successfully!', 'success')
     }
 
     // Refresh store data
@@ -159,7 +159,7 @@ async function submit() {
     // Handle validation errors from backend
     if (error.response?.data?.errors) {
       fieldErrors.value = error.response.data.errors
-      showNotification('⚠️ Please fix the validation errors', 'error')
+      showNotification('Please fix the validation errors', 'error')
     } else {
       showNotification(`❌ ${errorMessage}`, 'error')
     }
@@ -325,7 +325,7 @@ function closeDialog() {
             <v-checkbox v-model="form.is_available" class="mt-0" />
             <span class="text-xs sm:text-sm font-medium text-slate-700"> Available for order </span>
             <span class="ml-auto text-lg">
-              {{ form.is_available ? '✅' : '⭕' }}
+              {{ form.is_available ? '' : '⭕' }}
             </span>
           </div>
         </div>

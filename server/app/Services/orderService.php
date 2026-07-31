@@ -26,10 +26,6 @@ class OrderService{
             ->latest('order_time')
             ->paginate($perPage);
     }
-
-    /**
-     * Display a single order.
-     */
     public function show(string $id): Order
     {
         return Order::query()
@@ -110,10 +106,6 @@ class OrderService{
 
         return $number;
     }
-
-    /**
-     * Assign chef to order - assigns to chef with least pending orders
-     */
     private function assignChefToOrder(): ?string
     {
         try {
@@ -123,12 +115,9 @@ class OrderService{
                 return null;
             }
 
-            // If only one chef, assign to them
             if (count($chefs) === 1) {
                 return $chefs[0];
             }
-
-            // Find chef with least pending/preparing orders
             $chefWorkload = [];
             foreach ($chefs as $chefId) {
                 $count = Order::where('chef_id', $chefId)
@@ -136,15 +125,12 @@ class OrderService{
                     ->count();
                 $chefWorkload[$chefId] = $count;
             }
-
-            // Find chef with minimum workload
             $selectedChef = array_key_first($chefWorkload);
             foreach ($chefWorkload as $chefId => $count) {
                 if ($count < $chefWorkload[$selectedChef]) {
                     $selectedChef = $chefId;
                 }
             }
-
             return $selectedChef;
         } catch (\Exception $e) {
             \Log::error('Failed to assign chef: ' . $e->getMessage());
@@ -153,9 +139,6 @@ class OrderService{
             return $firstChef?->id ?? null;
         }
     }
-    /**
- * Create a new restaurant order.
- */
 public function create(array $data): Order
 {
     DB::beginTransaction();
@@ -282,10 +265,6 @@ public function create(array $data): Order
         throw $exception;
     }
 }
-
-/**
- * Notify all chefs of a new order
- */
 private function notifyChefs(Order $order): void
 {
     try {
@@ -304,44 +283,20 @@ private function notifyChefs(Order $order): void
         \Log::error('Failed to notify chefs of new order: ' . $e->getMessage());
     }
 }
-/**
- * Update an existing restaurant order.
- */
 public function update(string $id, array $data): Order
 {
     DB::beginTransaction();
 
     try {
-
-        /*
-        |--------------------------------------------------------------------------
-        | Find Order
-        |--------------------------------------------------------------------------
-        */
-
         $order = Order::query()
             ->with('orderItems')
             ->findOrFail($id);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Business Rule
-        |--------------------------------------------------------------------------
-        | Only pending orders can be modified.
-        |--------------------------------------------------------------------------
-        */
 
         if ($order->status !== Order::STATUS_PENDING) {
             throw new Exception(
                 'Only pending orders can be updated.'
             );
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validate Reservation
-        |--------------------------------------------------------------------------
-        */
 
         $reservation = $this->validateReservation(
             $data['reservation_id']
@@ -357,23 +312,11 @@ public function update(string $id, array $data): Order
             $data['room_id']
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Update Basic Information
-        |--------------------------------------------------------------------------
-        */
-
         $order->update([
 
             'notes' => $data['notes'] ?? null,
 
         ]);
-                /*
-        |--------------------------------------------------------------------------
-        | Synchronize Order Items
-        |--------------------------------------------------------------------------
-        */
-
         $existingItems = $order->orderItems()
             ->get()
             ->keyBy('id');
@@ -383,31 +326,11 @@ public function update(string $id, array $data): Order
         $subtotal = 0;
 
         foreach ($data['items'] as $itemData) {
-
-            /*
-            |--------------------------------------------------------------------------
-            | Validate Menu Item
-            |--------------------------------------------------------------------------
-            */
-
             $menuItem = $this->getMenuItem(
                 $itemData['menu_item_id']
             );
 
-            /*
-            |--------------------------------------------------------------------------
-            | Calculate Line Total
-            |--------------------------------------------------------------------------
-            */
-
             $lineTotal = $menuItem->price * $itemData['quantity'];
-
-            /*
-            |--------------------------------------------------------------------------
-            | Existing Item
-            |--------------------------------------------------------------------------
-            */
-
             if (
                 !empty($itemData['id']) &&
                 $existingItems->has($itemData['id'])
@@ -433,13 +356,6 @@ public function update(string $id, array $data): Order
 
                 $submittedItemIds[] = $orderItem->id;
             }
-
-            /*
-            |--------------------------------------------------------------------------
-            | New Item
-            |--------------------------------------------------------------------------
-            */
-
             else {
 
                 $newItem = $order->orderItems()->create([
@@ -458,37 +374,12 @@ public function update(string $id, array $data): Order
 
                 $submittedItemIds[] = $newItem->id;
             }
-
-            /*
-            |--------------------------------------------------------------------------
-            | Running Subtotal
-            |--------------------------------------------------------------------------
-            */
-
             $subtotal += $lineTotal;
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Delete Removed Items
-        |--------------------------------------------------------------------------
-        */
 
         $order->orderItems()
             ->whereNotIn('id', $submittedItemIds)
             ->delete();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Continue in Part 2.3
-        |--------------------------------------------------------------------------
-        */
-                /*
-        |--------------------------------------------------------------------------
-        | Recalculate Financial Values
-        |--------------------------------------------------------------------------
-        */
-
         $tax = $this->calculateTax($subtotal);
 
         $discount = $this->calculateDiscount(
@@ -501,13 +392,6 @@ public function update(string $id, array $data): Order
             $tax,
             $discount
         );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Update Order Totals
-        |--------------------------------------------------------------------------
-        */
-
         $order->update([
 
             'subtotal' => $subtotal,
@@ -519,20 +403,7 @@ public function update(string $id, array $data): Order
             'total' => $total,
 
         ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Commit Transaction
-        |--------------------------------------------------------------------------
-        */
-
         DB::commit();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Return Updated Order
-        |--------------------------------------------------------------------------
-        */
 
         return $order->fresh()->load([
 
@@ -555,35 +426,17 @@ public function update(string $id, array $data): Order
         throw $exception;
     }
 }
-/**
- * Calculate tax.
- */
 private function calculateTax(float $subtotal): float
 {
-    // Example:
-    // return round($subtotal * 0.15, 2);
-
     return 0;
 }
-
-/**
- * Calculate discount based on reservation and loyalty.
- */
 private function calculateDiscount(
     float $subtotal,
     Reservation $reservation
 ): float {
-    // Example discount logic:
-    // - VIP guests: 10% discount
-    // - Early booking: 5% discount
-    // Add your business logic here
-
     return 0;
 }
 
-/**
- * Calculate total with all adjustments.
- */
 private function calculateTotal(
     float $subtotal,
     float $tax,
@@ -592,14 +445,10 @@ private function calculateTotal(
     return round(($subtotal + $tax) - $discount, 2);
 }
 
-/**
- * Change order status.
- */
 public function changeStatus(string $id, string $status): Order
 {
     $order = Order::query()->findOrFail($id);
 
-    // Only pending orders can transition to other states
     if (
         $order->status === Order::STATUS_PENDING &&
         in_array(
@@ -612,17 +461,13 @@ public function changeStatus(string $id, string $status): Order
             ]
         )
     ) {
-        // Valid transition
     } elseif ($order->status === Order::STATUS_PREPARING &&
         in_array($status, [Order::STATUS_READY, Order::STATUS_CANCELLED])
     ) {
-        // Valid transition
     } elseif ($order->status === Order::STATUS_READY &&
         in_array($status, [Order::STATUS_SERVED, Order::STATUS_CANCELLED])
     ) {
-        // Valid transition
     } elseif ($status === $order->status) {
-        // No change needed
         return $order;
     } else {
         throw new Exception(
@@ -630,7 +475,6 @@ public function changeStatus(string $id, string $status): Order
         );
     }
 
-    // Update status and timestamps
     $updateData = ['status' => $status];
 
     if ($status === Order::STATUS_SERVED) {
@@ -649,10 +493,6 @@ public function changeStatus(string $id, string $status): Order
         'orderItems.menuItem',
     ]);
 }
-
-/**
- * Cancel an order.
- */
 public function cancel(string $id): void
 {
     $order = Order::query()->findOrFail($id);

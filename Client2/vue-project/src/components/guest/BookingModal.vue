@@ -220,11 +220,11 @@ async function fetchRoomStatusFromBackend() {
     const status = roomData.status ? String(roomData.status).toLowerCase() : 'available'
     const isActive = roomData.is_active !== false
 
-    console.log('✅ [BOOKING] Processed status:', status, 'isActive:', isActive)
+    console.log(' [BOOKING] Processed status:', status, 'isActive:', isActive)
 
     // Map backend status values to display states
     if (status === 'available' && isActive) {
-      console.log('✅ [BOOKING] Room is AVAILABLE')
+      console.log(' [BOOKING] Room is AVAILABLE')
       roomStatus.value = 'available'
       roomStatusMessage.value = 'Available'
     } else if (status === 'occupied' || !isActive) {
@@ -383,9 +383,9 @@ async function submitBooking() {
         throw new Error('Failed to retrieve guest ID after creation')
       }
 
-      console.log('✅ [BOOKING] Guest created with ID:', guestId)
+      console.log(' [BOOKING] Guest created with ID:', guestId)
     } else {
-      console.log('✅ [BOOKING] Guest already exists with ID:', guestId)
+      console.log(' [BOOKING] Guest already exists with ID:', guestId)
     }
 
     // Step 2: Create reservation
@@ -403,7 +403,7 @@ async function submitBooking() {
 
     const reservationResult = await reservationStore.createReservation(reservationData)
 
-    console.log('✅ [BOOKING] Reservation created:', reservationResult)
+    console.log(' [BOOKING] Reservation created:', reservationResult)
 
     // Prepare booking success data
     const successData: BookingSuccessData = {

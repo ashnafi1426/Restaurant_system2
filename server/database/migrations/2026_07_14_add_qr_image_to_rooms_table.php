@@ -12,10 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('rooms', function (Blueprint $table) {
+            // Check if qr_token column exists, if not add it first
+            if (!Schema::hasColumn('rooms', 'qr_token')) {
+                $table->string('qr_token')->nullable()->unique();
+            }
+            
             // Store path to the generated QR code image
-            $table->string('qr_image_path')->nullable()->after('qr_token');
+            if (!Schema::hasColumn('rooms', 'qr_image_path')) {
+                $table->string('qr_image_path')->nullable()->after('qr_token');
+            }
+            
             // Track when QR code was last generated (for regeneration if needed)
-            $table->timestamp('qr_generated_at')->nullable()->after('qr_image_path');
+            if (!Schema::hasColumn('rooms', 'qr_generated_at')) {
+                $table->timestamp('qr_generated_at')->nullable()->after('qr_image_path');
+            }
         });
     }
 

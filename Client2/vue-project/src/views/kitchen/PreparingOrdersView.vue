@@ -10,10 +10,8 @@ const { preparingOrders, statistics, actionLoading } = storeToRefs(kitchenStore)
 onMounted(async () => {
   await kitchenStore.fetchDashboard()
 })
-
 async function markReady(orderId: string) {
   await kitchenStore.markReady(orderId)
-  // Don't refetch - store updates locally via updateOrder()
 }
 
 const formatTime = (dateTime: string) => {
@@ -98,7 +96,10 @@ const formatTime = (dateTime: string) => {
                       📝 {{ item.notes }}
                     </span>
                   </div>
-                  <div v-if="(order.items || []).length > 2" class="text-xs text-slate-500 font-semibold">
+                  <div
+                    v-if="(order.items || []).length > 2"
+                    class="text-xs text-slate-500 font-semibold"
+                  >
                     +{{ (order.items || []).length - 2 }} more items
                   </div>
                 </div>
@@ -107,7 +108,7 @@ const formatTime = (dateTime: string) => {
               <!-- Notes -->
               <td class="px-4 py-3">
                 <div v-if="order.notes" class="text-xs text-amber-600 font-bold">
-                  ⚠️ {{ order.notes }}
+                  {{ order.notes }}
                 </div>
                 <div v-else class="text-xs text-slate-400">—</div>
               </td>
@@ -135,7 +136,9 @@ const formatTime = (dateTime: string) => {
                 >
                   <span v-if="actionLoading === order.id" class="inline-block animate-spin">⟳</span>
                   <span v-else>✓</span>
-                  <span class="hidden sm:inline">{{ actionLoading === order.id ? 'MARKING...' : 'READY' }}</span>
+                  <span class="hidden sm:inline">{{
+                    actionLoading === order.id ? 'MARKING...' : 'READY'
+                  }}</span>
                 </button>
               </td>
             </tr>

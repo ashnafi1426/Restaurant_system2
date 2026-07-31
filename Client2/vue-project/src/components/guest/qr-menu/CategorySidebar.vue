@@ -50,7 +50,7 @@ import {
   Sandwich,
   Cake,
   Wine,
-  Menu
+  Menu,
 } from 'lucide-vue-next'
 
 interface Category {
@@ -78,9 +78,9 @@ const props = withDefaults(defineProps<Props>(), {
     { id: 'pizza', name: 'Pizza', icon: 'pizza', count: 12 },
     { id: 'burgers', name: 'Burgers', icon: 'sandwich', count: 10 },
     { id: 'desserts', name: 'Desserts', icon: 'cake', count: 14 },
-    { id: 'beverages', name: 'Beverages', icon: 'wine', count: 22 }
+    { id: 'beverages', name: 'Beverages', icon: 'wine', count: 22 },
   ],
-  selectedCategoryId: null
+  selectedCategoryId: null,
 })
 
 // Default categories for fallback in computed property
@@ -96,36 +96,36 @@ const DEFAULT_CATEGORIES: Category[] = [
   { id: 'pizza', name: 'Pizza', icon: 'pizza', count: 12 },
   { id: 'burgers', name: 'Burgers', icon: 'sandwich', count: 10 },
   { id: 'desserts', name: 'Desserts', icon: 'cake', count: 14 },
-  { id: 'beverages', name: 'Beverages', icon: 'wine', count: 22 }
+  { id: 'beverages', name: 'Beverages', icon: 'wine', count: 22 },
 ]
 
 // Icon mapping function
 const getIconComponent = (categoryId: string | null) => {
   const iconMap: { [key: string]: any } = {
-    'menu': Menu,
-    'clock': Clock,
-    'breakfast': Clock,
-    'utensils': Utensils,
-    'lunch': Utensils,
-    'leaf': Leaf,
-    'appetizers': Leaf,
-    'soup': Soup,
-    'soups': Soup,
-    'salad': Salad,
-    'salads': Salad,
+    menu: Menu,
+    clock: Clock,
+    breakfast: Clock,
+    utensils: Utensils,
+    lunch: Utensils,
+    leaf: Leaf,
+    appetizers: Leaf,
+    soup: Soup,
+    soups: Soup,
+    salad: Salad,
+    salads: Salad,
     'utensils-crossed': UtensilsCrossed,
     'main-course': UtensilsCrossed,
-    'layers': Layers,
-    'pasta': Layers,
-    'pizza': Pizza,
-    'sandwich': Sandwich,
-    'burger': Sandwich,
-    'burgers': Sandwich,
-    'cake': Cake,
-    'desserts': Cake,
-    'wine': Wine,
-    'beverages': Wine,
-    'drinks': Wine,
+    layers: Layers,
+    pasta: Layers,
+    pizza: Pizza,
+    sandwich: Sandwich,
+    burger: Sandwich,
+    burgers: Sandwich,
+    cake: Cake,
+    desserts: Cake,
+    wine: Wine,
+    beverages: Wine,
+    drinks: Wine,
   }
   return iconMap[categoryId as string] || Menu
 }
@@ -146,9 +146,12 @@ const displayCategories = computed(() => {
   return DEFAULT_CATEGORIES
 })
 
-watch(() => props.selectedCategoryId, (newVal) => {
-  selectedCategory.value = newVal
-})
+watch(
+  () => props.selectedCategoryId,
+  (newVal) => {
+    selectedCategory.value = newVal
+  },
+)
 
 const selectCategory = (categoryId: string | null) => {
   selectedCategory.value = categoryId

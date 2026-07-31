@@ -1,0 +1,289 @@
+{
+  "description": "Test data for Orders assigned to Waiters",
+  "orders": [
+    {
+      "id": 1,
+      "room_id": 201,
+      "guest_id": 1,
+      "items": [
+        {
+          "id": 101,
+          "name": "Grilled Chicken",
+          "quantity": 2,
+          "price": 250,
+          "total": 500
+        },
+        {
+          "id": 102,
+          "name": "Caesar Salad",
+          "quantity": 1,
+          "price": 150,
+          "total": 150
+        }
+      ],
+      "total_amount": 650,
+      "status": "pending",
+      "created_at": "2024-01-29T08:00:00Z",
+      "updated_at": "2024-01-29T08:00:00Z"
+    },
+    {
+      "id": 2,
+      "room_id": 202,
+      "guest_id": 2,
+      "items": [
+        {
+          "id": 103,
+          "name": "Fish Fillet",
+          "quantity": 1,
+          "price": 350,
+          "total": 350
+        },
+        {
+          "id": 104,
+          "name": "Garlic Bread",
+          "quantity": 2,
+          "price": 100,
+          "total": 200
+        }
+      ],
+      "total_amount": 550,
+      "status": "ready",
+      "created_at": "2024-01-29T08:05:00Z",
+      "updated_at": "2024-01-29T08:30:00Z"
+    },
+    {
+      "id": 3,
+      "room_id": 203,
+      "guest_id": 3,
+      "items": [
+        {
+          "id": 105,
+          "name": "Ribeye Steak",
+          "quantity": 1,
+          "price": 650,
+          "total": 650
+        },
+        {
+          "id": 106,
+          "name": "Wine Glass",
+          "quantity": 1,
+          "price": 250,
+          "total": 250
+        }
+      ],
+      "total_amount": 900,
+      "status": "ready",
+      "created_at": "2024-01-29T08:10:00Z",
+      "updated_at": "2024-01-29T08:35:00Z"
+    },
+    {
+      "id": 4,
+      "room_id": 204,
+      "guest_id": 4,
+      "items": [
+        {
+          "id": 107,
+          "name": "Vegetarian Pizza",
+          "quantity": 1,
+          "price": 280,
+          "total": 280
+        },
+        {
+          "id": 108,
+          "name": "Fresh Orange Juice",
+          "quantity": 2,
+          "price": 60,
+          "total": 120
+        }
+      ],
+      "total_amount": 400,
+      "status": "ready",
+      "created_at": "2024-01-29T08:20:00Z",
+      "updated_at": "2024-01-29T08:40:00Z"
+    },
+    {
+      "id": 5,
+      "room_id": 205,
+      "guest_id": 5,
+      "items": [
+        {
+          "id": 109,
+          "name": "Seafood Pasta",
+          "quantity": 1,
+          "price": 420,
+          "total": 420
+        },
+        {
+          "id": 110,
+          "name": "Chocolate Cake",
+          "quantity": 1,
+          "price": 150,
+          "total": 150
+        }
+      ],
+      "total_amount": 570,
+      "status": "delivered",
+      "created_at": "2024-01-29T07:00:00Z",
+      "updated_at": "2024-01-29T07:20:00Z"
+    },
+    {
+      "id": 6,
+      "room_id": 206,
+      "guest_id": 6,
+      "items": [
+        {
+          "id": 111,
+          "name": "Biryani",
+          "quantity": 2,
+          "price": 320,
+          "total": 640
+        }
+      ],
+      "total_amount": 640,
+      "status": "pending",
+      "created_at": "2024-01-29T08:30:00Z",
+      "updated_at": "2024-01-29T08:30:00Z"
+    },
+    {
+      "id": 7,
+      "room_id": 207,
+      "guest_id": 7,
+      "items": [
+        {
+          "id": 112,
+          "name": "Tandoori Chicken",
+          "quantity": 1,
+          "price": 380,
+          "total": 380
+        },
+        {
+          "id": 113,
+          "name": "Dal Makhani",
+          "quantity": 1,
+          "price": 250,
+          "total": 250
+        }
+      ],
+      "total_amount": 630,
+      "status": "failed",
+      "created_at": "2024-01-29T06:00:00Z",
+      "updated_at": "2024-01-29T06:15:00Z"
+    }
+  ],
+  "delivery_tasks": [
+    {
+      "id": 1,
+      "order_id": 1,
+      "waiter_id": 2,
+      "floor_id": "550e8400-e29b-41d4-a716-446655440001",
+      "room_id": 201,
+      "status": "pending",
+      "priority": "normal",
+      "assigned_at": "2024-01-29T08:00:00Z",
+      "accepted_at": null,
+      "picked_up_at": null,
+      "on_delivery_at": null,
+      "delivered_at": null,
+      "failed_at": null,
+      "failure_reason": null,
+      "notes": "Handle with care - fragile",
+      "created_at": "2024-01-29T08:00:00Z",
+      "updated_at": "2024-01-29T08:00:00Z"
+    },
+    {
+      "id": 2,
+      "order_id": 2,
+      "waiter_id": 2,
+      "floor_id": "550e8400-e29b-41d4-a716-446655440001",
+      "room_id": 202,
+      "status": "accepted",
+      "priority": "high",
+      "assigned_at": "2024-01-29T08:05:00Z",
+      "accepted_at": "2024-01-29T08:06:00Z",
+      "picked_up_at": null,
+      "on_delivery_at": null,
+      "delivered_at": null,
+      "failed_at": null,
+      "failure_reason": null,
+      "notes": "Guest is in a meeting - deliver after 8:30 AM",
+      "created_at": "2024-01-29T08:05:00Z",
+      "updated_at": "2024-01-29T08:06:00Z"
+    },
+    {
+      "id": 3,
+      "order_id": 3,
+      "waiter_id": 2,
+      "floor_id": "550e8400-e29b-41d4-a716-446655440001",
+      "room_id": 203,
+      "status": "picked_up",
+      "priority": "high",
+      "assigned_at": "2024-01-29T08:10:00Z",
+      "accepted_at": "2024-01-29T08:11:00Z",
+      "picked_up_at": "2024-01-29T08:15:00Z",
+      "on_delivery_at": null,
+      "delivered_at": null,
+      "failed_at": null,
+      "failure_reason": null,
+      "notes": "Keep warm - steak order",
+      "created_at": "2024-01-29T08:10:00Z",
+      "updated_at": "2024-01-29T08:15:00Z"
+    },
+    {
+      "id": 4,
+      "order_id": 4,
+      "waiter_id": 2,
+      "floor_id": "550e8400-e29b-41d4-a716-446655440001",
+      "room_id": 204,
+      "status": "on_delivery",
+      "priority": "normal",
+      "assigned_at": "2024-01-29T08:20:00Z",
+      "accepted_at": "2024-01-29T08:21:00Z",
+      "picked_up_at": "2024-01-29T08:25:00Z",
+      "on_delivery_at": "2024-01-29T08:35:00Z",
+      "delivered_at": null,
+      "failed_at": null,
+      "failure_reason": null,
+      "notes": "Standard delivery",
+      "created_at": "2024-01-29T08:20:00Z",
+      "updated_at": "2024-01-29T08:35:00Z"
+    },
+    {
+      "id": 5,
+      "order_id": 5,
+      "waiter_id": 2,
+      "floor_id": "550e8400-e29b-41d4-a716-446655440001",
+      "room_id": 205,
+      "status": "delivered",
+      "priority": "normal",
+      "assigned_at": "2024-01-29T07:00:00Z",
+      "accepted_at": "2024-01-29T07:01:00Z",
+      "picked_up_at": "2024-01-29T07:05:00Z",
+      "on_delivery_at": "2024-01-29T07:10:00Z",
+      "delivered_at": "2024-01-29T07:20:00Z",
+      "failed_at": null,
+      "failure_reason": null,
+      "notes": "Successfully delivered",
+      "created_at": "2024-01-29T07:00:00Z",
+      "updated_at": "2024-01-29T07:20:00Z"
+    },
+    {
+      "id": 6,
+      "order_id": 7,
+      "waiter_id": 2,
+      "floor_id": "550e8400-e29b-41d4-a716-446655440001",
+      "room_id": 207,
+      "status": "failed",
+      "priority": "normal",
+      "assigned_at": "2024-01-29T06:00:00Z",
+      "accepted_at": "2024-01-29T06:01:00Z",
+      "picked_up_at": "2024-01-29T06:05:00Z",
+      "on_delivery_at": "2024-01-29T06:08:00Z",
+      "delivered_at": null,
+      "failed_at": "2024-01-29T06:15:00Z",
+      "failure_reason": "Guest not in room",
+      "notes": "Delivery failed - will retry later",
+      "created_at": "2024-01-29T06:00:00Z",
+      "updated_at": "2024-01-29T06:15:00Z"
+    }
+  ]
+}

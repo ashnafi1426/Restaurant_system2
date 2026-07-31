@@ -1,0 +1,134 @@
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import { useManagerStore } from '@/stores/managerStore'
+import DashboardLayout from '../../Layouts/DashboardLayout.vue'
+import { Package } from 'lucide-vue-next'
+
+const manager = useManagerStore()
+
+onMounted(async () => {
+  // Load inventory-related data
+  await Promise.all([
+    manager.loadStatistics(),
+  ])
+})
+</script>
+
+<template>
+  <DashboardLayout>
+    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+      <!-- PAGE HEADER -->
+      <div class="mb-8 border-b border-slate-200/60 bg-white/80 backdrop-blur-sm rounded-lg p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">Inventory Management</h1>
+            <p class="text-slate-600">Track and manage hotel and restaurant inventory</p>
+          </div>
+          <div class="w-12 h-12 bg-gradient-to-br from-amber-100 to-amber-50 rounded-xl flex items-center justify-center">
+            <Package class="w-6 h-6 text-amber-600" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="manager.loading" class="flex justify-center items-center py-32">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-blue-600 mx-auto mb-4"></div>
+          <p class="text-slate-600">Loading inventory data...</p>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div v-if="manager.error && !manager.loading" class="bg-red-50/80 backdrop-blur-sm border border-red-200/60 text-red-700 p-6 rounded-xl mb-6">
+        {{ manager.error }}
+      </div>
+
+      <!-- Content -->
+      <div v-if="!manager.loading" class="space-y-6">
+
+        <!-- Inventory Status -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+            <p class="text-sm text-slate-500">Total Items</p>
+            <h3 class="mt-3 text-3xl font-bold text-slate-900">1,250</h3>
+            <p class="text-sm text-slate-400 mt-2">In stock across all categories</p>
+          </div>
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+            <p class="text-sm text-slate-500">Low Stock Items</p>
+            <h3 class="mt-3 text-3xl font-bold text-amber-600">23</h3>
+            <p class="text-sm text-amber-600 mt-2">Require urgent reorder</p>
+          </div>
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+            <p class="text-sm text-slate-500">Stock Value</p>
+            <h3 class="mt-3 text-3xl font-bold text-emerald-600">{{ formatCurrency(45000) }}</h3>
+            <p class="text-sm text-slate-400 mt-2">Total inventory value</p>
+          </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-xl font-bold mb-6">Inventory by Category</h2>
+          <div class="space-y-4">
+            <div v-for="category in categories" :key="category.name" class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+              <div class="flex items-center gap-3">
+                <span class="font-semibold">{{ category.name }}</span>
+                <span class="text-sm text-slate-500">{{ category.items }} items</span>
+              </div>
+              <div class="flex items-center gap-4">
+                <div class="w-32 h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-blue-600" :style="{ width: category.utilization + '%' }"></div>
+                </div>
+                <span class="text-sm font-semibold">{{ category.utilization }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+          <h2 class="text-xl font-bold mb-6">Recent Inventory Movements</h2>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-4 border-b border-slate-200">
+              <div>
+                <p class="font-semibold">Linen Stock - Added</p>
+                <p class="text-sm text-slate-500">Today at 10:30 AM</p>
+              </div>
+              <span class="text-emerald-600 font-semibold">+150 units</span>
+            </div>
+            <div class="flex items-center justify-between p-4 border-b border-slate-200">
+              <div>
+                <p class="font-semibold">Kitchen Supplies - Used</p>
+                <p class="text-sm text-slate-500">Today at 9:15 AM</p>
+              </div>
+              <span class="text-red-600 font-semibold">-45 units</span>
+            </div>
+            <div class="flex items-center justify-between p-4">
+              <div>
+                <p class="font-semibold">Toiletries - Added</p>
+                <p class="text-sm text-slate-500">Yesterday at 3:20 PM</p>
+              </div>
+              <span class="text-emerald-600 font-semibold">+200 units</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </DashboardLayout>
+</template>
+
+<script lang="ts">
+const categories = [
+  { name: 'Linens & Textiles', items: 450, utilization: 85 },
+  { name: 'Kitchen Supplies', items: 320, utilization: 72 },
+  { name: 'Toiletries', items: 280, utilization: 90 },
+  { name: 'Cleaning Materials', items: 200, utilization: 65 },
+]
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'ETB',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+</script>

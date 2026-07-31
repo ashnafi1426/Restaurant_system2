@@ -12,7 +12,9 @@
             >
               <span class="text-lg sm:text-xl text-white">🍴</span>
             </div>
-            <h1 class="text-lg sm:text-xl md:text-2xl font-black text-slate-900">Menu Management</h1>
+            <h1 class="text-lg sm:text-xl md:text-2xl font-black text-slate-900">
+              Menu Management
+            </h1>
           </div>
           <router-link
             to="/admin/menu/add"
@@ -48,7 +50,9 @@
 
         <!-- Filter Section -->
         <div class="mt-4 sm:mt-6 md:mt-8">
-          <div class="mb-4 sm:mb-6 md:mb-8 overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6">
+          <div
+            class="mb-4 sm:mb-6 md:mb-8 overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6"
+          >
             <div class="inline-block w-full min-w-max">
               <MenuCategoryTabs
                 :selected="selectedCategory"
@@ -98,7 +102,9 @@
             class="text-center py-12 sm:py-16 md:py-20 bg-white rounded-lg sm:rounded-2xl border border-slate-200 shadow-sm px-4 sm:px-6"
           >
             <span class="text-3xl sm:text-4xl md:text-5xl block mb-3 sm:mb-4">🍽️</span>
-            <p class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 mb-1">No Items Found</p>
+            <p class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 mb-1">
+              No Items Found
+            </p>
             <p class="text-xs sm:text-sm text-slate-400 mb-4 sm:mb-6">
               There are no dishes matching this selection yet.
             </p>
@@ -111,7 +117,10 @@
           </div>
 
           <!-- Table Display - Responsive Overflow -->
-          <div v-else class="bg-white rounded-lg sm:rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+          <div
+            v-else
+            class="bg-white rounded-lg sm:rounded-xl border border-slate-200 shadow-sm overflow-x-auto"
+          >
             <MenuTable
               :items="store.menuItems"
               :loading="store.loading"
@@ -121,7 +130,9 @@
             />
 
             <!-- Pagination Section - Responsive Layout -->
-            <div class="border-t border-slate-200 px-3 sm:px-4 md:px-6 py-3 sm:py-4 space-y-4 sm:space-y-0">
+            <div
+              class="border-t border-slate-200 px-3 sm:px-4 md:px-6 py-3 sm:py-4 space-y-4 sm:space-y-0"
+            >
               <!-- Info Row - Responsive Text -->
               <p class="text-xs sm:text-sm text-slate-600">
                 Showing <span class="font-semibold">{{ store.pagination.from || 1 }}</span> to
@@ -132,9 +143,7 @@
               </p>
 
               <!-- Pagination Controls - Stack on Mobile -->
-              <div
-                class="flex flex-col gap-3 sm:gap-4 sm:items-center sm:justify-between"
-              >
+              <div class="flex flex-col gap-3 sm:gap-4 sm:items-center sm:justify-between">
                 <!-- Previous/Next Buttons -->
                 <div class="flex items-center gap-1 sm:gap-2 overflow-x-auto sm:overflow-visible">
                   <button
@@ -307,7 +316,7 @@ async function loadMenu() {
   }
   try {
     await store.fetchMenuItems(filters)
-    console.log('✅ Menu loaded:', store.menuItems.length, 'items')
+    console.log(' Menu loaded:', store.menuItems.length, 'items')
   } catch (error) {
     console.error('❌ Error loading menu:', error)
   }

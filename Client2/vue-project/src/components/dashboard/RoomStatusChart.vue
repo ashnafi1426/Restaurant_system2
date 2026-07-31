@@ -81,20 +81,20 @@ const fetchRoomStats = async () => {
   try {
     loading.value = true
     error.value = null
-    
+
     // Fetch all rooms
     const response = await roomService.getRooms()
     const rooms = response.data || []
-    
+
     // Calculate stats based on room statuses
     let occupied = 0
     let available = 0
     let reserved = 0
     let maintenance = 0
-    
+
     rooms.forEach((room: any) => {
       const status = room.status?.toLowerCase() || 'available'
-      
+
       switch (status) {
         case 'occupied':
           occupied++
@@ -112,14 +112,14 @@ const fetchRoomStats = async () => {
           available++
       }
     })
-    
+
     roomStats.value = {
       occupied,
       available,
       reserved,
       maintenance,
     }
-    
+
     updateChart()
   } catch (err: any) {
     console.error('Failed to fetch room statistics:', err)
@@ -145,7 +145,12 @@ const updateChart = () => {
 
 // Fetch data on component mount
 onMounted(() => {
-  if (props.occupied === 0 && props.available === 0 && props.reserved === 0 && props.maintenance === 0) {
+  if (
+    props.occupied === 0 &&
+    props.available === 0 &&
+    props.reserved === 0 &&
+    props.maintenance === 0
+  ) {
     fetchRoomStats()
   } else {
     updateChart()
@@ -180,7 +185,9 @@ watch(
     <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center py-8">
       <div class="text-center">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-3"></div>
+        <div
+          class="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-3"
+        ></div>
         <p class="text-slate-600 text-sm font-medium">Loading...</p>
       </div>
     </div>
@@ -201,7 +208,9 @@ watch(
           <div class="relative w-40 h-40 sm:w-48 sm:h-48">
             <Doughnut :data="chartData" :options="chartOptions" />
             <!-- Center text -->
-            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <div
+              class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
+            >
               <p class="text-3xl sm:text-4xl font-bold text-slate-900">{{ total }}</p>
               <p class="text-xs text-slate-500 mt-1 font-semibold">Rooms</p>
             </div>
@@ -212,13 +221,17 @@ watch(
       <!-- Statistics Section - Compact Right Sidebar -->
       <div class="w-full lg:flex-1 grid grid-cols-2 lg:grid-cols-1 gap-2 sm:gap-3">
         <!-- Occupied -->
-        <div class="flex items-center justify-between p-2.5 sm:p-3 bg-gradient-to-br from-teal-50 to-teal-100/40 rounded-lg border border-teal-200 hover:border-teal-300 transition-all group">
+        <div
+          class="flex items-center justify-between p-2.5 sm:p-3 bg-gradient-to-br from-teal-50 to-teal-100/40 rounded-lg border border-teal-200 hover:border-teal-300 transition-all group"
+        >
           <div class="flex items-center gap-2 flex-1 min-w-0">
             <div class="w-2.5 h-2.5 rounded-full bg-teal-600 flex-shrink-0"></div>
             <span class="text-xs sm:text-sm font-semibold text-slate-700 truncate">Occupied</span>
           </div>
           <div class="text-right flex-shrink-0 ml-2">
-            <span class="text-sm sm:text-base font-bold text-teal-700 block">{{ roomStats.occupied }}</span>
+            <span class="text-sm sm:text-base font-bold text-teal-700 block">{{
+              roomStats.occupied
+            }}</span>
             <span class="text-xs text-teal-600 font-medium">
               {{ total > 0 ? Math.round((roomStats.occupied / total) * 100) : 0 }}%
             </span>
@@ -226,13 +239,17 @@ watch(
         </div>
 
         <!-- Available -->
-        <div class="flex items-center justify-between p-2.5 sm:p-3 bg-gradient-to-br from-blue-50 to-blue-100/40 rounded-lg border border-blue-200 hover:border-blue-300 transition-all group">
+        <div
+          class="flex items-center justify-between p-2.5 sm:p-3 bg-gradient-to-br from-blue-50 to-blue-100/40 rounded-lg border border-blue-200 hover:border-blue-300 transition-all group"
+        >
           <div class="flex items-center gap-2 flex-1 min-w-0">
             <div class="w-2.5 h-2.5 rounded-full bg-blue-500 flex-shrink-0"></div>
             <span class="text-xs sm:text-sm font-semibold text-slate-700 truncate">Available</span>
           </div>
           <div class="text-right flex-shrink-0 ml-2">
-            <span class="text-sm sm:text-base font-bold text-blue-700 block">{{ roomStats.available }}</span>
+            <span class="text-sm sm:text-base font-bold text-blue-700 block">{{
+              roomStats.available
+            }}</span>
             <span class="text-xs text-blue-600 font-medium">
               {{ total > 0 ? Math.round((roomStats.available / total) * 100) : 0 }}%
             </span>
@@ -240,13 +257,17 @@ watch(
         </div>
 
         <!-- Reserved -->
-        <div class="flex items-center justify-between p-2.5 sm:p-3 bg-gradient-to-br from-amber-50 to-amber-100/40 rounded-lg border border-amber-200 hover:border-amber-300 transition-all group">
+        <div
+          class="flex items-center justify-between p-2.5 sm:p-3 bg-gradient-to-br from-amber-50 to-amber-100/40 rounded-lg border border-amber-200 hover:border-amber-300 transition-all group"
+        >
           <div class="flex items-center gap-2 flex-1 min-w-0">
             <div class="w-2.5 h-2.5 rounded-full bg-amber-500 flex-shrink-0"></div>
             <span class="text-xs sm:text-sm font-semibold text-slate-700 truncate">Reserved</span>
           </div>
           <div class="text-right flex-shrink-0 ml-2">
-            <span class="text-sm sm:text-base font-bold text-amber-700 block">{{ roomStats.reserved }}</span>
+            <span class="text-sm sm:text-base font-bold text-amber-700 block">{{
+              roomStats.reserved
+            }}</span>
             <span class="text-xs text-amber-600 font-medium">
               {{ total > 0 ? Math.round((roomStats.reserved / total) * 100) : 0 }}%
             </span>
@@ -254,13 +275,19 @@ watch(
         </div>
 
         <!-- Maintenance -->
-        <div class="flex items-center justify-between p-2.5 sm:p-3 bg-gradient-to-br from-red-50 to-red-100/40 rounded-lg border border-red-200 hover:border-red-300 transition-all group">
+        <div
+          class="flex items-center justify-between p-2.5 sm:p-3 bg-gradient-to-br from-red-50 to-red-100/40 rounded-lg border border-red-200 hover:border-red-300 transition-all group"
+        >
           <div class="flex items-center gap-2 flex-1 min-w-0">
             <div class="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0"></div>
-            <span class="text-xs sm:text-sm font-semibold text-slate-700 truncate">Maintenance</span>
+            <span class="text-xs sm:text-sm font-semibold text-slate-700 truncate"
+              >Maintenance</span
+            >
           </div>
           <div class="text-right flex-shrink-0 ml-2">
-            <span class="text-sm sm:text-base font-bold text-red-700 block">{{ roomStats.maintenance }}</span>
+            <span class="text-sm sm:text-base font-bold text-red-700 block">{{
+              roomStats.maintenance
+            }}</span>
             <span class="text-xs text-red-600 font-medium">
               {{ total > 0 ? Math.round((roomStats.maintenance / total) * 100) : 0 }}%
             </span>

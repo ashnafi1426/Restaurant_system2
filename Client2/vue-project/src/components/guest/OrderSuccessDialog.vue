@@ -9,18 +9,15 @@ interface Props {
   totalAmount?: number
 }
 
-const props = withDefaults(
-  defineProps<Props>(),
-  {
-    roomNumber: '',
-    estimatedMinutes: 20,
-    totalAmount: 0,
-  }
-)
+const props = withDefaults(defineProps<Props>(), {
+  roomNumber: '',
+  estimatedMinutes: 20,
+  totalAmount: 0,
+})
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value:boolean): void
-  (e:'track-order'): void
+  (e: 'update:modelValue', value: boolean): void
+  (e: 'track-order'): void
 }>()
 
 const close = () => {
@@ -60,9 +57,7 @@ const formattedPrice = computed(() => {
           <div
             class="relative overflow-hidden bg-gradient-to-r from-amber-700 via-amber-600 to-yellow-500 px-6 py-5"
           >
-            <div
-              class="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-white/10"
-            ></div>
+            <div class="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-white/10"></div>
 
             <div class="flex flex-col items-center">
               <div
@@ -76,21 +71,13 @@ const formattedPrice = computed(() => {
                   stroke="currentColor"
                   stroke-width="3"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M5 13l4 4L19 7"
-                  />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
 
-              <h2 class="mt-3 text-2xl font-bold text-white">
-                Order Confirmed
-              </h2>
+              <h2 class="mt-3 text-2xl font-bold text-white">Order Confirmed</h2>
 
-              <p class="mt-1 text-sm text-amber-100">
-                Thank you for your order
-              </p>
+              <p class="mt-1 text-sm text-amber-100">Thank you for your order</p>
 
               <div
                 class="mt-3 max-w-full truncate rounded-full bg-white/20 px-4 py-1.5 text-xs font-medium text-white"
@@ -104,48 +91,28 @@ const formattedPrice = computed(() => {
           <div class="space-y-3 p-4">
             <!-- Info Cards -->
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div
-                class="rounded-xl border border-amber-100 bg-amber-50 py-3 text-center"
-              >
-                <p class="text-[10px] uppercase text-gray-500 font-semibold">
-                  Room
-                </p>
+              <div class="rounded-xl border border-amber-100 bg-amber-50 py-3 text-center">
+                <p class="text-[10px] uppercase text-gray-500 font-semibold">Room</p>
 
                 <p class="mt-1 text-lg font-bold text-amber-700">
-                  {{ roomNumber || "--" }}
+                  {{ roomNumber || '--' }}
                 </p>
               </div>
 
-              <div
-                class="rounded-xl border border-blue-100 bg-blue-50 py-3 text-center"
-              >
-                <p class="text-[10px] uppercase text-gray-500 font-semibold">
-                  ETA
-                </p>
+              <div class="rounded-xl border border-blue-100 bg-blue-50 py-3 text-center">
+                <p class="text-[10px] uppercase text-gray-500 font-semibold">ETA</p>
 
-                <p class="mt-1 text-lg font-bold text-blue-700">
-                  {{ estimatedMinutes }}m
-                </p>
+                <p class="mt-1 text-lg font-bold text-blue-700">{{ estimatedMinutes }}m</p>
               </div>
 
-              <div
-                class="rounded-xl border border-green-100 bg-green-50 py-3 text-center"
-              >
-                <p class="text-[10px] uppercase text-gray-500 font-semibold">
-                  Status
-                </p>
+              <div class="rounded-xl border border-green-100 bg-green-50 py-3 text-center">
+                <p class="text-[10px] uppercase text-gray-500 font-semibold">Status</p>
 
-                <p class="mt-1 text-lg">
-                  👨‍🍳
-                </p>
+                <p class="mt-1 text-lg">👨‍🍳</p>
               </div>
 
-              <div
-                class="rounded-xl border border-purple-100 bg-purple-50 py-3 text-center"
-              >
-                <p class="text-[10px] uppercase text-gray-500 font-semibold">
-                  Total
-                </p>
+              <div class="rounded-xl border border-purple-100 bg-purple-50 py-3 text-center">
+                <p class="text-[10px] uppercase text-gray-500 font-semibold">Total</p>
 
                 <p class="mt-1 text-lg font-bold text-purple-700">
                   {{ formattedPrice }}
@@ -163,9 +130,7 @@ const formattedPrice = computed(() => {
                 </div>
 
                 <div class="flex-1">
-                  <h3 class="font-semibold text-gray-900">
-                    Kitchen Preparing
-                  </h3>
+                  <h3 class="font-semibold text-gray-900">Kitchen Preparing</h3>
 
                   <p class="mt-1 text-xs text-gray-500">
                     Your order has been received and is currently being prepared.
@@ -187,9 +152,7 @@ const formattedPrice = computed(() => {
                   <div class="h-2.5 w-2.5 rounded-full bg-gray-300"></div>
                 </div>
 
-                <div
-                  class="mt-2 flex justify-between text-[10px] text-gray-500"
-                >
+                <div class="mt-2 flex justify-between text-[10px] text-gray-500">
                   <span>Confirmed</span>
                   <span>Preparing</span>
                   <span>Delivered</span>
@@ -198,9 +161,7 @@ const formattedPrice = computed(() => {
             </div>
 
             <!-- Message -->
-            <div
-              class="rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 p-3 text-center"
-            >
+            <div class="rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 p-3 text-center">
               <p class="text-xs leading-5 text-gray-600">
                 Your meal will be delivered directly to your room shortly.
               </p>
@@ -216,9 +177,7 @@ const formattedPrice = computed(() => {
               <p class="text-3xl font-bold text-purple-700">
                 {{ formattedPrice }}
               </p>
-              <p class="text-xs text-gray-500 mt-2">
-                Including tax and service charge
-              </p>
+              <p class="text-xs text-gray-500 mt-2">Including tax and service charge</p>
             </div>
           </div>
 

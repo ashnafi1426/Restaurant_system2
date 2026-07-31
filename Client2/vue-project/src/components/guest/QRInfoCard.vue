@@ -15,7 +15,9 @@ withDefaults(defineProps<Props>(), {
     <div class="max-w-4xl mx-auto">
       <div class="rounded-2xl bg-gradient-to-r from-teal-50 to-blue-50 border border-teal-200 p-6">
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-full bg-teal-600 text-white flex items-center justify-center text-xl">
+          <div
+            class="w-12 h-12 rounded-full bg-teal-600 text-white flex items-center justify-center text-xl"
+          >
             🔐
           </div>
           <div class="flex-1">

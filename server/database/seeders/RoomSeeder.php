@@ -36,15 +36,17 @@ class RoomSeeder extends Seeder
             $typeIndex = $roomData['type_index'] ?? 0;
             $roomType = isset($roomTypesArray[$typeIndex]) ? $roomTypesArray[$typeIndex] : $roomTypesArray[0];
             
-            Room::create([
-                'id' => Str::uuid(),
-                'room_number' => $roomData['room_number'],
-                'room_type_id' => $roomType['id'],
-                'floor' => $roomData['floor'],
-                'status' => $roomData['status'],
-                'description' => $roomData['description'],
-                'is_active' => true,
-            ]);
+            Room::firstOrCreate(
+                ['room_number' => $roomData['room_number']],
+                [
+                    'id' => Str::uuid(),
+                    'room_type_id' => $roomType['id'],
+                    'floor' => $roomData['floor'],
+                    'status' => $roomData['status'],
+                    'description' => $roomData['description'],
+                    'is_active' => true,
+                ]
+            );
         }
     }
 }

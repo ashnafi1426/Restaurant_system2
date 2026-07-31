@@ -168,9 +168,7 @@ const getFieldError = (fieldName: string): string | null => {
           :placeholder="isEditMode ? 'Leave blank to keep current' : 'Minimum 8 characters'"
           :class="[
             'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
-            getFieldError('password')
-              ? 'border-red-500 ring-2 ring-red-200'
-              : 'border-slate-300',
+            getFieldError('password') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
           ]"
           :disabled="loading"
         />

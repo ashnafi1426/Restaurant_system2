@@ -39,28 +39,28 @@ const isAvailable = computed(() => {
 // Get emoji based on category
 const getCategoryEmoji = (category: string): string => {
   const emojiMap: Record<string, string> = {
-    'breakfast': '🥞',
-    'lunch': '🥗',
-    'dinner': '🍽️',
-    'appetizer': '🥒',
-    'main': '🍖',
-    'dessert': '🍰',
-    'drink': '🥤',
-    'beverage': '🍹',
-    'coffee': '☕',
-    'tea': '🫖',
-    'smoothie': '🥤',
-    'burger': '🍔',
-    'pizza': '🍕',
-    'salad': '🥗',
-    'sandwich': '🥪',
-    'soup': '🍲',
-    'pasta': '🍝',
-    'seafood': '🦐',
-    'vegetarian': '🥬',
-    'vegan': '🌱',
+    breakfast: '🥞',
+    lunch: '🥗',
+    dinner: '🍽️',
+    appetizer: '🥒',
+    main: '🍖',
+    dessert: '🍰',
+    drink: '🥤',
+    beverage: '🍹',
+    coffee: '☕',
+    tea: '🫖',
+    smoothie: '🥤',
+    burger: '🍔',
+    pizza: '🍕',
+    salad: '🥗',
+    sandwich: '🥪',
+    soup: '🍲',
+    pasta: '🍝',
+    seafood: '🦐',
+    vegetarian: '🥬',
+    vegan: '🌱',
   }
-  
+
   const lowercaseCategory = (category || '').toLowerCase()
   return emojiMap[lowercaseCategory] || '🍽️'
 }
@@ -94,7 +94,9 @@ const addToCart = () => {
     :class="{ 'opacity-75': !isAvailable }"
   >
     <!-- Image Section -->
-    <div class="relative h-56 sm:h-64 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
+    <div
+      class="relative h-56 sm:h-64 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden"
+    >
       <img
         v-if="imageUrl && !imageError"
         :src="imageUrl"
@@ -121,12 +123,7 @@ const addToCart = () => {
         class="absolute inset-0 bg-white/40 backdrop-blur-sm flex items-center justify-center"
       >
         <div class="animate-spin">
-          <svg
-            class="w-8 h-8 text-amber-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -176,10 +173,14 @@ const addToCart = () => {
     <!-- Content Section -->
     <div class="p-4 sm:p-5 flex flex-col h-full">
       <!-- Name -->
-      <h3 class="font-bold text-lg sm:text-xl text-slate-900 leading-tight mb-1">{{ item.name }}</h3>
+      <h3 class="font-bold text-lg sm:text-xl text-slate-900 leading-tight mb-1">
+        {{ item.name }}
+      </h3>
 
       <!-- Category Label (Mobile Fallback) -->
-      <p class="text-xs sm:text-sm text-amber-600 font-semibold uppercase tracking-wide mb-2 sm:hidden">
+      <p
+        class="text-xs sm:text-sm text-amber-600 font-semibold uppercase tracking-wide mb-2 sm:hidden"
+      >
         {{ item.category || 'Menu Item' }}
       </p>
 

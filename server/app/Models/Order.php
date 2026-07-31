@@ -9,13 +9,9 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class Order extends Model
 {
     use HasFactory, HasUuids;
-
     protected $table = 'orders';
-
     public $incrementing = false;
-
     protected $keyType = 'string';
-
     protected $fillable = [
         'order_number',
         'reservation_id',

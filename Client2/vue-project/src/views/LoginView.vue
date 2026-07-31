@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '../stores/auth'
+import { CheckCircle, AlertCircle, X } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -9,6 +10,11 @@ const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
+
+// Toast notification state
+const showToast = ref(false)
+const toastType = ref<'success' | 'error'>('success')
+const toastMessage = ref('')
 
 const errors = ref({
   email: '',
@@ -46,24 +52,40 @@ const validateForm = (): boolean => {
 
 const login = async (): Promise<void> => {
   if (!validateForm()) return
-
   loading.value = true
-
   try {
-    await auth.login(email.value, password.value)
-    const role = auth.user?.role
-    const roleRoutes: Record<string, string> = {
-      admin: '/admin',
-      receptionist: '/receptionist',
-      cashier: '/cashier',
-      chef: '/chef',
-      manager: '/manager',
-    }
-    router.push(roleRoutes[role] || '/')
+    const result = await auth.login(email.value, password.value)
+    const userName = auth.user?.first_name ? `${auth.user.first_name} ${auth.user.last_name}` : auth.user?.email || 'User'
+    const userRole = auth.user?.role ? auth.user.role.charAt(0).toUpperCase() + auth.user.role.slice(1) : 'User'
+    toastType.value = 'success'
+    toastMessage.value = `✓ Login successful!\n📋 Welcome ${userName} | Role: ${userRole}`
+    showToast.value = true
+    
+    // Auto-hide after 3 seconds then redirect
+    setTimeout(async () => {
+      showToast.value = false
+      const role = auth.user?.role
+      const roleRoutes: Record<string, string> = {
+        admin: '/admin',
+        receptionist: '/receptionist',
+        cashier: '/cashier',
+        chef: '/chef',
+        manager: '/manager',
+        waiter: '/waiter',
+      }
+      router.push(roleRoutes[role] || '/')
+    }, 3000)
   } catch (error: any) {
     console.error('[LOGIN] Error:', error)
     console.error('[LOGIN] Error response:', error.response?.data)
-    errors.value.general = error?.message || 'Invalid email or password'
+    const errorMsg = error?.message || 'Invalid email or password'
+    toastType.value = 'error'
+    toastMessage.value = `✗ ${errorMsg}`
+    showToast.value = true
+    setTimeout(() => {
+      showToast.value = false
+    }, 4000)
+    errors.value.general = errorMsg
   } finally {
     loading.value = false
   }
@@ -83,6 +105,83 @@ const login = async (): Promise<void> => {
         class="absolute -bottom-32 -left-32 w-64 h-64 bg-blue-200/30 rounded-full blur-3xl"
       ></div>
     </div>
+
+    <!-- Toast Notification -->
+    <Transition name="slide-fade">
+      <div 
+        v-if="showToast" 
+        :class="[
+          'fixed top-6 right-6 z-[9999] max-w-sm w-full',
+          'animate-slide-in'
+        ]"
+      >
+        <!-- SUCCESS TOAST -->
+        <div 
+          v-if="toastType === 'success'"
+          class="bg-white rounded-xl shadow-2xl overflow-hidden border-l-4 border-green-500"
+        >
+          <div class="flex items-start gap-4 p-5">
+            <!-- ICON -->
+            <div class="flex-shrink-0 pt-0.5">
+              <div class="flex items-center justify-center h-6 w-6 rounded-full bg-green-100">
+                <CheckCircle :size="20" class="text-green-600" />
+              </div>
+            </div>
+
+            <!-- TEXT CONTENT -->
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-green-800">
+                {{ toastMessage.split('\n')[0] || 'Success!' }}
+              </p>
+              <p v-if="toastMessage.includes('\n')" class="text-sm text-green-700 mt-1">
+                {{ toastMessage.split('\n').slice(1).join('\n') }}
+              </p>
+            </div>
+
+            <!-- CLOSE BUTTON -->
+            <button
+              @click="showToast = false"
+              class="flex-shrink-0 text-green-600 hover:text-green-800 transition p-1"
+            >
+              <X :size="18" />
+            </button>
+          </div>
+        </div>
+
+        <!-- ERROR TOAST -->
+        <div 
+          v-else
+          class="bg-white rounded-xl shadow-2xl overflow-hidden border-l-4 border-red-500"
+        >
+          <div class="flex items-start gap-4 p-5">
+            <!-- ICON -->
+            <div class="flex-shrink-0 pt-0.5">
+              <div class="flex items-center justify-center h-6 w-6 rounded-full bg-red-100">
+                <AlertCircle :size="20" class="text-red-600" />
+              </div>
+            </div>
+
+            <!-- TEXT CONTENT -->
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-red-800">
+                {{ toastMessage.split('\n')[0] || 'Error!' }}
+              </p>
+              <p v-if="toastMessage.includes('\n')" class="text-sm text-red-700 mt-1">
+                {{ toastMessage.split('\n').slice(1).join('\n') }}
+              </p>
+            </div>
+
+            <!-- CLOSE BUTTON -->
+            <button
+              @click="showToast = false"
+              class="flex-shrink-0 text-red-600 hover:text-red-800 transition p-1"
+            >
+              <X :size="18" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
     <!-- Compact Login Card -->
     <div class="w-full max-w-sm relative animate-fadeInUp">
@@ -362,6 +461,41 @@ const login = async (): Promise<void> => {
   80% {
     transform: translateX(2px);
   }
+}
+
+/* Slide-fade transition for toast notifications */
+.slide-fade-enter-active {
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.slide-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.600, 0, 0.735, 0.045);
+}
+
+.slide-fade-enter-from {
+  transform: translateX(100px);
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  transform: translateX(100px);
+  opacity: 0;
+}
+
+/* Toast slide-in animation from top-right */
+@keyframes animate-slide-in {
+  0% {
+    transform: translateX(calc(100% + 24px));
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: animate-slide-in 0.4s cubic-bezier(0.23, 1, 0.320, 1) forwards;
 }
 
 .animate-fadeInUp {

@@ -4,13 +4,20 @@ import type { Reservation, ReservationFormData, ReservationFilter } from '../typ
 export default {
   async getReservations(filters?: ReservationFilter) {
     const response = await api.get('/reservations', {
-      params: filters,
+      params: {
+        ...filters,
+        include: 'guest,room', // Include guest and room relationships
+      },
     })
     return response.data
   },
 
   async getReservation(id: string) {
-    const response = await api.get(`/reservations/${id}`)
+    const response = await api.get(`/reservations/${id}`, {
+      params: {
+        include: 'guest,room', // Include guest and room relationships
+      },
+    })
     return response.data
   },
 
@@ -31,21 +38,27 @@ export default {
 
   async confirmReservation(id: string) {
     const response = await api.post(`/admin-reservations/${id}/confirm`)
+    console.log(' [SERVICE] Confirm response structure:', response)
+    console.log(' [SERVICE] Response.data:', response.data)
+    // Backend returns { message, data } structure
     return response.data
   },
 
   async checkInReservation(id: string) {
     const response = await api.post(`/admin-reservations/${id}/check-in`)
+    console.log(' [SERVICE] Check-in response structure:', response)
     return response.data
   },
 
   async checkOutReservation(id: string) {
     const response = await api.post(`/admin-reservations/${id}/check-out`)
+    console.log(' [SERVICE] Check-out response structure:', response)
     return response.data
   },
 
   async cancelReservation(id: string) {
     const response = await api.post(`/admin-reservations/${id}/cancel`)
+    console.log(' [SERVICE] Cancel response structure:', response)
     return response.data
   },
 }

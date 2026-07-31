@@ -27,6 +27,20 @@ import {
   Percent,
   CalendarCheck,
   FileSpreadsheet,
+  BriefcaseBusiness,
+  UserCheck,
+  ClipboardList,
+  BellRing,
+  Truck,
+  PackageCheck,
+  BedSingle,
+  ShieldCheck,
+  BarChart3,
+  TrendingUp,
+  Wallet,
+  CircleAlert,
+  Settings,
+  Users2,
 } from 'lucide-vue-next'
 
 // Define emits
@@ -68,55 +82,97 @@ const menuIcons: Record<string, Component> = {
   'Occupancy Report': Percent,
   'Reservation Report': CalendarCheck,
   'Payment Report': FileSpreadsheet,
+  Staff: UserCheck,
+  Operations: ClipboardList,
+  'Room Service': Truck,
+  Housekeeping: BedSingle,
+  Laundry: PackageCheck,
+  Complaints: CircleAlert,
+  Inventory: PackageCheck,
+  Finance: Wallet,
+  Analytics: TrendingUp,
+  Notifications: BellRing,
+  Security: ShieldCheck,
+  Settings: Settings,
+  Manager: BriefcaseBusiness,
+  Statistics: BarChart3,
+  Waiters: Users2,
 }
 
 const menus = computed(() => {
   switch (auth.user?.role) {
     case 'admin':
       return [
-        { name: 'Dashboard', path: '/admin', icon: 'Dashboard' },
-        { name: 'Users', path: '/users', icon: 'Users' },
-        { name: 'Rooms', path: '/Admin/rooms', icon: 'Rooms' },
-        { name: 'Room Types', path: '/room-types', icon: 'Room Types' },
-        { name: 'Reports', path: '/reports', icon: 'Reports' },
-        { name: 'Menu Management', path: '/menu-management', icon: 'Restaurant' },
+        { name: 'Dashboard', path: '/admin', icon: 'Dashboard', section: 'Main' },
+        { name: 'Users', path: '/users', icon: 'Users', section: 'Main' },
+        { name: 'Rooms', path: '/Admin/rooms', icon: 'Rooms', section: 'Main' },
+        { name: 'Room Types', path: '/room-types', icon: 'Room Types', section: 'Main' },
+        { name: 'Reports', path: '/reports', icon: 'Reports', section: 'Management' },
+        { name: 'Menu Management', path: '/menu-management', icon: 'Restaurant', section: 'Management' },
       ]
     case 'receptionist':
       return [
-        { name: 'Dashboard', path: '/receptionist', icon: 'Dashboard' },
-        { name: 'Guests', path: '/guests', icon: 'Guests' },
-        { name: 'Reservations', path: '/reservations', icon: 'Reservations' },
-        { name: 'Check In', path: '/check-in', icon: 'Check In' },
-        { name: 'Check Out', path: '/check-out', icon: 'Check Out' },
-        { name: 'Orders', path: '/orders', icon: 'Food Orders' },
+        { name: 'Dashboard', path: '/receptionist', icon: 'Dashboard', section: 'Main' },
+        { name: 'Guests', path: '/guests', icon: 'Guests', section: 'Main' },
+        { name: 'Reservations', path: '/reservations', icon: 'Reservations', section: 'Main' },
+        { name: 'Check In', path: '/check-in', icon: 'Check In', section: 'Operations' },
+        { name: 'Check Out', path: '/check-out', icon: 'Check Out', section: 'Operations' },
+        { name: 'Orders', path: '/orders', icon: 'Food Orders', section: 'Operations' },
       ]
     case 'cashier':
       return [
-        { name: 'Dashboard', path: '/cashier', icon: 'Dashboard' },
-        { name: 'Invoices', path: '/invoices', icon: 'Invoices' },
-        { name: 'Payments', path: '/payments', icon: 'Payments' },
-        { name: 'Transactions', path: '/transactions', icon: 'Transactions' },
-        { name: 'Refunds', path: '/refunds', icon: 'Refunds' },
+        { name: 'Dashboard', path: '/cashier', icon: 'Dashboard', section: 'Main' },
+        { name: 'Invoices', path: '/invoices', icon: 'Invoices', section: 'Finance' },
+        { name: 'Payments', path: '/payments', icon: 'Payments', section: 'Finance' },
+        { name: 'Transactions', path: '/transactions', icon: 'Transactions', section: 'Finance' },
+        { name: 'Refunds', path: '/refunds', icon: 'Refunds', section: 'Finance' },
       ]
     case 'chef':
       return [
-        { name: 'Dashboard', path: '/chef', icon: 'Dashboard' },
-        { name: 'Food Orders', path: '/chef/food-orders', icon: 'Food Orders' },
-        { name: 'Pending Orders', path: '/chef/pending-orders', icon: 'Pending Orders' },
-        { name: 'Preparing Orders', path: '/chef/preparing-orders', icon: 'Preparing Orders' },
-        { name: 'Served Orders', path: '/chef/served-orders', icon: 'Served Orders' },
+        { name: 'Dashboard', path: '/chef', icon: 'Dashboard', section: 'Main' },
+        { name: 'Food Orders', path: '/chef/food-orders', icon: 'Food Orders', section: 'Orders' },
+        { name: 'Pending Orders', path: '/chef/pending-orders', icon: 'Pending Orders', section: 'Orders' },
+        { name: 'Preparing Orders', path: '/chef/preparing-orders', icon: 'Preparing Orders', section: 'Orders' },
+        { name: 'Served Orders', path: '/chef/served-orders', icon: 'Served Orders', section: 'Orders' },
       ]
     case 'manager':
       return [
-        { name: 'Dashboard', path: '/manager', icon: 'Dashboard' },
-        { name: 'Revenue Report', path: '/revenue-report', icon: 'Revenue Report' },
-        { name: 'Occupancy Report', path: '/occupancy-report', icon: 'Occupancy Report' },
-        { name: 'Reservation Report', path: '/reservation-report', icon: 'Reservation Report' },
-        { name: 'Payment Report', path: '/payment-report', icon: 'Payment Report' },
+        { name: 'Dashboard', path: '/manager', icon: 'Dashboard'},
+        { name: 'Waiter Management', path: '/manager/waiters', icon: 'Users2',},
+        { name: 'Assign Floors', path: '/manager/floor-assignment', icon: 'Hotel'},
+        { name: 'Daily Operations', path: '/manager/operations', icon: 'Operations'},
+        { name: 'Room Service', path: '/manager/delivery-management', icon: 'Truck'},
+        { name: 'Reports', path: '/manager/analytics', icon: 'Analytics'}
+      ]
+    case 'waiter':
+      return [
+        { name: 'Dashboard', path: '/waiter', icon: 'Dashboard', section: 'Main' },
+        { name: 'Assigned Orders', path: '/waiter/assigned-orders', icon: 'Room Service', section: 'Deliveries' },
+        { name: 'Ready for Pickup', path: '/waiter/ready-pickup', icon: 'Pending Orders', section: 'Deliveries' },
+        { name: 'On Delivery', path: '/waiter/on-delivery', icon: 'Truck', section: 'Deliveries' },
+        { name: 'Completed Orders', path: '/waiter/completed-orders', icon: 'Served Orders', section: 'History' },
+        { name: 'Delivery History', path: '/waiter/delivery-history', icon: 'FileSpreadsheet', section: 'History' },
+        { name: 'Performance', path: '/waiter/performance', icon: 'TrendingUp', section: 'Profile' },
+        { name: 'My Profile', path: '/waiter/profile', icon: 'Users', section: 'Profile' },
+        { name: 'Notifications', path: '/waiter/notifications', icon: 'Notifications', section: 'Profile' },
+        { name: 'Settings', path: '/waiter/settings', icon: 'Settings', section: 'Profile' },
       ]
     default:
       return []
   }
+})
+
+// Group menus by section
+const groupedMenus = computed(() => {
+  const groups: Record<string, typeof menus.value> = {}
+  menus.value.forEach(menu => {
+    const section = menu.section || 'Main'
+    if (!groups[section]) {
+      groups[section] = []
+    }
+    groups[section].push(menu)
+  })
+  return groups
 })
 
 const isActive = (path: string): boolean => {
@@ -126,129 +182,125 @@ const isActive = (path: string): boolean => {
 
 <template>
   <aside
-    class="w-64 h-screen bg-white border-r border-gray-200 text-gray-700 flex flex-col relative select-none flex-shrink-0 shadow-sm"
+    class="w-64 h-screen bg-white text-slate-900 flex flex-col relative select-none flex-shrink-0 shadow-lg"
   >
     <!-- Header / Brand -->
     <div
-      class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-5 h-14 sm:h-16 border-b border-gray-200 flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50"
+      class="flex items-center gap-3 px-4 md:px-5 h-16 border-b border-slate-200 flex-shrink-0 bg-white"
     >
       <div
-        class="w-8 sm:w-9 h-8 sm:h-9 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0"
+        class="w-9 h-9 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 flex-shrink-0"
       >
-        <Hotel class="w-4 sm:w-5 h-4 sm:h-5 text-white" :stroke-width="2.5" />
+        <Hotel class="w-5 h-5 text-white" :stroke-width="2.5" />
       </div>
 
       <div class="min-w-0 flex flex-col">
         <h1
-          class="font-bold text-sm sm:text-base text-gray-800 tracking-tight leading-tight truncate"
+          class="font-bold text-sm text-slate-900 tracking-tight leading-tight truncate"
         >
-          Hotel HMS
+          Executive Horizon
         </h1>
         <p
-          class="text-[9px] sm:text-[10px] text-gray-500 font-semibold uppercase tracking-[0.08em] mt-0.5"
+          class="text-[9px] text-slate-500 font-semibold uppercase tracking-[0.08em] mt-0.5"
         >
-          {{ auth.user?.role || 'Management' }}
+          Hospitality Suite
         </p>
       </div>
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 px-2 sm:px-3 py-4 sm:py-5 overflow-y-auto space-y-4 sm:space-y-6">
-      <div>
-        <p
-          class="px-2 sm:px-3 text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-[0.12em] mb-2 sm:mb-3"
-        >
-          Main Menu
-        </p>
-
-        <div class="space-y-1">
-          <router-link
-            v-for="menu in menus"
-            :key="menu.path"
-            :to="menu.path"
-            @click="handleNavigate"
-            class="group relative flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg transition-all duration-200 text-xs sm:text-sm font-medium border border-transparent"
-            :class="[
-              isActive(menu.path)
-                ? 'bg-blue-50 text-blue-700 border-blue-200/60 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50',
-            ]"
+    <nav class="flex-1 px-3 py-5 overflow-y-auto space-y-6">
+      <template v-for="(items, section) in groupedMenus" :key="section">
+        <div>
+          <p
+            class="px-3 text-[9px] font-bold text-slate-400 uppercase tracking-[0.12em] mb-3"
           >
-            <!-- Active indicator bar -->
-            <div
-              class="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-blue-600 transition-transform scale-y-0"
-              :class="{ 'scale-y-100': isActive(menu.path) }"
-            ></div>
+            {{ section }}
+          </p>
 
-            <!-- Icon -->
-            <component
-              :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
-              class="w-4 sm:w-[18px] h-4 sm:h-[18px] flex-shrink-0 transition-colors duration-200"
+          <div class="space-y-1">
+            <router-link
+              v-for="menu in items"
+              :key="menu.path"
+              :to="menu.path"
+              @click="handleNavigate"
+              class="group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 text-sm font-medium border border-transparent"
               :class="[
-                isActive(menu.path) ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600',
+                isActive(menu.path)
+                  ? 'bg-blue-100 text-blue-700 border-blue-300 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover:border-slate-200',
               ]"
-              :stroke-width="1.75"
-            />
+            >
+              <!-- Active indicator bar - Left side -->
+              <div
+                class="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-full bg-gradient-to-b from-blue-400 to-blue-600 transition-all duration-300 scale-y-0"
+                :class="{ 'scale-y-100': isActive(menu.path) }"
+              ></div>
 
-            <!-- Menu Name -->
-            <span
-              class="flex-1 transition-transform group-hover:translate-x-0.5 duration-200 truncate"
-            >
-              {{ menu.name }}
-            </span>
+              <!-- Icon -->
+              <component
+                :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
+                class="w-5 h-5 flex-shrink-0 transition-all duration-300"
+                :class="[
+                  isActive(menu.path) 
+                    ? 'text-blue-600 scale-110' 
+                    : 'text-slate-400 group-hover:text-slate-600 group-hover:scale-105',
+                ]"
+                :stroke-width="1.75"
+              />
 
-            <!-- Badges -->
-            <span
-              v-if="menu.name === 'Pending Orders'"
-              class="text-[8px] sm:text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0"
-            >
-              12
-            </span>
-            <span
-              v-if="menu.name === 'Check In'"
-              class="text-[8px] sm:text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0"
-            >
-              5
-            </span>
-          </router-link>
+              <!-- Menu Name -->
+              <span
+                class="flex-1 transition-all duration-300 group-hover:translate-x-1 truncate"
+              >
+                {{ menu.name }}
+              </span>
+
+              <!-- Badges -->
+              <span
+                v-if="menu.name === 'Pending Orders' || menu.name === 'Check In' || menu.name === 'Complaints'"
+                class="text-[9px] font-bold bg-gradient-to-r from-amber-500/30 to-amber-600/30 text-amber-700 px-2 py-0.5 rounded-full flex-shrink-0 border border-amber-500/20"
+              >
+                {{ menu.name === 'Check In' ? '5' : menu.name === 'Complaints' ? '3' : '12' }}
+              </span>
+            </router-link>
+          </div>
         </div>
-      </div>
+      </template>
     </nav>
 
     <!-- Logout Button -->
-    <div class="px-2 sm:px-3 py-2 sm:py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50/50">
+    <div class="px-3 py-3 border-t border-slate-200 flex-shrink-0 bg-slate-50">
       <button
         @click="auth.logout()"
-        class="w-full group flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 border border-transparent transition-all duration-200"
+        class="w-full group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-200 transition-all duration-300"
       >
         <LogOut
-          class="w-4 sm:w-[18px] h-4 sm:h-[18px] flex-shrink-0 text-gray-400 group-hover:text-gray-600 transition-colors duration-200"
+          class="w-5 h-5 flex-shrink-0 text-slate-400 group-hover:text-red-600 transition-colors duration-300"
           :stroke-width="1.75"
         />
-        <span class="hidden sm:inline">Logout</span>
+        <span>Logout</span>
       </button>
     </div>
 
     <!-- Footer -->
     <div
-      class="px-3 sm:px-4 md:px-5 py-2 sm:py-3 border-t border-gray-200 bg-gray-50/50 flex-shrink-0"
+      class="px-4 md:px-5 py-3 border-t border-slate-200 bg-slate-50 flex-shrink-0"
     >
       <div class="flex items-center justify-between">
-        <span class="text-[8px] sm:text-[10px] font-medium text-gray-400 tracking-wide"
+        <span class="text-[9px] font-medium text-slate-500 tracking-wide"
           >v2.0.0</span
         >
-        <div class="flex items-center gap-1.5 sm:gap-2">
-          <span class="relative flex h-1.5 sm:h-2 w-1.5 sm:w-2">
+        <div class="flex items-center gap-2">
+          <span class="relative flex h-2 w-2">
             <span
-              class="absolute inline-flex h-full w-full rounded-full bg-emerald-400/60 animate-ping"
+              class="absolute inline-flex h-full w-full rounded-full bg-emerald-400/60 animate-pulse"
             ></span>
             <span
-              class="relative inline-flex rounded-full h-1.5 sm:h-2 w-1.5 sm:w-2 bg-emerald-500"
+              class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"
             ></span>
           </span>
-          <span class="text-[8px] sm:text-[10px] font-medium text-gray-500 hidden sm:inline"
-            >System Live</span
-          >
+          <span class="text-[9px] font-medium text-slate-500">Live</span>
         </div>
       </div>
     </div>
@@ -263,11 +315,11 @@ nav::-webkit-scrollbar-track {
   background: transparent;
 }
 nav::-webkit-scrollbar-thumb {
-  background: #e5e7eb;
+  background: #cbd5e1;
   border-radius: 9999px;
 }
 nav::-webkit-scrollbar-thumb:hover {
-  background: #d1d5db;
+  background: #94a3b8;
 }
 .router-link-active:focus-visible,
 button:focus-visible {

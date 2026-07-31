@@ -97,10 +97,17 @@ const handleMarkAllRead = async () => {
   }
 }
 
-// Start polling on mount
+// Start polling on mount (only for receptionist, not for manager)
 onMounted(async () => {
+  const { useAuthStore } = await import('@/stores/auth')
+  const auth = useAuthStore()
+  
   await notificationStore.fetchNotifications()
-  notificationStore.startPolling(5000) // Poll every 5 seconds
+  
+  // Only enable polling for receptionist role (manager has different notification handling)
+  if (auth.user?.role === 'receptionist') {
+    notificationStore.startPolling(5000) // Poll every 5 seconds
+  }
 })
 
 // Stop polling on unmount

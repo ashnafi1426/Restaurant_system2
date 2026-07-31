@@ -17,7 +17,33 @@ use App\Http\Controllers\Api\KitchenController;
 use App\Http\Controllers\Api\GuestOrderController;
 use App\Http\Controllers\Api\QRCodeController;
 use App\Http\Controllers\Api\QRCodePrintController;
+use App\Http\Controllers\Api\ManagerController;
+use App\Http\Controllers\Api\Manager\DashboardController as ManagerDashboardController;
+use App\Http\Controllers\Api\Manager\RevenueController;
+use App\Http\Controllers\Api\Manager\OccupancyController as ManagerOccupancyController;
+use App\Http\Controllers\Api\Manager\StaffController;
+use App\Http\Controllers\Api\Manager\OperationsController as ManagerOperationsController;
+use App\Http\Controllers\Api\Manager\WaiterController as ManagerWaiterController;
+use App\Http\Controllers\Api\Manager\AnalyticsController;
+use App\Http\Controllers\Api\Manager\ActivityController as ManagerActivityController;
+use App\Http\Controllers\Api\Manager\SettingsController as ManagerSettingsController;
+use App\Http\Controllers\Api\Manager\ComplaintController;
+use App\Http\Controllers\Api\Manager\KitchenController as ManagerKitchenController;
+use App\Http\Controllers\Api\Manager\WaiterManagementController;
+use App\Http\Controllers\Api\Manager\FloorAssignmentController;
+use App\Http\Controllers\Api\Manager\FloorManagementController;
+use App\Http\Controllers\Api\Manager\ShiftManagementController;
+use App\Http\Controllers\Api\Manager\ManagerDeliveryManagementController;
+use App\Http\Controllers\Api\Waiter\WaiterDashboardController;
+use App\Http\Controllers\Api\Waiter\WaiterAssignmentController;
+use App\Http\Controllers\Api\Waiter\WaiterHistoryController;
+use App\Http\Controllers\Api\Waiter\WaiterProfileController;
+use App\Http\Controllers\Api\Waiter\WaiterNotificationController;
 
+// Debug routes (remove in production)
+if (config('app.debug')) {
+    include base_path('routes/debug.php');
+}
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/rooms', [RoomController::class, 'index']);
@@ -76,7 +102,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/all', [QRCodePrintController::class, 'getAllQRCodes']);
         });
     });
-
     Route::middleware('role:chef')->group(function () {
        Route::prefix('kitchen')->group(function(){
            Route::get('/orders',[KitchenController::class,'index']);
@@ -151,4 +176,251 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('/{checkIn}', [CheckInController::class, 'destroy']);
         });
     });
+    Route::middleware('role:manager')->prefix('manager')->group(function () {
+        Route::prefix('dashboard')->group(function () {
+            Route::get('/', [ManagerDashboardController::class, 'index']);
+            Route::get('/statistics', [ManagerDashboardController::class, 'statistics']);
+            Route::get('/daily-trends', [ManagerDashboardController::class, 'dailyTrends']);
+            Route::get('/performance', [ManagerDashboardController::class, 'performanceSummary']);
+            Route::get('/top-items', [ManagerDashboardController::class, 'topSellingItems']);
+        });
+        Route::prefix('kitchen')->group(function () {
+            Route::get('/orders', [ManagerKitchenController::class, 'orders']);
+            Route::get('/metrics', [ManagerKitchenController::class, 'metrics']);
+            Route::get('/delayed-orders', [ManagerKitchenController::class, 'delayedOrders']);
+            Route::get('/performance', [ManagerKitchenController::class, 'performance']);
+            Route::get('/chef-workload', [ManagerKitchenController::class, 'chefWorkload']);
+            Route::get('/top-items', [ManagerKitchenController::class, 'topItems']);
+            Route::get('/queue-status', [ManagerKitchenController::class, 'queueStatus']);
+        });
+
+        // Complaint Management
+        Route::prefix('complaints')->group(function () {
+            Route::get('/', [ComplaintController::class, 'index']);
+            Route::get('/statistics', [ComplaintController::class, 'statistics']);
+            Route::get('/by-type', [ComplaintController::class, 'byType']);
+            Route::get('/by-severity', [ComplaintController::class, 'bySeverity']);
+            Route::get('/department-performance', [ComplaintController::class, 'departmentPerformance']);
+            Route::get('/report', [ComplaintController::class, 'report']);
+            Route::get('/{id}', [ComplaintController::class, 'show']);
+            Route::post('/', [ComplaintController::class, 'store']);
+            Route::patch('/{id}/assign', [ComplaintController::class, 'assign']);
+            Route::patch('/{id}/escalate', [ComplaintController::class, 'escalate']);
+            Route::patch('/{id}/resolve', [ComplaintController::class, 'resolve']);
+        });
+
+        Route::prefix('revenue')->group(function () {
+            Route::get('/summary', [RevenueController::class, 'summary']);
+            Route::get('/chart', [RevenueController::class, 'chart']);
+        });
+        Route::prefix('occupancy')->group(function () {
+            Route::get('/summary', [ManagerOccupancyController::class, 'summary']);
+            Route::get('/chart', [ManagerOccupancyController::class, 'chart']);
+            Route::get('/reservations', [ManagerOccupancyController::class, 'reservations']);
+        });
+        Route::prefix('staff')->group(function () {
+            Route::get('/', [StaffController::class, 'index']);
+        });
+        Route::prefix('operations')->group(function () {
+            Route::get('/orders', [ManagerOperationsController::class, 'orders']);
+            Route::get('/deliveries', [ManagerOperationsController::class, 'deliveries']);
+            Route::get('/housekeeping', [ManagerOperationsController::class, 'housekeeping']);
+            Route::get('/laundry', [ManagerOperationsController::class, 'laundry']);
+        });
+        Route::prefix('waiters')->group(function () {
+            Route::get('/',[WaiterManagementController::class, 'index']);
+            Route::post('/', [WaiterManagementController::class, 'store']);
+            Route::get('/{waiter}', [WaiterManagementController::class, 'show']);
+            Route::put('/{waiter}', [WaiterManagementController::class, 'update']);
+            Route::delete('/{waiter}', [WaiterManagementController::class, 'destroy']);
+            Route::patch('/{waiter}/deactivate', [WaiterManagementController::class, 'deactivate']);
+            Route::patch('/{waiter}/reactivate', [WaiterManagementController::class, 'reactivate']);
+            Route::patch('/{waiter}/suspend', [WaiterManagementController::class, 'suspend']);
+            Route::patch('/{waiter}/availability', [WaiterManagementController::class,'changeAvailability']);
+            Route::get('/{waiter}/stats', [WaiterManagementController::class, 'stats']);
+        });
+        Route::prefix('floors')->group(function () {
+            Route::get('/', [FloorManagementController::class, 'index']);
+            Route::post('/', [FloorManagementController::class, 'store']);
+            Route::get('/{floor}', [FloorManagementController::class, 'show']);
+            Route::put('/{floor}', [FloorManagementController::class, 'update']);
+            Route::delete('/{floor}', [FloorManagementController::class, 'destroy']);
+            Route::patch('/{floor}/deactivate', [FloorManagementController::class, 'deactivate']);
+            Route::patch('/{floor}/activate', [FloorManagementController::class, 'activate']);
+            Route::get('/{floor}/stats', [FloorManagementController::class, 'stats']);
+            Route::prefix('assignments')->group(function () {
+                Route::get('/today', [FloorAssignmentController::class, 'today']);
+                Route::get('/stats', [FloorAssignmentController::class, 'stats']);
+                Route::get('/', [FloorAssignmentController::class, 'index']);
+                Route::post('/', [FloorAssignmentController::class, 'store']);
+                Route::patch('/{assignment}', [FloorAssignmentController::class, 'update']);
+                Route::delete('/{assignment}', [FloorAssignmentController::class, 'destroy']);
+            });
+        });
+        Route::prefix('shifts')->group(function () {
+            Route::get('/', [ShiftManagementController::class, 'index']);
+            Route::post('/', [ShiftManagementController::class, 'store']);
+            Route::get('/current', [ShiftManagementController::class, 'current']);
+            Route::get('/{shift}', [ShiftManagementController::class, 'show']);
+            Route::put('/{shift}', [ShiftManagementController::class, 'update']);
+            Route::delete('/{shift}', [ShiftManagementController::class, 'destroy']);
+            Route::patch('/{shift}/deactivate', [ShiftManagementController::class, 'deactivate']);
+            Route::patch('/{shift}/activate', [ShiftManagementController::class, 'activate']);
+            Route::get('/{shift}/stats', [ShiftManagementController::class, 'stats']);
+        });
+        Route::prefix('deliveries')->group(function () {
+            Route::get('/', [ManagerDeliveryManagementController::class, 'index']);
+            Route::get('/summary/today', [ManagerDeliveryManagementController::class, 'todaySummary']);
+            Route::get('/report', [ManagerDeliveryManagementController::class, 'report']);
+            Route::get('/waiting/assignment', [ManagerDeliveryManagementController::class, 'waitingAssignment']);
+            Route::get('/{delivery}', [ManagerDeliveryManagementController::class, 'show']);
+            Route::patch('/{delivery}/reassign', [ManagerDeliveryManagementController::class, 'reassign']);
+            Route::patch('/{delivery}/assign', [ManagerDeliveryManagementController::class, 'manuallyAssign']);
+            Route::delete('/{delivery}', [ManagerDeliveryManagementController::class, 'destroy']);
+        });
+        Route::prefix('analytics')->group(function () {
+            Route::get('/', [AnalyticsController::class, 'index']);
+        });
+        Route::prefix('activities')->group(function () {
+            Route::get('/', [ManagerActivityController::class, 'activities']);
+        });
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [ManagerActivityController::class, 'notifications']);
+            Route::post('/', [ManagerActivityController::class, 'storeNotification']);
+            Route::put('/{notification}', [ManagerActivityController::class, 'updateNotification']);
+            Route::delete('/{notification}', [ManagerActivityController::class, 'destroyNotification']);
+            Route::patch('/{notification}/read', [ManagerActivityController::class, 'markAsRead']);
+        });
+        Route::prefix('settings')->group(function () {
+            Route::get('/dashboard', [ManagerSettingsController::class, 'dashboardSettings']);
+            Route::put('/dashboard/{setting}', [ManagerSettingsController::class, 'updateDashboardSettings']);
+            Route::get('/announcements', [ManagerSettingsController::class, 'announcements']);
+            Route::post('/announcements', [ManagerSettingsController::class, 'storeAnnouncement']);
+            Route::put('/announcements/{announcement}', [ManagerSettingsController::class, 'updateAnnouncement']);
+            Route::delete('/announcements/{announcement}', [ManagerSettingsController::class, 'destroyAnnouncement']);
+            
+            Route::get('/reports', [ManagerSettingsController::class, 'reports']);
+        });
+    });
+    
+    Route::middleware('role:waiter')->prefix('waiter')->group(function () {
+        Route::prefix('dashboard')->group(function () {
+            Route::get('/', [WaiterDashboardController::class, 'getDashboard']);
+            Route::get('/today', [WaiterDashboardController::class, 'getTodayStats']);
+            Route::get('/performance', [WaiterDashboardController::class, 'getPerformance']);
+            Route::get('/recent-assignments', [WaiterDashboardController::class, 'getRecentAssignments']);
+            Route::get('/kitchen-ready-orders', [WaiterDashboardController::class, 'getKitchenReadyOrders']);
+            Route::get('/ready-pickup', [WaiterDashboardController::class, 'getReadyForPickup']);
+            Route::get('/pending-pickup', [WaiterDashboardController::class, 'getPendingPickupOrders']);
+            Route::get('/on-delivery', [WaiterDashboardController::class, 'getOnDelivery']);
+            Route::get('/completed', [WaiterDashboardController::class, 'getCompletedDeliveries']);
+            Route::get('/failed', [WaiterDashboardController::class, 'getFailedDeliveries']);
+            Route::get('/timeline', [WaiterDashboardController::class, 'getDeliveryTimeline']);
+            Route::get('/weekly-performance', [WaiterDashboardController::class, 'getWeeklyPerformance']);
+            Route::get('/monthly-performance', [WaiterDashboardController::class, 'getMonthlyPerformance']);
+            Route::get('/performance-comparison', [WaiterDashboardController::class, 'getPerformanceComparison']);
+            Route::get('/quick-stats', [WaiterDashboardController::class, 'getQuickStats']);
+        });
+        // Assignments
+        Route::prefix('assignments')->group(function () {
+            Route::get('/', [WaiterAssignmentController::class, 'index']);
+            Route::get('/{id}', [WaiterAssignmentController::class, 'show']);
+            Route::get('/pending/list', [WaiterAssignmentController::class, 'getPending']);
+            Route::get('/active/list', [WaiterAssignmentController::class, 'getActive']);
+            Route::get('/today/list', [WaiterAssignmentController::class, 'getToday']);
+            Route::patch('/{id}/accept', [WaiterAssignmentController::class, 'accept']);
+            Route::patch('/{id}/reject', [WaiterAssignmentController::class, 'reject']);
+            Route::patch('/{id}/pickup', [WaiterAssignmentController::class, 'pickup']);
+            Route::patch('/{id}/start-delivery', [WaiterAssignmentController::class, 'startDelivery']);
+            Route::patch('/{id}/deliver', [WaiterAssignmentController::class, 'deliver']);
+            Route::patch('/{id}/failed', [WaiterAssignmentController::class, 'failed']);
+        });
+        
+        // History & Reports
+        Route::prefix('history')->group(function () {
+            Route::get('/', [WaiterHistoryController::class, 'getHistory']);
+            Route::get('/export', [WaiterHistoryController::class, 'exportHistory']);
+        });
+        
+        Route::prefix('performance-history')->group(function () {
+            Route::get('/', [WaiterHistoryController::class, 'getPerformanceHistory']);
+        });
+        Route::prefix('report')->group(function () {
+            Route::get('/performance', [WaiterHistoryController::class, 'getPerformanceReport']);
+            Route::get('/performance/export', [WaiterHistoryController::class, 'exportPerformanceReport']);
+            Route::get('/trend', [WaiterHistoryController::class, 'getPerformanceTrend']);
+            Route::get('/delivery-time-distribution', [WaiterHistoryController::class, 'getDeliveryTimeDistribution']);
+            Route::get('/monthly-average', [WaiterHistoryController::class, 'getMonthlyAverage']);
+        });
+        
+        Route::get('/stats', [WaiterHistoryController::class, 'getStatistics']);
+        
+        // Profile
+        Route::prefix('profile')->group(function () {
+            Route::get('/', [WaiterProfileController::class, 'getProfile']);
+            Route::put('/', [WaiterProfileController::class, 'updateProfile']);
+            Route::get('/performance', [WaiterProfileController::class, 'getPerformanceOverview']);
+            Route::get('/ratings', [WaiterProfileController::class, 'getRatingHistory']);
+            Route::post('/change-password', [WaiterProfileController::class, 'changePassword']);
+            Route::get('/shift', [WaiterProfileController::class, 'getShiftInfo']);
+            Route::get('/availability', [WaiterProfileController::class, 'getAvailability']);
+        });
+        
+        // Settings
+        Route::prefix('settings')->group(function () {
+            Route::get('/', [WaiterProfileController::class, 'getSettings']);
+            Route::put('/', [WaiterProfileController::class, 'updateSettings']);
+        });
+
+        // Notifications
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [WaiterNotificationController::class, 'getNotifications']);
+            Route::get('/unread-count', [WaiterNotificationController::class, 'getUnreadCount']);
+            Route::get('/unread', [WaiterNotificationController::class, 'getUnread']);
+            Route::get('/stats', [WaiterNotificationController::class, 'getStats']);
+            Route::patch('/{id}/read', [WaiterNotificationController::class, 'markAsRead']);
+            Route::patch('/read-all', [WaiterNotificationController::class, 'markAllAsRead']);
+            Route::delete('/{id}', [WaiterNotificationController::class, 'deleteNotification']);
+            Route::delete('/', [WaiterNotificationController::class, 'deleteAll']);
+        });
+    });
+});
+
+
+// Debug Routes (Remove in Production)
+Route::get('/debug/recent-assignments', function () {
+    try {
+        $waiter = \App\Models\Waiter::first();
+        
+        if (!$waiter) {
+            return response()->json(['error' => 'No waiter found'], 404);
+        }
+
+        $tasks = \App\Models\DeliveryTask::where('waiter_id', $waiter->id)
+            ->with('order', 'order.guest', 'order.room', 'floor')
+            ->orderBy('assigned_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        return response()->json([
+            'waiter' => [
+                'id' => $waiter->id,
+                'name' => $waiter->user?->name,
+            ],
+            'delivery_tasks_count' => $tasks->count(),
+            'delivery_tasks' => $tasks->map(fn ($task) => [
+                'id' => $task->id,
+                'status' => $task->status,
+                'order_number' => $task->order?->order_number,
+                'room_number' => $task->order?->room?->room_number,
+                'guest_name' => $task->order?->guest?->name,
+            ])->toArray(),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 500);
+    }
 });

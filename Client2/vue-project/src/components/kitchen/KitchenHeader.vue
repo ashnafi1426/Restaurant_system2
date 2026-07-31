@@ -51,7 +51,6 @@ const currentTime = computed(() => {
 const chefName = computed(() => {
   return user.value?.name || 'Executive Chef'
 })
-
 </script>
 
 <template>

@@ -47,7 +47,9 @@
           <!-- LEFT SIDE: Form Fields (Full width on mobile, flex-1 on desktop) -->
           <div class="w-full lg:flex-1 space-y-4 sm:space-y-6">
             <!-- Item Name & Price -->
-            <div class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm">
+            <div
+              class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm"
+            >
               <div class="space-y-4">
                 <!-- Item Name -->
                 <div>
@@ -109,8 +111,18 @@
                         class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1 whitespace-nowrap"
                         title="Manage categories"
                       >
-                        <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        <svg
+                          class="w-3 h-3 sm:w-4 sm:h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 4v16m8-8H4"
+                          ></path>
                         </svg>
                         <span class="hidden sm:inline">Manage</span>
                       </button>
@@ -137,7 +149,9 @@
             </div>
 
             <!-- Description -->
-            <div class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm">
+            <div
+              class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm"
+            >
               <label
                 for="description"
                 class="block text-xs font-semibold text-slate-600 uppercase mb-2"
@@ -153,8 +167,12 @@
               ></textarea>
             </div>
             <!-- Publish Status -->
-            <div class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm">
-              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div
+              class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm"
+            >
+              <div
+                class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
+              >
                 <div>
                   <label class="text-sm font-semibold text-slate-900">Status</label>
                   <p class="text-xs text-slate-600 mt-1">Item visibility on menu</p>
@@ -181,7 +199,9 @@
 
           <!-- RIGHT SIDE: Image Upload (Full width on mobile, fixed width on desktop) -->
           <div class="w-full lg:w-80 mt-4 sm:mt-6 lg:mt-0">
-            <div class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm lg:sticky lg:top-6">
+            <div
+              class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm lg:sticky lg:top-6"
+            >
               <label class="block text-xs font-semibold text-slate-600 uppercase mb-4">
                 Item Image
               </label>
@@ -302,7 +322,9 @@
         </div>
 
         <!-- Form Actions (Responsive Layout) -->
-        <div class="flex flex-col-reverse sm:flex-row gap-3 items-stretch sm:items-center sm:justify-end mt-8 pt-6 border-t border-slate-200">
+        <div
+          class="flex flex-col-reverse sm:flex-row gap-3 items-stretch sm:items-center sm:justify-end mt-8 pt-6 border-t border-slate-200"
+        >
           <button
             type="button"
             @click="goBack"
@@ -560,10 +582,10 @@ const submitForm = async () => {
       payload.append('image', formData.value.image)
 
       console.log('📤 FormData payload prepared for file upload')
-      console.log('✅ File:', formData.value.image.name)
-      console.log('✅ Name:', formData.value.name)
-      console.log('✅ Category:', formData.value.category)
-      console.log('✅ Price:', formData.value.price)
+      console.log(' File:', formData.value.image.name)
+      console.log(' Name:', formData.value.name)
+      console.log(' Category:', formData.value.category)
+      console.log(' Price:', formData.value.price)
 
       if (formData.value.dietary_tags.length > 0) {
         formData.value.dietary_tags.forEach((tag) => {
@@ -584,7 +606,9 @@ const submitForm = async () => {
       console.log('📤 JSON payload prepared for URL image', payload)
     } else {
       // No image provided - use placeholder image
-      console.error('❌ Validation Error: No image provided. Please upload an image file or provide an image URL.')
+      console.error(
+        '❌ Validation Error: No image provided. Please upload an image file or provide an image URL.',
+      )
       errors.value.image = 'Please upload an image file or provide an image URL'
       submitting.value = false
       return

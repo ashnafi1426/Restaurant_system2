@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::table('rooms', function (Blueprint $table) {
             // Add QR token column - unique random token for each room
-            $table->string('qr_token')->unique()->nullable()->after('room_number');
+            if (!Schema::hasColumn('rooms', 'qr_token')) {
+                $table->string('qr_token')->unique()->nullable()->after('room_number');
+            }
         });
 
         // Generate unique QR tokens for existing rooms

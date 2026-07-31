@@ -151,7 +151,7 @@ class MenuItemController extends Controller
                         'public'
                     );
 
-                    \Log::info('✅ Image stored successfully', [
+                    \Log::info(' Image stored successfully', [
                         'path' => $path,
                     ]);
 
@@ -178,7 +178,7 @@ class MenuItemController extends Controller
 
             $menuItem = MenuItem::create($data);
 
-            \Log::info('✅ MenuItem created successfully', [
+            \Log::info(' MenuItem created successfully', [
                 'id' => $menuItem->id,
                 'name' => $menuItem->name,
                 'image' => $menuItem->image,
@@ -355,7 +355,7 @@ class MenuItemController extends Controller
             $menuItem->delete();
 
             DB::commit();
-            \Log::info('✅ Menu item deleted successfully', ['id' => $menuItem->id]);
+            \Log::info(' Menu item deleted successfully', ['id' => $menuItem->id]);
 
             return response()->json([
 

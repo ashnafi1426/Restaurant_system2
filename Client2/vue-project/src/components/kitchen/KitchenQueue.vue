@@ -34,33 +34,34 @@ const isProcessing = computed(() => (orderId: string) => {
 // Combine all orders with their status
 const allOrdersWithStatus = computed(() => {
   const orders: Array<KitchenOrder & { status: string }> = []
-  
-  props.pendingOrders?.forEach(order => orders.push({ ...order, status: 'pending' }))
-  props.preparingOrders?.forEach(order => orders.push({ ...order, status: 'preparing' }))
-  props.readyOrders?.forEach(order => orders.push({ ...order, status: 'ready' }))
-  props.completedOrders?.forEach(order => orders.push({ ...order, status: 'served' }))
-  
+
+  props.pendingOrders?.forEach((order) => orders.push({ ...order, status: 'pending' }))
+  props.preparingOrders?.forEach((order) => orders.push({ ...order, status: 'preparing' }))
+  props.readyOrders?.forEach((order) => orders.push({ ...order, status: 'ready' }))
+  props.completedOrders?.forEach((order) => orders.push({ ...order, status: 'served' }))
+
   return orders
 })
 
 // Filter and search orders
 const filteredOrders = computed(() => {
   let filtered = allOrdersWithStatus.value
-  
+
   // Filter by status
   if (selectedFilter.value !== 'all') {
-    filtered = filtered.filter(order => order.status === selectedFilter.value)
+    filtered = filtered.filter((order) => order.status === selectedFilter.value)
   }
-  
+
   // Filter by search query (room number or items)
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(order => 
-      order.room?.room_number?.toString().includes(query) ||
-      order.items?.some(item => item.name?.toLowerCase().includes(query))
+    filtered = filtered.filter(
+      (order) =>
+        order.room?.room_number?.toString().includes(query) ||
+        order.items?.some((item) => item.name?.toLowerCase().includes(query)),
     )
   }
-  
+
   return filtered
 })
 
@@ -176,7 +177,7 @@ function getStatusColor(status: string): string {
     pending: 'bg-amber-100 text-amber-800',
     preparing: 'bg-blue-100 text-blue-800',
     ready: 'bg-green-100 text-green-800',
-    served: 'bg-slate-100 text-slate-800'
+    served: 'bg-slate-100 text-slate-800',
   }
   return colors[status] || 'bg-gray-100 text-gray-800'
 }
@@ -186,7 +187,7 @@ function getStatusBgRow(status: string): string {
     pending: 'hover:bg-amber-50',
     preparing: 'hover:bg-blue-50',
     ready: 'hover:bg-green-50',
-    served: 'hover:bg-slate-50'
+    served: 'hover:bg-slate-50',
   }
   return colors[status] || 'hover:bg-gray-50'
 }
@@ -227,7 +228,7 @@ function getStatusBgRow(status: string): string {
               'px-3 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition',
               selectedFilter === status
                 ? 'bg-blue-600 text-white'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
             ]"
           >
             {{ status.toUpperCase() }}
@@ -235,7 +236,7 @@ function getStatusBgRow(status: string): string {
               ({{ filteredOrders.length }})
             </span>
             <span v-else class="ml-1 text-xs">
-              ({{ filteredOrders.filter(o => o.status === status).length }})
+              ({{ filteredOrders.filter((o) => o.status === status).length }})
             </span>
           </button>
         </div>
@@ -264,7 +265,7 @@ function getStatusBgRow(status: string): string {
             :key="order.id"
             :class="[
               'border-b border-slate-200 transition cursor-pointer',
-              getStatusBgRow(order.status)
+              getStatusBgRow(order.status),
             ]"
             @click="emit('view', order)"
           >
@@ -273,7 +274,7 @@ function getStatusBgRow(status: string): string {
               <div class="font-semibold text-slate-900">
                 {{ order.room?.room_number || '—' }}
               </div>
-              <div v-if="order.notes" class="text-xs text-red-600 font-bold">⚠️ PRIORITY</div>
+              <div v-if="order.notes" class="text-xs text-red-600 font-bold">PRIORITY</div>
             </td>
 
             <!-- Guest Name -->
@@ -296,7 +297,10 @@ function getStatusBgRow(status: string): string {
                     >({{ item.notes }})</span
                   >
                 </div>
-                <div v-if="(order.items || []).length > 2" class="text-xs text-slate-500 font-semibold">
+                <div
+                  v-if="(order.items || []).length > 2"
+                  class="text-xs text-slate-500 font-semibold"
+                >
                   +{{ (order.items || []).length - 2 }} more items
                 </div>
               </div>
@@ -361,7 +365,7 @@ function getStatusBgRow(status: string): string {
               <span
                 :class="[
                   'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold',
-                  getStatusColor(order.status)
+                  getStatusColor(order.status),
                 ]"
               >
                 <span v-if="order.status === 'pending'" class="text-lg">⏳</span>
@@ -392,7 +396,9 @@ function getStatusBgRow(status: string): string {
       <div class="flex flex-col lg:flex-row items-center justify-between gap-4 sm:gap-6">
         <!-- Left: Items per page selector -->
         <div class="flex items-center gap-3">
-          <label for="itemsPerPage" class="text-sm font-semibold text-slate-700">Items per page:</label>
+          <label for="itemsPerPage" class="text-sm font-semibold text-slate-700"
+            >Items per page:</label
+          >
           <select
             id="itemsPerPage"
             :value="itemsPerPage"

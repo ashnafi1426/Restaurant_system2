@@ -17,7 +17,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>✅ Reservation Confirmed!</h1>
+            <h1> Reservation Confirmed!</h1>
         </div>
 
         <div class="content">

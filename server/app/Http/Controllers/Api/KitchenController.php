@@ -101,7 +101,7 @@ class KitchenController extends Controller
                 ->kitchenService
                 ->startPreparing($order);
 
-            \Log::info('✅ [KITCHEN] START Action Completed', [
+            \Log::info(' [KITCHEN] START Action Completed', [
                 'order_id' => $updatedOrder->id,
                 'new_status' => $updatedOrder->status,
             ]);
@@ -150,18 +150,17 @@ class KitchenController extends Controller
 
         try {
 
-            \Log::info('🟢 [KITCHEN] READY Action Received', [
+            \Log::info('[KITCHEN] READY Action Received', [
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
                 'current_status' => $order->status,
             ]);
-
             $updatedOrder =
                 $this
                 ->kitchenService
                 ->markReady($order);
 
-            \Log::info('✅ [KITCHEN] READY Action Completed', [
+            \Log::info(' [KITCHEN] READY Action Completed', [
                 'order_id' => $updatedOrder->id,
                 'new_status' => $updatedOrder->status,
             ]);
@@ -220,7 +219,7 @@ class KitchenController extends Controller
                 ->kitchenService
                 ->markServed($order);
 
-            \Log::info('✅ [KITCHEN] COMPLETE Action Completed', [
+            \Log::info(' [KITCHEN] COMPLETE Action Completed', [
                 'order_id' => $updatedOrder->id,
                 'new_status' => $updatedOrder->status,
             ]);
@@ -240,9 +239,6 @@ class KitchenController extends Controller
 
 
             ]);
-
-
-
         }catch(Throwable $e){
 
             \Log::error('❌ [KITCHEN] COMPLETE Action Failed', [

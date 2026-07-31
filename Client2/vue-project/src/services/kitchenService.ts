@@ -42,18 +42,18 @@ class KitchenService {
     const endpoint = `/kitchen/orders/${orderId}/start`
     console.log(`🌐 [SERVICE] Making PATCH request to: ${endpoint}`)
     console.log(`📦 [SERVICE] Order ID: ${orderId}`)
-    
+
     try {
       const response = await api.patch<KitchenApiResponse<KitchenOrder>>(endpoint)
-      
-      console.log(`✅ [SERVICE] Response status: ${response.status}`)
-      console.log(`✅ [SERVICE] Response data:`, response.data)
-      
+
+      console.log(` [SERVICE] Response status: ${response.status}`)
+      console.log(` [SERVICE] Response data:`, response.data)
+
       if (!response.data.data) {
         throw new Error('No data in response')
       }
-      
-      console.log(`✅ [SERVICE] Order data extracted, status: ${response.data.data.status}`)
+
+      console.log(` [SERVICE] Order data extracted, status: ${response.data.data.status}`)
       return response.data.data
     } catch (err: any) {
       console.error(`❌ [SERVICE] API Error:`, {
@@ -77,15 +77,15 @@ class KitchenService {
   async markReady(orderId: string): Promise<KitchenOrder> {
     const endpoint = `/kitchen/orders/${orderId}/ready`
     console.log(`🌐 [SERVICE] Making PATCH request to: ${endpoint}`)
-    
+
     try {
       const response = await api.patch<KitchenApiResponse<KitchenOrder>>(endpoint)
-      
-      console.log(`✅ [SERVICE] Response status: ${response.status}`)
+
+      console.log(` [SERVICE] Response status: ${response.status}`)
       if (!response.data.data) {
         throw new Error('No data in response')
       }
-      console.log(`✅ [SERVICE] Order data extracted, status: ${response.data.data.status}`)
+      console.log(` [SERVICE] Order data extracted, status: ${response.data.data.status}`)
       return response.data.data
     } catch (err: any) {
       console.error(`❌ [SERVICE] API Error:`, {
@@ -107,15 +107,15 @@ class KitchenService {
   async markServed(orderId: string): Promise<KitchenOrder> {
     const endpoint = `/kitchen/orders/${orderId}/complete`
     console.log(`🌐 [SERVICE] Making PATCH request to: ${endpoint}`)
-    
+
     try {
       const response = await api.patch<KitchenApiResponse<KitchenOrder>>(endpoint)
-      
-      console.log(`✅ [SERVICE] Response status: ${response.status}`)
+
+      console.log(` [SERVICE] Response status: ${response.status}`)
       if (!response.data.data) {
         throw new Error('No data in response')
       }
-      console.log(`✅ [SERVICE] Order data extracted, status: ${response.data.data.status}`)
+      console.log(` [SERVICE] Order data extracted, status: ${response.data.data.status}`)
       return response.data.data
     } catch (err: any) {
       console.error(`❌ [SERVICE] API Error:`, {

@@ -5,23 +5,19 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\Notification;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use App\Services\RestaurantChargeService;
+use Illuminate\Support\Facades\Log;
+
 class KitchenService
 {
     public function getKitchenOrders($authUser = null): array
     {
         return [
-
             'pending' => $this->getOrdersByStatus(Order::STATUS_PENDING, $authUser),
-
             'preparing' => $this->getOrdersByStatus(Order::STATUS_PREPARING, $authUser),
-
             'ready' => $this->getOrdersByStatus(Order::STATUS_READY, $authUser),
-
             'served' => $this->getOrdersByStatus(Order::STATUS_SERVED, $authUser),
-
         ];
     }
     protected function getOrdersByStatus(string $status, $authUser = null): Collection
@@ -36,32 +32,19 @@ class KitchenService
                 'chef',
             ])
             ->where('status', $status);
-
-        // Filter by chef if user is a chef
         if ($authUser && isset($authUser->role) && $authUser->role === 'chef' && isset($authUser->id)) {
-            // Show orders assigned to this chef OR orders without assignment (legacy orders)
             $query->where(function($q) use ($authUser) {
                 $q->where('chef_id', $authUser->id)
                   ->orWhereNull('chef_id');
             });
         }
-
         return $query->latest('order_time')->get();
     }
-
-    /**
-     * --------------------------------------------------------------------------
-     * Load all relationships for a single order
-     * --------------------------------------------------------------------------
-     */
     protected function loadOrderRelations(Order $order): Order
     {
         return $order->load([
-
             'guest',
-
             'room',
-
             'reservation',
 
             'orderItems',
@@ -73,7 +56,7 @@ class KitchenService
     protected function validateStatusTransition(
         Order $order,
         string $expectedStatus
-    ): void {
+       ): void {
 
         if ($order->status !== $expectedStatus) {
 
@@ -85,143 +68,136 @@ class KitchenService
     }
     public function startPreparing(Order $order): Order
     {
-        \Log::info('🔵 [SERVICE] startPreparing - Validating order status', [
+        Log::info('Preparation Started', [
             'order_id' => $order->id,
             'current_status' => $order->status,
-            'expected_status' => Order::STATUS_PENDING,
         ]);
 
-        $this->validateStatusTransition(
-            $order,
-            Order::STATUS_PENDING
-        );
+        // If already preparing, just return it
+        if ($order->status === Order::STATUS_PREPARING) {
+            return $this->loadOrderRelations($order);
+        }
 
-        \Log::info('🟢 [SERVICE] startPreparing - Status validation passed', [
-            'order_id' => $order->id,
-        ]);
+        if ($order->status !== Order::STATUS_PENDING) {
+            throw new \Exception("Order must be 'pending' before starting preparation.");
+        }
 
         $order->update([
             'status' => Order::STATUS_PREPARING,
         ]);
 
-        \Log::info('✅ [SERVICE] startPreparing - Order status updated', [
+        Log::info('Preparation Status Updated', [
             'order_id' => $order->id,
             'new_status' => $order->status,
         ]);
 
-        // Notify chef that they're starting to prepare
-        $this->notifyChefs(
-            'order_preparing',
-            'Order Started',
-            'You started preparing order #' . $order->order_number
-        );
-
         $freshOrder = $this->loadOrderRelations($order->fresh());
         
-        \Log::info('✅ [SERVICE] startPreparing - Order reloaded with relations', [
+        Log::info('Preparation Order Loaded', [
             'order_id' => $freshOrder->id,
             'status' => $freshOrder->status,
-            'has_items' => count($freshOrder->orderItems) > 0,
         ]);
 
         return $freshOrder;
     }
     public function markReady(Order $order): Order
     {
-        \Log::info('🔵 [SERVICE] markReady - Validating order status', [
+        Log::info('Order Ready Started', [
             'order_id' => $order->id,
+            'order_number' => $order->order_number,
             'current_status' => $order->status,
-            'expected_status' => Order::STATUS_PREPARING,
         ]);
+        if ($order->status === Order::STATUS_READY) {
+            return $this->loadOrderRelations($order);
+        }
 
-        $this->validateStatusTransition(
-            $order,
-            Order::STATUS_PREPARING
-        );
+        if (!in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PREPARING])) {
+            throw new \Exception("Order must be 'pending' or 'preparing' before marking ready.");
+        }
 
-        \Log::info('🟢 [SERVICE] markReady - Status validation passed', [
-            'order_id' => $order->id,
-        ]);
-
-        $order->update([
-            'status' => Order::STATUS_READY,
-        ]);
-
-        \Log::info('✅ [SERVICE] markReady - Order status updated', [
+        // STEP 2: Update order status to READY
+        $order->update(['status' => Order::STATUS_READY]);
+        Log::info('Order Status Updated', [
             'order_id' => $order->id,
             'new_status' => $order->status,
         ]);
 
-        // Notify chef that order is ready
+        // STEP 3: Load order with relationships
+        $order = $this->loadOrderRelations($order->fresh());
+
+        // STEP 4: DISPATCH EVENT - Listener will handle waiter assignment
+        \App\Events\OrderReadyEvent::dispatch($order);
+        Log::info('Order Ready Event Dispatched', [
+            'order_id' => $order->id,
+        ]);
+
+        // STEP 5: Notify chef that order is ready
         $this->notifyChefs(
-            'order_ready',
-            'Order Ready',
-            'Order #' . $order->order_number . ' is ready for pickup'
+            'order',
+            'Order Ready for Pickup',
+            "Order #{$order->order_number} is ready - waiter will pick it up"
         );
 
+        // STEP 6: Return updated order
         $freshOrder = $this->loadOrderRelations($order->fresh());
-        
-        \Log::info('✅ [SERVICE] markReady - Order reloaded with relations', [
+        Log::info('Order Ready Completed', [
             'order_id' => $freshOrder->id,
             'status' => $freshOrder->status,
         ]);
 
         return $freshOrder;
     }
-    public function markServed(Order $order): Order{
-    \Log::info('🔵 [SERVICE] markServed - Validating order status', [
-        'order_id' => $order->id,
-        'current_status' => $order->status,
-        'expected_status' => Order::STATUS_READY,
-    ]);
+    public function markServed(Order $order): Order
+    {
+        Log::info('Order Served Started', [
+            'order_id' => $order->id,
+        ]);
 
-    $this->validateStatusTransition(
-        $order,
-        Order::STATUS_READY
-    );
+        $this->validateStatusTransition(
+            $order,
+            Order::STATUS_READY
+        );
 
-    \Log::info('🟢 [SERVICE] markServed - Status validation passed', [
-        'order_id' => $order->id,
-    ]);
+        // Update order status first
+        $order->update([
+            'status' => Order::STATUS_SERVED,
+            'served_at' => now(),
+        ]);
 
-    // Update order status first
-    $order->update([
-        'status' => Order::STATUS_SERVED,
-        'served_at' => now(),
-    ]);
+        // Refresh the order with new status
+        $order->refresh();
 
-    // Refresh the order with new status
-    $order->refresh();
+        Log::info('Order Served Status Updated', [
+            'order_id' => $order->id,
+            'new_status' => $order->status,
+        ]);
 
-    \Log::info('✅ [SERVICE] markServed - Order status updated', [
-        'order_id' => $order->id,
-        'new_status' => $order->status,
-    ]);
+        // Notify chef that order is served
+        $this->notifyChefs(
+            'order',
+            'Order Completed',
+            "Order #{$order->order_number} has been served"
+        );
 
-    // Notify chef that order is served
-    $this->notifyChefs(
-        'order_served',
-        'Order Completed',
-        'Order #' . $order->order_number . ' has been served'
-    );
+        // Create restaurant charge (this method has its own transaction)
+        try {
+            $this->restaurantChargeService->createFromOrder($order);
+        } catch (\Exception $e) {
+            // Log the error but don't fail the served status update
+            Log::warning("Restaurant Charge Creation Failed: {$e->getMessage()}", [
+                'order_id' => $order->id,
+            ]);
+        }
 
-    // Create restaurant charge (this method has its own transaction)
-    try {
-        $this->restaurantChargeService->createFromOrder($order);
-    } catch (\Exception $e) {
-        // Log the error but don't fail the served status update
-        \Log::warning('Failed to create restaurant charge for order ' . $order->id . ': ' . $e->getMessage());
+        $freshOrder = $this->loadOrderRelations($order);
+        
+        Log::info('Order Served Completed', [
+            'order_id' => $freshOrder->id,
+            'status' => $freshOrder->status,
+        ]);
+
+        return $freshOrder;
     }
-
-    $freshOrder = $this->loadOrderRelations($order);
-    
-    \Log::info('✅ [SERVICE] markServed - Order reloaded with relations', [
-        'order_id' => $freshOrder->id,
-        'status' => $freshOrder->status,
-    ]);
-
-    return $freshOrder;
-}
     public function statistics($authUser = null): array
     {
         $baseQuery = function() use ($authUser) {
@@ -311,9 +287,6 @@ class KitchenService
 
         ];
     }
-    /**
-     * Notify all chefs with a message
-     */
     protected function notifyChefs(string $type, string $title, string $message): void
     {
         try {
@@ -329,17 +302,13 @@ class KitchenService
                 ]);
             }
         } catch (\Exception $e) {
-            \Log::error('Failed to create chef notifications: ' . $e->getMessage());
+            Log::error('Failed to create chef notifications: ' . $e->getMessage());
         }
     }
-
     protected RestaurantChargeService $restaurantChargeService;
-
-public function __construct(
-    RestaurantChargeService $restaurantChargeService
-)
-{
-    $this->restaurantChargeService = $restaurantChargeService;
-}
+    public function __construct(RestaurantChargeService $restaurantChargeService)
+    {
+        $this->restaurantChargeService = $restaurantChargeService;
+    }
 
 }

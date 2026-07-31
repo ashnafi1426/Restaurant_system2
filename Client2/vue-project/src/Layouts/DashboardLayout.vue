@@ -9,13 +9,16 @@ const showMobileSidebar = ref(false)
 // Toggle sidebar open/close
 const toggleMobileSidebar = () => {
   showMobileSidebar.value = !showMobileSidebar.value
-  console.log('✅ Sidebar toggled:', showMobileSidebar.value ? 'OPEN' : 'CLOSED')
+  console.log(' Sidebar toggled:', showMobileSidebar.value ? 'OPEN' : 'CLOSED')
 }
 
-// Close sidebar when navigating
+// Close sidebar when navigating (only on mobile)
 const closeMobileSidebar = () => {
-  showMobileSidebar.value = false
-  console.log('✅ Sidebar closed')
+  // Only close on mobile screens (less than lg breakpoint: 1024px)
+  if (window.innerWidth < 1024) {
+    showMobileSidebar.value = false
+    console.log(' Sidebar closed (mobile)')
+  }
 }
 </script>
 

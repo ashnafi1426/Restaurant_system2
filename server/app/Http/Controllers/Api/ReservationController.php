@@ -21,7 +21,6 @@ class ReservationController extends Controller
         'room',
         'creator'
        ]);
-
       if ($request->filled('search')) {
          $query->search($request->search);
         }
@@ -75,14 +74,11 @@ class ReservationController extends Controller
         ],201);
 
     } catch (\Exception $e){
-
         DB::rollBack();
-
         return response()->json([
             'message'=>'Reservation creation failed.',
             'error'=>$e->getMessage()
         ],500);
-
     }
      }
     public function show(Reservation $reservation)
@@ -145,12 +141,10 @@ class ReservationController extends Controller
             $reservation->update([
                 'status'=>'checked_in'
             ]);
-            
             // Update room status
             $reservation->room()->update([
                 'status'=>'occupied'
             ]);
-            
             // Create CheckIn record if not exists
             if (!$reservation->checkIn) {
                 \App\Models\CheckIn::create([
@@ -165,7 +159,6 @@ class ReservationController extends Controller
                 ]);
             }
         });
-
         // Send check-in email AFTER transaction (outside transaction scope)
         try {
             // Ensure room and room type relationships are loaded

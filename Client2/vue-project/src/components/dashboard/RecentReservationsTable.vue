@@ -67,9 +67,7 @@ const getInitialColor = (initials: string) => {
       class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-5 border-b border-gray-100"
     >
       <div>
-        <h3 class="text-xl sm:text-2xl font-bold text-slate-900">
-          Recent Reservations
-        </h3>
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900">Recent Reservations</h3>
         <p class="text-sm text-slate-600 mt-1.5">Latest bookings and status overview</p>
       </div>
       <router-link
@@ -78,8 +76,18 @@ const getInitialColor = (initials: string) => {
       >
         <span class="flex items-center gap-2">
           View All
-          <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          <svg
+            class="w-4 h-4 group-hover:translate-x-1 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </span>
       </router-link>
@@ -89,7 +97,12 @@ const getInitialColor = (initials: string) => {
     <div v-if="reservations.length === 0" class="text-center py-16">
       <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
         <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       </div>
       <p class="text-slate-600 font-semibold">No reservations yet</p>
@@ -151,15 +164,15 @@ const getInitialColor = (initials: string) => {
                   <p class="text-sm font-semibold text-slate-900 truncate">
                     {{ reservation.guest.name }}
                   </p>
-                  <p class="text-xs text-slate-500 truncate font-medium mt-0.5">{{ reservation.booking_reference }}</p>
+                  <p class="text-xs text-slate-500 truncate font-medium mt-0.5">
+                    {{ reservation.booking_reference }}
+                  </p>
                 </div>
               </div>
             </td>
             <!-- Room Type Column -->
             <td class="py-4 px-4 sm:px-6 lg:px-8 hidden sm:table-cell">
-              <span class="text-sm text-slate-700 font-medium">{{
-                reservation.room_type
-              }}</span>
+              <span class="text-sm text-slate-700 font-medium">{{ reservation.room_type }}</span>
             </td>
             <!-- Check In Column -->
             <td class="py-4 px-4 sm:px-6 lg:px-8 hidden md:table-cell">
@@ -173,7 +186,10 @@ const getInitialColor = (initials: string) => {
             <!-- Status Column -->
             <td class="py-4 px-4 sm:px-6 lg:px-8">
               <span
-                :class="[getStatusColor(reservation.status), 'text-xs font-bold px-2.5 py-1.5 rounded-full inline-flex items-center gap-1.5 border']"
+                :class="[
+                  getStatusColor(reservation.status),
+                  'text-xs font-bold px-2.5 py-1.5 rounded-full inline-flex items-center gap-1.5 border',
+                ]"
               >
                 <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                 {{ reservation.status }}

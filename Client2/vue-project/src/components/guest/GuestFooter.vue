@@ -1,5 +1,4 @@
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <footer class="bg-gray-900 text-white mt-12">
@@ -29,8 +28,12 @@
         <div>
           <h3 class="text-lg font-bold mb-4">Services</h3>
           <ul class="space-y-2 text-sm">
-            <li><a href="#" class="text-gray-400 hover:text-teal-400 transition">24/7 Support</a></li>
-            <li><a href="#" class="text-gray-400 hover:text-teal-400 transition">Room Service</a></li>
+            <li>
+              <a href="#" class="text-gray-400 hover:text-teal-400 transition">24/7 Support</a>
+            </li>
+            <li>
+              <a href="#" class="text-gray-400 hover:text-teal-400 transition">Room Service</a>
+            </li>
             <li><a href="#" class="text-gray-400 hover:text-teal-400 transition">Restaurant</a></li>
             <li><a href="#" class="text-gray-400 hover:text-teal-400 transition">Events</a></li>
           </ul>
@@ -56,15 +59,9 @@
       <div class="border-t border-gray-700 pt-8">
         <!-- Bottom Info -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div class="text-sm text-gray-400">
-            ✅ Safe & Secure Ordering
-          </div>
-          <div class="text-sm text-gray-400 text-center">
-            🚚 Fast Delivery to Your Room
-          </div>
-          <div class="text-sm text-gray-400 text-right">
-            ⭐ Premium Quality Guaranteed
-          </div>
+          <div class="text-sm text-gray-400"> Safe & Secure Ordering</div>
+          <div class="text-sm text-gray-400 text-center">🚚 Fast Delivery to Your Room</div>
+          <div class="text-sm text-gray-400 text-right">⭐ Premium Quality Guaranteed</div>
         </div>
 
         <!-- Copyright -->
@@ -77,5 +74,4 @@
   </footer>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

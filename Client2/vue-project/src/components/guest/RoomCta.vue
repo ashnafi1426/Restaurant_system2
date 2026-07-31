@@ -43,7 +43,7 @@
         </div>
 
         <div class="text-white">
-          <div class="text-2xl sm:text-3xl mb-2">✅</div>
+          <div class="text-2xl sm:text-3xl mb-2"></div>
           <p class="font-semibold text-sm sm:text-base">Free Cancellation</p>
           <p class="text-xs sm:text-sm text-amber-50">Cancel up to 48 hours before arrival</p>
         </div>

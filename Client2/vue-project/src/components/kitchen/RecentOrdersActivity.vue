@@ -38,7 +38,12 @@
                 getStatusBg(order.status),
               ]"
             >
-              <component :is="getStatusIcon(order.status)" :size="20" :stroke-width="2" class="text-white" />
+              <component
+                :is="getStatusIcon(order.status)"
+                :size="20"
+                :stroke-width="2"
+                class="text-white"
+              />
             </div>
 
             <!-- Order Details -->
@@ -70,7 +75,11 @@
 
               <!-- Quick Items Preview -->
               <div class="text-xs text-slate-700 mb-2">
-                <div v-for="item in (order.items || []).slice(0, 2)" :key="item.id" class="text-slate-600">
+                <div
+                  v-for="item in (order.items || []).slice(0, 2)"
+                  :key="item.id"
+                  class="text-slate-600"
+                >
                   {{ item.quantity }}x {{ item.name }}
                 </div>
                 <div v-if="(order.items || []).length > 2" class="text-slate-500">
@@ -80,8 +89,12 @@
 
               <!-- Footer: Time & Amount -->
               <div class="flex items-center justify-between">
-                <span class="text-xs text-slate-500">{{ formatTime(order.updated_at || order.order_time) }}</span>
-                <span class="text-xs font-bold text-slate-900">${{ parseFloat(order.total).toFixed(2) }}</span>
+                <span class="text-xs text-slate-500">{{
+                  formatTime(order.updated_at || order.order_time)
+                }}</span>
+                <span class="text-xs font-bold text-slate-900"
+                  >${{ parseFloat(order.total).toFixed(2) }}</span
+                >
               </div>
             </div>
           </div>
@@ -98,14 +111,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import {
-  Clock,
-  ChefHat,
-  CheckCircle,
-  XCircle,
-  Activity,
-  ListX,
-} from 'lucide-vue-next'
+import { Clock, ChefHat, CheckCircle, XCircle, Activity, ListX } from 'lucide-vue-next'
 import type { KitchenOrder } from '@/types/kitchen'
 
 const props = defineProps<{

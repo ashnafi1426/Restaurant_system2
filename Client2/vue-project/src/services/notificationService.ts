@@ -2,7 +2,16 @@ import api from '../api/auth'
 
 export interface NotificationData {
   id?: string
-  type: 'booking' | 'check_in' | 'check_out' | 'cancellation' | 'system' | 'order_created' | 'order_preparing' | 'order_ready' | 'order_served'
+  type:
+    | 'booking'
+    | 'check_in'
+    | 'check_out'
+    | 'cancellation'
+    | 'system'
+    | 'order_created'
+    | 'order_preparing'
+    | 'order_ready'
+    | 'order_served'
   title: string
   message: string
   reservation_id?: string
@@ -76,20 +85,23 @@ export const notificationService = {
         const response = await api.get('/notifications/latest')
         if (response.data && response.data.data) {
           const notification = response.data.data
-          
+
           // Only call the callback for new notifications we haven't seen before
           if (notification.id && !seenNotificationIds.has(notification.id)) {
             seenNotificationIds.add(notification.id)
             callback(notification)
             console.log('🔔 [NOTIFICATION SERVICE] New notification shown:', notification.id)
           } else {
-            console.log('🔕 [NOTIFICATION SERVICE] Duplicate notification skipped:', notification.id)
+            console.log(
+              '🔕 [NOTIFICATION SERVICE] Duplicate notification skipped:',
+              notification.id,
+            )
           }
           failureCount = 0 // Reset on success
         }
       } catch (error: any) {
         failureCount++
-        
+
         // Stop polling on auth errors (401, 403)
         if (error.response?.status === 401 || error.response?.status === 403) {
           console.warn('🔒 Notification access denied (403/401). Stopping notification polling.')
@@ -104,7 +116,10 @@ export const notificationService = {
           return
         }
 
-        console.error('⚠️ Error fetching notification (attempt ' + failureCount + '):', error.message)
+        console.error(
+          'Error fetching notification (attempt ' + failureCount + '):',
+          error.message,
+        )
       }
     }, interval)
 

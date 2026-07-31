@@ -125,7 +125,7 @@ class StoreMenuItemRequest extends FormRequest
                         'Either upload an image file or provide an image URL.'
                     );
                 } else {
-                    \Log::info('✅ Image validation passed', [
+                    \Log::info(' Image validation passed', [
                         'has_image' => $hasImage,
                         'has_image_url' => $hasImageUrl,
                     ]);
