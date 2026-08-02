@@ -21,15 +21,15 @@ const formatTime = (date: string) => {
 </script>
 
 <template>
-  <div class="bg-blue-50 rounded-lg border border-blue-200 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm">
+  <div class="bg-blue-50 dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-slate-700 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm">
     <!-- Header -->
     <div
-      class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 pb-3 sm:pb-4 md:pb-5 border-b border-blue-200"
+      class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 pb-3 sm:pb-4 md:pb-5 border-b border-blue-200 dark:border-slate-700"
     >
-      <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900">
+      <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
         Today's Arrivals
       </h3>
-      <span class="text-xs sm:text-sm md:text-base font-bold text-teal-600"
+      <span class="text-xs sm:text-sm md:text-base font-bold text-teal-600 dark:text-teal-400"
         >{{ arrivals.length }} Total</span
       >
     </div>
@@ -44,9 +44,9 @@ const formatTime = (date: string) => {
         <!-- Avatar -->
         <div class="flex-shrink-0">
           <div
-            class="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0"
+            class="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0"
           >
-            <span class="text-xs sm:text-sm md:text-base font-bold text-blue-700">
+            <span class="text-xs sm:text-sm md:text-base font-bold text-blue-700 dark:text-blue-300">
               {{ getInitials(arrival.guest?.first_name || 'U', arrival.guest?.last_name || 'N') }}
             </span>
           </div>
@@ -54,17 +54,17 @@ const formatTime = (date: string) => {
 
         <!-- Guest & Room Info -->
         <div class="flex-1 min-w-0">
-          <p class="text-xs sm:text-sm md:text-base font-bold text-gray-900 truncate">
+          <p class="text-xs sm:text-sm md:text-base font-bold text-gray-900 dark:text-white truncate">
             {{ arrival.guest?.first_name }} {{ arrival.guest?.last_name }}
           </p>
-          <p class="text-xs sm:text-sm md:text-base text-gray-600 mt-1 truncate">
+          <p class="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400 mt-1 truncate">
             Room {{ arrival.room?.room_number }} · {{ arrival.room?.room_type?.name }}
           </p>
         </div>
 
         <!-- Check-in Time -->
         <div class="flex-shrink-0 text-right">
-          <p class="text-xs sm:text-sm md:text-base font-bold text-gray-900 whitespace-nowrap">
+          <p class="text-xs sm:text-sm md:text-base font-bold text-gray-900 dark:text-white whitespace-nowrap">
             {{ formatTime(arrival.check_in_date) }}
           </p>
         </div>
@@ -73,16 +73,16 @@ const formatTime = (date: string) => {
 
     <!-- Empty State -->
     <div v-else class="text-center py-6 sm:py-8 md:py-10">
-      <p class="text-xs sm:text-sm md:text-base text-gray-500">No arrivals today</p>
+      <p class="text-xs sm:text-sm md:text-base text-gray-500 dark:text-slate-400">No arrivals today</p>
     </div>
 
     <!-- View All Link -->
     <div
       v-if="arrivals.length > 3"
-      class="mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-gray-200"
+      class="mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-gray-200 dark:border-slate-700"
     >
       <button
-        class="w-full py-2 sm:py-2.5 md:py-3 min-h-10 text-xs sm:text-sm md:text-base font-bold text-teal-600 hover:text-teal-700 transition"
+        class="w-full py-2 sm:py-2.5 md:py-3 min-h-10 text-xs sm:text-sm md:text-base font-bold text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition"
       >
         View All Arrivals
       </button>

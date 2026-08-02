@@ -122,15 +122,19 @@ const addToCart = () => {
         v-if="imageLoading"
         class="absolute inset-0 bg-white/40 backdrop-blur-sm flex items-center justify-center"
       >
-        <div class="animate-spin">
-          <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
+        <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-8 h-8) -->
+        <div class="relative w-8 h-8">
+          <!-- Static background - BRIGHT CYAN -->
+          <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
           </svg>
+          
+          <!-- Animated spinner - BRIGHT YELLOW -->
+          <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+            <svg viewBox="0 0 100 100" class="w-full h-full">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
+            </svg>
+          </div>
         </div>
       </div>
 
@@ -241,5 +245,14 @@ const addToCart = () => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

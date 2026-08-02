@@ -1,0 +1,482 @@
+/* ============================================================================
+   GLOBAL DARK MODE STYLESHEET - MASTER OVERRIDE
+   Forces ALL pages to be properly dark when dark mode is enabled
+   ============================================================================ */
+
+/* ============================================================================
+   ROOT ELEMENT - Controls everything
+   ============================================================================ */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease !important;
+}
+
+html.dark {
+  background-color: #020617 !important;
+  color: #f1f5f9 !important;
+  background-image: none !important;
+}
+
+html:not(.dark) {
+  background-color: #ffffff !important;
+  color: #1f2937 !important;
+}
+
+/* ============================================================================
+   BODY & APP ROOT
+   ============================================================================ */
+body {
+  background-color: #ffffff;
+  color: #1f2937;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.dark,
+html.dark body {
+  background-color: #020617 !important;
+  color: #f1f5f9;
+}
+
+#app {
+  background-color: #ffffff;
+  color: #1f2937;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.dark #app {
+  background-color: #020617 !important;
+  color: #f1f5f9;
+}
+
+/* ============================================================================
+   TEXT & TYPOGRAPHY
+   ============================================================================ */
+h1, h2, h3, h4, h5, h6 {
+  color: #1f2937;
+  transition: color 0.3s ease;
+}
+
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: #f1f5f9;
+}
+
+p, span, label, li {
+  color: #4b5563;
+  transition: color 0.3s ease;
+}
+
+html.dark p,
+html.dark span,
+html.dark label,
+html.dark li {
+  color: #cbd5e1;
+}
+
+html.dark .text-slate-900,
+html.dark .text-gray-900 {
+  color: #f8fafc !important;
+}
+
+html.dark .text-slate-800,
+html.dark .text-gray-800 {
+  color: #e2e8f0 !important;
+}
+
+html.dark .text-slate-700,
+html.dark .text-gray-700 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .text-slate-600,
+html.dark .text-gray-600 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-slate-500,
+html.dark .text-gray-500 {
+  color: #64748b !important;
+}
+
+html.dark .text-slate-400,
+html.dark .text-gray-400 {
+  color: #94a3b8 !important;
+}
+
+/* ============================================================================
+   BACKGROUNDS
+   ============================================================================ */
+.bg-white {
+  background-color: #ffffff;
+  transition: background-color 0.3s ease;
+}
+
+html.dark .bg-white {
+  background-color: #0f172a;
+}
+
+.bg-gray-50, .bg-slate-50 {
+  background-color: #f9fafb;
+  transition: background-color 0.3s ease;
+}
+
+html.dark .bg-gray-50,
+html.dark .bg-slate-50 {
+  background-color: #1e293b;
+}
+
+.bg-gray-100, .bg-slate-100 {
+  background-color: #f3f4f6;
+  transition: background-color 0.3s ease;
+}
+
+html.dark .bg-gray-100,
+html.dark .bg-slate-100 {
+  background-color: #334155;
+}
+
+html.dark .bg-gradient-to-br {
+  background-image: linear-gradient(135deg, #020617 0%, #0f172a 55%, #111827 100%) !important;
+}
+
+html.dark .bg-gradient-to-r {
+  background-image: linear-gradient(90deg, #0f172a 0%, #1e293b 100%) !important;
+}
+
+/* ============================================================================
+   BORDERS
+   ============================================================================ */
+.border {
+  border-color: #e5e7eb;
+  transition: border-color 0.3s ease;
+}
+
+html.dark .border {
+  border-color: #334155;
+}
+
+.border-t, .border-b, .border-l, .border-r {
+  border-color: #e5e7eb;
+  transition: border-color 0.3s ease;
+}
+
+html.dark .border-t,
+html.dark .border-b,
+html.dark .border-l,
+html.dark .border-r {
+  border-color: #334155;
+}
+
+html.dark .border-slate-200,
+html.dark .border-gray-200 {
+  border-color: #334155 !important;
+}
+
+html.dark .border-slate-100,
+html.dark .border-gray-100 {
+  border-color: #1e293b !important;
+}
+
+/* ============================================================================
+   BUTTONS & INTERACTIVE
+   ============================================================================ */
+button {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+input, textarea, select {
+  background-color: #ffffff;
+  color: #1f2937;
+  border-color: #d1d5db;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: #334155;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af;
+  transition: color 0.3s ease;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b;
+}
+
+/* ============================================================================
+   SCROLLBARS - Visible in both modes
+   ============================================================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* ============================================================================
+   CARDS & CONTAINERS
+   ============================================================================ */
+.card, [class*="card"] {
+  background-color: #ffffff;
+  color: #1f2937;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.dark .card,
+html.dark [class*="card"] {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+.shadow-sm, .shadow, .shadow-md, .shadow-lg {
+  transition: box-shadow 0.3s ease;
+}
+
+html.dark .shadow-sm,
+html.dark .shadow,
+html.dark .shadow-md,
+html.dark .shadow-lg {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================================
+   TABLES
+   ============================================================================ */
+table {
+  background-color: #ffffff;
+  color: #1f2937;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.dark table {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+thead {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.dark thead {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
+
+tbody tr {
+  border-color: #e5e7eb;
+  transition: border-color 0.3s ease;
+}
+
+html.dark tbody tr {
+  border-color: #334155;
+}
+
+tbody tr:hover {
+  background-color: #f9fafb;
+  transition: background-color 0.3s ease;
+}
+
+html.dark tbody tr:hover {
+  background-color: #334155;
+}
+
+/* ============================================================================
+   MODALS & DIALOGS
+   ============================================================================ */
+[role="dialog"], .modal {
+  background-color: #ffffff;
+  color: #1f2937;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.dark [role="dialog"],
+html.dark .modal {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+.modal-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  transition: background-color 0.3s ease;
+}
+
+html.dark .modal-overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* ============================================================================
+   DROPDOWNS & MENUS
+   ============================================================================ */
+.dropdown, [class*="dropdown"], .menu, [class*="menu"] {
+  background-color: #ffffff;
+  color: #1f2937;
+  border-color: #e5e7eb;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+html.dark .dropdown,
+html.dark [class*="dropdown"],
+html.dark .menu,
+html.dark [class*="menu"] {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: #334155;
+}
+
+/* ============================================================================
+   ALERTS & NOTIFICATIONS
+   ============================================================================ */
+.alert, .notification, [class*="toast"] {
+  background-color: #f9fafb;
+  color: #1f2937;
+  border-color: #e5e7eb;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+html.dark .alert,
+html.dark .notification,
+html.dark [class*="toast"] {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: #334155;
+}
+
+/* ============================================================================
+   FORM ELEMENTS
+   ============================================================================ */
+.form-control, .form-group {
+  color: #1f2937;
+  transition: color 0.3s ease;
+}
+
+html.dark .form-control,
+html.dark .form-group {
+  color: #f1f5f9;
+}
+
+/* ============================================================================
+   CODE BLOCKS & PRE
+   ============================================================================ */
+code, pre {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  border-color: #e5e7eb;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+html.dark code,
+html.dark pre {
+  background-color: #0f172a;
+  color: #f1f5f9;
+  border-color: #334155;
+}
+
+/* ============================================================================
+   LINKS
+   ============================================================================ */
+a {
+  color: #3b82f6;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #2563eb;
+}
+
+html.dark a {
+  color: #60a5fa;
+}
+
+html.dark a:hover {
+  color: #93c5fd;
+}
+
+/* ============================================================================
+   DISABLED STATE
+   ============================================================================ */
+:disabled, [disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   FOCUS STATES (Accessibility)
+   ============================================================================ */
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+html.dark *:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   TRANSITIONS - Smooth theme switching
+   ============================================================================ */
+* {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 300ms;
+  transition-timing-function: ease;
+}
+
+/* ============================================================================
+   UTILITY CLASSES - Explicit dark mode variants
+   ============================================================================ */
+.light-only {
+  display: block;
+}
+
+html.dark .light-only {
+  display: none;
+}
+
+.dark-only {
+  display: none;
+}
+
+html.dark .dark-only {
+  display: block;
+}
+
+/* ============================================================================
+   PREVENT DOUBLE TRANSITIONS
+   ============================================================================ */
+html.dark * {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 300ms;
+  transition-timing-function: ease;
+}

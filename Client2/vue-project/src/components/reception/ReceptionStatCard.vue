@@ -39,11 +39,11 @@ const iconMap: Record<string, string> = {
 
 <template>
   <div
-    class="bg-white rounded-lg border border-gray-200 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm hover:shadow-md transition"
+    class="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm hover:shadow-md transition"
   >
     <!-- Title (uppercase, small) -->
     <p
-      class="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-widest mb-2 sm:mb-3 md:mb-4"
+      class="text-xs md:text-sm font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-2 sm:mb-3 md:mb-4"
     >
       {{ title }}
     </p>
@@ -56,7 +56,7 @@ const iconMap: Record<string, string> = {
         >
           {{ value }}
         </p>
-        <p class="text-xs sm:text-sm md:text-base text-gray-500 mt-1 sm:mt-2 md:mt-3 font-medium">
+        <p class="text-xs sm:text-sm md:text-base text-gray-500 dark:text-slate-400 mt-1 sm:mt-2 md:mt-3 font-medium">
           {{ subtext }}
         </p>
       </div>

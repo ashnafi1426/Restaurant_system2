@@ -324,12 +324,23 @@ watch(
     <div class="overflow-x-auto -mx-4 sm:-mx-6 lg:-mx-8">
       <div class="px-4 sm:px-6 lg:px-8">
         <div class="min-h-80 sm:min-h-96">
-          <div v-if="loading" class="flex items-center justify-center h-full">
+        <div v-if="loading" class="flex items-center justify-center h-full">
             <div class="text-center">
-              <div
-                class="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mx-auto mb-3"
-              ></div>
-              <p class="text-slate-600 font-medium">Loading chart data...</p>
+              <!-- UNIFIED CYAN + YELLOW SPINNER -->
+              <div class="relative w-10 h-10 mx-auto mb-3">
+                <!-- Static background - BRIGHT CYAN -->
+                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
+                </svg>
+                
+                <!-- Animated spinner - BRIGHT YELLOW -->
+                <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+                  <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
+                  </svg>
+                </div>
+              </div>
+              <p class="text-slate-600 dark:text-slate-400 font-medium">Loading chart data...</p>
             </div>
           </div>
           <Bar v-else :data="chartData" :options="chartOptions" />
@@ -338,3 +349,14 @@ watch(
     </div>
   </div>
 </template>
+
+<style scoped>
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

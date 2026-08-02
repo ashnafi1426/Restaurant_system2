@@ -160,8 +160,20 @@ onMounted(() => {
       <!-- LOADING STATE -->
       <div v-if="isLoading" class="flex justify-center items-center py-32">
         <div class="text-center">
-          <div class="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-blue-600 mx-auto mb-4"></div>
-          <p class="text-slate-600">Loading assignments...</p>
+          <div class="relative w-12 h-12 mx-auto mb-4">
+            <!-- Static background - BRIGHT CYAN -->
+            <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" fill="none" stroke="#0EA5E9" stroke-width="6" opacity="0.3" />
+            </svg>
+            
+            <!-- Animated spinner - BRIGHT YELLOW -->
+            <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+              <svg viewBox="0 0 100 100" class="w-full h-full">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#FBBF24" stroke-width="8" stroke-linecap="round" stroke-dasharray="70 280" />
+              </svg>
+            </div>
+          </div>
+          <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">Loading assignments...</p>
         </div>
       </div>
 

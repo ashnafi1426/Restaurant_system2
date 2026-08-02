@@ -319,13 +319,20 @@
     <!-- Loading Overlay -->
     <div
       v-if="isLoadingMenu"
-      class="fixed inset-0 bg-white/80 backdrop-blur-sm z-40 flex items-center justify-center"
+      class="fixed inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-40 flex items-center justify-center"
     >
       <div class="flex flex-col items-center gap-4">
-        <div
-          class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"
-        ></div>
-        <p class="text-amber-700 font-semibold">Loading menu...</p>
+        <div class="relative w-12 h-12">
+          <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#0EA5E9" stroke-width="6" opacity="0.3" />
+          </svg>
+          <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+            <svg viewBox="0 0 100 100" class="w-full h-full">
+              <circle cx="50" cy="50" r="45" fill="none" stroke="#FBBF24" stroke-width="8" stroke-linecap="round" stroke-dasharray="70 280" />
+            </svg>
+          </div>
+        </div>
+        <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">Loading menu...</p>
       </div>
     </div>
   </div>

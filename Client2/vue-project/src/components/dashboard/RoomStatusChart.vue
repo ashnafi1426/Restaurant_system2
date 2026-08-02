@@ -185,10 +185,21 @@ watch(
     <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center py-8">
       <div class="text-center">
-        <div
-          class="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-3"
-        ></div>
-        <p class="text-slate-600 text-sm font-medium">Loading...</p>
+        <!-- UNIFIED CYAN + YELLOW SPINNER -->
+        <div class="relative w-8 h-8 mx-auto mb-3">
+          <!-- Static background - BRIGHT CYAN -->
+          <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
+          </svg>
+          
+          <!-- Animated spinner - BRIGHT YELLOW -->
+          <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+            <svg viewBox="0 0 100 100" class="w-full h-full">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
+            </svg>
+          </div>
+        </div>
+        <p class="text-slate-600 dark:text-slate-400 text-sm font-medium">Loading...</p>
       </div>
     </div>
 
@@ -297,3 +308,14 @@ watch(
     </div>
   </div>
 </template>
+
+<style scoped>
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

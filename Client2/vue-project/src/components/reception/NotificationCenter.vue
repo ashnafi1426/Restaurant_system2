@@ -121,7 +121,7 @@ onUnmounted(() => {
     <!-- Notification Bell Button -->
     <button
       @click="showDropdown = !showDropdown"
-      class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+      class="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-all"
       title="Notifications"
     >
       <Bell class="w-6 h-6" />
@@ -145,23 +145,23 @@ onUnmounted(() => {
 
     <div
       v-show="showDropdown"
-      class="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 overflow-hidden max-h-[600px] flex flex-col"
+      class="absolute right-0 mt-2 w-96 bg-white dark:bg-slate-800 rounded-lg shadow-2xl border border-gray-200 dark:border-slate-700 z-50 overflow-hidden max-h-[600px] flex flex-col"
     >
       <!-- Header -->
       <div
-        class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 flex items-center justify-between flex-shrink-0"
+        class="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-900 dark:to-blue-800 text-white px-4 py-3 flex items-center justify-between flex-shrink-0"
       >
         <div class="flex items-center gap-2">
           <Bell class="w-5 h-5" />
           <h3 class="font-bold">Notifications</h3>
           <span
             v-if="notificationStore.unreadCount > 0"
-            class="ml-1 px-2 py-0.5 bg-white/30 rounded-full text-xs font-semibold"
+            class="ml-1 px-2 py-0.5 bg-white/30 dark:bg-white/20 rounded-full text-xs font-semibold"
           >
             {{ notificationStore.unreadCount }} new
           </span>
         </div>
-        <button @click="closeDropdown" class="text-white/70 hover:text-white transition">
+        <button @click="closeDropdown" class="text-white/70 dark:text-white/60 hover:text-white dark:hover:text-white transition">
           <X class="w-5 h-5" />
         </button>
       </div>
@@ -170,7 +170,7 @@ onUnmounted(() => {
       <div class="overflow-y-auto flex-1">
         <!-- Loading State -->
         <div v-if="notificationStore.loading" class="p-4 space-y-3">
-          <div v-for="i in 3" :key="i" class="h-20 bg-gray-200 rounded-lg animate-pulse" />
+          <div v-for="i in 3" :key="i" class="h-20 bg-gray-200 dark:bg-slate-700 rounded-lg animate-pulse" />
         </div>
 
         <!-- Empty State -->
@@ -178,24 +178,23 @@ onUnmounted(() => {
           v-else-if="notificationStore.notifications.length === 0"
           class="flex flex-col items-center justify-center py-12 px-4"
         >
-          <Bell class="w-12 h-12 text-gray-300 mb-2" />
-          <p class="text-gray-500 text-sm">No notifications yet</p>
+          <Bell class="w-12 h-12 text-gray-300 dark:text-slate-600 mb-2" />
+          <p class="text-gray-500 dark:text-slate-400 text-sm">No notifications yet</p>
         </div>
 
         <!-- Notifications -->
-        <div v-else class="divide-y divide-gray-200">
+        <div v-else class="divide-y divide-gray-200 dark:divide-slate-700">
           <div
             v-for="notification in notificationStore.notifications"
             :key="notification.id"
             :class="[
-              'p-4 hover:bg-gray-50 transition cursor-pointer border-l-4',
-              getNotificationColor(notification.type),
-              !notification.read ? 'bg-blue-50/50' : 'bg-white',
-              notification.type === 'booking' ? 'border-l-blue-500' : '',
-              notification.type === 'check_in' ? 'border-l-green-500' : '',
-              notification.type === 'check_out' ? 'border-l-yellow-500' : '',
-              notification.type === 'cancellation' ? 'border-l-red-500' : '',
-              notification.type === 'system' ? 'border-l-gray-500' : '',
+              'p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition cursor-pointer border-l-4',
+              !notification.read ? 'bg-blue-50/50 dark:bg-blue-900/30' : 'bg-white dark:bg-slate-800',
+              notification.type === 'booking' ? 'border-l-blue-500 dark:bg-slate-800' : '',
+              notification.type === 'check_in' ? 'border-l-green-500 dark:bg-slate-800' : '',
+              notification.type === 'check_out' ? 'border-l-yellow-500 dark:bg-slate-800' : '',
+              notification.type === 'cancellation' ? 'border-l-red-500 dark:bg-slate-800' : '',
+              notification.type === 'system' ? 'border-l-gray-500 dark:bg-slate-800' : '',
             ]"
             @click="handleMarkAsRead(notification.id)"
           >
@@ -209,10 +208,10 @@ onUnmounted(() => {
               <div class="flex-1 min-w-0">
                 <div class="flex items-start justify-between gap-2">
                   <div>
-                    <h4 class="font-semibold text-sm text-gray-900">
+                    <h4 class="font-semibold text-sm text-gray-900 dark:text-white">
                       {{ notification.title }}
                     </h4>
-                    <p class="text-sm text-gray-600 mt-1">
+                    <p class="text-sm text-gray-600 dark:text-slate-400 mt-1">
                       {{ notification.message }}
                     </p>
 
@@ -223,19 +222,19 @@ onUnmounted(() => {
                     >
                       <span
                         v-if="notification.guest_name"
-                        class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                        class="inline-flex items-center px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded text-xs"
                       >
                         👤 {{ notification.guest_name }}
                       </span>
                       <span
                         v-if="notification.room_number"
-                        class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                        class="inline-flex items-center px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded text-xs"
                       >
                         🚪 Room {{ notification.room_number }}
                       </span>
                       <span
                         v-if="notification.room_type"
-                        class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                        class="inline-flex items-center px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded text-xs"
                       >
                         🏨 {{ notification.room_type }}
                       </span>
@@ -244,7 +243,7 @@ onUnmounted(() => {
                     <!-- Dates -->
                     <div
                       v-if="notification.check_in_date || notification.check_out_date"
-                      class="mt-2 flex flex-wrap gap-2 text-xs text-gray-500"
+                      class="mt-2 flex flex-wrap gap-2 text-xs text-gray-500 dark:text-slate-500"
                     >
                       <span v-if="notification.check_in_date" class="flex items-center gap-1">
                         📍 Check-in: {{ formatDate(notification.check_in_date).split(' ')[0] }}
@@ -263,7 +262,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Timestamp -->
-                <p class="text-xs text-gray-500 mt-2">
+                <p class="text-xs text-gray-500 dark:text-slate-500 mt-2">
                   {{ formatDate(notification.created_at) }}
                 </p>
 
@@ -272,14 +271,14 @@ onUnmounted(() => {
                   <button
                     v-if="!notification.read"
                     @click.stop="handleMarkAsRead(notification.id)"
-                    class="flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-600 hover:bg-green-100 rounded transition"
+                    class="flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition"
                   >
                     <Check class="w-3.5 h-3.5" />
                     Mark Read
                   </button>
                   <button
                     @click.stop="handleDelete(notification.id)"
-                    class="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-100 rounded transition"
+                    class="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition"
                   >
                     <Trash2 class="w-3.5 h-3.5" />
                     Delete
@@ -294,17 +293,17 @@ onUnmounted(() => {
       <!-- Footer -->
       <div
         v-if="notificationStore.notifications.length > 0"
-        class="border-t border-gray-200 px-4 py-3 bg-gray-50 flex gap-2 justify-between flex-shrink-0"
+        class="border-t border-gray-200 dark:border-slate-700 px-4 py-3 bg-gray-50 dark:bg-slate-700/50 flex gap-2 justify-between flex-shrink-0"
       >
         <button
           @click.prevent="handleMarkAllRead()"
-          class="flex-1 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-100 rounded transition"
+          class="flex-1 px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition"
         >
           Mark All Read
         </button>
         <button
           @click.prevent="handleClearAll()"
-          class="flex-1 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100 rounded transition"
+          class="flex-1 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition"
         >
           Clear All
         </button>
@@ -330,5 +329,14 @@ onUnmounted(() => {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Dark mode scrollbar */
+:root.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+:root.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
 </style>

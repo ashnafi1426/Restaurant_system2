@@ -90,7 +90,24 @@ class DeliveryManagementService {
     sort_by?: string
     sort_order?: 'asc' | 'desc'
   }): Promise<any> {
+    console.log('=== SERVICE: getDeliveries called ===')
+    console.log('Params object:', params)
+    console.log('Params.per_page:', params?.per_page)
+    console.log('Params.page:', params?.page)
+    
     const response = await api.get('/manager/deliveries', { params })
+    
+    console.log('=== SERVICE: API Response received ===')
+    console.log('getDeliveries raw response:', response)
+    console.log('getDeliveries response.data:', response.data)
+    console.log('Response data structure:', {
+      has_success: !!response.data?.success,
+      data_length: response.data?.data?.length,
+      has_pagination: !!response.data?.pagination,
+    })
+    
+    // Return the full response object so store can handle pagination
+    // API returns: { success: true, data: [...], pagination: {...} }
     return response.data
   }
 
@@ -133,7 +150,11 @@ class DeliveryManagementService {
    */
   async getTodaySummary(): Promise<DeliverySummary> {
     const response = await api.get('/manager/deliveries/summary/today')
-    return response.data.data
+    console.log('getTodaySummary raw response:', response)
+    console.log('getTodaySummary response.data:', response.data)
+    const data = response.data?.data || response.data
+    console.log('getTodaySummary extracted data:', data)
+    return data
   }
 
   /**

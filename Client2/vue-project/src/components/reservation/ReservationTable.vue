@@ -154,7 +154,20 @@ onBeforeUnmount(() => {
 
     <!-- Loading -->
     <div v-if="loading" class="flex flex-col items-center justify-center p-6 text-slate-500">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mb-2"></div>
+      <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-8 h-8) -->
+      <div class="relative w-8 h-8 mb-2">
+        <!-- Static background - BRIGHT CYAN -->
+        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
+        </svg>
+        
+        <!-- Animated spinner - BRIGHT YELLOW -->
+        <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+          <svg viewBox="0 0 100 100" class="w-full h-full">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
+          </svg>
+        </div>
+      </div>
       <p class="font-medium text-xs">Loading...</p>
     </div>
 

@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { ChefHat, Clock, CheckCircle2, AlertCircle } from 'lucide-vue-next'
-import { useManagerStore } from '@/stores/managerStore'
+import { useManagerOperationsStore } from '@/stores/manager/operationsStore'
 
-const manager = useManagerStore()
+const operationsStore = useManagerOperationsStore()
 
 const orderStats = computed(() => {
   return {
-    total: manager.orders.length,
-    pending: manager.pendingOrders.length,
-    preparing: manager.preparingOrders.length,
-    ready: manager.readyOrders.length,
+    total: operationsStore.orders.length,
+    pending: operationsStore.pendingOrders.length,
+    preparing: operationsStore.preparingOrders.length,
+    ready: operationsStore.readyOrders.length,
   }
 })
 </script>
@@ -80,7 +80,7 @@ const orderStats = computed(() => {
       <p class="text-sm font-medium text-slate-600">Recent Orders</p>
 
       <div
-        v-for="order in manager.orders.slice(0, 4)"
+        v-for="order in operationsStore.orders.slice(0, 4)"
         :key="order.id"
         class="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition"
       >
@@ -91,7 +91,7 @@ const orderStats = computed(() => {
               order.status === 'pending' && 'bg-red-500',
               order.status === 'preparing' && 'bg-yellow-500',
               order.status === 'ready' && 'bg-green-500',
-              order.status === 'completed' && 'bg-blue-500',
+              order.status === 'served' && 'bg-blue-500',
             ]"
           >
             #{{ order.orderNumber.split('-').pop() }}
@@ -108,7 +108,7 @@ const orderStats = computed(() => {
         </div>
       </div>
 
-      <div v-if="manager.orders.length === 0" class="py-6 text-center text-slate-500">
+      <div v-if="operationsStore.orders.length === 0" class="py-6 text-center text-slate-500">
         No orders at this time
       </div>
     </div>

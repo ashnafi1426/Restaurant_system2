@@ -18,35 +18,35 @@ onMounted(async () => {
 
 <template>
   <DashboardLayout>
-    <div v-if="guestStore.loading" class="text-center py-10">Loading...</div>
+    <div v-if="guestStore.loading" class="text-center py-10 text-slate-600 dark:text-slate-400">Loading...</div>
 
-    <div v-else-if="guestStore.guest" class="bg-white rounded-xl shadow p-8">
+    <div v-else-if="guestStore.guest" class="bg-white dark:bg-slate-800 rounded-xl shadow p-8">
       <div class="flex justify-between items-center mb-8">
         <div>
-          <h1 class="text-3xl font-bold">
+          <h1 class="text-3xl font-bold text-slate-900 dark:text-white">
             {{ guestStore.guest.full_name }}
           </h1>
 
-          <p class="text-gray-500">Guest Details</p>
+          <p class="text-gray-500 dark:text-slate-400">Guest Details</p>
         </div>
 
-        <button @click="router.back()" class="px-4 py-2 rounded-lg border">Back</button>
+        <button @click="router.back()" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition">Back</button>
       </div>
 
       <div class="grid grid-cols-2 gap-6">
         <div>
-          <strong>Email</strong>
-          <p>{{ guestStore.guest.email || '-' }}</p>
+          <strong class="text-slate-900 dark:text-white">Email</strong>
+          <p class="text-slate-600 dark:text-slate-400">{{ guestStore.guest.email || '-' }}</p>
         </div>
 
         <div>
-          <strong>Phone</strong>
-          <p>{{ guestStore.guest.phone }}</p>
+          <strong class="text-slate-900 dark:text-white">Phone</strong>
+          <p class="text-slate-600 dark:text-slate-400">{{ guestStore.guest.phone }}</p>
         </div>
 
         <div>
-          <strong>Nationality</strong>
-          <p>{{ guestStore.guest.nationality || '-' }}</p>
+          <strong class="text-slate-900 dark:text-white">Nationality</strong>
+          <p class="text-slate-600 dark:text-slate-400">{{ guestStore.guest.nationality || '-' }}</p>
         </div>
 
         <div>

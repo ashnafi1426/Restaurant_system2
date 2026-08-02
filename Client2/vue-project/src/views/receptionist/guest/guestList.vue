@@ -126,7 +126,7 @@ onMounted(() => {
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6">
+    <div class="space-y-6 bg-white dark:bg-slate-900 min-h-screen p-6">
       <!-- Success/Error Toast -->
       <transition
         enter-active-class="transition ease-out duration-300"
@@ -138,7 +138,7 @@ onMounted(() => {
       >
         <div
           v-if="showSuccessMessage"
-          class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3"
+          class="fixed top-4 right-4 z-50 bg-green-500 dark:bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3"
         >
           <span class="material-symbols-rounded">check_circle</span>
           <span>{{ successMessage }}</span>

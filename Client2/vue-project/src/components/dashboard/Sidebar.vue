@@ -182,11 +182,11 @@ const isActive = (path: string): boolean => {
 
 <template>
   <aside
-    class="w-64 h-screen bg-white text-slate-900 flex flex-col relative select-none flex-shrink-0 shadow-lg"
+    class="w-64 h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col relative select-none flex-shrink-0 shadow-lg dark:shadow-slate-950/50 transition-colors"
   >
     <!-- Header / Brand -->
     <div
-      class="flex items-center gap-3 px-4 md:px-5 h-16 border-b border-slate-200 flex-shrink-0 bg-white"
+      class="flex items-center gap-3 px-4 md:px-5 h-16 border-b border-slate-200 dark:border-slate-700 flex-shrink-0 bg-white dark:bg-slate-900 transition-colors"
     >
       <div
         class="w-9 h-9 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 flex-shrink-0"
@@ -196,12 +196,12 @@ const isActive = (path: string): boolean => {
 
       <div class="min-w-0 flex flex-col">
         <h1
-          class="font-bold text-sm text-slate-900 tracking-tight leading-tight truncate"
+          class="font-bold text-sm text-slate-900 dark:text-slate-100 tracking-tight leading-tight truncate"
         >
           Executive Horizon
         </h1>
         <p
-          class="text-[9px] text-slate-500 font-semibold uppercase tracking-[0.08em] mt-0.5"
+          class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-[0.08em] mt-0.5"
         >
           Hospitality Suite
         </p>
@@ -213,7 +213,7 @@ const isActive = (path: string): boolean => {
       <template v-for="(items, section) in groupedMenus" :key="section">
         <div>
           <p
-            class="px-3 text-[9px] font-bold text-slate-400 uppercase tracking-[0.12em] mb-3"
+            class="px-3 text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.12em] mb-3"
           >
             {{ section }}
           </p>
@@ -227,8 +227,8 @@ const isActive = (path: string): boolean => {
               class="group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 text-sm font-medium border border-transparent"
               :class="[
                 isActive(menu.path)
-                  ? 'bg-blue-100 text-blue-700 border-blue-300 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover:border-slate-200',
+                  ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700',
               ]"
             >
               <!-- Active indicator bar - Left side -->
@@ -243,8 +243,8 @@ const isActive = (path: string): boolean => {
                 class="w-5 h-5 flex-shrink-0 transition-all duration-300"
                 :class="[
                   isActive(menu.path) 
-                    ? 'text-blue-600 scale-110' 
-                    : 'text-slate-400 group-hover:text-slate-600 group-hover:scale-105',
+                    ? 'text-blue-600 dark:text-blue-400 scale-110' 
+                    : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 group-hover:scale-105',
                 ]"
                 :stroke-width="1.75"
               />
@@ -259,7 +259,7 @@ const isActive = (path: string): boolean => {
               <!-- Badges -->
               <span
                 v-if="menu.name === 'Pending Orders' || menu.name === 'Check In' || menu.name === 'Complaints'"
-                class="text-[9px] font-bold bg-gradient-to-r from-amber-500/30 to-amber-600/30 text-amber-700 px-2 py-0.5 rounded-full flex-shrink-0 border border-amber-500/20"
+                class="text-[9px] font-bold bg-gradient-to-r from-amber-500/30 dark:from-amber-600/30 to-amber-600/30 dark:to-amber-700/30 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full flex-shrink-0 border border-amber-500/20 dark:border-amber-600/30"
               >
                 {{ menu.name === 'Check In' ? '5' : menu.name === 'Complaints' ? '3' : '12' }}
               </span>
@@ -270,13 +270,13 @@ const isActive = (path: string): boolean => {
     </nav>
 
     <!-- Logout Button -->
-    <div class="px-3 py-3 border-t border-slate-200 flex-shrink-0 bg-slate-50">
+    <div class="px-3 py-3 border-t border-slate-200 dark:border-slate-700 flex-shrink-0 bg-slate-50 dark:bg-slate-800 transition-colors">
       <button
         @click="auth.logout()"
-        class="w-full group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-200 transition-all duration-300"
+        class="w-full group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border border-transparent hover:border-red-200 dark:hover:border-red-700/50 transition-all duration-300"
       >
         <LogOut
-          class="w-5 h-5 flex-shrink-0 text-slate-400 group-hover:text-red-600 transition-colors duration-300"
+          class="w-5 h-5 flex-shrink-0 text-slate-400 dark:text-slate-500 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors duration-300"
           :stroke-width="1.75"
         />
         <span>Logout</span>
@@ -285,22 +285,22 @@ const isActive = (path: string): boolean => {
 
     <!-- Footer -->
     <div
-      class="px-4 md:px-5 py-3 border-t border-slate-200 bg-slate-50 flex-shrink-0"
+      class="px-4 md:px-5 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex-shrink-0 transition-colors"
     >
       <div class="flex items-center justify-between">
-        <span class="text-[9px] font-medium text-slate-500 tracking-wide"
+        <span class="text-[9px] font-medium text-slate-500 dark:text-slate-400 tracking-wide"
           >v2.0.0</span
         >
         <div class="flex items-center gap-2">
           <span class="relative flex h-2 w-2">
             <span
-              class="absolute inline-flex h-full w-full rounded-full bg-emerald-400/60 animate-pulse"
+              class="absolute inline-flex h-full w-full rounded-full bg-emerald-400/60 dark:bg-emerald-500/60 animate-pulse"
             ></span>
             <span
-              class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"
+              class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 dark:bg-emerald-500"
             ></span>
           </span>
-          <span class="text-[9px] font-medium text-slate-500">Live</span>
+          <span class="text-[9px] font-medium text-slate-500 dark:text-slate-400">Live</span>
         </div>
       </div>
     </div>
@@ -321,6 +321,16 @@ nav::-webkit-scrollbar-thumb {
 nav::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Dark mode scrollbar */
+.dark nav::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.dark nav::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
 .router-link-active:focus-visible,
 button:focus-visible {
   outline: 2px solid rgb(37, 99, 235);

@@ -22,8 +22,17 @@
         </li>
       </ul>
 
-      <!-- Book Now Button -->
-      <button class="book-btn">BOOK NOW</button>
+      <!-- Theme Toggle & Book Button -->
+      <div class="button-group">
+        <!-- Theme Toggle Button -->
+        <button class="theme-btn" @click="handleThemeToggle" :title="theme.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'">
+          <span v-if="!theme.isDarkMode" class="theme-icon">☀️</span>
+          <span v-else class="theme-icon">🌙</span>
+        </button>
+
+        <!-- Book Now Button -->
+        <button class="book-btn">BOOK NOW</button>
+      </div>
 
       <!-- Hamburger Menu -->
       <div class="hamburger" :class="{ active: menuOpen }" @click="toggleMenu">
@@ -38,9 +47,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useThemeStore } from '../../stores/themeStore'
 
 const menuOpen = ref(false)
 const router = useRouter()
+const theme = useThemeStore()
 
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value
@@ -49,6 +60,12 @@ const toggleMenu = () => {
 const navigateToRooms = () => {
   router.push('/roomsPage')
   menuOpen.value = false
+}
+
+const handleThemeToggle = () => {
+  console.log('[LandingNavbar] 🎨 Theme toggle clicked')
+  theme.toggleTheme()
+  console.log('[LandingNavbar] 🎨 New theme:', theme.isDarkMode ? 'dark' : 'light')
 }
 </script>
 
@@ -60,6 +77,13 @@ const navigateToRooms = () => {
   top: 0;
   z-index: 1000;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Dark mode */
+:global(.dark) .navbar {
+  background-color: rgba(15, 23, 42, 0.98);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Small mobile (sm:640px) */
@@ -133,6 +157,11 @@ const navigateToRooms = () => {
   font-weight: 700;
   letter-spacing: 1px;
   color: #1a1a1a;
+  transition: color 0.3s ease;
+}
+
+:global(.dark) .logo-text {
+  color: #f1f5f9;
 }
 
 @media (min-width: 640px) {
@@ -191,6 +220,10 @@ const navigateToRooms = () => {
   display: block;
 }
 
+:global(.dark) .nav-link {
+  color: #cbd5e1;
+}
+
 @media (min-width: 768px) {
   .nav-link {
     font-size: 0.9rem;
@@ -209,6 +242,58 @@ const navigateToRooms = () => {
   color: #999;
 }
 
+:global(.dark) .nav-link:hover {
+  color: #e2e8f0;
+}
+
+.button-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .button-group {
+    gap: 1rem;
+  }
+}
+
+.theme-btn {
+  background-color: transparent;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  padding: 0.5rem 0.7rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+}
+
+:global(.dark) .theme-btn {
+  border-color: #475569;
+  color: #cbd5e1;
+  background-color: rgba(30, 41, 59, 0.5);
+}
+
+.theme-btn:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+:global(.dark) .theme-btn:hover {
+  background-color: rgba(51, 65, 85, 0.5);
+  border-color: #64748b;
+}
+
+.theme-icon {
+  font-size: 1.2rem;
+}
+
 .book-btn {
   background-color: #1a1a1a;
   color: white;
@@ -221,6 +306,11 @@ const navigateToRooms = () => {
   transition: all 0.3s ease;
   border-radius: 2px;
   display: none;
+}
+
+:global(.dark) .book-btn {
+  background-color: #e5e7eb;
+  color: #1f2937;
 }
 
 @media (min-width: 640px) {
@@ -253,6 +343,11 @@ const navigateToRooms = () => {
   transform: translateY(-2px);
 }
 
+:global(.dark) .book-btn:hover {
+  background-color: #d1d5db;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
 .hamburger {
   display: flex;
   flex-direction: column;
@@ -271,6 +366,10 @@ const navigateToRooms = () => {
   height: 2.5px;
   background-color: #1a1a1a;
   transition: all 0.3s ease;
+}
+
+:global(.dark) .hamburger span {
+  background-color: #e5e7eb;
 }
 
 @media (min-width: 640px) {
@@ -308,6 +407,10 @@ const navigateToRooms = () => {
     display: flex;
   }
 
+  :global(.dark) .nav-menu {
+    background-color: #1e293b;
+  }
+
   @media (min-width: 640px) {
     .nav-menu {
       top: 70px;
@@ -322,6 +425,10 @@ const navigateToRooms = () => {
   .nav-item {
     padding: 0.75rem 0;
     border-bottom: 1px solid #eee;
+  }
+
+  :global(.dark) .nav-item {
+    border-bottom: 1px solid #334155;
   }
 
   @media (min-width: 640px) {

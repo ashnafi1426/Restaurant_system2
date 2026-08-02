@@ -266,11 +266,19 @@ function handleClickOutside() {
           <tr v-if="loading">
             <td colspan="8" class="px-4 py-16 text-center">
               <div class="flex flex-col items-center justify-center">
-                <div class="relative">
-                  <div class="h-12 w-12 rounded-full border-4 border-gray-200"></div>
-                  <div
-                    class="absolute top-0 left-0 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"
-                  ></div>
+                <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-12 h-12) -->
+                <div class="relative w-12 h-12">
+                  <!-- Static background - BRIGHT CYAN -->
+                  <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
+                  </svg>
+                  
+                  <!-- Animated spinner - BRIGHT YELLOW -->
+                  <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
+                    </svg>
+                  </div>
                 </div>
                 <p class="mt-4 text-xs sm:text-sm font-medium text-gray-500">Loading orders...</p>
               </div>
@@ -626,5 +634,14 @@ function handleClickOutside() {
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

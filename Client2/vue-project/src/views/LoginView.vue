@@ -364,26 +364,20 @@ const login = async (): Promise<void> => {
           class="w-full relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-slate-400 disabled:to-slate-400 text-white font-semibold py-2.5 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg disabled:cursor-not-allowed text-sm"
         >
           <span v-if="loading" class="flex items-center justify-center gap-2">
-            <svg
-              class="animate-spin h-4 w-4"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
+            <!-- UNIFIED CYAN + YELLOW SPINNER -->
+            <div class="relative w-4 h-4">
+              <!-- Static background - BRIGHT CYAN -->
+              <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
+              </svg>
+              
+              <!-- Animated spinner - BRIGHT YELLOW -->
+              <div class="absolute inset-0 animate-spin-fast" style="animation: spin 1.5s linear infinite;">
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
+                </svg>
+              </div>
+            </div>
             Signing In...
           </span>
           <span v-else class="flex items-center justify-center gap-1.5">
@@ -463,6 +457,15 @@ const login = async (): Promise<void> => {
   }
 }
 
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Slide-fade transition for toast notifications */
 .slide-fade-enter-active {
   transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
@@ -504,6 +507,10 @@ const login = async (): Promise<void> => {
 
 .animate-shake {
   animation: shake 0.4s ease-in-out;
+}
+
+.animate-spin-fast {
+  animation: spin 1.5s linear infinite;
 }
 
 /* Smooth hover transitions */

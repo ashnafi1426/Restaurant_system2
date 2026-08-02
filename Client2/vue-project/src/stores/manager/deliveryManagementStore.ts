@@ -26,7 +26,11 @@ export const useDeliveryManagementStore = defineStore('deliveryManagement', () =
     isLoading.value = true
     error.value = null
     try {
-      const response = await deliveryManagementService.getDeliveries({
+      console.log('=== STORE: fetchDeliveries called ===')
+      console.log('Page parameter:', page)
+      console.log('perPage.value:', perPage.value)
+      
+      const params = {
         page,
         per_page: perPage.value,
         status: filterStatus.value,
@@ -35,14 +39,70 @@ export const useDeliveryManagementStore = defineStore('deliveryManagement', () =
         assignment_type: filterType.value,
         start_date: startDate.value,
         end_date: endDate.value,
-      })
+      }
+      
+      console.log('=== STORE: Parameters object about to send ===')
+      console.log('Full params object:', params)
+      console.log('params.per_page:', params.per_page)
+      console.log('params.page:', params.page)
+      
+      const response = await deliveryManagementService.getDeliveries(params)
 
-      deliveries.value = response.data
-      currentPage.value = response.pagination.current_page
-      totalDeliveries.value = response.pagination.total
+      console.log('=== STORE: Response received back ===')
+      console.log('Store received full response:', response)
+      // Handle response format: { success, data: [...], pagination: {...} }
+      const responseData = response.data || response
+      
+      console.log('Checking response structure:')
+      console.log('  - Has pagination?', !!responseData.pagination)
+      console.log('  - Has data.length?', responseData.data && responseData.data.length !== undefined)
+      console.log('  - Is Array?', Array.isArray(responseData))
+      
+      // Priority 1: If response has pagination object, use it (our API format)
+      if (responseData.pagination) {
+        console.log('Processing paginated response format')
+        deliveries.value = Array.isArray(responseData.data) ? responseData.data : []
+        currentPage.value = responseData.pagination.current_page || 1
+        totalDeliveries.value = responseData.pagination.total || 0
+        perPage.value = responseData.pagination.per_page || perPage.value
+        console.log('After pagination - perPage:', perPage.value, 'deliveries count:', deliveries.value.length, 'total:', totalDeliveries.value)
+      } 
+      // Priority 2: If response has data array and pagination info at root (Laravel pagination format)
+      else if (responseData.data && Array.isArray(responseData.data) && (responseData.current_page || responseData.total)) {
+        console.log('Processing Laravel paginate format')
+        deliveries.value = responseData.data
+        currentPage.value = responseData.current_page || page
+        totalDeliveries.value = responseData.total || 0
+        perPage.value = responseData.per_page || perPage.value
+        console.log('After Laravel format - perPage:', perPage.value, 'deliveries count:', deliveries.value.length, 'total:', totalDeliveries.value)
+      }
+      // Priority 3: If response is just an array (fallback)
+      else if (Array.isArray(responseData)) {
+        console.log('Processing array response format')
+        deliveries.value = responseData
+        currentPage.value = page
+        totalDeliveries.value = responseData.length
+        console.log('After array format - deliveries count:', deliveries.value.length, 'total:', totalDeliveries.value)
+      }
+      // Priority 4: If response.data exists and is an array (our custom format)
+      else if (responseData.data && Array.isArray(responseData.data)) {
+        console.log('Processing custom data array format')
+        deliveries.value = responseData.data
+        currentPage.value = page
+        totalDeliveries.value = responseData.data.length
+        console.log('After custom format - deliveries count:', deliveries.value.length, 'total:', totalDeliveries.value)
+      }
+      else {
+        console.log('No valid response format found')
+        deliveries.value = []
+      }
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch deliveries'
       console.error('Error fetching deliveries:', err)
+      // Set sensible defaults on error
+      deliveries.value = []
+      currentPage.value = 1
+      totalDeliveries.value = 0
     } finally {
       isLoading.value = false
     }
@@ -111,9 +171,29 @@ export const useDeliveryManagementStore = defineStore('deliveryManagement', () =
 
   async function fetchTodaySummary() {
     try {
-      todaySummary.value = await deliveryManagementService.getTodaySummary()
+      const response = await deliveryManagementService.getTodaySummary()
+      console.log('Store received response:', response)
+      // Response should already be the data object from the API service
+      todaySummary.value = response || {
+        total_deliveries: 0,
+        completed: 0,
+        in_progress: 0,
+        failed: 0,
+        pending: 0,
+        average_delivery_time: 0,
+      }
+      console.log('Store todaySummary set to:', todaySummary.value)
     } catch (err: any) {
       console.error('Error fetching today\'s summary:', err)
+      // Set defaults on error
+      todaySummary.value = {
+        total_deliveries: 0,
+        completed: 0,
+        in_progress: 0,
+        failed: 0,
+        pending: 0,
+        average_delivery_time: 0,
+      }
     }
   }
 

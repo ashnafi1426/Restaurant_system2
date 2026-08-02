@@ -41,9 +41,20 @@ function formatCurrency(value: number): string {
     <!-- ===================================================== -->
 
     <div v-if="loading" class="flex items-center justify-center py-8 sm:py-10 md:py-12 lg:py-16">
-      <div
-        class="h-10 w-10 sm:h-12 sm:w-12 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"
-      />
+      <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-10 h-10) -->
+      <div class="relative w-10 h-10 sm:w-12 sm:h-12">
+        <!-- Static background - BRIGHT CYAN -->
+        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
+        </svg>
+        
+        <!-- Animated spinner - BRIGHT YELLOW -->
+        <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+          <svg viewBox="0 0 100 100" class="w-full h-full">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
+          </svg>
+        </div>
+      </div>
 
       <span class="ml-3 sm:ml-4 text-xs sm:text-sm md:text-base text-gray-600">Calculating...</span>
     </div>
@@ -97,3 +108,14 @@ function formatCurrency(value: number): string {
     </div>
   </div>
 </template>
+
+<style scoped>
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

@@ -8,7 +8,6 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   reservations: () => [],
 })
-
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
     Pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -19,7 +18,6 @@ const getStatusColor = (status: string) => {
   }
   return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200'
 }
-
 const getStatusIcon = (status: string) => {
   const icons: Record<string, string> = {
     Pending: 'clock',
@@ -38,7 +36,6 @@ const formatDate = (date: string) => {
     year: 'numeric',
   })
 }
-
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -60,15 +57,15 @@ const getInitialColor = (initials: string) => {
 
 <template>
   <div
-    class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8 hover:shadow-md transition-shadow duration-300"
+    class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-4 sm:p-6 lg:p-8 hover:shadow-md transition-shadow duration-300"
   >
     <!-- Header Section -->
     <div
-      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-5 border-b border-gray-100"
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-5 border-b border-gray-100 dark:border-slate-700"
     >
       <div>
-        <h3 class="text-xl sm:text-2xl font-bold text-slate-900">Recent Reservations</h3>
-        <p class="text-sm text-slate-600 mt-1.5">Latest bookings and status overview</p>
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Recent Reservations</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mt-1.5">Latest bookings and status overview</p>
       </div>
       <router-link
         to="/admin/reservations"
@@ -95,8 +92,8 @@ const getInitialColor = (initials: string) => {
 
     <!-- Empty State -->
     <div v-if="reservations.length === 0" class="text-center py-16">
-      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
-        <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-700 mb-4">
+        <svg class="w-8 h-8 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -105,8 +102,8 @@ const getInitialColor = (initials: string) => {
           />
         </svg>
       </div>
-      <p class="text-slate-600 font-semibold">No reservations yet</p>
-      <p class="text-sm text-slate-500 mt-1">Bookings will appear here once created</p>
+      <p class="text-slate-600 dark:text-slate-300 font-semibold">No reservations yet</p>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Bookings will appear here once created</p>
     </div>
 
     <!-- Table -->
@@ -114,40 +111,40 @@ const getInitialColor = (initials: string) => {
       <table class="w-full">
         <!-- Table Header -->
         <thead>
-          <tr class="border-b border-gray-200 bg-slate-50">
+          <tr class="border-b border-gray-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
             <th
-              class="text-left py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 uppercase tracking-widest"
+              class="text-left py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest"
             >
               Guest
             </th>
             <th
-              class="text-left py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 uppercase tracking-widest hidden sm:table-cell"
+              class="text-left py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest hidden sm:table-cell"
             >
               Room Type
             </th>
             <th
-              class="text-left py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 uppercase tracking-widest hidden md:table-cell"
+              class="text-left py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest hidden md:table-cell"
             >
               Check In
             </th>
             <th
-              class="text-left py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 uppercase tracking-widest"
+              class="text-left py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest"
             >
               Status
             </th>
             <th
-              class="text-right py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 uppercase tracking-widest"
+              class="text-right py-4 px-4 sm:px-6 lg:px-8 text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest"
             >
               Total
             </th>
           </tr>
         </thead>
         <!-- Table Body -->
-        <tbody class="divide-y divide-gray-100">
+        <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
           <tr
             v-for="reservation in reservations"
             :key="reservation.id"
-            class="hover:bg-slate-50/50 transition-colors duration-200 group"
+            class="hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-colors duration-200 group"
           >
             <!-- Guest Column -->
             <td class="py-4 px-4 sm:px-6 lg:px-8">
@@ -161,10 +158,10 @@ const getInitialColor = (initials: string) => {
                   {{ reservation.guest.initials }}
                 </div>
                 <div class="min-w-0">
-                  <p class="text-sm font-semibold text-slate-900 truncate">
+                  <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">
                     {{ reservation.guest.name }}
                   </p>
-                  <p class="text-xs text-slate-500 truncate font-medium mt-0.5">
+                  <p class="text-xs text-slate-500 dark:text-slate-400 truncate font-medium mt-0.5">
                     {{ reservation.booking_reference }}
                   </p>
                 </div>
@@ -172,15 +169,15 @@ const getInitialColor = (initials: string) => {
             </td>
             <!-- Room Type Column -->
             <td class="py-4 px-4 sm:px-6 lg:px-8 hidden sm:table-cell">
-              <span class="text-sm text-slate-700 font-medium">{{ reservation.room_type }}</span>
+              <span class="text-sm text-slate-700 dark:text-slate-300 font-medium">{{ reservation.room_type }}</span>
             </td>
             <!-- Check In Column -->
             <td class="py-4 px-4 sm:px-6 lg:px-8 hidden md:table-cell">
               <div>
-                <span class="text-sm text-slate-700 font-medium block">{{
+                <span class="text-sm text-slate-700 dark:text-slate-300 font-medium block">{{
                   formatDate(reservation.check_in_date)
                 }}</span>
-                <span class="text-xs text-slate-500 mt-0.5 block">Check-in</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 block">Check-in</span>
               </div>
             </td>
             <!-- Status Column -->
@@ -197,7 +194,7 @@ const getInitialColor = (initials: string) => {
             </td>
             <!-- Amount Column -->
             <td class="py-4 px-4 sm:px-6 lg:px-8 text-right">
-              <span class="text-sm font-bold text-slate-900">{{
+              <span class="text-sm font-bold text-slate-900 dark:text-white">{{
                 formatCurrency(reservation.total_price)
               }}</span>
             </td>

@@ -410,22 +410,19 @@ const checkout = () => {
                   class="w-full rounded-2xl bg-teal-600 hover:bg-teal-700 active:scale-[0.99] transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <div class="flex items-center justify-center gap-3 py-4">
-                    <!-- Loading Spinner -->
-                    <div v-if="props.submitting" class="animate-spin">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="w-6 h-6 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11z"
-                        />
+                    <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-6 h-6) -->
+                    <div v-if="props.submitting" class="relative w-6 h-6">
+                      <!-- Static background - BRIGHT CYAN -->
+                      <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
                       </svg>
+                      
+                      <!-- Animated spinner - BRIGHT YELLOW -->
+                      <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                          <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
+                        </svg>
+                      </div>
                     </div>
 
                     <!-- Cart Icon -->
@@ -475,3 +472,14 @@ const checkout = () => {
     </Transition>
   </Teleport>
 </template>
+
+<style scoped>
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

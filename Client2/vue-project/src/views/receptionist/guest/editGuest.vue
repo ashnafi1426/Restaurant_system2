@@ -70,14 +70,14 @@ onMounted(loadGuest)
 
 <template>
   <DashboardLayout>
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-6xl mx-auto bg-white dark:bg-slate-900 p-6 rounded-lg">
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">Edit Guest</h1>
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Edit Guest</h1>
 
-        <p class="text-gray-500 mt-2">Update guest information.</p>
+        <p class="text-gray-500 dark:text-slate-400 mt-2">Update guest information.</p>
       </div>
 
-      <div v-if="loading" class="bg-white rounded-xl shadow p-10 text-center">Loading...</div>
+      <div v-if="loading" class="bg-white dark:bg-slate-800 rounded-xl shadow p-10 text-center text-gray-800 dark:text-white">Loading...</div>
 
       <GuestForm
         v-else

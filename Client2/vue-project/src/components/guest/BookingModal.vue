@@ -585,7 +585,20 @@ onMounted(() => {
                 v-else
                 class="absolute bottom-3 left-3 bg-slate-500/90 backdrop-blur-sm text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5"
               >
-                <Loader class="w-3.5 h-3.5 animate-spin" />
+                <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-3.5 h-3.5) -->
+                <div class="relative w-3.5 h-3.5">
+                  <!-- Static background - BRIGHT CYAN -->
+                  <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
+                  </svg>
+                  
+                  <!-- Animated spinner - BRIGHT YELLOW -->
+                  <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
+                    </svg>
+                  </div>
+                </div>
                 Checking Status...
               </div>
             </div>
@@ -1071,5 +1084,14 @@ onMounted(() => {
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: #cbd5e1;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

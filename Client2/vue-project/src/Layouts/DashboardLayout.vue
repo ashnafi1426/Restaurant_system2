@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Sidebar from '../components/dashboard/Sidebar.vue'
 import Navbar from '../components/dashboard/Navbar.vue'
+import { useThemeStore } from '../stores/theme'
+
+const themeStore = useThemeStore()
 
 // Mobile sidebar visibility state
 const showMobileSidebar = ref(false)
+
+// Initialize theme on mount
+onMounted(() => {
+  themeStore.initTheme()
+})
 
 // Toggle sidebar open/close
 const toggleMobileSidebar = () => {
@@ -24,7 +32,7 @@ const closeMobileSidebar = () => {
 
 <template>
   <div
-    class="h-screen flex bg-gradient-to-br from-slate-50 via-white to-blue-50/30 overflow-hidden"
+    class="h-screen flex bg-white dark:bg-slate-950 overflow-hidden transition-colors duration-300"
   >
     <!-- ============ MOBILE OVERLAY ============ -->
     <!-- Only show on mobile when sidebar is open -->
@@ -39,7 +47,7 @@ const closeMobileSidebar = () => {
     <!-- Desktop: static, always visible | Mobile: fixed, slides in/out -->
     <div
       :class="[
-        'w-64 h-screen bg-white flex flex-col flex-shrink-0 shadow-sm',
+        'w-64 h-screen bg-slate-900 dark:bg-slate-950 flex flex-col flex-shrink-0 shadow-sm dark:shadow-black transition-colors duration-300',
         // Desktop behavior (lg and up)
         'lg:static lg:sticky lg:top-0 lg:left-0 lg:block',
         // Mobile behavior (below lg)
@@ -58,7 +66,7 @@ const closeMobileSidebar = () => {
       <Navbar @toggleSidebar="toggleMobileSidebar" />
 
       <!-- ===== MAIN CONTENT ===== -->
-      <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+      <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-white dark:bg-slate-950 transition-colors duration-300">
         <!-- Content Container -->
         <div class="max-w-7xl mx-auto">
           <!-- Page Header (Optional) -->
@@ -72,29 +80,29 @@ const closeMobileSidebar = () => {
       </main>
 
       <!-- ===== FOOTER ===== -->
-      <footer class="border-t border-slate-200/60 bg-white/50 backdrop-blur-sm px-6 py-3">
+      <footer class="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 backdrop-blur-sm px-6 py-3 transition-colors">
         <div
-          class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500"
+          class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400"
         >
           <div class="flex items-center gap-4">
             <span>&copy; 2024 Hotel Management System</span>
-            <span class="hidden sm:inline">•</span>
+            <span class="hidden sm:inline text-slate-300 dark:text-slate-600">•</span>
             <span class="flex items-center gap-1">
               <span class="relative flex h-2 w-2">
                 <span
-                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 dark:bg-emerald-500 opacity-75"
                 ></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 dark:bg-emerald-400"></span>
               </span>
               All systems operational
             </span>
           </div>
           <div class="flex items-center gap-4">
-            <a href="#" class="hover:text-slate-700 hover:underline transition-colors">Privacy</a>
-            <a href="#" class="hover:text-slate-700 hover:underline transition-colors">Terms</a>
-            <a href="#" class="hover:text-slate-700 hover:underline transition-colors">Support</a>
-            <span class="text-slate-300">|</span>
-            <span class="text-slate-400">v2.0.0</span>
+            <a href="#" class="hover:text-slate-700 dark:hover:text-slate-200 hover:underline transition-colors">Privacy</a>
+            <a href="#" class="hover:text-slate-700 dark:hover:text-slate-200 hover:underline transition-colors">Terms</a>
+            <a href="#" class="hover:text-slate-700 dark:hover:text-slate-200 hover:underline transition-colors">Support</a>
+            <span class="text-slate-300 dark:text-slate-600">|</span>
+            <span class="text-slate-400 dark:text-slate-500">v2.0.0</span>
           </div>
         </div>
       </footer>
@@ -120,6 +128,15 @@ main::-webkit-scrollbar-thumb {
 
 main::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Dark mode scrollbar */
+.dark main::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.dark main::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
 
 /* Fade in content animation */

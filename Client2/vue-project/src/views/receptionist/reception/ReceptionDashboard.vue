@@ -39,19 +39,19 @@ onMounted(loadDashboard)
 
 <template>
   <DashboardLayout>
-    <div class="w-full">
+    <div class="w-full bg-white dark:bg-slate-900">
       <!-- Header Section -->
-      <div class="bg-white border-b border-gray-200 px-8 py-6">
+      <div class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-8 py-6">
         <div class="flex items-start justify-between">
           <div class="flex-1">
-            <h1 class="text-3xl font-bold text-gray-900">Receptionist Dashboard</h1>
-            <p class="text-gray-500 text-sm mt-1">Manage your property efficiently today.</p>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Receptionist Dashboard</h1>
+            <p class="text-gray-500 dark:text-slate-400 text-sm mt-1">Manage your property efficiently today.</p>
           </div>
           <!-- Action Buttons (Right Aligned) -->
           <div class="flex gap-3 flex-shrink-0">
             <button
               @click="quickCheckIn"
-              class="px-5 py-2.5 bg-white border-2 border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition flex items-center gap-2"
+              class="px-5 py-2.5 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition flex items-center gap-2"
             >
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
@@ -63,17 +63,17 @@ onMounted(loadDashboard)
       </div>
 
       <!-- Main Content -->
-      <div v-if="loading" class="p-8">
+      <div v-if="loading" class="p-8 bg-white dark:bg-slate-900">
         <div class="grid grid-cols-6 gap-4 mb-8">
-          <div v-for="i in 6" :key="i" class="h-32 bg-gray-200 rounded-lg animate-pulse"></div>
+          <div v-for="i in 6" :key="i" class="h-32 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse"></div>
         </div>
       </div>
       <!-- Error State -->
       <div
         v-else-if="errorOccurred"
-        class="flex flex-col items-center justify-center min-h-[60vh] text-center px-8"
+        class="flex flex-col items-center justify-center min-h-[60vh] text-center px-8 bg-white dark:bg-slate-900"
       >
-        <div class="p-4 bg-red-100 text-red-600 rounded-full mb-4">
+        <div class="p-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full mb-4">
           <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
@@ -83,20 +83,20 @@ onMounted(loadDashboard)
             />
           </svg>
         </div>
-        <h3 class="text-lg font-semibold text-gray-900">Unable to load dashboard</h3>
-        <p class="text-gray-600 mt-2 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Unable to load dashboard</h3>
+        <p class="text-gray-600 dark:text-slate-400 mt-2 mb-6">
           Make sure you are logged in with a valid receptionist or admin account.
         </p>
         <div class="flex gap-3">
           <button
             @click="loadDashboard"
-            class="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition"
+            class="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition"
           >
             Try Again
           </button>
           <button
             @click="router.push('/login')"
-            class="px-6 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition"
+            class="px-6 py-2 bg-gray-300 dark:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-lg hover:bg-gray-400 dark:hover:bg-slate-600 transition"
           >
             Back to Login
           </button>
@@ -104,7 +104,7 @@ onMounted(loadDashboard)
       </div>
 
       <!-- Main Grid Layout -->
-      <div v-else-if="dashboard" class="p-8 space-y-8">
+      <div v-else-if="dashboard" class="p-8 space-y-8 bg-white dark:bg-slate-900">
         <!-- Statistics Cards (6 columns in one row) -->
         <div class="grid grid-cols-6 gap-4">
           <ReceptionStatCard

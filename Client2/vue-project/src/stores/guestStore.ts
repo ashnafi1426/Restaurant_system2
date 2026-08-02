@@ -20,7 +20,6 @@ export const useGuestStore = defineStore('guest', () => {
     per_page: 10,
     total: 0,
   })
-
   const fetchGuests = async (filters: GuestFilter = {}) => {
     loading.value = true
     error.value = ''

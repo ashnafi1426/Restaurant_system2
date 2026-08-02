@@ -14,7 +14,6 @@ export const useAuthStore = defineStore('auth', {
           email,
           password,
         })
-
         if (response.data.token && response.data.user) {
           this.token = response.data.token
           this.user = response.data.user

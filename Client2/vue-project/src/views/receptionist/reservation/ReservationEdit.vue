@@ -79,16 +79,16 @@ onMounted(async () => {
 
 <template>
   <DashboardLayout>
-    <div class="max-w-3xl mx-auto space-y-6">
+    <div class="max-w-3xl mx-auto space-y-6 bg-white dark:bg-slate-900 p-6 rounded-lg">
       <!-- Header -->
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Edit Reservation</h1>
-        <p class="text-slate-500 mt-1">Update reservation details</p>
+        <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Edit Reservation</h1>
+        <p class="text-slate-500 dark:text-slate-400 mt-1">Update reservation details</p>
       </div>
 
       <!-- Loading State -->
-      <div v-if="loadingData" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p class="text-blue-800">⏳ Loading reservation data...</p>
+      <div v-if="loadingData" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg p-4">
+        <p class="text-blue-800 dark:text-blue-200">⏳ Loading reservation data...</p>
       </div>
 
       <!-- Form -->
@@ -102,11 +102,11 @@ onMounted(async () => {
       />
 
       <!-- Error State -->
-      <div v-else class="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p class="text-red-800">Failed to load reservation</p>
+      <div v-else class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50 rounded-lg p-4">
+        <p class="text-red-800 dark:text-red-200">Failed to load reservation</p>
         <button
           @click="router.push('/reservations')"
-          class="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          class="mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition"
         >
           Back to Reservations
         </button>

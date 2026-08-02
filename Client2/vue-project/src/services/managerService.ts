@@ -36,17 +36,33 @@ class ManagerService {
 
   async getStatistics(): Promise<DashboardStatistics> {
     try {
-      console.log('[managerService] Calling getStatistics()...')
+      console.log('\n>>> [managerService.getStatistics] START')
+      console.log('[managerService] 🚀 Starting fetch from /manager/dashboard/statistics')
       const response = await api.get('/manager/dashboard/statistics')
-      
-      console.log('[managerService] Response received:', response.data)
-      console.log('[managerService] Response data.data:', response.data.data)
-      
-      const data = response.data.data
 
-      // Map API response to frontend format
-      console.log('[managerService] Mapping API response to frontend format...')
-      
+      console.log('[managerService] ✅ Raw response received from API')
+      console.log('[managerService] Response status:', response.status)
+      console.log('[managerService] Response config URL:', response.config.url)
+      console.log('[managerService] Response data type:', typeof response.data)
+      console.log('[managerService] Response data keys:', Object.keys(response.data))
+      console.log('[managerService] Full response.data:', response.data)
+
+      const data = response.data?.data
+      if (!data) {
+        console.error('[managerService] ❌ No data in response:', response.data)
+        throw new Error('Invalid response structure - no data field')
+      }
+
+      console.log('[managerService] ✅ Data extracted from response')
+      console.log('[managerService] Data structure:', {
+        hasReception: !!data.reception,
+        hasOccupancy: !!data.occupancy,
+        hasRevenue: !!data.revenue,
+        hasOrders: !!data.orders,
+        hasKitchen: !!data.kitchen,
+        hasWaiters: !!data.waiters,
+      })
+
       const result = {
         // Reception Monitoring (5 Key Metrics)
         totalReservations: data.reception?.total_reservations ?? 0,
@@ -54,39 +70,50 @@ class ManagerService {
         todayCheckOuts: data.reception?.today_check_outs ?? 0,
         availableRooms: data.reception?.available_rooms ?? 0,
         occupiedRooms: data.reception?.occupied_rooms ?? 0,
-        
+
         // Room Statistics
         totalRooms: data.occupancy?.total_rooms ?? 0,
         reservedRooms: 0,
         maintenanceRooms: 0,
-        
+
         // Guest Statistics
         totalGuests: data.occupancy?.checked_in_guests ?? 0,
         checkedInGuests: data.occupancy?.checked_in_guests ?? 0,
         guestCheckouts: data.occupancy?.checked_out_guests ?? 0,
-        
+
         // Order Statistics
         pendingOrders: data.orders?.pending_orders ?? 0,
         preparingOrders: data.kitchen?.preparing_orders ?? 0,
         completedOrders: data.orders?.completed_orders ?? 0,
-        
+
         // Operational Statistics
-        pendingLaundry: 0,
-        pendingHousekeeping: 0,
-        
+        pendingLaundry: data.laundry?.pending_requests ?? 0,
+        pendingHousekeeping: data.housekeeping?.dirty_rooms ?? 0,
+
         // Staff Statistics
         activeStaff: data.waiters?.active_waiters ?? 0,
         pendingTasks: 0,
-        
+
         // Revenue
         todayRevenue: data.revenue?.daily_revenue ?? 0,
         monthlyRevenue: data.revenue?.monthly_revenue ?? 0,
       }
-      
-      console.log('[managerService] Mapped result:', result)
+
+      console.log('[managerService] ✅ Mapped result:')
+      console.log('[managerService] result =', result)
+      console.log('>>> [managerService.getStatistics] COMPLETE\n')
       return result
     } catch (err: any) {
-      console.error('[managerService] Error in getStatistics:', err)
+      console.error('\n>>> [managerService.getStatistics] ERROR')
+      console.error('[managerService] ❌ Error occurred:', err)
+      console.error('[managerService] Error type:', err.constructor.name)
+      console.error('[managerService] Error message:', err.message)
+      console.error('[managerService] Error stack:', err.stack)
+      if (err.response) {
+        console.error('[managerService] Response status:', err.response.status)
+        console.error('[managerService] Response data:', err.response.data)
+      }
+      console.log('>>> [managerService.getStatistics] ERROR END\n')
       throw err
     }
   }
@@ -216,8 +243,29 @@ class ManagerService {
   */
 
   async getRecentActivities(): Promise<RecentActivity[]> {
-    const response = await api.get('/manager/activities')
-    return response.data.data
+    try {
+      console.log('\n>>> [managerService.getRecentActivities] START')
+      console.log('[managerService] 🚀 Fetching activities from /manager/activities...')
+      const response = await api.get('/manager/activities')
+      console.log('[managerService] ✅ Response received')
+      console.log('[managerService] Response status:', response.status)
+      console.log('[managerService] Response data:', response.data)
+      const activities = response.data.data || []
+      console.log('[managerService] ✅ Activities extracted:', activities.length, 'items')
+      console.log('[managerService] Activities:', activities)
+      console.log('>>> [managerService.getRecentActivities] COMPLETE\n')
+      return activities
+    } catch (err: any) {
+      console.error('\n>>> [managerService.getRecentActivities] ERROR')
+      console.error('[managerService] ❌ Error:', err)
+      console.error('[managerService] Error message:', err.message)
+      if (err.response) {
+        console.error('[managerService] Response status:', err.response.status)
+        console.error('[managerService] Response data:', err.response.data)
+      }
+      console.log('>>> [managerService.getRecentActivities] ERROR END\n')
+      return []
+    }
   }
 
   /*
@@ -253,7 +301,6 @@ class ManagerService {
     const response = await api.get(`/manager/waiters/${waiterId}`)
     return response.data.data
   }
-
   async createWaiter(data: {
     user_id?: string
     section: string
@@ -269,12 +316,10 @@ class ManagerService {
     console.log('[ManagerService] Creating waiter with data:', data)
     console.log('[ManagerService] Data keys:', Object.keys(data))
     console.log('[ManagerService] Posting to:', '/manager/waiters')
-    
     const response = await api.post('manager/waiters', data)
     console.log('[ManagerService] Response:', response.data)
     return response.data.data
   }
-
   async updateWaiter(waiterId: string, data: {
     section?: string
     shift?: string

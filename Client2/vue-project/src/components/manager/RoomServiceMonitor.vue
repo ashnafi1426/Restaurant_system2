@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Truck, MapPin, User, Clock } from 'lucide-vue-next'
-import { useManagerStore } from '@/stores/managerStore'
+import { useManagerOperationsStore } from '@/stores/manager/operationsStore'
 
-const manager = useManagerStore()
+const operationsStore = useManagerOperationsStore()
 
 const deliveryStats = computed(() => {
   return {
-    total: manager.deliveries.length,
-    active: manager.activeDeliveries.length,
-    completed: manager.deliveries.filter((d) => d.status === 'delivered').length,
+    total: operationsStore.deliveries.length,
+    active: operationsStore.activeDeliveries.length,
+    completed: operationsStore.deliveries.filter((d) => d.status === 'delivered').length,
   }
 })
 </script>
@@ -50,7 +50,7 @@ const deliveryStats = computed(() => {
       <p class="text-sm font-medium text-slate-600">Active Deliveries</p>
 
       <div
-        v-for="delivery in manager.activeDeliveries.slice(0, 4)"
+        v-for="delivery in operationsStore.activeDeliveries.slice(0, 4)"
         :key="delivery.id"
         class="p-4 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition"
       >
@@ -89,7 +89,7 @@ const deliveryStats = computed(() => {
         </div>
       </div>
 
-      <div v-if="manager.activeDeliveries.length === 0" class="py-6 text-center text-slate-500">
+      <div v-if="operationsStore.activeDeliveries.length === 0" class="py-6 text-center text-slate-500">
         No active deliveries
       </div>
     </div>

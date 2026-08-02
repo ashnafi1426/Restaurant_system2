@@ -2,10 +2,10 @@
   <div>
     <!-- Main Navbar -->
     <nav
-      class="guest-navbar fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm"
+      class="guest-navbar fixed top-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700 shadow-sm dark:shadow-slate-950/50 transition-colors"
     >
       <div
-        class="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400/60 to-transparent"
+        class="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400/60 dark:via-amber-500/40 to-transparent"
       ></div>
 
       <!-- Navbar Content -->
@@ -22,9 +22,9 @@
             </svg>
           </div>
           <div class="hidden sm:block">
-            <h1 class="text-sm md:text-lg font-bold text-slate-900">Royal Horizon</h1>
+            <h1 class="text-sm md:text-lg font-bold text-slate-900 dark:text-slate-100 transition-colors">Royal Horizon</h1>
             <p
-              class="text-[8px] md:text-[10px] text-amber-600 font-semibold tracking-[2px] uppercase"
+              class="text-[8px] md:text-[10px] text-amber-600 dark:text-amber-400 font-semibold tracking-[2px] uppercase transition-colors"
             >
               Hotel & Resort
             </p>
@@ -33,26 +33,42 @@
 
         <!-- Center: Title (Desktop Only) -->
         <div class="hidden md:flex flex-col items-center">
-          <h2 class="text-lg lg:text-xl font-serif font-bold text-slate-900">Our Menu</h2>
-          <p class="text-xs text-slate-500">Delicious meals, delivered to your room</p>
+          <h2 class="text-lg lg:text-xl font-serif font-bold text-slate-900 dark:text-slate-100 transition-colors">Our Menu</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 transition-colors">Delicious meals, delivered to your room</p>
         </div>
 
         <!-- Right: Controls -->
         <div class="flex items-center gap-2 md:gap-3">
           <!-- Desktop: Room + Profile Dropdowns -->
           <div class="hidden md:flex items-center gap-3">
+            <!-- Theme Toggle Button -->
+            <button
+              @click="handleThemeToggle"
+              class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 hover:border-amber-300 dark:hover:border-amber-600 hover:bg-amber-50 dark:hover:bg-slate-700/80 transition-all"
+              :title="theme.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+            >
+              <Sun
+                v-if="!theme.isDarkMode"
+                class="w-5 h-5 text-amber-600"
+              />
+              <Moon
+                v-else
+                class="w-5 h-5 text-amber-400"
+              />
+            </button>
+
             <!-- Room Selector -->
             <div class="relative">
               <button
                 @click="toggleRoomDropdown"
-                class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 bg-white/80 hover:border-amber-300 hover:bg-amber-50/50 transition-all"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 hover:border-amber-300 dark:hover:border-amber-600 hover:bg-amber-50 dark:hover:bg-slate-700 transition-all"
               >
                 <span class="text-sm">🏨</span>
-                <span class="text-xs font-medium text-slate-700"
+                <span class="text-xs font-medium text-slate-700 dark:text-slate-200"
                   >Room {{ currentRoom || 'Select' }}</span
                 >
                 <svg
-                  class="w-3 h-3 text-slate-400 transition-transform"
+                  class="w-3 h-3 text-slate-400 dark:text-slate-500 transition-transform"
                   :class="{ 'rotate-180': showRoomDropdown }"
                   fill="none"
                   stroke="currentColor"
@@ -69,22 +85,22 @@
               <Transition name="dropdown">
                 <div
                   v-if="showRoomDropdown"
-                  class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50"
+                  class="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 z-50 transition-colors"
                 >
-                  <div class="px-4 py-2 bg-amber-50 border-b border-gray-100">
-                    <h4 class="text-xs font-semibold text-slate-700 uppercase">Select Room</h4>
+                  <div class="px-4 py-2 bg-amber-50 dark:bg-amber-900/30 border-b border-gray-100 dark:border-slate-700">
+                    <h4 class="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase">Select Room</h4>
                   </div>
-                  <div v-if="roomsLoading" class="px-4 py-3 text-center text-sm text-slate-400">
+                  <div v-if="roomsLoading" class="px-4 py-3 text-center text-sm text-slate-400 dark:text-slate-500">
                     Loading...
                   </div>
                   <button
                     v-for="room in availableRooms"
                     :key="room.id"
                     @click="selectRoom(room.room_number)"
-                    class="flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-amber-50 border-b border-gray-50 last:border-0"
+                    class="flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-amber-50 dark:hover:bg-slate-800 border-b border-gray-50 dark:border-slate-700 last:border-0 transition-colors"
                   >
                     <span>🛏️</span>
-                    <span class="text-sm font-medium text-slate-700"
+                    <span class="text-sm font-medium text-slate-700 dark:text-slate-200"
                       >Room {{ room.room_number }}</span
                     >
                   </button>
@@ -95,18 +111,18 @@
             <!-- Profile Button -->
             <button
               @click="toggleProfileDropdown"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 hover:border-amber-300 transition-all"
+              class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 hover:border-amber-300 dark:hover:border-amber-600 transition-all"
             >
               <img
                 v-if="guestAvatar"
                 :src="guestAvatar"
                 :alt="guestName"
-                class="w-6 h-6 rounded-full object-cover border border-amber-200"
+                class="w-6 h-6 rounded-full object-cover border border-amber-200 dark:border-amber-700"
               />
               <span v-else class="text-sm">👤</span>
-              <span class="text-xs font-medium text-slate-700">{{ guestName }}</span>
+              <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ guestName }}</span>
               <svg
-                class="w-3 h-3 text-slate-400 transition-transform"
+                class="w-3 h-3 text-slate-400 dark:text-slate-500 transition-transform"
                 :class="{ 'rotate-180': showProfileDropdown }"
                 fill="none"
                 stroke="currentColor"
@@ -125,53 +141,53 @@
             <Transition name="dropdown">
               <div
                 v-if="showProfileDropdown"
-                class="absolute right-6 mt-2 top-full w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50"
+                class="absolute right-6 mt-2 top-full w-64 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 z-50 transition-colors"
               >
-                <div class="px-4 py-3 bg-amber-50 border-b border-gray-100">
+                <div class="px-4 py-3 bg-amber-50 dark:bg-amber-900/30 border-b border-gray-100 dark:border-slate-700">
                   <div class="flex items-center gap-2">
                     <img
                       v-if="guestAvatar"
                       :src="guestAvatar"
                       :alt="guestName"
-                      class="w-10 h-10 rounded-full border-2 border-amber-300"
+                      class="w-10 h-10 rounded-full border-2 border-amber-300 dark:border-amber-600"
                     />
                     <div
                       v-else
-                      class="w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center text-lg"
+                      class="w-10 h-10 rounded-full bg-amber-200 dark:bg-amber-900/40 flex items-center justify-center text-lg"
                     >
                       👤
                     </div>
                     <div>
-                      <p class="text-sm font-bold text-slate-800">{{ guestName }}</p>
-                      <p class="text-xs text-slate-500">Room {{ currentRoom || '-' }}</p>
+                      <p class="text-sm font-bold text-slate-800 dark:text-slate-100">{{ guestName }}</p>
+                      <p class="text-xs text-slate-500 dark:text-slate-400">Room {{ currentRoom || '-' }}</p>
                     </div>
                   </div>
                 </div>
                 <button
                   @click="handleViewProfile"
-                  class="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-amber-50"
+                  class="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
                 >
                   <span>👤</span>
-                  <span class="text-sm text-slate-700">My Profile</span>
+                  <span class="text-sm">My Profile</span>
                 </button>
                 <button
                   @click="handleMyOrders"
-                  class="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-amber-50"
+                  class="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
                 >
                   <span>📋</span>
-                  <span class="text-sm text-slate-700">My Orders</span>
+                  <span class="text-sm">My Orders</span>
                 </button>
                 <button
                   @click="handleSettings"
-                  class="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-amber-50"
+                  class="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
                 >
                   <span>⚙️</span>
-                  <span class="text-sm text-slate-700">Settings</span>
+                  <span class="text-sm">Settings</span>
                 </button>
-                <div class="border-t border-gray-100 my-1"></div>
+                <div class="border-t border-gray-100 dark:border-slate-700 my-1"></div>
                 <button
                   @click="handleLogout"
-                  class="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-red-50 text-red-600"
+                  class="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
                 >
                   <span>🚪</span>
                   <span class="text-sm font-medium">Logout</span>
@@ -183,12 +199,12 @@
           <!-- Mobile: Hamburger Menu Button -->
           <button
             @click="toggleMobileMenu"
-            class="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-amber-50 transition-colors"
+            class="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 transition-colors"
             :title="showMobileMenu ? 'Close menu' : 'Open menu'"
           >
             <svg
               v-if="!showMobileMenu"
-              class="w-6 h-6 text-slate-600"
+              class="w-6 h-6 text-slate-600 dark:text-slate-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -202,7 +218,7 @@
             </svg>
             <svg
               v-else
-              class="w-6 h-6 text-slate-600"
+              class="w-6 h-6 text-slate-600 dark:text-slate-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -223,7 +239,7 @@
     <Transition name="fade">
       <div
         v-if="showMobileMenu"
-        class="fixed inset-0 bg-black/20 md:hidden z-40"
+        class="fixed inset-0 bg-black/20 md:hidden z-40 transition-colors"
         @click="closeMobileMenu"
         style="top: 64px"
       ></div>
@@ -233,17 +249,17 @@
     <Transition name="slide-in">
       <div
         v-if="showMobileMenu"
-        class="fixed top-16 left-0 right-0 bottom-0 bg-white md:hidden z-45 overflow-y-auto"
+        class="fixed top-16 left-0 right-0 bottom-0 bg-white dark:bg-slate-900 md:hidden z-45 overflow-y-auto transition-colors"
       >
         <!-- Tab Navigation -->
-        <div class="sticky top-0 bg-white border-b border-gray-100 p-3 flex gap-2 z-10">
+        <div class="sticky top-0 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700 p-3 flex gap-2 z-10 transition-colors">
           <button
             @click="mobileMenuTab = 'categories'"
             class="flex-1 py-2 px-3 rounded-lg font-medium text-sm transition-all"
             :class="[
               mobileMenuTab === 'categories'
                 ? 'bg-amber-500 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700',
             ]"
           >
             📁 Categories
@@ -254,7 +270,7 @@
             :class="[
               mobileMenuTab === 'profile'
                 ? 'bg-amber-500 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700',
             ]"
           >
             👤 Profile
@@ -265,8 +281,8 @@
         <div class="p-4 space-y-3">
           <!-- Categories Tab -->
           <div v-if="mobileMenuTab === 'categories'" class="space-y-2">
-            <div class="px-4 py-2 bg-amber-50 rounded-lg border border-amber-200 mb-3">
-              <p class="text-xs font-semibold text-amber-700 uppercase tracking-wide">
+            <div class="px-4 py-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg border border-amber-200 dark:border-amber-700 mb-3">
+              <p class="text-xs font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wide">
                 Browse Categories
               </p>
             </div>
@@ -275,20 +291,20 @@
                 v-for="category in mobileCategories"
                 :key="category.id"
                 @click="selectCategoryMobile(category.id)"
-                class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 transition-colors text-left border-l-4"
+                class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 transition-colors text-left border-l-4"
                 :class="[
                   selectedMobileCategory === category.id
-                    ? 'bg-amber-100 border-l-amber-500'
-                    : 'border-l-transparent',
+                    ? 'bg-amber-100 dark:bg-amber-900/40 border-l-amber-500 text-slate-900 dark:text-slate-100'
+                    : 'border-l-transparent text-slate-700 dark:text-slate-300',
                 ]"
               >
                 <span class="text-lg w-6 flex items-center justify-center flex-shrink-0">
                   <component :is="getIconComponent(category.id)" :size="18" :stroke-width="1.5" />
                 </span>
-                <span class="text-sm font-medium text-slate-700 flex-1">{{ category.name }}</span>
+                <span class="text-sm font-medium flex-1">{{ category.name }}</span>
                 <span
                   v-if="category.count"
-                  class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full"
+                  class="text-xs bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 px-2 py-0.5 rounded-full"
                 >
                   {{ category.count }}
                 </span>
@@ -300,66 +316,76 @@
           <div v-if="mobileMenuTab === 'profile'" class="space-y-2">
             <!-- Profile Header Card -->
             <div
-              class="flex items-center gap-3 px-4 py-3 bg-amber-50 rounded-lg border border-amber-200 mb-3"
+              class="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/30 rounded-lg border border-amber-200 dark:border-amber-700 mb-3"
             >
               <img
                 v-if="guestAvatar"
                 :src="guestAvatar"
                 :alt="guestName"
-                class="w-12 h-12 rounded-full object-cover border-2 border-amber-300 flex-shrink-0"
+                class="w-12 h-12 rounded-full object-cover border-2 border-amber-300 dark:border-amber-600 flex-shrink-0"
               />
               <div
                 v-else
-                class="w-12 h-12 rounded-full bg-amber-200 flex items-center justify-center text-xl flex-shrink-0"
+                class="w-12 h-12 rounded-full bg-amber-200 dark:bg-amber-900/40 flex items-center justify-center text-xl flex-shrink-0"
               >
                 👤
               </div>
               <div class="min-w-0">
-                <p class="text-sm font-bold text-slate-800 truncate">{{ guestName }}</p>
-                <p class="text-xs text-slate-500 truncate">
+                <p class="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{{ guestName }}</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
                   Room {{ currentRoom || 'Not assigned' }}
                 </p>
               </div>
             </div>
 
+            <!-- Theme Toggle in Mobile Menu -->
+            <button
+              @click="handleThemeToggle"
+              class="flex items-center justify-center gap-2 w-full rounded-lg px-4 py-3 font-medium text-slate-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <Sun v-if="!theme.isDarkMode" class="w-5 h-5" />
+              <Moon v-else class="w-5 h-5" />
+              <span>{{ theme.isDarkMode ? 'Light Mode' : 'Dark Mode' }}</span>
+            </button>
+
             <!-- Profile Menu Items -->
             <button
               @click="handleViewProfile"
-              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 transition-colors"
+              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
             >
               <span class="text-lg">👤</span>
-              <span class="text-sm text-slate-700">My Profile</span>
+              <span class="text-sm">My Profile</span>
             </button>
 
             <button
               @click="handleMyOrders"
-              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 transition-colors"
+              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
             >
               <span class="text-lg">📋</span>
-              <span class="text-sm text-slate-700">My Orders</span>
+              <span class="text-sm">My Orders</span>
             </button>
 
             <button
               @click="handleSearchClick"
-              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 transition-colors"
+              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
             >
               <span class="text-lg">🔍</span>
-              <span class="text-sm text-slate-700">Search Menu</span>
+              <span class="text-sm">Search Menu</span>
             </button>
 
             <button
               @click="handleSettings"
-              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 transition-colors"
+              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
             >
               <span class="text-lg">⚙️</span>
-              <span class="text-sm text-slate-700">Settings</span>
+              <span class="text-sm">Settings</span>
             </button>
 
-            <div class="border-t border-gray-200 my-2"></div>
+            <div class="border-t border-gray-200 dark:border-slate-700 my-2"></div>
 
             <button
               @click="handleLogout"
-              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-red-50 transition-colors text-red-600"
+              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400"
             >
               <span class="text-lg">🚪</span>
               <span class="text-sm font-medium">Logout</span>
@@ -378,7 +404,9 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../../stores/auth'
+import { useThemeStore } from '../../../stores/themeStore'
 import api from '../../../api/auth'
+import { Sun, Moon } from 'lucide-vue-next'
 import {
   Clock,
   Utensils,
@@ -449,6 +477,7 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const authStore = useAuthStore()
+const theme = useThemeStore()
 
 // State
 const currentRoom = ref<string | number>(props.initialRoom || '')
@@ -584,6 +613,12 @@ function handleOutsideClick(event: MouseEvent) {
     showRoomDropdown.value = false
     showProfileDropdown.value = false
   }
+}
+
+const handleThemeToggle = () => {
+  console.log('[QRMenuNavbar] 🎨 Theme toggle clicked')
+  theme.toggleTheme()
+  console.log('[QRMenuNavbar] 🎨 New theme:', theme.isDarkMode ? 'dark' : 'light')
 }
 
 onMounted(() => {

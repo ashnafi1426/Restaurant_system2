@@ -65,19 +65,19 @@ onMounted(() => {
 
 <template>
   <DashboardLayout>
-    <div class="max-w-3xl mx-auto space-y-6">
+    <div class="max-w-3xl mx-auto space-y-6 bg-white dark:bg-slate-900 p-6 rounded-lg">
       <!-- Header -->
       <div>
-        <h1 class="text-2xl font-bold text-slate-800">Create Reservation</h1>
-        <p class="text-slate-500 mt-1">Book a new room reservation</p>
+        <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Create Reservation</h1>
+        <p class="text-slate-500 dark:text-slate-400 mt-1">Book a new room reservation</p>
       </div>
 
       <!-- Loading State -->
       <div
         v-if="guests.length === 0 || rooms.length === 0 || guestStore.loading || roomStore.loading"
-        class="bg-yellow-50 border border-yellow-200 rounded-lg p-4"
+        class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 rounded-lg p-4"
       >
-        <p v-if="guestStore.loading || roomStore.loading" class="text-yellow-800">
+        <p v-if="guestStore.loading || roomStore.loading" class="text-yellow-800 dark:text-yellow-200">
           <span class="inline-block animate-spin mr-2">⏳</span> Loading data...
         </p>
         <p v-else-if="guests.length === 0" class="text-red-800">
