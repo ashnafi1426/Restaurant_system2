@@ -77,27 +77,22 @@ class KitchenService
         if ($order->status === Order::STATUS_PREPARING) {
             return $this->loadOrderRelations($order);
         }
-
         if ($order->status !== Order::STATUS_PENDING) {
             throw new \Exception("Order must be 'pending' before starting preparation.");
         }
-
         $order->update([
             'status' => Order::STATUS_PREPARING,
         ]);
-
         Log::info('Preparation Status Updated', [
             'order_id' => $order->id,
             'new_status' => $order->status,
         ]);
 
         $freshOrder = $this->loadOrderRelations($order->fresh());
-        
         Log::info('Preparation Order Loaded', [
             'order_id' => $freshOrder->id,
             'status' => $freshOrder->status,
         ]);
-
         return $freshOrder;
     }
     public function markReady(Order $order): Order
@@ -110,11 +105,9 @@ class KitchenService
         if ($order->status === Order::STATUS_READY) {
             return $this->loadOrderRelations($order);
         }
-
         if (!in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PREPARING])) {
             throw new \Exception("Order must be 'pending' or 'preparing' before marking ready.");
         }
-
         // STEP 2: Update order status to READY
         $order->update(['status' => Order::STATUS_READY]);
         Log::info('Order Status Updated', [
@@ -216,7 +209,6 @@ class KitchenService
                 'status',
                 Order::STATUS_PENDING
             )->count(),
-
             'preparing_orders' => $baseQuery()->where(
                 'status',
                 Order::STATUS_PREPARING
@@ -231,12 +223,6 @@ class KitchenService
                 'status',
                 Order::STATUS_SERVED
             )->count(),
-
-            /*
-            |--------------------------------------------------------------------------
-            | Overall Statistics
-            |--------------------------------------------------------------------------
-            */
 
             'total_orders' => $baseQuery()->count(),
 

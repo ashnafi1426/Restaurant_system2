@@ -41,9 +41,7 @@ class WaiterManagementService
                 'maximum_orders' => $waiterData['maximum_orders'] ?? 5,
                 'profile_photo' => $waiterData['profile_photo'] ?? null,
             ]);
-
             DB::commit();
-
             Log::info("Waiter registered successfully", [
                 'waiter_id' => $waiter->id,
                 'user_id' => $user->id,
@@ -77,7 +75,6 @@ class WaiterManagementService
                 if (isset($data['phone'])) {
                     $userData['phone'] = $data['phone'];
                 }
-                
                 $waiter->user->update($userData);
             }
 

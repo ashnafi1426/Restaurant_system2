@@ -63,7 +63,6 @@ class AuthController extends Controller
             $token = $user
                 ->createToken('hotel_token')
                 ->plainTextToken;
-
             Log::info('Login: Success', [
                 'user_email' => $user->email,
                 'token' => substr($token, 0, 20) . '...',
@@ -83,7 +82,6 @@ class AuthController extends Controller
                 'error_file' => $exception->getFile(),
                 'error_line' => $exception->getLine(),
             ]);
-            
             return response()->json([
                 'success' => false,
                 'message' => 'Login error. Please try again.'

@@ -131,18 +131,10 @@ class WaiterFloorAssignment extends Model
     {
         $this->update(['status' => 'completed']);
     }
-
-    /**
-     * Cancel assignment
-     */
     public function cancel(): void
     {
         $this->update(['status' => 'cancelled']);
     }
-
-    /**
-     * Get delivery count for this assignment
-     */
     public function getDeliveryCount(): int
     {
         return $this->waiter->deliveryTasks()

@@ -42,7 +42,6 @@ class WaiterContextResolver
             ]);
             return $waiterId;
         }
-        
         \Log::warning('⚠️ [RESOLVER] No waiter relation found, trying fallback lookup', [
             'user_id' => $user->id,
         ]);

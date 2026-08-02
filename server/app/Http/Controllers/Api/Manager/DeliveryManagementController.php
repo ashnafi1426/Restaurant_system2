@@ -14,6 +14,11 @@ class DeliveryManagementController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            \Log::info('DeliveryManagement index() called', [
+                'all_params' => $request->all(),
+                'per_page_param' => $request->input('per_page'),
+                'page_param' => $request->input('page'),
+            ]);
             $query = DeliveryTask::with('waiter', 'floor', 'assignedBy');
             if ($request->has('status')) {
                 $query->where('status', $request->input('status'));
@@ -36,9 +41,20 @@ class DeliveryManagementController extends Controller
             $sortBy = $request->input('sort_by', 'assigned_at');
             $sortOrder = $request->input('sort_order', 'desc');
             $query->orderBy($sortBy, $sortOrder);
-
-            $perPage = $request->input('per_page', 20);
+            $perPage = (int) $request->input('per_page', 20);
+            \Log::info('About to paginate', [
+                'perPage_value' => $perPage,
+                'perPage_type' => gettype($perPage),
+                'total_query_count' => $query->count(),
+            ]);
             $deliveries = $query->paginate($perPage);
+            \Log::info('Pagination result', [
+                'returned_count' => $deliveries->count(),
+                'per_page_setting' => $deliveries->perPage(),
+                'total' => $deliveries->total(),
+                'current_page' => $deliveries->currentPage(),
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Deliveries retrieved successfully',
@@ -51,6 +67,10 @@ class DeliveryManagementController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
+            \Log::error('Error in DeliveryManagement index()', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve deliveries',

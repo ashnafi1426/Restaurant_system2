@@ -10,9 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Waiter extends Model
 {
     use HasFactory;
-
     protected $table = 'waiters';
-    
     // Override keyType since we use auto-increment int, not UUID
     protected $keyType = 'int';
     public $incrementing = true;
@@ -46,10 +44,6 @@ class Waiter extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
-
-    /**
-     * Get floor assignments
-     */
     public function floorAssignments(): HasMany
     {
         return $this->hasMany(WaiterFloorAssignment::class);

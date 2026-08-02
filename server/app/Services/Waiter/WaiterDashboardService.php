@@ -84,11 +84,13 @@ class WaiterDashboardService
                 ->first();
 
             // Get current pending and active assignments (all time, not just today)
+            // Pending = accepted but not yet picked up
+            // Active = all assignments that are in progress (accepted, picked_up, on_delivery)
             $currentStats = \App\Models\DeliveryTask::where('waiter_id', $waiterId)
                 ->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery'])
                 ->selectRaw('
-                    SUM(CASE WHEN status = "assigned" THEN 1 ELSE 0 END) as pending_assignments,
-                    SUM(CASE WHEN status IN ("accepted", "picked_up", "on_delivery") THEN 1 ELSE 0 END) as active_assignments,
+                    SUM(CASE WHEN status = "accepted" THEN 1 ELSE 0 END) as pending_assignments,
+                    SUM(CASE WHEN status IN ("assigned", "accepted", "picked_up", "on_delivery") THEN 1 ELSE 0 END) as active_assignments,
                     SUM(CASE WHEN status = "on_delivery" THEN 1 ELSE 0 END) as on_delivery_count
                 ')
                 ->first();

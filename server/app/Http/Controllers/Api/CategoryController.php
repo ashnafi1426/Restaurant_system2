@@ -10,8 +10,14 @@ use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
+    public function __construct()
+    {
+        // Allow unauthenticated access to index method for public QR menu
+        // All other methods are protected by route middleware
+    }
+
     /**
-     * Get all categories
+     * Get all categories (PUBLIC - No authentication required)
      */
     public function index(Request $request)
     {

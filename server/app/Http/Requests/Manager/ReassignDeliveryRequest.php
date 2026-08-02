@@ -28,9 +28,8 @@ class ReassignDeliveryRequest extends FormRequest
         return [
             'waiter_id' => [
                 'required',
-                'uuid',
                 'exists:waiters,id',
-                'different:current_waiter_id' // Must be different from current waiter
+                'different:current_waiter_id'
             ],
             'reason' => [
                 'nullable',
@@ -39,7 +38,6 @@ class ReassignDeliveryRequest extends FormRequest
             ],
             'current_waiter_id' => [
                 'required',
-                'uuid',
                 'exists:waiters,id'
             ],
         ];

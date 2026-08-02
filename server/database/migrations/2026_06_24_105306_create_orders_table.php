@@ -18,7 +18,6 @@ $table->foreignUuid('reservation_id')->constrained();
 $table->foreignUuid('guest_id')->constrained();
 
 $table->foreignUuid('room_id')->constrained();
-
 $table->timestamp('order_time')->useCurrent();
 
 $table->enum('status',[
@@ -42,19 +41,12 @@ $table->enum('payment_type',[
     'cash',
     'card'
 ])->default('room_charge');
-
 $table->text('notes')->nullable();
-
 $table->timestamp('served_at')->nullable();
-
 $table->timestamp('cancelled_at')->nullable();
-
 $table->timestamps();
-
 $table->softDeletes();
-
 $table->index('reservation_id');
-
 $table->index('guest_id');
 
 $table->index('room_id');

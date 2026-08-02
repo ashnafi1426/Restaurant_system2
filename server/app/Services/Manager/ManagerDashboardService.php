@@ -21,6 +21,21 @@ class ManagerDashboardService{
     public function statistics(): array
     {
         $today = Carbon::today();
+        
+        // Calculate actual order statistics
+        $orders = Order::query();
+        $totalOrders = (clone $orders)->count();
+        $pendingOrders = (clone $orders)->where('status', Order::STATUS_PENDING)->count();
+        $preparingOrders = (clone $orders)->where('status', Order::STATUS_PREPARING)->count();
+        $readyOrders = (clone $orders)->where('status', Order::STATUS_READY)->count();
+        $servedOrders = (clone $orders)->where('status', Order::STATUS_SERVED)->count();
+        
+        // Calculate delivery statistics  
+        $deliveries = \App\Models\DeliveryTask::query();
+        $totalDeliveries = (clone $deliveries)->count();
+        $activeDeliveries = (clone $deliveries)->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery'])->count();
+        $completedDeliveries = (clone $deliveries)->where('status', 'delivered')->count();
+        
         return [
             'totalRooms' => Room::count(),
             'occupiedRooms' => CheckIn::whereNull('checked_out_at')->count(),
@@ -34,18 +49,25 @@ class ManagerDashboardService{
             
             'todayReservations' => Reservation::whereDate('created_at', $today)->count(),
             
-            'pendingOrders' => Order::where('status', 'pending')->count(),
-            'preparingOrders' => Order::where('status', 'preparing')->count(),
-            'completedOrders' => Order::where('status', 'served')->count(),
+            // Restaurant Orders Statistics
+            'totalOrders' => $totalOrders,
+            'pendingOrders' => $pendingOrders,
+            'preparingOrders' => $preparingOrders,
+            'readyOrders' => $readyOrders,
+            'servedOrders' => $servedOrders,
+            
+            // Room Service Delivery Statistics
+            'totalDeliveries' => $totalDeliveries,
+            'activeDeliveries' => $activeDeliveries,
+            'completedDeliveries' => $completedDeliveries,
             
             'pendingLaundry' => LaundryRequest::where('status', 'pending')->count(),
             'pendingHousekeeping' => HousekeepingTask::where('status', 'pending')->count(),
             
             'activeStaff' => User::where('is_active', true)->count(),
-            'pendingTasks' => HousekeepingTask::where('status', 'pending')->count(),
             
-            'todayRevenue' => 0,
-            'monthlyRevenue' => 0,
+            'todayRevenue' => Order::whereDate('served_at', $today)->where('status', Order::STATUS_SERVED)->sum('total') ?? 0,
+            'monthlyRevenue' => Order::whereMonth('served_at', $today->month)->where('status', Order::STATUS_SERVED)->sum('total') ?? 0,
         ];
     }
     public function revenueSummary(): array
@@ -218,22 +240,33 @@ class ManagerDashboardService{
     }
     public function getDeliveries(): array
     {
-        return RoomServiceDelivery::with('room', 'order', 'deliveredBy')
-            ->select('id', 'room_id', 'order_id', 'status', 'delivered_by', 'scheduled_time', 'delivered_time')
-            ->whereIn('status', ['pending', 'in_progress'])
+        return \App\Models\DeliveryTask::with('room', 'order', 'waiter')
+            ->select('id', 'room_id', 'order_id', 'status', 'waiter_id', 'assigned_at', 'delivered_at')
+            ->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery', 'delivered'])
             ->latest()
             ->limit(10)
             ->get()
             ->map(function ($delivery) {
+                // Map status to frontend expectations
+                $statusMap = [
+                    'assigned' => 'pending',
+                    'accepted' => 'pending',
+                    'picked_up' => 'in_transit',
+                    'on_delivery' => 'in_transit',
+                    'delivered' => 'delivered',
+                ];
+                
                 return [
                     'id' => $delivery->id,
                     'roomId' => $delivery->room_id,
                     'roomNumber' => $delivery->room?->room_number,
+                    'guestName' => $delivery->room ? 'Guest ' . $delivery->room->room_number : 'Unknown',
                     'orderId' => $delivery->order_id,
-                    'status' => $delivery->status,
-                    'deliveredBy' => $delivery->deliveredBy ? ($delivery->deliveredBy->first_name . ' ' . $delivery->deliveredBy->last_name) : 'N/A',
-                    'scheduledTime' => $delivery->scheduled_time,
-                    'deliveredTime' => $delivery->delivered_time,
+                    'items' => $delivery->order?->orderItems?->map(fn($item) => $item->dish_name)->join(', ') ?? 'N/A',
+                    'status' => $statusMap[$delivery->status] ?? $delivery->status,
+                    'waiterName' => $delivery->waiter ? ($delivery->waiter->user?->first_name . ' ' . $delivery->waiter->user?->last_name) : 'Unassigned',
+                    'assignedAt' => $delivery->assigned_at,
+                    'deliveredAt' => $delivery->delivered_at,
                 ];
             })
             ->toArray();

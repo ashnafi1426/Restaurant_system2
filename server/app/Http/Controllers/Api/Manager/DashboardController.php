@@ -77,8 +77,19 @@ class DashboardController extends Controller
      */
     public function statistics(): JsonResponse
     {
+        Log::info('[DashboardController.statistics] 🚀 Statistics endpoint called');
+        
         return $this->handleAction(
-            fn() => new DashboardStatsResource($this->dashboardService->getDashboardStats()),
+            function() {
+                Log::info('[DashboardController.statistics] 📊 Calling getDashboardStats()');
+                $stats = $this->dashboardService->getDashboardStats();
+                Log::info('[DashboardController.statistics] ✅ Stats retrieved', [
+                    'keys' => array_keys($stats)
+                ]);
+                $resource = new DashboardStatsResource($stats);
+                Log::info('[DashboardController.statistics] 📦 Resource created, ready to return');
+                return $resource;
+            },
             []
         );
     }

@@ -20,10 +20,9 @@ class WaiterDashboardController extends Controller
             $user = auth()->user();
             
             if (!$user) {
-                \Log::warning('❌ No authenticated user found');
+                \Log::warning('No authenticated user found');
                 return null;
             }
-
             \Log::debug('🔵 [CONTROLLER] User authenticated:', [
                 'user_id' => $user->id,
                 'role' => $user->role,

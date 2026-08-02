@@ -29,7 +29,6 @@ class GuestOrderService
                 'This room currently has no active reservation.'
             );
         }
-
         if ($reservation->status !== 'checked_in') {
             throw new Exception(
                 'Only checked-in guests can place restaurant orders.'
@@ -45,14 +44,11 @@ class GuestOrderService
         ->where('is_active', true)
         ->orderBy('display_order')
         ->get();
-
         return [
-
             'room' => [
                 'id' => $room->id,
                 'room_number' => $room->room_number,
             ],
-
             'guest' => [
                 'id' => $reservation->guest->id,
                 'name' => $reservation->guest->full_name,

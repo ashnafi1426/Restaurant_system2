@@ -40,11 +40,6 @@ use App\Http\Controllers\Api\Waiter\WaiterHistoryController;
 use App\Http\Controllers\Api\Waiter\WaiterProfileController;
 use App\Http\Controllers\Api\Waiter\WaiterNotificationController;
 
-// Debug routes (remove in production)
-if (config('app.debug')) {
-    include base_path('routes/debug.php');
-}
-
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/rooms', [RoomController::class, 'index']);
 Route::get('/rooms/{room}', [RoomController::class, 'show']);
@@ -384,43 +379,4 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('/', [WaiterNotificationController::class, 'deleteAll']);
         });
     });
-});
-
-
-// Debug Routes (Remove in Production)
-Route::get('/debug/recent-assignments', function () {
-    try {
-        $waiter = \App\Models\Waiter::first();
-        
-        if (!$waiter) {
-            return response()->json(['error' => 'No waiter found'], 404);
-        }
-
-        $tasks = \App\Models\DeliveryTask::where('waiter_id', $waiter->id)
-            ->with('order', 'order.guest', 'order.room', 'floor')
-            ->orderBy('assigned_at', 'desc')
-            ->limit(10)
-            ->get();
-
-        return response()->json([
-            'waiter' => [
-                'id' => $waiter->id,
-                'name' => $waiter->user?->name,
-            ],
-            'delivery_tasks_count' => $tasks->count(),
-            'delivery_tasks' => $tasks->map(fn ($task) => [
-                'id' => $task->id,
-                'status' => $task->status,
-                'order_number' => $task->order?->order_number,
-                'room_number' => $task->order?->room?->room_number,
-                'guest_name' => $task->order?->guest?->name,
-            ])->toArray(),
-        ]);
-    } catch (\Throwable $e) {
-        return response()->json([
-            'error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-        ], 500);
-    }
 });

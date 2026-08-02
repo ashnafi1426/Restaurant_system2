@@ -52,6 +52,14 @@ class DeliveryTask extends Model
     }
 
     /**
+     * Get the room
+     */
+    public function room(): BelongsTo
+    {
+        return $this->belongsTo(Room::class);
+    }
+
+    /**
      * Get the order
      */
     public function order(): BelongsTo
