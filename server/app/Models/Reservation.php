@@ -68,7 +68,7 @@ class Reservation extends Model
      * Example:
      * BK-20260702-0001
      */
-    protected static function generateBookingReference(): string
+    public static function generateBookingReference(): string
     {
         $prefix = 'BK-' . now()->format('Ymd');
 

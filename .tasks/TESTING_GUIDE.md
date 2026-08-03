@@ -1,344 +1,677 @@
-# Testing Guide: Pickup Workflow
+# UNIFIED QR ORDERING SYSTEM - TESTING GUIDE
+## Complete End-to-End Test Instructions
 
-## Pre-Testing Checklist
+**Date**: July 31, 2026  
+**Status**: Ready for Testing  
+**Estimated Time**: 30 minutes
 
-- [ ] Code changes deployed
-- [ ] Frontend rebuild complete
-- [ ] Backend cache cleared (artisan cache:clear)
-- [ ] Test waiter account logged in
-- [ ] Test orders in system (assigned to waiter)
+---
 
-## Test Scenarios
+## 🎯 QUICK START
 
-### Scenario 1: Complete Workflow (Happy Path)
+### Prerequisites
+```bash
+# Backend requirements
+✅ PHP 8.1+
+✅ Laravel 12
+✅ PostgreSQL running
+✅ Redis (optional for cache)
 
-**Objective:** Verify complete pickup workflow from acceptance to delivery
-
-**Steps:**
-1. Go to Waiter Dashboard → Assigned Orders page
-2. Find an order with status `assigned`
-3. ✅ Verify: "Accept" button is visible
-4. Click "Accept"
-   - ✅ Status should change to `accepted`
-   - ✅ "Pickup Order" button should appear (orange)
-   - ✅ No "Start Delivery" button yet
-5. Click "Pickup Order"
-   - ✅ Status should change to `picked_up`
-   - ✅ "Start Delivery" button should appear (green)
-   - ✅ No "Pickup Order" button anymore
-6. Click "Start Delivery"
-   - ✅ Status should change to `on_delivery`
-   - ✅ Order shows "On the Way"
-7. Click "Deliver" (if available)
-   - ✅ Status should change to `delivered`
-
-**Expected Log Messages:**
-```
-✅ Order accepted successfully
-✅ Order picked up successfully
-✅ Delivery started successfully
-✅ Order delivered successfully
+# Frontend requirements
+✅ Node.js 18+
+✅ Vue 3
+✅ npm/yarn
 ```
 
 ---
 
-### Scenario 2: Modal Workflow
+## 📋 SETUP (First Time Only)
 
-**Objective:** Verify buttons work in modal detail view
+### 1. Backend Setup
+```bash
+cd server
 
-**Steps:**
-1. From Assigned Orders table, click "View Details"
-2. Modal opens showing order details
-3. If status is `accepted`:
-   - ✅ "Pickup Order" button visible in modal
-4. Click "Pickup Order" in modal
-   - ✅ Status updates to `picked_up`
-   - ✅ Modal should close
-   - ✅ Table refreshes with new status
-5. Click "View Details" again
-6. If status is `picked_up`:
-   - ✅ "Start Delivery" button visible in modal
-7. Click "Start Delivery"
-   - ✅ Status updates to `on_delivery`
+# Install dependencies (if not done)
+composer install
 
----
+# Create .env if needed
+cp .env.example .env
 
-### Scenario 3: Button Visibility by Status
+# Set up database
+php artisan migrate
 
-**Objective:** Verify correct buttons appear for each status
+# Seed restaurant tables
+php artisan db:seed --class=RestaurantTableSeeder
 
-| Order Status | Button Shown | Button Should NOT Show |
-|---|---|---|
-| assigned | Accept (from accept logic) | ❌ Pickup, ❌ Start Delivery |
-| accepted | ✅ Pickup Order | ❌ Start Delivery |
-| picked_up | ✅ Start Delivery | ❌ Pickup Order |
-| on_delivery | (none for these actions) | ❌ Pickup, ❌ Start Delivery |
-| delivered | (none for these actions) | ❌ All action buttons |
-
-**Test:**
-1. Navigate through several orders
-2. For each order, verify:
-   - Correct button appears ✅
-   - Incorrect buttons are hidden ✅
-
----
-
-### Scenario 4: Error Handling
-
-**Objective:** Verify errors are handled gracefully
-
-**Test Cases:**
-
-#### 4.1 Network Error During Pickup
-1. Disable internet or mock network failure
-2. Click "Pickup Order"
-3. ✅ Error message appears
-4. ✅ Order status doesn't change
-5. ✅ Button remains clickable
-6. Re-enable network, retry
-7. ✅ Should succeed on retry
-
-#### 4.2 Invalid State Transition
-1. Manually set order status to `delivered`
-2. Try clicking "Pickup Order"
-3. ✅ Button should be hidden (not applicable to delivered)
-
-#### 4.3 Unauthorized Access
-1. Try accessing another waiter's order
-2. ✅ Proper 403 error response
-3. ✅ User-friendly error message shown
-
----
-
-### Scenario 5: Loading States
-
-**Objective:** Verify loading indicators work
-
-**Steps:**
-1. Click "Pickup Order"
-2. ✅ Button shows loading spinner/text "Picking up..."
-3. ✅ Button is disabled during request
-4. ✅ Once complete, button returns to normal state
-
-**Test:**
-- Fast network: loading state briefly visible
-- Slow network: loading state clearly visible
-
----
-
-### Scenario 6: Pagination and Multi-Order
-
-**Objective:** Verify workflow works with pagination
-
-**Steps:**
-1. Go to Assigned Orders
-2. Set items per page to 5
-3. Accept and pickup orders on first page
-4. Change to page 2
-5. ✅ Orders on page 2 still have correct buttons
-6. Accept and pickup order on page 2
-7. Go back to page 1
-8. ✅ Page 1 orders show updated status
-
----
-
-### Scenario 7: Concurrent Operations
-
-**Objective:** Test multiple orders being processed
-
-**Steps:**
-1. Open 2-3 orders in separate tabs/windows
-2. Click "Pickup Order" on order 1
-3. While loading, click "Pickup Order" on order 2
-4. ✅ Both requests process correctly
-5. ✅ Each order updates independently
-6. ✅ No interference between requests
-
----
-
-## Browser Console Checks
-
-**During Testing, Verify Console Shows:**
-
-### Successful Pickup:
-```
-[AssignedOrders] Picking up order: abc-123-def
-[AssignedOrders] Full order data: {id: "abc-123-def", ...}
-[AssignedOrders] ✅ Order picked up successfully: {status: "picked_up", ...}
-[AssignedOrders] ✅ Assignments reloaded after pickup
+# Clear caches
+php artisan cache:clear
+php artisan config:clear
 ```
 
-### Successful Start Delivery:
-```
-[AssignedOrders] Starting delivery for order: abc-123-def
-[AssignedOrders] ✅ Delivery started successfully: {status: "on_delivery", ...}
-[AssignedOrders] ✅ Assignments reloaded after delivery start
+### 2. Frontend Setup
+```bash
+cd Client2/vue-project
+
+# Install dependencies (if not done)
+npm install
+
+# Clear build cache
+rm -rf dist node_modules/.vite
+npm run build
 ```
 
-### Error Handling:
+---
+
+## 🚀 RUNNING TESTS
+
+### 1. Start Services
+
+**Terminal 1 - Backend**
+```bash
+cd c:\Users\Ashu\Desktop\Rasturant\Restaurant_system2\server
+php artisan serve
+# Should show: http://127.0.0.1:8000
 ```
-[AssignedOrders] ❌ Error picking up order: {
-  status: 400,
-  message: "Cannot pickup...",
-  error: "..."
+
+**Terminal 2 - Frontend**
+```bash
+cd c:\Users\Ashu\Desktop\Rasturant\Restaurant_system2\Client2\vue-project
+npm run dev
+# Should show: http://localhost:5173
+```
+
+**Terminal 3 - Monitor Logs (optional)**
+```bash
+cd c:\Users\Ashu\Desktop\Rasturant\Restaurant_system2\server
+tail -f storage/logs/laravel.log
+```
+
+---
+
+## ✅ TEST SCENARIOS
+
+### TEST 1: Walk-in Customer Complete Flow
+
+**Objective**: Test walk-in customer from QR scan to order placement
+
+**Steps**:
+```
+1. Open browser to: http://localhost:5173/menu
+   Expected: QRMenu.vue loads
+
+2. See modal: "How are you dining today?"
+   Expected: Two buttons visible
+
+3. Click: "I am visiting the restaurant"
+   Expected: Modal closes, menu appears
+
+4. Verify console: Check for session creation
+   ```
+   Open DevTools (F12) → Console
+   You should see:
+   - POST /api/walk-in/session/initialize → 201 Response
+   - Session ID returned
+   ```
+
+5. Browse menu
+   Expected: 
+   - Menu items load
+   - Categories visible
+   - Search works
+   - Items have prices
+
+6. Add items to cart
+   - Click on 3 different items
+   - Add quantity for each
+   Expected:
+   - Items appear in cart
+   - Quantities update
+   - Totals calculate
+
+7. Open cart (floating button at bottom)
+   Expected:
+   - Items listed
+   - Subtotal = sum of (price × qty)
+   - Tax = subtotal × 0.15
+   - Service = subtotal × 0.10
+   - Total = subtotal + tax + service
+   Example: $50 subtotal
+   - Tax: $7.50 ✅
+   - Service: $5.00 ✅
+   - Total: $62.50 ✅
+
+8. Click "Place Order"
+   Expected:
+   - POST /api/walk-in/orders → 201
+   - Order success modal appears
+   - Order # shown (WLK-001, etc)
+   - Table # shown
+   - Total amount shown
+
+9. Click "Track Order"
+   Expected: Modal closes, can continue shopping
+
+**Verification**:
+```bash
+# Check database for created records
+cd c:\Users\Ashu\Desktop\Rasturant\Restaurant_system2\server
+
+# 1. Check session created
+php artisan tinker
+>>> DB::table('restaurant_sessions')->latest()->first();
+=> Should show walk_in customer type
+
+# 2. Check order created
+>>> DB::table('restaurant_orders')->latest()->first();
+=> Should show order with items
+
+# 3. Check order items
+>>> DB::table('restaurant_order_items')->latest()->limit(3)->get();
+=> Should show 3 items added
+
+# 4. Check waiter assigned
+>>> $order = DB::table('restaurant_orders')->latest()->first();
+>>> $order->waiter_id;
+=> Should have a waiter_id assigned
+```
+
+**Pass Criteria**:
+- ✅ Session created
+- ✅ Menu loaded
+- ✅ Items added to cart
+- ✅ Cart totals correct
+- ✅ Order placed successfully
+- ✅ Database records created
+- ✅ Waiter assigned
+- ✅ No console errors
+
+---
+
+### TEST 2: Hotel Guest Flow
+
+**Objective**: Test hotel guest from QR scan to room-charged order
+
+**Steps**:
+```
+1. Open browser to: http://localhost:5173/order/table-1-qr-token
+   (or use any valid qr_token from database)
+   Expected: QRMenu.vue loads
+
+2. See modal: "How are you dining today?"
+   
+3. Click: "I am staying in the hotel"
+   Expected: Modal closes, room verification modal appears
+
+4. Enter room number
+   Example: "101"
+   Expected:
+   - Room verification succeeds
+   - Menu appears
+
+5. Add items (same as walk-in)
+   Expected: Cart updates
+
+6. Open cart and review
+   Expected: Same calculations as walk-in
+
+7. Click "Place Order"
+   Expected:
+   - POST /api/guest/orders → 201
+   - Order success modal
+   - Order charged to room shown
+   - Different order # prefix (HG-001, etc)
+
+**Verification**:
+```bash
+php artisan tinker
+>>> $order = DB::table('restaurant_orders')->latest()->first();
+>>> $order->order_number;
+=> Should start with "HG-" not "WLK-"
+>>> $order->payment_status;
+=> Should be "room_account" not "pending"
+```
+
+**Pass Criteria**:
+- ✅ Room verification works
+- ✅ Menu loads for hotel guest
+- ✅ Order placed with room_account status
+- ✅ Order number indicates hotel guest
+- ✅ No payment screen shown
+
+---
+
+### TEST 3: API Direct Testing
+
+**Objective**: Test API endpoints directly
+
+**Using Postman or curl**:
+
+**3.1 Get Menu Items**
+```bash
+GET http://localhost:8000/api/guest/menu/items
+
+Expected Response (200):
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "Grilled Salmon",
+      "price": 25.00,
+      "image": "...",
+      "category": "Main Course"
+    },
+    ...
+  ]
 }
 ```
 
----
-
-## Backend API Testing (Postman/cURL)
-
-### Test Pickup Endpoint
-
+**3.2 Initialize Session**
 ```bash
-curl -X PATCH \
-  http://localhost:8000/api/waiter/assignments/{id}/pickup \
-  -H "Authorization: Bearer {token}" \
-  -H "Content-Type: application/json"
-```
+POST http://localhost:8000/api/walk-in/session/initialize
+Content-Type: application/json
 
-**Expected Response (Success):**
-```json
+{
+  "qr_token": "table-1-qr-token"
+}
+
+Expected Response (201):
 {
   "success": true,
-  "message": "Order picked up successfully",
   "data": {
-    "id": "abc-123",
-    "status": "picked_up",
-    "picked_up_at": "2026-07-30T15:30:45Z"
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "session_number": "TBL-1-20260731-abc123",
+    "table_id": "650e8400-e29b-41d4-a716-446655440001",
+    "customer_type": "walk_in",
+    "status": "ordering",
+    "started_at": "2026-07-31T14:30:00Z"
   }
 }
 ```
 
-### Test Start Delivery Endpoint
-
+**3.3 Create Order**
 ```bash
-curl -X PATCH \
-  http://localhost:8000/api/waiter/assignments/{id}/start-delivery \
-  -H "Authorization: Bearer {token}" \
-  -H "Content-Type: application/json"
-```
+POST http://localhost:8000/api/walk-in/orders
+Content-Type: application/json
 
-**Expected Response (Success):**
-```json
+{
+  "table_id": "550e8400-e29b-41d4-a716-446655440000",
+  "items": [
+    {
+      "menu_item_id": 1,
+      "quantity": 2
+    },
+    {
+      "menu_item_id": 5,
+      "quantity": 1
+    }
+  ]
+}
+
+Expected Response (201):
 {
   "success": true,
-  "message": "Delivery started successfully",
   "data": {
-    "id": "abc-123",
-    "status": "on_delivery",
-    "on_delivery_at": "2026-07-30T15:31:20Z"
+    "id": "750e8400-e29b-41d4-a716-446655440002",
+    "order_number": "WLK-001",
+    "subtotal": 50.00,
+    "tax": 7.50,
+    "service_charge": 5.00,
+    "total": 62.50,
+    "payment_status": "pending",
+    "order_status": "created"
   }
 }
 ```
 
----
+**3.4 Get Order**
+```bash
+GET http://localhost:8000/api/walk-in/orders/750e8400-e29b-41d4-a716-446655440002
 
-## Database Verification
-
-### Check Status Transitions in Database
-
-```sql
-SELECT id, status, picked_up_at, on_delivery_at, delivered_at 
-FROM delivery_tasks 
-WHERE waiter_id = '{waiter_id}' 
-ORDER BY assigned_at DESC 
-LIMIT 10;
+Expected Response (200):
+{
+  "success": true,
+  "data": {
+    "id": "750e8400-e29b-41d4-a716-446655440002",
+    "order_number": "WLK-001",
+    "items": [
+      {
+        "id": 1,
+        "name": "Grilled Salmon",
+        "quantity": 2,
+        "unit_price": 25.00
+      },
+      {
+        "id": 5,
+        "name": "Caesar Salad",
+        "quantity": 1,
+        "unit_price": 15.00
+      }
+    ],
+    "total": 62.50
+  }
+}
 ```
 
-**Verify:**
-- ✅ `picked_up_at` has timestamp when pickup happened
-- ✅ `on_delivery_at` has timestamp when delivery started
-- ✅ Status correctly reflects current state
-- ✅ Timestamps are in chronological order
+**3.5 Get Today's Orders**
+```bash
+GET http://localhost:8000/api/walk-in/orders/today
+
+Expected Response (200):
+{
+  "success": true,
+  "data": [
+    { Order 1 },
+    { Order 2 },
+    ...
+  ]
+}
+```
+
+**Pass Criteria**:
+- ✅ Menu endpoint returns items
+- ✅ Session endpoint creates session
+- ✅ Order endpoint creates order with correct totals
+- ✅ Get order shows correct items
+- ✅ Today's orders returns all orders
+- ✅ All 2xx status codes
 
 ---
 
-## Performance Testing
+### TEST 4: Database Integrity
 
-### Objective: Ensure no performance regression
+**Objective**: Verify database consistency and relationships
 
-**Measurements:**
-1. Time to load Assigned Orders page: < 2 seconds
-2. Time for Pickup action to complete: < 1 second
-3. Time for Start Delivery action to complete: < 1 second
-4. Database query time for status update: < 100ms
+```bash
+cd c:\Users\Ashu\Desktop\Rasturant\Restaurant_system2\server
+php artisan tinker
 
-**Tools:**
-- Chrome DevTools → Network Tab (check timing)
-- Chrome DevTools → Performance Tab (record operations)
-- Backend logs for service execution time
+# 1. Verify restaurant tables seeded
+>>> DB::table('restaurant_tables')->count();
+=> 15
 
----
+# 2. Check table details
+>>> DB::table('restaurant_tables')->first();
+=> Should show:
+   - id (UUID)
+   - table_number (1-15)
+   - qr_token (unique)
+   - capacity (4, 6, or 8)
+   - status (available)
+   - assigned_waiter_id (NULL initially)
 
-## Edge Cases
+# 3. Check session relationships
+>>> $session = DB::table('restaurant_sessions')->latest()->first();
+>>> $session->table_id
+>>> DB::table('restaurant_tables')->find($session->table_id);
+=> Should find corresponding table
 
-### Edge Case 1: Rapid Clicking
-1. Click "Pickup Order" multiple times quickly
-2. ✅ Button becomes disabled after first click
-3. ✅ Only one request sent
-4. ✅ Status updates once
+# 4. Check order relationships
+>>> $order = DB::table('restaurant_orders')->latest()->first();
+>>> $order->restaurant_session_id
+>>> $order->table_id
+>>> $order->waiter_id
+=> All should be valid UUIDs/IDs
 
-### Edge Case 2: Order Assigned During Workflow
-1. Start accepting order A
-2. While accepting, another order B is assigned
-3. ✅ Both operations complete correctly
-4. ✅ Both appear in list with correct statuses
+# 5. Check order items
+>>> DB::table('restaurant_order_items')
+   ->where('restaurant_order_id', $order->id)
+   ->get();
+=> Should show line items with quantities and prices
 
-### Edge Case 3: Stale Data
-1. Accept order in one browser tab
-2. In another tab, order still shows `assigned`
-3. Refresh second tab
-4. ✅ Status updates to `accepted`
+# 6. Verify foreign key integrity
+>>> DB::table('restaurant_orders')
+   ->where('table_id', 'invalid-id')
+   ->count();
+=> Should be 0 (foreign key constraint)
 
-### Edge Case 4: Session Timeout
-1. Long delay between Pickup and Start Delivery
-2. Session expires
-3. Try to click "Start Delivery"
-4. ✅ Redirect to login (or proper error)
-5. ✅ No silent failures
+# 7. Check payment table (for future use)
+>>> DB::table('walk_in_payments')->count();
+=> Should be 0 initially (no payments yet)
+```
 
----
-
-## Accessibility Testing
-
-- [ ] Tab navigation works through buttons
-- [ ] Buttons have proper ARIA labels
-- [ ] Loading states announced to screen readers
-- [ ] Error messages accessible
-- [ ] Color contrast meets WCAG AA standards
-
----
-
-## Regression Testing
-
-### Verify Existing Functionality Still Works
-
-1. ✅ Accept Assignment workflow unchanged
-2. ✅ Reject Assignment workflow unchanged
-3. ✅ Deliver Order workflow unchanged
-4. ✅ Failed Delivery workflow unchanged
-5. ✅ Pagination still works
-6. ✅ Filtering/Sorting still works
-7. ✅ Notifications still work
-8. ✅ Dashboard stats still accurate
+**Pass Criteria**:
+- ✅ 15 tables seeded
+- ✅ All UUIDs valid
+- ✅ Foreign keys working
+- ✅ Orders linked to sessions
+- ✅ Order items linked to orders
+- ✅ No orphaned records
 
 ---
 
-## Sign-Off Checklist
+## 🔍 DEBUGGING CHECKLIST
 
-- [ ] All scenarios pass
-- [ ] No console errors
-- [ ] No network errors
-- [ ] Database states correct
-- [ ] Performance acceptable
-- [ ] Edge cases handled
-- [ ] Accessibility verified
-- [ ] No regression issues
-- [ ] Documentation complete
+### Issue: Session not created
+```
+1. Check if QR token exists:
+   php artisan tinker
+   >>> DB::table('restaurant_tables')->where('qr_token', 'table-1-qr-token')->first();
+
+2. Check API response:
+   Network tab → POST /api/walk-in/session/initialize
+   Look for error message
+
+3. Check server logs:
+   tail -f storage/logs/laravel.log
+   Look for validation or database errors
+
+4. Verify table status:
+   A table can't have two active sessions
+   Check: SELECT * FROM restaurant_sessions WHERE table_id = '...' AND status != 'completed';
+```
+
+### Issue: Menu not loading
+```
+1. Verify menu items exist:
+   DB::table('menu_items')->where('is_active', 1)->count();
+   Should be > 0
+
+2. Check API response:
+   GET /api/guest/menu/items → Should return array
+
+3. Check browser console:
+   F12 → Console tab
+   Look for JavaScript errors
+
+4. Verify RestaurantService import:
+   src/services/restaurantService.ts should exist
+```
+
+### Issue: Cart totals wrong
+```
+1. Check calculation:
+   Tax should be: subtotal × 0.15
+   Service should be: subtotal × 0.10
+   Total should be: subtotal + tax + service
+
+2. Verify restaurantStore:
+   Open browser console
+   >>> localStorage.restaurantStore
+   Should show cart state
+
+3. Check computed properties:
+   QRMenu.vue lines ~230-260
+   Should calculate all totals
+```
+
+### Issue: Order creation fails
+```
+1. Check request format:
+   Must include either table_id OR session_id
+   Must include items array with menu_item_id and quantity
+
+2. Verify menu item IDs:
+   Items must exist in database and be active
+   php artisan tinker
+   >>> DB::table('menu_items')->find(1);
+
+3. Check response errors:
+   Network tab → POST /api/walk-in/orders
+   Look at response JSON for validation messages
+```
 
 ---
 
-**Status:** Ready for Testing
+## 📊 VERIFICATION QUERIES
 
-**Estimated Time:** 30-45 minutes for complete testing
+### Quick Database Check
+```bash
+php artisan tinker
+
+# Summary
+>>> [
+'tables' => DB::table('restaurant_tables')->count(),
+'sessions' => DB::table('restaurant_sessions')->count(),
+'orders' => DB::table('restaurant_orders')->count(),
+'order_items' => DB::table('restaurant_order_items')->count(),
+'payments' => DB::table('walk_in_payments')->count(),
+];
+
+# Should show increased counts as tests run
+# Example after tests:
+# tables: 15
+# sessions: 3
+# orders: 3
+# order_items: 7
+# payments: 0
+```
+
+### Check Order with Items
+```bash
+php artisan tinker
+
+>>> $order = DB::table('restaurant_orders')->latest()->first();
+>>> $order->with('items')->get();
+
+# Should show:
+# {
+#   id: uuid,
+#   order_number: "WLK-001",
+#   total: 62.50,
+#   items: [
+#     { menu_item_id: 1, quantity: 2 },
+#     { menu_item_id: 5, quantity: 1 }
+#   ]
+# }
+```
+
+---
+
+## 🎯 SUCCESS CRITERIA
+
+### All Tests Pass If:
+
+```
+✅ Walk-in Flow
+  - Customer type modal appears
+  - Session creates on "I am visiting" click
+  - Menu loads with items
+  - Cart updates correctly
+  - Totals calculate correctly (15% tax, 10% service)
+  - Order places successfully
+  - Database records created
+  - Waiter auto-assigned
+
+✅ Hotel Guest Flow
+  - Customer type modal appears
+  - Room verification modal appears on "I am staying" click
+  - Menu loads after verification
+  - Order creates with room_account payment status
+  - Database records created
+  - Order number shows HG- prefix
+
+✅ API Tests
+  - All endpoints return correct status codes
+  - Response JSON is valid
+  - All required fields present
+  - Calculations correct
+
+✅ Database Tests
+  - 15 tables seeded
+  - Foreign keys working
+  - No orphaned records
+  - Constraints enforced
+  - Counts increasing with tests
+
+✅ No Critical Errors
+  - No 500 errors in backend
+  - No uncaught exceptions in frontend
+  - No JavaScript errors in console
+  - All logs clean
+```
+
+---
+
+## 📝 TEST REPORT TEMPLATE
+
+After running all tests, fill in this report:
+
+```
+TEST EXECUTION REPORT
+=====================
+
+Date: _______________
+Tester: ______________
+Build: _______________
+
+TEST 1: Walk-in Customer Flow
+Result: [ ] PASS [ ] FAIL
+Issues: _________________________
+
+TEST 2: Hotel Guest Flow
+Result: [ ] PASS [ ] FAIL
+Issues: _________________________
+
+TEST 3: API Direct Testing
+Result: [ ] PASS [ ] FAIL
+Issues: _________________________
+
+TEST 4: Database Integrity
+Result: [ ] PASS [ ] FAIL
+Issues: _________________________
+
+Overall Status: [ ] ALL PASS [ ] ISSUES FOUND
+
+Critical Issues: ________________
+Minor Issues: ___________________
+
+Sign-off: ______________________
+```
+
+---
+
+## 🚀 NEXT ACTIONS
+
+### If All Tests Pass ✅
+1. Proceed to integration with kitchen dashboard
+2. Set up Chapa payment webhook
+3. Implement real-time notifications
+4. Deploy to staging environment
+
+### If Issues Found ⚠️
+1. Note issue details from debugging section
+2. Check error logs: `storage/logs/laravel.log`
+3. Verify database state: `php artisan tinker`
+4. Check browser console: F12 → Console tab
+5. Create issue ticket with reproduction steps
+
+---
+
+## 📞 SUPPORT
+
+For issues or questions:
+1. Check error logs: `storage/logs/laravel.log`
+2. Review browser console: F12 → Console
+3. Check network requests: F12 → Network
+4. Review database state: `php artisan tinker`
+5. Refer to integration guide: `.tasks/WALKIN_INTEGRATION_GUIDE.md`
+
+---
+
+**Testing Guide Ready** ✅
+
+Estimated Time: 30 minutes for complete test cycle
+Status: Ready to execute
+Next Step: Start Backend (php artisan serve)
+

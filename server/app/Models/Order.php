@@ -54,6 +54,17 @@ class Order extends Model
     public const STATUS_READY = 'ready';
     public const STATUS_SERVED = 'served';
     public const STATUS_CANCELLED = 'cancelled';
+
+    /**
+     * Generate unique order number
+     */
+    protected static function generateOrderNumber(): string
+    {
+        $prefix = 'ORD-' . now()->format('Ymd');
+        $count = static::whereDate('created_at', today())->count() + 1;
+        return sprintf('%s-%04d', $prefix, $count);
+    }
+
     public function reservation()
     {
         return $this->belongsTo(Reservation::class);

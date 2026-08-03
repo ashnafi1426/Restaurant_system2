@@ -58,7 +58,7 @@ export const useCheckInStore = defineStore('checkIn', {
         const response = await checkInService.getAll(params)
 
         console.log(' [STORE] API Response received:', response)
-        console.log(' [STORE] Response.data structure:', Object.keys(response.data))
+        console.log(' [STORE] Response.data structure:', response.data ? Object.keys(response.data) : 'null/undefined')
 
         // Handle paginated response
         if (response.data && typeof response.data === 'object') {

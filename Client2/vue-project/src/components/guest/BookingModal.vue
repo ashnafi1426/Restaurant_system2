@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { useGuestStore } from '../../stores/guestStore'
-import { useReservationStore } from '../../stores/reservationStore'
-import { useRoomStore } from '../../stores/room'
+import { useRouter } from 'vue-router'
 import { roomService } from '../../services/roomService'
-import BookingSuccessPage from './BookingSuccessPage.vue'
+import paymentService from '../../services/paymentService'
 import {
   X,
   Calendar,
@@ -44,15 +42,30 @@ interface Room {
   updated_at?: string
 }
 
-interface BookingSuccessData {
-  booking_reference: string
-  guest_name: string
-  room_type: string
+// Price breakdown interface
+interface PriceBreakdown {
+  price_per_night: number
+  number_of_nights: number
+  subtotal: number
+  tax: number
+  total: number
+}
+
+// Booking session storage data
+interface BookingSessionData {
+  guest_id: string
+  room_id: string
   check_in_date: string
   check_out_date: string
   number_of_guests: number
-  total_price?: number
   special_requests?: string
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  payment_id: string
+  tx_ref: string
+  price_breakdown?: PriceBreakdown
 }
 
 const props = defineProps<{
@@ -64,6 +77,9 @@ const emit = defineEmits<{
   close: []
   submit: [data: any]
 }>()
+
+// Router
+const router = useRouter()
 
 // Booking form data
 const bookingForm = ref({
@@ -85,9 +101,9 @@ const isBooking = ref(false)
 const isVisible = ref(false)
 const modalScale = ref(0.95)
 
-// Success page state
-const showSuccessPage = ref(false)
-const bookingSuccess = ref<BookingSuccessData | null>(null)
+// Payment dialog state
+const showPaymentDialog = ref(false)
+const paymentLoading = ref(false)
 
 // Room status state
 const roomStatus = ref<'available' | 'booked' | 'maintenance' | 'loading'>('loading')
@@ -279,9 +295,9 @@ function calculateAdditionalServices(): number {
   return total
 }
 
-// Calculate grand total
+// Calculate grand total (room + services + tax)
 function calculateGrandTotal(): number {
-  return calculateRoomTotal() + calculateAdditionalServices()
+  return getTotalAmount()
 }
 
 // Close modal with animation
@@ -290,17 +306,8 @@ function closeModal() {
   isVisible.value = false
   setTimeout(() => {
     resetBookingForm()
-    showSuccessPage.value = false
-    bookingSuccess.value = null
     emit('close')
   }, 300)
-}
-
-// Close success page and return to booking
-function closeSuccessPage() {
-  showSuccessPage.value = false
-  bookingSuccess.value = null
-  closeModal()
 }
 
 // Reset form
@@ -320,10 +327,78 @@ function resetBookingForm() {
   }
 }
 
-// Submit booking - Fixed backend integration using stores
+/**
+ * ============================================================================
+ * Submit Booking - Payment Flow Integration
+ * ============================================================================
+ * NEW FLOW (Payment First):
+ * 1. Validate form input
+ * 2. Create/find guest
+ * 3. Call /api/reservation-payments/initialize to start payment
+ * 4. Store booking data in sessionStorage (temporary)
+ * 5. Redirect to payment checkout page
+ * 6. After payment success, reservation is created on backend
+ * 
+ * CRITICAL SECURITY:
+ * - Reservation is NEVER created before payment verification
+ * - Payment initialization validates all data on backend
+ * - Booking data stored in sessionStorage for post-payment retrieval
+ * ============================================================================
+ */
+// Open payment dialog
+function openPaymentDialog() {
+  if (!bookingForm.value.guestName || !bookingForm.value.guestEmail || !bookingForm.value.guestPhone) {
+    const fields = []
+    if (!bookingForm.value.guestName) fields.push('Full Name')
+    if (!bookingForm.value.guestEmail) fields.push('Email')
+    if (!bookingForm.value.guestPhone) fields.push('Phone')
+    alert(`Please fill in: ${fields.join(', ')}`)
+    return
+  }
+  
+  // Debug logging for special requests
+  console.log('🔍 [BOOKING MODAL] Opening payment dialog')
+  console.log('📝 [BOOKING MODAL] Special requests value:', bookingForm.value.specialRequests)
+  console.log('📝 [BOOKING MODAL] Special requests length:', bookingForm.value.specialRequests?.length || 0)
+  console.log('📝 [BOOKING MODAL] Has content after trim:', !!(bookingForm.value.specialRequests?.trim()))
+  
+  showPaymentDialog.value = true
+}
+
+// Close payment dialog
+function closePaymentDialog() {
+  showPaymentDialog.value = false
+}
+
+// Proceed with payment (called from dialog)
+function proceedWithPayment() {
+  showPaymentDialog.value = false
+  submitBooking()
+}
+
+// Get subtotal (room + services, before tax)
+function getSubtotal(): number {
+  const nights = calculateNights()
+  const pricePerNight = getRoomPrice(props.room)
+  const roomSubtotal = nights * pricePerNight
+  const servicesTotal = calculateAdditionalServices()
+  return roomSubtotal + servicesTotal
+}
+
+// Get tax (15% of subtotal)
+function getTaxAmount(): number {
+  return getSubtotal() * 0.15
+}
+
+// Get total amount (subtotal + tax)
+function getTotalAmount(): number {
+  return getSubtotal() + getTaxAmount()
+}
+
 async function submitBooking() {
   if (isBooking.value) return
 
+  // Step 1: Validate form
   if (
     !bookingForm.value.guestName ||
     !bookingForm.value.guestEmail ||
@@ -340,29 +415,27 @@ async function submitBooking() {
 
   isBooking.value = true
 
-  const guestStore = useGuestStore()
-  const reservationStore = useReservationStore()
-
   try {
-    // Step 1: Create guest
+    console.log('📝 [BOOKING] Starting payment flow for booking...')
+
+    // Step 2: Create/Find Guest (using public API endpoint, no auth required)
     const nameParts = bookingForm.value.guestName.trim().split(' ')
     const firstName = nameParts[0]
     const lastName = nameParts.slice(1).join(' ') || firstName
 
-    console.log('📝 [BOOKING] Creating guest with:', { firstName, lastName })
+    console.log('👤 [BOOKING] Processing guest:', { firstName, lastName })
 
-    // First, check if guest with this email already exists
-    console.log(' [BOOKING] Checking if guest exists with email:', bookingForm.value.guestEmail)
-    await guestStore.fetchGuests({ search: bookingForm.value.guestEmail })
+    const apiUrl = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000/api'
+    let guestId: string | undefined
 
-    let createdGuest = guestStore.guests.find((g: any) => g.email === bookingForm.value.guestEmail)
-
-    let guestId = createdGuest?.id
-
-    if (!guestId) {
-      // Guest doesn't exist, create new one
-      console.log('📝 [BOOKING] Guest not found, creating new guest...')
-      await guestStore.addGuest({
+    // Try to get guest by email or create new
+    console.log('📤 [BOOKING] Creating/getting guest via public API...')
+    const guestResponse = await fetch(`${apiUrl}/guests`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         first_name: firstName,
         last_name: lastName,
         email: bookingForm.value.guestEmail,
@@ -372,89 +445,139 @@ async function submitBooking() {
         passport_number: '',
         date_of_birth: '',
         preferences: [],
-      })
+      }),
+    })
 
-      // Get guest ID - fetch the most recent guest by email to ensure we get the right one
-      await guestStore.fetchGuests({ search: bookingForm.value.guestEmail })
-      createdGuest = guestStore.guests.find((g: any) => g.email === bookingForm.value.guestEmail)
-      guestId = createdGuest?.id
+    const guestData = await guestResponse.json()
+    console.log('📡 [BOOKING] Guest API response:', guestData)
 
-      if (!guestId) {
-        throw new Error('Failed to retrieve guest ID after creation')
-      }
-
-      console.log(' [BOOKING] Guest created with ID:', guestId)
+    if (guestResponse.ok && guestData.data?.id) {
+      guestId = guestData.data.id
+      console.log('✅ [BOOKING] Guest processed with ID:', guestId)
+    } else if (guestResponse.ok && guestData.id) {
+      // Handle case where response structure is different
+      guestId = guestData.id
+      console.log('✅ [BOOKING] Guest processed with ID:', guestId)
     } else {
-      console.log(' [BOOKING] Guest already exists with ID:', guestId)
+      console.error('❌ [BOOKING] Failed to process guest:', guestData)
+      throw new Error(guestData.message || 'Failed to process guest information')
     }
 
-    // Step 2: Create reservation
-    const reservationData = {
+    if (!guestId) {
+      throw new Error('Failed to retrieve guest ID')
+    }
+
+    // Step 3: Initialize Payment
+    console.log('💳 [BOOKING] Initializing payment with backend...')
+
+    const paymentInitRequest = {
+      room_id: props.room?.id || '',
+      guest_id: guestId,
+      check_in_date: bookingForm.value.checkInDate,
+      check_out_date: bookingForm.value.checkOutDate,
+      number_of_guests: bookingForm.value.guests,
+      special_requests: bookingForm.value.specialRequests,
+      first_name: firstName,
+      last_name: lastName,
+      email: bookingForm.value.guestEmail,
+      phone: bookingForm.value.guestPhone,
+      // Include services
+      include_breakfast: bookingForm.value.includeBreakfast,
+      include_dinner: bookingForm.value.includeDinner,
+      include_spa: bookingForm.value.includeSpa,
+    }
+
+    console.log('📤 [BOOKING] Payment init request:', paymentInitRequest)
+
+    // Call backend to initialize payment (now public)
+    const paymentResponse = await fetch(
+      `${apiUrl}/reservation-payments/initialize`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentInitRequest),
+      }
+    )
+
+    const paymentData = await paymentResponse.json()
+
+    console.log('📡 [BOOKING] Raw payment API response:', paymentData)
+    console.log('📡 [BOOKING] Response has checkout_url?', !!paymentData.checkout_url)
+    console.log('📡 [BOOKING] Checkout URL value:', paymentData.checkout_url)
+
+    if (!paymentResponse.ok || !paymentData.success) {
+      console.error('❌ [BOOKING] Payment initialization failed:', paymentData)
+      throw new Error(
+        paymentData.message || 'Failed to initialize payment'
+      )
+    }
+
+    console.log('✅ [BOOKING] Payment initialized successfully:', paymentData)
+
+    // Step 4: Store booking data in sessionStorage for post-payment retrieval
+    const bookingSessionData: BookingSessionData = {
       guest_id: guestId,
       room_id: props.room?.id || '',
       check_in_date: bookingForm.value.checkInDate,
       check_out_date: bookingForm.value.checkOutDate,
       number_of_guests: bookingForm.value.guests,
       special_requests: bookingForm.value.specialRequests,
-      status: 'pending' as const,
+      first_name: firstName,
+      last_name: lastName,
+      email: bookingForm.value.guestEmail,
+      phone: bookingForm.value.guestPhone,
+      payment_id: paymentData.payment_id,
+      tx_ref: paymentData.tx_ref,
+      price_breakdown: paymentData.price_breakdown, // Add price breakdown from API response
     }
 
-    console.log('📝 [BOOKING] Creating reservation with:', reservationData)
+    sessionStorage.setItem('booking_session', JSON.stringify(bookingSessionData))
+    console.log('📦 [BOOKING] Booking data stored in session storage', { booking_session: bookingSessionData })
 
-    const reservationResult = await reservationStore.createReservation(reservationData)
+    // IMPORTANT: Also store checkout_url separately to ensure it's not lost via query params
+    sessionStorage.setItem('chapa_checkout_url', paymentData.checkout_url)
+    console.log('🔗 [BOOKING] Chapa checkout URL stored in session:', paymentData.checkout_url)
 
-    console.log(' [BOOKING] Reservation created:', reservationResult)
+    // Step 5: Close modal and redirect to payment checkout
+    console.log('🔄 [BOOKING] Redirecting to payment checkout page...')
+    closeModal()
 
-    // Prepare booking success data
-    const successData: BookingSuccessData = {
-      booking_reference:
-        reservationResult.data?.booking_reference ||
-        reservationResult.booking_reference ||
-        'REF-' + Date.now(),
-      guest_name: bookingForm.value.guestName,
-      room_type: getRoomTypeName(props.room),
-      check_in_date: bookingForm.value.checkInDate,
-      check_out_date: bookingForm.value.checkOutDate,
-      number_of_guests: bookingForm.value.guests,
-      special_requests: bookingForm.value.specialRequests || undefined,
-    }
+    // Redirect to payment checkout with payment ID and checkout URL
+    setTimeout(() => {
+      router.push({
+        name: 'payment-checkout',
+        query: {
+          payment_id: paymentData.payment_id,
+          tx_ref: paymentData.tx_ref,
+          checkout_url: paymentData.checkout_url,
+        },
+      })
+    }, 300)
 
-    // Show success page instead of alert
-    bookingSuccess.value = successData
-    showSuccessPage.value = true
+    console.log('✅ [BOOKING] Payment flow initiated successfully')
 
-    // Emit event with booking data
-    emit('submit', reservationResult.data || reservationResult)
   } catch (error: any) {
-    console.error('❌ Booking error:', error)
-    console.error('❌ Error response:', error.response?.data)
-    console.error('❌ Error status:', error.response?.status)
+    console.error('❌ [BOOKING] Booking error:', error)
+    console.error('❌ [BOOKING] Error details:', error.response?.data || error.message)
 
-    // Handle specific error cases
     let errorMessage = 'Something went wrong'
 
-    if (error.response?.status === 422) {
-      // Validation error - extract from errors object
-      const responseData = error.response?.data
-      if (responseData?.errors && typeof responseData.errors === 'object') {
-        const errors = responseData.errors
-        const firstKey = Object.keys(errors)[0]
-        const firstError = errors[firstKey]
-        if (Array.isArray(firstError)) {
-          errorMessage = firstError[0]
-        } else if (typeof firstError === 'string') {
-          errorMessage = firstError
-        }
-      } else if (responseData?.message) {
-        errorMessage = responseData.message
-      }
-    } else if (error.response?.data?.message) {
+    if (error.response?.data?.message) {
       errorMessage = error.response.data.message
+    } else if (error.response?.data?.errors) {
+      const firstError = Object.values(error.response.data.errors)[0]
+      if (Array.isArray(firstError)) {
+        errorMessage = firstError[0]
+      }
     } else if (error.message) {
       errorMessage = error.message
     }
 
     alert(`❌ Error: ${errorMessage}`)
+  } finally {
+    isBooking.value = false
   }
 }
 
@@ -672,18 +795,18 @@ onMounted(() => {
             >
               <!-- Title -->
               <div class="border-b border-slate-200/80 pb-3">
-                <div class="flex items-start justify-between">
-                  <div>
-                    <h3 class="text-lg md:text-xl font-bold text-slate-900 line-clamp-1">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex-1 min-w-0">
+                    <h3 class="text-lg md:text-xl font-bold text-slate-900 leading-tight">
                       {{ getRoomTypeName(room) }}
                     </h3>
-                    <p class="text-sm text-slate-500">Room #{{ room.room_number }}</p>
+                    <p class="text-sm text-slate-500 mt-0.5">Room #{{ room.room_number }}</p>
                   </div>
-                  <div class="text-right">
-                    <span class="text-2xl font-bold text-amber-600"
-                      >ETB {{ getRoomPrice(room) }}</span
+                  <div class="text-right flex-shrink-0">
+                    <span class="text-2xl font-bold text-amber-600 whitespace-nowrap"
+                      >{{ getRoomPrice(room) }} <span class="text-base">ETB</span></span
                     >
-                    <span class="text-xs text-slate-500 block">/ night</span>
+                    <span class="text-xs text-slate-500 block mt-0.5">per night</span>
                   </div>
                 </div>
               </div>
@@ -700,14 +823,14 @@ onMounted(() => {
                 </span>
                 <span
                   v-if="getRoomAmenities(room).length > 4"
-                  class="text-xs text-slate-400 font-medium"
+                  class="text-xs text-slate-400 font-medium px-2.5 py-1"
                 >
                   +{{ getRoomAmenities(room).length - 4 }} more
                 </span>
               </div>
 
               <!-- Description -->
-              <p class="text-sm text-slate-600 leading-relaxed">
+              <p class="text-sm text-slate-600 leading-relaxed line-clamp-2">
                 {{ getRoomDescription(room) }}
               </p>
 
@@ -715,8 +838,8 @@ onMounted(() => {
               <div class="bg-amber-50/80 border border-amber-200/60 rounded-xl p-3 space-y-2">
                 <div class="flex justify-between items-center">
                   <div class="flex items-center gap-2">
-                    <Calendar class="w-4 h-4 text-amber-600" />
-                    <span class="text-xs font-semibold text-slate-700">Stay Duration</span>
+                    <Calendar class="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <span class="text-xs font-semibold text-slate-700">Duration</span>
                   </div>
                   <span class="text-sm font-bold text-slate-900"
                     >{{ calculateNights() }} Night{{ calculateNights() !== 1 ? 's' : '' }}</span
@@ -756,12 +879,15 @@ onMounted(() => {
 
               <!-- Price Breakdown -->
               <div class="border-t border-slate-200/80 pt-3 space-y-1.5">
+                <!-- Room -->
                 <div class="flex justify-between text-sm">
                   <span class="text-slate-600"
-                    >Room ({{ calculateNights() }} × ETB {{ getRoomPrice(room) }})</span
+                    >Room ({{ calculateNights() }} × {{ getRoomPrice(room) }} ETB)</span
                   >
-                  <span class="font-semibold text-slate-900">ETB {{ calculateRoomTotal() }}</span>
+                  <span class="font-semibold text-slate-900">{{ calculateRoomTotal() }} ETB</span>
                 </div>
+
+                <!-- Breakfast -->
                 <div
                   v-if="bookingForm.includeBreakfast"
                   class="flex justify-between text-sm text-emerald-600"
@@ -772,36 +898,61 @@ onMounted(() => {
                   </span>
                   <span>Free</span>
                 </div>
+
+                <!-- Dinner -->
                 <div
                   v-if="bookingForm.includeDinner"
                   class="flex justify-between text-sm text-slate-700"
                 >
                   <span class="flex items-center gap-1.5">
                     <Utensils class="w-3.5 h-3.5" />
-                    Dinner ({{ calculateNights() }} × ETB 45)
+                    Dinner ({{ calculateNights() }} × 45 ETB)
                   </span>
-                  <span>ETB {{ calculateNights() * 45 }}</span>
+                  <span>{{ calculateNights() * 45 }} ETB</span>
                 </div>
+
+                <!-- Spa -->
                 <div
                   v-if="bookingForm.includeSpa"
                   class="flex justify-between text-sm text-slate-700"
                 >
                   <span class="flex items-center gap-1.5">
                     <Sparkles class="w-3.5 h-3.5" />
-                    Spa ({{ calculateNights() }} × ETB 35)
+                    Spa ({{ calculateNights() }} × 35 ETB)
                   </span>
-                  <span>ETB {{ calculateNights() * 35 }}</span>
+                  <span>{{ calculateNights() * 35 }} ETB</span>
+                </div>
+
+                <!-- Subtotal (if services exist) -->
+                <div
+                  v-if="bookingForm.includeDinner || bookingForm.includeSpa"
+                  class="flex justify-between text-sm pt-1.5 border-t border-slate-200/60"
+                >
+                  <span class="text-slate-600">Subtotal</span>
+                  <span class="font-semibold text-slate-900">{{ getSubtotal().toFixed(2) }} ETB</span>
+                </div>
+
+                <!-- Tax -->
+                <div class="flex justify-between text-sm" :class="{'pt-1.5 border-t border-slate-200/60': !bookingForm.includeDinner && !bookingForm.includeSpa}">
+                  <span class="text-slate-600">Tax (15%)</span>
+                  <span class="font-semibold text-slate-900">{{ getTaxAmount().toFixed(2) }} ETB</span>
                 </div>
               </div>
 
               <!-- Grand Total -->
               <div
-                class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3 flex justify-between items-center"
+                class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-xl p-4 flex justify-between items-center shadow-sm"
               >
-                <span class="text-sm font-bold text-slate-800">Grand Total</span>
-                <span class="text-xl md:text-2xl font-bold text-amber-600"
-                  >ETB {{ calculateGrandTotal() }}</span
-                >
+                <div>
+                  <span class="text-xs text-amber-700 font-medium block mb-1">Total Amount</span>
+                  <span class="text-sm font-bold text-slate-800">Grand Total</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-2xl md:text-3xl font-bold text-amber-600 block"
+                    >{{ calculateGrandTotal().toFixed(2) }}</span
+                  >
+                  <span class="text-xs text-amber-700 font-medium">ETB</span>
+                </div>
               </div>
             </div>
           </div>
@@ -831,9 +982,10 @@ onMounted(() => {
                     {{ getRoomTypeName(room) }}
                   </h4>
                   <p class="text-xs text-slate-500">Room #{{ room.room_number }}</p>
-                  <p class="text-sm font-bold text-amber-600 mt-0.5">
-                    ETB {{ calculateGrandTotal() }}
+                  <p class="text-base font-bold text-amber-600 mt-0.5">
+                    ETB {{ calculateGrandTotal().toFixed(2) }}
                   </p>
+                  <p class="text-xs text-slate-500 mt-0.5">Includes tax (15%)</p>
                 </div>
               </div>
             </div>
@@ -1029,41 +1181,175 @@ onMounted(() => {
             Cancel
           </button>
           <button
-            @click="submitBooking"
-            :disabled="isBooking || roomStatus !== 'available'"
+            @click="openPaymentDialog"
+            :disabled="isBooking || roomStatus !== 'available' || !bookingForm.guestName || !bookingForm.guestEmail || !bookingForm.guestPhone"
             class="flex-1 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-70"
             :class="
               isBooking
                 ? 'bg-slate-700 text-white'
                 : roomStatus === 'available'
-                  ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:via-orange-600 hover:to-amber-700 text-white shadow-amber-500/30 hover:scale-[1.02]'
+                  ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:from-blue-700 hover:via-blue-800 hover:to-blue-900 text-white shadow-blue-500/30 hover:scale-[1.02]'
                   : 'bg-slate-300 text-slate-500'
             "
           >
             <!-- Loading -->
             <template v-if="isBooking">
               <Loader class="w-5 h-5 animate-spin" />
-              <span>Processing Booking...</span>
+              <span>Processing Payment...</span>
             </template>
 
             <!-- Normal -->
             <template v-else>
               <Sparkles class="w-5 h-5" />
-              <span>Complete Booking</span>
+              <span>💳 Proceed to Payment</span>
             </template>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Booking Success Page -->
-    <BookingSuccessPage
-      :isOpen="showSuccessPage"
-      :booking="bookingSuccess"
-      @close="closeSuccessPage"
-      @shareWhatsApp="() => {}"
-      @downloadPDF="() => {}"
-    />
+    <!-- Payment Confirmation Modal -->
+    <div v-if="showPaymentDialog" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[85vh] flex flex-col overflow-hidden">
+        <!-- Header - Compact -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-4 text-white flex-shrink-0">
+          <h3 class="text-xl font-bold mb-1">Payment Confirmation</h3>
+          <p class="text-blue-100 text-sm">Review your booking details before payment</p>
+        </div>
+
+        <!-- Content - Scrollable -->
+        <div class="p-5 space-y-3 overflow-y-auto flex-1">
+          <!-- Booking Summary -->
+          <div class="space-y-2">
+            <h4 class="font-semibold text-slate-900 text-sm">Booking Summary</h4>
+            
+            <!-- Room -->
+            <div class="flex justify-between items-start text-xs">
+              <span class="text-slate-600">Room:</span>
+              <span class="font-medium text-slate-900 text-right">{{ props.room?.room_number || 'N/A' }} - {{ getRoomTypeName(props.room) }}</span>
+            </div>
+
+            <!-- Check-in -->
+            <div class="flex justify-between items-start text-xs">
+              <span class="text-slate-600">Check-in:</span>
+              <span class="font-medium text-slate-900">{{ bookingForm.checkInDate }}</span>
+            </div>
+
+            <!-- Check-out -->
+            <div class="flex justify-between items-start text-xs">
+              <span class="text-slate-600">Check-out:</span>
+              <span class="font-medium text-slate-900">{{ bookingForm.checkOutDate }}</span>
+            </div>
+
+            <!-- Nights -->
+            <div class="flex justify-between items-start text-xs">
+              <span class="text-slate-600">Nights:</span>
+              <span class="font-medium text-slate-900">{{ calculateNights() }}</span>
+            </div>
+
+            <!-- Guests -->
+            <div class="flex justify-between items-start text-xs">
+              <span class="text-slate-600">Guests:</span>
+              <span class="font-medium text-slate-900">{{ bookingForm.guests }}</span>
+            </div>
+
+            <!-- Special Requests (if provided) -->
+            <div v-if="bookingForm.specialRequests && bookingForm.specialRequests.trim()" class="flex flex-col gap-1 text-xs pt-2 border-t-2 border-amber-200">
+              <div class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                </svg>
+                <span class="text-slate-700 font-bold">Special Requests:</span>
+              </div>
+              <div class="bg-amber-50 border-2 border-amber-200 rounded-lg p-2">
+                <p class="text-slate-900 text-xs leading-relaxed whitespace-pre-wrap">{{ bookingForm.specialRequests }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="border-t border-slate-200 pt-3"></div>
+
+          <!-- Price Breakdown -->
+          <div class="space-y-1.5">
+            <!-- Room -->
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-600">{{ calculateNights() }} nights × {{ getRoomPrice(props.room) }} ETB</span>
+              <span class="font-medium text-slate-900">{{ calculateRoomTotal().toFixed(2) }} ETB</span>
+            </div>
+
+            <!-- Services -->
+            <div v-if="bookingForm.includeBreakfast" class="flex justify-between text-xs text-emerald-600">
+              <span class="flex items-center gap-1">
+                <Coffee class="w-3 h-3" />
+                Breakfast (Free)
+              </span>
+              <span class="font-medium">0.00 ETB</span>
+            </div>
+
+            <div v-if="bookingForm.includeDinner" class="flex justify-between text-xs">
+              <span class="text-slate-600 flex items-center gap-1">
+                <Utensils class="w-3 h-3" />
+                Dinner ({{ calculateNights() }} × 45 ETB)
+              </span>
+              <span class="font-medium text-slate-900">{{ (calculateNights() * 45).toFixed(2) }} ETB</span>
+            </div>
+
+            <div v-if="bookingForm.includeSpa" class="flex justify-between text-xs">
+              <span class="text-slate-600 flex items-center gap-1">
+                <Sparkles class="w-3 h-3" />
+                Spa ({{ calculateNights() }} × 35 ETB)
+              </span>
+              <span class="font-medium text-slate-900">{{ (calculateNights() * 35).toFixed(2) }} ETB</span>
+            </div>
+
+            <!-- Subtotal if services exist -->
+            <div v-if="bookingForm.includeDinner || bookingForm.includeSpa" class="flex justify-between text-xs pt-1.5 border-t border-slate-200">
+              <span class="text-slate-600">Subtotal</span>
+              <span class="font-medium text-slate-900">{{ getSubtotal().toFixed(2) }} ETB</span>
+            </div>
+
+            <!-- Tax -->
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-600">Tax (15%)</span>
+              <span class="font-medium text-slate-900">{{ getTaxAmount().toFixed(2) }} ETB</span>
+            </div>
+
+            <!-- Total -->
+            <div class="flex justify-between text-sm font-bold pt-1.5 border-t border-slate-200">
+              <span class="text-slate-900">Total Amount:</span>
+              <span class="text-blue-600">{{ getTotalAmount().toFixed(2) }} ETB</span>
+            </div>
+          </div>
+
+          <!-- Terms -->
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs text-blue-700">
+            ✓ Your payment is secure and processed through Chapa payment gateway
+          </div>
+        </div>
+
+        <!-- Actions - Fixed at bottom -->
+        <div class="bg-slate-50 px-5 py-3 flex gap-2.5 flex-shrink-0 border-t border-slate-200">
+          <button
+            @click="closePaymentDialog"
+            :disabled="paymentLoading"
+            class="flex-1 px-4 py-2 text-sm font-medium border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700 transition duration-200 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+
+          <button
+            @click="proceedWithPayment"
+            :disabled="paymentLoading"
+            class="flex-1 px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            <span v-if="paymentLoading" class="animate-spin">⌛</span>
+            <span v-if="paymentLoading">Processing...</span>
+            <span v-else>💳 Pay Now</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </Teleport>
 </template>
 

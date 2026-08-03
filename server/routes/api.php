@@ -39,15 +39,82 @@ use App\Http\Controllers\Api\Waiter\WaiterAssignmentController;
 use App\Http\Controllers\Api\Waiter\WaiterHistoryController;
 use App\Http\Controllers\Api\Waiter\WaiterProfileController;
 use App\Http\Controllers\Api\Waiter\WaiterNotificationController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\ReservationPaymentController;
+use App\Http\Controllers\Api\GuestOrderPaymentController;
+
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/rooms', [RoomController::class, 'index']);
 Route::get('/rooms/{room}', [RoomController::class, 'show']);
-Route::post('/reservations', [ReservationController::class, 'store']);
+// ⚠️ IMPORTANT: Reservation creation is ONLY allowed through payment flow
+// Direct POST to /reservations is DISABLED to enforce payment requirement
+// Route::post('/reservations', [ReservationController::class, 'store']); // DISABLED - Use payment flow instead
 Route::post('/guests', [GuestController::class, 'store']);
 Route::get('/guests', [GuestController::class, 'index']);
 Route::get('/qr-codes/download/{roomId}', [QRCodePrintController::class, 'downloadQRCode']);
 Route::get('/qr-codes/print/{roomId}', [QRCodePrintController::class, 'getPrintTemplate']);
+
+// Public Payment Routes (Callback and Verification)
+Route::prefix('payments')->group(function () {
+    Route::post('/initialize', [PaymentController::class, 'initialize']);
+    Route::get('/verify/{txRef}', [PaymentController::class, 'verify']);
+    Route::get('/status/{txRef}', [PaymentController::class, 'getByTransactionRef']);
+    Route::get('/callback', [PaymentController::class, 'callback']);
+});
+
+// Public Reservation Payment Routes (No authentication required for guest booking)
+Route::prefix('reservation-payments')->group(function () {
+    Route::post('/initialize', [ReservationPaymentController::class, 'initializePayment']);
+    Route::post('/complete/{txRef}', [ReservationPaymentController::class, 'completeReservation']);
+    Route::get('/{txRef}', [ReservationPaymentController::class, 'getReservationByPayment']);
+    
+    // Test endpoints for debugging
+    Route::get('/test/debug', function () {
+        return response()->json([
+            'message' => 'API is working',
+            'debug' => config('app.debug'),
+            'chapa_config' => [
+                'base_url' => config('chapa.base_url'),
+                'has_secret' => !empty(config('chapa.secret_key')),
+                'callback_url' => config('chapa.callback_url'),
+                'return_url' => config('chapa.return_url'),
+            ],
+        ]);
+    });
+    
+    // Test Chapa connection
+    Route::post('/test/chapa', function (\App\Services\ChapaService $chapaService) {
+        try {
+            $response = $chapaService->initialize([
+                'amount'       => 100, // Test amount in ETB
+                'currency'     => 'ETB',
+                'email'        => 'test@example.com',
+                'first_name'   => 'Test',
+                'last_name'    => 'User',
+                'phone'        => '+251912345678',
+                'tx_ref'       => 'TEST-' . now()->timestamp,
+                'callback_url' => config('chapa.callback_url'),
+                'return_url'   => config('chapa.return_url'),
+                'title'        => 'Test Payment',
+                'description'  => 'Testing Chapa connection',
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Chapa test call completed',
+                'chapa_response' => $response,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ], 500);
+        }
+    });
+});
+
 Route::prefix('guest')->group(function () {
     Route::get('/menu/items', [GuestOrderController::class, 'getAllMenuItems']);
     Route::get('/menu/{qrToken}', [GuestOrderController::class, 'getRoom']);
@@ -62,6 +129,27 @@ Route::prefix('qr-code')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Authenticated Payment Routes
+    Route::prefix('payments')->group(function () {
+        Route::get('/', [PaymentController::class, 'index']);
+        Route::get('/{paymentId}', [PaymentController::class, 'getStatus']);
+    });
+
+    // Authenticated Reservation Management (Receptionist/Admin only)
+    // ⚠️ IMPORTANT: Direct reservation creation is disabled
+    // Reservations MUST be created through payment flow only
+    Route::middleware('role:receptionist|admin')->group(function () {
+        Route::get('/reservations', [ReservationController::class, 'index']);
+        Route::get('/reservations/{reservation}', [ReservationController::class, 'show']);
+        Route::put('/reservations/{reservation}', [ReservationController::class, 'update']);
+        Route::patch('/reservations/{reservation}', [ReservationController::class, 'update']);
+        Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy']);
+        Route::post('/reservations/{reservation}/confirm', [ReservationController::class, 'confirm']);
+        Route::post('/reservations/{reservation}/check-in', [ReservationController::class, 'checkIn']);
+        Route::post('/reservations/{reservation}/check-out', [ReservationController::class, 'checkOut']);
+        Route::post('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel']);
+    });
     Route::middleware('role:admin')->group(function () {
         Route::get('/admin/dashboard', [DashboardController::class, 'index']);
         Route::get('/users', [UserController::class, 'index']);
@@ -161,8 +249,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/admin-reservations/{reservation}/check-in', [ReservationController::class, 'checkIn']);
         Route::post('/admin-reservations/{reservation}/check-out', [ReservationController::class, 'checkOut']);
         Route::post('/admin-reservations/{reservation}/cancel', [ReservationController::class, 'cancel']);
-
-        Route::prefix('check-ins')->group(function () {
+        Route::prefix('check-in')->group(function () {
             Route::get('/statistics', [CheckInController::class, 'statistics']);
             Route::get('/', [CheckInController::class, 'index']);
             Route::post('/', [CheckInController::class, 'store']);

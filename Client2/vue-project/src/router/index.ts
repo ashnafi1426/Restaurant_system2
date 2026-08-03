@@ -40,6 +40,10 @@ import ReservationEditPage from '../views/receptionist/reservation/ReservationEd
 import CheckInView from '../views/receptionist/checkIn/checkInView.vue'
 import AddOrder from '@/views/Admin/order/AddOrder.vue'
 import QRMenu from '../views/guest/QRMenu.vue'
+import PaymentSuccessPage from '../views/payment/PaymentSuccessPage.vue'
+import PaymentFailedPage from '../views/payment/PaymentFailedPage.vue'
+import PaymentPendingPage from '../views/payment/PaymentPendingPage.vue'
+import CheckoutPage from '../views/payment/CheckoutPage.vue'
 import managerRoutes from './managerRouter'
 import waiterRoutes from './waiterRouter'
 const router = createRouter({
@@ -450,6 +454,54 @@ const router = createRouter({
         requiresAuth: false,
       },
     },
+
+    // ============================================================================
+    // Payment Routes
+    // ============================================================================
+    // Payment checkout page - Initialize payment
+    {
+      path: '/payment/checkout',
+      name: 'payment-checkout',
+      component: CheckoutPage,
+      meta: {
+        title: 'Payment Checkout',
+        requiresAuth: false,
+      },
+    },
+
+    // Payment success page - After successful payment
+    {
+      path: '/payment/success',
+      name: 'payment-success',
+      component: PaymentSuccessPage,
+      meta: {
+        title: 'Payment Successful',
+        requiresAuth: false,
+      },
+    },
+
+    // Payment failed page - If payment failed
+    {
+      path: '/payment/failed',
+      name: 'payment-failed',
+      component: PaymentFailedPage,
+      meta: {
+        title: 'Payment Failed',
+        requiresAuth: false,
+      },
+    },
+
+    // Payment pending page - Payment is being processed
+    {
+      path: '/payment/pending',
+      name: 'payment-pending',
+      component: PaymentPendingPage,
+      meta: {
+        title: 'Payment Pending',
+        requiresAuth: false,
+      },
+    },
+
     ...managerRoutes,
     ...waiterRoutes,
   ],

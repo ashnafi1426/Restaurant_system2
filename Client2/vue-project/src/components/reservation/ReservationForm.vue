@@ -1,50 +1,63 @@
 <script setup lang="ts">
-import { computed, ref, reactive } from 'vue'
-import api from '@/api/auth'
+import { ref, computed } from 'vue'
+import axios from 'axios'
 
-import type { Reservation } from '@/types/reservation'
-import type { Room } from '@/types/room'
+interface Room {
+  id: number
+  room_number: string | number
+  floor: number
+  status: string
+  description: string
+  room_type: {
+    id: number
+    name: string
+    capacity: number
+    base_price_per_night: number
+  } | string
+}
 
 interface Props {
-  modelValue: Reservation
   rooms: Room[]
   loading?: boolean
 }
 
-const props = defineProps<Props>()
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: Reservation): void
-  (e: 'submit'): void
-}>()
-
-const form = computed({
-  get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val),
+const props = withDefaults(defineProps<Props>(), {
+  loading: false,
 })
 
-// Guest registration
-const registrationError = ref('')
-const registrationSuccess = ref('')
+const emit = defineEmits<{
+  submit: [formData: any]
+}>()
 
-// New guest registration form
-const newGuestForm = reactive({
+// Registration form
+const newGuestForm = ref({
   first_name: '',
   last_name: '',
   email: '',
   phone: '',
 })
 
-// Room search states
+const registrationError = ref('')
+const registrationSuccess = ref('')
+
+// Reservation form
+const form = ref({
+  guest_id: '',
+  room_id: '',
+  check_in_date: '',
+  check_out_date: '',
+  number_of_guests: 1,
+  special_requests: '',
+})
+
 const roomSearch = ref('')
 const showRoomDropdown = ref(false)
+const showPaymentDialog = ref(false)
+const paymentLoading = ref(false)
 
-// Filter rooms based on search (by room number, floor, type, status, or id)
 const filteredRooms = computed(() => {
-  if (!roomSearch.value.trim()) return props.rooms
+  let search = roomSearch.value.toLowerCase().trim()
 
-  let search = roomSearch.value.toLowerCase()
-
-  // Remove "room" or "rm" prefix if user typed it
   if (search.startsWith('room ')) {
     search = search.replace('room ', '').trim()
   }
@@ -124,13 +137,164 @@ const nights = computed(() => {
   return Math.max(diff / (1000 * 60 * 60 * 24), 0)
 })
 
+// Get the selected room object
+const selectedRoom = computed(() => {
+  if (!form.value.room_id) return null
+  return props.rooms.find(r => r.id === form.value.room_id)
+})
+
+// Get price per night from selected room
+const pricePerNight = computed(() => {
+  if (!selectedRoom.value) return 0
+  return selectedRoom.value.room_type?.base_price_per_night || 0
+})
+
+// Calculate subtotal (nights × price per night)
+const subtotal = computed(() => {
+  return nights.value * pricePerNight.value
+})
+
+// Calculate tax (15%)
+const taxAmount = computed(() => {
+  return subtotal.value * 0.15
+})
+
+// Calculate total amount (subtotal + tax)
+const totalAmount = computed(() => {
+  return subtotal.value + taxAmount.value
+})
+
+// Open payment dialog - validates form before showing dialog
+function openPaymentDialog() {
+  if (isPastDate.value) {
+    alert('Check-in date cannot be in the past')
+    return
+  }
+
+  if (!isValidDateRange.value) {
+    alert('Check-out date must be after check-in date')
+    return
+  }
+
+  if (!form.value.guest_id) {
+    alert('Please register as a guest to continue')
+    return
+  }
+
+  if (!form.value.room_id) {
+    alert('Please select a room')
+    return
+  }
+
+  if (!selectedRoom.value) {
+    alert('Room not found')
+    return
+  }
+
+  // All validations passed, show dialog
+  showPaymentDialog.value = true
+}
+
+// Close payment dialog without proceeding
+function closePaymentDialog() {
+  showPaymentDialog.value = false
+}
+
+// Proceed to payment - called when user clicks "Pay Now" in dialog
+const proceedToPayment = async () => {
+  paymentLoading.value = true
+
+  try {
+    console.log('[RESERVATION] Initiating payment with data:', {
+      room_id: form.value.room_id,
+      guest_id: form.value.guest_id,
+      check_in_date: form.value.check_in_date,
+      check_out_date: form.value.check_out_date,
+      number_of_guests: form.value.number_of_guests,
+      total_amount: totalAmount.value,
+    })
+
+    // Initialize payment with reservation details
+    const paymentResponse = await axios.post(
+      'http://127.0.0.1:8000/api/reservation-payments/initialize',
+      {
+        room_id: form.value.room_id,
+        guest_id: form.value.guest_id,
+        check_in_date: form.value.check_in_date,
+        check_out_date: form.value.check_out_date,
+        number_of_guests: form.value.number_of_guests,
+        special_requests: form.value.special_requests,
+        first_name: newGuestForm.value.first_name,
+        last_name: newGuestForm.value.last_name,
+        email: newGuestForm.value.email,
+        phone: newGuestForm.value.phone,
+      }
+    )
+
+    console.log('[RESERVATION] Payment initialization response:', paymentResponse.data)
+
+    if (paymentResponse.data.success && paymentResponse.data.checkout_url) {
+      // Store reservation data in sessionStorage for post-payment verification
+      const reservationData = {
+        payment_id: paymentResponse.data.payment_id,
+        tx_ref: paymentResponse.data.tx_ref,
+        room_id: form.value.room_id,
+        guest_id: form.value.guest_id,
+        check_in_date: form.value.check_in_date,
+        check_out_date: form.value.check_out_date,
+        number_of_guests: form.value.number_of_guests,
+        special_requests: form.value.special_requests,
+        first_name: newGuestForm.value.first_name,
+        last_name: newGuestForm.value.last_name,
+        email: newGuestForm.value.email,
+        phone: newGuestForm.value.phone,
+        total_amount: paymentResponse.data.amount,
+        timestamp: new Date().toISOString(),
+      }
+      
+      sessionStorage.setItem('reservationPaymentData', JSON.stringify(reservationData))
+
+      console.log('[RESERVATION] Redirecting to Chapa checkout:', paymentResponse.data.checkout_url)
+
+      // Close dialog and redirect to Chapa checkout
+      showPaymentDialog.value = false
+      window.location.href = paymentResponse.data.checkout_url
+    } else {
+      const message = paymentResponse.data.message || 'Failed to initialize payment'
+      console.error('[RESERVATION] Payment initialization failed:', message)
+      alert('Failed to initialize payment: ' + message)
+      paymentLoading.value = false
+    }
+  } catch (error: any) {
+    console.error('[RESERVATION] Payment error:', error)
+    console.error('[RESERVATION] Full error response:', error.response?.data)
+    
+    let message = 'An error occurred'
+    if (error.response?.data?.error) {
+      message = error.response.data.error
+    } else if (error.response?.data?.message) {
+      message = error.response.data.message
+    } else if (error.message) {
+      message = error.message
+    }
+    
+    // If there's debug info, log it
+    if (error.response?.data?.debug_info) {
+      console.error('[RESERVATION] Debug Info:', error.response.data.debug_info)
+    }
+    
+    alert('Payment initialization failed: ' + message)
+    paymentLoading.value = false
+  }
+}
+
 // Register new guest
 async function registerGuest() {
   registrationError.value = ''
   registrationSuccess.value = ''
 
   // Validate required fields
-  if (!newGuestForm.first_name || !newGuestForm.last_name || !newGuestForm.phone) {
+  if (!newGuestForm.value.first_name || !newGuestForm.value.last_name || !newGuestForm.value.phone) {
     registrationError.value = 'First name, last name, and phone are required'
     return
   }
@@ -141,7 +305,7 @@ async function registerGuest() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(newGuestForm),
+      body: JSON.stringify(newGuestForm.value),
     })
 
     if (!response.ok) {
@@ -162,7 +326,7 @@ async function registerGuest() {
     setTimeout(() => {
       registrationSuccess.value = ''
       // Reset registration form
-      Object.assign(newGuestForm, {
+      Object.assign(newGuestForm.value, {
         first_name: '',
         last_name: '',
         email: '',
@@ -174,31 +338,7 @@ async function registerGuest() {
   }
 }
 
-const submit = () => {
-  if (props.loading) {
-    return
-  }
 
-  if (isPastDate.value) {
-    return
-  }
-
-  if (!isValidDateRange.value) {
-    return
-  }
-
-  if (!form.value.guest_id) {
-    alert('Please register as a guest to continue')
-    return
-  }
-
-  if (!form.value.room_id) {
-    alert('Please select a room')
-    return
-  }
-
-  emit('submit')
-}
 </script>
 
 <template>
@@ -269,7 +409,7 @@ const submit = () => {
             <input
               v-model="newGuestForm.email"
               type="email"
-              placeholder="john@example.com"
+              placeholder="john@gmail.com"
               class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -280,9 +420,10 @@ const submit = () => {
             <input
               v-model="newGuestForm.phone"
               type="tel"
-              placeholder="+1 (555) 123-4567"
+              placeholder="+251912345678"
               class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
+            <p class="text-xs text-slate-500 mt-1">Use format: +251912345678 or 0912345678</p>
           </div>
         </div>
 
@@ -322,8 +463,8 @@ const submit = () => {
       <div v-if="form.room_id && !showRoomDropdown" class="text-xs text-slate-600 mt-1">
         ✓ Selected:
         {{
-          filteredRooms.find((r) => r.id === form.room_id)
-            ? formatRoomDisplay(filteredRooms.find((r) => r.id === form.room_id)!)
+          selectedRoom
+            ? formatRoomDisplay(selectedRoom)
             : 'Loading...'
         }}
       </div>
@@ -432,6 +573,32 @@ const submit = () => {
       </div>
     </div>
 
+    <!-- Price Breakdown (if room selected and dates valid) -->
+    <div
+      v-if="form.room_id && form.check_in_date && form.check_out_date && isValidDateRange && nights > 0"
+      class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 sm:p-5 rounded-lg border border-green-200"
+    >
+      <h3 class="font-semibold text-slate-900 text-sm mb-3">Price Breakdown</h3>
+      <div class="space-y-2 text-xs sm:text-sm">
+        <!-- Subtotal row -->
+        <div class="flex justify-between text-slate-700">
+          <span>{{ nights }} {{ nights === 1 ? 'night' : 'nights' }} × {{ pricePerNight }} ETB</span>
+          <span class="font-medium">{{ subtotal.toFixed(2) }} ETB</span>
+        </div>
+        <!-- Tax row -->
+        <div class="flex justify-between text-slate-700">
+          <span>Tax (15%)</span>
+          <span class="font-medium">{{ taxAmount.toFixed(2) }} ETB</span>
+        </div>
+        <!-- Total row -->
+        <div class="border-t border-green-200 pt-2 flex justify-between">
+          <span class="font-semibold text-slate-900">Total Amount</span>
+          <span class="text-lg font-bold text-green-600">{{ totalAmount.toFixed(2) }} ETB</span>
+        </div>
+      </div>
+      <p class="text-xs text-slate-500 mt-3">💳 You will pay this amount via Chapa Payment Gateway</p>
+    </div>
+
     <!-- Actions -->
     <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
       <button
@@ -443,16 +610,112 @@ const submit = () => {
 
       <button
         type="button"
-        @click="submit"
+        @click="openPaymentDialog"
         :disabled="loading || !isValidDateRange || isPastDate || !form.guest_id || !form.room_id"
         class="px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
       >
         <span v-if="loading" class="inline-flex items-center gap-2">
           <span class="animate-spin">⌛</span>
-          Saving...
+          Processing...
         </span>
-        <span v-else>💾 Save Reservation</span>
+        <span v-else>💳 Proceed to Payment</span>
       </button>
+    </div>
+
+    <!-- Payment Confirmation Dialog -->
+    <div v-if="showPaymentDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+        <!-- Dialog Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-8 text-white">
+          <h3 class="text-2xl font-bold mb-2">Payment Confirmation</h3>
+          <p class="text-blue-100">Review your booking details before payment</p>
+        </div>
+
+        <!-- Dialog Content -->
+        <div class="p-6 space-y-4">
+          <!-- Booking Summary -->
+          <div class="space-y-3">
+            <h4 class="font-semibold text-slate-900">Booking Summary</h4>
+            
+            <!-- Room -->
+            <div class="flex justify-between items-start text-sm">
+              <span class="text-slate-600">Room:</span>
+              <span class="font-medium text-slate-900">{{ selectedRoom?.room_number || 'N/A' }}</span>
+            </div>
+
+            <!-- Check-in -->
+            <div class="flex justify-between items-start text-sm">
+              <span class="text-slate-600">Check-in:</span>
+              <span class="font-medium text-slate-900">{{ form.check_in_date }}</span>
+            </div>
+
+            <!-- Check-out -->
+            <div class="flex justify-between items-start text-sm">
+              <span class="text-slate-600">Check-out:</span>
+              <span class="font-medium text-slate-900">{{ form.check_out_date }}</span>
+            </div>
+
+            <!-- Nights -->
+            <div class="flex justify-between items-start text-sm">
+              <span class="text-slate-600">Nights:</span>
+              <span class="font-medium text-slate-900">{{ nights }}</span>
+            </div>
+
+            <!-- Guests -->
+            <div class="flex justify-between items-start text-sm">
+              <span class="text-slate-600">Guests:</span>
+              <span class="font-medium text-slate-900">{{ form.number_of_guests }}</span>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="border-t border-slate-200 pt-4"></div>
+
+          <!-- Price Breakdown -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-600">{{ nights }} nights × {{ pricePerNight }} ETB</span>
+              <span class="font-medium text-slate-900">{{ subtotal.toFixed(2) }} ETB</span>
+            </div>
+
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-600">Tax (15%)</span>
+              <span class="font-medium text-slate-900">{{ taxAmount.toFixed(2) }} ETB</span>
+            </div>
+
+            <div class="flex justify-between text-base font-bold pt-2 border-t border-slate-200">
+              <span class="text-slate-900">Total Amount:</span>
+              <span class="text-blue-600">{{ totalAmount.toFixed(2) }} ETB</span>
+            </div>
+          </div>
+
+          <!-- Terms -->
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-700">
+            ✓ Your payment is secure and processed through Chapa payment gateway
+          </div>
+        </div>
+
+        <!-- Dialog Actions -->
+        <div class="bg-slate-50 px-6 py-4 flex gap-3">
+          <button
+            @click="closePaymentDialog"
+            :disabled="paymentLoading"
+            class="flex-1 px-4 py-2 text-sm font-medium border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700 transition duration-200 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+
+          <button
+            @click="proceedToPayment"
+            :disabled="paymentLoading"
+            class="flex-1 px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            <span v-if="paymentLoading" class="animate-spin">⌛</span>
+            <span v-if="paymentLoading">Processing...</span>
+            <span v-else>💳 Pay Now</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
