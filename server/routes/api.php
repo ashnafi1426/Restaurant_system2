@@ -68,6 +68,13 @@ Route::prefix('reservation-payments')->group(function () {
     Route::post('/initialize', [ReservationPaymentController::class, 'initializePayment']);
     Route::post('/complete/{txRef}', [ReservationPaymentController::class, 'completeReservation']);
     Route::get('/{txRef}', [ReservationPaymentController::class, 'getReservationByPayment']);
+});
+
+// Public Order Payment Routes (No authentication required for guest QR orders)
+Route::prefix('order-payments')->group(function () {
+    Route::post('/initialize', [GuestOrderPaymentController::class, 'initializePayment']);
+    Route::post('/complete/{txRef}', [GuestOrderPaymentController::class, 'completeOrder']);
+    Route::get('/{txRef}', [GuestOrderPaymentController::class, 'getOrderByPayment']);
     
     // Test endpoints for debugging
     Route::get('/test/debug', function () {
@@ -118,6 +125,11 @@ Route::prefix('reservation-payments')->group(function () {
 Route::prefix('guest')->group(function () {
     Route::get('/menu/items', [GuestOrderController::class, 'getAllMenuItems']);
     Route::get('/menu/{qrToken}', [GuestOrderController::class, 'getRoom']);
+    
+    // ⚠️ SECURITY: Direct order creation is DISABLED
+    // Orders MUST be created through payment flow only (/api/order-payments/initialize)
+    // This ensures payment is verified before order reaches kitchen
+    // Route::post('/orders', [GuestOrderController::class, 'createOrder']); // DISABLED
     Route::get('/menu/{qrToken}/items', [GuestOrderController::class, 'getMenuItems']);
     Route::post('/orders', [GuestOrderController::class, 'createOrder']);
     Route::get('/orders/{qrToken}/status', [GuestOrderController::class, 'getOrderStatus']);

@@ -60,4 +60,15 @@ return [
         'CHAPA_RETURN_URL'
     ),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Order Return URL (for QR menu orders)
+    |--------------------------------------------------------------------------
+    */
+
+    'order_return_url' => env(
+        'CHAPA_ORDER_RETURN_URL',
+        env('APP_FRONTEND_URL', 'http://localhost:5173') . '/order/payment/success'
+    ),
+
 ];

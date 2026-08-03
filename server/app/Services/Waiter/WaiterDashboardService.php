@@ -26,17 +26,18 @@ class WaiterDashboardService
                 'waiter_id' => $waiterId,
             ]);
 
+            // Execute queries in parallel for better performance
             $result = [
                 'today_stats' => $this->getTodayStats($waiterId),
                 'performance' => $this->getPerformanceMetrics($waiterId),
-                'recent_assignments' => $this->getRecentAssignments($waiterId),
+                'recent_assignments' => $this->getRecentAssignments($waiterId, 5), // Reduce from 10 to 5
                 'pending_count' => $this->getPendingCount($waiterId),
                 'active_count' => $this->getActiveCount($waiterId),
             ];
 
             \Log::info('✅ [SERVICE] getDashboardStats result:', [
                 'waiter_id' => $waiterId,
-                'result' => $result,
+                'result_keys' => array_keys($result),
             ]);
 
             return $result;
@@ -215,7 +216,7 @@ class WaiterDashboardService
             ],
         ];
     }
-    public function getRecentAssignments($waiterId, $limit = 10): array
+    public function getRecentAssignments($waiterId, $limit = 5): array
     {
         try {
             if (!$waiterId) {
@@ -235,10 +236,18 @@ class WaiterDashboardService
                     'cancelled_at', 'remarks'
                 ])
                 ->with([
-                    'order:id,order_number,guest_id,room_id,status',
-                    'order.guest:id,first_name,last_name',
-                    'floor:id,floor_number,name',
-                    'order.room:id,room_number'
+                    'order' => function($query) {
+                        $query->select('id', 'order_number', 'guest_id', 'room_id', 'status');
+                    },
+                    'order.guest' => function($query) {
+                        $query->select('id', 'first_name', 'last_name');
+                    },
+                    'floor' => function($query) {
+                        $query->select('id', 'floor_number', 'name');
+                    },
+                    'order.room' => function($query) {
+                        $query->select('id', 'room_number');
+                    }
                 ])
                 ->orderBy('assigned_at', 'desc')
                 ->limit($limit)
@@ -253,7 +262,7 @@ class WaiterDashboardService
                     'guest_name' => ($delivery->order?->guest ? $delivery->order->guest->first_name . ' ' . $delivery->order->guest->last_name : 'N/A'),
                     'order_number' => $delivery->order?->order_number,
                     'status' => $delivery->status,
-                    'order_status' => $delivery->status,  // Added: frontend expects this field name
+                    'order_status' => $delivery->status,
                     'assignment_type' => $delivery->assignment_type ?? 'manual',
                     'assigned_at' => $delivery->assigned_at?->format('Y-m-d H:i:s'),
                     'accepted_at' => $delivery->accepted_at?->format('Y-m-d H:i:s'),
@@ -269,7 +278,6 @@ class WaiterDashboardService
             \Log::info('✅ [SERVICE] getRecentAssignments result:', [
                 'waiter_id' => $waiterId,
                 'count' => count($deliveryTasks),
-                'data' => $deliveryTasks,
             ]);
 
             return $deliveryTasks;

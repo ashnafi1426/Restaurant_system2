@@ -22,6 +22,16 @@ class ChapaService
     public function initialize(array $data): array
     {
         try {
+            // Ensure title doesn't exceed 16 characters (Chapa limitation)
+            $title = $data['title'] ?? 'Hotel Payment';
+            if (strlen($title) > 16) {
+                $title = substr($title, 0, 16);
+                Log::warning('Chapa title truncated to 16 characters', [
+                    'original' => $data['title'] ?? null,
+                    'truncated' => $title,
+                ]);
+            }
+            
             // Ensure all required fields are present and properly formatted
             $payload = [
                 'amount'       => (int)$data['amount'],
@@ -34,7 +44,7 @@ class ChapaService
                 'callback_url' => (string)$data['callback_url'],
                 'return_url'   => (string)$data['return_url'],
                 'customization' => [
-                    'title'       => $data['title'] ?? 'Hotel Management',
+                    'title'       => $title,
                     'description' => $data['description'] ?? 'Hotel Payment',
                 ],
             ];
@@ -47,6 +57,8 @@ class ChapaService
                 'amount'   => $payload['amount'],
                 'email'    => $payload['email'],
                 'tx_ref'   => $payload['tx_ref'],
+                'title'    => $title,
+                'title_length' => strlen($title),
                 'base_url' => $this->baseUrl,
                 'has_secret' => !empty($this->secretKey),
             ]);

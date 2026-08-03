@@ -381,10 +381,25 @@ onMounted(async () => {
 
   // Try to get reservation data from storage FIRST (before showing)
   console.log('📦 [PAYMENT SUCCESS] STEP 1: Reading from sessionStorage...')
-  const storedData = sessionStorage.getItem('reservationPaymentData')
+  
+  // Try both possible keys (legacy and new)
+  let storedData = sessionStorage.getItem('reservationPaymentData')
+  if (!storedData) {
+    storedData = sessionStorage.getItem('booking_session')
+    console.log('📦 [PAYMENT SUCCESS] Trying legacy key: booking_session')
+  }
+  
   if (storedData) {
     try {
-      reservationData.value = JSON.parse(storedData)
+      const parsed = JSON.parse(storedData)
+      reservationData.value = parsed
+      
+      // If txRef wasn't in URL, try to get it from stored data
+      if (!txRef.value && parsed.tx_ref) {
+        txRef.value = parsed.tx_ref
+        console.log('✅ [PAYMENT SUCCESS] Got tx_ref from sessionStorage:', txRef.value)
+      }
+      
       console.log('✅ [PAYMENT SUCCESS] Got data from sessionStorage:', reservationData.value)
     } catch (error) {
       console.error('❌ [PAYMENT SUCCESS] Failed to parse stored data:', error)

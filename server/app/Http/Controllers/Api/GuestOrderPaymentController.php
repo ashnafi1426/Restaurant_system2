@@ -130,6 +130,9 @@ class GuestOrderPaymentController extends Controller
             ]);
 
             // Initialize payment with Chapa
+            // IMPORTANT: Chapa has strict 16-character limit on title
+            $title = 'Order Payment'; // 14 characters - safe for Chapa
+            
             $chapaResponse = $this->chapaService->initialize([
                 'amount'       => $payment->amount,
                 'currency'     => 'ETB',
@@ -139,10 +142,11 @@ class GuestOrderPaymentController extends Controller
                 'phone'        => $payment->phone,
                 'tx_ref'       => $payment->tx_ref,
                 'callback_url' => config('chapa.callback_url'),
-                'return_url'   => config('chapa.return_url'),
-                'title'        => 'Guest Order Payment',
+                // Use order-specific return URL
+                'return_url'   => config('chapa.order_return_url', config('app.frontend_url') . '/order/payment/success'),
+                'title'        => $title,
                 'description'  => sprintf(
-                    'Order for Room %s - %d items',
+                    'Room %s - %d items',
                     $room->room_number,
                     count($validated['items'])
                 ),
@@ -153,13 +157,17 @@ class GuestOrderPaymentController extends Controller
                 Log::error('Chapa Initialize Failed for Order', [
                     'payment_id' => $payment->id,
                     'error'      => $chapaResponse['message'] ?? 'Unknown error',
+                    'response'   => $chapaResponse,
+                    'errors'     => $chapaResponse['errors'] ?? null,
                 ]);
 
                 $payment->markAsFailed($chapaResponse);
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unable to initialize payment',
+                    'message' => 'Unable to initialize payment with Chapa',
+                    'error'   => $chapaResponse['errors'] ?? ($chapaResponse['message'] ?? 'Payment gateway returned an error'),
+                    'debug'   => config('app.debug') ? $chapaResponse : null,
                 ], 400);
             }
 
@@ -198,11 +206,25 @@ class GuestOrderPaymentController extends Controller
                 'message' => $e->getMessage(),
                 'file'    => $e->getFile(),
                 'line'    => $e->getLine(),
+                'trace'   => $e->getTraceAsString(),
             ]);
+
+            // Return detailed error in development mode
+            $errorMessage = 'An error occurred while initializing payment';
+            $errorDetails = [];
+            
+            if (config('app.debug')) {
+                $errorMessage = $e->getMessage();
+                $errorDetails = [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ];
+            }
 
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred',
+                'message' => $errorMessage,
+                'details' => $errorDetails,
             ], 500);
         }
     }
@@ -336,19 +358,23 @@ class GuestOrderPaymentController extends Controller
             // Calculate tax (15%)
             $tax = $subtotal * 0.15;
 
+            // Calculate service charge (10%)
+            $serviceCharge = $subtotal * 0.10;
+
             // Apply discount (if any - can be extended)
             $discount = 0;
 
-            // Calculate total
-            $total = $subtotal + $tax - $discount;
+            // Calculate total (subtotal + tax + service charge - discount)
+            $total = $subtotal + $tax + $serviceCharge - $discount;
 
             return [
-                'success'   => true,
-                'subtotal'  => (float) $subtotal,
-                'tax'       => (float) $tax,
-                'discount'  => (float) $discount,
-                'total'     => (float) $total,
-                'items'     => $itemDetails,
+                'success'        => true,
+                'subtotal'       => (float) $subtotal,
+                'tax'            => (float) $tax,
+                'service_charge' => (float) $serviceCharge,
+                'discount'       => (float) $discount,
+                'total'          => (float) $total,
+                'items'          => $itemDetails,
             ];
 
         } catch (\Exception $e) {

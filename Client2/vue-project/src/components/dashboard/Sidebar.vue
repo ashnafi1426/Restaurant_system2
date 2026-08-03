@@ -103,33 +103,33 @@ const menus = computed(() => {
   switch (auth.user?.role) {
     case 'admin':
       return [
-        { name: 'Dashboard', path: '/admin', icon: 'Dashboard', section: 'Main' },
-        { name: 'Users', path: '/users', icon: 'Users', section: 'Main' },
-        { name: 'Rooms', path: '/Admin/rooms', icon: 'Rooms', section: 'Main' },
-        { name: 'Room Types', path: '/room-types', icon: 'Room Types', section: 'Main' },
-        { name: 'Reports', path: '/reports', icon: 'Reports', section: 'Management' },
-        { name: 'Menu Management', path: '/menu-management', icon: 'Restaurant', section: 'Management' },
+        { name: 'Dashboard', path: '/admin', icon: 'Dashboard'},
+        { name: 'Users', path: '/users', icon: 'Users'},
+        { name: 'Rooms', path: '/Admin/rooms', icon: 'Rooms'},
+        { name: 'Room Types', path: '/room-types', icon: 'Room Types'},
+        { name: 'Menu Management', path: '/menu-management', icon: 'Restaurant'},
+        { name: 'Reports', path: '/reports', icon: 'Reports'},
       ]
     case 'receptionist':
       return [
-        { name: 'Dashboard', path: '/receptionist', icon: 'Dashboard', section: 'Main' },
-        { name: 'Guests', path: '/guests', icon: 'Guests', section: 'Main' },
-        { name: 'Reservations', path: '/reservations', icon: 'Reservations', section: 'Main' },
-        { name: 'Check In', path: '/check-in', icon: 'Check In', section: 'Operations' },
-        { name: 'Check Out', path: '/check-out', icon: 'Check Out', section: 'Operations' },
-        { name: 'Orders', path: '/orders', icon: 'Food Orders', section: 'Operations' },
+        { name: 'Dashboard', path: '/receptionist', icon: 'Dashboard'},
+        { name: 'Guests', path: '/guests', icon: 'Guests'},
+        { name: 'Reservations', path: '/reservations', icon: 'Reservations'},
+        { name: 'Check In', path: '/check-in', icon: 'Check In'},
+        { name: 'Check Out', path: '/check-out', icon: 'Check Out'},
+        { name: 'Orders', path: '/orders', icon: 'Food Orders'},
       ]
     case 'cashier':
       return [
-        { name: 'Dashboard', path: '/cashier', icon: 'Dashboard', section: 'Main' },
-        { name: 'Invoices', path: '/invoices', icon: 'Invoices', section: 'Finance' },
-        { name: 'Payments', path: '/payments', icon: 'Payments', section: 'Finance' },
-        { name: 'Transactions', path: '/transactions', icon: 'Transactions', section: 'Finance' },
-        { name: 'Refunds', path: '/refunds', icon: 'Refunds', section: 'Finance' },
+        { name: 'Dashboard', path: '/cashier', icon: 'Dashboard'},
+        { name: 'Invoices', path: '/invoices', icon: 'Invoices'},
+        { name: 'Payments', path: '/payments', icon: 'Payments'},
+        { name: 'Transactions', path: '/transactions', icon: 'Transactions'},
+        { name: 'Refunds', path: '/refunds', icon: 'Refunds'},
       ]
     case 'chef':
       return [
-        { name: 'Dashboard', path: '/chef', icon: 'Dashboard', section: 'Main' },
+        { name: 'Dashboard', path: '/chef', icon: 'Dashboard'},
         { name: 'Food Orders', path: '/chef/food-orders', icon: 'Food Orders', section: 'Orders' },
         { name: 'Pending Orders', path: '/chef/pending-orders', icon: 'Pending Orders', section: 'Orders' },
         { name: 'Preparing Orders', path: '/chef/preparing-orders', icon: 'Preparing Orders', section: 'Orders' },
@@ -146,16 +146,16 @@ const menus = computed(() => {
       ]
     case 'waiter':
       return [
-        { name: 'Dashboard', path: '/waiter', icon: 'Dashboard', section: 'Main' },
-        { name: 'Assigned Orders', path: '/waiter/assigned-orders', icon: 'Room Service', section: 'Deliveries' },
-        { name: 'Ready for Pickup', path: '/waiter/ready-pickup', icon: 'Pending Orders', section: 'Deliveries' },
-        { name: 'On Delivery', path: '/waiter/on-delivery', icon: 'Truck', section: 'Deliveries' },
-        { name: 'Completed Orders', path: '/waiter/completed-orders', icon: 'Served Orders', section: 'History' },
-        { name: 'Delivery History', path: '/waiter/delivery-history', icon: 'FileSpreadsheet', section: 'History' },
-        { name: 'Performance', path: '/waiter/performance', icon: 'TrendingUp', section: 'Profile' },
-        { name: 'My Profile', path: '/waiter/profile', icon: 'Users', section: 'Profile' },
-        { name: 'Notifications', path: '/waiter/notifications', icon: 'Notifications', section: 'Profile' },
-        { name: 'Settings', path: '/waiter/settings', icon: 'Settings', section: 'Profile' },
+        { name: 'Dashboard', path: '/waiter', icon: 'Dashboard'},
+        { name: 'Assigned Orders', path: '/waiter/assigned-orders', icon: 'Room Service'},
+        { name: 'Ready for Pickup', path: '/waiter/ready-pickup', icon: 'Pending Orders'},
+        { name: 'On Delivery', path: '/waiter/on-delivery', icon: 'Truck'},
+        { name: 'Completed Orders', path: '/waiter/completed-orders', icon: 'Served Orders'},
+        { name: 'Delivery History', path: '/waiter/delivery-history', icon: 'FileSpreadsheet'},
+        { name: 'Performance', path: '/waiter/performance', icon: 'TrendingUp'},
+        { name: 'My Profile', path: '/waiter/profile', icon: 'Users'},
+        { name: 'Notifications', path: '/waiter/notifications', icon: 'Notifications'},
+        { name: 'Settings', path: '/waiter/settings', icon: 'Settings'},
       ]
     default:
       return []

@@ -183,7 +183,7 @@
                   Continue Shopping
                 </button>
                 <button
-                  @click="handlePlaceOrder"
+                  @click="openPaymentDialog"
                   :disabled="isPlacingOrder || cartItems.length === 0"
                   class="flex-1 px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
@@ -215,9 +215,111 @@
                       d="M12 2v20m0-20a9.978 9.978 0 00-9 18m18 0a9.978 9.978 0 00-9-18"
                     ></path>
                   </svg>
-                  {{ isPlacingOrder ? 'Placing Order...' : 'Place Order' }}
+                  💳 Proceed to Payment
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Payment Confirmation Dialog -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="showPaymentDialog"
+          class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          @click.self="closePaymentDialog"
+        >
+          <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[85vh] flex flex-col">
+            <!-- Header -->
+            <div
+              class="bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-4 text-white flex-shrink-0 rounded-t-2xl"
+            >
+              <h3 class="text-xl font-bold mb-1">💳 Payment Confirmation</h3>
+              <p class="text-amber-100 text-sm">Review your order before payment</p>
+            </div>
+
+            <!-- Content - Scrollable -->
+            <div class="p-5 space-y-3 overflow-y-auto flex-1">
+              <!-- Order Summary -->
+              <div>
+                <h4 class="font-semibold text-sm mb-2">Order Summary</h4>
+                <div class="space-y-2 text-xs">
+                  <div class="flex justify-between">
+                    <span class="text-slate-600">Room:</span>
+                    <span class="font-medium">{{ roomNumber }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-600">Items:</span>
+                    <span class="font-medium">{{ cartItems.length }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-600">Guest:</span>
+                    <span class="font-medium">{{ guestName }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cart Items -->
+              <div class="border-t pt-3">
+                <h4 class="font-semibold text-sm mb-2">Your Items</h4>
+                <div class="space-y-2">
+                  <div
+                    v-for="item in cartItems"
+                    :key="item.id"
+                    class="flex justify-between text-xs"
+                  >
+                    <span class="text-slate-700">{{ item.name }} × {{ item.quantity }}</span>
+                    <span class="font-medium">{{ formatPrice(item.price * item.quantity) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Price Breakdown -->
+              <div class="border-t pt-3 space-y-1.5">
+                <div class="flex justify-between text-xs">
+                  <span class="text-slate-600">Subtotal:</span>
+                  <span class="font-medium">{{ formatPrice(subtotal) }}</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span class="text-slate-600">Tax (15%):</span>
+                  <span class="font-medium">{{ formatPrice(tax) }}</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span class="text-slate-600">Service (10%):</span>
+                  <span class="font-medium">{{ formatPrice(serviceCharge) }}</span>
+                </div>
+                <div class="flex justify-between text-sm font-bold pt-1.5 border-t">
+                  <span>Total:</span>
+                  <span class="text-amber-600">{{ formatPrice(cartTotal) }}</span>
+                </div>
+              </div>
+
+              <!-- Security Notice -->
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs text-blue-700">
+                ✓ Secure payment via Chapa gateway
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="bg-slate-50 px-5 py-3 flex gap-2.5 flex-shrink-0 border-t rounded-b-2xl">
+              <button
+                @click="closePaymentDialog"
+                :disabled="isPlacingOrder"
+                class="flex-1 px-4 py-2 text-sm font-medium border border-slate-300 rounded-lg hover:bg-slate-100 disabled:opacity-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                @click="proceedToPayment"
+                :disabled="isPlacingOrder"
+                class="flex-1 px-4 py-2 text-sm font-medium bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+              >
+                <span v-if="isPlacingOrder">⌛ Processing...</span>
+                <span v-else>💳 Pay Now</span>
+              </button>
             </div>
           </div>
         </div>
@@ -329,6 +431,7 @@ const heroHeading = ref('Good Food, Great Moments')
 const heroSubheading = ref('LUXURY DINING')
 const cartItems = ref<CartItem[]>([])
 const showCartModal = ref(false)
+const showPaymentDialog = ref(false) // NEW: Payment confirmation dialog
 const showSuccessModal = ref(false)
 const isPlacingOrder = ref(false)
 const orderNumber = ref('')
@@ -407,45 +510,178 @@ const formatPrice = (price: number): string => {
   return `$${price.toFixed(2)}`
 }
 
+// Open payment confirmation dialog
+const openPaymentDialog = () => {
+  if (cartItems.value.length === 0) {
+    alert('Your cart is empty')
+    return
+  }
+  showPaymentDialog.value = true
+}
+
+// Close payment confirmation dialog
+const closePaymentDialog = () => {
+  showPaymentDialog.value = false
+}
+
+// Proceed to payment (called from confirmation dialog)
+const proceedToPayment = () => {
+  showPaymentDialog.value = false
+  handlePlaceOrder()
+}
+
 const handlePlaceOrder = async () => {
-  if (cartItems.value.length === 0) return
+  if (isPlacingOrder.value) return
+  if (cartItems.value.length === 0) {
+    alert('Your cart is empty')
+    return
+  }
 
   isPlacingOrder.value = true
+
   try {
-    const orderData = {
-      qr_token: qrToken.value,
-      items: cartItems.value.map((item) => ({
-        menu_item_id: item.id,
-        quantity: item.quantity,
-      })),
-      special_requests: '',
+    console.log('🔒 [PAYMENT] Initializing payment for order...')
+
+    const apiUrl = 'http://127.0.0.1:8000/api'
+
+    // Step 1: Get guest ID and room ID from QR token
+    console.log('📡 [PAYMENT] Fetching room/guest info from QR token:', qrToken.value)
+    const roomResponse = await fetch(`${apiUrl}/guest/menu/${qrToken.value}`)
+    const roomData = await roomResponse.json()
+
+    console.log('📡 [PAYMENT] Room API response:', roomData)
+
+    if (!roomResponse.ok || !roomData.success) {
+      console.error('❌ [PAYMENT] Room verification failed:', roomData)
+      throw new Error(roomData.message || 'Unable to verify room information')
     }
 
-    const response = await api.post('/guest/orders', orderData)
+    const guestId = roomData.data.guest?.id
+    const roomId = roomData.data.id
 
-    if (response.data?.data) {
-      const orderData = response.data.data
-      orderNumber.value = orderData.order_number || orderData.id || 'N/A'
-      estimatedTime.value = orderData.estimated_time || 30
-      showSuccessModal.value = true
-      showCartModal.value = false
-      cartItems.value = []
-    } else {
-      showSuccessModal.value = true
-      showCartModal.value = false
-      cartItems.value = []
+    if (!guestId || !roomId) {
+      console.error('❌ [PAYMENT] Missing guest or room ID:', { guestId, roomId })
+      throw new Error('Unable to retrieve guest or room information')
     }
+
+    console.log('✅ [PAYMENT] Room verified - Room ID:', roomId, 'Guest ID:', guestId)
+
+    // Step 2: Prepare order items
+    const orderItems = cartItems.value.map((item) => ({
+      menu_item_id: item.id,
+      quantity: item.quantity,
+    }))
+
+    console.log('📦 [PAYMENT] Order items prepared:', orderItems)
+    console.log('📦 [PAYMENT] Order items count:', orderItems.length)
+    console.log('📦 [PAYMENT] First item ID type:', typeof orderItems[0]?.menu_item_id)
+    console.log('📦 [PAYMENT] First item ID value:', orderItems[0]?.menu_item_id)
+
+    // Step 3: Split guest name into first and last
+    const nameParts = guestName.value.trim().split(' ')
+    const firstName = nameParts[0] || 'Guest'
+    const lastName = nameParts.slice(1).join(' ') || 'User'
+
+    // Step 4: Initialize payment
+    console.log('💳 [PAYMENT] Initializing payment with backend...')
+    const paymentInitRequest = {
+      guest_id: guestId,
+      room_id: roomId,
+      items: orderItems,
+      first_name: firstName,
+      last_name: lastName,
+      email: guestEmail.value,
+      phone: '+251912345678', // Default or from user profile if available
+    }
+
+    console.log('📤 [PAYMENT] Payment init request:', paymentInitRequest)
+
+    const paymentResponse = await fetch(`${apiUrl}/order-payments/initialize`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(paymentInitRequest),
+    })
+
+    const paymentData = await paymentResponse.json()
+
+    console.log('📡 [PAYMENT] Payment API response:', paymentData)
+    console.log('📡 [PAYMENT] Response status:', paymentResponse.status)
+    console.log('📡 [PAYMENT] Response ok:', paymentResponse.ok)
+
+    if (!paymentResponse.ok || !paymentData.success) {
+      console.error('❌ [PAYMENT] Payment initialization failed:', paymentData)
+      
+      // Extract detailed error message
+      let errorMessage = 'Payment initialization failed'
+      
+      if (paymentData.message) {
+        errorMessage = paymentData.message
+      }
+      
+      // Check for Chapa-specific error
+      if (paymentData.error) {
+        errorMessage += ': ' + paymentData.error
+      }
+      
+      // Check for Laravel validation errors
+      if (paymentData.errors) {
+        const firstError = Object.values(paymentData.errors)[0]
+        if (Array.isArray(firstError) && firstError.length > 0) {
+          errorMessage = firstError[0]
+        }
+      }
+      
+      // Check for detailed error info (development mode)
+      if (paymentData.details) {
+        console.error('❌ [PAYMENT] Error details:', paymentData.details)
+      }
+      
+      console.error('❌ [PAYMENT] Detailed error:', errorMessage)
+      console.error('❌ [PAYMENT] Full error object:', JSON.stringify(paymentData, null, 2))
+      
+      throw new Error(errorMessage)
+    }
+
+    console.log('✅ [PAYMENT] Payment initialized successfully')
+    console.log('🔗 [PAYMENT] Checkout URL:', paymentData.checkout_url)
+
+    // Step 5: Store order data for post-payment retrieval
+    sessionStorage.setItem(
+      'order_payment_data',
+      JSON.stringify({
+        payment_id: paymentData.payment_id,
+        tx_ref: paymentData.tx_ref,
+        amount: paymentData.amount,
+        calculation: paymentData.calculation,
+        items: cart.value.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          total: item.price * item.quantity,
+        })),
+        qr_token: qrToken.value,
+        room_number: roomNumber.value,
+        guest_name: guestName.value,
+      })
+    )
+
+    console.log('📦 [PAYMENT] Order data stored in session storage')
+
+    // Step 6: Redirect to Chapa checkout
+    console.log('🔄 [PAYMENT] Redirecting to Chapa checkout...')
+    window.location.href = paymentData.checkout_url
   } catch (error: any) {
-    console.error('Error placing order:', error)
-    console.error('Full error response:', error.response?.data)
-    if (error.response?.data?.messages) {
-      console.error('Validation errors:', error.response.data.messages)
-      alert('Validation error: ' + JSON.stringify(error.response.data.messages))
-    } else if (error.response?.data?.message) {
-      alert('Error: ' + error.response.data.message)
-    } else {
-      alert('Failed to place order. Please try again.')
+    console.error('❌ [PAYMENT] Error:', error)
+    console.error('❌ [PAYMENT] Error details:', error.message)
+
+    let errorMessage = 'Something went wrong. Please try again.'
+
+    if (error.message) {
+      errorMessage = error.message
     }
+
+    alert(`❌ Payment Error: ${errorMessage}`)
   } finally {
     isPlacingOrder.value = false
   }

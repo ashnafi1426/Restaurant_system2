@@ -1,237 +1,217 @@
-# ⚡ QUICK TEST GUIDE - Payment Success Page Fix
+# QR Menu Payment - Quick Test Guide
 
-## 🚀 Start Development Servers
+## 🚀 START TESTING IN 5 MINUTES
 
-### Terminal 1: Frontend
-```bash
-cd Client2/vue-project
-npm run dev
-```
-✅ Opens at http://localhost:5173
-
-### Terminal 2: Backend  
+### Step 1: Start Backend (30 seconds)
 ```bash
 cd server
 php artisan serve
 ```
-✅ Runs at http://localhost:8000
+✅ Backend should be running at `http://127.0.0.1:8000`
 
----
-
-## 📝 Test Data
-
-Use these details for testing:
-
-```
-Name:           John Doe
-Email:          ashenafi@gmail.com
-Phone:          0912345678
-Amount:         57.00 ETB
-Room:           Any available room
-Check-in:       Tomorrow or later
-Check-out:      Day after check-in
-Guests:         1-4
-```
-
----
-
-## 🧪 5-Minute Test Flow
-
-### Step 1: Go to Homepage
-- Open browser: http://localhost:5173
-- ✅ Should see hotel homepage
-
-### Step 2: Select Room
-- Click "View Rooms" or navigate to rooms section
-- Select any available room
-- ✅ Should see room details
-
-### Step 3: Book Room
-- Click "Book Now" or similar button
-- Select check-in date (tomorrow or later)
-- Select check-out date (1+ days after check-in)
-- ✅ Should see booking form
-
-### Step 4: Fill Checkout Form
-- **First Name**: John
-- **Last Name**: Doe
-- **Email**: ashenafi@gmail.com
-- **Phone**: 0912345678
-- ✅ Form should validate
-
-### Step 5: Proceed to Payment
-- Click "Proceed to Payment" button
-- ✅ Should redirect to Chapa payment page
-- Check browser URL: Should show Chapa checkout
-
-### Step 6: Complete Payment
-- **On Chapa Test Page**: 
-  - Card Number: Any valid test card
-  - Use any test details (Chapa will accept test payments)
-  - Click "Pay" or "Complete Payment"
-- ✅ Payment should process
-
-### Step 7: Verify Success Page
-**CRITICAL CHECKS**:
-1. ✅ **URL in address bar**:
-   ```
-   http://localhost:5173/payment/success?tx_ref=TXREF_...
-   ```
-   - Should have `?tx_ref=` parameter
-   - If missing `tx_ref`, backend fix didn't work
-
-2. ✅ **Page content** (should show immediately, NO DELAYS):
-   - "Payment Successful!" header with green checkmark
-   - "Thank you for your booking" text
-   - "Payment Verified" green alert
-   - All booking details:
-     - Reference number
-     - Status: "Confirmed"
-     - Check-in date
-     - Check-out date
-     - Room number
-     - Number of guests
-   - Guest information (name, email, phone)
-   - Payment information (transaction ref, amount)
-   - "What's Next?" section with 3 steps
-   - "Important Information" blue box
-
-3. ✅ **Action buttons** (should be clickable immediately):
-   - Green "💳 Download Receipt" button
-   - Gray "Back to Home" button
-
-4. ✅ **Browser Console** (Press F12 → Console):
-   ```
-   🎉 [PAYMENT SUCCESS] PAGE MOUNTED AT: [time]
-   🔒 [PAYMENT SUCCESS] User is on /payment/success - KEEP THEM HERE
-   📋 [PAYMENT SUCCESS] TX Ref from URL: TXREF_ABC123...
-   ✅ [PAYMENT SUCCESS] ALL SECTIONS SHOWN IMMEDIATELY!
-   ✅ [PAYMENT SUCCESS] All sections visible immediately!
-   ```
-   - Should NOT see: "Error: transaction reference not found"
-   - Should NOT see any red errors
-
----
-
-## 🧾 Test Receipt Download
-
-1. Click "💳 Download Receipt" button
-2. ✅ Button should show "Generating Receipt..." with spinner
-3. ✅ PDF file should download to your Downloads folder
-4. ✅ PDF filename: `Receipt_REF-XXXXXXXX_2026-08-03.pdf`
-5. ✅ Open PDF and verify it contains:
-   - Hotel name and contact
-   - Guest name, email, phone
-   - Booking reference
-   - Check-in/out dates
-   - Room number
-   - Number of guests
-   - Total amount in ETB
-   - "PAYMENT CONFIRMED" badge
-   - Terms and conditions
-
----
-
-## 🏠 Test Back to Home
-
-1. Click "Back to Home" button
-2. ✅ Should navigate back to homepage
-3. ✅ URL should change to: http://localhost:5173/
-4. ✅ Homepage should load properly
-
----
-
-## ❌ If Tests Fail
-
-### Problem: No `tx_ref` in URL
-```
-URL shows: http://localhost:5173/payment/success
-(Missing ?tx_ref=...)
-```
-**Solution**: Backend fix didn't apply. Run:
-```bash
-cd server
-php artisan config:cache
-php artisan cache:clear
-```
-
-### Problem: Error message "transaction reference not found"
-```
-Error dialog appears with message about tx_ref
-```
-**Solution**: 
-1. Backend fix didn't apply (see above)
-2. OR frontend rebuild needed:
+### Step 2: Start Frontend (30 seconds)
 ```bash
 cd Client2/vue-project
-npm run build-only
+npm run dev
+```
+✅ Frontend should be running at `http://localhost:5173`
+
+### Step 3: Get a QR Token (1 minute)
+You need a valid QR token to test. Get it from:
+- Your room's QR code data
+- Database: `SELECT qr_token FROM rooms WHERE id = 'your-room-id'`
+- Or use test token if available
+
+### Step 4: Open QR Menu (10 seconds)
+Navigate to: `http://localhost:5173/qr-menu/{YOUR-QR-TOKEN}`
+
+Example: `http://localhost:5173/qr-menu/room-101-abc123`
+
+---
+
+## ✅ COMPLETE TEST FLOW (3 minutes)
+
+### 1. Add Items to Cart
+- Click on menu items
+- Add to cart with quantity
+- **Verify:** Cart icon shows item count
+
+### 2. View Cart
+- Click cart icon in header
+- **Verify:** All items shown with correct prices
+- **Verify:** Calculations visible:
+  - Subtotal = Sum of (item price × quantity)
+  - Tax (15%) = Subtotal × 0.15
+  - Service (10%) = Subtotal × 0.10
+  - Total = Subtotal + Tax + Service
+
+### 3. Open Payment Dialog
+- Click "Proceed to Payment" button
+- **Verify:** Payment confirmation dialog opens
+- **Verify:** Shows:
+  - Room number
+  - Guest name
+  - Number of items
+  - All cart items with quantities and prices
+  - Price breakdown (subtotal, tax, service, total)
+  - "Cancel" and "Pay Now" buttons
+
+### 4. Review Payment Details
+- **Check:** All prices match cart
+- **Check:** Total is correct
+- **Check:** No calculation errors
+
+### 5. Proceed to Payment
+- Click "💳 Pay Now" button
+- **Verify:** Browser console shows logs starting with `[PAYMENT]`
+- **Verify:** Page redirects to Chapa checkout URL
+- **Expected:** URL should start with `https://checkout.chapa.co/`
+
+### 6. Complete Payment (Chapa Test Mode)
+If using Chapa test mode:
+- Enter test card: `4200 0000 0000 0000`
+- CVV: `123`
+- Expiry: Any future date
+- Click "Pay"
+
+### 7. Success Page
+- **Verify:** Redirects to `/order/payment/success`
+- **Verify:** Success page shows:
+  - ✓ Green header with checkmark
+  - ✓ "Payment Successful!" message
+  - ✓ Order number
+  - ✓ Room number
+  - ✓ Estimated delivery time (30 minutes)
+  - ✓ Cart items list
+  - ✓ Price breakdown
+  - ✓ Transaction reference
+  - ✓ "What's Next?" section
+  - ✓ Action buttons
+
+### 8. Verify Order in Kitchen
+- Login as chef
+- Go to kitchen dashboard
+- **Verify:** Order appears in pending orders
+- **Verify:** Order shows as PAID
+- **Verify:** Order details match what was ordered
+
+---
+
+## 🐛 QUICK TROUBLESHOOTING
+
+### Issue: Payment dialog doesn't open
+**Check:**
+- Browser console for errors
+- Make sure cart has items
+
+### Issue: Redirect to Chapa fails
+**Check:**
+- `.env` has `CHAPA_SECRET_KEY`
+- Backend console for errors
+- Network tab for API response
+
+### Issue: Success page shows no data
+**Check:**
+- Browser console for `[ORDER PAYMENT SUCCESS]` logs
+- SessionStorage has `order_payment_data`
+- URL has `?tx_ref=` parameter
+
+### Issue: Order not in kitchen
+**Check:**
+- Payment was actually completed
+- Laravel logs: `storage/logs/laravel.log`
+- Database: Check `orders` and `payments` tables
+
+---
+
+## 📊 WHAT TO CHECK
+
+### Frontend Console Logs
+Look for these log patterns:
+```
+🔒 [PAYMENT] Initializing payment for order...
+📡 [PAYMENT] Fetching room/guest info...
+✅ [PAYMENT] Room verified
+💳 [PAYMENT] Initializing payment...
+✅ [PAYMENT] Payment initialized successfully
+🔄 [PAYMENT] Redirecting to Chapa checkout...
 ```
 
-### Problem: Page shows but nothing is visible
-**Solution**: 
-1. Hard refresh browser: `Ctrl+Shift+Delete` (clear cache)
-2. Or restart: `npm run dev` in frontend terminal
-
-### Problem: Receipt download doesn't work
-**Solution**: 
-1. Check browser console for errors (F12)
-2. Make sure jsPDF library is loaded (check network tab)
-3. Verify reservation data loaded properly
-
----
-
-## ✅ SUCCESS CRITERIA
-
-All of these must pass:
-
-- [ ] Payment flow completes without errors
-- [ ] After payment, URL shows: `/payment/success?tx_ref=...`
-- [ ] Success page shows all content immediately (no delays)
-- [ ] No "transaction reference not found" error
-- [ ] All booking details visible
-- [ ] Download Receipt button works
-- [ ] Receipt PDF generated and contains correct data
-- [ ] Back to Home button navigates to homepage
-- [ ] Browser console shows success logs (no red errors)
-
----
-
-## 📞 Troubleshooting Quick Links
-
-| Issue | Check |
-|-------|-------|
-| tx_ref missing from URL | Backend config:cache and cache:clear |
-| Page won't load | Hard refresh + frontend rebuild |
-| Error in console | F12 → Console tab → read error message |
-| Receipt won't download | Check if jsPDF library is included |
-| Date formatting wrong | Check browser locale settings |
-
----
-
-## 🎯 Expected Full Flow (2-3 minutes)
-
+### Backend Logs
+Check `storage/logs/laravel.log` for:
 ```
-Homepage 
-   ↓ (30 sec) Select room and book
-Checkout Form
-   ↓ (30 sec) Fill details  
-Redirect to Chapa
-   ↓ (30 sec) Complete test payment
-Success Page ✅
-   - All content visible immediately
-   - Download receipt ✅
-   - Back to home ✅
+Order Payment Initialized
+Payment ID: {uuid}
+Guest ID: {uuid}
+Room ID: {uuid}
+Amount: {amount}
 ```
 
----
-
-## 📊 Performance Baseline
-
-- Success page load: < 100ms (should be instant)
-- Data fetch: < 500ms (background)
-- Receipt generation: < 2 seconds
-- PDF download: < 1 second
+### Database Tables to Check
+1. **payments** - Payment record should exist
+2. **orders** - Order created after payment
+3. **order_items** - Order items with quantities
 
 ---
 
-**Ready to test? Start with Terminal commands above! 🚀**
+## ✅ SUCCESS INDICATORS
+
+If everything works, you should see:
+
+1. ✅ Payment dialog opens smoothly
+2. ✅ Calculations are correct (subtotal + 15% tax + 10% service)
+3. ✅ Redirect to Chapa happens
+4. ✅ Success page displays with all data
+5. ✅ Order appears in kitchen dashboard
+6. ✅ Order status is "pending" or "confirmed"
+7. ✅ Payment status is "verified"
+
+---
+
+## 🎯 EXAMPLE TEST CALCULATION
+
+### Sample Order:
+- Burger: $10.00 × 2 = $20.00
+- Fries: $5.00 × 1 = $5.00
+- **Subtotal:** $25.00
+
+### Expected Calculations:
+- **Tax (15%):** $25.00 × 0.15 = $3.75
+- **Service (10%):** $25.00 × 0.10 = $2.50
+- **Total:** $25.00 + $3.75 + $2.50 = **$31.25**
+
+### Verify:
+- Cart shows: $31.25
+- Payment dialog shows: $31.25
+- Chapa checkout shows: $31.25
+- Success page shows: $31.25
+
+---
+
+## 🚨 IMPORTANT NOTES
+
+1. **Clear Browser Cache:** If you see stale data, clear cache and reload
+2. **Check Chapa Mode:** Make sure you're in TEST mode, not LIVE
+3. **Session Storage:** Payment data stored in browser's sessionStorage
+4. **No Auto-Redirect:** Success page stays visible until user clicks button
+5. **Kitchen Display:** Order only appears AFTER payment verification
+
+---
+
+## 📞 NEED HELP?
+
+### Check These First:
+1. Browser console (F12 → Console tab)
+2. Network tab (F12 → Network tab)
+3. Laravel logs (`storage/logs/laravel.log`)
+4. `.env` file has correct Chapa credentials
+
+### Still Stuck?
+- Review main documentation: `QR_MENU_PAYMENT_INTEGRATION_COMPLETE.md`
+- Check backend API with Postman/Insomnia
+- Verify database has required data (rooms, menu items, guests)
+
+---
+
+**Happy Testing! 🎉**
+

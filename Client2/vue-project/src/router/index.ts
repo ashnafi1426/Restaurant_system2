@@ -44,6 +44,7 @@ import PaymentSuccessPage from '../views/payment/PaymentSuccessPage.vue'
 import PaymentFailedPage from '../views/payment/PaymentFailedPage.vue'
 import PaymentPendingPage from '../views/payment/PaymentPendingPage.vue'
 import CheckoutPage from '../views/payment/CheckoutPage.vue'
+import OrderPaymentSuccessPage from '../views/payment/OrderPaymentSuccessPage.vue'
 import managerRoutes from './managerRouter'
 import waiterRoutes from './waiterRouter'
 const router = createRouter({
@@ -469,13 +470,24 @@ const router = createRouter({
       },
     },
 
-    // Payment success page - After successful payment
+    // Payment success page - After successful payment (Room Booking)
     {
       path: '/payment/success',
       name: 'payment-success',
       component: PaymentSuccessPage,
       meta: {
         title: 'Payment Successful',
+        requiresAuth: false,
+      },
+    },
+
+    // Order payment success page - After successful order payment
+    {
+      path: '/order/payment/success',
+      name: 'order-payment-success',
+      component: OrderPaymentSuccessPage,
+      meta: {
+        title: 'Order Payment Successful',
         requiresAuth: false,
       },
     },
