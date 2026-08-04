@@ -32,6 +32,20 @@ class AuthController extends Controller
                     'message' => 'Invalid credentials'
                 ], 401);
             }
+
+            // Check if account needs activation
+            if ($user->needsActivation()) {
+                Log::warning('Login: Account not activated', [
+                    'email' => $request->email,
+                    'activation_status' => $user->activation_status
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'needs_activation' => true,
+                    'message' => 'Account not activated. Please check your email for the activation link.'
+                ], 403);
+            }
             $passwordMatches = Hash::check(
                 $request->password,
                 $user->password_hash

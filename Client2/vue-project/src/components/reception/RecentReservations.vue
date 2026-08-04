@@ -60,15 +60,15 @@ const goToPage = (page: number) => {
 </script>
 
 <template>
-  <div class="bg-blue-50 dark:bg-slate-800/50 rounded-lg border border-blue-200 dark:border-slate-700 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm">
+  <div class="bg-blue-50 dark:bg-slate-800/50 rounded-lg border border-blue-200 dark:border-slate-700 p-5 sm:p-6 shadow-sm">
     <!-- Header -->
     <div
-      class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 flex-col sm:flex-row gap-2 sm:gap-0"
+      class="flex items-center justify-between mb-4 flex-col sm:flex-row gap-2 sm:gap-0"
     >
-      <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
+      <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
         Recent Guest Requests
       </h3>
-      <div class="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400 font-medium">
+      <div class="text-sm text-gray-600 dark:text-slate-400 font-medium">
         Showing {{ (currentPage - 1) * itemsPerPage + 1 }}-{{
           Math.min(currentPage * itemsPerPage, reservations.length)
         }}

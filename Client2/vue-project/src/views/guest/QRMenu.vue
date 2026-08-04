@@ -655,7 +655,7 @@ const handlePlaceOrder = async () => {
         tx_ref: paymentData.tx_ref,
         amount: paymentData.amount,
         calculation: paymentData.calculation,
-        items: cart.value.map(item => ({
+        items: cartItems.value.map(item => ({
           name: item.name,
           quantity: item.quantity,
           total: item.price * item.quantity,

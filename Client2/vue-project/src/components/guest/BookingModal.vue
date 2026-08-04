@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { useGuestStore } from '../../stores/guestStore'
+import { useRoomStore } from '../../stores/room'
 import { roomService } from '../../services/roomService'
 import paymentService from '../../services/paymentService'
 import {
@@ -42,15 +44,6 @@ interface Room {
   updated_at?: string
 }
 
-// Price breakdown interface
-interface PriceBreakdown {
-  price_per_night: number
-  number_of_nights: number
-  subtotal: number
-  tax: number
-  total: number
-}
-
 // Booking session storage data
 interface BookingSessionData {
   guest_id: string
@@ -65,7 +58,16 @@ interface BookingSessionData {
   phone: string
   payment_id: string
   tx_ref: string
-  price_breakdown?: PriceBreakdown
+  price_breakdown?: {
+    price_per_night: number
+    number_of_nights: number
+    room_subtotal: number
+    services?: any
+    services_total: number
+    subtotal: number
+    tax: number
+    total: number
+  }
 }
 
 const props = defineProps<{
@@ -295,9 +297,9 @@ function calculateAdditionalServices(): number {
   return total
 }
 
-// Calculate grand total (room + services + tax)
+// Calculate grand total
 function calculateGrandTotal(): number {
-  return getTotalAmount()
+  return calculateRoomTotal() + calculateAdditionalServices()
 }
 
 // Close modal with animation
@@ -355,13 +357,6 @@ function openPaymentDialog() {
     alert(`Please fill in: ${fields.join(', ')}`)
     return
   }
-  
-  // Debug logging for special requests
-  console.log('🔍 [BOOKING MODAL] Opening payment dialog')
-  console.log('📝 [BOOKING MODAL] Special requests value:', bookingForm.value.specialRequests)
-  console.log('📝 [BOOKING MODAL] Special requests length:', bookingForm.value.specialRequests?.length || 0)
-  console.log('📝 [BOOKING MODAL] Has content after trim:', !!(bookingForm.value.specialRequests?.trim()))
-  
   showPaymentDialog.value = true
 }
 
@@ -376,23 +371,25 @@ function proceedWithPayment() {
   submitBooking()
 }
 
-// Get subtotal (room + services, before tax)
+// Get total amount
+function getTotalAmount(): number {
+  const nights = calculateNights()
+  const pricePerNight = getRoomPrice(props.room)
+  const subtotal = nights * pricePerNight
+  const tax = subtotal * 0.15
+  return subtotal + tax
+}
+
+// Get subtotal
 function getSubtotal(): number {
   const nights = calculateNights()
   const pricePerNight = getRoomPrice(props.room)
-  const roomSubtotal = nights * pricePerNight
-  const servicesTotal = calculateAdditionalServices()
-  return roomSubtotal + servicesTotal
+  return nights * pricePerNight
 }
 
-// Get tax (15% of subtotal)
+// Get tax
 function getTaxAmount(): number {
   return getSubtotal() * 0.15
-}
-
-// Get total amount (subtotal + tax)
-function getTotalAmount(): number {
-  return getSubtotal() + getTaxAmount()
 }
 
 async function submitBooking() {
@@ -414,6 +411,8 @@ async function submitBooking() {
   }
 
   isBooking.value = true
+
+  const guestStore = useGuestStore()
 
   try {
     console.log('📝 [BOOKING] Starting payment flow for booking...')
@@ -481,21 +480,18 @@ async function submitBooking() {
       last_name: lastName,
       email: bookingForm.value.guestEmail,
       phone: bookingForm.value.guestPhone,
-      // Include services
-      include_breakfast: bookingForm.value.includeBreakfast,
-      include_dinner: bookingForm.value.includeDinner,
-      include_spa: bookingForm.value.includeSpa,
     }
 
     console.log('📤 [BOOKING] Payment init request:', paymentInitRequest)
 
-    // Call backend to initialize payment (now public)
+    // Call backend to initialize payment (requires authentication)
     const paymentResponse = await fetch(
       `${apiUrl}/reservation-payments/initialize`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
         },
         body: JSON.stringify(paymentInitRequest),
       }
@@ -506,15 +502,48 @@ async function submitBooking() {
     console.log('📡 [BOOKING] Raw payment API response:', paymentData)
     console.log('📡 [BOOKING] Response has checkout_url?', !!paymentData.checkout_url)
     console.log('📡 [BOOKING] Checkout URL value:', paymentData.checkout_url)
+    console.log('📡 [BOOKING] Response has price_breakdown?', !!paymentData.price_breakdown)
+    console.log('📡 [BOOKING] Price breakdown:', paymentData.price_breakdown)
+    console.log('📡 [BOOKING] Amount from response:', paymentData.amount)
 
     if (!paymentResponse.ok || !paymentData.success) {
+      const errorMsg = paymentData.error || paymentData.message || 'Failed to initialize payment'
+      const errorDetails = paymentData.details || paymentData.errors || null
+      
       console.error('❌ [BOOKING] Payment initialization failed:', paymentData)
-      throw new Error(
-        paymentData.message || 'Failed to initialize payment'
-      )
+      console.error('❌ [BOOKING] Error message:', errorMsg)
+      console.error('❌ [BOOKING] Error details:', errorDetails)
+      
+      // Create detailed error message
+      let detailedError = errorMsg
+      if (errorDetails) {
+        if (typeof errorDetails === 'object') {
+          const detailMessages = Object.entries(errorDetails)
+            .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+            .join('\n')
+          if (detailMessages) {
+            detailedError += '\n\nDetails:\n' + detailMessages
+          }
+        } else {
+          detailedError += '\n\n' + errorDetails
+        }
+      }
+      
+      throw new Error(detailedError)
     }
 
     console.log('✅ [BOOKING] Payment initialized successfully:', paymentData)
+    
+    // Validate critical data before proceeding
+    if (!paymentData.checkout_url) {
+      console.error('❌ [BOOKING] Missing checkout_url in payment response')
+      throw new Error('Payment system did not return a checkout URL. Please try again.')
+    }
+    
+    if (!paymentData.price_breakdown || !paymentData.price_breakdown.total) {
+      console.error('❌ [BOOKING] Missing price_breakdown in payment response')
+      throw new Error('Payment system did not return price information. Please try again.')
+    }
 
     // Step 4: Store booking data in sessionStorage for post-payment retrieval
     const bookingSessionData: BookingSessionData = {
@@ -530,15 +559,18 @@ async function submitBooking() {
       phone: bookingForm.value.guestPhone,
       payment_id: paymentData.payment_id,
       tx_ref: paymentData.tx_ref,
-      price_breakdown: paymentData.price_breakdown, // Add price breakdown from API response
+      price_breakdown: paymentData.price_breakdown, // Include price breakdown from API
     }
 
     sessionStorage.setItem('booking_session', JSON.stringify(bookingSessionData))
-    console.log('📦 [BOOKING] Booking data stored in session storage', { booking_session: bookingSessionData })
-
-    // IMPORTANT: Also store checkout_url separately to ensure it's not lost via query params
-    sessionStorage.setItem('chapa_checkout_url', paymentData.checkout_url)
-    console.log('🔗 [BOOKING] Chapa checkout URL stored in session:', paymentData.checkout_url)
+    
+    // Also store checkout URL separately for easy access
+    if (paymentData.checkout_url) {
+      sessionStorage.setItem('chapa_checkout_url', paymentData.checkout_url)
+      console.log('📦 [BOOKING] Checkout URL stored:', paymentData.checkout_url)
+    }
+    
+    console.log('📦 [BOOKING] Booking data stored in session storage with price breakdown')
 
     // Step 5: Close modal and redirect to payment checkout
     console.log('🔄 [BOOKING] Redirecting to payment checkout page...')
@@ -551,7 +583,7 @@ async function submitBooking() {
         query: {
           payment_id: paymentData.payment_id,
           tx_ref: paymentData.tx_ref,
-          checkout_url: paymentData.checkout_url,
+          checkout_url: paymentData.checkout_url, // Pass checkout URL in query
         },
       })
     }, 300)
@@ -795,18 +827,18 @@ onMounted(() => {
             >
               <!-- Title -->
               <div class="border-b border-slate-200/80 pb-3">
-                <div class="flex items-start justify-between gap-2">
-                  <div class="flex-1 min-w-0">
-                    <h3 class="text-lg md:text-xl font-bold text-slate-900 leading-tight">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <h3 class="text-lg md:text-xl font-bold text-slate-900 line-clamp-1">
                       {{ getRoomTypeName(room) }}
                     </h3>
-                    <p class="text-sm text-slate-500 mt-0.5">Room #{{ room.room_number }}</p>
+                    <p class="text-sm text-slate-500">Room #{{ room.room_number }}</p>
                   </div>
-                  <div class="text-right flex-shrink-0">
-                    <span class="text-2xl font-bold text-amber-600 whitespace-nowrap"
-                      >{{ getRoomPrice(room) }} <span class="text-base">ETB</span></span
+                  <div class="text-right">
+                    <span class="text-2xl font-bold text-amber-600"
+                      >ETB {{ getRoomPrice(room) }}</span
                     >
-                    <span class="text-xs text-slate-500 block mt-0.5">per night</span>
+                    <span class="text-xs text-slate-500 block">/ night</span>
                   </div>
                 </div>
               </div>
@@ -823,14 +855,14 @@ onMounted(() => {
                 </span>
                 <span
                   v-if="getRoomAmenities(room).length > 4"
-                  class="text-xs text-slate-400 font-medium px-2.5 py-1"
+                  class="text-xs text-slate-400 font-medium"
                 >
                   +{{ getRoomAmenities(room).length - 4 }} more
                 </span>
               </div>
 
               <!-- Description -->
-              <p class="text-sm text-slate-600 leading-relaxed line-clamp-2">
+              <p class="text-sm text-slate-600 leading-relaxed">
                 {{ getRoomDescription(room) }}
               </p>
 
@@ -838,8 +870,8 @@ onMounted(() => {
               <div class="bg-amber-50/80 border border-amber-200/60 rounded-xl p-3 space-y-2">
                 <div class="flex justify-between items-center">
                   <div class="flex items-center gap-2">
-                    <Calendar class="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span class="text-xs font-semibold text-slate-700">Duration</span>
+                    <Calendar class="w-4 h-4 text-amber-600" />
+                    <span class="text-xs font-semibold text-slate-700">Stay Duration</span>
                   </div>
                   <span class="text-sm font-bold text-slate-900"
                     >{{ calculateNights() }} Night{{ calculateNights() !== 1 ? 's' : '' }}</span
@@ -879,15 +911,12 @@ onMounted(() => {
 
               <!-- Price Breakdown -->
               <div class="border-t border-slate-200/80 pt-3 space-y-1.5">
-                <!-- Room -->
                 <div class="flex justify-between text-sm">
                   <span class="text-slate-600"
-                    >Room ({{ calculateNights() }} × {{ getRoomPrice(room) }} ETB)</span
+                    >Room ({{ calculateNights() }} × ETB {{ getRoomPrice(room) }})</span
                   >
-                  <span class="font-semibold text-slate-900">{{ calculateRoomTotal() }} ETB</span>
+                  <span class="font-semibold text-slate-900">ETB {{ calculateRoomTotal() }}</span>
                 </div>
-
-                <!-- Breakfast -->
                 <div
                   v-if="bookingForm.includeBreakfast"
                   class="flex justify-between text-sm text-emerald-600"
@@ -898,61 +927,36 @@ onMounted(() => {
                   </span>
                   <span>Free</span>
                 </div>
-
-                <!-- Dinner -->
                 <div
                   v-if="bookingForm.includeDinner"
                   class="flex justify-between text-sm text-slate-700"
                 >
                   <span class="flex items-center gap-1.5">
                     <Utensils class="w-3.5 h-3.5" />
-                    Dinner ({{ calculateNights() }} × 45 ETB)
+                    Dinner ({{ calculateNights() }} × ETB 45)
                   </span>
-                  <span>{{ calculateNights() * 45 }} ETB</span>
+                  <span>ETB {{ calculateNights() * 45 }}</span>
                 </div>
-
-                <!-- Spa -->
                 <div
                   v-if="bookingForm.includeSpa"
                   class="flex justify-between text-sm text-slate-700"
                 >
                   <span class="flex items-center gap-1.5">
                     <Sparkles class="w-3.5 h-3.5" />
-                    Spa ({{ calculateNights() }} × 35 ETB)
+                    Spa ({{ calculateNights() }} × ETB 35)
                   </span>
-                  <span>{{ calculateNights() * 35 }} ETB</span>
-                </div>
-
-                <!-- Subtotal (if services exist) -->
-                <div
-                  v-if="bookingForm.includeDinner || bookingForm.includeSpa"
-                  class="flex justify-between text-sm pt-1.5 border-t border-slate-200/60"
-                >
-                  <span class="text-slate-600">Subtotal</span>
-                  <span class="font-semibold text-slate-900">{{ getSubtotal().toFixed(2) }} ETB</span>
-                </div>
-
-                <!-- Tax -->
-                <div class="flex justify-between text-sm" :class="{'pt-1.5 border-t border-slate-200/60': !bookingForm.includeDinner && !bookingForm.includeSpa}">
-                  <span class="text-slate-600">Tax (15%)</span>
-                  <span class="font-semibold text-slate-900">{{ getTaxAmount().toFixed(2) }} ETB</span>
+                  <span>ETB {{ calculateNights() * 35 }}</span>
                 </div>
               </div>
 
               <!-- Grand Total -->
               <div
-                class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-xl p-4 flex justify-between items-center shadow-sm"
+                class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3 flex justify-between items-center"
               >
-                <div>
-                  <span class="text-xs text-amber-700 font-medium block mb-1">Total Amount</span>
-                  <span class="text-sm font-bold text-slate-800">Grand Total</span>
-                </div>
-                <div class="text-right">
-                  <span class="text-2xl md:text-3xl font-bold text-amber-600 block"
-                    >{{ calculateGrandTotal().toFixed(2) }}</span
-                  >
-                  <span class="text-xs text-amber-700 font-medium">ETB</span>
-                </div>
+                <span class="text-sm font-bold text-slate-800">Grand Total</span>
+                <span class="text-xl md:text-2xl font-bold text-amber-600"
+                  >ETB {{ calculateGrandTotal() }}</span
+                >
               </div>
             </div>
           </div>
@@ -982,10 +986,9 @@ onMounted(() => {
                     {{ getRoomTypeName(room) }}
                   </h4>
                   <p class="text-xs text-slate-500">Room #{{ room.room_number }}</p>
-                  <p class="text-base font-bold text-amber-600 mt-0.5">
-                    ETB {{ calculateGrandTotal().toFixed(2) }}
+                  <p class="text-sm font-bold text-amber-600 mt-0.5">
+                    ETB {{ calculateGrandTotal() }}
                   </p>
-                  <p class="text-xs text-slate-500 mt-0.5">Includes tax (15%)</p>
                 </div>
               </div>
             </div>
@@ -1210,126 +1213,79 @@ onMounted(() => {
 
     <!-- Payment Confirmation Modal -->
     <div v-if="showPaymentDialog" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[85vh] flex flex-col overflow-hidden">
-        <!-- Header - Compact -->
-        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-4 text-white flex-shrink-0">
-          <h3 class="text-xl font-bold mb-1">Payment Confirmation</h3>
-          <p class="text-blue-100 text-sm">Review your booking details before payment</p>
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-8 text-white">
+          <h3 class="text-2xl font-bold mb-2">Payment Confirmation</h3>
+          <p class="text-blue-100">Review your booking details before payment</p>
         </div>
 
-        <!-- Content - Scrollable -->
-        <div class="p-5 space-y-3 overflow-y-auto flex-1">
+        <!-- Content -->
+        <div class="p-6 space-y-4">
           <!-- Booking Summary -->
-          <div class="space-y-2">
-            <h4 class="font-semibold text-slate-900 text-sm">Booking Summary</h4>
+          <div class="space-y-3">
+            <h4 class="font-semibold text-slate-900">Booking Summary</h4>
             
             <!-- Room -->
-            <div class="flex justify-between items-start text-xs">
+            <div class="flex justify-between items-start text-sm">
               <span class="text-slate-600">Room:</span>
-              <span class="font-medium text-slate-900 text-right">{{ props.room?.room_number || 'N/A' }} - {{ getRoomTypeName(props.room) }}</span>
+              <span class="font-medium text-slate-900">{{ props.room?.room_number || 'N/A' }} - {{ getRoomTypeName(props.room) }}</span>
             </div>
 
             <!-- Check-in -->
-            <div class="flex justify-between items-start text-xs">
+            <div class="flex justify-between items-start text-sm">
               <span class="text-slate-600">Check-in:</span>
               <span class="font-medium text-slate-900">{{ bookingForm.checkInDate }}</span>
             </div>
 
             <!-- Check-out -->
-            <div class="flex justify-between items-start text-xs">
+            <div class="flex justify-between items-start text-sm">
               <span class="text-slate-600">Check-out:</span>
               <span class="font-medium text-slate-900">{{ bookingForm.checkOutDate }}</span>
             </div>
 
             <!-- Nights -->
-            <div class="flex justify-between items-start text-xs">
+            <div class="flex justify-between items-start text-sm">
               <span class="text-slate-600">Nights:</span>
               <span class="font-medium text-slate-900">{{ calculateNights() }}</span>
             </div>
 
             <!-- Guests -->
-            <div class="flex justify-between items-start text-xs">
+            <div class="flex justify-between items-start text-sm">
               <span class="text-slate-600">Guests:</span>
               <span class="font-medium text-slate-900">{{ bookingForm.guests }}</span>
-            </div>
-
-            <!-- Special Requests (if provided) -->
-            <div v-if="bookingForm.specialRequests && bookingForm.specialRequests.trim()" class="flex flex-col gap-1 text-xs pt-2 border-t-2 border-amber-200">
-              <div class="flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                </svg>
-                <span class="text-slate-700 font-bold">Special Requests:</span>
-              </div>
-              <div class="bg-amber-50 border-2 border-amber-200 rounded-lg p-2">
-                <p class="text-slate-900 text-xs leading-relaxed whitespace-pre-wrap">{{ bookingForm.specialRequests }}</p>
-              </div>
             </div>
           </div>
 
           <!-- Divider -->
-          <div class="border-t border-slate-200 pt-3"></div>
+          <div class="border-t border-slate-200 pt-4"></div>
 
           <!-- Price Breakdown -->
-          <div class="space-y-1.5">
-            <!-- Room -->
-            <div class="flex justify-between text-xs">
+          <div class="space-y-2">
+            <div class="flex justify-between text-sm">
               <span class="text-slate-600">{{ calculateNights() }} nights × {{ getRoomPrice(props.room) }} ETB</span>
-              <span class="font-medium text-slate-900">{{ calculateRoomTotal().toFixed(2) }} ETB</span>
-            </div>
-
-            <!-- Services -->
-            <div v-if="bookingForm.includeBreakfast" class="flex justify-between text-xs text-emerald-600">
-              <span class="flex items-center gap-1">
-                <Coffee class="w-3 h-3" />
-                Breakfast (Free)
-              </span>
-              <span class="font-medium">0.00 ETB</span>
-            </div>
-
-            <div v-if="bookingForm.includeDinner" class="flex justify-between text-xs">
-              <span class="text-slate-600 flex items-center gap-1">
-                <Utensils class="w-3 h-3" />
-                Dinner ({{ calculateNights() }} × 45 ETB)
-              </span>
-              <span class="font-medium text-slate-900">{{ (calculateNights() * 45).toFixed(2) }} ETB</span>
-            </div>
-
-            <div v-if="bookingForm.includeSpa" class="flex justify-between text-xs">
-              <span class="text-slate-600 flex items-center gap-1">
-                <Sparkles class="w-3 h-3" />
-                Spa ({{ calculateNights() }} × 35 ETB)
-              </span>
-              <span class="font-medium text-slate-900">{{ (calculateNights() * 35).toFixed(2) }} ETB</span>
-            </div>
-
-            <!-- Subtotal if services exist -->
-            <div v-if="bookingForm.includeDinner || bookingForm.includeSpa" class="flex justify-between text-xs pt-1.5 border-t border-slate-200">
-              <span class="text-slate-600">Subtotal</span>
               <span class="font-medium text-slate-900">{{ getSubtotal().toFixed(2) }} ETB</span>
             </div>
 
-            <!-- Tax -->
-            <div class="flex justify-between text-xs">
+            <div class="flex justify-between text-sm">
               <span class="text-slate-600">Tax (15%)</span>
               <span class="font-medium text-slate-900">{{ getTaxAmount().toFixed(2) }} ETB</span>
             </div>
 
-            <!-- Total -->
-            <div class="flex justify-between text-sm font-bold pt-1.5 border-t border-slate-200">
+            <div class="flex justify-between text-base font-bold pt-2 border-t border-slate-200">
               <span class="text-slate-900">Total Amount:</span>
               <span class="text-blue-600">{{ getTotalAmount().toFixed(2) }} ETB</span>
             </div>
           </div>
 
           <!-- Terms -->
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs text-blue-700">
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-700">
             ✓ Your payment is secure and processed through Chapa payment gateway
           </div>
         </div>
 
-        <!-- Actions - Fixed at bottom -->
-        <div class="bg-slate-50 px-5 py-3 flex gap-2.5 flex-shrink-0 border-t border-slate-200">
+        <!-- Actions -->
+        <div class="bg-slate-50 px-6 py-4 flex gap-3">
           <button
             @click="closePaymentDialog"
             :disabled="paymentLoading"

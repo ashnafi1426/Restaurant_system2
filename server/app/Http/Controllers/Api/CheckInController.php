@@ -22,7 +22,7 @@ class CheckInController extends Controller
 
         $query = CheckIn::with([
             'guest',
-            'room',
+            'room.roomType',
             'reservation',
         ]);
 
@@ -197,6 +197,25 @@ class CheckInController extends Controller
             DB::commit();
 
             \Log::info(' [CHECK-IN] Transaction committed - check-in successful');
+
+            // Send check-in confirmation email
+            try {
+                \Log::info('📧 [CHECK-IN] Preparing to send check-in confirmation email', [
+                    'guest_email' => $reservation->guest->email,
+                    'guest_name' => $reservation->guest->first_name . ' ' . $reservation->guest->last_name,
+                ]);
+
+                \Mail::to($reservation->guest->email)
+                    ->send(new \App\Mail\CheckInConfirmationMail($checkIn));
+
+                \Log::info('✅ [CHECK-IN] Check-in confirmation email sent successfully');
+            } catch (\Exception $e) {
+                \Log::error('❌ [CHECK-IN] Failed to send check-in confirmation email', [
+                    'error' => $e->getMessage(),
+                    'guest_email' => $reservation->guest->email,
+                ]);
+                // Don't fail the check-in if email fails
+            }
 
             return response()->json([
 

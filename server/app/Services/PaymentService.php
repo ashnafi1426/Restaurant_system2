@@ -166,7 +166,8 @@ class PaymentService
         try {
             // Start database transaction
             $reservation = DB::transaction(function () use ($payment, $reservationData) {
-                // Create reservation record
+                // Create reservation record with 'pending' status
+                // Receptionist needs to confirm before it becomes 'confirmed'
                 $reservation = Reservation::create([
                     'booking_reference' => Reservation::generateBookingReference(),
                     'guest_id'          => $reservationData['guest_id'],
@@ -174,7 +175,7 @@ class PaymentService
                     'check_in_date'     => $reservationData['check_in_date'],
                     'check_out_date'    => $reservationData['check_out_date'],
                     'number_of_guests'  => $reservationData['number_of_guests'],
-                    'status'            => 'confirmed',
+                    'status'            => 'pending',
                     'special_requests'  => $reservationData['special_requests'] ?? null,
                     'created_by'        => auth()->id() ?? null,
                 ]);

@@ -99,6 +99,15 @@ class ReservationPaymentController extends Controller
             // Sanitize email - remove any whitespace, ensure lowercase
             $validated['email'] = trim(strtolower($validated['email']));
             
+            // Validate email format more strictly
+            if (!filter_var($validated['email'], FILTER_VALIDATE_EMAIL)) {
+                Log::error('Invalid email format', ['email' => $validated['email']]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid email format provided',
+                ], 422);
+            }
+            
             // Sanitize phone - must be proper international format
             // Chapa requires format like +251912345678 or 0912345678
             $phone = $validated['phone'];
@@ -120,6 +129,20 @@ class ReservationPaymentController extends Controller
                 } else {
                     $phone = '+' . $phone;
                 }
+            }
+            
+            // Validate phone length (Ethiopian phone numbers should be 12 digits with +251)
+            $digitsOnly = preg_replace('/[^0-9]/', '', $phone);
+            if (strlen($digitsOnly) < 9 || strlen($digitsOnly) > 12) {
+                Log::error('Invalid phone number length', [
+                    'phone_original' => $validated['phone'],
+                    'phone_sanitized' => $phone,
+                    'digits_count' => strlen($digitsOnly),
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid phone number format. Please provide a valid Ethiopian phone number.',
+                ], 422);
             }
             
             $validated['phone'] = $phone;
@@ -231,10 +254,20 @@ class ReservationPaymentController extends Controller
 
             // Handle initialization failure
             if (!($chapaResponse['success'] ?? false)) {
+                $errorMessage = $chapaResponse['message'] ?? 'Unknown error';
+                $errorDetails = $chapaResponse['errors'] ?? $chapaResponse;
+                
                 Log::error('Chapa Initialize Failed for Reservation', [
                     'payment_id' => $payment->id,
-                    'error'      => $chapaResponse['message'] ?? 'Unknown error',
+                    'error'      => $errorMessage,
+                    'error_details' => $errorDetails,
                     'full_response' => json_encode($chapaResponse),
+                    'request_data' => [
+                        'email' => $payment->email,
+                        'phone' => $payment->phone,
+                        'amount' => $payment->amount,
+                        'tx_ref' => $payment->tx_ref,
+                    ],
                 ]);
 
                 $payment->markAsFailed($chapaResponse);
@@ -242,7 +275,8 @@ class ReservationPaymentController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Unable to initialize payment',
-                    'error'   => $chapaResponse['message'] ?? 'Unknown error',
+                    'error'   => $errorMessage,
+                    'details' => is_array($errorDetails) && config('app.debug') ? $errorDetails : null,
                     'debug_info' => config('app.debug') ? $chapaResponse : null,
                 ], 400);
             }

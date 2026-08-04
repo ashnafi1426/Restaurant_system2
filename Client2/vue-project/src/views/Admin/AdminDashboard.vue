@@ -58,14 +58,14 @@ onMounted(loadDashboard)
   <DashboardLayout>
     <div class="w-full bg-gray-50 -mx-4 sm:-mx-6 -my-4 sm:-my-6 px-4 sm:px-6 py-4 sm:py-6">
       <!-- Loading State -->
-      <div v-if="loading" class="animate-pulse space-y-4 sm:space-y-6">
+      <div v-if="loading" class="animate-pulse space-y-3 sm:space-y-4">
         <div class="h-8 bg-gray-200 rounded w-1/3"></div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-          <div v-for="i in 4" :key="i" class="h-32 bg-gray-200 rounded-lg"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+          <div v-for="i in 4" :key="i" class="h-24 bg-gray-200 rounded-lg"></div>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
-          <div class="h-80 bg-gray-200 rounded-lg"></div>
-          <div class="h-80 bg-gray-200 rounded-lg"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
+          <div class="h-72 bg-gray-200 rounded-lg"></div>
+          <div class="h-72 bg-gray-200 rounded-lg"></div>
         </div>
       </div>
 
@@ -91,11 +91,11 @@ onMounted(loadDashboard)
       </div>
 
       <!-- Main Content -->
-      <div v-else-if="dashboard" class="space-y-4 sm:space-y-6">
+      <div v-else-if="dashboard" class="space-y-3 sm:space-y-4">
         <!-- Header Section -->
-        <div class="mb-4 sm:mb-6">
-          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Administrator Dashboard</h1>
-          <p class="text-gray-600 text-xs sm:text-sm mb-4">
+        <div class="mb-3 sm:mb-4">
+          <h1 class="text-xl sm:text-2xl font-bold text-gray-900 mb-1">Administrator Dashboard</h1>
+          <p class="text-gray-600 text-xs sm:text-sm mb-3">
             Real-time property performance and operational overview.
           </p>
 
@@ -159,7 +159,7 @@ onMounted(loadDashboard)
         </div>
 
         <!-- 4 Stat Cards - Responsive Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
           <AdminStatCard
             title="Total Users"
             :value="dashboard.overview.totalUsers"
@@ -191,7 +191,7 @@ onMounted(loadDashboard)
         </div>
 
         <!-- Charts Row - Stack on Mobile -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
           <MonthlyRevenueChart :data="dashboard.monthlyRevenue" />
           <RoomStatusChart
             :occupied="dashboard.roomStatistics.occupied"
@@ -202,11 +202,11 @@ onMounted(loadDashboard)
         </div>
 
         <!-- Bottom Row: Reservations and Sidebar - Stack on Mobile -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
           <div class="lg:col-span-2">
             <RecentReservationsTable :reservations="dashboard.recentReservations" />
           </div>
-          <div class="space-y-3 sm:space-y-4 lg:space-y-6">
+          <div class="space-y-2 sm:space-y-3 lg:space-y-4">
             <StaffActivityWidget :activities="dashboard.staffActivity" />
             <MaintenanceAlerts :alerts="dashboard.maintenanceAlerts" />
           </div>

@@ -7,12 +7,20 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\ActivationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 class UserController extends Controller
 {
+    protected ActivationService $activationService;
+
+    public function __construct(ActivationService $activationService)
+    {
+        $this->activationService = $activationService;
+    }
+
     public function index(Request $request)
   {
     $query = User::query();
@@ -60,40 +68,55 @@ class UserController extends Controller
   {
     DB::beginTransaction();
     try {
+      // Create user without password - will be set via activation
       $user = User::create([
-        'first_name' =>
-        $request->first_name,
-        'last_name' =>
-        $request->last_name,
-        'email' =>
-        $request->email,
-
-        'phone' =>
-        $request->phone,
-        'password_hash' =>
-        Hash::make(
-          $request->password
-        ),
-        'role' =>
-        $request->role,
-        'is_active' =>
-        $request->is_active,
+        'first_name' => $request->first_name,
+        'last_name' => $request->last_name,
+        'email' => $request->email,
+        'phone' => $request->phone,
+        'password_hash' => null, // No password yet - user will create via activation
+        'role' => $request->role,
+        'is_active' => $request->is_active,
+        'activation_status' => 'pending', // Set to pending activation
+        'email_verified_at' => null
       ]);
+
+      // Generate activation token and send email
+      $activationResult = $this->activationService->generateActivationToken($user);
+
+      if (!$activationResult['success']) {
+        DB::rollBack();
+        return response()->json([
+          'success' => false,
+          'message' => 'User created but failed to send activation email. Please resend the activation link.',
+          'user' => new UserResource($user)
+        ], 500);
+      }
+
       DB::commit();
+
+      Log::info('User created with activation workflow', [
+        'user_id' => $user->id,
+        'email' => $user->email,
+        'role' => $user->role,
+        'created_by' => auth('sanctum')->id()
+      ]);
+
       return response()->json([
         'success' => true,
-
-        'message' =>
-        'User created successfully.',
-
-        'data' =>
-        new UserResource($user)
-
+        'message' => 'User created successfully. Activation email sent to ' . $user->email,
+        'data' => new UserResource($user),
+        'activation_sent' => true
       ], 201);
     }
      catch (\Exception $exception) {
 
       DB::rollBack();
+
+      Log::error('Failed to create user', [
+        'error' => $exception->getMessage(),
+        'trace' => $exception->getTraceAsString()
+      ]);
 
       return response()->json([
 

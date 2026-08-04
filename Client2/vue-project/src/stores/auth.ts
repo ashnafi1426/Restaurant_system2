@@ -33,7 +33,12 @@ export const useAuthStore = defineStore('auth', {
         } else if (error.response?.status === 401) {
           errorMessage = error.response?.data?.message || 'Invalid email or password'
         } else if (error.response?.status === 403) {
-          errorMessage = 'Account is disabled'
+          // Check if account needs activation
+          if (error.response?.data?.needs_activation) {
+            errorMessage = 'Account not activated. Please check your email for the activation link.'
+          } else {
+            errorMessage = error.response?.data?.message || 'Account is disabled'
+          }
         } else if (error.response?.status === 422) {
           errorMessage = 'Invalid input. Check email and password.'
         } else if (!error.response) {

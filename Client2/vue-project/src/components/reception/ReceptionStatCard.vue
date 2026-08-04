@@ -11,7 +11,6 @@ withDefaults(defineProps<Props>(), {
   color: 'teal',
   subtext: 'Today',
 })
-
 const colorMap = {
   teal: { text: 'text-teal-600', icon: 'text-teal-500' },
   red: { text: 'text-red-600', icon: 'text-red-500' },
@@ -39,31 +38,31 @@ const iconMap: Record<string, string> = {
 
 <template>
   <div
-    class="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm hover:shadow-md transition"
+    class="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-3 shadow-sm hover:shadow-md transition"
   >
     <!-- Title (uppercase, small) -->
     <p
-      class="text-xs md:text-sm font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest mb-2 sm:mb-3 md:mb-4"
+      class="text-[10px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1.5"
     >
       {{ title }}
     </p>
 
     <!-- Value and Icon -->
-    <div class="flex items-end justify-between gap-2 sm:gap-3 md:gap-4">
+    <div class="flex items-end justify-between gap-2">
       <div class="flex-1">
         <p
-          :class="`${colorMap[color].text} text-4xl sm:text-5xl md:text-6xl font-bold leading-none`"
+          :class="`${colorMap[color].text} text-2xl font-bold leading-none`"
         >
           {{ value }}
         </p>
-        <p class="text-xs sm:text-sm md:text-base text-gray-500 dark:text-slate-400 mt-1 sm:mt-2 md:mt-3 font-medium">
+        <p class="text-[10px] text-gray-500 dark:text-slate-400 mt-1 font-medium">
           {{ subtext }}
         </p>
       </div>
       <!-- Icon SVG -->
       <div class="flex-shrink-0">
         <svg
-          class="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7"
+          class="w-5 h-5"
           :class="colorMap[color].icon"
           fill="currentColor"
           viewBox="0 0 24 24"

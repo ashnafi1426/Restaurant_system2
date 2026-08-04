@@ -16,10 +16,6 @@ class CheckInConfirmed extends Mailable
     public function __construct(
         public Reservation $reservation
     ) {}
-
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
@@ -48,12 +44,6 @@ class CheckInConfirmed extends Mailable
             ],
         );
     }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
     public function attachments(): array
     {
         return [];

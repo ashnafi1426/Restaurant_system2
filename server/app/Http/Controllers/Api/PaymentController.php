@@ -217,6 +217,52 @@ class PaymentController extends Controller
                     'status'     => $payment->fresh()->status,  // Get fresh status
                 ]);
 
+                // ============================================================================
+                // AUTO-CREATE RESERVATION AFTER PAYMENT VERIFICATION
+                // ============================================================================
+                
+                // Check if this is a reservation payment (has metadata with reservation data)
+                if ($payment->metadata && isset($payment->metadata['type']) && $payment->metadata['type'] === 'reservation') {
+                    Log::info('Creating reservation after payment verification', [
+                        'payment_id' => $payment->id,
+                        'tx_ref'     => $txRef,
+                    ]);
+                    
+                    try {
+                        // Create the reservation
+                        $reservation = Reservation::create([
+                            'booking_reference' => Reservation::generateBookingReference(),
+                            'guest_id'          => $payment->guest_id,
+                            'room_id'           => $payment->metadata['room_id'],
+                            'check_in_date'     => $payment->metadata['check_in_date'],
+                            'check_out_date'    => $payment->metadata['check_out_date'],
+                            'number_of_guests'  => $payment->metadata['number_of_guests'],
+                            'status'            => 'pending',  // Receptionist needs to confirm
+                            'special_requests'  => $payment->metadata['special_requests'] ?? null,
+                            'created_by'        => null,  // Guest booking
+                        ]);
+                        
+                        // Link payment to reservation
+                        $payment->update(['reservation_id' => $reservation->id]);
+                        
+                        Log::info('Reservation created successfully after payment', [
+                            'payment_id'       => $payment->id,
+                            'reservation_id'   => $reservation->id,
+                            'booking_reference' => $reservation->booking_reference,
+                            'status'           => $reservation->status,
+                        ]);
+                        
+                    } catch (\Exception $e) {
+                        Log::error('Failed to create reservation after payment verification', [
+                            'payment_id' => $payment->id,
+                            'tx_ref'     => $txRef,
+                            'error'      => $e->getMessage(),
+                        ]);
+                        // Don't fail the payment verification if reservation creation fails
+                        // This can be handled manually or retried later
+                    }
+                }
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Payment verified successfully',

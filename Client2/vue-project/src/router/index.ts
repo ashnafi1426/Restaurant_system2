@@ -7,6 +7,7 @@ import contactPage from '../views/guest/Contact.vue'
 import GalleryPage from '../views/guest/Gallary.vue'
 // import QROrderingPage from '../views/guest/QROrderingPage.vue'
 import LoginView from '../views/LoginView.vue'
+import ActivationPage from '../views/ActivationPage.vue'
 import AdminDashboard from '../views/Admin/AdminDashboard.vue'
 import orderManagment from '../views/Admin/order/OrderManagment.vue'
 import ReceptionDashboard from '../views/receptionist/reception/ReceptionDashboard.vue'
@@ -38,6 +39,8 @@ import ReservationListPage from '../views/receptionist/reservation/ReservationLi
 import ReservationCreatePage from '../views/receptionist/reservation/ReservationCreate.vue'
 import ReservationEditPage from '../views/receptionist/reservation/ReservationEdit.vue'
 import CheckInView from '../views/receptionist/checkIn/checkInView.vue'
+import CheckOutView from '../views/receptionist/checkOut/CheckOutView.vue'
+import ReportsPage from '../views/receptionist/reports/ReportsPage.vue'
 import AddOrder from '@/views/Admin/order/AddOrder.vue'
 import QRMenu from '../views/guest/QRMenu.vue'
 import PaymentSuccessPage from '../views/payment/PaymentSuccessPage.vue'
@@ -47,6 +50,7 @@ import CheckoutPage from '../views/payment/CheckoutPage.vue'
 import OrderPaymentSuccessPage from '../views/payment/OrderPaymentSuccessPage.vue'
 import managerRoutes from './managerRouter'
 import waiterRoutes from './waiterRouter'
+import cashierRoutes from './cashierRouter'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -78,6 +82,24 @@ const router = createRouter({
         // If not authenticated, show guest home page
         next()
       },
+    },
+    {
+      path: '/activate/:token',
+      name: 'activation',
+      component: ActivationPage,
+      meta: { public: true }
+    },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('../views/ForgotPasswordPage.vue'),
+      meta: { public: true }
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: () => import('../views/ResetPasswordPage.vue'),
+      meta: { public: true }
     },
     // {
     //   path: '/reservation',
@@ -395,6 +417,27 @@ const router = createRouter({
       meta: {
         title: 'Check In Management',
         requiresAuth: true,
+        role: 'receptionist',
+      },
+    },
+    {
+      path: '/check-out',
+      name: 'check-outs',
+      component: CheckOutView,
+      meta: {
+        title: 'Check Out Management',
+        requiresAuth: true,
+        role: 'receptionist',
+      },
+    },
+    {
+      path: '/reports',
+      name: 'reports',
+      component: ReportsPage,
+      meta: {
+        title: 'Reception Reports',
+        requiresAuth: true,
+        role: 'receptionist',
       },
     },
 
@@ -513,9 +556,10 @@ const router = createRouter({
         requiresAuth: false,
       },
     },
-
+   
     ...managerRoutes,
     ...waiterRoutes,
+    ...cashierRoutes,
   ],
 })
 

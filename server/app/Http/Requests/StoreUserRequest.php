@@ -75,15 +75,10 @@ class StoreUserRequest extends FormRequest
             |--------------------------------------------------------------------------
             | Password
             |--------------------------------------------------------------------------
-            | We receive "password"
-            | Later controller stores it into password_hash
+            | No longer required for admin user creation.
+            | Users will set their own password via activation link.
+            | Password field is completely removed from user creation.
             */
-            'password' => [
-                'required',
-                'string',
-                'min:8',
-                'confirmed'
-            ],
 
             /*
             |--------------------------------------------------------------------------
@@ -137,12 +132,6 @@ class StoreUserRequest extends FormRequest
 
             'email.unique' =>
             'Email already exists.',
-
-            'password.required' =>
-            'Password is required.',
-
-            'password.confirmed' =>
-            'Password confirmation does not match.',
 
             'role.required' =>
             'Role is required.',

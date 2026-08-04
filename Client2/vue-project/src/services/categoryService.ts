@@ -1,5 +1,4 @@
 import api from '../api/auth'
-
 export interface Category {
   id: string
   name: string
@@ -18,13 +17,8 @@ export interface CreateCategoryData {
   display_order?: number
   is_active?: boolean
 }
-
 export interface UpdateCategoryData extends Partial<CreateCategoryData> {}
-
 export default {
-  /**
-   * Get all categories
-   */
   getCategories(params: any = {}) {
     return api.get('/categories', { params })
   },

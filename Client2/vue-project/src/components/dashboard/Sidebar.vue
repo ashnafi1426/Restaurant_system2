@@ -57,8 +57,6 @@ const handleNavigate = () => {
   emit('navigate')
   console.log('📱 Navigation clicked - closing sidebar')
 }
-
-// Map string identifiers to their respective Lucide component definitions
 const menuIcons: Record<string, Component> = {
   Dashboard: LayoutDashboard,
   Users: Users,
@@ -98,7 +96,6 @@ const menuIcons: Record<string, Component> = {
   Statistics: BarChart3,
   Waiters: Users2,
 }
-
 const menus = computed(() => {
   switch (auth.user?.role) {
     case 'admin':
@@ -117,15 +114,14 @@ const menus = computed(() => {
         { name: 'Reservations', path: '/reservations', icon: 'Reservations'},
         { name: 'Check In', path: '/check-in', icon: 'Check In'},
         { name: 'Check Out', path: '/check-out', icon: 'Check Out'},
-        { name: 'Orders', path: '/orders', icon: 'Food Orders'},
+        // { name: 'Orders', path: '/orders', icon: 'Food Orders'},
+        { name: 'Reports', path: '/reports', icon: 'Reports'},
       ]
     case 'cashier':
       return [
-        { name: 'Dashboard', path: '/cashier', icon: 'Dashboard'},
-        { name: 'Invoices', path: '/invoices', icon: 'Invoices'},
-        { name: 'Payments', path: '/payments', icon: 'Payments'},
-        { name: 'Transactions', path: '/transactions', icon: 'Transactions'},
-        { name: 'Refunds', path: '/refunds', icon: 'Refunds'},
+        { name: 'Dashboard', path: '/cashier/dashboard', icon: 'Dashboard'},
+        { name: 'Payments', path: '/cashier/payments', icon: 'Payments'},
+        { name: 'Reports', path: '/cashier/reports', icon: 'Reports'},
       ]
     case 'chef':
       return [
@@ -152,10 +148,7 @@ const menus = computed(() => {
         { name: 'On Delivery', path: '/waiter/on-delivery', icon: 'Truck'},
         { name: 'Completed Orders', path: '/waiter/completed-orders', icon: 'Served Orders'},
         { name: 'Delivery History', path: '/waiter/delivery-history', icon: 'FileSpreadsheet'},
-        { name: 'Performance', path: '/waiter/performance', icon: 'TrendingUp'},
-        { name: 'My Profile', path: '/waiter/profile', icon: 'Users'},
-        { name: 'Notifications', path: '/waiter/notifications', icon: 'Notifications'},
-        { name: 'Settings', path: '/waiter/settings', icon: 'Settings'},
+        { name: 'Performance', path: '/waiter/performance', icon: 'TrendingUp'}
       ]
     default:
       return []

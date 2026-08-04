@@ -32,34 +32,34 @@ const trendColor = (trend: number) => {
 
 <template>
   <div
-    class="bg-white rounded-2xl px-4 sm:px-6 md:px-8 py-5 sm:py-6 md:py-7 border border-gray-200 hover:shadow-lg hover:border-gray-300 transition-all duration-300 group"
+    class="bg-white rounded-lg px-3 sm:px-4 py-3 sm:py-4 border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-300 group"
     :class="colorMap[color]?.border"
   >
-    <div class="flex items-start justify-between gap-3 sm:gap-4">
+    <div class="flex items-start justify-between gap-2 sm:gap-3">
       <!-- Left Content -->
       <div class="flex-1 min-w-0">
         <p
-          class="text-xs sm:text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-widest mb-2 sm:mb-3"
+          class="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 sm:mb-1.5"
         >
           {{ title }}
         </p>
         <h3
-          class="text-3xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 tracking-tight"
+          class="text-xl sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-1.5 tracking-tight"
         >
           {{ value }}
         </h3>
 
         <!-- Subtitle or Trend -->
-        <div v-if="subtitle" class="text-xs sm:text-sm text-gray-600 font-medium">
+        <div v-if="subtitle" class="text-[10px] sm:text-xs text-gray-600 font-medium">
           {{ subtitle }}
         </div>
-        <div v-else-if="trend && trend !== 0" class="flex items-center gap-1.5">
+        <div v-else-if="trend && trend !== 0" class="flex items-center gap-1">
           <span
             v-if="trend > 0"
-            class="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold"
+            class="inline-flex items-center gap-0.5 text-[10px] sm:text-xs font-semibold"
             :class="trendColor(trend)"
           >
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
               <path
                 d="M7 14c.5.8 2 2 5 2s4.5-1.2 5-2M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
               />
@@ -68,10 +68,10 @@ const trendColor = (trend: number) => {
           </span>
           <span
             v-else
-            class="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold"
+            class="inline-flex items-center gap-0.5 text-[10px] sm:text-xs font-semibold"
             :class="trendColor(trend)"
           >
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
               <path
                 d="M7 10c.5-.8 2-2 5-2s4.5 1.2 5 2M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
               />
@@ -83,10 +83,10 @@ const trendColor = (trend: number) => {
 
       <!-- Icon -->
       <div
-        class="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
+        class="w-10 h-10 sm:w-11 sm:h-11 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
         :class="[colorMap[color]?.bg]"
       >
-        <SvgIcon :class="[colorMap[color]?.text]" type="mdi" :path="icon" :size="32" />
+        <SvgIcon :class="[colorMap[color]?.text]" type="mdi" :path="icon" :size="24" />
       </div>
     </div>
   </div>

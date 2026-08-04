@@ -20,11 +20,11 @@ const createUser = async (data: User) => {
   try {
     const result = await userStore.createUser(data)
 
-    successMessage.value = 'User created successfully!'
+    successMessage.value = `User created successfully! An activation email has been sent to ${data.email}`
 
     setTimeout(() => {
       router.push('/users')
-    }, 1000)
+    }, 2000)
   } catch (error: any) {}
 }
 </script>

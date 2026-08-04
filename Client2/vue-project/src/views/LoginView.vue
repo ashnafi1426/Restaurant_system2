@@ -276,12 +276,12 @@ const login = async (): Promise<void> => {
         <div class="mb-4">
           <div class="flex items-center justify-between mb-1">
             <label class="text-xs font-semibold text-slate-700">Password</label>
-            <a
-              href="#"
+            <router-link
+              to="/forgot-password"
               class="text-[10px] text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors"
             >
               Forgot?
-            </a>
+            </router-link>
           </div>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

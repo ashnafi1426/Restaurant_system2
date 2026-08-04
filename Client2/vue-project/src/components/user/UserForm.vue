@@ -154,24 +154,51 @@ const getFieldError = (fieldName: string): string | null => {
       </p>
     </div>
 
-    <!-- Password Fields -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
+    <!-- Password Info Notice (for new users) -->
+    <div v-if="!isEditMode" class="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+      <div class="flex items-start gap-3">
+        <div class="flex-shrink-0 mt-0.5">
+          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h4 class="text-sm font-semibold text-purple-900 mb-1">🔐 Password Activation Workflow</h4>
+          <p class="text-xs text-purple-800 leading-relaxed">
+            The user will receive an <strong>activation email</strong> with a secure link to create their own password. 
+            This ensures you never know or handle user passwords, following enterprise security best practices.
+          </p>
+          <div class="mt-2 p-2 bg-purple-100 rounded text-xs text-purple-900">
+            <strong>📧 What happens next:</strong>
+            <ol class="list-decimal list-inside mt-1 space-y-0.5">
+              <li>User receives activation email</li>
+              <li>User clicks the activation link (valid for 24 hours)</li>
+              <li>User creates their own secure password</li>
+              <li>Account is activated and ready to use</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password Fields (for editing existing users only) -->
+    <div v-if="isEditMode" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
       <div>
         <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900">
-          Password <span v-if="!isEditMode" class="text-red-500">*</span>
+          Password <span class="text-slate-400 text-xs">(Optional)</span>
         </label>
         <input
           v-model="form.password"
           type="password"
-          :required="!isEditMode"
           minlength="8"
-          :placeholder="isEditMode ? 'Leave blank to keep current' : 'Minimum 8 characters'"
+          placeholder="Leave blank to keep current"
           :class="[
             'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
             getFieldError('password') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
           ]"
           :disabled="loading"
         />
+        <p class="mt-1 text-xs text-slate-500">Only fill to change password</p>
         <p
           v-if="getFieldError('password')"
           class="mt-1 text-xs text-red-600 flex items-center gap-1"
@@ -182,12 +209,12 @@ const getFieldError = (fieldName: string): string | null => {
 
       <div>
         <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900">
-          Confirm Password <span v-if="!isEditMode" class="text-red-500">*</span>
+          Confirm Password <span v-if="form.password !== ''" class="text-red-500">*</span>
         </label>
         <input
           v-model="form.password_confirmation"
           type="password"
-          :required="!isEditMode && form.password !== ''"
+          :required="form.password !== ''"
           minlength="8"
           placeholder="Re-enter password"
           :class="[

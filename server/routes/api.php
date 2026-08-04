@@ -42,14 +42,29 @@ use App\Http\Controllers\Api\Waiter\WaiterNotificationController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ReservationPaymentController;
 use App\Http\Controllers\Api\GuestOrderPaymentController;
+use App\Http\Controllers\Api\Cashier\CashierDashboardController;
+use App\Http\Controllers\Api\Cashier\CashierPaymentController;
+use App\Http\Controllers\Api\Cashier\CashierReportController;
+use App\Http\Controllers\Api\ActivationController;
+use App\Http\Controllers\Api\PasswordResetController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
+
+
+Route::get('/activation/{token}', [ActivationController::class, 'validateToken']);
+Route::post('/activate-account', [ActivationController::class, 'activateAccount']);
+Route::post('/resend-activation', [ActivationController::class, 'resendActivation']);
+Route::post('/check-activation-status', [ActivationController::class, 'checkActivationStatus']);
+Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
+
+// Reset password with token
+Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+
+// Verify reset token
+Route::post('/verify-reset-token', [PasswordResetController::class, 'verifyToken']);
 Route::get('/rooms', [RoomController::class, 'index']);
 Route::get('/rooms/{room}', [RoomController::class, 'show']);
-// ⚠️ IMPORTANT: Reservation creation is ONLY allowed through payment flow
-// Direct POST to /reservations is DISABLED to enforce payment requirement
-// Route::post('/reservations', [ReservationController::class, 'store']); // DISABLED - Use payment flow instead
 Route::post('/guests', [GuestController::class, 'store']);
 Route::get('/guests', [GuestController::class, 'index']);
 Route::get('/qr-codes/download/{roomId}', [QRCodePrintController::class, 'downloadQRCode']);
@@ -69,67 +84,16 @@ Route::prefix('reservation-payments')->group(function () {
     Route::post('/complete/{txRef}', [ReservationPaymentController::class, 'completeReservation']);
     Route::get('/{txRef}', [ReservationPaymentController::class, 'getReservationByPayment']);
 });
-
 // Public Order Payment Routes (No authentication required for guest QR orders)
 Route::prefix('order-payments')->group(function () {
     Route::post('/initialize', [GuestOrderPaymentController::class, 'initializePayment']);
     Route::post('/complete/{txRef}', [GuestOrderPaymentController::class, 'completeOrder']);
     Route::get('/{txRef}', [GuestOrderPaymentController::class, 'getOrderByPayment']);
-    
-    // Test endpoints for debugging
-    Route::get('/test/debug', function () {
-        return response()->json([
-            'message' => 'API is working',
-            'debug' => config('app.debug'),
-            'chapa_config' => [
-                'base_url' => config('chapa.base_url'),
-                'has_secret' => !empty(config('chapa.secret_key')),
-                'callback_url' => config('chapa.callback_url'),
-                'return_url' => config('chapa.return_url'),
-            ],
-        ]);
-    });
-    
-    // Test Chapa connection
-    Route::post('/test/chapa', function (\App\Services\ChapaService $chapaService) {
-        try {
-            $response = $chapaService->initialize([
-                'amount'       => 100, // Test amount in ETB
-                'currency'     => 'ETB',
-                'email'        => 'test@example.com',
-                'first_name'   => 'Test',
-                'last_name'    => 'User',
-                'phone'        => '+251912345678',
-                'tx_ref'       => 'TEST-' . now()->timestamp,
-                'callback_url' => config('chapa.callback_url'),
-                'return_url'   => config('chapa.return_url'),
-                'title'        => 'Test Payment',
-                'description'  => 'Testing Chapa connection',
-            ]);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Chapa test call completed',
-                'chapa_response' => $response,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ], 500);
-        }
-    });
 });
 
 Route::prefix('guest')->group(function () {
     Route::get('/menu/items', [GuestOrderController::class, 'getAllMenuItems']);
     Route::get('/menu/{qrToken}', [GuestOrderController::class, 'getRoom']);
-    
-    // ⚠️ SECURITY: Direct order creation is DISABLED
-    // Orders MUST be created through payment flow only (/api/order-payments/initialize)
-    // This ensures payment is verified before order reaches kitchen
-    // Route::post('/orders', [GuestOrderController::class, 'createOrder']); // DISABLED
     Route::get('/menu/{qrToken}/items', [GuestOrderController::class, 'getMenuItems']);
     Route::post('/orders', [GuestOrderController::class, 'createOrder']);
     Route::get('/orders/{qrToken}/status', [GuestOrderController::class, 'getOrderStatus']);
@@ -147,10 +111,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [PaymentController::class, 'index']);
         Route::get('/{paymentId}', [PaymentController::class, 'getStatus']);
     });
-
-    // Authenticated Reservation Management (Receptionist/Admin only)
-    // ⚠️ IMPORTANT: Direct reservation creation is disabled
-    // Reservations MUST be created through payment flow only
     Route::middleware('role:receptionist|admin')->group(function () {
         Route::get('/reservations', [ReservationController::class, 'index']);
         Route::get('/reservations/{reservation}', [ReservationController::class, 'show']);
@@ -242,6 +202,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/orders/{id}',[OrderController::class, 'destroy']);
         Route::patch('/orders/{id}/status',[OrderController::class, 'changeStatus']);
         Route::get('/reception/dashboard', [ReceptionController::class, 'index']);
+        
+        // Reception Reports
+        Route::prefix('reception/reports')->group(function () {
+            Route::get('/reservations', [\App\Http\Controllers\Api\ReceptionReportController::class, 'reservationReport']);
+            Route::get('/occupancy', [\App\Http\Controllers\Api\ReceptionReportController::class, 'occupancyReport']);
+            Route::get('/guests', [\App\Http\Controllers\Api\ReceptionReportController::class, 'guestReport']);
+            Route::get('/revenue', [\App\Http\Controllers\Api\ReceptionReportController::class, 'revenueReport']);
+            Route::get('/check-in-out', [\App\Http\Controllers\Api\ReceptionReportController::class, 'checkInOutReport']);
+        });
+        
         Route::prefix('admin-guests')->group(function () {
             Route::get('/', [GuestController::class, 'index']);
             Route::post('/', [GuestController::class, 'store']);
@@ -261,7 +231,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/admin-reservations/{reservation}/check-in', [ReservationController::class, 'checkIn']);
         Route::post('/admin-reservations/{reservation}/check-out', [ReservationController::class, 'checkOut']);
         Route::post('/admin-reservations/{reservation}/cancel', [ReservationController::class, 'cancel']);
-        Route::prefix('check-in')->group(function () {
+        Route::prefix('check-ins')->group(function () {
             Route::get('/statistics', [CheckInController::class, 'statistics']);
             Route::get('/', [CheckInController::class, 'index']);
             Route::post('/', [CheckInController::class, 'store']);
@@ -429,8 +399,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::patch('/{id}/deliver', [WaiterAssignmentController::class, 'deliver']);
             Route::patch('/{id}/failed', [WaiterAssignmentController::class, 'failed']);
         });
-        
-        // History & Reports
         Route::prefix('history')->group(function () {
             Route::get('/', [WaiterHistoryController::class, 'getHistory']);
             Route::get('/export', [WaiterHistoryController::class, 'exportHistory']);
@@ -476,6 +444,30 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::patch('/read-all', [WaiterNotificationController::class, 'markAllAsRead']);
             Route::delete('/{id}', [WaiterNotificationController::class, 'deleteNotification']);
             Route::delete('/', [WaiterNotificationController::class, 'deleteAll']);
+        });
+    });
+    Route::middleware('role:cashier|admin')->prefix('cashier')->group(function () {
+        // Dashboard
+        Route::prefix('dashboard')->group(function () {
+            Route::get('/', [CashierDashboardController::class, 'index']);
+            Route::get('/recent-payments', [CashierDashboardController::class, 'recentPayments']);
+            Route::get('/pending-payments', [CashierDashboardController::class, 'pendingPayments']);
+            Route::get('/recent-transactions', [CashierDashboardController::class, 'recentTransactions']);
+            Route::get('/revenue-chart', [CashierDashboardController::class, 'revenueChart']);
+            Route::get('/payment-method-chart', [CashierDashboardController::class, 'paymentMethodChart']);
+            Route::get('/refund-requests', [CashierDashboardController::class, 'refundRequests']);
+        });
+
+        // Payments Management
+        Route::prefix('payments')->group(function () {
+            Route::get('/', [CashierPaymentController::class, 'index']);
+            Route::get('/{id}', [CashierPaymentController::class, 'show']);
+            Route::post('/{id}/refund', [CashierPaymentController::class, 'refund']);
+        });
+        Route::prefix('reports')->group(function () {
+            Route::get('/revenue', [CashierReportController::class, 'revenueReport']);
+            Route::get('/payment', [CashierReportController::class, 'paymentReport']);
+            Route::get('/refund', [CashierReportController::class, 'refundReport']);
         });
     });
 });

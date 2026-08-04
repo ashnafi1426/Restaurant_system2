@@ -76,14 +76,6 @@ export default {
         return response
       })
       .catch((error) => {
-        console.error(' [SERVICE] Check-in failed')
-        console.error(' [SERVICE] Error status:', error.response?.status)
-        console.error(' [SERVICE] Error data:', error.response?.data)
-        console.error(' [SERVICE] Error message:', error.response?.data?.message || error.message)
-        console.error(' [SERVICE] Error errors:', error.response?.data?.errors)
-        console.error(' [SERVICE] Full error:', error)
-
-        // Throw error with detailed message
         let errorMsg = error.response?.data?.message || error.message || 'Check-in failed'
 
         // If validation errors exist, append them

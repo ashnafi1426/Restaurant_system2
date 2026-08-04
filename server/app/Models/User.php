@@ -17,7 +17,11 @@ class User extends Authenticatable
         'phone',
         'password_hash',
         'role',
-        'is_active'
+        'is_active',
+        'activation_token',
+        'activation_token_expires_at',
+        'activation_status',
+        'email_verified_at'
     ];
     protected $hidden = [
         'password_hash',
@@ -27,7 +31,9 @@ class User extends Authenticatable
     {
         return [
             'password_hash' => 'hashed',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
+            'activation_token_expires_at' => 'datetime',
+            'email_verified_at' => 'datetime'
         ];
     }
 
@@ -62,6 +68,32 @@ class User extends Authenticatable
     public function isChef()
     {
         return $this->role === 'chef';
+    }
+
+    /**
+     * Check if user account is activated.
+     */
+    public function isActivated(): bool
+    {
+        return $this->activation_status === 'activated';
+    }
+
+    /**
+     * Check if user needs activation.
+     */
+    public function needsActivation(): bool
+    {
+        return in_array($this->activation_status, ['pending', 'expired']);
+    }
+
+    /**
+     * Check if activation token is valid (not expired).
+     */
+    public function hasValidActivationToken(): bool
+    {
+        return $this->activation_token 
+            && $this->activation_token_expires_at 
+            && $this->activation_token_expires_at->isFuture();
     }
     public function managerNotifications()
     {

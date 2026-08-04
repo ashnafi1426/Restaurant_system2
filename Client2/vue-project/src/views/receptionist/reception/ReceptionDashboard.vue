@@ -41,11 +41,11 @@ onMounted(loadDashboard)
   <DashboardLayout>
     <div class="w-full bg-white dark:bg-slate-900">
       <!-- Header Section -->
-      <div class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-8 py-6">
+      <div class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-6 py-5">
         <div class="flex items-start justify-between">
           <div class="flex-1">
             <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Receptionist Dashboard</h1>
-            <p class="text-gray-500 dark:text-slate-400 text-sm mt-1">Manage your property efficiently today.</p>
+            <p class="text-gray-500 dark:text-slate-400 text-sm mt-2">Manage your property efficiently today.</p>
           </div>
           <!-- Action Buttons (Right Aligned) -->
           <div class="flex gap-3 flex-shrink-0">
@@ -53,7 +53,7 @@ onMounted(loadDashboard)
               @click="quickCheckIn"
               class="px-5 py-2.5 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition flex items-center gap-2"
             >
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
               </svg>
               Quick Check In
@@ -63,9 +63,9 @@ onMounted(loadDashboard)
       </div>
 
       <!-- Main Content -->
-      <div v-if="loading" class="p-8 bg-white dark:bg-slate-900">
-        <div class="grid grid-cols-6 gap-4 mb-8">
-          <div v-for="i in 6" :key="i" class="h-32 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse"></div>
+      <div v-if="loading" class="p-6 bg-white dark:bg-slate-900">
+        <div class="grid grid-cols-6 gap-3 mb-6">
+          <div v-for="i in 6" :key="i" class="h-24 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse"></div>
         </div>
       </div>
       <!-- Error State -->
@@ -104,7 +104,7 @@ onMounted(loadDashboard)
       </div>
 
       <!-- Main Grid Layout -->
-      <div v-else-if="dashboard" class="p-8 space-y-8 bg-white dark:bg-slate-900">
+      <div v-else-if="dashboard" class="p-6 space-y-6 bg-white dark:bg-slate-900">
         <!-- Statistics Cards (6 columns in one row) -->
         <div class="grid grid-cols-6 gap-4">
           <ReceptionStatCard
@@ -152,9 +152,9 @@ onMounted(loadDashboard)
         </div>
 
         <!-- Content Grid: 2 columns -->
-        <div class="grid grid-cols-2 gap-8">
+        <div class="grid grid-cols-2 gap-6">
           <!-- Left Column -->
-          <div class="space-y-8">
+          <div class="space-y-6">
             <!-- Today's Arrivals -->
             <TodaysArrivals :arrivals="dashboard.today_arrivals" />
 
@@ -163,7 +163,7 @@ onMounted(loadDashboard)
           </div>
 
           <!-- Right Column -->
-          <div class="space-y-8">
+          <div class="space-y-6">
             <!-- Room Status Matrix -->
             <RoomStatusMatrix :rooms="dashboard.room_matrix" />
 
