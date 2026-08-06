@@ -111,6 +111,22 @@ class PaymentService
     public function createOrderPayment(array $data): Payment
     {
         try {
+            // ✅ PRESERVE ALL METADATA - especially items and calculation arrays
+            $metadata = $data['metadata'] ?? [];
+            
+            // Only add/override specific fields without destroying existing data
+            $metadata['type'] = 'order';
+            $metadata['room_id'] = $data['room_id'] ?? ($metadata['room_id'] ?? null);
+            $metadata['created_at'] = now()->toIso8601String();
+            
+            // ✅ Log to verify items are being saved
+            Log::info('💾 [PAYMENT] Creating order payment with metadata', [
+                'has_items' => isset($metadata['items']),
+                'items_count' => isset($metadata['items']) ? count($metadata['items']) : 0,
+                'has_calculation' => isset($metadata['calculation']),
+                'metadata_keys' => array_keys($metadata),
+            ]);
+
             $payment = Payment::create([
                 'tx_ref'           => (new ChapaService())->generateTransactionReference(),
                 'amount'           => $data['amount'],
@@ -122,17 +138,17 @@ class PaymentService
                 'payment_provider' => Payment::PROVIDER_CHAPA,
                 'status'           => Payment::STATUS_PENDING,
                 'guest_id'         => $data['guest_id'],
-                'metadata'         => [
-                    'type'    => 'order',
-                    'room_id' => $data['room_id'] ?? null,
-                    'created_at' => now()->toIso8601String(),
-                ],
+                'metadata'         => $metadata,
             ]);
 
-            Log::info('Order Payment Created', [
+            // ✅ Verify metadata was saved correctly
+            $savedMetadata = $payment->fresh()->metadata;
+            Log::info('✅ [PAYMENT] Order Payment Created', [
                 'payment_id' => $payment->id,
                 'amount'     => $payment->amount,
                 'guest_id'   => $data['guest_id'],
+                'saved_metadata_has_items' => isset($savedMetadata['items']),
+                'saved_items_count' => isset($savedMetadata['items']) ? count($savedMetadata['items']) : 0,
             ]);
 
             return $payment;
@@ -240,7 +256,7 @@ class PaymentService
                     'room_id'         => $orderData['room_id'] ?? null,
                     'order_time'      => now(),
                     'status'          => Order::STATUS_PENDING,
-                    'source'          => 'qr_menu',
+                    'source'          => 'guest_qr',
                     'payment_type'    => 'chapa',
                     'subtotal'        => $orderData['subtotal'] ?? $payment->amount,
                     'tax'             => $orderData['tax'] ?? 0,
@@ -248,7 +264,6 @@ class PaymentService
                     'total'           => $payment->amount,
                     'notes'           => $orderData['notes'] ?? null,
                     'special_requests' => $orderData['special_requests'] ?? null,
-                    'user_id'         => auth()->id() ?? null,
                 ]);
 
                 // Create order items

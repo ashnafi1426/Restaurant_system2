@@ -111,6 +111,19 @@ class GuestOrderPaymentController extends Controller
                 ], 400);
             }
 
+            // Prepare order items with prices for payment metadata
+            $orderItemsWithPrices = [];
+            foreach ($orderCalculation['items'] as $item) {
+                $orderItemsWithPrices[] = [
+                    'menu_item_id'         => $item['menu_item_id'],
+                    'name'                 => $item['name'],
+                    'quantity'             => $item['quantity'],
+                    'price'                => $item['price'],
+                    'total'                => $item['total'],
+                    'special_instructions' => null, // Can be extended
+                ];
+            }
+
             // Create payment record
             $payment = $this->paymentService->createOrderPayment([
                 'amount'    => $orderCalculation['total'],
@@ -121,10 +134,10 @@ class GuestOrderPaymentController extends Controller
                 'guest_id'  => $validated['guest_id'],
                 'room_id'   => $validated['room_id'],
                 'metadata'  => [
-                    'type'      => 'order',
-                    'room_id'   => $validated['room_id'],
-                    'items'     => $validated['items'],
-                    'notes'     => $validated['notes'] ?? null,
+                    'type'        => 'order',
+                    'room_id'     => $validated['room_id'],
+                    'items'       => $orderItemsWithPrices, // ✅ Items with prices
+                    'notes'       => $validated['notes'] ?? null,
                     'calculation' => $orderCalculation,
                 ],
             ]);
@@ -247,6 +260,15 @@ class GuestOrderPaymentController extends Controller
         try {
             // Find payment
             $payment = Payment::where('tx_ref', $txRef)->firstOrFail();
+
+            if ($payment->order_id && $payment->order) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Order already completed',
+                    'order'   => $payment->order->load('orderItems.menuItem'),
+                    'payment' => new PaymentResource($payment->load('order.orderItems.menuItem')),
+                ]);
+            }
 
             // Verify payment is verified
             if (!$payment->isVerified()) {

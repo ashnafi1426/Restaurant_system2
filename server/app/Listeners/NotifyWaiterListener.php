@@ -9,38 +9,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 use Exception;
-
-/**
- * NotifyWaiterListener
- * 
- * Listens for WaiterAssignedEvent and DeliveryReassignedEvent
- * Creates notifications for waiters about their deliveries
- * Also notifies previous waiter when delivery is reassigned
- */
 class NotifyWaiterListener implements ShouldQueue
 {
     use InteractsWithQueue;
-
-    /**
-     * The number of times the queued listener may be attempted
-     *
-     * @var int
-     */
     public $tries = 3;
-
-    /**
-     * Create the event listener.
-     *
-     * @return void
-     */
     public function __construct() {}
 
-    /**
-     * Handle WaiterAssignedEvent
-     *
-     * @param WaiterAssignedEvent $event
-     * @return void
-     */
     public function handleWaiterAssigned(WaiterAssignedEvent $event): void
     {
         try {

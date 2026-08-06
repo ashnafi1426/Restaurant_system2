@@ -2,12 +2,12 @@
 import { computed, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
+import { useSidebarStore } from '../../stores/sidebarStore'
 
 // Import necessary Lucide components
 import {
   LayoutDashboard,
   Users,
-  Hotel,
   BedDouble,
   FileText,
   UtensilsCrossed,
@@ -41,6 +41,7 @@ import {
   CircleAlert,
   Settings,
   Users2,
+  PanelLeft,
 } from 'lucide-vue-next'
 
 // Define emits
@@ -51,16 +52,18 @@ const emit = defineEmits<{
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const sidebarStore = useSidebarStore()
 
 // Handler for navigation
 const handleNavigate = () => {
   emit('navigate')
   console.log('📱 Navigation clicked - closing sidebar')
 }
+
 const menuIcons: Record<string, Component> = {
   Dashboard: LayoutDashboard,
   Users: Users,
-  Rooms: Hotel,
+  Rooms: BedDouble,
   'Room Types': BedDouble,
   Reports: FileText,
   Restaurant: UtensilsCrossed,
@@ -96,6 +99,7 @@ const menuIcons: Record<string, Component> = {
   Statistics: BarChart3,
   Waiters: Users2,
 }
+
 const menus = computed(() => {
   switch (auth.user?.role) {
     case 'admin':
@@ -114,7 +118,6 @@ const menus = computed(() => {
         { name: 'Reservations', path: '/reservations', icon: 'Reservations'},
         { name: 'Check In', path: '/check-in', icon: 'Check In'},
         { name: 'Check Out', path: '/check-out', icon: 'Check Out'},
-        // { name: 'Orders', path: '/orders', icon: 'Food Orders'},
         { name: 'Reports', path: '/reports', icon: 'Reports'},
       ]
     case 'cashier':
@@ -175,112 +178,200 @@ const isActive = (path: string): boolean => {
 
 <template>
   <aside
-    class="w-64 h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col relative select-none flex-shrink-0 shadow-lg dark:shadow-slate-950/50 transition-colors"
-  >
+  :class="[
+    'h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col relative select-none flex-shrink-0 shadow-lg dark:shadow-black/50 transition-all duration-300 overflow-hidden border-r border-slate-200 dark:border-slate-800',
+    sidebarStore.isCollapsed ? 'w-20' : 'w-72'
+  ]"
+>
     <!-- Header / Brand -->
     <div
-      class="flex items-center gap-3 px-4 md:px-5 h-16 border-b border-slate-200 dark:border-slate-700 flex-shrink-0 bg-white dark:bg-slate-900 transition-colors"
+      class="flex items-center bg-white dark:bg-slate-900 transition-all duration-300"
+      :class="sidebarStore.isCollapsed ? 'h-auto py-4 px-3 flex-col justify-center' : 'h-16 px-6 justify-between'"
     >
-      <div
-        class="w-9 h-9 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 flex-shrink-0"
-      >
-        <Hotel class="w-5 h-5 text-white" :stroke-width="2.5" />
-      </div>
+      <!-- Expanded: Logo + Text + Collapse Button -->
+      <template v-if="!sidebarStore.isCollapsed">
+        <div class="flex items-center gap-3">
+          <img 
+            src="/images/Hotel logo.png" 
+            alt="Hotel Logo" 
+            class="w-10 h-10 object-contain"
+          />
+        </div>
+        
+        <!-- Collapse Button (Top-Right of Sidebar) - Desktop Only -->
+        <button
+          @click="sidebarStore.toggleCollapse()"
+          class="hidden lg:flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0"
+          title="Collapse sidebar"
+        >
+          <PanelLeft
+            class="w-5 h-5 text-slate-600 dark:text-slate-400"
+            :stroke-width="2"
+          />
+        </button>
+      </template>
 
-      <div class="min-w-0 flex flex-col">
-        <h1
-          class="font-bold text-sm text-slate-900 dark:text-slate-100 tracking-tight leading-tight truncate"
+      <!-- Collapsed: ONLY Expand Button (No Logo) -->
+      <template v-else>
+        <!-- Expand Button - Desktop Only - Centered -->
+        <button
+          @click="sidebarStore.toggleCollapse()"
+          class="hidden lg:flex items-center justify-center w-12 h-12 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mx-auto"
+          title="Expand sidebar"
         >
-          Executive Horizon
-        </h1>
-        <p
-          class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-[0.08em] mt-0.5"
-        >
-          Hospitality Suite
-        </p>
-      </div>
+          <PanelLeft
+            class="w-5 h-5 text-slate-600 dark:text-slate-400 transform rotate-180"
+            :stroke-width="2"
+          />
+        </button>
+      </template>
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 px-3 py-5 overflow-y-auto space-y-6">
-      <template v-for="(items, section) in groupedMenus" :key="section">
+    <nav 
+      class="flex-1 py-4 overflow-y-auto transition-all duration-300"
+      :class="sidebarStore.isCollapsed ? 'px-4' : 'px-3'"
+    >
+      <div v-for="(items, section) in groupedMenus" :key="section">
+        <!-- Three dot separator between sections (collapsed only) -->
+        <div
+          v-if="sidebarStore.isCollapsed && section !== 'Main'"
+          class="flex items-center justify-center py-3 my-2"
+        >
+          <div class="flex gap-1">
+            <span class="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+            <span class="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+            <span class="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+          </div>
+        </div>
+
         <div>
+          <!-- Section Title - Hidden when collapsed -->
           <p
-            class="px-3 text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.12em] mb-3"
+            v-if="!sidebarStore.isCollapsed"
+            class="px-3 text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.12em] mb-3 transition-opacity duration-300"
           >
             {{ section }}
           </p>
 
-          <div class="space-y-1">
+          <div :class="sidebarStore.isCollapsed ? 'space-y-3' : 'space-y-1'">
             <router-link
               v-for="menu in items"
               :key="menu.path"
               :to="menu.path"
               @click="handleNavigate"
-              class="group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 text-sm font-medium border border-transparent"
+              class="group relative flex items-center rounded-lg transition-all duration-200"
               :class="[
+                sidebarStore.isCollapsed 
+                  ? 'justify-center py-3' 
+                  : 'gap-3 px-3 py-2.5',
                 isActive(menu.path)
-                  ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700',
+                  ? sidebarStore.isCollapsed
+                    ? ''
+                    : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/50',
               ]"
+              :title="sidebarStore.isCollapsed ? menu.name : ''"
             >
-              <!-- Active indicator bar - Left side -->
-              <div
-                class="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-full bg-gradient-to-b from-blue-400 to-blue-600 transition-all duration-300 scale-y-0"
-                :class="{ 'scale-y-100': isActive(menu.path) }"
-              ></div>
-
               <!-- Icon -->
               <component
                 :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
-                class="w-5 h-5 flex-shrink-0 transition-all duration-300"
+                class="flex-shrink-0 transition-all duration-200"
                 :class="[
-                  isActive(menu.path) 
-                    ? 'text-blue-600 dark:text-blue-400 scale-110' 
-                    : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 group-hover:scale-105',
+                  sidebarStore.isCollapsed ? 'w-5 h-5' : 'w-5 h-5',
+                  isActive(menu.path) && !sidebarStore.isCollapsed
+                    ? 'text-blue-600 dark:text-blue-400' 
+                    : sidebarStore.isCollapsed
+                    ? 'text-slate-400 dark:text-slate-500'
+                    : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300',
                 ]"
-                :stroke-width="1.75"
+                :stroke-width="1.5"
               />
 
-              <!-- Menu Name -->
+              <!-- Menu Name - Hidden when collapsed -->
               <span
-                class="flex-1 transition-all duration-300 group-hover:translate-x-1 truncate"
+                v-if="!sidebarStore.isCollapsed"
+                class="flex-1 transition-all duration-200 truncate text-sm font-medium"
               >
                 {{ menu.name }}
               </span>
 
-              <!-- Badges -->
+              <!-- Badges - Hidden when collapsed -->
               <span
-                v-if="menu.name === 'Pending Orders' || menu.name === 'Check In' || menu.name === 'Complaints'"
-                class="text-[9px] font-bold bg-gradient-to-r from-amber-500/30 dark:from-amber-600/30 to-amber-600/30 dark:to-amber-700/30 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full flex-shrink-0 border border-amber-500/20 dark:border-amber-600/30"
+                v-if="!sidebarStore.isCollapsed && (menu.name === 'Pending Orders' || menu.name === 'Check In' || menu.name === 'Complaints')"
+                class="text-[10px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full flex-shrink-0"
               >
                 {{ menu.name === 'Check In' ? '5' : menu.name === 'Complaints' ? '3' : '12' }}
               </span>
+
+              <!-- Tooltip for collapsed state -->
+              <div
+                v-if="sidebarStore.isCollapsed"
+                class="absolute left-full ml-3 px-3 py-2 bg-slate-900 dark:bg-slate-700 text-white text-xs font-medium rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none"
+              >
+                {{ menu.name }}
+                <div class="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900 dark:border-r-slate-700"></div>
+              </div>
             </router-link>
           </div>
         </div>
-      </template>
+      </div>
     </nav>
 
     <!-- Logout Button -->
-    <div class="px-3 py-3 border-t border-slate-200 dark:border-slate-700 flex-shrink-0 bg-slate-50 dark:bg-slate-800 transition-colors">
+    <div 
+      class="py-3 border-t border-slate-200 dark:border-slate-700 flex-shrink-0 bg-white dark:bg-slate-900 transition-all duration-300"
+      :class="sidebarStore.isCollapsed ? 'px-4' : 'px-3'"
+    >
       <button
         @click="auth.logout()"
-        class="w-full group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border border-transparent hover:border-red-200 dark:hover:border-red-700/50 transition-all duration-300"
+        class="w-full group relative flex items-center rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all duration-200"
+        :class="sidebarStore.isCollapsed ? 'justify-center py-3' : 'gap-3 px-3 py-2.5'"
+        :title="sidebarStore.isCollapsed ? 'Logout' : ''"
       >
         <LogOut
-          class="w-5 h-5 flex-shrink-0 text-slate-400 dark:text-slate-500 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors duration-300"
-          :stroke-width="1.75"
+          class="flex-shrink-0 text-slate-400 dark:text-slate-500 group-hover:text-red-600 dark:group-hover:text-red-400 transition-all duration-200"
+          :class="sidebarStore.isCollapsed ? 'w-5 h-5' : 'w-5 h-5'"
+          :stroke-width="1.5"
         />
-        <span>Logout</span>
+        <span v-if="!sidebarStore.isCollapsed">Logout</span>
+
+        <!-- Tooltip for collapsed state -->
+        <div
+          v-if="sidebarStore.isCollapsed"
+          class="absolute left-full ml-3 px-3 py-2 bg-slate-900 dark:bg-slate-700 text-white text-xs font-medium rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none"
+        >
+          Logout
+          <div class="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900 dark:border-r-slate-700"></div>
+        </div>
       </button>
     </div>
 
     <!-- Footer -->
     <div
-      class="px-4 md:px-5 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex-shrink-0 transition-colors"
+      class="py-3 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex-shrink-0 transition-all duration-300 overflow-hidden"
+      :class="sidebarStore.isCollapsed ? 'px-4' : 'px-4 md:px-5'"
     >
-      <div class="flex items-center justify-between">
+      <!-- Collapsed: Just live indicator centered -->
+      <div 
+        v-if="sidebarStore.isCollapsed"
+        class="flex justify-center"
+      >
+        <span class="relative flex h-2 w-2">
+          <span
+            class="absolute inline-flex h-full w-full rounded-full bg-emerald-400/60 dark:bg-emerald-500/60 animate-pulse"
+          ></span>
+          <span
+            class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400 dark:bg-emerald-500"
+          ></span>
+        </span>
+      </div>
+
+      <!-- Expanded: Full footer -->
+      <div 
+        v-else
+        class="flex items-center justify-between"
+      >
         <span class="text-[9px] font-medium text-slate-500 dark:text-slate-400 tracking-wide"
           >v2.0.0</span
         >

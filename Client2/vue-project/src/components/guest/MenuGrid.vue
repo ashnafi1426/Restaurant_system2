@@ -65,8 +65,6 @@ const addItem = (item: MenuItem) => {
       </div>
     </div>
 
-    <!-- Empty -->
-
     <div v-else-if="items.length === 0" class="py-20">
       <div class="max-w-md mx-auto text-center">
         <div class="text-7xl">🍽️</div>

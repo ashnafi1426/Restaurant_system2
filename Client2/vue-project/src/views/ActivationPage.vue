@@ -374,7 +374,11 @@ const showResendForm = ref(false)
 const resendEmail = ref('')
 
 // Computed
-const { validatingToken, activating, resending, user, errorType } = computed(() => activationStore).value
+const validatingToken = computed(() => activationStore.validatingToken)
+const activating = computed(() => activationStore.activating)
+const resending = computed(() => activationStore.resending)
+const user = computed(() => activationStore.user)
+const errorType = computed(() => activationStore.errorType)
 
 const passwordStrength = computed(() => {
   return activationStore.checkPasswordStrength(form.value.password)

@@ -68,7 +68,9 @@ export const useThemeStore = defineStore('theme', () => {
 
   return {
     isDarkMode,
+    isDark: isDarkMode, // Alias for compatibility
     initializeTheme,
+    initTheme: initializeTheme, // Alias for compatibility
     toggleTheme,
     setDarkMode,
     applyTheme,

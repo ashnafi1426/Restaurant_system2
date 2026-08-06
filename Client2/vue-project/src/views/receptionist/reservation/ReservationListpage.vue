@@ -8,22 +8,28 @@ import ReservationTable from '../../../components/reservation/ReservationTable.v
 import DeleteReservationDialog from '../../../components/reservation/DeleteReservationDialog.vue'
 
 import { useReservationStore } from '@/stores/reservationStore'
+import { useGuestStore } from '@/stores/guestStore'
+import roomService from '@/services/roomService'
 
 import type { Reservation, ReservationFilter as Filter } from '@/types/reservation'
 
 const router = useRouter()
 const store = useReservationStore()
+const guestStore = useGuestStore()
 
 const deleteDialog = ref(false)
 const selectedReservation = ref<Reservation | null>(null)
 const showSuccessMessage = ref(false)
 const successMessage = ref('')
+const rooms = ref<any[]>([])
 
 const filters = ref<Filter>({
   search: '',
   status: '',
   guest_id: '',
   room_id: '',
+  check_in_date: '',
+  check_out_date: '',
   page: 1,
   per_page: 10,
 })
@@ -55,6 +61,19 @@ const loadReservations = async () => {
   } catch (error) {
     console.error('Error loading reservations:', error)
     showMessage('Failed to load reservations', 'error')
+  }
+}
+
+const loadGuestsAndRooms = async () => {
+  try {
+    // Load guests
+    await guestStore.fetchGuests()
+    
+    // Load rooms
+    const roomResponse = await roomService.getAllRooms()
+    rooms.value = roomResponse.data || roomResponse || []
+  } catch (error) {
+    console.error('Error loading guests/rooms:', error)
   }
 }
 
@@ -190,6 +209,8 @@ const resetFilters = async () => {
     status: '',
     guest_id: '',
     room_id: '',
+    check_in_date: '',
+    check_out_date: '',
     page: 1,
     per_page: 10,
   }
@@ -205,6 +226,7 @@ const showMessage = (message: string, type: 'success' | 'error' = 'success') => 
 }
 
 onMounted(() => {
+  loadGuestsAndRooms()
   loadReservations()
 })
 </script>
@@ -323,6 +345,8 @@ onMounted(() => {
       <!-- Filter -->
       <ReservationFilter
         :filters="filters"
+        :guests="guestStore.guests"
+        :rooms="rooms"
         @update:filters="filters = $event"
         @search="loadReservations"
         @reset="resetFilters"

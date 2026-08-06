@@ -98,26 +98,14 @@
               </div>
             </div>
 
-            <!-- Credentials Section -->
+            <!-- Info Note for Activation -->
             <div v-if="!props.isEditMode" class="form-section">
-              <div class="section-header">
-                <div class="section-icon lock-icon">🔐</div>
-                <h3>Credentials</h3>
-              </div>
-
-              <div class="form-group">
-                <label for="password">Password *</label>
-                <input
-                  id="password"
-                  v-model="newUserData.password"
-                  type="password"
-                  placeholder="Min 8 chars"
-                  class="form-control"
-                  required
-                  minlength="8"
-                />
-                <span v-if="fieldErrors.password" class="error">{{ fieldErrors.password }}</span>
-                <small class="hint">⚠ Minimum 8 characters</small>
+              <div class="info-banner">
+                <div class="info-icon">ℹ️</div>
+                <div class="info-content">
+                  <h4>Account Activation</h4>
+                  <p>The waiter will receive an email with an activation link to set their own password.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -182,7 +170,7 @@
 
               <div class="form-group">
                 <label>Status *</label>
-                <div class="status-group">
+                <div v-if="props.isEditMode" class="status-group">
                   <label class="status-check">
                     <input v-model="formData.status" type="radio" value="active" />
                     <span>✓ Active</span>
@@ -191,6 +179,10 @@
                     <input v-model="formData.status" type="radio" value="inactive" />
                     <span>✗ Inactive</span>
                   </label>
+                </div>
+                <div v-else class="info-note">
+                  <span class="status-badge inactive">⏸️ Inactive (Until Activation)</span>
+                  <p class="hint">Status will automatically become "Active" when the waiter activates their account.</p>
                 </div>
               </div>
             </div>
@@ -246,7 +238,7 @@ const formData = ref({
   section: '',
   shift: '',
   experience_level: '',
-  status: 'active',
+  status: 'inactive', // Default to inactive for new waiters
   maximum_orders: 5,
   employee_number: '',
 })
@@ -256,7 +248,6 @@ const newUserData = ref({
   last_name: '',
   email: '',
   phone: '',
-  password: '',
 })
 
 watch(() => props.isOpen, (newVal) => {
@@ -278,7 +269,6 @@ watch(() => props.isOpen, (newVal) => {
         last_name: props.waiterData.user?.last_name || '',
         email: props.waiterData.user?.email || '',
         phone: props.waiterData.phone || props.waiterData.user?.phone || '',
-        password: '',
       }
     } else {
       resetForm()
@@ -287,8 +277,8 @@ watch(() => props.isOpen, (newVal) => {
 })
 
 const resetForm = () => {
-  formData.value = { section: '', shift: '', experience_level: '', status: 'active', maximum_orders: 5, employee_number: '' }
-  newUserData.value = { first_name: '', last_name: '', email: '', phone: '', password: '' }
+  formData.value = { section: '', shift: '', experience_level: '', status: 'inactive', maximum_orders: 5, employee_number: '' }
+  newUserData.value = { first_name: '', last_name: '', email: '', phone: '' }
   errorMessage.value = ''
   fieldErrors.value = {}
 }
@@ -319,7 +309,7 @@ const validateForm = (): boolean => {
     return isValid
   }
 
-  // Create mode - validate all fields
+  // Create mode - validate all fields (NO PASSWORD NEEDED)
   if (!newUserData.value.first_name?.trim()) {
     fieldErrors.value.first_name = 'Required'
     isValid = false
@@ -334,10 +324,6 @@ const validateForm = (): boolean => {
   }
   if (!newUserData.value.phone?.trim()) {
     fieldErrors.value.phone = 'Required'
-    isValid = false
-  }
-  if (!newUserData.value.password || newUserData.value.password.length < 8) {
-    fieldErrors.value.password = 'Min 8 chars'
     isValid = false
   }
   if (!formData.value.section?.trim()) {
@@ -595,6 +581,64 @@ label {
   font-size: 11px;
   color: #ff9800;
   display: block;
+}
+
+/* Info Banner */
+.info-banner {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
+  align-items: flex-start;
+}
+
+.info-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-content h4 {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1565c0;
+}
+
+.info-content p {
+  margin: 0;
+  font-size: 12px;
+  color: #1976d2;
+  line-height: 1.5;
+}
+
+.info-note {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  border-left: 3px solid #ff9800;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.status-badge.inactive {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffb74d;
 }
 
 .status-group {

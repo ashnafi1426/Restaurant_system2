@@ -56,14 +56,26 @@ class AutomaticWaiterAssignmentService
                     }
                 }
 
+                // CRITICAL: Find best waiter within transaction to ensure fresh data
                 $waiter = $this->assignmentStrategy->findBestWaiter($floor, $shift);
                 if (!$waiter) {
                     $task = $this->workloadService->createWaitingDelivery($order, $floor, 'No available waiter');
                     return $this->waitingResponse($task, 'No available waiter');
                 }
 
+                // Assign delivery and increment waiter's current_orders atomically
                 $task = $this->workloadService->assignDelivery($order, $waiter, $floor);
                 $this->notificationService->notifyAssignment($task, $waiter);
+
+                Log::info('✅ Order assigned successfully with load balancing', [
+                    'order_id' => $order->id,
+                    'waiter_id' => $waiter->id,
+                    'waiter_name' => $waiter->user->name ?? 'Unknown',
+                    'waiter_orders_before' => $waiter->current_orders - 1,
+                    'waiter_orders_after' => $waiter->current_orders,
+                    'floor' => $floor->floor_number,
+                    'timestamp' => now(),
+                ]);
 
                 return $this->successResponse($task, 'Delivery successfully assigned');
             });

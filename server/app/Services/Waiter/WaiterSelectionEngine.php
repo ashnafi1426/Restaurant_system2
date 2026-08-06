@@ -62,15 +62,13 @@ class WaiterSelectionEngine
 
         // Query: Get all waiters assigned to this floor today, ordered by priority
         try {
-            $assignments = WaiterFloorAssignment::where([
-                ['floor_id' => $floor->id],
-                ['shift_id' => $shift->id],
-                ['assignment_date' => today()->toDateString()],
-                ['status' => 'active'],
-            ])
-            ->orderBy('priority', 'asc')  // 'primary' (0) → 'secondary' (1) → 'backup' (2)
-            ->with(['waiter', 'waiter.user'])
-            ->get();
+            $assignments = WaiterFloorAssignment::where('floor_id', $floor->id)
+                ->where('shift_id', $shift->id)
+                ->where('assignment_date', today()->toDateString())
+                ->where('status', 'active')
+                ->orderBy('priority', 'asc')  // 'primary' (0) → 'secondary' (1) → 'backup' (2)
+                ->with(['waiter.user'])
+                ->get();
 
             Log::debug('[TIER 1-3] Floor assignment records retrieved', [
                 'floor_id' => $floor->id,
@@ -79,7 +77,7 @@ class WaiterSelectionEngine
             ]);
 
             if ($assignments->isEmpty()) {
-                Log::warning(' [TIER 1-3] No floor assignments found - floor may not be staffed', [
+                Log::warning('❌ [TIER 1-3] No floor assignments found - floor may not be staffed', [
                     'floor_id' => $floor->id,
                     'floor_number' => $floor->floor_number,
                     'date' => today()->toDateString(),
@@ -143,7 +141,7 @@ class WaiterSelectionEngine
 
             // VALIDATION: Check if this waiter is eligible
             if ($this->isWaiterEligible($waiter, $shift, $priority)) {
-                Log::info(" [{$tierLabel}] Eligible waiter found - ASSIGNMENT WILL PROCEED", [
+                Log::info("✅ [{$tierLabel}] Eligible waiter found - ASSIGNMENT WILL PROCEED", [
                     'waiter_id' => $waiter->id,
                     'name' => $waiterName,
                     'priority' => $priority,
@@ -151,7 +149,7 @@ class WaiterSelectionEngine
                     'remaining_capacity' => $waiter->maximum_orders - $waiter->current_orders,
                     'message' => "Order from {$floor->floor_number} will be assigned to {$waiterName}",
                 ]);
-                return $waiter;  //  Found eligible waiter - return immediately
+                return $waiter;  // ✅ Found eligible waiter - return immediately
             }
 
             // Log why waiter was rejected (for debugging)
@@ -199,66 +197,70 @@ class WaiterSelectionEngine
                 'count' => $totalActive,
             ]);
 
-            $availableWaiters = Waiter::where('status', 'active')  // Must be employed and active
-                ->where('availability', 'available')               // Must not be busy/on_break/offline
-                ->whereRaw('current_orders < maximum_orders')      // Must have capacity
+            // PRIORITY 1: Try to find waiters currently assigned to THIS floor (even if not primary/secondary/backup)
+            $sameFloorWaiter = Waiter::where('status', 'active')
+                ->where('availability', 'available')
+                ->whereRaw('current_orders < maximum_orders')
+                ->whereHas('floorAssignments', function ($q) use ($floor) {
+                    $q->where('floor_id', $floor->id)
+                      ->where('assignment_date', today())
+                      ->where('status', 'active');
+                })
+                ->with(['user'])
+                ->orderBy('current_orders', 'asc')
+                ->orderBy('id', 'asc')
+                ->sharedLock()
+                ->first();
+
+            if ($sameFloorWaiter) {
+                Log::info('✅ [TIER 7A] Found available waiter from SAME FLOOR (non-primary)', [
+                    'waiter_id' => $sameFloorWaiter->id,
+                    'name' => $sameFloorWaiter->user->name ?? 'Unknown',
+                    'current_orders' => $sameFloorWaiter->current_orders,
+                    'maximum_orders' => $sameFloorWaiter->maximum_orders,
+                    'floor_preference' => 'SAME FLOOR',
+                    'floor_number' => $floor->floor_number,
+                    'reason' => 'Waiter has assignment to this floor but not as primary/secondary/backup',
+                ]);
+                return $sameFloorWaiter;
+            }
+
+            // PRIORITY 2: No waiter from same floor, search OTHER floors (load balancing)
+            $bestWaiter = Waiter::where('status', 'active')
+                ->where('availability', 'available')
+                ->whereRaw('current_orders < maximum_orders')
                 ->with(['user', 'floorAssignments' => function ($q) {
                     $q->where('assignment_date', today())
                       ->where('status', 'active');
                 }])
-                ->get();
+                ->orderBy('current_orders', 'asc')  // Database-level ordering
+                ->orderBy('id', 'asc')  // Tie-breaker
+                ->sharedLock()
+                ->first();
 
-            Log::info('[TIER 7] Hotel staff eligibility check', [
-                'total_active_waiters' => $totalActive,
-                'available_with_capacity' => $availableWaiters->count(),
-                'floor_id' => $floor->id,
-                'floor_number' => $floor->floor_number,
-            ]);
-
-            if ($availableWaiters->isEmpty()) {
+            if (!$bestWaiter) {
                 Log::warning('❌ [TIER 7] No available waiters in entire hotel', [
                     'floor_id' => $floor->id,
+                    'total_active_waiters' => $totalActive,
                     'timestamp' => now(),
                     'action' => 'Will create waiting_assignment',
                 ]);
                 return null;
             }
-            $detailedEvaluation = $availableWaiters->map(function ($waiter) {
-                $remainingCapacity = $waiter->maximum_orders - $waiter->current_orders;
-                
-                Log::debug('[TIER 7] Evaluating waiter from hotel pool', [
-                    'waiter_id' => $waiter->id,
-                    'name' => $waiter->user->name ?? 'Unknown',
-                    'current_orders' => $waiter->current_orders,
-                    'maximum_orders' => $waiter->maximum_orders,
-                    'available_capacity' => $remainingCapacity,
-                    'utilization_percent' => round(($waiter->current_orders / $waiter->maximum_orders) * 100, 2),
-                    'current_assignment_floors' => $waiter->floorAssignments->pluck('floor.floor_number')->toArray(),
-                ]);
-                
-                return [
-                    'waiter' => $waiter,
-                    'current_orders' => $waiter->current_orders,
-                    'remaining_capacity' => $remainingCapacity,
-                ];
-            })->toArray();
 
-            // STEP 4: Select waiter with LOWEST current_orders (workload balancing)
-            $bestWaiterData = collect($detailedEvaluation)
-                ->sortBy('current_orders')
-                ->first();
+            $assignedFloors = $bestWaiter->floorAssignments->pluck('floor.floor_number')->toArray();
 
-            $bestWaiter = $bestWaiterData['waiter'];
-
-            Log::info(' [TIER 7] Best available waiter selected from entire hotel', [
+            Log::info('✅ [TIER 7B] Best available waiter selected from OTHER FLOORS', [
                 'waiter_id' => $bestWaiter->id,
                 'name' => $bestWaiter->user->name ?? 'Unknown',
                 'current_orders' => $bestWaiter->current_orders,
                 'maximum_orders' => $bestWaiter->maximum_orders,
-                'available_slots' => $bestWaiterData['remaining_capacity'],
+                'available_slots' => $bestWaiter->maximum_orders - $bestWaiter->current_orders,
                 'workload_percent' => round(($bestWaiter->current_orders / $bestWaiter->maximum_orders) * 100, 2),
-                'selection_reason' => 'Lowest current workload among available waiters',
-                'other_candidates_available' => $availableWaiters->count() - 1,
+                'selection_reason' => 'Lowest current workload (database-level ordering)',
+                'assigned_floors' => $assignedFloors,
+                'delivering_to_floor' => $floor->floor_number,
+                'cross_floor_delivery' => !in_array($floor->floor_number, $assignedFloors),
             ]);
 
             return $bestWaiter;

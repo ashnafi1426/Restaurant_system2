@@ -25,11 +25,21 @@ class KitchenController extends Controller
 
         try {
 
+            \Log::info('🔍 [KITCHEN] Orders Request', [
+                'user_id' => auth()->id(),
+                'user_role' => auth()->user()->role ?? 'unknown',
+            ]);
+
             $orders = $this
                 ->kitchenService
                 ->getKitchenOrders(auth()->user());
 
-
+            \Log::info('📊 [KITCHEN] Orders Retrieved', [
+                'pending_count' => count($orders['pending']),
+                'preparing_count' => count($orders['preparing']),
+                'ready_count' => count($orders['ready']),
+                'served_count' => count($orders['served']),
+            ]);
 
             return response()->json([
 
@@ -69,6 +79,10 @@ class KitchenController extends Controller
 
         } catch(Throwable $e){
 
+            \Log::error('❌ [KITCHEN] Orders Error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return response()->json([
 

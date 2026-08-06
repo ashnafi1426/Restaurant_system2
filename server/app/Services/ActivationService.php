@@ -140,6 +140,18 @@ class ActivationService
                 'is_active' => true
             ]);
             
+            // If user is a waiter, activate their waiter status as well
+            if ($user->role === 'waiter' && $user->waiter) {
+                $user->waiter->update([
+                    'status' => 'active'
+                ]);
+                
+                Log::info('Waiter status activated', [
+                    'user_id' => $user->id,
+                    'waiter_id' => $user->waiter->id
+                ]);
+            }
+            
             // Log successful activation
             Log::info('Account activated successfully', [
                 'user_id' => $user->id,

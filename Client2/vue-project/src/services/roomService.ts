@@ -6,6 +6,10 @@ export const roomService = {
     return api.get('/rooms', { params })
   },
 
+  getAllRooms() {
+    return api.get('/rooms', { params: { per_page: 1000 } })
+  },
+
   searchRooms(searchTerm: string, params: any = {}) {
     return api.get('/rooms', { params: { ...params, search: searchTerm } })
   },
@@ -26,3 +30,5 @@ export const roomService = {
     return api.delete(`/rooms/${String(id)}`)
   },
 }
+
+export default roomService

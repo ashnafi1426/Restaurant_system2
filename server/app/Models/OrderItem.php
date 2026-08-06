@@ -27,12 +27,6 @@ class OrderItem extends Model
         'line_total' => 'decimal:2',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);

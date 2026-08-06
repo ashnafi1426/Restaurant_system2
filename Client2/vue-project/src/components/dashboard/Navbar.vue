@@ -3,16 +3,15 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { useThemeStore } from '../../stores/theme'
+import { useSidebarStore } from '../../stores/sidebarStore'
 import NotificationCenter from '@/components/reception/NotificationCenter.vue'
-import { Sun, Moon } from 'lucide-vue-next'
+import { Sun, Moon, PanelLeft } from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const router = useRouter()
 const themeStore = useThemeStore()
+const sidebarStore = useSidebarStore()
 const profileOpen = ref(false)
-const emit = defineEmits<{
-  toggleSidebar: []
-}>()
 
 const toggleProfile = () => {
   profileOpen.value = !profileOpen.value
@@ -30,23 +29,37 @@ const logout = async () => {
   router.push('/')
 }
 
-const toggleMobileSidebar = () => {
-  emit('toggleSidebar')
+// Desktop: Toggle collapse | Mobile: Toggle overlay
+const handleHamburgerClick = () => {
+  const screenWidth = window.innerWidth
+  
+  // Check screen size
+  if (screenWidth >= 1024) {
+    // Desktop: toggle collapse
+    console.log('💻 Desktop mode - toggling collapse')
+    sidebarStore.toggleCollapse()
+    console.log('📊 New collapsed state:', sidebarStore.isCollapsed)
+  } else {
+    // Mobile: toggle overlay
+    console.log('📱 Mobile mode - toggling overlay')
+    sidebarStore.toggleMobile()
+    console.log('📊 Mobile open state:', sidebarStore.isMobileOpen)
+  }
 }
 </script>
 <template>
   <header
-    class="sticky top-0 z-40 flex h-14 sm:h-16 items-center justify-between border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 sm:px-6 md:px-8 lg:px-10 transition-colors"
+    class="sticky top-0 z-40 h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-6 flex items-center justify-between transition-colors"
   >
     <!-- Left -->
-    <div class="flex items-center gap-3 sm:gap-4 md:gap-6 min-w-0">
-      <!-- Mobile Hamburger Menu -->
+    <div class="flex items-center gap-4">
+      <!-- Hamburger Menu - Mobile Only (Hidden on Desktop) -->
       <button
-        @click="toggleMobileSidebar"
-        class="flex lg:hidden h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 transition hover:bg-slate-100 dark:hover:bg-slate-800 flex-shrink-0"
-        title="Toggle sidebar"
+        @click="handleHamburgerClick"
+        class="flex lg:hidden items-center justify-center w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex-shrink-0"
+        title="Toggle Sidebar"
       >
-        <span class="material-symbols-rounded text-slate-600 dark:text-slate-300 text-xl"> menu </span>
+        <PanelLeft class="w-5 h-5 text-slate-600 dark:text-slate-300" :stroke-width="2" />
       </button>
 
       <!-- Page Title -->
@@ -93,13 +106,6 @@ const toggleMobileSidebar = () => {
           v-else
           class="w-5 h-5 sm:w-6 sm:h-6 text-slate-600 dark:text-yellow-400 transition-transform duration-300"
         />
-      </button>
-
-      <!-- Settings -->
-      <button
-        class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg border border-slate-200 transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 flex-shrink-0 hidden sm:flex"
-      >
-        <span class="material-symbols-rounded text-slate-600 dark:text-slate-300 text-sm sm:text-base"> settings </span>
       </button>
 
       <!-- User -->

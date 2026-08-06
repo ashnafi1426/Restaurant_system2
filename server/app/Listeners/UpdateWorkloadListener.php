@@ -11,13 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
-/**
- * UpdateWorkloadListener
- * 
- * Listens for delivery assignment events and updates waiter workload
- * Ensures waiter current_orders count stays accurate
- * Updates waiter availability status based on workload
- */
+
 class UpdateWorkloadListener implements ShouldQueue
 {
     use InteractsWithQueue;

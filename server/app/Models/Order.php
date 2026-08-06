@@ -19,9 +19,7 @@ class Order extends Model
         'room_id',
         'order_time',
         'status',
-        'source',
         'notes',
-        'special_requests',
         'payment_type',
         'subtotal',
         'tax',
@@ -29,8 +27,6 @@ class Order extends Model
         'total',
         'served_at',
         'cancelled_at',
-        'user_id',
-        'chef_id',
     ];
 
     protected $casts = [
@@ -58,7 +54,7 @@ class Order extends Model
     /**
      * Generate unique order number
      */
-    protected static function generateOrderNumber(): string
+    public static function generateOrderNumber(): string
     {
         $prefix = 'ORD-' . now()->format('Ymd');
         $count = static::whereDate('created_at', today())->count() + 1;
@@ -83,11 +79,6 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
-    }
-
-    public function chef()
-    {
-        return $this->belongsTo(User::class, 'chef_id');
     }
 
     /*

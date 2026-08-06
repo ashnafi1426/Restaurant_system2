@@ -59,6 +59,10 @@ export interface ReservationFilter {
 
   room_id?: string
 
+  check_in_date?: string
+
+  check_out_date?: string
+
   page?: number
 
   per_page?: number

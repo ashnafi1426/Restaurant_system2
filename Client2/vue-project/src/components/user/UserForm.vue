@@ -154,32 +154,7 @@ const getFieldError = (fieldName: string): string | null => {
       </p>
     </div>
 
-    <!-- Password Info Notice (for new users) -->
-    <div v-if="!isEditMode" class="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-      <div class="flex items-start gap-3">
-        <div class="flex-shrink-0 mt-0.5">
-          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div class="flex-1">
-          <h4 class="text-sm font-semibold text-purple-900 mb-1">🔐 Password Activation Workflow</h4>
-          <p class="text-xs text-purple-800 leading-relaxed">
-            The user will receive an <strong>activation email</strong> with a secure link to create their own password. 
-            This ensures you never know or handle user passwords, following enterprise security best practices.
-          </p>
-          <div class="mt-2 p-2 bg-purple-100 rounded text-xs text-purple-900">
-            <strong>📧 What happens next:</strong>
-            <ol class="list-decimal list-inside mt-1 space-y-0.5">
-              <li>User receives activation email</li>
-              <li>User clicks the activation link (valid for 24 hours)</li>
-              <li>User creates their own secure password</li>
-              <li>Account is activated and ready to use</li>
-            </ol>
-          </div>
-        </div>
-      </div>
-    </div>
+    
 
     <!-- Password Fields (for editing existing users only) -->
     <div v-if="isEditMode" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">

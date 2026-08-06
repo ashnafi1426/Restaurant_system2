@@ -15,35 +15,50 @@ use Illuminate\Support\Facades\Log;
 class ReservationController extends Controller
 {
     public function index(Request $request)
-       {
+    {
         $query = Reservation::with([
-        'guest',
-        'room',
-        'creator'
-       ]);
-      if ($request->filled('search')) {
-         $query->search($request->search);
+            'guest',
+            'room',
+            'creator'
+        ]);
+
+        // Search by booking reference
+        if ($request->filled('search')) {
+            $query->search($request->search);
         }
 
-       if ($request->filled('status')) {
-        $query->where('status', $request->status);
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
         }
 
-       if ($request->filled('room_id')) {
-        $query->where('room_id', $request->room_id);
+        // Filter by room
+        if ($request->filled('room_id')) {
+            $query->where('room_id', $request->room_id);
         }
 
+        // Filter by guest
         if ($request->filled('guest_id')) {
-        $query->where('guest_id', $request->guest_id);
-    }
+            $query->where('guest_id', $request->guest_id);
+        }
 
-    $reservations = $query
-        ->latest()
-        ->paginate(
-            $request->integer('per_page', 10)
-        );
+        // Filter by check-in date
+        if ($request->filled('check_in_date')) {
+            $query->whereDate('check_in_date', '>=', $request->check_in_date);
+        }
 
-       return new ReservationCollection($reservations);
+        // Filter by check-out date
+        if ($request->filled('check_out_date')) {
+            $query->whereDate('check_out_date', '<=', $request->check_out_date);
+        }
+
+        $reservations = $query
+            ->latest()
+            ->paginate(
+                $request->integer('per_page', 10)
+            );
+
+        return new ReservationCollection($reservations);
     }
     public function store(StoreReservationRequest $request)
      {

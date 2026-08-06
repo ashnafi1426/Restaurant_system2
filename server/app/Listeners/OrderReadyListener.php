@@ -7,32 +7,10 @@ use App\Services\Waiter\AutomaticWaiterAssignmentService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
-
-/**
- * OrderReadyListener
- * 
- * Listens to OrderReadyEvent and triggers automatic waiter assignment.
- * 
- * Phase 4: EVENT LISTENER FOR AUTOMATIC ASSIGNMENT
- * 
- * This listener:
- * 1. Captures OrderReadyEvent when order becomes ready
- * 2. Extracts order, reservation, room, and guest info
- * 3. Calls AutomaticWaiterAssignmentService
- * 4. Service handles all assignment logic and waiter notifications
- * 
- * Queue: Uses queued processing for non-blocking operation
- * - Kitchen operations complete immediately
- * - Assignment happens in background
- * - Manager notified if assignment fails
- */
 class OrderReadyListener implements ShouldQueue
 {
     use InteractsWithQueue;
 
-    /**
-     * The number of times the queued listener may be attempted.
-     */
     public int $tries = 3;
 
     /**

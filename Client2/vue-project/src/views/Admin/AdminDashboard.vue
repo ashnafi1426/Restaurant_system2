@@ -7,7 +7,6 @@ import MonthlyRevenueChart from '../../components/dashboard/MonthlyRevenueChart.
 import RoomStatusChart from '../../components/dashboard/RoomStatusChart.vue'
 import RecentReservationsTable from '../../components/dashboard/RecentReservationsTable.vue'
 import StaffActivityWidget from '../../components/dashboard/StaffActivityWidget.vue'
-import MaintenanceAlerts from '../../components/dashboard/MaintenanceAlerts.vue'
 
 import {
   mdiAccountMultiple,
@@ -205,10 +204,6 @@ onMounted(loadDashboard)
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
           <div class="lg:col-span-2">
             <RecentReservationsTable :reservations="dashboard.recentReservations" />
-          </div>
-          <div class="space-y-2 sm:space-y-3 lg:space-y-4">
-            <StaffActivityWidget :activities="dashboard.staffActivity" />
-            <MaintenanceAlerts :alerts="dashboard.maintenanceAlerts" />
           </div>
         </div>
       </div>

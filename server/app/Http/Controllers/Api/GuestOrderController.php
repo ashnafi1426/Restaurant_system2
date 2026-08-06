@@ -300,6 +300,7 @@ class GuestOrderController extends Controller
                     'room_id' => $room->id,
                     'guest_id' => $guest_id,
                     'reservation_id' => $reservation_id,
+                    'order_time' => now(), // Set order time for kitchen queue sorting
                     'total' => $total,
                     'status' => 'pending',
                     'source' => 'guest_qr', // Track that this came from guest QR scan

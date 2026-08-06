@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api\Manager;
 use App\Http\Controllers\Controller;
 use App\Models\Waiter;
 use App\Models\User;
+use App\Services\ActivationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
 class WaiterManagementController extends Controller
@@ -86,17 +86,17 @@ class WaiterManagementController extends Controller
                 'status' => 'required|in:active,inactive,on_break',
                 'maximum_orders' => 'required|integer|min:1|max:20',
                 'employment_type' => 'sometimes|in:full_time,part_time,contract',
-                'employee_number' => 'sometimes|string|max:50|unique:waiters,employee_number',
+                'employee_number' => 'sometimes|string|max:50', // Uniqueness checked manually later
             ];
             
             if ($isNewUser) {
-                // New user validation - all fields required
+                // New user validation - all fields required EXCEPT password (will be set via activation)
+                // Note: Email uniqueness checked after validation to handle existing users
                 $rules = array_merge($rules, [
                     'first_name' => 'required|string|max:255',
                     'last_name' => 'required|string|max:255',
-                    'email' => 'required|email',
+                    'email' => 'required|email', // Uniqueness checked manually later
                     'phone' => 'required|string|max:20',
-                    'password' => 'required|string|min:8',
                 ]);
             } else {
                 // Existing user - just need the ID
@@ -119,37 +119,84 @@ class WaiterManagementController extends Controller
             // If creating new user
             if ($isNewUser) {
                 try {
-                    $user = User::where('email', $validated['email'])->first();
+                    // Check for existing email BEFORE attempting to create
+                    $existingUser = User::where('email', $validated['email'])->first();
+                    
+                    // Check for duplicate employee_number if provided
+                    if (!empty($validated['employee_number'])) {
+                        $existingWaiterWithNumber = Waiter::where('employee_number', $validated['employee_number'])->first();
+                        if ($existingWaiterWithNumber) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Validation failed',
+                                'errors' => [
+                                    'employee_number' => ['The employee number has already been taken.']
+                                ],
+                            ], 422);
+                        }
+                    }
 
-                    if ($user) {
-                        $user->update([
-                            'first_name' => $validated['first_name'],
-                            'last_name' => $validated['last_name'],
-                            'phone' => $validated['phone'] ?? $user->phone,
-                            'role' => 'waiter',
-                            'is_active' => true,
-                        ]);
+                    if ($existingUser) {
+                        // User already exists - check if they're pending activation
+                        if ($existingUser->activation_status === 'pending' || $existingUser->activation_status === 'expired') {
+                            // Update user info and resend activation
+                            $existingUser->update([
+                                'first_name' => $validated['first_name'],
+                                'last_name' => $validated['last_name'],
+                                'phone' => $validated['phone'] ?? $existingUser->phone,
+                                'role' => 'waiter',
+                            ]);
 
-                        Log::info('Reusing existing user for waiter creation', [
-                            'user_id' => $user->id,
-                            'email' => $user->email,
-                        ]);
+                            // Resend activation email
+                            $activationService = new ActivationService();
+                            $activationService->generateActivationToken($existingUser);
+
+                            Log::info('Reusing existing pending user for waiter, resent activation', [
+                                'user_id' => $existingUser->id,
+                                'email' => $existingUser->email,
+                            ]);
+                        } else {
+                            // User exists and is activated - just update role
+                            $existingUser->update([
+                                'first_name' => $validated['first_name'],
+                                'last_name' => $validated['last_name'],
+                                'phone' => $validated['phone'] ?? $existingUser->phone,
+                                'role' => 'waiter',
+                                'is_active' => true,
+                            ]);
+
+                            Log::info('Reusing existing activated user for waiter creation', [
+                                'user_id' => $existingUser->id,
+                                'email' => $existingUser->email,
+                            ]);
+                        }
+                        
+                        $user = $existingUser;
                     } else {
-                        $hashedPassword = Hash::make($validated['password']);
-
+                        // Create new user WITHOUT password (will be set via activation)
                         $user = User::create([
                             'first_name' => $validated['first_name'],
                             'last_name' => $validated['last_name'],
                             'email' => $validated['email'],
                             'phone' => $validated['phone'] ?? null,
-                            'password_hash' => $hashedPassword,
+                            'password_hash' => null, // No password yet - will be set via activation
                             'role' => 'waiter',
-                            'is_active' => true,
+                            'is_active' => false, // Will be activated when they set password
+                            'activation_status' => 'pending',
                         ]);
 
-                        Log::info('Waiter user created successfully', [
+                        // Generate activation token and send email
+                        $activationService = new ActivationService();
+                        $result = $activationService->generateActivationToken($user);
+
+                        if (!$result['success']) {
+                            throw new \Exception('Failed to send activation email');
+                        }
+
+                        Log::info('Waiter user created successfully with activation email sent', [
                             'user_id' => $user->id,
-                            'email' => $user->email
+                            'email' => $user->email,
+                            'activation_token_expires_at' => $result['expires_at']
                         ]);
                     }
 
@@ -203,6 +250,12 @@ class WaiterManagementController extends Controller
                 }
 
                 // Prepare waiter data
+                // For new users: check if their User account is pending activation
+                // If User.activation_status = 'pending', force waiter status to 'inactive'
+                // If User.activation_status = 'activated', allow the provided status
+                $user = User::find($validated['user_id']);
+                $shouldForceInactive = $user && $user->activation_status === 'pending';
+                
                 $waiterData = [
                     'user_id' => $validated['user_id'],
                     'phone' => $validated['phone'] ?? null,
@@ -211,7 +264,7 @@ class WaiterManagementController extends Controller
                     'experience_level' => $validated['experience_level'],
                     'employment_type' => $validated['employment_type'] ?? 'full_time',
                     'hire_date' => $request->input('hire_date') ? $validated['hire_date'] : now()->toDateString(),
-                    'status' => $validated['status'],
+                    'status' => $shouldForceInactive ? 'inactive' : ($validated['status'] ?? 'active'), // Force inactive until activation
                     'availability' => 'offline',
                     'current_orders' => 0,
                     'maximum_orders' => $validated['maximum_orders'],
@@ -238,7 +291,9 @@ class WaiterManagementController extends Controller
                 return response()->json([
                     'success' => true,
                     'data' => $responseData,
-                    'message' => 'Waiter created successfully',
+                    'message' => $isNewUser 
+                        ? 'Waiter created successfully. Activation email has been sent to ' . $validated['email']
+                        : 'Waiter created successfully',
                 ], 201);
             } catch (\Illuminate\Database\QueryException $dbError) {
                 Log::error('Database error creating waiter', [

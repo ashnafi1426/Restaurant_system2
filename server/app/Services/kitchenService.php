@@ -29,16 +29,28 @@ class KitchenService
                 'reservation',
                 'orderItems',
                 'orderItems.menuItem',
-                'chef',
+                // ❌ REMOVED: 'chef' relationship doesn't exist in Order model
             ])
             ->where('status', $status);
-        if ($authUser && isset($authUser->role) && $authUser->role === 'chef' && isset($authUser->id)) {
-            $query->where(function($q) use ($authUser) {
-                $q->where('chef_id', $authUser->id)
-                  ->orWhereNull('chef_id');
-            });
-        }
-        return $query->latest('order_time')->get();
+        
+        // ❌ REMOVED: chef_id filtering since column doesn't exist
+        // if ($authUser && isset($authUser->role) && $authUser->role === 'chef' && isset($authUser->id)) {
+        //     $query->where(function($q) use ($authUser) {
+        //         $q->where('chef_id', $authUser->id)
+        //           ->orWhereNull('chef_id');
+        //     });
+        // }
+        
+        $results = $query->latest('order_time')->get();
+        
+        Log::info("📋 [KITCHEN SERVICE] Orders Query", [
+            'status' => $status,
+            'user_role' => $authUser->role ?? 'no-auth',
+            'count' => $results->count(),
+            'order_numbers' => $results->pluck('order_number')->toArray(),
+        ]);
+        
+        return $results;
     }
     protected function loadOrderRelations(Order $order): Order
     {
@@ -46,11 +58,9 @@ class KitchenService
             'guest',
             'room',
             'reservation',
-
             'orderItems',
-
             'orderItems.menuItem',
-
+            // ❌ REMOVED: 'chef' relationship doesn't exist
         ]);
     }
     protected function validateStatusTransition(
@@ -193,14 +203,8 @@ class KitchenService
     }
     public function statistics($authUser = null): array
     {
+        // ✅ REMOVED chef_id filtering since column doesn't exist
         $baseQuery = function() use ($authUser) {
-            if ($authUser && isset($authUser->role) && $authUser->role === 'chef') {
-                // Show stats for orders assigned to this chef OR orders without assignment
-                return Order::where(function($q) use ($authUser) {
-                    $q->where('chef_id', $authUser->id)
-                      ->orWhereNull('chef_id');
-                });
-            }
             return Order::query();
         };
 

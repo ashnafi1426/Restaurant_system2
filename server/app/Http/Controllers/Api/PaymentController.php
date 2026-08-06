@@ -8,6 +8,7 @@ use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Services\ChapaService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -218,7 +219,7 @@ class PaymentController extends Controller
                 ]);
 
                 // ============================================================================
-                // AUTO-CREATE RESERVATION AFTER PAYMENT VERIFICATION
+                // AUTO-CREATE RESERVATION OR ORDER AFTER PAYMENT VERIFICATION
                 // ============================================================================
                 
                 // Check if this is a reservation payment (has metadata with reservation data)
@@ -260,6 +261,115 @@ class PaymentController extends Controller
                         ]);
                         // Don't fail the payment verification if reservation creation fails
                         // This can be handled manually or retried later
+                    }
+                }
+                
+                // ============================================================================
+                // AUTO-CREATE ORDER AFTER PAYMENT VERIFICATION (QR MENU ORDERS)
+                // ============================================================================
+                
+                // Check if this is an order payment (has metadata with order data)
+                if ($payment->metadata && isset($payment->metadata['type']) && $payment->metadata['type'] === 'order') {
+                    Log::info('🍽️ [ORDER] Creating order after payment verification', [
+                        'payment_id' => $payment->id,
+                        'tx_ref'     => $txRef,
+                        'metadata'   => $payment->metadata,
+                    ]);
+
+                    if ($payment->order_id) {
+                        Log::info('ℹ️ [ORDER] Order already exists for verified payment, skipping duplicate creation', [
+                            'payment_id' => $payment->id,
+                            'order_id'   => $payment->order_id,
+                            'tx_ref'     => $txRef,
+                        ]);
+                    } else {
+                        try {
+                            // Extract order data from metadata
+                            $calculation = $payment->metadata['calculation'] ?? [];
+                            $orderItems = $payment->metadata['items'] ?? [];
+                            $roomId = $payment->metadata['room_id'] ?? null;
+                            $notes = $payment->metadata['notes'] ?? null;
+
+                            Log::info('📋 [ORDER] Order data extracted', [
+                                'calculation' => $calculation,
+                                'items_count' => count($orderItems),
+                                'room_id'     => $roomId,
+                                'guest_id'    => $payment->guest_id,
+                            ]);
+
+                            if (empty($orderItems)) {
+                                throw new \Exception('No order items found in payment metadata');
+                            }
+
+                            // Create order record
+                            $order = Order::create([
+                                'order_number'     => Order::generateOrderNumber(),
+                                'reservation_id'   => null, // ✅ QR orders have no reservation initially  
+                                'guest_id'         => $payment->guest_id,
+                                'room_id'          => $roomId,
+                                'order_time'       => now(),
+                                'status'           => Order::STATUS_PENDING, // ✅ Now visible to chef!
+                                'payment_type'     => 'card', // ✅ Match enum: 'room_charge', 'cash', 'card'
+                                'subtotal'         => $calculation['subtotal'] ?? $payment->amount,
+                                'tax'              => $calculation['tax'] ?? 0,
+                                'discount'         => $calculation['discount'] ?? 0,
+                                'total'            => $payment->amount,
+                                'notes'            => $notes,
+                            ]);
+
+                            Log::info('📝 [ORDER] Order record created', [
+                                'order_id'     => $order->id,
+                                'order_number' => $order->order_number,
+                            ]);
+
+                            // Create order items
+                            foreach ($orderItems as $item) {
+                                Log::info('🔧 [ORDER] Creating order item', [
+                                    'menu_item_id' => $item['menu_item_id'] ?? 'missing',
+                                    'quantity'     => $item['quantity'] ?? 'missing',
+                                    'price'        => $item['price'] ?? 'missing',
+                                ]);
+
+                                $itemPrice = $item['price'] ?? 0;
+                                $quantity = $item['quantity'] ?? 1;
+                                $lineTotal = $itemPrice * $quantity;
+
+                                $order->orderItems()->create([
+                                    'menu_item_id'        => $item['menu_item_id'],
+                                    'quantity'            => $quantity,
+                                    'item_price_at_order' => $itemPrice, // ✅ Correct column name
+                                    'line_total'          => $lineTotal,  // ✅ Required column
+                                    'notes'               => $item['special_instructions'] ?? null,
+                                ]);
+                            }
+
+                            Log::info('📦 [ORDER] All order items created');
+
+                            // Link payment to order
+                            $payment->update(['order_id' => $order->id]);
+
+                            Log::info('✅ [ORDER] Order created successfully after payment - NOW VISIBLE TO CHEF!', [
+                                'payment_id'   => $payment->id,
+                                'order_id'     => $order->id,
+                                'order_number' => $order->order_number,
+                                'status'       => $order->status,
+                                'room_id'      => $roomId,
+                                'total'        => $order->total,
+                                'items_count'  => count($orderItems),
+                            ]);
+
+                        } catch (\Exception $e) {
+                            Log::error('❌ [ORDER] Failed to create order after payment verification', [
+                                'payment_id' => $payment->id,
+                                'tx_ref'     => $txRef,
+                                'error'      => $e->getMessage(),
+                                'file'       => $e->getFile(),
+                                'line'       => $e->getLine(),
+                                'trace'      => $e->getTraceAsString(),
+                            ]);
+                            // Don't fail the payment verification if order creation fails
+                            // Payment is still successful, order creation can be retried
+                        }
                     }
                 }
 

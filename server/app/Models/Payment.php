@@ -108,12 +108,6 @@ class Payment extends Model
 
     public const STATUS_REFUNDED = 'refunded';
 
-    /*
-    |--------------------------------------------------------------------------
-    | Helper Methods
-    |--------------------------------------------------------------------------
-    */
-
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;

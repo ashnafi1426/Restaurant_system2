@@ -385,6 +385,78 @@ onMounted(async () => {
     }
   }
 
+  // ============================================================================
+  // 🔥 CRITICAL: VERIFY PAYMENT AND COMPLETE ORDER IN DATABASE
+  // ============================================================================
+  // The payment must be verified first, then the order is completed on the backend
+  // so it becomes visible to the chef.
+  if (txRef.value) {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    console.log('🔥 [CRITICAL] VERIFYING PAYMENT AND COMPLETING ORDER...')
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    
+    try {
+      const verifyResponse = await fetch(
+        `http://127.0.0.1:8000/api/payments/verify/${txRef.value}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        }
+      )
+
+      const verifyData = await verifyResponse.json()
+      console.log('📡 [VERIFY] Response received:', verifyData)
+
+      if (verifyResponse.ok && verifyData.success) {
+        console.log('✅ [ORDER PAYMENT SUCCESS] Payment verified, now completing order...')
+
+        const completeResponse = await fetch(
+          `http://127.0.0.1:8000/api/order-payments/complete/${txRef.value}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        )
+
+        const completeData = await completeResponse.json()
+        console.log('📡 [ORDER COMPLETE] Response received:', completeData)
+
+        if (completeResponse.ok && completeData.success) {
+          console.log('✅✅✅ [ORDER CREATED] Order created in database and sent to chef!')
+          console.log('📦 [ORDER CREATED] Payment data:', completeData.payment)
+          if (completeData.order) {
+            orderData.value = {
+              ...orderData.value,
+              order_number: completeData.order.order_number,
+              room_number: completeData.order.room_number,
+              estimated_time: completeData.order.estimated_time || 30,
+              items: completeData.order.items || orderData.value?.items || [],
+              calculation: orderData.value?.calculation,
+            }
+          }
+        } else {
+          console.error('❌ [ORDER COMPLETE FAILED] Order completion failed:', completeData.message)
+          console.warn('⚠️ Order may not have been created in database')
+        }
+      } else {
+        console.error('❌ [VERIFY FAILED] Payment verification failed:', verifyData.message)
+        // Still show success page but log the error
+        console.warn('⚠️ Order may not have been created in database')
+      }
+    } catch (error) {
+      console.error('❌ [VERIFY ERROR] Failed to verify payment:', error)
+      console.warn('⚠️ Order may not have been created in database')
+    }
+  } else {
+    console.error('❌ [CRITICAL ERROR] No transaction reference found!')
+    console.error('❌ Cannot verify payment or create order')
+  }
+
   // Show sections with staggered animation
   console.log('🎬 [ORDER PAYMENT SUCCESS] Starting animations...')
   
@@ -413,11 +485,11 @@ onMounted(async () => {
     console.log('✅ [ORDER PAYMENT SUCCESS] All sections visible')
   }, 1200)
 
-  // Fetch order details in background
+  // Fetch order details in background (after verification completes)
   if (txRef.value) {
     setTimeout(() => {
       fetchOrderDetails()
-    }, 1500)
+    }, 2000) // Increased delay to allow verification to complete
   }
 })
 
