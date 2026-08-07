@@ -105,7 +105,7 @@ onBeforeUnmount(() => {
 
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-slate-50">
+    <div class="min-h-screen bg-slate-50 py-4 md:py-6">
       <!-- Header -->
       <KitchenHeader
         :loading="loading"
@@ -117,12 +117,12 @@ onBeforeUnmount(() => {
       />
 
       <!-- Statistics -->
-      <div class="px-8 pt-6">
+      <div class="pt-4 md:pt-6">
         <KitchenStats :statistics="statistics" :loading="loading" />
       </div>
 
       <!-- Main Content -->
-      <div class="grid grid-cols-1 gap-6 px-8 py-6 xl:grid-cols-12">
+      <div class="grid grid-cols-1 gap-6 py-4 md:py-6 xl:grid-cols-12">
         <!-- Kitchen Queue -->
         <div class="xl:col-span-9">
           <KitchenQueue

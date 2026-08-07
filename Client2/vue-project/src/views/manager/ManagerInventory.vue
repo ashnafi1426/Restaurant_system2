@@ -16,16 +16,16 @@ onMounted(async () => {
 
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 py-4 md:py-6 transition-colors duration-300">
       <!-- PAGE HEADER -->
-      <div class="mb-8 border-b border-slate-200/60 bg-white/80 backdrop-blur-sm rounded-lg p-6">
+      <div class="mb-6 md:mb-8 border-b border-slate-200/60 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-lg p-4 md:p-6 transition-colors duration-300">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-3xl font-bold text-slate-900 mb-2">Inventory Management</h1>
-            <p class="text-slate-600">Track and manage hotel and restaurant inventory</p>
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Inventory Management</h1>
+            <p class="text-sm md:text-base text-slate-600 dark:text-slate-400">Track and manage hotel and restaurant inventory</p>
           </div>
-          <div class="w-12 h-12 bg-gradient-to-br from-amber-100 to-amber-50 rounded-xl flex items-center justify-center">
-            <Package class="w-6 h-6 text-amber-600" />
+          <div class="w-12 h-12 bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900 dark:to-amber-800 rounded-xl flex items-center justify-center">
+            <Package class="w-6 h-6 text-amber-600 dark:text-amber-400" />
           </div>
         </div>
       </div>
@@ -48,7 +48,7 @@ onMounted(async () => {
       </div>
 
       <!-- Error State -->
-      <div v-if="manager.error && !manager.loading" class="bg-red-50/80 backdrop-blur-sm border border-red-200/60 text-red-700 p-6 rounded-xl mb-6">
+      <div v-if="manager.error && !manager.loading" class="bg-red-50/80 dark:bg-red-900/20 backdrop-blur-sm border border-red-200/60 dark:border-red-800 text-red-700 dark:text-red-400 p-6 rounded-xl mb-6">
         {{ manager.error }}
       </div>
 
@@ -57,66 +57,66 @@ onMounted(async () => {
 
         <!-- Inventory Status -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-            <p class="text-sm text-slate-500">Total Items</p>
-            <h3 class="mt-3 text-3xl font-bold text-slate-900">1,250</h3>
-            <p class="text-sm text-slate-400 mt-2">In stock across all categories</p>
+          <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <p class="text-sm text-slate-500 dark:text-slate-400">Total Items</p>
+            <h3 class="mt-3 text-3xl font-bold text-slate-900 dark:text-slate-100">1,250</h3>
+            <p class="text-sm text-slate-400 dark:text-slate-500 mt-2">In stock across all categories</p>
           </div>
-          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-            <p class="text-sm text-slate-500">Low Stock Items</p>
-            <h3 class="mt-3 text-3xl font-bold text-amber-600">23</h3>
-            <p class="text-sm text-amber-600 mt-2">Require urgent reorder</p>
+          <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <p class="text-sm text-slate-500 dark:text-slate-400">Low Stock Items</p>
+            <h3 class="mt-3 text-3xl font-bold text-amber-600 dark:text-amber-400">23</h3>
+            <p class="text-sm text-amber-600 dark:text-amber-400 mt-2">Require urgent reorder</p>
           </div>
-          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-            <p class="text-sm text-slate-500">Stock Value</p>
-            <h3 class="mt-3 text-3xl font-bold text-emerald-600">{{ formatCurrency(45000) }}</h3>
-            <p class="text-sm text-slate-400 mt-2">Total inventory value</p>
+          <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <p class="text-sm text-slate-500 dark:text-slate-400">Stock Value</p>
+            <h3 class="mt-3 text-3xl font-bold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(45000) }}</h3>
+            <p class="text-sm text-slate-400 dark:text-slate-500 mt-2">Total inventory value</p>
           </div>
         </div>
 
         <!-- Categories -->
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-          <h2 class="text-xl font-bold mb-6">Inventory by Category</h2>
+        <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">Inventory by Category</h2>
           <div class="space-y-4">
-            <div v-for="category in categories" :key="category.name" class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+            <div v-for="category in categories" :key="category.name" class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
               <div class="flex items-center gap-3">
-                <span class="font-semibold">{{ category.name }}</span>
-                <span class="text-sm text-slate-500">{{ category.items }} items</span>
+                <span class="font-semibold text-slate-900 dark:text-slate-100">{{ category.name }}</span>
+                <span class="text-sm text-slate-500 dark:text-slate-400">{{ category.items }} items</span>
               </div>
               <div class="flex items-center gap-4">
-                <div class="w-32 h-2 bg-slate-200 rounded-full overflow-hidden">
-                  <div class="h-full bg-blue-600" :style="{ width: category.utilization + '%' }"></div>
+                <div class="w-32 h-2 bg-slate-200 dark:bg-slate-600 rounded-full overflow-hidden">
+                  <div class="h-full bg-blue-600 dark:bg-blue-400" :style="{ width: category.utilization + '%' }"></div>
                 </div>
-                <span class="text-sm font-semibold">{{ category.utilization }}%</span>
+                <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ category.utilization }}%</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Recent Transactions -->
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-          <h2 class="text-xl font-bold mb-6">Recent Inventory Movements</h2>
+        <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">Recent Inventory Movements</h2>
           <div class="space-y-3">
-            <div class="flex items-center justify-between p-4 border-b border-slate-200">
+            <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
               <div>
-                <p class="font-semibold">Linen Stock - Added</p>
-                <p class="text-sm text-slate-500">Today at 10:30 AM</p>
+                <p class="font-semibold text-slate-900 dark:text-slate-100">Linen Stock - Added</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Today at 10:30 AM</p>
               </div>
-              <span class="text-emerald-600 font-semibold">+150 units</span>
+              <span class="text-emerald-600 dark:text-emerald-400 font-semibold">+150 units</span>
             </div>
-            <div class="flex items-center justify-between p-4 border-b border-slate-200">
+            <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
               <div>
-                <p class="font-semibold">Kitchen Supplies - Used</p>
-                <p class="text-sm text-slate-500">Today at 9:15 AM</p>
+                <p class="font-semibold text-slate-900 dark:text-slate-100">Kitchen Supplies - Used</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Today at 9:15 AM</p>
               </div>
-              <span class="text-red-600 font-semibold">-45 units</span>
+              <span class="text-red-600 dark:text-red-400 font-semibold">-45 units</span>
             </div>
             <div class="flex items-center justify-between p-4">
               <div>
-                <p class="font-semibold">Toiletries - Added</p>
-                <p class="text-sm text-slate-500">Yesterday at 3:20 PM</p>
+                <p class="font-semibold text-slate-900 dark:text-slate-100">Toiletries - Added</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Yesterday at 3:20 PM</p>
               </div>
-              <span class="text-emerald-600 font-semibold">+200 units</span>
+              <span class="text-emerald-600 dark:text-emerald-400 font-semibold">+200 units</span>
             </div>
           </div>
         </div>

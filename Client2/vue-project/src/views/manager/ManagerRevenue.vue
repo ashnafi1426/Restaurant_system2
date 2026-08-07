@@ -22,16 +22,16 @@ function formatCurrency(value: number) {
 
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 py-4 md:py-6 transition-colors duration-300">
       <!-- PAGE HEADER -->
-      <div class="mb-8 border-b border-slate-200/60 bg-white/80 backdrop-blur-sm rounded-lg p-6">
+      <div class="mb-6 md:mb-8 border-b border-slate-200/60 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-lg p-4 md:p-6 transition-colors duration-300">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-3xl font-bold text-slate-900 mb-2">Revenue Report</h1>
-            <p class="text-slate-600">Comprehensive revenue analysis and breakdowns</p>
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Revenue Report</h1>
+            <p class="text-sm md:text-base text-slate-600 dark:text-slate-400">Comprehensive revenue analysis and breakdowns</p>
           </div>
-          <div class="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-xl flex items-center justify-center">
-            <TrendingUp class="w-6 h-6 text-emerald-600" />
+          <div class="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-900 dark:to-emerald-800 rounded-xl flex items-center justify-center">
+            <TrendingUp class="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
           </div>
         </div>
       </div>
@@ -54,7 +54,7 @@ function formatCurrency(value: number) {
       </div>
 
       <!-- Error State -->
-      <div v-if="revenueStore.error && !revenueStore.loading" class="bg-red-50/80 backdrop-blur-sm border border-red-200/60 text-red-700 p-6 rounded-xl mb-6">
+      <div v-if="revenueStore.error && !revenueStore.loading" class="bg-red-50/80 dark:bg-red-900/20 backdrop-blur-sm border border-red-200/60 dark:border-red-800 text-red-700 dark:text-red-400 p-6 rounded-xl mb-6">
         {{ revenueStore.error }}
       </div>
 
@@ -65,37 +65,37 @@ function formatCurrency(value: number) {
         <RevenueOverview />
 
         <!-- Revenue Chart -->
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-          <h2 class="text-xl font-bold text-slate-900 mb-6">Revenue Trend</h2>
-          <div class="h-64 flex items-center justify-center bg-slate-50 rounded-2xl">
-            <p class="text-slate-500">Chart visualization coming soon...</p>
+        <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">Revenue Trend</h2>
+          <div class="h-64 flex items-center justify-center bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
+            <p class="text-slate-500 dark:text-slate-400">Chart visualization coming soon...</p>
           </div>
         </div>
 
         <!-- Revenue Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-            <p class="text-sm text-slate-500">Today's Revenue</p>
-            <h3 class="mt-3 text-3xl font-bold text-slate-900">
+          <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <p class="text-sm text-slate-500 dark:text-slate-400">Today's Revenue</p>
+            <h3 class="mt-3 text-3xl font-bold text-slate-900 dark:text-slate-100">
               {{ formatCurrency(revenueStore.revenueSummary?.today ?? 0) }}
             </h3>
-            <p class="text-sm text-emerald-600 mt-2">+12% vs yesterday</p>
+            <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-2">+12% vs yesterday</p>
           </div>
 
-          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-            <p class="text-sm text-slate-500">This Week</p>
-            <h3 class="mt-3 text-3xl font-bold text-slate-900">
+          <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <p class="text-sm text-slate-500 dark:text-slate-400">This Week</p>
+            <h3 class="mt-3 text-3xl font-bold text-slate-900 dark:text-slate-100">
               {{ formatCurrency(revenueStore.revenueSummary?.thisWeek ?? 0) }}
             </h3>
-            <p class="text-sm text-emerald-600 mt-2">+8% vs last week</p>
+            <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-2">+8% vs last week</p>
           </div>
 
-          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-            <p class="text-sm text-slate-500">This Month</p>
-            <h3 class="mt-3 text-3xl font-bold text-slate-900">
+          <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <p class="text-sm text-slate-500 dark:text-slate-400">This Month</p>
+            <h3 class="mt-3 text-3xl font-bold text-slate-900 dark:text-slate-100">
               {{ formatCurrency(revenueStore.revenueSummary?.thisMonth ?? 0) }}
             </h3>
-            <p class="text-sm text-emerald-600 mt-2">+15% vs last month</p>
+            <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-2">+15% vs last month</p>
           </div>
         </div>
       </div>

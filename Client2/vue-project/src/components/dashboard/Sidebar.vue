@@ -178,18 +178,20 @@ const isActive = (path: string): boolean => {
 
 <template>
   <aside
+  @mouseenter="sidebarStore.onMouseEnter()"
+  @mouseleave="sidebarStore.onMouseLeave()"
   :class="[
     'h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col relative select-none flex-shrink-0 shadow-lg dark:shadow-black/50 transition-all duration-300 overflow-hidden border-r border-slate-200 dark:border-slate-800',
-    sidebarStore.isCollapsed ? 'w-20' : 'w-72'
+    sidebarStore.sidebarWidth
   ]"
 >
     <!-- Header / Brand -->
     <div
       class="flex items-center bg-white dark:bg-slate-900 transition-all duration-300"
-      :class="sidebarStore.isCollapsed ? 'h-auto py-4 px-3 flex-col justify-center' : 'h-16 px-6 justify-between'"
+      :class="sidebarStore.isExpanded ? 'h-16 px-6 justify-between' : 'h-auto py-4 px-3 flex-col justify-center'"
     >
       <!-- Expanded: Logo + Text + Collapse Button -->
-      <template v-if="!sidebarStore.isCollapsed">
+      <template v-if="sidebarStore.isExpanded">
         <div class="flex items-center gap-3">
           <img 
             src="/images/Hotel logo.png" 
@@ -198,26 +200,27 @@ const isActive = (path: string): boolean => {
           />
         </div>
         
-        <!-- Collapse Button (Top-Right of Sidebar) - Desktop Only -->
+        <!-- Collapse/Expand Button - Desktop Only -->
         <button
           @click="sidebarStore.toggleCollapse()"
           class="hidden lg:flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0"
-          title="Collapse sidebar"
+          :title="sidebarStore.sidebarCollapsed ? 'Expand sidebar permanently' : 'Collapse sidebar'"
         >
           <PanelLeft
-            class="w-5 h-5 text-slate-600 dark:text-slate-400"
+            class="w-5 h-5 text-slate-600 dark:text-slate-400 transition-transform duration-300"
+            :class="sidebarStore.sidebarCollapsed ? 'rotate-180' : ''"
             :stroke-width="2"
           />
         </button>
       </template>
 
-      <!-- Collapsed: ONLY Expand Button (No Logo) -->
+      <!-- Collapsed: Only Expand Button (No Logo) -->
       <template v-else>
         <!-- Expand Button - Desktop Only - Centered -->
         <button
           @click="sidebarStore.toggleCollapse()"
           class="hidden lg:flex items-center justify-center w-12 h-12 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mx-auto"
-          title="Expand sidebar"
+          title="Expand sidebar permanently"
         >
           <PanelLeft
             class="w-5 h-5 text-slate-600 dark:text-slate-400 transform rotate-180"
@@ -230,12 +233,12 @@ const isActive = (path: string): boolean => {
     <!-- Navigation -->
     <nav 
       class="flex-1 py-4 overflow-y-auto transition-all duration-300"
-      :class="sidebarStore.isCollapsed ? 'px-4' : 'px-3'"
+      :class="sidebarStore.isExpanded ? 'px-3' : 'px-4'"
     >
       <div v-for="(items, section) in groupedMenus" :key="section">
         <!-- Three dot separator between sections (collapsed only) -->
         <div
-          v-if="sidebarStore.isCollapsed && section !== 'Main'"
+          v-if="!sidebarStore.isExpanded && section !== 'Main'"
           class="flex items-center justify-center py-3 my-2"
         >
           <div class="flex gap-1">
@@ -248,13 +251,13 @@ const isActive = (path: string): boolean => {
         <div>
           <!-- Section Title - Hidden when collapsed -->
           <p
-            v-if="!sidebarStore.isCollapsed"
+            v-if="sidebarStore.isExpanded"
             class="px-3 text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.12em] mb-3 transition-opacity duration-300"
           >
             {{ section }}
           </p>
 
-          <div :class="sidebarStore.isCollapsed ? 'space-y-3' : 'space-y-1'">
+          <div :class="sidebarStore.isExpanded ? 'space-y-1' : 'space-y-3'">
             <router-link
               v-for="menu in items"
               :key="menu.path"
@@ -262,26 +265,25 @@ const isActive = (path: string): boolean => {
               @click="handleNavigate"
               class="group relative flex items-center rounded-lg transition-all duration-200"
               :class="[
-                sidebarStore.isCollapsed 
-                  ? 'justify-center py-3' 
-                  : 'gap-3 px-3 py-2.5',
+                sidebarStore.isExpanded 
+                  ? 'gap-3 px-3 py-2.5' 
+                  : 'justify-center py-3',
                 isActive(menu.path)
-                  ? sidebarStore.isCollapsed
-                    ? ''
-                    : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                  ? sidebarStore.isExpanded
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                    : ''
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/50',
               ]"
-              :title="sidebarStore.isCollapsed ? menu.name : ''"
+              :title="!sidebarStore.isExpanded ? menu.name : ''"
             >
               <!-- Icon -->
               <component
                 :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
-                class="flex-shrink-0 transition-all duration-200"
+                class="flex-shrink-0 transition-all duration-200 w-5 h-5"
                 :class="[
-                  sidebarStore.isCollapsed ? 'w-5 h-5' : 'w-5 h-5',
-                  isActive(menu.path) && !sidebarStore.isCollapsed
+                  isActive(menu.path) && sidebarStore.isExpanded
                     ? 'text-blue-600 dark:text-blue-400' 
-                    : sidebarStore.isCollapsed
+                    : !sidebarStore.isExpanded
                     ? 'text-slate-400 dark:text-slate-500'
                     : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300',
                 ]"
@@ -290,7 +292,7 @@ const isActive = (path: string): boolean => {
 
               <!-- Menu Name - Hidden when collapsed -->
               <span
-                v-if="!sidebarStore.isCollapsed"
+                v-if="sidebarStore.isExpanded"
                 class="flex-1 transition-all duration-200 truncate text-sm font-medium"
               >
                 {{ menu.name }}
@@ -298,15 +300,15 @@ const isActive = (path: string): boolean => {
 
               <!-- Badges - Hidden when collapsed -->
               <span
-                v-if="!sidebarStore.isCollapsed && (menu.name === 'Pending Orders' || menu.name === 'Check In' || menu.name === 'Complaints')"
+                v-if="sidebarStore.isExpanded && (menu.name === 'Pending Orders' || menu.name === 'Check In' || menu.name === 'Complaints')"
                 class="text-[10px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full flex-shrink-0"
               >
                 {{ menu.name === 'Check In' ? '5' : menu.name === 'Complaints' ? '3' : '12' }}
               </span>
 
-              <!-- Tooltip for collapsed state -->
+              <!-- Tooltip for collapsed state (only when hover is NOT active) -->
               <div
-                v-if="sidebarStore.isCollapsed"
+                v-if="!sidebarStore.isExpanded && !sidebarStore.hoverExpand"
                 class="absolute left-full ml-3 px-3 py-2 bg-slate-900 dark:bg-slate-700 text-white text-xs font-medium rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none"
               >
                 {{ menu.name }}

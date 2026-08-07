@@ -181,8 +181,8 @@ onBeforeUnmount(() => {
       <h3 class="text-sm font-semibold text-slate-700">No Reservations</h3>
     </div>
 
-    <!-- Table - Compact -->
-    <div v-else class="overflow-x-auto">
+    <!-- Table - Desktop View (hidden on mobile) -->
+    <div v-else class="hidden md:block overflow-x-auto">
       <table class="w-full divide-y divide-slate-200">
         <thead class="bg-slate-50">
           <tr>

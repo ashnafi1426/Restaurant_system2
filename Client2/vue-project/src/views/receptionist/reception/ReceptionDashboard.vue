@@ -41,19 +41,19 @@ onMounted(loadDashboard)
   <DashboardLayout>
     <div class="w-full bg-white dark:bg-slate-900">
       <!-- Header Section -->
-      <div class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-6 py-5">
-        <div class="flex items-start justify-between">
+      <div class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-0 py-4 md:py-5">
+        <div class="flex flex-col sm:flex-row items-start justify-between gap-3">
           <div class="flex-1">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Receptionist Dashboard</h1>
-            <p class="text-gray-500 dark:text-slate-400 text-sm mt-2">Manage your property efficiently today.</p>
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Receptionist Dashboard</h1>
+            <p class="text-gray-500 dark:text-slate-400 text-xs md:text-sm mt-1 md:mt-2">Manage your property efficiently today.</p>
           </div>
           <!-- Action Buttons (Right Aligned) -->
-          <div class="flex gap-3 flex-shrink-0">
+          <div class="flex gap-2 md:gap-3 flex-shrink-0 w-full sm:w-auto">
             <button
               @click="quickCheckIn"
-              class="px-5 py-2.5 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition flex items-center gap-2"
+              class="flex-1 sm:flex-none px-4 md:px-5 py-2 md:py-2.5 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 text-xs md:text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition flex items-center justify-center gap-2"
             >
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
               </svg>
               Quick Check In
@@ -63,9 +63,9 @@ onMounted(loadDashboard)
       </div>
 
       <!-- Main Content -->
-      <div v-if="loading" class="p-6 bg-white dark:bg-slate-900">
-        <div class="grid grid-cols-6 gap-3 mb-6">
-          <div v-for="i in 6" :key="i" class="h-24 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse"></div>
+      <div v-if="loading" class="p-4 md:p-6 bg-white dark:bg-slate-900">
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
+          <div v-for="i in 6" :key="i" class="h-20 md:h-24 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse"></div>
         </div>
       </div>
       <!-- Error State -->
@@ -104,9 +104,9 @@ onMounted(loadDashboard)
       </div>
 
       <!-- Main Grid Layout -->
-      <div v-else-if="dashboard" class="p-6 space-y-6 bg-white dark:bg-slate-900">
-        <!-- Statistics Cards (6 columns in one row) -->
-        <div class="grid grid-cols-6 gap-4">
+      <div v-else-if="dashboard" class="p-4 md:p-6 space-y-4 md:space-y-6 bg-white dark:bg-slate-900">
+        <!-- Statistics Cards (Responsive: 2 cols mobile, 3 cols tablet, 6 cols desktop) -->
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
           <ReceptionStatCard
             title="CHECK-INS"
             :value="dashboard.statistics.today_check_ins"
@@ -151,10 +151,10 @@ onMounted(loadDashboard)
           />
         </div>
 
-        <!-- Content Grid: 2 columns -->
-        <div class="grid grid-cols-2 gap-6">
+        <!-- Content Grid: 2 columns on desktop, 1 on mobile/tablet -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           <!-- Left Column -->
-          <div class="space-y-6">
+          <div class="space-y-4 md:space-y-6">
             <!-- Today's Arrivals -->
             <TodaysArrivals :arrivals="dashboard.today_arrivals" />
 
@@ -163,7 +163,7 @@ onMounted(loadDashboard)
           </div>
 
           <!-- Right Column -->
-          <div class="space-y-6">
+          <div class="space-y-4 md:space-y-6">
             <!-- Room Status Matrix -->
             <RoomStatusMatrix :rooms="dashboard.room_matrix" />
 

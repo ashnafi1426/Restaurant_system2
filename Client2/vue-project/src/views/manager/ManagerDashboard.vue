@@ -122,82 +122,78 @@ onMounted(async () => {
 
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 p-6 transition-colors duration-300">
+    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 py-4 md:py-6 transition-colors duration-300">
       <!-- Welcome Header -->
-      <div class="mb-8">
-        <h1 class="text-4xl font-bold text-slate-900 dark:text-slate-100">Welcome back, Manager</h1>
-        <p class="text-slate-600 dark:text-slate-400 mt-2">Here is what's happening at Executive Horizon this morning.</p>
+      <div class="mb-4 md:mb-6">
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100">Welcome back, Manager</h1>
+        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-1 md:mt-2">Here is what's happening at Executive Horizon this morning.</p>
       </div>
 
       <!-- Stats Cards Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4 mb-4 md:mb-6">
         <!-- Total Reservations -->
-        <div class="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-md transition">
-          <div class="flex items-center justify-between mb-4">
-            <Calendar class="w-8 h-8 text-slate-400 dark:text-slate-500" />
+        <div class="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 p-4 shadow-sm hover:shadow-md transition">
+          <div class="flex items-center justify-between mb-2">
+            <Calendar class="w-6 h-6 text-slate-400 dark:text-slate-500" />
           </div>
-          <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide mb-1">Total</p>
-          <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Reservations</p>
-          <h3 class="text-4xl font-bold text-slate-900 dark:text-slate-100 mt-2">{{ stats.total_reservations }}</h3>
-          <p class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-2">+12%</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Total Reservations</p>
+          <h3 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1">{{ stats.total_reservations }}</h3>
+          <p class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1">+12%</p>
         </div>
 
         <!-- Rooms Occupied -->
-        <div class="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-md transition">
-          <div class="flex items-center justify-between mb-4">
-            <Home class="w-8 h-8 text-slate-400 dark:text-slate-500" />
+        <div class="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 p-4 shadow-sm hover:shadow-md transition">
+          <div class="flex items-center justify-between mb-2">
+            <Home class="w-6 h-6 text-slate-400 dark:text-slate-500" />
           </div>
-          <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide mb-1">Rooms</p>
-          <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Occupied</p>
-          <h3 class="text-4xl font-bold text-slate-900 dark:text-slate-100 mt-2">{{ stats.rooms_occupied }}<span class="text-lg text-slate-400 dark:text-slate-500">/{{ stats.max_rooms }}</span></h3>
-          <p class="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-2">● 88%</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Rooms Occupied</p>
+          <h3 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1">{{ stats.rooms_occupied }}<span class="text-base text-slate-400 dark:text-slate-500">/{{ stats.max_rooms }}</span></h3>
+          <p class="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-1">● 88%</p>
         </div>
 
         <!-- Active Waiters -->
-        <div class="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-md transition">
-          <div class="flex items-center justify-between mb-4">
-            <Users class="w-8 h-8 text-slate-400 dark:text-slate-500" />
+        <div class="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 p-4 shadow-sm hover:shadow-md transition">
+          <div class="flex items-center justify-between mb-2">
+            <Users class="w-6 h-6 text-slate-400 dark:text-slate-500" />
           </div>
-          <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Active</p>
-          <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Waiters</p>
-          <h3 class="text-4xl font-bold text-slate-900 dark:text-slate-100 mt-2">{{ stats.active_waiters }}</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Active Waiters</p>
+          <h3 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1">{{ stats.active_waiters }}</h3>
         </div>
 
         <!-- Kitchen Ready -->
-        <div class="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-md transition">
-          <div class="flex items-center justify-between mb-4">
-            <AlertCircle class="w-8 h-8 text-red-500 dark:text-red-400" />
+        <div class="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 p-4 shadow-sm hover:shadow-md transition">
+          <div class="flex items-center justify-between mb-2">
+            <AlertCircle class="w-6 h-6 text-red-500 dark:text-red-400" />
           </div>
           <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">Kitchen</p>
           <p class="text-xs text-red-600 dark:text-red-400 uppercase font-semibold tracking-wide">URGENT</p>
-          <h3 class="text-4xl font-bold text-red-600 dark:text-red-400 mt-2">{{ stats.kitchen_ready }}</h3>
+          <h3 class="text-3xl font-bold text-red-600 dark:text-red-400 mt-1">{{ stats.kitchen_ready }}</h3>
         </div>
 
         <!-- Today's Revenue -->
-        <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-6 shadow-lg text-white md:col-span-1 lg:col-span-1">
-          <div class="flex items-center justify-between mb-4">
-            <TrendingUp class="w-8 h-8 text-white opacity-20" />
+        <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-4 shadow-lg text-white sm:col-span-2 lg:col-span-1">
+          <div class="flex items-center justify-between mb-2">
+            <TrendingUp class="w-6 h-6 text-white opacity-20" />
           </div>
-          <p class="text-xs uppercase font-semibold tracking-wide opacity-90 mb-1">Today's</p>
-          <p class="text-xs uppercase font-semibold tracking-wide opacity-90">Revenue</p>
-          <h3 class="text-3xl font-bold mt-3">${{ (stats.today_revenue / 1000).toFixed(0) }}<span class="text-lg">,{{ stats.today_revenue % 1000 }}</span></h3>
+          <p class="text-xs uppercase font-semibold tracking-wide opacity-90">Today's Revenue</p>
+          <h3 class="text-2xl font-bold mt-2">${{ (stats.today_revenue / 1000).toFixed(0) }}<span class="text-base">,{{ stats.today_revenue % 1000 }}</span></h3>
         </div>
       </div>
 
       <!-- Revenue Trend Section -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
         <!-- Revenue Chart -->
         <div class="lg:col-span-2 bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 p-6 shadow-sm transition-colors duration-300">
-          <div class="flex items-center justify-between mb-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-6 gap-3">
             <div>
-              <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">Revenue Trend</h2>
-              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Comparative analysis for the last 7 days</p>
+              <h2 class="text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100">Revenue Trend</h2>
+              <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1">Comparative analysis for the last 7 days</p>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 w-full sm:w-auto">
               <button
                 @click="trendTab = 'weekly'"
                 :class="[
-                  'px-4 py-2 rounded-lg text-sm font-medium transition',
+                  'flex-1 sm:flex-none px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition',
                   trendTab === 'weekly'
                     ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -208,7 +204,7 @@ onMounted(async () => {
               <button
                 @click="trendTab = 'monthly'"
                 :class="[
-                  'px-4 py-2 rounded-lg text-sm font-medium transition',
+                  'flex-1 sm:flex-none px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition',
                   trendTab === 'monthly'
                     ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -220,7 +216,7 @@ onMounted(async () => {
           </div>
 
           <!-- Chart Placeholder with Bar Chart -->
-          <div class="h-64 flex items-end justify-center gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg p-6 transition-colors duration-300">
+          <div class="h-48 sm:h-56 md:h-64 flex items-end justify-center gap-2 sm:gap-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 sm:p-6 transition-colors duration-300 overflow-x-auto">
             <div class="w-12 h-32 bg-blue-200 rounded-lg flex items-center justify-center text-xs text-center font-semibold">
               <div class="h-24 w-full bg-blue-300 rounded-lg"></div>
             </div>
@@ -243,7 +239,7 @@ onMounted(async () => {
               <div class="h-12 w-full bg-blue-300 rounded-lg"></div>
             </div>
           </div>
-          <div class="flex justify-center gap-8 mt-4 text-xs text-slate-600 dark:text-slate-400 font-medium">
+          <div class="flex justify-center gap-4 sm:gap-6 md:gap-8 mt-4 text-xs text-slate-600 dark:text-slate-400 font-medium">
             <span>Mon</span>
             <span>Tue</span>
             <span>Wed</span>
@@ -255,45 +251,45 @@ onMounted(async () => {
         </div>
 
         <!-- Recent Activity -->
-        <div class="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 p-6 shadow-sm transition-colors duration-300">
-          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">Recent Activity</h2>
-          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Live updates from floor managers</p>
+        <div class="bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 p-4 md:p-6 shadow-sm transition-colors duration-300">
+          <h2 class="text-lg md:text-xl font-bold text-slate-900 dark:text-slate-100 mb-3 md:mb-4">Recent Activity</h2>
+          <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 mb-3 md:mb-4">Live updates from floor managers</p>
 
-          <div class="space-y-3 max-h-96 overflow-y-auto">
+          <div class="space-y-2 md:space-y-3 max-h-80 md:max-h-96 overflow-y-auto">
             <div
               v-for="(activity, idx) in activities.slice(0, 5)"
               :key="idx"
-              :class="['p-3 rounded-lg border border-slate-200', getActivityColor(activity)]"
+              :class="['p-3 rounded-lg border border-slate-200 dark:border-slate-700', getActivityColor(activity)]"
             >
-              <div class="flex gap-3">
-                <div class="text-2xl flex-shrink-0 mt-1">{{ getActivityIcon(activity) }}</div>
+              <div class="flex gap-2 md:gap-3">
+                <div class="text-xl md:text-2xl flex-shrink-0 mt-1">{{ getActivityIcon(activity) }}</div>
                 <div class="flex-1 min-w-0">
-                  <p class="font-medium text-slate-900 text-sm">{{ activity.title || 'Activity' }}</p>
-                  <p class="text-xs text-slate-600">{{ activity.subtitle || '' }}</p>
-                  <div class="flex items-center gap-2 mt-2 text-xs text-slate-500">
+                  <p class="font-medium text-slate-900 dark:text-slate-100 text-xs md:text-sm truncate">{{ activity.title || 'Activity' }}</p>
+                  <p class="text-xs text-slate-600 dark:text-slate-400 truncate">{{ activity.subtitle || '' }}</p>
+                  <div class="flex items-center gap-2 mt-1 md:mt-2 text-xs text-slate-500 dark:text-slate-400">
                     <span>{{ activity.time || 'Just now' }}</span>
                     <span>•</span>
-                    <span>{{ activity.source || 'System' }}</span>
+                    <span class="truncate">{{ activity.source || 'System' }}</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <button class="w-full mt-4 text-blue-600 hover:text-blue-700 text-sm font-semibold py-2 transition">
+          <button class="w-full mt-3 md:mt-4 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs md:text-sm font-semibold py-2 transition">
             View All Logs →
           </button>
         </div>
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex flex-col sm:flex-row gap-4">
-        <button class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30">
-          <Users class="w-5 h-5" />
+      <div class="flex flex-col sm:flex-row gap-3 md:gap-4">
+        <button class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-4 md:px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 text-sm md:text-base">
+          <Users class="w-4 h-4 md:w-5 md:h-5" />
           Assign Waiters
         </button>
-        <button class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2">
-          <Download class="w-5 h-5" />
+        <button class="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold py-3 px-4 md:px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 text-sm md:text-base">
+          <Download class="w-4 h-4 md:w-5 md:h-5" />
           Export Reports
         </button>
       </div>

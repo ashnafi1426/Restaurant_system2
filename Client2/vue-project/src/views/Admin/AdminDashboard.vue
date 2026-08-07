@@ -55,7 +55,7 @@ onMounted(loadDashboard)
 
 <template>
   <DashboardLayout>
-    <div class="w-full bg-gray-50 -mx-4 sm:-mx-6 -my-4 sm:-my-6 px-4 sm:px-6 py-4 sm:py-6">
+    <div class="w-full bg-gray-50 py-4 md:py-6">
       <!-- Loading State -->
       <div v-if="loading" class="animate-pulse space-y-3 sm:space-y-4">
         <div class="h-8 bg-gray-200 rounded w-1/3"></div>

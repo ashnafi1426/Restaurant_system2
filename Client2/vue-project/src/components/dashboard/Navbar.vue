@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { useThemeStore } from '../../stores/theme'
 import { useSidebarStore } from '../../stores/sidebarStore'
 import NotificationCenter from '@/components/reception/NotificationCenter.vue'
-import { Sun, Moon, PanelLeft } from 'lucide-vue-next'
+import { Sun, Moon, PanelLeft, Maximize, Minimize } from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const router = useRouter()
 const themeStore = useThemeStore()
 const sidebarStore = useSidebarStore()
 const profileOpen = ref(false)
+const isFullscreen = ref(false)
 
 const toggleProfile = () => {
   profileOpen.value = !profileOpen.value
@@ -22,6 +23,44 @@ const handleThemeToggle = () => {
   themeStore.toggleTheme()
   console.log('[Navbar] 🎨 New theme:', themeStore.isDark ? 'dark' : 'light')
 }
+
+// Fullscreen toggle functionality
+const toggleFullscreen = async () => {
+  try {
+    if (!document.fullscreenElement) {
+      // Enter fullscreen
+      await document.documentElement.requestFullscreen()
+      isFullscreen.value = true
+      console.log('🖥️ Entered fullscreen mode')
+    } else {
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        await document.exitFullscreen()
+        isFullscreen.value = false
+        console.log('🖥️ Exited fullscreen mode')
+      }
+    }
+  } catch (error) {
+    console.error('❌ Fullscreen toggle error:', error)
+  }
+}
+
+// Listen for fullscreen changes (e.g., when user presses ESC)
+const handleFullscreenChange = () => {
+  isFullscreen.value = !!document.fullscreenElement
+}
+
+// Add event listener when component mounts
+if (typeof document !== 'undefined') {
+  document.addEventListener('fullscreenchange', handleFullscreenChange)
+}
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (typeof document !== 'undefined') {
+    document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  }
+})
 
 const logout = async () => {
   profileOpen.value = false
@@ -61,7 +100,6 @@ const handleHamburgerClick = () => {
       >
         <PanelLeft class="w-5 h-5 text-slate-600 dark:text-slate-300" :stroke-width="2" />
       </button>
-
       <!-- Page Title -->
       <div class="min-w-0">
         <h1 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-800 dark:text-slate-100 truncate">
@@ -71,7 +109,6 @@ const handleHamburgerClick = () => {
         <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 hidden sm:block">Hotel Management System</p>
       </div>
     </div>
-
     <!-- Right -->
     <div class="flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
       <!-- Search -->
@@ -91,6 +128,22 @@ const handleHamburgerClick = () => {
 
       <!-- Notifications -->
       <NotificationCenter />
+
+      <!-- Fullscreen Toggle Button -->
+      <button
+        @click="toggleFullscreen"
+        class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg border border-slate-200 transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 flex-shrink-0"
+        :title="isFullscreen ? 'Exit fullscreen (ESC)' : 'Enter fullscreen'"
+      >
+        <Maximize
+          v-if="!isFullscreen"
+          class="w-5 h-5 sm:w-6 sm:h-6 text-slate-600 dark:text-slate-400 transition-transform duration-300"
+        />
+        <Minimize
+          v-else
+          class="w-5 h-5 sm:w-6 sm:h-6 text-slate-600 dark:text-slate-400 transition-transform duration-300"
+        />
+      </button>
 
       <!-- Theme Toggle Button -->
       <button

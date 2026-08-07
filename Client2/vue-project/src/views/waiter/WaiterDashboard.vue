@@ -1,11 +1,11 @@
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
+    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-4 md:py-6">
       <div class="max-w-7xl mx-auto">
         <!-- Header -->
-        <div class="mb-8">
-          <h1 class="text-4xl font-bold text-slate-900">Waiter Dashboard</h1>
-          <p class="text-slate-600 mt-2">Welcome back! Here's your delivery overview</p>
+        <div class="mb-4 md:mb-6">
+          <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900">Waiter Dashboard</h1>
+          <p class="text-sm md:text-base text-slate-600 mt-1 md:mt-2">Welcome back! Here's your delivery overview</p>
         </div>
         <!-- Loading State -->
         <div v-if="loading" class="flex items-center justify-center py-16">
@@ -31,53 +31,53 @@
         </div>
 
         <!-- Dashboard Content -->
-        <div v-else class="space-y-6">
+        <div v-else class="space-y-4 md:space-y-6">
           <!-- Stats Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             <!-- Today's Deliveries -->
-            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500">
-              <p class="text-slate-600 text-sm font-medium">Today's Deliveries</p>
-              <p class="text-3xl font-bold text-slate-900 mt-2">{{ stats.todayDeliveries || 0 }}</p>
+            <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 border-l-4 border-blue-500">
+              <p class="text-slate-600 text-xs md:text-sm font-medium">Today's Deliveries</p>
+              <p class="text-2xl md:text-3xl font-bold text-slate-900 mt-2">{{ stats.todayDeliveries || 0 }}</p>
               <p class="text-xs text-slate-500 mt-2">Completed today</p>
             </div>
 
             <!-- Pending Deliveries -->
-            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-500">
-              <p class="text-slate-600 text-sm font-medium">Pending</p>
-              <p class="text-3xl font-bold text-slate-900 mt-2">{{ stats.pendingDeliveries || 0 }}</p>
+            <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 border-l-4 border-amber-500">
+              <p class="text-slate-600 text-xs md:text-sm font-medium">Pending</p>
+              <p class="text-2xl md:text-3xl font-bold text-slate-900 mt-2">{{ stats.pendingDeliveries || 0 }}</p>
               <p class="text-xs text-slate-500 mt-2">Awaiting pickup</p>
             </div>
 
             <!-- On Delivery -->
-            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500">
-              <p class="text-slate-600 text-sm font-medium">On Delivery</p>
-              <p class="text-3xl font-bold text-slate-900 mt-2">{{ stats.onDelivery || 0 }}</p>
+            <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 border-l-4 border-green-500">
+              <p class="text-slate-600 text-xs md:text-sm font-medium">On Delivery</p>
+              <p class="text-2xl md:text-3xl font-bold text-slate-900 mt-2">{{ stats.onDelivery || 0 }}</p>
               <p class="text-xs text-slate-500 mt-2">Currently delivering</p>
             </div>
 
             <!-- Avg Delivery Time -->
-            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
-              <p class="text-slate-600 text-sm font-medium">Avg. Delivery Time</p>
-              <p class="text-3xl font-bold text-slate-900 mt-2">{{ stats.avgDeliveryTime || '0' }} min</p>
+            <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 border-l-4 border-purple-500">
+              <p class="text-slate-600 text-xs md:text-sm font-medium">Avg. Delivery Time</p>
+              <p class="text-2xl md:text-3xl font-bold text-slate-900 mt-2">{{ stats.avgDeliveryTime || '0' }} min</p>
               <p class="text-xs text-slate-500 mt-2">Average time</p>
             </div>
           </div>
 
           <!-- Recent Assignments -->
-          <div class="bg-white rounded-lg shadow-sm p-6">
-            <h2 class="text-lg font-bold text-slate-900 mb-4">Recent Assignments</h2>
-            <div v-if="recentAssignments.length === 0" class="text-center py-8">
-              <p class="text-slate-600">No assignments yet</p>
+          <div class="bg-white rounded-lg shadow-sm p-4 md:p-6">
+            <h2 class="text-base md:text-lg font-bold text-slate-900 mb-3 md:mb-4">Recent Assignments</h2>
+            <div v-if="recentAssignments.length === 0" class="text-center py-6 md:py-8">
+              <p class="text-sm md:text-base text-slate-600">No assignments yet</p>
             </div>
-            <div v-else class="space-y-3">
-              <div v-for="assignment in recentAssignments" :key="assignment.id" class="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                <div>
-                  <p class="font-medium text-slate-900">Order #{{ assignment.order_number || assignment.order_id }}</p>
-                  <p class="text-sm text-slate-600">Room: {{ assignment.room_number || 'N/A' }}</p>
-                  <p class="text-sm text-slate-600">{{ assignment.status }}</p>
+            <div v-else class="space-y-2 md:space-y-3">
+              <div v-for="assignment in recentAssignments" :key="assignment.id" class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 md:p-4 bg-slate-50 rounded-lg gap-2 sm:gap-3">
+                <div class="flex-1 min-w-0 w-full sm:w-auto">
+                  <p class="font-medium text-slate-900 text-sm md:text-base truncate">Order #{{ assignment.order_number || assignment.order_id }}</p>
+                  <p class="text-xs md:text-sm text-slate-600">Room: {{ assignment.room_number || 'N/A' }}</p>
+                  <p class="text-xs md:text-sm text-slate-600">{{ assignment.status }}</p>
                 </div>
                 <span :class="[
-                  'px-3 py-1 rounded-full text-xs font-semibold',
+                  'px-2 md:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap',
                   assignment.status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
                 ]">
                   {{ assignment.status }}

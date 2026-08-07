@@ -101,7 +101,7 @@ const refreshDashboard = () => {
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6">
+    <div class="space-y-6 py-4 md:py-6">
       <!-- Header -->
       <div class="flex justify-between items-center">
         <div>

@@ -48,18 +48,15 @@ const closeMobileSidebar = () => {
     >
       <Sidebar @navigate="closeMobileSidebar" />
     </div>
-
-    <!-- ============ MAIN CONTENT AREA ============ -->
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-      <!-- ===== NAVBAR ===== -->
       <Navbar />
 
       <!-- ===== MAIN CONTENT ===== -->
-      <main class="flex-1 overflow-y-scroll p-4 md:p-6 lg:p-8 bg-white dark:bg-slate-950 transition-colors duration-300">
+      <main class="flex-1 overflow-y-scroll bg-white dark:bg-slate-950 transition-colors duration-300">
         <!-- Content Container -->
-        <div class="max-w-7xl mx-auto">
+        <div class="max-w-7xl mx-auto px-4 md:px-6">
           <!-- Page Header (Optional) -->
-          <div class="mb-6">
+          <div>
             <slot name="header"></slot>
           </div>
 
@@ -69,29 +66,29 @@ const closeMobileSidebar = () => {
       </main>
 
       <!-- ===== FOOTER ===== -->
-      <footer class="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 backdrop-blur-sm px-6 py-3 transition-colors flex-shrink-0">
+      <footer class="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 backdrop-blur-sm px-4 md:px-6 py-3 transition-colors flex-shrink-0">
         <div
           class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400"
         >
-          <div class="flex items-center gap-4">
-            <span>&copy; 2024 Hotel Management System</span>
+          <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+            <span class="whitespace-nowrap">&copy; 2024 Hotel Management System</span>
             <span class="hidden sm:inline text-slate-300 dark:text-slate-600">•</span>
-            <span class="flex items-center gap-1">
+            <span class="flex items-center justify-center gap-1">
               <span class="relative flex h-2 w-2">
                 <span
                   class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 dark:bg-emerald-500 opacity-75"
                 ></span>
                 <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 dark:bg-emerald-400"></span>
               </span>
-              All systems operational
+              <span class="whitespace-nowrap">All systems operational</span>
             </span>
           </div>
-          <div class="flex items-center gap-4">
-            <a href="#" class="hover:text-slate-700 dark:hover:text-slate-200 hover:underline transition-colors">Privacy</a>
-            <a href="#" class="hover:text-slate-700 dark:hover:text-slate-200 hover:underline transition-colors">Terms</a>
-            <a href="#" class="hover:text-slate-slate-700 dark:hover:text-slate-200 hover:underline transition-colors">Support</a>
-            <span class="text-slate-300 dark:text-slate-600">|</span>
-            <span class="text-slate-400 dark:text-slate-500">v2.0.0</span>
+          <div class="flex items-center gap-3 md:gap-4">
+            <a href="#" class="hover:text-slate-700 dark:hover:text-slate-200 hover:underline transition-colors whitespace-nowrap">Privacy</a>
+            <a href="#" class="hover:text-slate-700 dark:hover:text-slate-200 hover:underline transition-colors whitespace-nowrap">Terms</a>
+            <a href="#" class="hover:text-slate-700 dark:hover:text-slate-200 hover:underline transition-colors whitespace-nowrap hidden sm:inline">Support</a>
+            <span class="text-slate-300 dark:text-slate-600 hidden sm:inline">|</span>
+            <span class="text-slate-400 dark:text-slate-500 whitespace-nowrap">v2.0.0</span>
           </div>
         </div>
       </footer>
