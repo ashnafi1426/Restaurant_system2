@@ -490,6 +490,15 @@ const router = createRouter({
       },
     },
     {
+      path: '/restaurant-order/:qrToken',
+      name: 'restaurant-qr-order',
+      component: QRMenu,
+      meta: {
+        title: 'Restaurant Menu',
+        requiresAuth: false,
+      },
+    },
+    {
       path: '/menu',
       name: 'guest-qr-menu',
       component: QRMenu,
@@ -564,6 +573,9 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
+  // NO automatic loader on navigation
+  // Loader only shows on initial app load (handled in main.ts)
+  
   const token = localStorage.getItem('token')
   const user = JSON.parse(localStorage.getItem('user') || 'null')
 

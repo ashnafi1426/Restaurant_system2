@@ -118,173 +118,174 @@ function handleBookingSubmit(bookingData: any) {
 </script>
 
 <template>
-  <div class="w-full">
-    <!-- Section Header -->
-    <div class="mb-6 md:mb-8 lg:mb-10">
+  <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
+    <!-- Section Header - Elegant Style -->
+    <div class="mb-8 md:mb-10 lg:mb-12 text-center">
       <h2
-        class="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-slate-900 leading-tight"
+        class="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 leading-tight mb-2"
       >
         Available Rooms
       </h2>
-      <p class="mt-2 text-slate-600 text-xs md:text-sm lg:text-base">
-        {{ rooms.length }} rooms available
+      <p class="text-slate-600 text-sm md:text-base font-light">
+        {{ rooms.length }} rooms available for your perfect stay
       </p>
     </div>
 
-    <!-- Mobile-First Responsive Grid Layout -->
+    <!-- Mobile-First Responsive Grid Layout with Proper Spacing -->
     <!-- Mobile: 1 column, Tablet: 2 columns, Desktop: 3 columns -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
       <div
         v-for="room in rooms"
         :key="room.id"
-        class="bg-white rounded-lg md:rounded-xl lg:rounded-2xl overflow-hidden shadow-sm md:shadow-md hover:shadow-lg md:hover:shadow-xl transition-all duration-300 hover:scale-105"
+        class="bg-gradient-to-br from-white to-slate-50 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.01] border border-slate-200 h-[520px] md:h-[540px] flex flex-col"
       >
-        <!-- Image Container - Properly Sized for Mobile -->
-        <div class="relative w-full bg-slate-200 aspect-video md:aspect-square">
+        <!-- Image Container - Larger Fixed Height -->
+        <div class="relative w-full bg-slate-200 h-[240px] md:h-[260px] flex-shrink-0">
           <img
             :src="getRoomImage(room)"
             :alt="getRoomTypeName(room)"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            class="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
             loading="lazy"
           />
 
-          <!-- Best Rate Badge - Mobile Optimized -->
-          <div
-            class="absolute top-1.5 md:top-2 lg:top-3 right-1.5 md:right-2 lg:right-3 bg-slate-800/90 text-white px-1.5 md:px-2.5 lg:px-3 py-0.5 md:py-1 lg:py-1.5 rounded-full text-xs md:text-xs lg:text-sm font-semibold flex items-center gap-0.5 md:gap-1 shadow-md"
-          >
-            <span class="inline-block w-1 md:w-1.5 h-1 md:h-1.5 bg-yellow-400 rounded-full"></span>
-            <span class="hidden sm:inline">BEST RATE</span>
-            <span class="sm:hidden">RATE</span>
-          </div>
+          <!-- Dark Gradient Overlay -->
+          <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"></div>
 
-          <!-- Price Badge - Mobile Optimized -->
+          <!-- Price Badge - Bottom Left, Larger -->
           <div
-            class="absolute bottom-1.5 md:bottom-2 lg:bottom-3 left-1.5 md:left-2 lg:left-3 bg-white/95 text-slate-900 px-1.5 md:px-2.5 lg:px-3 py-1 md:py-1.5 lg:py-2 rounded-md md:rounded-lg lg:rounded-lg font-bold text-xs md:text-xs lg:text-sm shadow-md"
+            class="absolute bottom-4 left-4 bg-white/95 backdrop-blur-md text-slate-900 px-3 py-2 rounded-xl shadow-2xl border border-white/50"
           >
-            <div class="text-xs text-slate-600 font-semibold leading-none">RATE</div>
-            <div class="text-red-600 text-xs md:text-sm lg:text-base leading-tight">
-              ETB {{ getRoomPrice(room) }}
+            <div class="text-[10px] text-red-600 font-semibold uppercase tracking-wide leading-none mb-1">NIGHTLY RATE</div>
+            <div class="flex items-baseline gap-1">
+              <span class="text-red-600 text-xl md:text-2xl font-bold leading-none">ETB {{ getRoomPrice(room) }}</span>
+              <span class="text-[10px] text-slate-500 font-normal">/Night</span>
             </div>
           </div>
         </div>
 
-        <!-- Room Info Section - Compact for Mobile -->
-        <div class="p-2.5 md:p-3 lg:p-4 space-y-2 md:space-y-2.5 lg:space-y-3">
-          <!-- Room Type Title - Properly Sized -->
+        <!-- Room Info Section - More Spacious -->
+        <div class="p-5 md:p-6 space-y-3 flex flex-col flex-grow bg-white">
+          <!-- Room Type Title -->
           <h3
-            class="text-base md:text-lg lg:text-xl font-bold text-red-900 leading-snug line-clamp-2"
+            class="text-lg md:text-xl font-bold text-red-800 leading-tight"
           >
             {{ getRoomTypeName(room) }}
           </h3>
 
-          <!-- Room Specs - Mobile Readable -->
-          <div class="text-xs md:text-xs lg:text-sm text-slate-700 font-medium leading-snug">
-            <span>30 M²</span>
-            <span class="text-slate-400 mx-1">·</span>
-            <span
-              >{{ getRoomCapacity(room) }} GUEST{{ getRoomCapacity(room) !== 1 ? 'S' : '' }}</span
-            >
+          <!-- Room Specs -->
+          <div class="flex items-center gap-3 text-xs md:text-sm text-slate-600 font-medium">
+            <span class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+              </svg>
+              30 M²
+            </span>
+            <span class="text-slate-300">|</span>
+            <span class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              MAX {{ getRoomCapacity(room) }} GUESTS
+            </span>
           </div>
 
-          <!-- Room Description - Truncated on Mobile -->
-          <p
-            v-if="getRoomDescription(room)"
-            class="text-xs md:text-xs lg:text-sm text-slate-600 leading-snug line-clamp-2"
-          >
-            {{ getRoomDescription(room) }}
-          </p>
-
-          <!-- Default Amenities - Compact Display -->
-          <div
-            v-if="!getRoomDescription(room)"
-            class="text-xs md:text-xs lg:text-sm text-slate-700 space-y-0.5 md:space-y-1"
-          >
-            <div class="flex items-center gap-1">
-              <span class="text-yellow-500">✓</span>
-              <span class="truncate">Comfort & Privacy</span>
+          <!-- Amenities List - Clean Design -->
+          <div class="space-y-2 flex-grow">
+            <div class="flex items-start gap-2 text-xs md:text-sm text-slate-700">
+              <span class="text-green-600 mt-0.5">✓</span>
+              <span>Comfort and Privacy</span>
             </div>
-            <div class="flex items-center gap-1">
-              <span class="text-yellow-500">✓</span>
-              <span class="truncate">Free WiFi</span>
+            <div class="flex items-start gap-2 text-xs md:text-sm text-slate-700">
+              <span class="text-green-600 mt-0.5">✓</span>
+              <span>Complimentary Breakfast Served Daily</span>
             </div>
-          </div>
-
-          <!-- Amenities List - Truncated -->
-          <div
-            v-else-if="getRoomAmenities(room).length"
-            class="text-xs md:text-xs lg:text-sm text-slate-700 space-y-0.5"
-          >
-            <div
-              v-for="(amenity, idx) in getRoomAmenities(room).slice(0, 2)"
-              :key="idx"
-              class="flex items-center gap-1"
-            >
-              <span class="text-yellow-500">✓</span>
-              <span class="truncate">{{ amenity }}</span>
+            <div class="flex items-start gap-2 text-xs md:text-sm text-slate-700">
+              <span class="text-green-600 mt-0.5">✓</span>
+              <span>Free dual-band high-speed Wi-Fi</span>
+            </div>
+            <div class="flex items-start gap-2 text-xs md:text-sm text-slate-700">
+              <span class="text-green-600 mt-0.5">✓</span>
+              <span>Fully Air-Conditioned Suite</span>
+            </div>
+            <div v-if="getRoomAmenities(room).length > 4" class="flex items-start gap-2 text-xs md:text-sm text-amber-600 font-medium">
+              <span>+{{ getRoomAmenities(room).length - 4 }} More</span>
             </div>
           </div>
 
-          <!-- Action Buttons - Full Width on Mobile -->
-          <div class="flex flex-col md:flex-row gap-1.5 md:gap-2 pt-2 md:pt-2.5 lg:pt-3">
+          <!-- Action Buttons - Bottom, Professional Style -->
+          <div class="flex gap-3 pt-3 mt-auto border-t border-slate-100">
             <button
               @click="selectRoom(room)"
-              class="flex-1 px-2 md:px-3 lg:px-4 py-1.5 md:py-1.5 lg:py-2 border-2 border-red-600 text-red-600 font-semibold rounded-md md:rounded-lg lg:rounded-lg hover:bg-red-50 transition-all text-xs md:text-xs lg:text-sm leading-tight"
+              class="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-red-600 text-red-600 font-semibold rounded-xl hover:bg-red-50 transition-all text-xs md:text-sm"
             >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
               SPECS
             </button>
             <button
               @click="openBookingModal(room)"
-              class="flex-1 px-2 md:px-3 lg:px-4 py-1.5 md:py-1.5 lg:py-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-md md:rounded-lg lg:rounded-lg transition-all text-xs md:text-xs lg:text-sm text-center leading-tight"
+              class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white font-semibold rounded-xl transition-all text-xs md:text-sm shadow-lg"
             >
-              BOOK
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              BOOK ROOM
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Details Modal -->
+    <!-- Details Modal - Professional Style -->
     <div
       v-if="showDetails && selectedRoom"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 md:p-4 z-50"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 z-50"
     >
       <div
-        class="bg-white rounded-lg md:rounded-xl w-full max-w-sm md:max-w-md lg:max-w-xl p-4 md:p-6 lg:p-8 max-h-[90vh] overflow-y-auto"
+        class="bg-white rounded-3xl w-full max-w-md md:max-w-lg lg:max-w-2xl p-6 md:p-8 max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200"
       >
         <button
           @click="showDetails = false"
-          class="float-right text-xl md:text-2xl text-slate-500 hover:text-slate-700 font-bold leading-none"
+          class="float-right w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-red-500 font-bold text-xl leading-none transition-all"
         >
           ×
         </button>
 
-        <h2 class="text-lg md:text-xl lg:text-2xl font-bold text-red-900 mb-3 md:mb-4 pr-6">
+        <h2 class="text-xl md:text-2xl lg:text-3xl font-bold text-red-800 mb-4 pr-10">
           {{ getRoomTypeName(selectedRoom) }}
         </h2>
 
-        <p class="text-slate-600 mb-3 md:mb-4 text-sm md:text-base leading-relaxed">
-          {{ getRoomDescription(selectedRoom) || 'Premium room with all amenities' }}
+        <p class="text-slate-600 mb-5 text-sm md:text-base leading-relaxed">
+          {{ getRoomDescription(selectedRoom) || 'Premium room with all modern amenities for your comfort and convenience' }}
         </p>
 
-        <div class="mb-4 md:mb-6 space-y-2 text-sm md:text-base">
-          <p class="text-slate-700">
-            <strong>Capacity:</strong> {{ getRoomCapacity(selectedRoom) }} guests
-          </p>
-          <p class="text-slate-700">
-            <strong>Price:</strong> ETB {{ getRoomPrice(selectedRoom) }}/night
-          </p>
+        <div class="mb-6 space-y-3 text-sm md:text-base bg-slate-50 p-4 rounded-xl">
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <span class="text-slate-700"><strong class="font-semibold text-slate-900">Capacity:</strong> {{ getRoomCapacity(selectedRoom) }} guests</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span class="text-slate-700"><strong class="font-semibold text-slate-900">Price:</strong> ETB {{ getRoomPrice(selectedRoom) }} per night</span>
+          </div>
         </div>
 
-        <div class="flex flex-col md:flex-row gap-2 md:gap-3">
+        <div class="flex flex-col md:flex-row gap-3">
           <button
             @click="showDetails = false"
-            class="flex-1 px-3 md:px-4 py-2 md:py-3 bg-slate-200 hover:bg-slate-300 text-slate-900 font-semibold rounded-lg transition text-sm md:text-base"
+            class="flex-1 px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold rounded-xl transition text-sm md:text-base"
           >
             Close
           </button>
           <button
             @click="openBookingModal(selectedRoom)"
-            class="flex-1 px-3 md:px-4 py-2 md:py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-lg transition text-sm md:text-base"
+            class="flex-1 px-5 py-3 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white font-semibold rounded-xl transition text-sm md:text-base shadow-lg"
           >
             Book Now
           </button>

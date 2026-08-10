@@ -32,15 +32,6 @@ function goToReservation() {
       class="relative z-10 mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 py-12 sm:py-0"
     >
       <div class="max-w-3xl w-full">
-        <!-- Badge -->
-        <div
-          class="mb-4 sm:mb-6 inline-flex items-center rounded-full border border-amber-400/40 bg-amber-500/10 px-3 sm:px-5 py-2 backdrop-blur-sm"
-        >
-          <span class="text-xs sm:text-sm font-semibold uppercase tracking-[0.3em] text-amber-300">
-            Hotel Gallery
-          </span>
-        </div>
-
         <!-- Heading -->
         <h1
           class="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold leading-tight text-white"

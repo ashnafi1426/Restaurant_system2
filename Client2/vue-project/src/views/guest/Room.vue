@@ -149,7 +149,7 @@ watch([search, selectedType, selectedCapacity], () => {
       </section>
 
       <!-- Rooms -->
-      <section v-else id="rooms-section" class="mx-auto mt-10 max-w-7xl px-6">
+      <section v-else id="rooms-section" class="mx-auto mt-8 max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
         <RoomGrid v-if="paginatedRooms.length" :rooms="paginatedRooms" />
         <NoRoomsFound v-else @clear-filters="clearFilters" />
       </section>
@@ -157,13 +157,13 @@ watch([search, selectedType, selectedCapacity], () => {
       <!-- Pagination -->
       <section
         v-if="paginatedRooms.length && pagination.last_page > 1"
-        class="mx-auto mt-16 max-w-7xl px-6"
+        class="mx-auto mt-10 max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8"
       >
         <RoomPagination :meta="pagination" @change-page="loadPage" />
       </section>
 
       <!-- CTA -->
-      <section class="mx-auto mt-20 mb-20 max-w-7xl px-6">
+      <section class="mx-auto mt-16 mb-16 max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
         <RoomCTA />
       </section>
     </div>

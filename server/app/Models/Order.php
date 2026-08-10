@@ -17,6 +17,8 @@ class Order extends Model
         'reservation_id',
         'guest_id',
         'room_id',
+        'table_id',
+        'order_type',
         'order_time',
         'status',
         'notes',
@@ -51,6 +53,15 @@ class Order extends Model
     public const STATUS_SERVED = 'served';
     public const STATUS_CANCELLED = 'cancelled';
 
+    /*
+    |--------------------------------------------------------------------------
+    | Order Type Constants
+    |--------------------------------------------------------------------------
+    */
+
+    public const TYPE_ROOM_SERVICE = 'room_service';
+    public const TYPE_WALK_IN = 'walk_in';
+
     /**
      * Generate unique order number
      */
@@ -74,6 +85,11 @@ class Order extends Model
     public function room()
     {
         return $this->belongsTo(Room::class);
+    }
+
+    public function table()
+    {
+        return $this->belongsTo(RestaurantTable::class, 'table_id');
     }
 
     public function orderItems()
@@ -110,6 +126,22 @@ class Order extends Model
     public function isCancelled(): bool
     {
         return $this->status === self::STATUS_CANCELLED;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Order Type Helper Methods
+    |--------------------------------------------------------------------------
+    */
+
+    public function isRoomService(): bool
+    {
+        return $this->order_type === self::TYPE_ROOM_SERVICE;
+    }
+
+    public function isWalkIn(): bool
+    {
+        return $this->order_type === self::TYPE_WALK_IN;
     }
 
     /*

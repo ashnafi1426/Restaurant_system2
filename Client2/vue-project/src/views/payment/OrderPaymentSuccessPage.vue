@@ -96,11 +96,13 @@
                   </span>
                 </div>
 
-                <!-- Room -->
+                <!-- Room or Table -->
                 <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                  <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Room Number</p>
+                  <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">
+                    {{ orderData?.is_walk_in ? 'Table Number' : 'Room Number' }}
+                  </p>
                   <p class="text-slate-900 font-medium text-base">
-                    {{ orderData.room_number || roomNumber }}
+                    {{ orderData?.is_walk_in ? orderData.table_number : orderData.room_number }}
                   </p>
                 </div>
 
@@ -243,8 +245,15 @@
                   3
                 </div>
                 <div>
-                  <p class="font-semibold text-slate-900">Delivery to Your Room</p>
-                  <p class="text-slate-600 text-sm">Your order will be delivered directly to Room {{ roomNumber }} within 30 minutes</p>
+                  <p class="font-semibold text-slate-900">
+                    {{ orderData?.is_walk_in ? 'Enjoy at Your Table' : 'Delivery to Your Room' }}
+                  </p>
+                  <p class="text-slate-600 text-sm">
+                    {{ orderData?.is_walk_in 
+                      ? `Your order will be ready at ${orderData.table_number} within 30 minutes`
+                      : `Your order will be delivered directly to Room ${roomNumber} within 30 minutes`
+                    }}
+                  </p>
                 </div>
               </div>
             </div>
@@ -366,36 +375,65 @@ onMounted(async () => {
 
   // Try to get order data from storage FIRST
   console.log('📦 [ORDER PAYMENT SUCCESS] Reading from sessionStorage...')
-  const storedData = sessionStorage.getItem('order_payment_data')
-  if (storedData) {
+  
+  // Check for walk-in payment data first
+  const walkInData = sessionStorage.getItem('walk_in_payment_data')
+  const isWalkInOrder = !!walkInData
+  
+  if (walkInData) {
     try {
-      const data = JSON.parse(storedData)
-      orderData.value = data
-      roomNumber.value = data.room_number || 'N/A'
+      const data = JSON.parse(walkInData)
+      orderData.value = {
+        ...data,
+        is_walk_in: true,
+        room_number: null, // Walk-in orders don't have room
+      }
+      console.log('✅ [WALK-IN] Got walk-in payment data from sessionStorage:', orderData.value)
       
-      // IMPORTANT: If tx_ref not in URL, try to get it from stored data
+      // If tx_ref not in URL, get it from stored data
       if (!txRef.value && data.tx_ref) {
         txRef.value = data.tx_ref
-        console.log('📋 [ORDER PAYMENT SUCCESS] TX Ref from sessionStorage:', txRef.value)
+        console.log('📋 [WALK-IN] TX Ref from sessionStorage:', txRef.value)
       }
-      
-      console.log('✅ [ORDER PAYMENT SUCCESS] Got data from sessionStorage:', orderData.value)
     } catch (error) {
-      console.error('❌ [ORDER PAYMENT SUCCESS] Failed to parse stored data:', error)
+      console.error('❌ [WALK-IN] Failed to parse walk-in data:', error)
+    }
+  } else {
+    // Check for room service order data
+    const roomServiceData = sessionStorage.getItem('order_payment_data')
+    if (roomServiceData) {
+      try {
+        const data = JSON.parse(roomServiceData)
+        orderData.value = {
+          ...data,
+          is_walk_in: false,
+        }
+        roomNumber.value = data.room_number || 'N/A'
+        console.log('✅ [ROOM SERVICE] Got room service payment data from sessionStorage:', orderData.value)
+        
+        // If tx_ref not in URL, get it from stored data
+        if (!txRef.value && data.tx_ref) {
+          txRef.value = data.tx_ref
+          console.log('📋 [ROOM SERVICE] TX Ref from sessionStorage:', txRef.value)
+        }
+      } catch (error) {
+        console.error('❌ [ROOM SERVICE] Failed to parse room service data:', error)
+      }
     }
   }
 
   // ============================================================================
   // 🔥 CRITICAL: VERIFY PAYMENT AND COMPLETE ORDER IN DATABASE
   // ============================================================================
-  // The payment must be verified first, then the order is completed on the backend
-  // so it becomes visible to the chef.
+  console.log('🔍 [ORDER TYPE] Is walk-in order?', isWalkInOrder)
+  
   if (txRef.value) {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     console.log('🔥 [CRITICAL] VERIFYING PAYMENT AND COMPLETING ORDER...')
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
     
     try {
+      // Step 1: Verify payment
       const verifyResponse = await fetch(
         `http://127.0.0.1:8000/api/payments/verify/${txRef.value}`,
         {
@@ -413,15 +451,22 @@ onMounted(async () => {
       if (verifyResponse.ok && verifyData.success) {
         console.log('✅ [ORDER PAYMENT SUCCESS] Payment verified, now completing order...')
 
-        const completeResponse = await fetch(
-          `http://127.0.0.1:8000/api/order-payments/complete/${txRef.value}`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
-        )
+        // Step 2: Complete order based on order type
+        let completeEndpoint = ''
+        if (isWalkInOrder) {
+          completeEndpoint = `http://127.0.0.1:8000/api/walk-in-payments/complete/${txRef.value}`
+          console.log('🍽️ [WALK-IN] Using walk-in order completion endpoint')
+        } else {
+          completeEndpoint = `http://127.0.0.1:8000/api/order-payments/complete/${txRef.value}`
+          console.log('🏨 [ROOM SERVICE] Using room service order completion endpoint')
+        }
+
+        const completeResponse = await fetch(completeEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
 
         const completeData = await completeResponse.json()
         console.log('📡 [ORDER COMPLETE] Response received:', completeData)
@@ -429,14 +474,37 @@ onMounted(async () => {
         if (completeResponse.ok && completeData.success) {
           console.log('✅✅✅ [ORDER CREATED] Order created in database and sent to chef!')
           console.log('📦 [ORDER CREATED] Payment data:', completeData.payment)
+          
           if (completeData.order) {
-            orderData.value = {
-              ...orderData.value,
-              order_number: completeData.order.order_number,
-              room_number: completeData.order.room_number,
-              estimated_time: completeData.order.estimated_time || 30,
-              items: completeData.order.items || orderData.value?.items || [],
-              calculation: orderData.value?.calculation,
+            // Update order data based on order type
+            if (isWalkInOrder) {
+              const walkInPaymentData = JSON.parse(walkInData)
+              orderData.value = {
+                ...orderData.value,
+                order_number: completeData.order.order_number,
+                table_number: walkInPaymentData.table_number,
+                room_number: null, // Walk-in orders don't have room
+                estimated_time: completeData.order.estimated_time || 30,
+                items: walkInPaymentData.items || orderData.value?.items || [],
+                calculation: walkInPaymentData.calculation || orderData.value?.calculation,
+                is_walk_in: true,
+              }
+              console.log('🍽️ [WALK-IN] Order data updated for table:', walkInPaymentData.table_number)
+            } else {
+              orderData.value = {
+                ...orderData.value,
+                order_number: completeData.order.order_number,
+                room_number: completeData.order.room?.room_number || orderData.value?.room_number,
+                estimated_time: completeData.order.estimated_time || 30,
+                items: completeData.order.order_items?.map((item: any) => ({
+                  name: item.menu_item?.name || 'Unknown',
+                  quantity: item.quantity,
+                  total: item.line_total,
+                })) || orderData.value?.items || [],
+                calculation: orderData.value?.calculation,
+                is_walk_in: false,
+              }
+              console.log('🏨 [ROOM SERVICE] Order data updated for room:', orderData.value.room_number)
             }
           }
         } else {
@@ -445,7 +513,6 @@ onMounted(async () => {
         }
       } else {
         console.error('❌ [VERIFY FAILED] Payment verification failed:', verifyData.message)
-        // Still show success page but log the error
         console.warn('⚠️ Order may not have been created in database')
       }
     } catch (error) {
@@ -621,6 +688,7 @@ function goToMenu(): void {
  */
 function goHome(): void {
   sessionStorage.removeItem('order_payment_data')
+  sessionStorage.removeItem('walk_in_payment_data') // Clear walk-in data
   router.push('/')
 }
 </script>

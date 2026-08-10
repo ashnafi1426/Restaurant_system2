@@ -138,6 +138,7 @@ const menus = computed(() => {
       return [
         { name: 'Dashboard', path: '/manager', icon: 'Dashboard'},
         { name: 'Waiter Management', path: '/manager/waiters', icon: 'Users2',},
+        { name: 'Restaurant Tables', path: '/manager/restaurant-tables', icon: 'Restaurant'},
         { name: 'Assign Floors', path: '/manager/floor-assignment', icon: 'Hotel'},
         { name: 'Daily Operations', path: '/manager/operations', icon: 'Operations'},
         { name: 'Room Service', path: '/manager/delivery-management', icon: 'Truck'},

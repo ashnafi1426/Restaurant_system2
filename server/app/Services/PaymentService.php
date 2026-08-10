@@ -193,6 +193,7 @@ class PaymentService
                     'number_of_guests'  => $reservationData['number_of_guests'],
                     'status'            => 'pending',
                     'special_requests'  => $reservationData['special_requests'] ?? null,
+                    'total_amount'      => $payment->amount, // ← ADD PAYMENT AMOUNT
                     'created_by'        => auth()->id() ?? null,
                 ]);
 
@@ -204,6 +205,7 @@ class PaymentService
                     'payment_id'     => $payment->id,
                     'reservation_id' => $reservation->id,
                     'guest_id'       => $reservationData['guest_id'],
+                    'total_amount'   => $payment->amount, // ← LOG AMOUNT
                 ]);
 
                 return $reservation;

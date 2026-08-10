@@ -17,6 +17,7 @@ class User extends Authenticatable
         'phone',
         'password_hash',
         'role',
+        'role_id',
         'is_active',
         'activation_token',
         'activation_token_expires_at',

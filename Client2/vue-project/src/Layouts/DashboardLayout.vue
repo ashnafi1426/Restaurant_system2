@@ -4,7 +4,6 @@ import Sidebar from '../components/dashboard/Sidebar.vue'
 import Navbar from '../components/dashboard/Navbar.vue'
 import { useThemeStore } from '../stores/theme'
 import { useSidebarStore } from '../stores/sidebarStore'
-
 const themeStore = useThemeStore()
 const sidebarStore = useSidebarStore()
 onMounted(() => {

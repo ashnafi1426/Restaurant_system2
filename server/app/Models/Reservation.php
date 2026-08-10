@@ -26,6 +26,7 @@ class Reservation extends Model
         'check_in_date',
         'check_out_date',
         'number_of_guests',
+        'total_amount', // ← ADD THIS
         'status',
         'special_requests',
         'cancelled_at',
@@ -38,6 +39,7 @@ class Reservation extends Model
     protected $casts = [
         'check_in_date'  => 'date',
         'check_out_date' => 'date',
+        'total_amount'   => 'decimal:2', // ← ADD THIS
         'cancelled_at'   => 'datetime',
         'created_at'     => 'datetime',
         'updated_at'     => 'datetime',
@@ -71,10 +73,26 @@ class Reservation extends Model
     public static function generateBookingReference(): string
     {
         $prefix = 'BK-' . now()->format('Ymd');
-
-        $count = static::whereDate('created_at', today())->count() + 1;
-
-        return sprintf('%s-%04d', $prefix, $count);
+        
+        // Start from 1 and keep incrementing until we find a unique reference
+        $counter = 1;
+        $maxAttempts = 9999; // Prevent infinite loop
+        
+        do {
+            $bookingReference = sprintf('%s-%04d', $prefix, $counter);
+            
+            // Check if this booking reference already exists
+            $exists = static::where('booking_reference', $bookingReference)->exists();
+            
+            if (!$exists) {
+                return $bookingReference;
+            }
+            
+            $counter++;
+        } while ($counter <= $maxAttempts);
+        
+        // If we somehow exhaust all numbers, use a UUID suffix as fallback
+        return $prefix . '-' . strtoupper(substr(uniqid(), -4));
     }
 
     /*

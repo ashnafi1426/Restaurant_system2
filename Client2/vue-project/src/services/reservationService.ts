@@ -32,7 +32,8 @@ export default {
   },
 
   async deleteReservation(id: string) {
-    const response = await api.delete(`/reservations/${id}`)
+    const response = await api.delete(`/admin-reservations/${id}`)
+    console.log(' [SERVICE] Delete response structure:', response)
     return response.data
   },
 

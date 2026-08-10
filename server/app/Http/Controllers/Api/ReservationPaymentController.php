@@ -15,7 +15,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
 /**
  * ============================================================================
  * ReservationPaymentController
@@ -384,11 +383,24 @@ class ReservationPaymentController extends Controller
     public function completeReservation(string $txRef): JsonResponse
     {
         try {
+            Log::info('🔄 [COMPLETE] Starting reservation completion', ['tx_ref' => $txRef]);
+            
             // Find payment
             $payment = Payment::where('tx_ref', $txRef)->firstOrFail();
 
+            Log::info('✅ [COMPLETE] Payment found', [
+                'payment_id' => $payment->id,
+                'is_verified' => $payment->isVerified(),
+                'amount' => $payment->amount,
+            ]);
+
             // Verify payment is verified
             if (!$payment->isVerified()) {
+                Log::warning('⚠️ [COMPLETE] Payment not verified', [
+                    'payment_id' => $payment->id,
+                    'status' => $payment->status,
+                ]);
+                
                 return response()->json([
                     'success' => false,
                     'message' => 'Payment has not been verified',
@@ -399,11 +411,24 @@ class ReservationPaymentController extends Controller
             $metadata = $payment->metadata;
 
             if (!$metadata || !isset($metadata['room_id'])) {
+                Log::error('❌ [COMPLETE] Invalid metadata', [
+                    'payment_id' => $payment->id,
+                    'has_metadata' => !is_null($metadata),
+                    'has_room_id' => isset($metadata['room_id']),
+                ]);
+                
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid payment metadata',
                 ], 400);
             }
+
+            Log::info('📋 [COMPLETE] Creating reservation with data', [
+                'guest_id' => $payment->guest_id,
+                'room_id' => $metadata['room_id'],
+                'check_in' => $metadata['check_in_date'],
+                'check_out' => $metadata['check_out_date'],
+            ]);
 
             // Create reservation
             $result = $this->paymentService->handleReservationPaymentSuccess(
@@ -419,39 +444,95 @@ class ReservationPaymentController extends Controller
             );
 
             if (!$result['success']) {
+                Log::error('❌ [COMPLETE] Reservation creation failed', [
+                    'message' => $result['message'],
+                ]);
+                
                 return response()->json([
                     'success' => false,
                     'message' => $result['message'],
                 ], 400);
             }
 
-            Log::info('Reservation Completed After Payment', [
-                'payment_id'     => $payment->id,
-                'reservation_id' => $result['reservation']->id,
+            $reservation = $result['reservation'];
+            
+            // Load relationships
+            $reservation->load(['guest', 'room']);
+            
+            Log::info('✅ [COMPLETE] Reservation Created Successfully', [
+                'payment_id'       => $payment->id,
+                'reservation_id'   => $reservation->id,
+                'booking_reference' => $reservation->booking_reference,
+                'total_amount'     => $reservation->total_amount,
+            ]);
+
+            // Build comprehensive reservation data for frontend
+            $reservationData = [
+                // Booking info
+                'id' => $reservation->id,
+                'booking_reference' => $reservation->booking_reference,
+                'status' => $reservation->status,
+                
+                // Dates
+                'check_in_date' => $reservation->check_in_date ? $reservation->check_in_date->toDateString() : null,
+                'check_out_date' => $reservation->check_out_date ? $reservation->check_out_date->toDateString() : null,
+                
+                // Guest info (for receipt) - Use payment data as source of truth
+                'first_name' => $payment->first_name,
+                'last_name' => $payment->last_name,
+                'email' => $payment->email,
+                'phone' => $payment->phone,
+                
+                // Room info
+                'room_id' => $reservation->room_id,
+                'room_number' => $reservation->room ? $reservation->room->room_number : 'TBD',
+                
+                // Booking details
+                'number_of_guests' => $reservation->number_of_guests,
+                'special_requests' => $reservation->special_requests,
+                
+                // Payment info - ⭐ CRITICAL for receipt
+                'total_amount' => (float) $reservation->total_amount, // ← THIS FIXES THE 0 ETB ISSUE!
+                'currency' => 'ETB',
+                
+                // Timestamps
+                'created_at' => $reservation->created_at?->toIso8601String(),
+                'updated_at' => $reservation->updated_at?->toIso8601String(),
+            ];
+
+            Log::info('📤 [COMPLETE] Response prepared with all fields', [
+                'booking_reference' => $reservationData['booking_reference'],
+                'total_amount' => $reservationData['total_amount'],
+                'has_guest_info' => isset($reservationData['first_name'], $reservationData['email']),
             ]);
 
             return response()->json([
                 'success'     => true,
                 'message'     => 'Reservation created successfully',
-                'reservation' => $result['reservation'],
-                'payment'     => new PaymentResource($payment),
+                'reservation' => $reservationData,
+                'payment'     => new PaymentResource($payment->fresh()),
             ]);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('❌ [COMPLETE] Payment not found', ['tx_ref' => $txRef]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Payment not found',
             ], 404);
 
         } catch (\Exception $e) {
-            Log::error('Complete Reservation Exception', [
+            Log::error('❌ [COMPLETE] Complete Reservation Exception', [
                 'message' => $e->getMessage(),
                 'tx_ref'  => $txRef,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred',
+                'message' => 'An error occurred: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -565,27 +646,102 @@ class ReservationPaymentController extends Controller
     public function getReservationByPayment(string $txRef): JsonResponse
     {
         try {
+            Log::info('📡 [RECEIPT API] Getting reservation by payment', ['tx_ref' => $txRef]);
+            
             $payment = Payment::where('tx_ref', $txRef)
-                ->with('reservation')
+                ->with(['reservation.guest', 'reservation.room'])
                 ->firstOrFail();
 
+            Log::info('✅ [RECEIPT API] Payment found', [
+                'payment_id' => $payment->id,
+                'has_reservation' => !is_null($payment->reservation),
+                'amount' => $payment->amount,
+            ]);
+
             if (!$payment->reservation) {
+                Log::warning('⚠️ [RECEIPT API] No reservation linked to payment', [
+                    'payment_id' => $payment->id,
+                    'tx_ref' => $txRef,
+                ]);
+                
                 return response()->json([
                     'success' => false,
                     'message' => 'No reservation linked to this payment',
                 ], 404);
             }
 
+            $reservation = $payment->reservation;
+            $guest = $reservation->guest;
+            $room = $reservation->room;
+
+            Log::info('📋 [RECEIPT API] Reservation data retrieved', [
+                'reservation_id' => $reservation->id,
+                'booking_reference' => $reservation->booking_reference,
+                'total_amount' => $reservation->total_amount,
+                'has_guest' => !is_null($guest),
+                'has_room' => !is_null($room),
+            ]);
+
+            // Build comprehensive reservation data for frontend
+            $reservationData = [
+                // Booking info
+                'id' => $reservation->id,
+                'booking_reference' => $reservation->booking_reference,
+                'status' => $reservation->status,
+                
+                // Dates
+                'check_in_date' => $reservation->check_in_date ? $reservation->check_in_date->toDateString() : null,
+                'check_out_date' => $reservation->check_out_date ? $reservation->check_out_date->toDateString() : null,
+                
+                // Guest info (for receipt)
+                'first_name' => $payment->first_name, // Use payment data (always has it)
+                'last_name' => $payment->last_name,
+                'email' => $payment->email,
+                'phone' => $payment->phone,
+                
+                // Room info
+                'room_id' => $reservation->room_id,
+                'room_number' => $room ? $room->room_number : 'TBD',
+                
+                // Booking details
+                'number_of_guests' => $reservation->number_of_guests,
+                'special_requests' => $reservation->special_requests,
+                
+                // Payment info - ⭐ CRITICAL for receipt
+                'total_amount' => (float) $reservation->total_amount, // ← THIS FIXES THE 0 ETB ISSUE!
+                'currency' => 'ETB',
+                
+                // Timestamps
+                'created_at' => $reservation->created_at?->toIso8601String(),
+                'updated_at' => $reservation->updated_at?->toIso8601String(),
+            ];
+
+            Log::info('✅ [RECEIPT API] Response prepared', [
+                'booking_reference' => $reservationData['booking_reference'],
+                'total_amount' => $reservationData['total_amount'],
+                'has_all_fields' => isset($reservationData['first_name'], $reservationData['email'], $reservationData['total_amount']),
+            ]);
+
             return response()->json([
                 'success'     => true,
-                'reservation' => $payment->reservation,
+                'reservation' => $reservationData,
                 'payment'     => new PaymentResource($payment),
             ]);
 
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('❌ [RECEIPT API] Payment not found', ['tx_ref' => $txRef]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment not found',
+            ], 404);
+
         } catch (\Exception $e) {
-            Log::error('Get Reservation By Payment Exception', [
+            Log::error('❌ [RECEIPT API] Get Reservation By Payment Exception', [
                 'message' => $e->getMessage(),
                 'tx_ref'  => $txRef,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             return response()->json([

@@ -238,11 +238,69 @@
               class="bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-4 text-white flex-shrink-0 rounded-t-2xl"
             >
               <h3 class="text-xl font-bold mb-1">💳 Payment Confirmation</h3>
-              <p class="text-amber-100 text-sm">Review your order before payment</p>
+              <p class="text-amber-100 text-sm">
+                {{ orderContext?.type === 'table' ? 'Enter details to proceed' : 'Review your order before payment' }}
+              </p>
             </div>
 
             <!-- Content - Scrollable -->
             <div class="p-5 space-y-3 overflow-y-auto flex-1">
+              <!-- Walk-In Payment Form (NEW) -->
+              <div v-if="orderContext?.type === 'table'" class="space-y-3">
+                <h4 class="font-semibold text-sm mb-2">Customer Details</h4>
+                
+                <!-- First Name -->
+                <div>
+                  <label class="text-xs text-slate-600 mb-1 block">First Name *</label>
+                  <input
+                    v-model="paymentForm.first_name"
+                    type="text"
+                    required
+                    placeholder="John"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  />
+                </div>
+
+                <!-- Last Name -->
+                <div>
+                  <label class="text-xs text-slate-600 mb-1 block">Last Name *</label>
+                  <input
+                    v-model="paymentForm.last_name"
+                    type="text"
+                    required
+                    placeholder="Doe"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  />
+                </div>
+
+                <!-- Email -->
+                <div>
+                  <label class="text-xs text-slate-600 mb-1 block">Email *</label>
+                  <input
+                    v-model="paymentForm.email"
+                    type="email"
+                    required
+                    placeholder="john@example.com"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  />
+                </div>
+
+                <!-- Phone -->
+                <div>
+                  <label class="text-xs text-slate-600 mb-1 block">Phone Number *</label>
+                  <input
+                    v-model="paymentForm.phone"
+                    type="tel"
+                    required
+                    placeholder="+251912345678"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div class="border-t pt-3"></div>
+              </div>
+
+              <!-- Room Service Order Summary (Existing) -->
               <!-- Order Summary -->
               <div>
                 <h4 class="font-semibold text-sm mb-2">Order Summary</h4>
@@ -298,6 +356,14 @@
               </div>
 
               <!-- Security Notice -->
+              <!-- Context-specific info (NEW) -->
+              <div
+                v-if="orderContext?.type === 'table'"
+                class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-xs text-amber-700"
+              >
+                ℹ️ Walk-in order for {{ orderContext.displayName }}
+              </div>
+
               <div class="bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs text-blue-700">
                 ✓ Secure payment via Chapa gateway
               </div>
@@ -395,6 +461,9 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/api/auth'
 import QRMenuLayout from '@/components/guest/qr-menu/QRMenuLayout.vue'
+import { qrService } from '@/services/qrService'
+import { unifiedOrderService } from '@/services/unifiedOrderService'
+import type { OrderContext } from '@/types/restaurantTable'
 
 interface MenuItem {
   id: string | number
@@ -436,6 +505,19 @@ const showSuccessModal = ref(false)
 const isPlacingOrder = ref(false)
 const orderNumber = ref('')
 const estimatedTime = ref(30)
+
+// Context-aware state (NEW)
+const orderContext = ref<OrderContext | null>(null)
+const isLoadingContext = ref(true)
+const contextError = ref<string | null>(null)
+
+// Walk-in payment form (NEW)
+const paymentForm = ref({
+  first_name: '',
+  last_name: '',
+  email: '',
+  phone: '+251',
+})
 
 // Computed
 const subtotal = computed(() => {
@@ -526,6 +608,26 @@ const closePaymentDialog = () => {
 
 // Proceed to payment (called from confirmation dialog)
 const proceedToPayment = () => {
+  // Validate walk-in payment form
+  if (orderContext.value?.type === 'table') {
+    if (!paymentForm.value.first_name.trim()) {
+      alert('Please enter your first name')
+      return
+    }
+    if (!paymentForm.value.last_name.trim()) {
+      alert('Please enter your last name')
+      return
+    }
+    if (!paymentForm.value.email.trim() || !paymentForm.value.email.includes('@')) {
+      alert('Please enter a valid email address')
+      return
+    }
+    if (!paymentForm.value.phone.trim() || paymentForm.value.phone.length < 10) {
+      alert('Please enter a valid phone number')
+      return
+    }
+  }
+
   showPaymentDialog.value = false
   handlePlaceOrder()
 }
@@ -537,140 +639,144 @@ const handlePlaceOrder = async () => {
     return
   }
 
+  // Check if context is loaded
+  if (!orderContext.value) {
+    alert('Order context not loaded. Please refresh the page.')
+    return
+  }
+
   isPlacingOrder.value = true
 
   try {
-    console.log('🔒 [PAYMENT] Initializing payment for order...')
+    console.log('🔒 [ORDER] Creating order via unified service...')
+    console.log('📦 [ORDER] Context:', orderContext.value.type)
+    console.log('📦 [ORDER] Display name:', orderContext.value.displayName)
 
-    const apiUrl = 'http://127.0.0.1:8000/api'
-
-    // Step 1: Get guest ID and room ID from QR token
-    console.log('📡 [PAYMENT] Fetching room/guest info from QR token:', qrToken.value)
-    const roomResponse = await fetch(`${apiUrl}/guest/menu/${qrToken.value}`)
-    const roomData = await roomResponse.json()
-
-    console.log('📡 [PAYMENT] Room API response:', roomData)
-
-    if (!roomResponse.ok || !roomData.success) {
-      console.error('❌ [PAYMENT] Room verification failed:', roomData)
-      throw new Error(roomData.message || 'Unable to verify room information')
-    }
-
-    const guestId = roomData.data.guest?.id
-    const roomId = roomData.data.id
-
-    if (!guestId || !roomId) {
-      console.error('❌ [PAYMENT] Missing guest or room ID:', { guestId, roomId })
-      throw new Error('Unable to retrieve guest or room information')
-    }
-
-    console.log('✅ [PAYMENT] Room verified - Room ID:', roomId, 'Guest ID:', guestId)
-
-    // Step 2: Prepare order items
+    // Prepare order items
     const orderItems = cartItems.value.map((item) => ({
       menu_item_id: item.id,
       quantity: item.quantity,
     }))
 
-    console.log('📦 [PAYMENT] Order items prepared:', orderItems)
-    console.log('📦 [PAYMENT] Order items count:', orderItems.length)
-    console.log('📦 [PAYMENT] First item ID type:', typeof orderItems[0]?.menu_item_id)
-    console.log('📦 [PAYMENT] First item ID value:', orderItems[0]?.menu_item_id)
+    console.log('📦 [ORDER] Items:', orderItems)
 
-    // Step 3: Split guest name into first and last
-    const nameParts = guestName.value.trim().split(' ')
-    const firstName = nameParts[0] || 'Guest'
-    const lastName = nameParts.slice(1).join(' ') || 'User'
-
-    // Step 4: Initialize payment
-    console.log('💳 [PAYMENT] Initializing payment with backend...')
-    const paymentInitRequest = {
-      guest_id: guestId,
-      room_id: roomId,
-      items: orderItems,
-      first_name: firstName,
-      last_name: lastName,
-      email: guestEmail.value,
-      phone: '+251912345678', // Default or from user profile if available
-    }
-
-    console.log('📤 [PAYMENT] Payment init request:', paymentInitRequest)
-
-    const paymentResponse = await fetch(`${apiUrl}/order-payments/initialize`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(paymentInitRequest),
-    })
-
-    const paymentData = await paymentResponse.json()
-
-    console.log('📡 [PAYMENT] Payment API response:', paymentData)
-    console.log('📡 [PAYMENT] Response status:', paymentResponse.status)
-    console.log('📡 [PAYMENT] Response ok:', paymentResponse.ok)
-
-    if (!paymentResponse.ok || !paymentData.success) {
-      console.error('❌ [PAYMENT] Payment initialization failed:', paymentData)
+    // ============================================================================
+    // WALK-IN ORDER FLOW - PREPAYMENT VIA CHAPA
+    // ============================================================================
+    if (orderContext.value.type === 'table') {
+      console.log('🍽️ [WALK-IN] Initializing walk-in payment via Chapa...')
       
-      // Extract detailed error message
-      let errorMessage = 'Payment initialization failed'
-      
-      if (paymentData.message) {
-        errorMessage = paymentData.message
-      }
-      
-      // Check for Chapa-specific error
-      if (paymentData.error) {
-        errorMessage += ': ' + paymentData.error
-      }
-      
-      // Check for Laravel validation errors
-      if (paymentData.errors) {
-        const firstError = Object.values(paymentData.errors)[0]
-        if (Array.isArray(firstError) && firstError.length > 0) {
-          errorMessage = firstError[0]
-        }
-      }
-      
-      // Check for detailed error info (development mode)
-      if (paymentData.details) {
-        console.error('❌ [PAYMENT] Error details:', paymentData.details)
-      }
-      
-      console.error('❌ [PAYMENT] Detailed error:', errorMessage)
-      console.error('❌ [PAYMENT] Full error object:', JSON.stringify(paymentData, null, 2))
-      
-      throw new Error(errorMessage)
-    }
-
-    console.log('✅ [PAYMENT] Payment initialized successfully')
-    console.log('🔗 [PAYMENT] Checkout URL:', paymentData.checkout_url)
-
-    // Step 5: Store order data for post-payment retrieval
-    sessionStorage.setItem(
-      'order_payment_data',
-      JSON.stringify({
-        payment_id: paymentData.payment_id,
-        tx_ref: paymentData.tx_ref,
-        amount: paymentData.amount,
-        calculation: paymentData.calculation,
-        items: cartItems.value.map(item => ({
-          name: item.name,
-          quantity: item.quantity,
-          total: item.price * item.quantity,
-        })),
+      // Initialize payment with Chapa
+      const paymentResponse = await unifiedOrderService.initializeWalkInPayment({
+        table_id: orderContext.value.id,
         qr_token: qrToken.value,
-        room_number: roomNumber.value,
-        guest_name: guestName.value,
+        items: orderItems,
+        special_requests: '',
+        first_name: paymentForm.value.first_name,
+        last_name: paymentForm.value.last_name,
+        email: paymentForm.value.email,
+        phone: paymentForm.value.phone,
       })
-    )
 
-    console.log('📦 [PAYMENT] Order data stored in session storage')
+      if (paymentResponse.success && paymentResponse.checkout_url) {
+        console.log('✅ [WALK-IN] Payment initialized, redirecting to Chapa...')
+        console.log('💳 [WALK-IN] Checkout URL:', paymentResponse.checkout_url)
+        console.log('📋 [WALK-IN] TX Ref:', paymentResponse.tx_ref)
+        
+        // Store data for success page
+        sessionStorage.setItem('walk_in_payment_data', JSON.stringify({
+          payment_id: paymentResponse.payment_id,
+          tx_ref: paymentResponse.tx_ref,
+          amount: paymentResponse.amount,
+          qr_token: qrToken.value,
+          table_number: orderContext.value.displayName,
+          items: cartItems.value.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            total: item.price * item.quantity,
+          })),
+          calculation: paymentResponse.calculation,
+        }))
+        
+        // Redirect to Chapa checkout
+        window.location.href = paymentResponse.checkout_url
+        return
+      } else {
+        throw new Error(paymentResponse.message || 'Failed to initialize payment')
+      }
+    }
 
-    // Step 6: Redirect to Chapa checkout
-    console.log('🔄 [PAYMENT] Redirecting to Chapa checkout...')
-    window.location.href = paymentData.checkout_url
+    // ============================================================================
+    // ROOM SERVICE ORDER FLOW - USE GUEST INFO FROM CHECK-IN
+    // ============================================================================
+    
+    if (orderContext.value.type === 'room') {
+      console.log('🏨 [ROOM] Initializing room service payment...')
+      
+      // Get guest info from QR resolution (already loaded in orderContext)
+      const result = await qrService.resolveQRToken(qrToken.value)
+      
+      if (!result.success || !result.data?.guest) {
+        throw new Error('No guest checked into this room. Please contact reception.')
+      }
+      
+      const guestInfo = result.data.guest
+      console.log('👤 [ROOM] Using guest from check-in:', guestInfo.guest_name)
+      
+      // Initialize payment with guest information from check-in
+      const paymentInitRequest = {
+        guest_id: guestInfo.guest_id,
+        room_id: result.data.room_id,
+        items: orderItems,
+        first_name: guestInfo.guest_name.split(' ')[0] || 'Guest',
+        last_name: guestInfo.guest_name.split(' ').slice(1).join(' ') || 'User',
+        email: guestInfo.guest_email,
+        phone: guestInfo.guest_phone,
+      }
+      
+      const apiUrl = 'http://127.0.0.1:8000/api'
+      const paymentResponse = await fetch(`${apiUrl}/order-payments/initialize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(paymentInitRequest),
+      })
+      
+      const paymentData = await paymentResponse.json()
+      
+      if (paymentData.success && paymentData.checkout_url) {
+          console.log('✅ [ROOM] Payment initialized, redirecting to Chapa...')
+          console.log('💳 [ROOM] Checkout URL:', paymentData.checkout_url)
+          
+          sessionStorage.setItem('order_payment_data', JSON.stringify({
+            payment_id: paymentData.payment_id,
+            tx_ref: paymentData.tx_ref,
+            amount: paymentData.amount,
+            qr_token: qrToken.value,
+            room_number: result.data.room_number,
+            guest_name: guestInfo.guest_name,
+            items: cartItems.value.map(item => ({
+              name: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              total: item.price * item.quantity,
+            })),
+            calculation: paymentData.calculation,
+          }))
+          
+          console.log('✅ [ROOM] Payment initialized, redirecting to Chapa...')
+          window.location.href = paymentData.checkout_url
+          return
+      } else {
+        throw new Error(paymentData.message || 'Failed to initialize payment')
+      }
+    }
+
+    // ============================================================================
+    // FALLBACK - Should not reach here
+    // ============================================================================
+    console.error('❌ [ORDER] Unknown order context type:', orderContext.value?.type)
+    throw new Error('Invalid order context')
   } catch (error: any) {
     console.error('❌ [PAYMENT] Error:', error)
     console.error('❌ [PAYMENT] Error details:', error.message)
@@ -680,7 +786,6 @@ const handlePlaceOrder = async () => {
     if (error.message) {
       errorMessage = error.message
     }
-
     alert(`❌ Payment Error: ${errorMessage}`)
   } finally {
     isPlacingOrder.value = false
@@ -696,8 +801,77 @@ const handleBackToMenu = () => {
   showSuccessModal.value = false
 }
 
+// Context Detection (NEW)
+const detectOrderContext = async () => {
+  isLoadingContext.value = true
+  contextError.value = null
+
+  try {
+    console.log('🔍 [QR] Resolving QR token:', qrToken.value)
+    const result = await qrService.resolveQRToken(qrToken.value)
+
+    console.log('📡 [QR] Resolution result:', result)
+    console.log('📡 [QR] Context type:', result.context)
+    console.log('📡 [QR] Data:', JSON.stringify(result.data, null, 2))
+
+    if (!result.success || !result.context || !result.data) {
+      throw new Error(result.message || 'Invalid QR code')
+    }
+
+    // Set context based on result
+    if (result.context === 'room') {
+      console.log('🏨 [QR] ROOM CONTEXT DETECTED')
+      orderContext.value = {
+        type: 'room',
+        id: result.data.room_id!,
+        displayName: `Room ${result.data.room_number}`,
+        paymentOptions: [{ value: 'room_charge', label: 'Charge to Room' }],
+      }
+      roomNumber.value = result.data.room_number || '101'
+      heroHeading.value = 'Room Service Menu'
+      heroSubheading.value = `Room ${result.data.room_number}`
+      
+      // Use guest information if available (checked-in guest)
+      if (result.data.guest) {
+        guestName.value = result.data.guest.guest_name
+        guestEmail.value = result.data.guest.guest_email || 'guest@hotel.com'
+        console.log('✅ [QR] Room context with checked-in guest:', result.data.guest.guest_name)
+      } else {
+        // Room has no active check-in
+        guestName.value = 'Hotel Guest'
+        guestEmail.value = 'guest@hotel.com'
+        console.log('⚠️ [QR] Room has no active check-in')
+      }
+      
+      console.log('✅ [QR] Room context detected:', orderContext.value)
+    } else if (result.context === 'table') {
+      console.log('🍽️ [QR] TABLE CONTEXT DETECTED')
+      orderContext.value = {
+        type: 'table',
+        id: result.data.table_id!,
+        displayName: result.data.table_name || `Table ${result.data.table_number}`,
+        paymentOptions: [
+          { value: 'cash', label: 'Pay with Cash' },
+          { value: 'card', label: 'Pay with Card' },
+        ],
+      }
+      roomNumber.value = result.data.table_name || `Table ${result.data.table_number}`
+      heroHeading.value = 'Restaurant Menu'
+      heroSubheading.value = result.data.table_name || `Table ${result.data.table_number}`
+      guestName.value = 'Walk-in Guest'
+      guestEmail.value = 'walkin@restaurant.com'
+      console.log('✅ [QR] Table context detected:', orderContext.value)
+    }
+  } catch (error: any) {
+    console.error('❌ [QR] Context detection failed:', error)
+    contextError.value = error.message || 'Failed to load menu'
+  } finally {
+    isLoadingContext.value = false
+  }
+}
+
 // Lifecycle
-onMounted(() => {
+onMounted(async () => {
   if (route.params.qrToken) {
     qrToken.value = String(route.params.qrToken)
   }
@@ -708,7 +882,14 @@ onMounted(() => {
     qrToken.value = localStorage.getItem('qrToken') || ''
   }
 
-  roomNumber.value = localStorage.getItem('roomNumber') || '101'
+  // Detect context if QR token is available
+  if (qrToken.value) {
+    await detectOrderContext()
+  } else {
+    // Fallback to old behavior for backward compatibility
+    roomNumber.value = localStorage.getItem('roomNumber') || '101'
+    isLoadingContext.value = false
+  }
 
   const guestInfo = localStorage.getItem('guestInfo')
   if (guestInfo) {

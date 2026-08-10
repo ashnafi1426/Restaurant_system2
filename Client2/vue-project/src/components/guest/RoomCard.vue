@@ -52,114 +52,108 @@ function reserveRoom() {
 
 <template>
   <div
-    class="overflow-hidden rounded-3xl bg-white shadow-lg transition duration-300 hover:-translate-y-2 hover:shadow-2xl"
+    class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-500 hover:-translate-y-0.5 hover:shadow-md border border-slate-100 h-[360px] md:h-[380px] flex flex-col"
   >
-    <!-- Image -->
-    <div class="relative">
-      <img :src="room.image" :alt="room.name" class="h-72 w-full object-cover" />
+    <!-- Image Container with Overlay - Fixed Height -->
+    <div class="relative overflow-hidden h-[160px] md:h-[180px] flex-shrink-0">
+      <img 
+        :src="room.image" 
+        :alt="room.name" 
+        class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" 
+      />
+      
+      <!-- Gradient Overlay -->
+      <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
 
-      <div
-        class="absolute left-4 top-4 rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-white"
-      >
-        {{ room.room_type }}
-      </div>
-
-      <div
-        class="absolute right-4 top-4 rounded-full px-4 py-2 text-sm font-semibold"
-        :class="availabilityClass"
-      >
-        {{ availabilityText }}
+      <!-- Price Tag - Bottom Left - Minimized -->
+      <div class="absolute bottom-2 left-2 flex items-baseline gap-0.5">
+        <span class="text-xl md:text-2xl font-semibold text-white drop-shadow-lg">
+          {{ formattedPrice }}
+        </span>
+        <span class="text-[9px] font-light text-white/90">/night</span>
       </div>
     </div>
 
-    <!-- Body -->
-    <div class="p-6">
-      <div class="mb-3 flex items-center justify-between">
-        <h2 class="text-2xl font-bold text-slate-900">
+    <!-- Card Body - Ultra Compact with Flex Grow -->
+    <div class="p-3 flex flex-col flex-grow">
+      <!-- Title & Rating - Minimized -->
+      <div class="mb-2">
+        <h3 class="text-sm font-medium text-slate-900 mb-1 leading-tight">
           {{ room.name }}
-        </h2>
+        </h3>
 
-        <span class="text-2xl font-bold text-amber-600">
-          {{ formattedPrice }}
-        </span>
-      </div>
-
-      <p class="mb-6 text-slate-500">Per Night</p>
-
-      <!-- Rating -->
-      <div class="mb-6 flex items-center gap-2">
-        <span class="text-yellow-500"> ★★★★★ </span>
-
-        <span class="font-medium text-slate-700">
-          {{ room.rating }}
-        </span>
-
-        <span class="text-slate-400"> ({{ room.reviews }} Reviews) </span>
-      </div>
-
-      <!-- Information -->
-      <div class="grid grid-cols-2 gap-4">
-        <div class="rounded-xl bg-slate-100 p-4">
-          <p class="text-sm text-slate-500">Guests</p>
-
-          <p class="mt-1 font-semibold">
-            {{ room.capacity }}
-          </p>
-        </div>
-
-        <div class="rounded-xl bg-slate-100 p-4">
-          <p class="text-sm text-slate-500">Room Size</p>
-
-          <p class="mt-1 font-semibold">{{ room.size }} m²</p>
-        </div>
-
-        <div class="rounded-xl bg-slate-100 p-4">
-          <p class="text-sm text-slate-500">Bed</p>
-
-          <p class="mt-1 font-semibold">
-            {{ room.bed_type }}
-          </p>
-        </div>
-
-        <div class="rounded-xl bg-slate-100 p-4">
-          <p class="text-sm text-slate-500">Type</p>
-
-          <p class="mt-1 font-semibold">
-            {{ room.room_type }}
-          </p>
-        </div>
-      </div>
-
-      <!-- Amenities -->
-      <div class="mt-8">
-        <h3 class="mb-3 font-semibold text-slate-900">Amenities</h3>
-
-        <div class="flex flex-wrap gap-2">
-          <span
-            v-for="item in room.amenities.slice(0, 5)"
-            :key="item"
-            class="rounded-full bg-amber-100 px-3 py-1 text-sm text-amber-700"
-          >
-            {{ item }}
+        <div class="flex items-center gap-1">
+          <div class="flex items-center gap-0.5">
+            <span class="text-amber-400 text-[10px]">★</span>
+            <span class="text-amber-400 text-[10px]">★</span>
+            <span class="text-amber-400 text-[10px]">★</span>
+            <span class="text-amber-400 text-[10px]">★</span>
+            <span class="text-amber-400 text-[10px]">★</span>
+          </div>
+          <span class="text-[9px] font-light text-slate-700">
+            {{ room.rating }}
+          </span>
+          <span class="text-[9px] text-slate-400 font-light">
+            ({{ room.reviews }})
           </span>
         </div>
       </div>
 
-      <!-- Buttons -->
-      <div class="mt-8 grid grid-cols-2 gap-4">
+      <!-- Room Info Grid - Minimized -->
+      <div class="grid grid-cols-3 gap-1.5 mb-2 pb-2 border-b border-slate-100">
+        <div class="text-center">
+          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">Guests</p>
+          <p class="text-[11px] font-medium text-slate-900">
+            {{ room.capacity }}
+          </p>
+        </div>
+
+        <div class="text-center border-x border-slate-100">
+          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">Size</p>
+          <p class="text-[11px] font-medium text-slate-900">{{ room.size }}m²</p>
+        </div>
+
+        <div class="text-center">
+          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">Bed</p>
+          <p class="text-[11px] font-medium text-slate-900">{{ room.bed_type }}</p>
+        </div>
+      </div>
+
+      <!-- Amenities - Ultra Compact -->
+      <div class="mb-2">
+        <p class="text-[9px] font-light text-slate-700 mb-1">Amenities</p>
+        <div class="flex flex-wrap gap-1">
+          <span
+            v-for="item in room.amenities.slice(0, 3)"
+            :key="item"
+            class="inline-block rounded bg-slate-50 px-1.5 py-0.5 text-[8px] font-light text-slate-600 border border-slate-200"
+          >
+            {{ item }}
+          </span>
+          <span
+            v-if="room.amenities.length > 3"
+            class="inline-block rounded bg-amber-50 px-1.5 py-0.5 text-[8px] font-light text-amber-700 border border-amber-200"
+          >
+            +{{ room.amenities.length - 3 }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Action Buttons - Minimized, At Bottom with mt-auto -->
+      <div class="grid grid-cols-2 gap-1.5 mt-auto">
         <button
           @click="viewDetails"
-          class="rounded-xl border border-amber-500 py-3 font-semibold text-amber-600 transition hover:bg-amber-500 hover:text-white"
+          class="rounded-xl border border-slate-300 py-2 text-[10px] font-light text-slate-700 transition-all hover:border-amber-500 hover:bg-amber-50 hover:text-amber-700"
         >
-          View Details
+          Details
         </button>
 
         <button
           @click="reserveRoom"
-          class="rounded-xl bg-amber-500 py-3 font-semibold text-white transition hover:bg-amber-600"
+          class="rounded-xl bg-amber-500 py-2 text-[10px] font-light text-white transition-all hover:bg-amber-600 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-sm"
           :disabled="!room.available"
         >
-          Reserve Now
+          Book Now
         </button>
       </div>
     </div>

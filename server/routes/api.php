@@ -42,11 +42,15 @@ use App\Http\Controllers\Api\Waiter\WaiterNotificationController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ReservationPaymentController;
 use App\Http\Controllers\Api\GuestOrderPaymentController;
+use App\Http\Controllers\Api\WalkInOrderPaymentController;
 use App\Http\Controllers\Api\Cashier\CashierDashboardController;
 use App\Http\Controllers\Api\Cashier\CashierPaymentController;
 use App\Http\Controllers\Api\Cashier\CashierReportController;
 use App\Http\Controllers\Api\ActivationController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\QRResolutionController;
+use App\Http\Controllers\Api\UnifiedOrderController;
+use App\Http\Controllers\Api\Manager\RestaurantTableController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -91,12 +95,36 @@ Route::prefix('order-payments')->group(function () {
     Route::get('/{txRef}', [GuestOrderPaymentController::class, 'getOrderByPayment']);
 });
 
+// Walk-In Order Payment Routes (No authentication required for table QR orders)
+Route::prefix('walk-in-payments')->group(function () {
+    Route::post('/initialize', [WalkInOrderPaymentController::class, 'initializePayment']);
+    Route::post('/complete/{txRef}', [WalkInOrderPaymentController::class, 'completeOrder']);
+    Route::get('/{txRef}', [WalkInOrderPaymentController::class, 'getOrderByPayment']);
+});
+
+// QR Resolution Routes (Public)
+Route::prefix('qr')->group(function () {
+    Route::post('/resolve', [QRResolutionController::class, 'resolveQRToken']);
+    Route::get('/resolve/{qrToken}', [QRResolutionController::class, 'resolveFromUrl']);
+    Route::post('/validate', [QRResolutionController::class, 'validateQRToken']);
+});
+
 Route::prefix('guest')->group(function () {
     Route::get('/menu/items', [GuestOrderController::class, 'getAllMenuItems']);
     Route::get('/menu/{qrToken}', [GuestOrderController::class, 'getRoom']);
     Route::get('/menu/{qrToken}/items', [GuestOrderController::class, 'getMenuItems']);
     Route::post('/orders', [GuestOrderController::class, 'createOrder']);
     Route::get('/orders/{qrToken}/status', [GuestOrderController::class, 'getOrderStatus']);
+});
+
+// Unified Order Creation (Public - supports both authenticated and guest orders)
+// IMPORTANT: This route MUST remain public (no auth required) for walk-in QR orders
+// NOTE: There's a duplicate POST /orders route below with receptionist auth - that's intentional
+// This public route handles QR-based orders (room service + walk-in table orders)
+// The authenticated route below handles manual order creation by staff
+// MOVED TO: /api/guest/unified-orders to avoid auth middleware
+Route::prefix('guest')->group(function () {
+    Route::post('/unified-orders', [UnifiedOrderController::class, 'store']);
 });
 Route::prefix('qr-code')->group(function () {
     Route::get('/generate/{roomId}', [QRCodeController::class, 'generateForRoom']);
@@ -211,7 +239,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/revenue', [\App\Http\Controllers\Api\ReceptionReportController::class, 'revenueReport']);
             Route::get('/check-in-out', [\App\Http\Controllers\Api\ReceptionReportController::class, 'checkInOutReport']);
         });
-        
         Route::prefix('admin-guests')->group(function () {
             Route::get('/', [GuestController::class, 'index']);
             Route::post('/', [GuestController::class, 'store']);
@@ -221,7 +248,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::patch('/{guest}', [GuestController::class, 'update']);
             Route::delete('/{guest}', [GuestController::class, 'destroy']);
         });
-
         Route::get('/reservations', [ReservationController::class, 'index']);
         Route::get('/admin-reservations/{reservation}', [ReservationController::class, 'show']);
         Route::put('/admin-reservations/{reservation}', [ReservationController::class, 'update']);
@@ -342,6 +368,18 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::patch('/{delivery}/assign', [ManagerDeliveryManagementController::class, 'manuallyAssign']);
             Route::delete('/{delivery}', [ManagerDeliveryManagementController::class, 'destroy']);
         });
+        
+        // Restaurant Tables Management
+        Route::prefix('restaurant-tables')->group(function () {
+            Route::get('/', [RestaurantTableController::class, 'index']);
+            Route::get('/statistics', [RestaurantTableController::class, 'statistics']);
+            Route::get('/{id}', [RestaurantTableController::class, 'show']);
+            Route::post('/', [RestaurantTableController::class, 'store']);
+            Route::put('/{id}', [RestaurantTableController::class, 'update']);
+            Route::delete('/{id}', [RestaurantTableController::class, 'destroy']);
+            Route::post('/{id}/regenerate-qr', [RestaurantTableController::class, 'regenerateQR']);
+        });
+        
         Route::prefix('analytics')->group(function () {
             Route::get('/', [AnalyticsController::class, 'index']);
         });

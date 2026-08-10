@@ -1,8 +1,15 @@
 <template>
   <div class="min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300">
+    <!-- Global Page Loader -->
+    <GlobalPageLoader />
+    
     <router-view />
   </div>
 </template>
+
+<script setup lang="ts">
+import GlobalPageLoader from '@/components/loading/GlobalPageLoader.vue'
+</script>
 
 <style>
 html {

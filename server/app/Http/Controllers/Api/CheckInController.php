@@ -7,6 +7,7 @@ use App\Models\CheckIn;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCheckInRequest;
 use App\Http\Resources\CheckInResource;
@@ -266,19 +267,81 @@ class CheckInController extends Controller
 
     public function destroy(CheckIn $checkIn)
     {
-        if ($checkIn->checked_out_at) {
+        try {
+            Log::info('🗑️ [CHECK-IN DELETE] Starting deletion process', [
+                'checkin_id' => $checkIn->id,
+                'reservation_id' => $checkIn->reservation_id,
+                'guest_id' => $checkIn->guest_id,
+                'room_id' => $checkIn->room_id,
+                'checked_out_at' => $checkIn->checked_out_at,
+                'is_checked_out' => $checkIn->checked_out_at !== null,
+            ]);
+
+            // Use database transaction for atomic deletion
+            DB::beginTransaction();
+
+            try {
+                // Update room status to available before deletion
+                if ($checkIn->room) {
+                    $oldStatus = $checkIn->room->status;
+                    $checkIn->room->update([
+                        'status' => 'available',
+                    ]);
+                    Log::info('✅ [CHECK-IN DELETE] Room status updated', [
+                        'room_id' => $checkIn->room->id,
+                        'room_number' => $checkIn->room->room_number,
+                        'old_status' => $oldStatus,
+                        'new_status' => 'available',
+                    ]);
+                }
+
+                // Update reservation status if still linked
+                if ($checkIn->reservation) {
+                    // If check-in was checked out, mark reservation as checked_out
+                    // If not checked out yet, mark reservation back to confirmed
+                    $newReservationStatus = $checkIn->checked_out_at ? 'checked_out' : 'confirmed';
+                    
+                    $checkIn->reservation->update([
+                        'status' => $newReservationStatus,
+                    ]);
+                    
+                    Log::info('✅ [CHECK-IN DELETE] Reservation status updated', [
+                        'reservation_id' => $checkIn->reservation->id,
+                        'booking_reference' => $checkIn->reservation->booking_reference,
+                        'new_status' => $newReservationStatus,
+                    ]);
+                }
+
+                // Delete the check-in record
+                $checkIn->delete();
+                Log::info('✅ [CHECK-IN DELETE] Check-in deleted successfully', [
+                    'checkin_id' => $checkIn->id,
+                ]);
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Check-in deleted successfully.',
+                ]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            Log::error('❌ [CHECK-IN DELETE] Failed to delete check-in', [
+                'checkin_id' => $checkIn->id ?? 'unknown',
+                'error' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Cannot delete a completed check out.',
-            ], 422);
+                'message' => 'Failed to delete check-in. Please contact support if this persists.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
-
-        $checkIn->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Check in deleted successfully.',
-        ]);
     }
 
     public function checkout(CheckIn $checkIn)
@@ -286,33 +349,74 @@ class CheckInController extends Controller
         DB::beginTransaction();
 
         try {
+            // Check if already checked out
             if ($checkIn->checked_out_at) {
                 throw new Exception('Guest already checked out.');
             }
 
+            // Get room before any updates
+            $room = $checkIn->room;
+            
+            \Log::info('🔍 [CHECKOUT] Starting checkout process', [
+                'check_in_id' => $checkIn->id,
+                'room_id' => $room->id,
+                'room_number' => $room->room_number,
+                'room_status_before' => $room->status,
+            ]);
+
+            // Update check-in record
             $checkIn->update([
                 'checked_out_at' => now(),
             ]);
 
+            // Update reservation status
             $reservation = $checkIn->reservation;
             $reservation->update([
                 'status' => 'checked_out',
             ]);
 
-            $room = $checkIn->room;
+            // Update room status to available
             $room->update([
                 'status' => 'available',
             ]);
 
+            // Refresh room to verify update
+            $room->refresh();
+            
+            \Log::info('✅ [CHECKOUT] Room status updated', [
+                'room_id' => $room->id,
+                'room_number' => $room->room_number,
+                'room_status_after' => $room->status,
+                'verified' => $room->status === 'available' ? 'YES' : 'NO',
+            ]);
+
+            // Verify the status was actually updated
+            if ($room->status !== 'available') {
+                throw new Exception('Failed to update room status to available. Current status: ' . $room->status);
+            }
+
             DB::commit();
+
+            \Log::info('🎉 [CHECKOUT] Checkout completed successfully', [
+                'check_in_id' => $checkIn->id,
+                'room_id' => $room->id,
+                'room_status' => $room->status,
+            ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Guest checked out successfully.',
-                'data' => new CheckInResource($checkIn->load(['guest', 'room', 'reservation'])),
+                'data' => new CheckInResource($checkIn->fresh(['guest', 'room', 'reservation'])),
             ], 200);
         } catch (Exception $exception) {
             DB::rollBack();
+
+            \Log::error('❌ [CHECKOUT] Checkout failed', [
+                'check_in_id' => $checkIn->id,
+                'error_message' => $exception->getMessage(),
+                'error_file' => $exception->getFile(),
+                'error_line' => $exception->getLine(),
+            ]);
 
             return response()->json([
                 'success' => false,

@@ -74,10 +74,8 @@ const login = async (): Promise<void> => {
         waiter: '/waiter',
       }
       router.push(roleRoutes[role] || '/')
-    }, 3000)
+    }, 300)
   } catch (error: any) {
-    console.error('[LOGIN] Error:', error)
-    console.error('[LOGIN] Error response:', error.response?.data)
     const errorMsg = error?.message || 'Invalid email or password'
     toastType.value = 'error'
     toastMessage.value = `✗ ${errorMsg}`

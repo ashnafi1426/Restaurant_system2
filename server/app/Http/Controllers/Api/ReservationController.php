@@ -137,11 +137,84 @@ class ReservationController extends Controller
     }
     public function destroy(Reservation $reservation)
     {
-    $reservation->delete();
+        try {
+            Log::info('🗑️ [RESERVATION DELETE] Starting deletion process', [
+                'reservation_id' => $reservation->id,
+                'booking_reference' => $reservation->booking_reference,
+                'status' => $reservation->status,
+                'has_checkin' => $reservation->checkIn !== null,
+            ]);
 
-    return response()->json([
-        'message'=>'Reservation deleted.'
-    ]);
+            // Check if reservation is currently checked in
+            if ($reservation->status === 'checked_in') {
+                Log::warning('⚠️ [RESERVATION DELETE] Cannot delete - reservation is checked in', [
+                    'reservation_id' => $reservation->id,
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete an active check-in. Please check out the guest first.',
+                ], 422);
+            }
+
+            // Use database transaction for atomic deletion
+            DB::beginTransaction();
+
+            try {
+                // Delete CheckIn record if it exists (for checked_out reservations)
+                if ($reservation->checkIn) {
+                    Log::info('🔍 [RESERVATION DELETE] CheckIn record found, deleting it first', [
+                        'reservation_id' => $reservation->id,
+                        'checkin_id' => $reservation->checkIn->id,
+                        'checked_out_at' => $reservation->checkIn->checked_out_at,
+                    ]);
+                    $reservation->checkIn()->delete();
+                    Log::info('✅ [RESERVATION DELETE] CheckIn record deleted successfully');
+                }
+
+                // Update room status to available if needed
+                if (in_array($reservation->status, ['confirmed', 'checked_out', 'pending']) && $reservation->room) {
+                    $oldStatus = $reservation->room->status;
+                    $reservation->room->update([
+                        'status' => 'available',
+                    ]);
+                    Log::info('✅ [RESERVATION DELETE] Room status updated', [
+                        'room_id' => $reservation->room->id,
+                        'room_number' => $reservation->room->room_number,
+                        'old_status' => $oldStatus,
+                        'new_status' => 'available',
+                    ]);
+                }
+
+                // Delete the reservation
+                $reservation->delete();
+                Log::info('✅ [RESERVATION DELETE] Reservation deleted successfully', [
+                    'reservation_id' => $reservation->id,
+                ]);
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Reservation deleted successfully.'
+                ]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            Log::error('❌ [RESERVATION DELETE] Failed to delete reservation', [
+                'reservation_id' => $reservation->id ?? 'unknown',
+                'error' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete reservation. Please contact support if this persists.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
     }
     public function checkIn(Reservation $reservation)
     {
@@ -280,11 +353,32 @@ class ReservationController extends Controller
         }
 
         DB::transaction(function () use ($reservation) {
+            // Log before update
+            Log::info('🔍 [RESERVATION CHECKOUT] Starting checkout', [
+                'reservation_id' => $reservation->id,
+                'room_id' => $reservation->room_id,
+                'room_number' => $reservation->room->room_number,
+                'room_status_before' => $reservation->room->status,
+            ]);
+
+            // Update reservation status
             $reservation->update([
                 'status' => 'checked_out',
             ]);
+
+            // Update room status to available
             $reservation->room()->update([
                 'status' => 'available',
+            ]);
+
+            // Verify room status was updated
+            $room = $reservation->room->fresh();
+            Log::info('✅ [RESERVATION CHECKOUT] Room status updated', [
+                'reservation_id' => $reservation->id,
+                'room_id' => $room->id,
+                'room_number' => $room->room_number,
+                'room_status_after' => $room->status,
+                'verified' => $room->status === 'available' ? 'YES' : 'NO',
             ]);
             
             // Update CheckIn record if exists
@@ -292,7 +386,7 @@ class ReservationController extends Controller
                 $reservation->checkIn()->update([
                     'checked_out_at' => now(),
                 ]);
-                Log::info(' [RESERVATION] CheckIn record updated for checkout', [
+                Log::info('✅ [RESERVATION] CheckIn record updated for checkout', [
                     'reservation_id' => $reservation->id,
                 ]);
             }
@@ -326,6 +420,11 @@ class ReservationController extends Controller
                 'error_line' => $e->getLine(),
             ]);
         }
+
+        Log::info('🎉 [RESERVATION CHECKOUT] Checkout completed successfully', [
+            'reservation_id' => $reservation->id,
+            'room_status' => $reservation->fresh('room')->room->status,
+        ]);
 
         return new ReservationResource(
             $reservation->fresh([

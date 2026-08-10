@@ -12,6 +12,7 @@ import WaiterManagement from '../views/manager/WaiterManagement.vue'
 import FloorAssignment from '../views/manager/FloorAssignment.vue'
 import AddFloor from '../views/manager/AddFloor.vue'
 import DeliveryManagement from '../views/manager/DeliveryManagement.vue'
+import RestaurantTables from '../views/manager/RestaurantTables.vue'
 import Setting from '../views/manager/Setting.vue'
 
 const managerRoutes: RouteRecordRaw[] = [
@@ -132,6 +133,20 @@ const managerRoutes: RouteRecordRaw[] = [
       requiresAuth: true,
       role: 'manager',
       title: 'Food Orders Management',
+    },
+  },
+
+  /*|--------------------------------------------------------------------------
+  | Restaurant Tables Management
+  |--------------------------------------------------------------------------*/
+  {
+    path: '/manager/restaurant-tables',
+    name: 'RestaurantTables',
+    component: RestaurantTables,
+    meta: {
+      requiresAuth: true,
+      role: 'manager',
+      title: 'Restaurant Tables',
     },
   },
 
