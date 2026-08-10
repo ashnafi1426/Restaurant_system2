@@ -6,6 +6,7 @@ use App\Models\DeliveryTask;
 use App\Models\Waiter;
 use App\Models\Notification;
 use App\Models\User;
+use App\Events\WaiterAssignedEvent;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -14,34 +15,37 @@ class DeliveryNotificationService
     /**
      * Trigger standardized notification to waiter.
      * Uses type='delivery' which is a valid ENUM value in the notifications table.
+     * 
+     * IMPORTANT: This method dispatches WaiterAssignedEvent which triggers:
+     * - NotifyWaiterListener (creates WaiterNotification record)
+     * - UpdateWorkloadListener (if needed for additional tracking)
      */
     public function notifyAssignment(DeliveryTask $task, Waiter $waiter): void
     {
         try {
             $order = $task->order;
 
-            $itemsList = $order->orderItems
-                ->map(fn ($item) => "{$item->quantity}x {$item->menuItem->name}")
-                ->implode(', ');
+            // STEP 15: Dispatch WaiterAssignedEvent
+            // This triggers NotifyWaiterListener which creates the actual notification
+            WaiterAssignedEvent::dispatch($task, $waiter, $task->assignment_type ?? 'automatic');
 
-            Notification::create([
-                'user_id' => $waiter->user_id,
-                'type'    => 'delivery',   // Valid ENUM: ('reservation','order','delivery','general')
-                'title'   => "New Delivery: Order #{$order->order_number}",
-                'message' => "Room {$order->room->room_number} — {$order->guest->first_name} {$order->guest->last_name}. Items: {$itemsList}",
-                'read'    => false,
-            ]);
-
-            Log::info('Waiter Notified of Assignment', [
+            Log::info('✅ [NOTIFICATION SERVICE] WaiterAssignedEvent dispatched', [
                 'waiter_id'   => $waiter->id,
+                'waiter_name' => $waiter->user->name ?? 'Unknown',
                 'user_id'     => $waiter->user_id,
                 'delivery_id' => $task->id,
+                'order_id'    => $order->id,
+                'order_number' => $order->order_number,
+                'room_number' => $order->room->room_number ?? 'N/A',
+                'assignment_type' => $task->assignment_type,
             ]);
+            
         } catch (Throwable $e) {
-            Log::error('Waiter Notification Exception', [
+            Log::error('❌ [NOTIFICATION SERVICE] Event dispatch exception', [
                 'waiter_id'   => $waiter->id,
                 'delivery_id' => $task->id,
                 'error'       => $e->getMessage(),
+                'trace'       => $e->getTraceAsString(),
             ]);
             // Suppress — notification failure must never fail the delivery assignment transaction
         }

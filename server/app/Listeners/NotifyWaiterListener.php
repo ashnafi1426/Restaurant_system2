@@ -18,47 +18,62 @@ class NotifyWaiterListener implements ShouldQueue
     public function handleWaiterAssigned(WaiterAssignedEvent $event): void
     {
         try {
-            Log::info('NotifyWaiterListener: Creating waiter notification', [
+            $delivery = $event->delivery;
+            $order = $delivery->order;
+            
+            // Build items list for notification message
+            $itemsList = $order->orderItems
+                ->map(fn ($item) => "{$item->quantity}x {$item->menuItem->name}")
+                ->implode(', ');
+            
+            $roomNumber = $order->room->room_number ?? 'Unknown';
+            $guestName = ($order->guest->first_name ?? '') . ' ' . ($order->guest->last_name ?? '');
+            
+            Log::info('📨 [NOTIFY LISTENER] Creating waiter notification', [
                 'waiter_id' => $event->waiterId,
+                'waiter_name' => $event->waiterName,
                 'delivery_id' => $event->deliveryId,
+                'order_number' => $order->order_number,
+                'room_number' => $roomNumber,
                 'assignment_type' => $event->assignmentType,
             ]);
 
-            // Create notification for waiter
+            // STEP 16: Create WaiterNotification record
             $notification = WaiterNotification::create([
                 'waiter_id' => $event->waiterId,
-                'delivery_id' => $event->deliveryId,
+                'delivery_task_id' => $event->deliveryId,
+                'order_id' => $event->orderId,
                 'type' => 'delivery_assigned',
-                'title' => 'New Delivery Assigned',
-                'message' => "Order for room {$event->roomNumber} has been assigned to you",
-                'data' => [
+                'title' => "🍽️ New Delivery: Order #{$order->order_number}",
+                'message' => "Room {$roomNumber} — {$guestName}\nItems: {$itemsList}\n\nReady for pickup!",
+                'data' => json_encode([
                     'delivery_id' => $event->deliveryId,
                     'order_id' => $event->orderId,
-                    'room_number' => $event->roomNumber,
+                    'order_number' => $order->order_number,
+                    'room_number' => $roomNumber,
                     'floor' => $event->floorNumber,
+                    'guest_name' => $guestName,
+                    'items' => $itemsList,
                     'assignment_type' => $event->assignmentType,
                     'timestamp' => $event->timestamp,
-                ],
-                'read_at' => null,
+                ]),
+                'is_read' => false,
+                'created_at' => now(),
             ]);
 
-            // Broadcast notification via WebSocket
-            \Illuminate\Support\Facades\Broadcast::channel("waiter.{$event->waiterId}")
-                ->send([
-                    'type' => 'delivery_assigned',
-                    'notification_id' => $notification->id,
-                    'data' => $notification->data,
-                ]);
-
-            Log::info('Waiter notification created and broadcast', [
+            Log::info('✅ [NOTIFY LISTENER] Waiter notification created', [
                 'notification_id' => $notification->id,
                 'waiter_id' => $event->waiterId,
+                'delivery_id' => $event->deliveryId,
+                'message_preview' => substr($notification->message, 0, 50) . '...',
             ]);
 
         } catch (Exception $e) {
-            Log::error('NotifyWaiterListener: Error creating waiter notification', [
+            Log::error('❌ [NOTIFY LISTENER] Error creating waiter notification', [
                 'waiter_id' => $event->waiterId,
+                'delivery_id' => $event->deliveryId,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
             throw $e;
         }

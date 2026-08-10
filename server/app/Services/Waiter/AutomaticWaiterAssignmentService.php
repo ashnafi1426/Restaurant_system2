@@ -15,7 +15,7 @@ class AutomaticWaiterAssignmentService
     public function __construct(
         private FloorResolverService $floorResolver,
         private ShiftResolverService $shiftResolver,
-        private AssignmentStrategy $assignmentStrategy,
+        private WaiterSelectionEngine $selectionEngine,
         private DeliveryWorkloadService $workloadService,
         private DeliveryNotificationService $notificationService
     ) {}
@@ -38,6 +38,7 @@ class AutomaticWaiterAssignmentService
             }
 
             return DB::transaction(function () use ($order) {
+                // STEP 2: Determine destination (room → floor)
                 $floor = $this->floorResolver->resolveForRoom($order->room);
                 if (!$floor) {
                     $floor = $this->resolveFallbackFloor();
@@ -47,6 +48,7 @@ class AutomaticWaiterAssignmentService
                     }
                 }
 
+                // STEP 3: Find active shift
                 $shift = $this->shiftResolver->getCurrentShift();
                 if (!$shift) {
                     $shift = $this->resolveFallbackShift();
@@ -56,27 +58,46 @@ class AutomaticWaiterAssignmentService
                     }
                 }
 
-                // CRITICAL: Find best waiter within transaction to ensure fresh data
-                $waiter = $this->assignmentStrategy->findBestWaiter($floor, $shift);
+                // STEP 4-7: Find best waiter using enhanced selection engine
+                // This implements:
+                // - Filter: active, available, correct floor, under capacity
+                // - Sort: current_orders ASC, last_assigned_at ASC, id ASC
+                // - Select: First result (deterministic tie-breaker)
+                $waiter = $this->selectionEngine->selectBestWaiter($floor, $shift);
+
                 if (!$waiter) {
                     $task = $this->workloadService->createWaitingDelivery($order, $floor, 'No available waiter');
                     return $this->waitingResponse($task, 'No available waiter');
                 }
 
-                // Assign delivery and increment waiter's current_orders atomically
+                // STEP 8-14: Transaction-safe assignment
+                // - Lock selected waiter (sharedLock already applied in query)
+                // - Re-check capacity/availability (done in incrementOrders())
+                // - Create DeliveryTask
+                // - Set waiter_id
+                // - Increment current_orders
+                // - Update last_assigned_at
+                // - Commit transaction
                 $task = $this->workloadService->assignDelivery($order, $waiter, $floor);
+
+                // STEP 15: Dispatch WaiterAssignedEvent (will trigger NotifyWaiterListener)
+                // STEP 16: Create notification (handled by listener)
                 $this->notificationService->notifyAssignment($task, $waiter);
 
-                Log::info('✅ Order assigned successfully with load balancing', [
+                Log::info('✅ [ASSIGNMENT SERVICE] Order assigned successfully with enhanced tie-breaker', [
                     'order_id' => $order->id,
+                    'order_number' => $order->order_number,
                     'waiter_id' => $waiter->id,
                     'waiter_name' => $waiter->user->name ?? 'Unknown',
                     'waiter_orders_before' => $waiter->current_orders - 1,
                     'waiter_orders_after' => $waiter->current_orders,
+                    'last_assigned_at' => $waiter->last_assigned_at?->toDateTimeString() ?? 'just now',
                     'floor' => $floor->floor_number,
+                    'floor_name' => $floor->name,
                     'timestamp' => now(),
                 ]);
 
+                // STEP 17: Return assignment result
                 return $this->successResponse($task, 'Delivery successfully assigned');
             });
 

@@ -51,11 +51,16 @@ class WaiterAssignedEvent
         $this->waiterName = $waiter->user->name ?? $waiter->name ?? 'Unknown';
         $this->assignmentType = $assignmentType;
         $this->orderId = $delivery->order_id;
-        
-        // Get room and floor from delivery
-        $this->roomNumber = $delivery->room_number ?? 'Unknown';
-        $firstDigit = intval(substr($this->roomNumber, 0, 1));
-        $this->floorNumber = $firstDigit > 0 ? $firstDigit : 1;
+
+        // Resolve the real room/floor from the delivery relations when available.
+        $this->roomNumber = $delivery->room?->room_number
+            ?? $delivery->order?->room?->room_number
+            ?? 'Unknown';
+
+        $this->floorNumber = $delivery->floor?->floor_number
+            ?? $delivery->room?->floor?->floor_number
+            ?? $delivery->order?->room?->floor?->floor_number
+            ?? 1;
         
         $this->timestamp = now()->toIso8601String();
     }

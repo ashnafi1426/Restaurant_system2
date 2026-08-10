@@ -15,8 +15,16 @@ class WaiterManagementController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            // Get all waiters with user relationship loaded
-            $waiters = Waiter::with('user')
+            // Get all waiters with user relationship and TODAY'S floor assignments loaded
+            $waiters = Waiter::with([
+                'user',
+                'floorAssignments' => function ($q) {
+                    $q->where('assignment_date', '>=', today())
+                      ->where('status', 'active')
+                      ->with(['floor', 'shift'])
+                      ->orderBy('priority');
+                }
+            ])
                 ->orderBy('section')
                 ->get()
                 ->map(function ($waiter) {
@@ -42,6 +50,21 @@ class WaiterManagementController extends Controller
                         'employee_number' => $waiter->employee_number,
                         'phone' => $waiter->phone,
                         'hire_date' => $waiter->hire_date,
+                        // Add floor assignments
+                        'floor_assignments' => $waiter->floorAssignments->map(function ($assignment) {
+                            return [
+                                'id' => $assignment->id,
+                                'floor_id' => $assignment->floor_id,
+                                'floor_name' => $assignment->floor->name ?? 'Unknown',
+                                'floor_number' => $assignment->floor->floor_number ?? 0,
+                                'shift_id' => $assignment->shift_id,
+                                'shift_name' => $assignment->shift->name ?? 'Unknown',
+                                'shift_time' => ($assignment->shift ? "{$assignment->shift->start_time} - {$assignment->shift->end_time}" : 'N/A'),
+                                'priority' => $assignment->priority,
+                                'assignment_date' => $assignment->assignment_date,
+                                'status' => $assignment->status,
+                            ];
+                        })->toArray(),
                     ];
                 });
             
@@ -87,6 +110,12 @@ class WaiterManagementController extends Controller
                 'maximum_orders' => 'required|integer|min:1|max:20',
                 'employment_type' => 'sometimes|in:full_time,part_time,contract',
                 'employee_number' => 'sometimes|string|max:50', // Uniqueness checked manually later
+                // Floor assignment validation
+                'floor_assignments' => 'sometimes|array',
+                'floor_assignments.*.floor_id' => 'required_with:floor_assignments|exists:hotel_floors,id',
+                'floor_assignments.*.shift_id' => 'required_with:floor_assignments|exists:hotel_shifts,id',
+                'floor_assignments.*.priority' => 'required_with:floor_assignments|in:primary,secondary,backup',
+                'floor_assignments.*.assignment_date' => 'sometimes|date',
             ];
             
             if ($isNewUser) {
@@ -275,6 +304,16 @@ class WaiterManagementController extends Controller
 
                 $waiter = Waiter::create($waiterData);
 
+                // Create floor assignments if provided
+                if (!empty($validated['floor_assignments'])) {
+                    $this->syncFloorAssignments($waiter, $validated['floor_assignments']);
+                    
+                    Log::info('Floor assignments created', [
+                        'waiter_id' => $waiter->id,
+                        'assignments_count' => count($validated['floor_assignments']),
+                    ]);
+                }
+
                 Log::info('Waiter created successfully', [
                     'waiter_id' => $waiter->id,
                     'user_id' => $validated['user_id'],
@@ -282,7 +321,7 @@ class WaiterManagementController extends Controller
                     'user_data' => $waiter->user ? $waiter->user->toArray() : null
                 ]);
 
-                $responseData = $waiter->load('user');
+                $responseData = $waiter->load('user', 'floorAssignments.floor', 'floorAssignments.shift');
                 
                 Log::info('Response being sent to client', [
                     'data' => $responseData
@@ -385,6 +424,12 @@ class WaiterManagementController extends Controller
                 'current_orders' => 'sometimes|integer|min:0',
                 'availability' => 'sometimes|in:available,busy,break,offline',
                 'employee_number' => 'sometimes|string|max:50|unique:waiters,employee_number,' . $waiter->id,
+                // Floor assignment validation
+                'floor_assignments' => 'sometimes|array',
+                'floor_assignments.*.floor_id' => 'required_with:floor_assignments|exists:hotel_floors,id',
+                'floor_assignments.*.shift_id' => 'required_with:floor_assignments|exists:hotel_shifts,id',
+                'floor_assignments.*.priority' => 'required_with:floor_assignments|in:primary,secondary,backup',
+                'floor_assignments.*.assignment_date' => 'sometimes|date',
             ]);
 
             Log::info('Updating waiter', [
@@ -392,11 +437,22 @@ class WaiterManagementController extends Controller
                 'updates' => $validated,
             ]);
 
-            $waiter->update($validated);
+            // Update waiter basic info
+            $waiter->update(collect($validated)->except('floor_assignments')->toArray());
+
+            // Update floor assignments if provided
+            if (isset($validated['floor_assignments'])) {
+                $this->syncFloorAssignments($waiter, $validated['floor_assignments']);
+                
+                Log::info('Floor assignments updated', [
+                    'waiter_id' => $waiter->id,
+                    'assignments_count' => count($validated['floor_assignments']),
+                ]);
+            }
 
             return response()->json([
                 'success' => true,
-                'data' => $waiter->load('user'),
+                'data' => $waiter->load('user', 'floorAssignments.floor', 'floorAssignments.shift'),
                 'message' => 'Waiter updated successfully',
             ]);
         } catch (\Exception $e) {
@@ -597,6 +653,41 @@ class WaiterManagementController extends Controller
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Sync floor assignments for a waiter
+     * This creates/updates floor assignments, handling duplicates
+     * 
+     * @param Waiter $waiter
+     * @param array $assignments
+     * @return void
+     */
+    private function syncFloorAssignments(Waiter $waiter, array $assignments): void
+    {
+        // Delete existing assignments for dates covered by new assignments
+        $dates = collect($assignments)->pluck('assignment_date')
+            ->map(fn($date) => $date ?? today()->toDateString())
+            ->unique()
+            ->toArray();
+        
+        \App\Models\WaiterFloorAssignment::where('waiter_id', $waiter->id)
+            ->whereIn('assignment_date', $dates)
+            ->delete();
+        
+        // Create new assignments
+        foreach ($assignments as $assignment) {
+            \App\Models\WaiterFloorAssignment::create([
+                'id' => \Illuminate\Support\Str::uuid(),
+                'waiter_id' => $waiter->id,
+                'floor_id' => $assignment['floor_id'],
+                'shift_id' => $assignment['shift_id'],
+                'priority' => $assignment['priority'],
+                'assignment_date' => $assignment['assignment_date'] ?? today()->toDateString(),
+                'status' => 'active',
+                'assigned_by' => auth()->id(), // Current manager
+            ]);
         }
     }
 }

@@ -15,6 +15,7 @@ class WaiterNotification extends Model
     protected $fillable = [
         'waiter_id',
         'delivery_task_id',
+        'order_id',
         'type',
         'title',
         'message',

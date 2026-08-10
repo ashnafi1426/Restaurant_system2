@@ -47,13 +47,17 @@ class DeliveryWorkloadService
                 'accepted_at'     => now(),
             ]);
 
+            // Atomically increment orders and update last_assigned_at
             $waiter->incrementOrders();
+            $waiter->update(['last_assigned_at' => now()]);
 
-            Log::info('Delivery Task Assigned', [
+            Log::info('✅ Delivery Task Assigned with tie-breaker update', [
                 'delivery_id' => $delivery->id,
                 'order_id' => $order->id,
                 'waiter_id' => $waiter->id,
+                'waiter_name' => $waiter->user->name ?? 'Unknown',
                 'current_orders' => $waiter->current_orders,
+                'last_assigned_at' => now()->toDateTimeString(),
             ]);
 
             return $delivery;

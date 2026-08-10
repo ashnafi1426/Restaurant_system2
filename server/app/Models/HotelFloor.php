@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
 
@@ -69,6 +70,29 @@ class HotelFloor extends Model
     public function waiterAssignments(): HasMany
     {
         return $this->hasMany(WaiterFloorAssignment::class, 'floor_id');
+    }
+
+    /**
+     * Get active assignments for this floor (alias for destroy check)
+     */
+    public function assignments(): HasMany
+    {
+        return $this->waiterAssignments();
+    }
+
+    /**
+     * Get waiters assigned to this floor (for eager loading)
+     */
+    public function waiters()
+    {
+        return $this->hasManyThrough(
+            Waiter::class,
+            WaiterFloorAssignment::class,
+            'floor_id',  // Foreign key on WaiterFloorAssignment
+            'id',        // Foreign key on Waiter
+            'id',        // Local key on HotelFloor
+            'waiter_id'  // Local key on WaiterFloorAssignment
+        )->where('waiter_floor_assignments.status', 'active');
     }
 
     /**

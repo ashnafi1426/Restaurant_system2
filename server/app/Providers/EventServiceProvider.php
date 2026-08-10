@@ -34,8 +34,7 @@ class EventServiceProvider extends ServiceProvider
          * Can be automatic (from OrderReadyEvent) or manual (from manager)
          */
         WaiterAssignedEvent::class => [
-            NotifyWaiterListener::class,
-            UpdateWorkloadListener::class,
+            NotifyWaiterListener::class . '@handleWaiterAssigned',
         ],
 
         /**
@@ -43,7 +42,7 @@ class EventServiceProvider extends ServiceProvider
          * Usually from manager action to move delivery to different waiter
          */
         DeliveryReassignedEvent::class => [
-            NotifyWaiterListener::class,
+            NotifyWaiterListener::class . '@handleDeliveryReassigned',
             UpdateWorkloadListener::class,
         ],
 

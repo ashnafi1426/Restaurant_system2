@@ -290,4 +290,43 @@ class FloorManagementController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get all shifts
+     * 
+     * GET /api/manager/shifts
+     */
+    public function shifts(Request $request): JsonResponse
+    {
+        try {
+            $shifts = \App\Models\HotelShift::where('is_active', true)
+                ->orderBy('start_time')
+                ->get()
+                ->map(function ($shift) {
+                    return [
+                        'id' => $shift->id,
+                        'name' => $shift->name,
+                        'start_time' => $shift->start_time,
+                        'end_time' => $shift->end_time,
+                        'is_active' => $shift->is_active,
+                        'description' => $shift->description,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $shifts,
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error fetching shifts', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch shifts',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

@@ -28,6 +28,7 @@ class Waiter extends Model
         'availability',
         'current_orders',
         'maximum_orders',
+        'last_assigned_at',
         'profile_photo',
     ];
 
@@ -35,6 +36,7 @@ class Waiter extends Model
         'hire_date' => 'date',
         'current_orders' => 'integer',
         'maximum_orders' => 'integer',
+        'last_assigned_at' => 'datetime',
     ];
 
     /**

@@ -19,35 +19,56 @@ class WaiterSelectionEngine
             'shift_name' => $shift->name,
             'timestamp' => now(),
         ]);
-        $waiter = $this->selectFromFloorStaff($floor, $shift);
-        
-        if ($waiter) {
-            Log::info(' [SELECTION] Waiter selected from floor staff', [
-                'waiter_id' => $waiter->id,
-                'name' => $waiter->user->name,
-                'tier' => 'floor_assignment'
+        try {
+            $waiter = Waiter::query()
+                ->select('waiters.*')
+                ->join('waiter_floor_assignments', 'waiter_floor_assignments.waiter_id', '=', 'waiters.id')
+                ->where('waiter_floor_assignments.floor_id', $floor->id)
+                ->where('waiter_floor_assignments.shift_id', $shift->id)
+                ->whereDate('waiter_floor_assignments.assignment_date', today())
+                ->where('waiter_floor_assignments.status', 'active')
+                ->where('waiters.status', 'active')
+                ->where('waiters.availability', 'available')
+                ->whereRaw('waiters.current_orders < waiters.maximum_orders')
+                ->with(['user'])
+                ->orderBy('waiters.current_orders', 'asc')
+                ->orderByRaw("COALESCE(waiters.last_assigned_at, '1970-01-01 00:00:00') ASC")
+                ->orderBy('waiters.id', 'asc')
+                ->sharedLock()
+                ->first();
+
+            if ($waiter) {
+                Log::info(' [SELECTION] Best eligible waiter selected', [
+                    'waiter_id' => $waiter->id,
+                    'name' => $waiter->user->name ?? 'Unknown',
+                    'floor_id' => $floor->id,
+                    'floor_number' => $floor->floor_number,
+                    'shift_id' => $shift->id,
+                    'current_orders' => $waiter->current_orders,
+                    'last_assigned_at' => $waiter->last_assigned_at?->toDateTimeString() ?? 'never',
+                ]);
+
+                return $waiter;
+            }
+        } catch (Throwable $e) {
+            Log::error(' [SELECTION] Error selecting best waiter', [
+                'error' => $e->getMessage(),
+                'floor_id' => $floor->id,
+                'shift_id' => $shift->id,
+                'trace' => $e->getTraceAsString(),
             ]);
-            return $waiter;
+            return null;
         }
-        $waiter = $this->selectFromHotelStaff($floor, $shift);
-        
-        if ($waiter) {
-            Log::info(' [SELECTION] Waiter selected from hotel staff', [
-                'waiter_id' => $waiter->id,
-                'name' => $waiter->user->name,
-                'tier' => 'hotel_staff',
-                'original_floor' => $waiter->floorAssignments()->first()?->floor->floor_number ?? 'unassigned'
-            ]);
-            return $waiter;
-        }
-        Log::warning(' [SELECTION] NO WAITER AVAILABLE', [
+
+        Log::warning(' [SELECTION] NO ELIGIBLE WAITER AVAILABLE', [
             'floor_id' => $floor->id,
             'shift_id' => $shift->id,
             'timestamp' => now(),
-            'action' => 'Will create waiting_assignment task'
+            'action' => 'Will create waiting_assignment task',
+            'reason' => 'No active, available, in-capacity waiter assigned to this floor/shift',
         ]);
-        
-        return null;  // Caller will create waiting task
+
+        return null;
     }
     private function selectFromFloorStaff(HotelFloor $floor, HotelShift $shift): ?Waiter
     {
@@ -207,8 +228,9 @@ class WaiterSelectionEngine
                       ->where('status', 'active');
                 })
                 ->with(['user'])
-                ->orderBy('current_orders', 'asc')
-                ->orderBy('id', 'asc')
+                ->orderBy('current_orders', 'asc')      // PRIMARY: Lowest workload
+                ->orderByRaw('COALESCE(last_assigned_at, \'1970-01-01\') ASC')  // SECONDARY: Longest wait
+                ->orderBy('id', 'asc')                   // TERTIARY: Stable tie-breaker
                 ->sharedLock()
                 ->first();
 
@@ -218,6 +240,7 @@ class WaiterSelectionEngine
                     'name' => $sameFloorWaiter->user->name ?? 'Unknown',
                     'current_orders' => $sameFloorWaiter->current_orders,
                     'maximum_orders' => $sameFloorWaiter->maximum_orders,
+                    'last_assigned_at' => $sameFloorWaiter->last_assigned_at?->toDateTimeString() ?? 'never',
                     'floor_preference' => 'SAME FLOOR',
                     'floor_number' => $floor->floor_number,
                     'reason' => 'Waiter has assignment to this floor but not as primary/secondary/backup',
@@ -233,8 +256,9 @@ class WaiterSelectionEngine
                     $q->where('assignment_date', today())
                       ->where('status', 'active');
                 }])
-                ->orderBy('current_orders', 'asc')  // Database-level ordering
-                ->orderBy('id', 'asc')  // Tie-breaker
+                ->orderBy('current_orders', 'asc')      // PRIMARY: Lowest workload
+                ->orderByRaw('COALESCE(last_assigned_at, \'1970-01-01\') ASC')  // SECONDARY: Longest wait
+                ->orderBy('id', 'asc')                   // TERTIARY: Stable tie-breaker
                 ->sharedLock()
                 ->first();
 
@@ -255,9 +279,10 @@ class WaiterSelectionEngine
                 'name' => $bestWaiter->user->name ?? 'Unknown',
                 'current_orders' => $bestWaiter->current_orders,
                 'maximum_orders' => $bestWaiter->maximum_orders,
+                'last_assigned_at' => $bestWaiter->last_assigned_at?->toDateTimeString() ?? 'never',
                 'available_slots' => $bestWaiter->maximum_orders - $bestWaiter->current_orders,
                 'workload_percent' => round(($bestWaiter->current_orders / $bestWaiter->maximum_orders) * 100, 2),
-                'selection_reason' => 'Lowest current workload (database-level ordering)',
+                'selection_reason' => 'Deterministic selection: lowest workload → longest wait → stable ID',
                 'assigned_floors' => $assignedFloors,
                 'delivering_to_floor' => $floor->floor_number,
                 'cross_floor_delivery' => !in_array($floor->floor_number, $assignedFloors),

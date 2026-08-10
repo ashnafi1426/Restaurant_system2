@@ -46,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
             return new \App\Services\Waiter\AutomaticWaiterAssignmentService(
                 $app->make(\App\Services\Waiter\FloorResolverService::class),
                 $app->make(\App\Services\Waiter\ShiftResolverService::class),
-                $app->make(\App\Services\Waiter\AssignmentStrategy::class),
+                $app->make(\App\Services\Waiter\WaiterSelectionEngine::class),
                 $app->make(\App\Services\Waiter\DeliveryWorkloadService::class),
                 $app->make(\App\Services\Waiter\DeliveryNotificationService::class)
             );
