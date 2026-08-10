@@ -186,6 +186,58 @@
                 </div>
               </div>
             </div>
+
+            <!-- Floor Assignments Section -->
+            <div class="form-section">
+              <div class="section-header">
+                <div class="section-icon floor-icon">🏢</div>
+                <h3>Floor Assignments</h3>
+              </div>
+
+              <div v-if="loadingFloors" class="loading-message">
+                <Loader :size="14" class="spin" />
+                Loading floors...
+              </div>
+
+              <div v-else class="assignments-list">
+                <div v-for="(assignment, index) in formData.floor_assignments" 
+                     :key="index" 
+                     class="assignment-row">
+                  <select v-model="assignment.floor_id" class="form-control" required>
+                    <option value="">Select Floor...</option>
+                    <option v-for="floor in floors" :key="floor.id" :value="floor.id">
+                      Floor {{ floor.floor_number }} - {{ floor.name }}
+                    </option>
+                  </select>
+                  
+                  <select v-model="assignment.shift_id" class="form-control" required>
+                    <option value="">Select Shift...</option>
+                    <option v-for="shift in shifts" :key="shift.id" :value="shift.id">
+                      {{ shift.name }} ({{ shift.start_time }} - {{ shift.end_time }})
+                    </option>
+                  </select>
+                  
+                  <select v-model="assignment.priority" class="form-control">
+                    <option value="primary">⭐ Primary</option>
+                    <option value="secondary">👥 Secondary</option>
+                    <option value="backup">🔄 Backup</option>
+                  </select>
+                  
+                  <button type="button" @click="removeFloorAssignment(index)" class="btn-remove" title="Remove">
+                    <Trash2 :size="14" />
+                  </button>
+                </div>
+                
+                <button type="button" @click="addFloorAssignment" class="btn-add">
+                  <Plus :size="14" />
+                  Add Floor Assignment
+                </button>
+                
+                <p v-if="formData.floor_assignments.length === 0" class="hint warning-hint">
+                  💡 Add at least one floor assignment to enable automatic order routing
+                </p>
+              </div>
+            </div>
           </div>
         </form>
 
@@ -212,8 +264,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { X, UserPlus, AlertCircle, Loader } from 'lucide-vue-next'
+import { ref, watch, onMounted } from 'vue'
+import { X, UserPlus, AlertCircle, Loader, Plus, Trash2 } from 'lucide-vue-next'
+import { floorService } from '@/services/manager/floorService'
+import { shiftService } from '@/services/manager/shiftService'
 
 interface Props {
   isOpen: boolean
@@ -234,6 +288,10 @@ const submitting = ref(false)
 const errorMessage = ref('')
 const fieldErrors = ref<Record<string, string>>({})
 
+const floors = ref<any[]>([])
+const shifts = ref<any[]>([])
+const loadingFloors = ref(false)
+
 const formData = ref({
   section: '',
   shift: '',
@@ -241,6 +299,12 @@ const formData = ref({
   status: 'inactive', // Default to inactive for new waiters
   maximum_orders: 5,
   employee_number: '',
+  floor_assignments: [] as Array<{
+    floor_id: string
+    shift_id: string
+    priority: string
+    assignment_date: string
+  }>
 })
 
 const newUserData = ref({
@@ -248,6 +312,29 @@ const newUserData = ref({
   last_name: '',
   email: '',
   phone: '',
+})
+
+// Load floors and shifts on mount
+onMounted(async () => {
+  try {
+    loadingFloors.value = true
+    const [floorsRes, shiftsRes] = await Promise.all([
+      floorService.getFloors(),
+      shiftService.getShifts()
+    ])
+    
+    // Extract data from paginated response
+    floors.value = floorsRes.data?.data || floorsRes.data || []
+    shifts.value = shiftsRes.data || []
+    
+    console.log('[WaiterFormModal] Loaded floors:', floors.value.length)
+    console.log('[WaiterFormModal] Loaded shifts:', shifts.value.length)
+  } catch (error) {
+    console.error('[WaiterFormModal] Error loading floors/shifts:', error)
+    errorMessage.value = 'Failed to load floors and shifts'
+  } finally {
+    loadingFloors.value = false
+  }
 })
 
 watch(() => props.isOpen, (newVal) => {
@@ -262,6 +349,7 @@ watch(() => props.isOpen, (newVal) => {
         status: props.waiterData.status || 'active',
         maximum_orders: props.waiterData.maximum_orders || 5,
         employee_number: props.waiterData.employee_number || '',
+        floor_assignments: props.waiterData.floor_assignments || []
       }
       // Don't load user data in edit mode (read-only)
       newUserData.value = {
@@ -276,8 +364,29 @@ watch(() => props.isOpen, (newVal) => {
   }
 })
 
+const addFloorAssignment = () => {
+  formData.value.floor_assignments.push({
+    floor_id: '',
+    shift_id: '',
+    priority: 'primary',
+    assignment_date: new Date().toISOString().split('T')[0]
+  })
+}
+
+const removeFloorAssignment = (index: number) => {
+  formData.value.floor_assignments.splice(index, 1)
+}
+
 const resetForm = () => {
-  formData.value = { section: '', shift: '', experience_level: '', status: 'inactive', maximum_orders: 5, employee_number: '' }
+  formData.value = { 
+    section: '', 
+    shift: '', 
+    experience_level: '', 
+    status: 'inactive', 
+    maximum_orders: 5, 
+    employee_number: '',
+    floor_assignments: []
+  }
   newUserData.value = { first_name: '', last_name: '', email: '', phone: '' }
   errorMessage.value = ''
   fieldErrors.value = {}
@@ -517,6 +626,7 @@ const close = () => {
 .person-icon { background: #e3f2fd; }
 .lock-icon { background: #f3e5f5; }
 .work-icon { background: #e8f5e9; }
+.floor-icon { background: #fff3e0; }
 
 .section-header h3 {
   margin: 0;
@@ -579,8 +689,17 @@ label {
 
 .hint {
   font-size: 11px;
-  color: #ff9800;
+  color: #999;
   display: block;
+  margin: 0;
+}
+
+.warning-hint {
+  color: #ff9800 !important;
+  background: #fff8e1;
+  padding: 8px 10px;
+  border-radius: 4px;
+  border-left: 3px solid #ff9800;
 }
 
 /* Info Banner */
@@ -797,5 +916,81 @@ label {
 
 .modal-body::-webkit-scrollbar-thumb:hover {
   background: #999;
+}
+
+/* Floor Assignments */
+.assignments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assignment-row {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  transition: 0.2s;
+}
+
+.assignment-row:hover {
+  background: #f0f3f8;
+  border-color: #667eea;
+}
+
+.btn-remove {
+  padding: 8px;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 6px;
+  color: #e74c3c;
+  cursor: pointer;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-remove:hover {
+  background: #fdd;
+  border-color: #e74c3c;
+}
+
+.btn-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-top: 4px;
+}
+
+.btn-add:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.loading-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #666;
 }
 </style>

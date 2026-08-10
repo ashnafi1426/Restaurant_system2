@@ -136,13 +136,17 @@ const handleAssign = async () => {
       return
     }
     
-    //  VERIFY FLOOR_ID AND SHIFT_ID ARE UUIDS
+    // Verify floor and shift identifiers are present for backend submission.
     const floorId = String(props.floorId).trim()
     const shiftId = String(selectedShift.value).trim()
     
     if (!floorId || !shiftId) {
-      error.value = 'Floor ID or Shift ID is missing'
-      console.error('[Modal] PART 3: ❌ Missing IDs', { floorId, shiftId })
+      error.value = 'Floor or shift selection is missing'
+      console.error('[Modal] PART 3: ❌ Missing assignment targets', {
+        floorName: props.floorName,
+        floorId,
+        shiftId,
+      })
       isSubmitting.value = false
       return
     }

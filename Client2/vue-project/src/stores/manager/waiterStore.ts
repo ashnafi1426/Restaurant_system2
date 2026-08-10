@@ -50,6 +50,7 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
       maximum_orders: waiter.maximum_orders || 10,
       employee_number: waiter.employee_number,
       hire_date: waiter.hire_date,
+      floor_assignments: waiter.floor_assignments || [],
     }))
   })
   async function load() {

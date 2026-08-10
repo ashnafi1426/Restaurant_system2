@@ -77,6 +77,7 @@ const handleSubmitWaiter = async (formData: any) => {
         status: formData.status,
         maximum_orders: formData.maximum_orders,
         phone: formData.phone,
+        floor_assignments: formData.floor_assignments || []
       }
       await waiterStore.update(selectedWaiter.value.id, updateData)
       successMessage.value = `${selectedWaiter.value.name} has been updated successfully`
@@ -349,10 +350,10 @@ onMounted(async () => {
                   <tr class="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-750 border-b border-slate-200 dark:border-slate-700">
                     <th class="px-4 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Staff Member</th>
                     <th class="px-4 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Status</th>
+                    <th class="px-4 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Floor Assignments</th>
                     <th class="px-4 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Section</th>
                     <th class="px-4 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Shift</th>
                     <th class="px-4 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Experience</th>
-                    <th class="px-4 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Phone</th>
                     <th class="px-4 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
@@ -376,6 +377,27 @@ onMounted(async () => {
                       </span>
                     </td>
                     <td class="px-4 py-2.5">
+                      <div class="flex flex-wrap gap-1">
+                        <template v-if="waiter.floor_assignments && waiter.floor_assignments.length > 0">
+                          <span v-for="assignment in waiter.floor_assignments" :key="assignment.id"
+                            :class="[
+                              'inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold',
+                              assignment.priority === 'primary' ? 'bg-emerald-100 text-emerald-700 border border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                              assignment.priority === 'secondary' ? 'bg-blue-100 text-blue-700 border border-blue-300 dark:bg-blue-900/30 dark:text-blue-400' :
+                              'bg-amber-100 text-amber-700 border border-amber-300 dark:bg-amber-900/30 dark:text-amber-400'
+                            ]"
+                            :title="`${assignment.shift_name} - ${assignment.priority}`"
+                          >
+                            {{ assignment.floor_name }}
+                            <span class="opacity-70 text-[10px]">{{ assignment.priority.charAt(0).toUpperCase() }}</span>
+                          </span>
+                        </template>
+                        <span v-else class="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800 font-medium">
+                          ⚠️ No assignments
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-2.5">
                       <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-medium">
                         {{ waiter.section }}
                       </span>
@@ -388,9 +410,6 @@ onMounted(async () => {
                         <TrendingUp class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                         {{ waiter.experience_level ? waiter.experience_level.charAt(0).toUpperCase() + waiter.experience_level.slice(1) : 'N/A' }}
                       </span>
-                    </td>
-                    <td class="px-4 py-2.5 text-xs text-slate-600 dark:text-slate-400">
-                      {{ waiter.phone || 'N/A' }}
                     </td>
                     <td class="px-4 py-2.5 text-center relative">
                       <div class="relative inline-block">
