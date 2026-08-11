@@ -34,27 +34,22 @@
                     @change="handlePhotoUpload"
                   />
                 </div>
-                <h2 class="mt-4 text-xl font-semibold text-gray-900">{{ profile?.name }}</h2>
-                <p class="text-sm text-gray-500">{{ profile?.waiter?.employee_code || 'No Employee Code' }}</p>
-                <span
-                  :class="[
-                    'mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium',
-                    statusColor
-                  ]"
-                >
-                  {{ profile?.waiter?.status || 'active' }}
+                <h2 class="mt-4 text-xl font-semibold text-gray-900">{{ profile?.full_name }}</h2>
+                <p class="text-sm text-gray-500">{{ profile?.administrator?.employee_code || 'No Employee Code' }}</p>
+                <span class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  {{ profile?.administrator?.status || 'active' }}
                 </span>
               </div>
 
               <!-- Quick Stats -->
               <div class="mt-6 space-y-3">
                 <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600">Shift</span>
-                  <span class="font-medium text-gray-900">{{ profile?.waiter?.shift || 'N/A' }}</span>
+                  <span class="text-gray-600">Department</span>
+                  <span class="font-medium text-gray-900">{{ profile?.administrator?.department || 'N/A' }}</span>
                 </div>
                 <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600">Phone</span>
-                  <span class="font-medium text-gray-900">{{ profile?.phone || 'N/A' }}</span>
+                  <span class="text-gray-600">Hire Date</span>
+                  <span class="font-medium text-gray-900">{{ formatDate(profile?.administrator?.hire_date) }}</span>
                 </div>
                 <div class="flex items-center justify-between text-sm">
                   <span class="text-gray-600">Email</span>
@@ -92,16 +87,29 @@
             <div v-if="activeTab === 'personal'" class="p-6">
               <h3 class="text-lg font-semibold text-gray-900 mb-6">Personal Information</h3>
               <form @submit.prevent="updateProfile" class="space-y-6">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name *
-                  </label>
-                  <input
-                    v-model="formData.name"
-                    type="text"
-                    required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                      First Name *
+                    </label>
+                    <input
+                      v-model="formData.first_name"
+                      type="text"
+                      required
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                      Last Name *
+                    </label>
+                    <input
+                      v-model="formData.last_name"
+                      type="text"
+                      required
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -129,18 +137,13 @@
 
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Shift
+                    Department
                   </label>
-                  <select
-                    v-model="formData.shift"
+                  <input
+                    v-model="formData.department"
+                    type="text"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="morning">Morning</option>
-                    <option value="afternoon">Afternoon</option>
-                    <option value="evening">Evening</option>
-                    <option value="night">Night</option>
-                    <option value="flexible">Flexible</option>
-                  </select>
+                  />
                 </div>
 
                 <div>
@@ -230,55 +233,55 @@
 
             <!-- Statistics Tab -->
             <div v-if="activeTab === 'statistics'" class="p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-6">Performance Statistics</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-6">System Statistics</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-blue-50 rounded-lg p-4">
                   <div class="flex items-center justify-between">
                     <div>
-                      <p class="text-sm text-gray-600">Deliveries Today</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.total_deliveries_today || 0 }}</p>
+                      <p class="text-sm text-gray-600">Total Users</p>
+                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.total_users || 0 }}</p>
                     </div>
-                    <Package class="w-10 h-10 text-blue-600" />
+                    <Users class="w-10 h-10 text-blue-600" />
                   </div>
                 </div>
 
                 <div class="bg-green-50 rounded-lg p-4">
                   <div class="flex items-center justify-between">
                     <div>
-                      <p class="text-sm text-gray-600">This Week</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.total_deliveries_week || 0 }}</p>
+                      <p class="text-sm text-gray-600">Total Orders</p>
+                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.total_orders || 0 }}</p>
                     </div>
-                    <TrendingUp class="w-10 h-10 text-green-600" />
-                  </div>
-                </div>
-
-                <div class="bg-yellow-50 rounded-lg p-4">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm text-gray-600">Average Rating</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.average_rating || 0 }}/5</p>
-                    </div>
-                    <Star class="w-10 h-10 text-yellow-600" />
+                    <ShoppingBag class="w-10 h-10 text-green-600" />
                   </div>
                 </div>
 
                 <div class="bg-purple-50 rounded-lg p-4">
                   <div class="flex items-center justify-between">
                     <div>
-                      <p class="text-sm text-gray-600">Pending Tasks</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.pending_assignments || 0 }}</p>
+                      <p class="text-sm text-gray-600">Total Revenue</p>
+                      <p class="text-2xl font-bold text-gray-900 mt-1">ETB {{ formatNumber(stats?.total_revenue) }}</p>
                     </div>
-                    <Clock class="w-10 h-10 text-purple-600" />
+                    <DollarSign class="w-10 h-10 text-purple-600" />
+                  </div>
+                </div>
+
+                <div class="bg-yellow-50 rounded-lg p-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-gray-600">Active Reservations</p>
+                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.active_reservations || 0 }}</p>
+                    </div>
+                    <Building class="w-10 h-10 text-yellow-600" />
                   </div>
                 </div>
 
                 <div class="bg-indigo-50 rounded-lg p-4 md:col-span-2">
                   <div class="flex items-center justify-between">
                     <div>
-                      <p class="text-sm text-gray-600">Completed Today</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.completed_today || 0 }}</p>
+                      <p class="text-sm text-gray-600">Total Rooms</p>
+                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.total_rooms || 0 }}</p>
                     </div>
-                    <CheckCircle class="w-10 h-10 text-indigo-600" />
+                    <Home class="w-10 h-10 text-indigo-600" />
                   </div>
                 </div>
               </div>
@@ -293,20 +296,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
-import { waiterProfileService, type WaiterProfile, type WaiterStats } from '@/services/profile/waiterProfileService'
-import { Camera, User, Lock, BarChart3, Package, TrendingUp, Star, Clock, CheckCircle } from 'lucide-vue-next'
+import { adminProfileService, type AdminProfile, type AdminStats } from '@/services/profile/adminProfileService'
+import { Camera, User, Lock, BarChart3, Users, ShoppingBag, DollarSign, Building, Home } from 'lucide-vue-next'
 
 // State
-const profile = ref<WaiterProfile | null>(null)
-const stats = ref<WaiterStats | null>(null)
+const profile = ref<AdminProfile | null>(null)
+const stats = ref<AdminStats | null>(null)
 const loading = ref(false)
 const activeTab = ref('personal')
 
 // Form Data
 const formData = ref({
-  name: '',
+  first_name: '',
+  last_name: '',
   phone: '',
-  shift: 'flexible',
+  department: '',
   bio: ''
 })
 
@@ -325,32 +329,25 @@ const tabs = [
 
 // Computed
 const profilePhotoUrl = computed(() => {
-  if (profile.value?.waiter?.profile_photo) {
-    return `http://127.0.0.1:8000/storage/${profile.value.waiter.profile_photo}`
+  if (profile.value?.administrator?.profile_photo) {
+    return `http://127.0.0.1:8000/storage/${profile.value.administrator.profile_photo}`
   }
   return '/images/avatar.png'
-})
-
-const statusColor = computed(() => {
-  const status = profile.value?.waiter?.status
-  if (status === 'active') return 'bg-green-100 text-green-800'
-  if (status === 'on_break') return 'bg-yellow-100 text-yellow-800'
-  if (status === 'offline') return 'bg-gray-100 text-gray-800'
-  return 'bg-gray-100 text-gray-800'
 })
 
 // Methods
 async function loadProfile() {
   try {
     loading.value = true
-    profile.value = await waiterProfileService.getProfile()
+    profile.value = await adminProfileService.getProfile()
     
     // Populate form
     formData.value = {
-      name: profile.value.name,
+      first_name: profile.value.first_name,
+      last_name: profile.value.last_name,
       phone: profile.value.phone || '',
-      shift: profile.value.waiter?.shift || 'flexible',
-      bio: profile.value.waiter?.bio || ''
+      department: profile.value.administrator?.department || '',
+      bio: profile.value.administrator?.bio || ''
     }
   } catch (error: any) {
     alert(`Error: ${error.response?.data?.message || 'Failed to load profile'}`)
@@ -361,7 +358,7 @@ async function loadProfile() {
 
 async function loadStats() {
   try {
-    stats.value = await waiterProfileService.getStats()
+    stats.value = await adminProfileService.getStats()
   } catch (error: any) {
     console.error('Failed to load stats:', error)
   }
@@ -370,7 +367,7 @@ async function loadStats() {
 async function updateProfile() {
   try {
     loading.value = true
-    await waiterProfileService.updateProfile(formData.value)
+    await adminProfileService.updateProfile(formData.value)
     await loadProfile()
     alert('Profile updated successfully')
   } catch (error: any) {
@@ -400,7 +397,7 @@ async function handlePhotoUpload(event: Event) {
   
   try {
     loading.value = true
-    const result = await waiterProfileService.uploadPhoto(file)
+    const result = await adminProfileService.uploadPhoto(file)
     console.log('Photo uploaded:', result)
     
     // Reload profile to get updated photo
@@ -427,7 +424,7 @@ async function changePassword() {
   
   try {
     loading.value = true
-    await waiterProfileService.changePassword(passwordData.value)
+    await adminProfileService.changePassword(passwordData.value)
     alert('Password changed successfully')
     
     // Reset form
@@ -446,12 +443,27 @@ async function changePassword() {
 function resetForm() {
   if (profile.value) {
     formData.value = {
-      name: profile.value.name,
+      first_name: profile.value.first_name,
+      last_name: profile.value.last_name,
       phone: profile.value.phone || '',
-      shift: profile.value.waiter?.shift || 'flexible',
-      bio: profile.value.waiter?.bio || ''
+      department: profile.value.administrator?.department || '',
+      bio: profile.value.administrator?.bio || ''
     }
   }
+}
+
+function formatDate(date: string | null | undefined): string {
+  if (!date) return 'N/A'
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+}
+
+function formatNumber(num: number | undefined): string {
+  if (!num) return '0'
+  return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 // Lifecycle

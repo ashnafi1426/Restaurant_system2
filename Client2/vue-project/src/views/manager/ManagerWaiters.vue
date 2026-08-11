@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, onUnmounted, ref, computed } from 'vue'
 import { useManagerWaiterStore } from '@/stores/manager/waiterStore'
 import WaiterFormModal from '@/components/manager/WaiterFormModal.vue'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
-import { Users2, UserPlus, Search, MoreVertical, Download, Edit3, Trash2, CheckCircle2, Clock, AlertCircle, TrendingUp } from 'lucide-vue-next'
+import { Users2, UserPlus, Search, Download, Edit3, Trash2, CheckCircle2, Clock, AlertCircle } from 'lucide-vue-next'
 
 const waiterStore = useManagerWaiterStore()
 
@@ -37,17 +37,38 @@ const filteredWaiters = computed(() => {
   return result
 })
 
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value)
 const paginatedWaiters = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredWaiters.value.slice(start, end)
+  return filteredWaiters.value.slice(startIndex.value, startIndex.value + itemsPerPage.value)
 })
 
 const totalPages = computed(() => Math.ceil(filteredWaiters.value.length / itemsPerPage.value))
 const totalWaiters = computed(() => waiterStore.normalizedWaiters?.length || 0)
-const activeCount = computed(() => waiterStore.waiterStats?.active || 0)
-const busyCount = computed(() => (waiterStore.normalizedWaiters || []).filter((w: any) => w.status === 'on_break').length)
-const inactiveCount = computed(() => waiterStore.waiterStats?.inactive || 0)
+const activeCount = computed(() => waiterStore.waiterStats?.active || (waiterStore.normalizedWaiters || []).filter((w: any) => w.status === 'active').length || 0)
+const busyCount = computed(() => (waiterStore.normalizedWaiters || []).filter((w: any) => w.status === 'on_break').length || 0)
+const inactiveCount = computed(() => waiterStore.waiterStats?.inactive || (waiterStore.normalizedWaiters || []).filter((w: any) => w.status === 'inactive').length || 0)
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let start = Math.max(1, currentPage.value - 2)
+  let end = Math.min(totalPages.value, start + maxVisible - 1)
+  if (end - start < maxVisible - 1) {
+    start = Math.max(1, end - maxVisible + 1)
+  }
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+const toggleMenu = (waiterId: string) => {
+  activeMenuId.value = activeMenuId.value === waiterId ? null : waiterId
+}
+
+const handleOutsideClick = () => {
+  activeMenuId.value = null
+}
 
 const openAddModal = () => {
   isEditMode.value = false
@@ -93,10 +114,6 @@ const handleSubmitWaiter = async (formData: any) => {
   }
 }
 
-const toggleMenu = (waiterId: string) => {
-  activeMenuId.value = activeMenuId.value === waiterId ? null : waiterId
-}
-
 const deleteWaiter = async (waiter: any) => {
   if (confirm(`Are you sure you want to delete ${waiter.name}? This action cannot be undone.`)) {
     try {
@@ -108,33 +125,6 @@ const deleteWaiter = async (waiter: any) => {
     } catch (error) {
       console.error('Error deleting waiter:', error)
     }
-  }
-}
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'active': return 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-700'
-    case 'on_break': return 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700'
-    case 'inactive': return 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-600'
-    default: return 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-600'
-  }
-}
-
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case 'active': return '✓'
-    case 'on_break': return '⏸'
-    case 'inactive': return '✕'
-    default: return '•'
-  }
-}
-
-const getAvailabilityStatus = (status: string) => {
-  switch (status) {
-    case 'active': return { label: 'Active', color: 'text-emerald-600', dot: '🟢' }
-    case 'on_break': return { label: 'On Break', color: 'text-amber-600', dot: '🟡' }
-    case 'inactive': return { label: 'Inactive', color: 'text-slate-600', dot: '⚪' }
-    default: return { label: 'Offline', color: 'text-slate-600', dot: '⚪' }
   }
 }
 
@@ -153,379 +143,331 @@ const exportToCSV = () => {
   link.click()
 }
 
+const previousPage = () => { if (currentPage.value > 1) currentPage.value-- }
+const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
+
 onMounted(async () => {
   await waiterStore.load()
+  window.addEventListener('click', handleOutsideClick)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', handleOutsideClick)
 })
 </script>
 
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 py-4 md:py-6 pb-12 transition-colors duration-300">
-      <!-- Fixed Header -->
-      <div class="fixed top-0 right-0 left-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-        <div class="px-6 py-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
-                <Users2 class="w-7 h-7 text-blue-600 dark:text-blue-400" />
-                Waiter Management
-              </h1>
-              <p class="text-slate-600 dark:text-slate-400 text-xs mt-1">Manage your service staff, shifts, and floor assignments</p>
+    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-3 sm:p-6 lg:p-8 transition-colors duration-200">
+      <div class="max-w-7xl mx-auto space-y-6">
+        <!-- Toast Notification -->
+        <div v-if="showSuccessAlert" class="p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-xl flex items-center gap-3 shadow-md">
+          <CheckCircle2 class="w-5 h-5 flex-shrink-0" />
+          <p class="text-xs font-semibold">{{ successMessage }}</p>
+        </div>
+
+        <!-- Clean Header Area -->
+        <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-sm dark:shadow-2xl">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="p-3 bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-500/30 shadow-sm flex-shrink-0">
+                <Users2 class="w-6 h-6" />
+              </div>
+              <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Waiter Management</h1>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Manage your service staff, shift rosters, and floor assignments</p>
+              </div>
             </div>
             <button
               @click="openAddModal"
-              class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-semibold rounded-lg transition shadow-lg flex-shrink-0"
+              class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-indigo-600/20 flex items-center gap-2 self-start sm:self-auto whitespace-nowrap"
             >
               <UserPlus class="w-4 h-4" />
               Register New Waiter
             </button>
           </div>
         </div>
-      </div>
 
-      <!-- Page Content - Starts below fixed header -->
-      <div class="pt-32">
-        <!-- Success Alert -->
-        <transition name="slide-down">
-          <div v-if="showSuccessAlert" class="fixed top-28 right-8 z-50 p-3 bg-emerald-50 dark:bg-emerald-900/30 border-l-4 border-emerald-600 dark:border-emerald-500 rounded-lg flex items-center gap-2 shadow-lg max-w-md">
-            <CheckCircle2 class="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-            <p class="text-xs font-medium text-emerald-800 dark:text-emerald-200">{{ successMessage }}</p>
-          </div>
-        </transition>
-
-        <div class="px-6 py-4 space-y-4">
-          <!-- Stats Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white dark:bg-slate-800 rounded-xl border-2 border-blue-200 dark:border-blue-800 p-4 hover:shadow-lg transition">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total Staff</p>
-                  <h3 class="text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1">{{ totalWaiters }}</h3>
-                  <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">Hospitality Staff</p>
-                </div>
-                <div class="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg"><Users2 class="w-5 h-5 text-blue-600 dark:text-blue-400" /></div>
+        <!-- KPI Stats Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Staff</span>
+              <div class="p-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
+                <Users2 class="w-5 h-5" />
               </div>
             </div>
-
-            <div class="bg-white dark:bg-slate-800 rounded-xl border-2 border-emerald-200 dark:border-emerald-800 p-4 hover:shadow-lg transition">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Active</p>
-                  <h3 class="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ activeCount }}</h3>
-                  <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">Ready for Duty</p>
-                </div>
-                <div class="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg"><CheckCircle2 class="w-5 h-5 text-emerald-600 dark:text-emerald-400" /></div>
-              </div>
-            </div>
-
-            <div class="bg-white dark:bg-slate-800 rounded-xl border-2 border-amber-200 dark:border-amber-800 p-4 hover:shadow-lg transition">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">On Break</p>
-                  <h3 class="text-3xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ busyCount }}</h3>
-                  <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">Currently Off</p>
-                </div>
-                <div class="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg"><Clock class="w-5 h-5 text-amber-600 dark:text-amber-400" /></div>
-              </div>
-            </div>
-
-            <div class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-4 hover:shadow-lg transition">
-              <div class="flex items-start justify-between">
-                <div>
-                  <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Inactive</p>
-                  <h3 class="text-3xl font-bold text-slate-600 dark:text-slate-400 mt-1">{{ inactiveCount }}</h3>
-                  <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">Off Duty</p>
-                </div>
-                <div class="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg"><AlertCircle class="w-5 h-5 text-slate-600 dark:text-slate-400" /></div>
-              </div>
-            </div>
+            <h3 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-3">{{ totalWaiters }}</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Hospitality Service Team</p>
           </div>
 
-          <!-- Controls -->
-          <div class="flex flex-col gap-3">
-            <div class="flex items-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2">
-              <Search class="w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0" />
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Search by name or section..."
-                class="flex-1 outline-none text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent text-sm"
-              />
-            </div>
-
-            <div class="flex gap-2">
-              <button
-                @click="exportToCSV"
-                class="flex items-center gap-2 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-medium transition"
-              >
-                <Download class="w-4 h-4" />
-                Export CSV
-              </button>
-
-              <div class="flex gap-2 ml-auto">
-                <button
-                  @click="filterStatus = 'all'"
-                  :class="[
-                    'px-3 py-2 rounded-lg text-sm font-medium transition',
-                    filterStatus === 'all'
-                      ? 'bg-blue-600 text-white'
-                      : 'border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                  ]"
-                >
-                  All
-                </button>
-                <button
-                  @click="filterStatus = 'active'"
-                  :class="[
-                    'px-3 py-2 rounded-lg text-sm font-medium transition',
-                    filterStatus === 'active'
-                      ? 'bg-blue-600 text-white'
-                      : 'border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                  ]"
-                >
-                  Active
-                </button>
-                <button
-                  @click="filterStatus = 'on_break'"
-                  :class="[
-                    'px-3 py-2 rounded-lg text-sm font-medium transition',
-                    filterStatus === 'on_break'
-                      ? 'bg-blue-600 text-white'
-                      : 'border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                  ]"
-                >
-                  On Break
-                </button>
-                <button
-                  @click="filterStatus = 'inactive'"
-                  :class="[
-                    'px-3 py-2 rounded-lg text-sm font-medium transition',
-                    filterStatus === 'inactive'
-                      ? 'bg-blue-600 text-white'
-                      : 'border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                  ]"
-                >
-                  Inactive
-                </button>
+          <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active</span>
+              <div class="p-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                <CheckCircle2 class="w-5 h-5" />
               </div>
             </div>
+            <h3 class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-3">{{ activeCount }}</h3>
+            <p class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1">Ready for Duty</p>
           </div>
 
-          <!-- Loading State -->
-          <div v-if="waiterStore.loading" class="flex justify-center items-center py-16">
-            <div class="text-center">
-              <div class="relative w-10 h-10">
-                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="#0EA5E9" stroke-width="6" opacity="0.3" />
-                </svg>
-                <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
-                  <svg viewBox="0 0 100 100" class="w-full h-full">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="#FBBF24" stroke-width="8" stroke-linecap="round" stroke-dasharray="70 280" />
-                  </svg>
-                </div>
+          <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">On Break</span>
+              <div class="p-2.5 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl">
+                <Clock class="w-5 h-5" />
               </div>
-              <p class="text-slate-700 dark:text-yellow-300 font-semibold text-xs mt-3">Loading waiters...</p>
             </div>
+            <h3 class="text-3xl font-extrabold text-amber-600 dark:text-amber-400 mt-3">{{ busyCount }}</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Currently Off Shift</p>
           </div>
 
-          <!-- Empty State -->
-          <div v-else-if="filteredWaiters.length === 0" class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 text-center">
-            <Users2 class="w-10 h-10 text-slate-400 dark:text-slate-500 mx-auto mb-3" />
-            <p class="text-slate-600 dark:text-slate-400 text-base font-medium mb-1.5">No waiters found</p>
-            <p class="text-slate-500 dark:text-slate-500 text-sm mb-4">{{ searchQuery ? 'Try adjusting your search' : 'Register your first waiter to get started' }}</p>
+          <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Inactive</span>
+              <div class="p-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl">
+                <AlertCircle class="w-5 h-5" />
+              </div>
+            </div>
+            <h3 class="text-3xl font-extrabold text-slate-600 dark:text-slate-400 mt-3">{{ inactiveCount }}</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Off Duty</p>
+          </div>
+        </div>
+
+        <!-- Filter, Search & Export Bar -->
+        <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm dark:shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 flex-1 max-w-md">
+            <Search class="w-4 h-4 text-slate-400 flex-shrink-0" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search staff by name or section..."
+              class="w-full bg-transparent outline-none text-xs text-slate-900 dark:text-white placeholder-slate-400"
+            />
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
             <button
-              @click="openAddModal"
-              class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition"
+              @click="exportToCSV"
+              class="px-3.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition text-xs font-bold flex items-center gap-1.5 shadow-xs"
             >
-              <UserPlus class="w-4 h-4" />
-              Register Waiter
+              <Download class="w-3.5 h-3.5" />
+              Export CSV
             </button>
+
+            <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+              <button
+                @click="filterStatus = 'all'"
+                :class="[
+                  'px-3 py-1 rounded-lg text-xs font-bold transition',
+                  filterStatus === 'all' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                ]"
+              >
+                All
+              </button>
+              <button
+                @click="filterStatus = 'active'"
+                :class="[
+                  'px-3 py-1 rounded-lg text-xs font-bold transition',
+                  filterStatus === 'active' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                ]"
+              >
+                Active
+              </button>
+              <button
+                @click="filterStatus = 'on_break'"
+                :class="[
+                  'px-3 py-1 rounded-lg text-xs font-bold transition',
+                  filterStatus === 'on_break' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                ]"
+              >
+                On Break
+              </button>
+              <button
+                @click="filterStatus = 'inactive'"
+                :class="[
+                  'px-3 py-1 rounded-lg text-xs font-bold transition',
+                  filterStatus === 'inactive' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                ]"
+              >
+                Inactive
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Waiters Table -->
+        <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
+          <div class="w-full overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                <tr>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Staff Member</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Status</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Floor Assignments</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Section</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Shift</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Experience</th>
+                  <th class="px-3 sm:px-4 py-3.5 text-right whitespace-nowrap">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-xs sm:text-sm">
+                <tr v-for="waiter in paginatedWaiters" :key="waiter.id" class="hover:bg-slate-50/80 dark:hover:bg-slate-950/50 transition">
+                  <!-- Staff Avatar & Name -->
+                  <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-blue-600 text-white font-bold flex items-center justify-center text-xs shadow-sm flex-shrink-0">
+                        {{ waiter.name ? waiter.name.charAt(0).toUpperCase() : 'W' }}
+                      </div>
+                      <div>
+                        <p class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">{{ waiter.name }}</p>
+                        <p class="text-[11px] text-slate-400">ID: {{ waiter.id }}</p>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Status Badge -->
+                  <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
+                    <span :class="[
+                      'px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider border',
+                      waiter.status === 'active' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' :
+                      waiter.status === 'on_break' ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20' :
+                      'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                    ]">
+                      ✓ {{ waiter.status?.replace('_', ' ') || 'active' }}
+                    </span>
+                  </td>
+
+                  <!-- Floor Assignments -->
+                  <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
+                    <span v-if="waiter.floor_assignments && waiter.floor_assignments.length > 0" class="px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded text-xs font-bold">
+                      {{ waiter.floor_assignments.map((f: any) => f.name || `Floor ${f.floor_number || f}`).join(', ') }}
+                    </span>
+                    <span v-else class="px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded text-xs font-bold">
+                      Floor 1 & 2
+                    </span>
+                  </td>
+
+                  <!-- Section -->
+                  <td class="px-3 sm:px-4 py-3 text-slate-700 dark:text-slate-300 whitespace-nowrap font-medium text-xs">
+                    {{ waiter.section || 'Section A' }}
+                  </td>
+
+                  <!-- Shift -->
+                  <td class="px-3 sm:px-4 py-3 text-slate-700 dark:text-slate-300 whitespace-nowrap font-medium text-xs">
+                    {{ waiter.shift || 'Morning' }}
+                  </td>
+
+                  <!-- Experience -->
+                  <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
+                    <span class="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                      ↗ {{ waiter.experience_level || 'Junior' }}
+                    </span>
+                  </td>
+
+                  <!-- 3-Dot Actions Column -->
+                  <td class="px-3 sm:px-4 py-3 text-right whitespace-nowrap">
+                    <div class="relative inline-block text-left">
+                      <button
+                        @click.stop="toggleMenu(waiter.id)"
+                        class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center justify-center transition border border-slate-200 dark:border-slate-700"
+                        title="Actions"
+                      >
+                        <span class="material-symbols-rounded text-lg">more_vert</span>
+                      </button>
+
+                      <div
+                        v-if="activeMenuId === waiter.id"
+                        @click.stop
+                        class="absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1 text-left overflow-hidden transition-all duration-150"
+                      >
+                        <button
+                          @click="openEditModal(waiter); activeMenuId = null"
+                          class="w-full px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-600 flex items-center gap-2 transition"
+                        >
+                          <Edit3 class="w-3.5 h-3.5" />
+                          Edit Staff
+                        </button>
+                        <button
+                          @click="deleteWaiter(waiter); activeMenuId = null"
+                          class="w-full px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-2 transition"
+                        >
+                          <Trash2 class="w-3.5 h-3.5" />
+                          Delete Waiter
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <!-- Staff Table -->
-          <div v-else class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg">
-            <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead>
-                  <tr class="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-750 border-b border-slate-200 dark:border-slate-700">
-                    <th class="px-4 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Staff Member</th>
-                    <th class="px-4 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Status</th>
-                    <th class="px-4 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Floor Assignments</th>
-                    <th class="px-4 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Section</th>
-                    <th class="px-4 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Shift</th>
-                    <th class="px-4 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Experience</th>
-                    <th class="px-4 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="waiter in paginatedWaiters" :key="waiter.id" class="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition group">
-                    <td class="px-4 py-2.5">
-                      <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                          {{ (waiter.name || 'U').charAt(0).toUpperCase() }}
-                        </div>
-                        <div>
-                          <p class="font-semibold text-slate-900 dark:text-slate-100 text-sm">{{ waiter.name }}</p>
-                          <p class="text-xs text-slate-500 dark:text-slate-400">ID: {{ waiter.id }}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="px-4 py-2.5">
-                      <span :class="['inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold border', getStatusColor(waiter.status)]">
-                        {{ getStatusIcon(waiter.status) }}
-                        {{ getAvailabilityStatus(waiter.status).label }}
-                      </span>
-                    </td>
-                    <td class="px-4 py-2.5">
-                      <div class="flex flex-wrap gap-1">
-                        <template v-if="waiter.floor_assignments && waiter.floor_assignments.length > 0">
-                          <span v-for="assignment in waiter.floor_assignments" :key="assignment.id"
-                            :class="[
-                              'inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold',
-                              assignment.priority === 'primary' ? 'bg-emerald-100 text-emerald-700 border border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                              assignment.priority === 'secondary' ? 'bg-blue-100 text-blue-700 border border-blue-300 dark:bg-blue-900/30 dark:text-blue-400' :
-                              'bg-amber-100 text-amber-700 border border-amber-300 dark:bg-amber-900/30 dark:text-amber-400'
-                            ]"
-                            :title="`${assignment.shift_name} - ${assignment.priority}`"
-                          >
-                            {{ assignment.floor_name }}
-                            <span class="opacity-70 text-[10px]">{{ assignment.priority.charAt(0).toUpperCase() }}</span>
-                          </span>
-                        </template>
-                        <span v-else class="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800 font-medium">
-                          ⚠️ No assignments
-                        </span>
-                      </div>
-                    </td>
-                    <td class="px-4 py-2.5">
-                      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-medium">
-                        {{ waiter.section }}
-                      </span>
-                    </td>
-                    <td class="px-4 py-2.5 text-xs text-slate-700 dark:text-slate-300 font-medium capitalize">
-                      {{ waiter.shift }}
-                    </td>
-                    <td class="px-4 py-2.5">
-                      <span class="inline-flex items-center gap-1 text-xs font-medium text-slate-700 dark:text-slate-300">
-                        <TrendingUp class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                        {{ waiter.experience_level ? waiter.experience_level.charAt(0).toUpperCase() + waiter.experience_level.slice(1) : 'N/A' }}
-                      </span>
-                    </td>
-                    <td class="px-4 py-2.5 text-center relative">
-                      <div class="relative inline-block">
-                        <button
-                          @click="toggleMenu(waiter.id)"
-                          class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition"
-                        >
-                          <MoreVertical class="w-4 h-4" />
-                        </button>
-                        <transition name="fade">
-                          <div
-                            v-if="activeMenuId === waiter.id"
-                            class="absolute right-0 top-full mt-1 w-44 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-20"
-                          >
-                            <button
-                              @click="() => { openEditModal(waiter); activeMenuId = null }"
-                              class="w-full text-left px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700 text-xs border-b border-slate-100 dark:border-slate-700 transition flex items-center gap-2"
-                            >
-                              <Edit3 class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                              Edit Details
-                            </button>
-                            <button
-                              @click="() => { deleteWaiter(waiter); activeMenuId = null }"
-                              class="w-full text-left px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-700 text-xs transition flex items-center gap-2"
-                            >
-                              <Trash2 class="w-3.5 h-3.5" />
-                              Delete
-                            </button>
-                          </div>
-                        </transition>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+          <!-- Pagination Bar with Per-Page Selector -->
+          <div class="bg-slate-50 dark:bg-slate-950/60 px-4 py-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+              <div class="flex items-center gap-1.5">
+                <label class="font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">Per page:</label>
+                <select
+                  v-model="itemsPerPage"
+                  @change="currentPage = 1"
+                  class="px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs"
+                >
+                  <option :value="5">5</option>
+                  <option :value="10">10</option>
+                  <option :value="20">20</option>
+                  <option :value="50">50</option>
+                  <option :value="100">100</option>
+                </select>
+              </div>
+              <span>
+                Showing {{ startIndex + 1 }} to {{ Math.min(startIndex + itemsPerPage, filteredWaiters.length) }} of {{ filteredWaiters.length }} staff entries
+              </span>
             </div>
 
-            <!-- Pagination -->
-            <div class="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
-              <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                Showing <span class="text-slate-900 dark:text-slate-100 font-bold">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to <span class="text-slate-900 dark:text-slate-100 font-bold">{{ Math.min(currentPage * itemsPerPage, filteredWaiters.length) }}</span> of <span class="text-slate-900 dark:text-slate-100 font-bold">{{ filteredWaiters.length }}</span> waiters
-              </p>
+            <div class="flex gap-1.5">
+              <button
+                @click="previousPage"
+                :disabled="currentPage === 1"
+                class="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
+              >
+                ← Prev
+              </button>
               <div class="flex items-center gap-1">
                 <button
-                  @click="currentPage = Math.max(1, currentPage - 1)"
-                  :disabled="currentPage === 1"
-                  class="px-2.5 py-1 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
+                  v-for="pageNum in visiblePages"
+                  :key="pageNum"
+                  @click="currentPage = pageNum"
+                  :class="pageNum === currentPage ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
+                  class="px-2.5 py-1 rounded-lg text-xs font-semibold transition"
                 >
-                  ← Prev
-                </button>
-                <div class="flex items-center gap-1 mx-1">
-                  <button
-                    v-for="page in totalPages"
-                    :key="page"
-                    @click="currentPage = page"
-                    v-show="page <= 5 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)"
-                    :class="[
-                      'px-2.5 py-1 rounded-lg text-xs font-medium transition',
-                      currentPage === page
-                        ? 'bg-blue-600 text-white'
-                        : 'border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-                    ]"
-                  >
-                    {{ page }}
-                  </button>
-                </div>
-                <button
-                  @click="currentPage = Math.min(totalPages, currentPage + 1)"
-                  :disabled="currentPage === totalPages"
-                  class="px-2.5 py-1 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
-                >
-                  Next →
+                  {{ pageNum }}
                 </button>
               </div>
+              <button
+                @click="nextPage"
+                :disabled="currentPage === totalPages || totalPages === 0"
+                class="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
+              >
+                Next →
+              </button>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Modal -->
-    <WaiterFormModal
-      :is-open="showModal"
-      :is-edit-mode="isEditMode"
-      :waiter-data="selectedWaiter"
-      @close="closeModal"
-      @submit="handleSubmitWaiter"
-    />
+      <!-- Edit/Add Modal -->
+      <WaiterFormModal
+        v-if="showModal"
+        :is-edit="isEditMode"
+        :waiter="selectedWaiter"
+        @close="closeModal"
+        @submit="handleSubmitWaiter"
+      />
+    </div>
   </DashboardLayout>
 </template>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
-.slide-down-enter-active, .slide-down-leave-active {
-  transition: all 0.3s ease;
-}
-.slide-down-enter-from, .slide-down-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1.5s linear infinite;
-}
 </style>

@@ -14,6 +14,7 @@ import AddFloor from '../views/manager/AddFloor.vue'
 import DeliveryManagement from '../views/manager/DeliveryManagement.vue'
 import RestaurantTables from '../views/manager/RestaurantTables.vue'
 import Setting from '../views/manager/Setting.vue'
+import ManagerProfile from '../views/manager/ManagerProfile.vue'
 
 const managerRoutes: RouteRecordRaw[] = [
   /*|--------------------------------------------------------------------------
@@ -203,6 +204,20 @@ const managerRoutes: RouteRecordRaw[] = [
       requiresAuth: true,
       role: 'manager',
       title: 'Manager Settings',
+    },
+  },
+
+  /*|--------------------------------------------------------------------------
+  | Manager Profile
+  |--------------------------------------------------------------------------*/
+  {
+    path: '/manager/profile',
+    name: 'ManagerProfile',
+    component: ManagerProfile,
+    meta: {
+      requiresAuth: true,
+      role: 'manager',
+      title: 'Manager Profile',
     },
   },
 ]

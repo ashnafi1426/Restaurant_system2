@@ -3,7 +3,6 @@ import { computed, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { useSidebarStore } from '../../stores/sidebarStore'
-
 // Import necessary Lucide components
 import {
   LayoutDashboard,
@@ -110,21 +109,24 @@ const menus = computed(() => {
         { name: 'Room Types', path: '/room-types', icon: 'Room Types'},
         { name: 'Menu Management', path: '/menu-management', icon: 'Restaurant'},
         { name: 'Reports', path: '/reports', icon: 'Reports'},
+        { name: 'Profile', path: '/admin/profile', icon: 'Settings', },
       ]
     case 'receptionist':
       return [
         { name: 'Dashboard', path: '/receptionist', icon: 'Dashboard'},
-        { name: 'Guests', path: '/guests', icon: 'Guests'},
+        // { name: 'Guests', path: '/guests', icon: 'Guests'},
         { name: 'Reservations', path: '/reservations', icon: 'Reservations'},
         { name: 'Check In', path: '/check-in', icon: 'Check In'},
         { name: 'Check Out', path: '/check-out', icon: 'Check Out'},
         { name: 'Reports', path: '/reports', icon: 'Reports'},
+        { name: 'Profile', path: '/receptionist/profile', icon: 'Settings', },
       ]
     case 'cashier':
       return [
         { name: 'Dashboard', path: '/cashier/dashboard', icon: 'Dashboard'},
         { name: 'Payments', path: '/cashier/payments', icon: 'Payments'},
         { name: 'Reports', path: '/cashier/reports', icon: 'Reports'},
+        { name: 'Profile', path: '/cashier/profile', icon: 'Settings', },
       ]
     case 'chef':
       return [
@@ -133,6 +135,7 @@ const menus = computed(() => {
         { name: 'Pending Orders', path: '/chef/pending-orders', icon: 'Pending Orders', section: 'Orders' },
         { name: 'Preparing Orders', path: '/chef/preparing-orders', icon: 'Preparing Orders', section: 'Orders' },
         { name: 'Served Orders', path: '/chef/served-orders', icon: 'Served Orders', section: 'Orders' },
+        { name: 'Profile', path: '/chef/profile', icon: 'Settings', },
       ]
     case 'manager':
       return [
@@ -142,7 +145,8 @@ const menus = computed(() => {
         { name: 'Assign Floors', path: '/manager/floor-assignment', icon: 'Hotel'},
         { name: 'Daily Operations', path: '/manager/operations', icon: 'Operations'},
         { name: 'Room Service', path: '/manager/delivery-management', icon: 'Truck'},
-        { name: 'Reports', path: '/manager/analytics', icon: 'Analytics'}
+        { name: 'Reports', path: '/manager/analytics', icon: 'Analytics'},
+        { name: 'Profile', path: '/manager/profile', icon: 'Settings', },
       ]
     case 'waiter':
       return [
@@ -152,7 +156,8 @@ const menus = computed(() => {
         { name: 'On Delivery', path: '/waiter/on-delivery', icon: 'Truck'},
         { name: 'Completed Orders', path: '/waiter/completed-orders', icon: 'Served Orders'},
         { name: 'Delivery History', path: '/waiter/delivery-history', icon: 'FileSpreadsheet'},
-        { name: 'Performance', path: '/waiter/performance', icon: 'TrendingUp'}
+        { name: 'Performance', path: '/waiter/performance', icon: 'TrendingUp'},
+        { name: 'Profile', path: '/waiter/profile', icon: 'Settings'},
       ]
     default:
       return []

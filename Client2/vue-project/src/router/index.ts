@@ -152,6 +152,16 @@ const router = createRouter({
       },
     },
     {
+      path: '/admin/profile',
+      name: 'admin-profile',
+      component: () => import('../views/Admin/AdminProfile.vue'),
+      meta: {
+        requiresAuth: true,
+        role: 'admin',
+        title: 'Admin Profile',
+      },
+    },
+    {
       path: '/menu-management',
       name: 'menu-management',
       component: MenuManagement,
@@ -197,6 +207,16 @@ const router = createRouter({
       },
     },
     {
+      path: '/receptionist/profile',
+      name: 'receptionist-profile',
+      component: () => import('../views/receptionist/ReceptionistProfile.vue'),
+      meta: {
+        requiresAuth: true,
+        role: 'receptionist',
+        title: 'Receptionist Profile',
+      },
+    },
+    {
       path: '/cashier',
       name: 'cashier-dashboard',
       component: CashierDashboard,
@@ -212,6 +232,16 @@ const router = createRouter({
       meta: {
         requiresAuth: true,
         role: 'chef',
+      },
+    },
+    {
+      path: '/chef/profile',
+      name: 'chef-profile',
+      component: () => import('../views/kitchen/ChefProfile.vue'),
+      meta: {
+        requiresAuth: true,
+        role: 'chef',
+        title: 'Chef Profile',
       },
     },
     {

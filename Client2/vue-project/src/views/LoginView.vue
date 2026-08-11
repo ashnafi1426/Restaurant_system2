@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { CheckCircle, AlertCircle, X } from 'lucide-vue-next'
+import { CheckCircle, AlertCircle, X, ArrowLeft } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -389,6 +389,15 @@ const login = async (): Promise<void> => {
               />
             </svg>
           </span>
+        </button>
+
+        <button
+          type="button"
+          @click="router.push({ name: 'home' })"
+          class="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+        >
+          <ArrowLeft :size="16" />
+          Back to Main Menu
         </button>
 
         <!-- Divider - Compact -->

@@ -1,114 +1,162 @@
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
-      <div class="max-w-7xl mx-auto">
+    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-3 sm:p-6 lg:p-8 transition-colors duration-200">
+      <div class="max-w-7xl mx-auto space-y-6">
         <!-- Header -->
-        <div class="mb-8">
-          <h1 class="text-4xl font-bold text-slate-900">Ready for Pickup</h1>
-          <p class="text-slate-600 mt-2">Orders ready to be picked up from the kitchen</p>
+        <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-sm dark:shadow-2xl">
+          <div class="flex items-center gap-3">
+            <div class="p-3 bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-100 dark:border-amber-500/30 shadow-sm flex-shrink-0">
+              <span class="material-symbols-rounded text-2xl">restaurant</span>
+            </div>
+            <div>
+              <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Ready for Pickup</h1>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Orders ready to be picked up from the kitchen</p>
+            </div>
+          </div>
         </div>
 
         <!-- Error State -->
-        <div v-if="error" class="bg-red-50 border-l-4 border-red-600 rounded-lg p-6 mb-6">
-          <p class="text-red-700 font-semibold">Error</p>
-          <p class="text-red-600 text-sm mt-2">{{ error }}</p>
+        <div v-if="error" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-6">
+          <p class="text-rose-700 dark:text-rose-400 font-semibold text-sm">Error loading orders</p>
+          <p class="text-rose-600 dark:text-rose-300 text-xs mt-1">{{ error }}</p>
           <button 
             @click="retryLoad"
-            class="mt-4 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+            class="mt-4 px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-semibold hover:bg-rose-700 transition shadow-sm"
           >
             Retry
           </button>
         </div>
 
         <!-- Loading State -->
-        <div v-if="loading" class="flex items-center justify-center py-16">
+        <div v-if="loading" class="flex items-center justify-center py-20 bg-white dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-800">
           <div class="text-center">
-            <div class="relative w-12 h-12 mx-auto mb-4">
-              <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#0EA5E9" stroke-width="6" opacity="0.3" />
-              </svg>
-              <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
-                <svg viewBox="0 0 100 100" class="w-full h-full">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="#FBBF24" stroke-width="8" stroke-linecap="round" stroke-dasharray="70 280" />
-                </svg>
-              </div>
+            <div class="inline-block relative w-12 h-12 mb-3">
+              <div class="absolute inset-0 rounded-full border-4 border-amber-500/20 border-t-amber-600 dark:border-t-amber-400 animate-spin"></div>
             </div>
-            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">Loading orders...</p>
+            <p class="text-slate-600 dark:text-slate-400 text-sm font-medium">Loading kitchen ready orders...</p>
           </div>
         </div>
 
         <!-- Empty State -->
-        <div v-else-if="orders.length === 0" class="bg-white rounded-lg shadow-sm p-12 text-center">
-          <p class="text-slate-600 text-lg">No items ready for pickup</p>
-          <p class="text-slate-500 mt-2">Check back soon for new orders</p>
+        <div v-else-if="orders.length === 0" class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center">
+          <span class="material-symbols-rounded text-5xl block mb-2 text-slate-400 dark:text-slate-600">outdoor_grill</span>
+          <p class="text-slate-700 dark:text-slate-300 text-lg font-bold">No items ready for pickup</p>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Check back soon for new orders</p>
         </div>
 
-        <!-- Orders Table -->
-        <div v-else class="bg-white rounded-lg shadow-sm overflow-hidden">
-          <table class="w-full">
-            <thead class="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Order Number</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Guest Name</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Room</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Items</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Special Requests</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="order in paginatedOrders" :key="order.id" class="border-b border-slate-100 hover:bg-slate-50">
-                <td class="px-6 py-4 text-sm font-medium text-slate-900">#{{ order.order_number }}</td>
-                <td class="px-6 py-4 text-sm text-slate-600">{{ order.guest_name }}</td>
-                <td class="px-6 py-4 text-sm text-slate-600">{{ order.room_number }}</td>
-                <td class="px-6 py-4 text-sm">
-                  <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
-                    {{ order.items }} items
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-sm text-slate-600">{{ order.special_requests || 'None' }}</td>
-                <td class="px-6 py-4 text-sm">
-                  <button
-                    @click="pickupOrder(order.id)"
-                    :disabled="loadingOrderId === order.id"
-                    class="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition font-medium text-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                  >
-                    <span v-if="loadingOrderId === order.id" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    {{ loadingOrderId === order.id ? 'Picking...' : 'Pickup' }}
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- Orders Table Container -->
+        <div v-else class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
+          <div class="w-full overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                <tr>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Order Number</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Guest Name</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Room</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Items</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Special Requests</th>
+                  <th class="px-3 sm:px-4 py-3.5 text-right whitespace-nowrap">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-xs sm:text-sm">
+                <tr v-for="order in paginatedOrders" :key="order.id" class="hover:bg-slate-50/80 dark:hover:bg-slate-950/50 transition">
+                  <td class="px-3 sm:px-4 py-3 font-bold text-slate-900 dark:text-white max-w-[130px] sm:max-w-[160px]">
+                    <div class="truncate" :title="order.order_number || order.order_id">
+                      #{{ order.order_number || order.order_id || order.id.substring(0,8) }}
+                    </div>
+                  </td>
+                  <td class="px-3 sm:px-4 py-3 font-medium text-slate-700 dark:text-slate-300 max-w-[120px] sm:max-w-[150px] truncate" :title="order.guest_name">
+                    {{ order.guest_name || 'Guest' }}
+                  </td>
+                  <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
+                    <span class="px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded text-xs font-bold">
+                      {{ order.room_number || 'N/A' }}
+                    </span>
+                  </td>
+                  <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
+                    <span class="px-2 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 rounded text-xs font-bold">
+                      {{ typeof order.items === 'number' ? order.items : (Array.isArray(order.items) ? order.items.length : 1) }} items
+                    </span>
+                  </td>
+                  <td class="px-3 sm:px-4 py-3 text-slate-600 dark:text-slate-400 max-w-[140px] truncate" :title="order.special_requests">
+                    {{ order.special_requests || 'None' }}
+                  </td>
+                  <td class="px-3 sm:px-4 py-3 text-right whitespace-nowrap">
+                    <div class="relative inline-block text-left">
+                      <button
+                        @click.stop="toggleMenu(order.id)"
+                        class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center justify-center transition shadow-xs border border-slate-200 dark:border-slate-700"
+                        title="Actions"
+                      >
+                        <span class="material-symbols-rounded text-lg">more_vert</span>
+                      </button>
 
-          <!-- Pagination -->
-          <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between">
-            <div class="text-sm text-slate-600">
-              Showing {{ startIndex + 1 }} to {{ Math.min(endIndex, orders.length) }} of {{ orders.length }}
+                      <div
+                        v-if="activeMenuId === order.id"
+                        @click.stop
+                        class="absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1 text-left overflow-hidden transition-all duration-150"
+                      >
+                        <button
+                          @click="pickupOrder(order.id); activeMenuId = null"
+                          :disabled="loadingOrderId === order.id"
+                          class="w-full px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-2 transition"
+                        >
+                          <span class="material-symbols-rounded text-sm">shopping_bag</span>
+                          {{ loadingOrderId === order.id ? 'Picking up...' : 'Pickup Order' }}
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Bar with Per-Page Dropdown Selector -->
+          <div class="bg-slate-50 dark:bg-slate-950/60 px-4 py-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+              <div class="flex items-center gap-1.5">
+                <label class="font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">Per page:</label>
+                <select
+                  v-model="itemsPerPage"
+                  @change="currentPage = 1"
+                  class="px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs"
+                >
+                  <option :value="5">5</option>
+                  <option :value="10">10</option>
+                  <option :value="20">20</option>
+                  <option :value="50">50</option>
+                  <option :value="100">100</option>
+                </select>
+              </div>
+              <span>
+                Showing {{ startIndex + 1 }} to {{ Math.min(startIndex + itemsPerPage, orders.length) }} of {{ orders.length }} entries
+              </span>
             </div>
-            <div class="flex gap-2">
+
+            <div class="flex gap-1.5">
               <button
                 @click="previousPage"
                 :disabled="currentPage === 1"
-                class="px-4 py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                class="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
               >
-                ← Previous
+                ← Prev
               </button>
               <div class="flex items-center gap-1">
                 <button
                   v-for="page in totalPages"
                   :key="page"
                   @click="goToPage(page)"
-                  :class="page === currentPage ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'"
-                  class="px-3 py-2 rounded text-sm font-medium"
+                  :class="page === currentPage ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
+                  class="px-2.5 py-1 rounded-lg text-xs font-semibold transition"
                 >
                   {{ page }}
                 </button>
               </div>
               <button
                 @click="nextPage"
-                :disabled="currentPage === totalPages"
-                class="px-4 py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                :disabled="currentPage === totalPages || totalPages === 0"
+                class="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
               >
                 Next →
               </button>
@@ -121,99 +169,73 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import waiterService from '@/services/waiterService'
 
 const loading = ref(true)
 const error = ref<string | null>(null)
-const loadingOrderId = ref<string | null>(null)
 const orders = ref<any[]>([])
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
+const loadingOrderId = ref<string | null>(null)
+const activeMenuId = ref<string | null>(null)
 
 const totalPages = computed(() => Math.ceil(orders.value.length / itemsPerPage.value))
 const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value)
 const endIndex = computed(() => startIndex.value + itemsPerPage.value)
 const paginatedOrders = computed(() => orders.value.slice(startIndex.value, endIndex.value))
 
-const previousPage = () => {
-  if (currentPage.value > 1) currentPage.value--
+const toggleMenu = (id: string) => {
+  activeMenuId.value = activeMenuId.value === id ? null : id
 }
 
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) currentPage.value++
+const handleOutsideClick = () => {
+  activeMenuId.value = null
 }
 
-const goToPage = (page: number) => {
-  currentPage.value = page
-}
+const previousPage = () => { if (currentPage.value > 1) currentPage.value-- }
+const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
+const goToPage = (page: number) => { currentPage.value = page }
 
 const loadOrders = async () => {
   try {
     loading.value = true
     error.value = null
-    console.log('[ReadyPickup] Loading ready orders...')
-    
     const data = await waiterService.getReadyForPickup()
-    console.log('[ReadyPickup] Orders loaded:', data)
     orders.value = data || []
     currentPage.value = 1
-    
-    if (orders.value.length === 0) {
-      console.warn('[ReadyPickup] No ready orders found')
-    }
   } catch (err: any) {
-    console.error('[ReadyPickup] Error loading orders:', {
-      status: err.response?.status,
-      message: err.response?.data?.message || err.message,
-      error: err.response?.data?.error,
-      fullResponse: err.response?.data,
-    })
-    error.value = err.response?.data?.message || err.message || 'Failed to load orders'
+    console.error('[ReadyPickup] Error:', err)
+    error.value = err.message || 'Failed to load ready orders'
     orders.value = []
   } finally {
     loading.value = false
   }
 }
 
-onMounted(() => {
-  loadOrders()
-})
-
-const retryLoad = () => {
-  loadOrders()
-}
+const retryLoad = () => loadOrders()
 
 const pickupOrder = async (orderId: string) => {
-  if (!orderId) {
-    console.error('[ReadyPickup] No order ID provided')
-    error.value = 'Order ID not found'
-    return
-  }
-  
   try {
     loadingOrderId.value = orderId
-    console.log('[ReadyPickup] Picking up order:', orderId)
-    
-    const response = await waiterService.pickupOrder(orderId)
-    console.log('[ReadyPickup] Order picked up:', response)
-    
+    await waiterService.pickupOrder(orderId)
     await loadOrders()
-    error.value = null
   } catch (err: any) {
-    console.error('[ReadyPickup] Error picking up order:', {
-      orderId,
-      status: err.response?.status,
-      message: err.response?.data?.message || err.message,
-      error: err.response?.data?.error,
-      fullResponse: err.response?.data,
-    })
-    error.value = `Failed to pickup order: ${err.response?.data?.message || err.message}`
+    error.value = err.response?.data?.message || err.message
   } finally {
     loadingOrderId.value = null
   }
 }
+
+onMounted(() => {
+  loadOrders()
+  window.addEventListener('click', handleOutsideClick)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', handleOutsideClick)
+})
 </script>
 
 <style scoped>

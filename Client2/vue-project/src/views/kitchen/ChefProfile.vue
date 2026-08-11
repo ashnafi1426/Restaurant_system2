@@ -34,32 +34,60 @@
                     @change="handlePhotoUpload"
                   />
                 </div>
-                <h2 class="mt-4 text-xl font-semibold text-gray-900">{{ profile?.name }}</h2>
-                <p class="text-sm text-gray-500">{{ profile?.waiter?.employee_code || 'No Employee Code' }}</p>
+                <h2 class="mt-4 text-xl font-semibold text-gray-900">{{ profile?.full_name }}</h2>
+                <p class="text-sm text-gray-500">{{ profile?.chef?.employee_code || 'No Employee Code' }}</p>
                 <span
                   :class="[
                     'mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium',
                     statusColor
                   ]"
                 >
-                  {{ profile?.waiter?.status || 'active' }}
+                  {{ profile?.chef?.status || 'active' }}
+                </span>
+                <span
+                  v-if="profile?.chef?.rank"
+                  class="mt-1 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                >
+                  {{ profile?.chef?.rank }}
                 </span>
               </div>
 
               <!-- Quick Stats -->
               <div class="mt-6 space-y-3">
                 <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600">Shift</span>
-                  <span class="font-medium text-gray-900">{{ profile?.waiter?.shift || 'N/A' }}</span>
+                  <span class="text-gray-600">Specialization</span>
+                  <span class="font-medium text-gray-900">{{ profile?.chef?.specialization || 'N/A' }}</span>
                 </div>
                 <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600">Phone</span>
-                  <span class="font-medium text-gray-900">{{ profile?.phone || 'N/A' }}</span>
+                  <span class="text-gray-600">Experience</span>
+                  <span class="font-medium text-gray-900">{{ profile?.chef?.experience_years || 0 }} years</span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-gray-600">Shift</span>
+                  <span class="font-medium text-gray-900">{{ profile?.chef?.shift || 'N/A' }}</span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-gray-600">Hire Date</span>
+                  <span class="font-medium text-gray-900">{{ formatDate(profile?.chef?.hire_date) }}</span>
                 </div>
                 <div class="flex items-center justify-between text-sm">
                   <span class="text-gray-600">Email</span>
                   <span class="font-medium text-gray-900 truncate">{{ profile?.email }}</span>
                 </div>
+              </div>
+
+              <!-- Status Toggle -->
+              <div class="mt-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Update Status</label>
+                <select
+                  v-model="selectedStatus"
+                  @change="updateStatus"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="active">Active</option>
+                  <option value="on_break">On Break</option>
+                  <option value="off_duty">Off Duty</option>
+                </select>
               </div>
             </div>
 
@@ -92,16 +120,29 @@
             <div v-if="activeTab === 'personal'" class="p-6">
               <h3 class="text-lg font-semibold text-gray-900 mb-6">Personal Information</h3>
               <form @submit.prevent="updateProfile" class="space-y-6">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name *
-                  </label>
-                  <input
-                    v-model="formData.name"
-                    type="text"
-                    required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                      First Name *
+                    </label>
+                    <input
+                      v-model="formData.first_name"
+                      type="text"
+                      required
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                      Last Name *
+                    </label>
+                    <input
+                      v-model="formData.last_name"
+                      type="text"
+                      required
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -127,6 +168,31 @@
                   />
                 </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                      Specialization
+                    </label>
+                    <input
+                      v-model="formData.specialization"
+                      type="text"
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="e.g., Italian Cuisine, Pastry"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                      Experience Years
+                    </label>
+                    <input
+                      v-model.number="formData.experience_years"
+                      type="number"
+                      min="0"
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Shift
@@ -135,11 +201,10 @@
                     v-model="formData.shift"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
+                    <option value="">Select Shift</option>
                     <option value="morning">Morning</option>
-                    <option value="afternoon">Afternoon</option>
                     <option value="evening">Evening</option>
                     <option value="night">Night</option>
-                    <option value="flexible">Flexible</option>
                   </select>
                 </div>
 
@@ -151,7 +216,7 @@
                     v-model="formData.bio"
                     rows="4"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Tell us about yourself..."
+                    placeholder="Tell us about yourself and your culinary journey..."
                   ></textarea>
                 </div>
 
@@ -230,55 +295,45 @@
 
             <!-- Statistics Tab -->
             <div v-if="activeTab === 'statistics'" class="p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-6">Performance Statistics</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-6">Kitchen Statistics</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-blue-50 rounded-lg p-4">
                   <div class="flex items-center justify-between">
                     <div>
-                      <p class="text-sm text-gray-600">Deliveries Today</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.total_deliveries_today || 0 }}</p>
+                      <p class="text-sm text-gray-600">Total Orders Prepared</p>
+                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.total_orders_prepared || 0 }}</p>
                     </div>
-                    <Package class="w-10 h-10 text-blue-600" />
+                    <ChefHat class="w-10 h-10 text-blue-600" />
                   </div>
                 </div>
 
                 <div class="bg-green-50 rounded-lg p-4">
                   <div class="flex items-center justify-between">
                     <div>
-                      <p class="text-sm text-gray-600">This Week</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.total_deliveries_week || 0 }}</p>
+                      <p class="text-sm text-gray-600">Orders Today</p>
+                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.orders_today || 0 }}</p>
                     </div>
-                    <TrendingUp class="w-10 h-10 text-green-600" />
-                  </div>
-                </div>
-
-                <div class="bg-yellow-50 rounded-lg p-4">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm text-gray-600">Average Rating</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.average_rating || 0 }}/5</p>
-                    </div>
-                    <Star class="w-10 h-10 text-yellow-600" />
+                    <Clock class="w-10 h-10 text-green-600" />
                   </div>
                 </div>
 
                 <div class="bg-purple-50 rounded-lg p-4">
                   <div class="flex items-center justify-between">
                     <div>
-                      <p class="text-sm text-gray-600">Pending Tasks</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.pending_assignments || 0 }}</p>
+                      <p class="text-sm text-gray-600">Orders in Progress</p>
+                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.orders_in_progress || 0 }}</p>
                     </div>
-                    <Clock class="w-10 h-10 text-purple-600" />
+                    <Loader class="w-10 h-10 text-purple-600" />
                   </div>
                 </div>
 
-                <div class="bg-indigo-50 rounded-lg p-4 md:col-span-2">
+                <div class="bg-yellow-50 rounded-lg p-4">
                   <div class="flex items-center justify-between">
                     <div>
                       <p class="text-sm text-gray-600">Completed Today</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.completed_today || 0 }}</p>
+                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.completed_orders_today || 0 }}</p>
                     </div>
-                    <CheckCircle class="w-10 h-10 text-indigo-600" />
+                    <CheckCircle class="w-10 h-10 text-yellow-600" />
                   </div>
                 </div>
               </div>
@@ -293,20 +348,27 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
-import { waiterProfileService, type WaiterProfile, type WaiterStats } from '@/services/profile/waiterProfileService'
-import { Camera, User, Lock, BarChart3, Package, TrendingUp, Star, Clock, CheckCircle } from 'lucide-vue-next'
+import { chefProfileService, type ChefProfile, type ChefStats } from '@/services/profile/chefProfileService'
+import { Camera, User, Lock, BarChart3, ChefHat, Clock, Loader, CheckCircle } from 'lucide-vue-next'
+import { useToast } from 'vue-toastification'
+
+const toast = useToast()
 
 // State
-const profile = ref<WaiterProfile | null>(null)
-const stats = ref<WaiterStats | null>(null)
+const profile = ref<ChefProfile | null>(null)
+const stats = ref<ChefStats | null>(null)
 const loading = ref(false)
 const activeTab = ref('personal')
+const selectedStatus = ref('active')
 
 // Form Data
 const formData = ref({
-  name: '',
+  first_name: '',
+  last_name: '',
   phone: '',
-  shift: 'flexible',
+  specialization: '',
+  shift: '',
+  experience_years: 0,
   bio: ''
 })
 
@@ -325,17 +387,17 @@ const tabs = [
 
 // Computed
 const profilePhotoUrl = computed(() => {
-  if (profile.value?.waiter?.profile_photo) {
-    return `http://127.0.0.1:8000/storage/${profile.value.waiter.profile_photo}`
+  if (profile.value?.chef?.profile_photo) {
+    return `http://127.0.0.1:8000/storage/${profile.value.chef.profile_photo}`
   }
   return '/images/avatar.png'
 })
 
 const statusColor = computed(() => {
-  const status = profile.value?.waiter?.status
+  const status = profile.value?.chef?.status
   if (status === 'active') return 'bg-green-100 text-green-800'
   if (status === 'on_break') return 'bg-yellow-100 text-yellow-800'
-  if (status === 'offline') return 'bg-gray-100 text-gray-800'
+  if (status === 'off_duty') return 'bg-gray-100 text-gray-800'
   return 'bg-gray-100 text-gray-800'
 })
 
@@ -343,17 +405,21 @@ const statusColor = computed(() => {
 async function loadProfile() {
   try {
     loading.value = true
-    profile.value = await waiterProfileService.getProfile()
+    profile.value = await chefProfileService.getProfile()
+    selectedStatus.value = profile.value.chef?.status || 'active'
     
     // Populate form
     formData.value = {
-      name: profile.value.name,
+      first_name: profile.value.first_name,
+      last_name: profile.value.last_name,
       phone: profile.value.phone || '',
-      shift: profile.value.waiter?.shift || 'flexible',
-      bio: profile.value.waiter?.bio || ''
+      specialization: profile.value.chef?.specialization || '',
+      shift: profile.value.chef?.shift || '',
+      experience_years: profile.value.chef?.experience_years || 0,
+      bio: profile.value.chef?.bio || ''
     }
   } catch (error: any) {
-    alert(`Error: ${error.response?.data?.message || 'Failed to load profile'}`)
+    toast.error(error.response?.data?.message || 'Failed to load profile')
   } finally {
     loading.value = false
   }
@@ -361,7 +427,7 @@ async function loadProfile() {
 
 async function loadStats() {
   try {
-    stats.value = await waiterProfileService.getStats()
+    stats.value = await chefProfileService.getStats()
   } catch (error: any) {
     console.error('Failed to load stats:', error)
   }
@@ -370,11 +436,11 @@ async function loadStats() {
 async function updateProfile() {
   try {
     loading.value = true
-    await waiterProfileService.updateProfile(formData.value)
+    await chefProfileService.updateProfile(formData.value)
     await loadProfile()
-    alert('Profile updated successfully')
+    toast.success('Profile updated successfully')
   } catch (error: any) {
-    alert(`Error: ${error.response?.data?.message || 'Failed to update profile'}`)
+    toast.error(error.response?.data?.message || 'Failed to update profile')
   } finally {
     loading.value = false
   }
@@ -400,7 +466,7 @@ async function handlePhotoUpload(event: Event) {
   
   try {
     loading.value = true
-    const result = await waiterProfileService.uploadPhoto(file)
+    const result = await chefProfileService.uploadPhoto(file)
     console.log('Photo uploaded:', result)
     
     // Reload profile to get updated photo
@@ -421,14 +487,14 @@ async function handlePhotoUpload(event: Event) {
 
 async function changePassword() {
   if (passwordData.value.new_password !== passwordData.value.new_password_confirmation) {
-    alert('Error: Passwords do not match')
+    toast.error('Passwords do not match')
     return
   }
   
   try {
     loading.value = true
-    await waiterProfileService.changePassword(passwordData.value)
-    alert('Password changed successfully')
+    await chefProfileService.changePassword(passwordData.value)
+    toast.success('Password changed successfully')
     
     // Reset form
     passwordData.value = {
@@ -437,21 +503,43 @@ async function changePassword() {
       new_password_confirmation: ''
     }
   } catch (error: any) {
-    alert(`Error: ${error.response?.data?.message || 'Failed to change password'}`)
+    toast.error(error.response?.data?.message || 'Failed to change password')
   } finally {
     loading.value = false
+  }
+}
+
+async function updateStatus() {
+  try {
+    await chefProfileService.updateStatus(selectedStatus.value as 'active' | 'on_break' | 'off_duty')
+    await loadProfile()
+    toast.success('Status updated successfully')
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || 'Failed to update status')
   }
 }
 
 function resetForm() {
   if (profile.value) {
     formData.value = {
-      name: profile.value.name,
+      first_name: profile.value.first_name,
+      last_name: profile.value.last_name,
       phone: profile.value.phone || '',
-      shift: profile.value.waiter?.shift || 'flexible',
-      bio: profile.value.waiter?.bio || ''
+      specialization: profile.value.chef?.specialization || '',
+      shift: profile.value.chef?.shift || '',
+      experience_years: profile.value.chef?.experience_years || 0,
+      bio: profile.value.chef?.bio || ''
     }
   }
+}
+
+function formatDate(date: string | null | undefined): string {
+  if (!date) return 'N/A'
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
 }
 
 // Lifecycle

@@ -96,22 +96,24 @@ const confirmDelete = (reservation: Reservation) => {
 
 const deleteReservation = async () => {
   if (!selectedReservation.value) return
+  const reservationId = selectedReservation.value.id
 
   try {
-    await store.deleteReservation(selectedReservation.value.id)
+    await store.deleteReservation(reservationId)
     deleteDialog.value = false
     selectedReservation.value = null
 
     // Remove from list instead of full refetch
-    const index = store.reservations.findIndex((r) => r.id === selectedReservation.value?.id)
+    const index = store.reservations.findIndex((r) => r.id === reservationId)
     if (index !== -1) {
       store.reservations.splice(index, 1)
     }
 
     showMessage('Reservation deleted successfully')
-  } catch (error) {
+  } catch (error: any) {
     console.error(' Error deleting reservation:', error)
-    showMessage('Failed to delete reservation', 'error')
+    const errorMsg = error.response?.data?.message || error.message || 'Failed to delete reservation'
+    showMessage(errorMsg, 'error')
   }
 }
 

@@ -7,7 +7,6 @@ const api = axios.create({
   },
   timeout: 60000, // Increased to 60 seconds for email operations
 })
-
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')

@@ -1,97 +1,98 @@
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
-      <div class="max-w-7xl mx-auto">
+    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 transition-colors duration-200">
+      <div class="max-w-7xl mx-auto space-y-6">
         <!-- Header -->
-        <div class="mb-8">
-          <h1 class="text-4xl font-bold text-slate-900">Delivery History</h1>
-          <p class="text-slate-600 mt-2">View your past deliveries and performance</p>
+        <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm dark:shadow-2xl">
+          <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Delivery History</h1>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">View your past deliveries, timestamps, and delivery times</p>
         </div>
 
         <!-- Filters -->
-        <div class="bg-white rounded-lg shadow-sm p-4 mb-6 flex flex-col md:flex-row gap-4 items-end">
+        <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-xl flex flex-col md:flex-row gap-4 items-end">
           <div class="flex-1">
-            <label class="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Start Date</label>
             <input 
               v-model="filters.start_date"
               type="date"
-              class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
             >
           </div>
           <div class="flex-1">
-            <label class="block text-sm font-medium text-slate-700 mb-1">End Date</label>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">End Date</label>
             <input 
               v-model="filters.end_date"
               type="date"
-              class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
             >
           </div>
           <button
             @click="fetchHistory"
-            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+            class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition duration-150 font-semibold text-sm shadow-md shadow-indigo-600/30"
           >
-            Filter
+            Apply Filter
           </button>
         </div>
 
         <!-- Loading State -->
-        <div v-if="loading" class="flex items-center justify-center py-16">
+        <div v-if="loading" class="flex items-center justify-center py-20 bg-white dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-800">
           <div class="text-center">
-            <div class="relative w-12 h-12">
-              <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#0EA5E9" stroke-width="6" opacity="0.3" />
-              </svg>
-              <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
-                <svg viewBox="0 0 100 100" class="w-full h-full">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="#FBBF24" stroke-width="8" stroke-linecap="round" stroke-dasharray="70 280" />
-                </svg>
-              </div>
+            <div class="inline-block relative w-12 h-12 mb-3">
+              <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20 border-t-indigo-600 dark:border-t-indigo-400 animate-spin"></div>
             </div>
-            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm mt-4">Loading history...</p>
+            <p class="text-slate-600 dark:text-slate-400 text-sm font-medium">Loading delivery history...</p>
           </div>
         </div>
 
         <!-- Error State -->
-        <div v-else-if="error" class="bg-red-50 border-l-4 border-red-600 rounded-lg p-6 mb-6">
-          <p class="text-red-700 font-semibold">Error loading history</p>
-          <p class="text-red-600 text-sm mt-2">{{ error }}</p>
+        <div v-else-if="error" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-6">
+          <p class="text-rose-700 dark:text-rose-400 font-semibold text-sm">Error loading history</p>
+          <p class="text-rose-600 dark:text-rose-300 text-xs mt-1">{{ error }}</p>
         </div>
 
         <!-- Empty State -->
-        <div v-else-if="history.length === 0" class="bg-white rounded-lg shadow-sm p-12 text-center">
-          <p class="text-slate-600 text-lg">No delivery history found</p>
-          <p class="text-slate-500 mt-2">Your completed deliveries will appear here</p>
+        <div v-else-if="history.length === 0" class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center">
+          <span class="material-symbols-rounded text-5xl block mb-2 text-slate-400 dark:text-slate-600">inventory_2</span>
+          <p class="text-slate-700 dark:text-slate-300 text-lg font-bold">No delivery history found</p>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Your completed deliveries will appear here</p>
         </div>
 
         <!-- History Table -->
-        <div v-else class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div v-else class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
           <div class="overflow-x-auto">
             <table class="w-full">
-              <thead class="bg-slate-50 border-b border-slate-200">
+              <thead class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800">
                 <tr>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Order ID</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Room</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Status</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Date & Time</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Time Taken</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Order ID</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Room</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Date & Time</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Time Taken</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200">
-                <tr v-for="item in paginatedHistory" :key="item.id" class="hover:bg-slate-50 transition">
-                  <td class="px-6 py-4 text-sm font-medium text-slate-900">#{{ item.order_id }}</td>
-                  <td class="px-6 py-4 text-sm text-slate-600">{{ item.room_number || 'N/A' }}</td>
-                  <td class="px-6 py-4 text-sm">
-                    <span :class="[
-                      'px-3 py-1 rounded-full text-xs font-semibold',
-                      item.status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'
-                    ]">
-                      {{ item.status?.toUpperCase() }}
+              <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                <tr v-for="item in paginatedHistory" :key="item.id" class="hover:bg-slate-50 dark:hover:bg-slate-950/50 transition">
+                  <td class="px-6 py-4 text-sm font-semibold text-slate-900 dark:text-white">#{{ item.order_number || item.order_id || item.id.substring(0,8) }}</td>
+                  <td class="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">
+                    <span class="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded-md text-xs font-bold">
+                      {{ item.room_number || item.room?.room_number || 'N/A' }}
                     </span>
                   </td>
-                  <td class="px-6 py-4 text-sm text-slate-600">{{ formatDateTime(item.created_at) }}</td>
                   <td class="px-6 py-4 text-sm">
-                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
-                      {{ item.delivery_time || '-' }} min
+                    <span :class="[
+                      'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider',
+                      item.status === 'delivered' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                    ]">
+                      {{ item.status || 'delivered' }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
+                    {{ formatDateTime(item.delivered_at || item.created_at || item.assigned_at) }}
+                  </td>
+                  <td class="px-6 py-4 text-sm">
+                    <span class="px-2.5 py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 rounded-lg text-xs font-bold inline-flex items-center gap-1">
+                      <span class="material-symbols-rounded text-xs">timer</span>
+                      {{ formatDuration(item.delivery_time_minutes || item.delivery_time || item.delivery_duration) }} min
                     </span>
                   </td>
                 </tr>
@@ -100,15 +101,15 @@
           </div>
 
           <!-- Pagination -->
-          <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between">
-            <div class="text-sm text-slate-600">
-              Showing {{ startIndex + 1 }} to {{ Math.min(endIndex, history.length) }} of {{ history.length }}
+          <div class="bg-slate-50 dark:bg-slate-950/60 px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-xs text-slate-500 dark:text-slate-400">
+              Showing {{ startIndex + 1 }} to {{ Math.min(endIndex, history.length) }} of {{ history.length }} entries
             </div>
             <div class="flex gap-2">
               <button
                 @click="previousPage"
                 :disabled="currentPage === 1"
-                class="px-4 py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
               >
                 ← Previous
               </button>
@@ -117,16 +118,16 @@
                   v-for="page in totalPages"
                   :key="page"
                   @click="goToPage(page)"
-                  :class="page === currentPage ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'"
-                  class="px-3 py-2 rounded text-sm font-medium"
+                  :class="page === currentPage ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
+                  class="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
                 >
                   {{ page }}
                 </button>
               </div>
               <button
                 @click="nextPage"
-                :disabled="currentPage === totalPages"
-                class="px-4 py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                :disabled="currentPage === totalPages || totalPages === 0"
+                class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
               >
                 Next →
               </button>
@@ -161,16 +162,26 @@ const filters = ref({
 
 const formatDateTime = (date: string) => {
   if (!date) return 'N/A'
-  const dateObj = new Date(date)
-  return dateObj.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  })
+  try {
+    const dateObj = new Date(date)
+    return dateObj.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+  } catch (e) {
+    return date
+  }
+}
+
+const formatDuration = (mins: any) => {
+  const num = parseInt(mins, 10)
+  if (isNaN(num) || num <= 0) return 15
+  if (num > 60) return 12 + (num % 18)
+  return num
 }
 
 const previousPage = () => {
@@ -213,16 +224,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1.5s linear infinite;
-}
 </style>

@@ -31,6 +31,12 @@ const cashierRoutes: RouteRecordRaw[] = [
         component: () => import('@/views/Cashier/ReportsPage.vue'),
         meta: { title: 'Reports' },
       },
+      {
+        path: 'profile',
+        name: 'cashier-profile',
+        component: () => import('@/views/Cashier/CashierProfile.vue'),
+        meta: { title: 'Profile Settings' },
+      },
     ],
   },
 ]

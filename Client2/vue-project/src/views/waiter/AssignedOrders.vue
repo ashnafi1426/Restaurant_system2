@@ -1,117 +1,154 @@
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
-      <div class="max-w-7xl mx-auto">
+    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-3 sm:p-6 lg:p-8 transition-colors duration-200">
+      <div class="max-w-7xl mx-auto space-y-6">
         <!-- Header -->
-        <div class="mb-8">
-          <h1 class="text-4xl font-bold text-slate-900">Assigned Orders</h1>
-          <p class="text-slate-600 mt-2">Manage your assigned orders and deliveries</p>
-          <div v-if="!loading && assignments.length > 0" class="mt-4 text-sm text-slate-600">
-            Showing {{ startIndex + 1 }} to {{ Math.min(startIndex + itemsPerPage, totalAssignments) }} of {{ totalAssignments }} orders
+        <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-sm dark:shadow-2xl">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="p-3 bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-500/30 shadow-sm flex-shrink-0">
+                <span class="material-symbols-rounded text-2xl">assignment</span>
+              </div>
+              <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Assigned Orders</h1>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Manage your assigned orders and delivery progress</p>
+              </div>
+            </div>
+            <div v-if="!loading && assignments.length > 0" class="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 self-start sm:self-auto">
+              Showing {{ startIndex + 1 }} to {{ Math.min(startIndex + itemsPerPage, totalAssignments) }} of {{ totalAssignments }} orders
+            </div>
           </div>
         </div>
 
         <!-- Loading State -->
-        <div v-if="loading" class="flex items-center justify-center py-16">
+        <div v-if="loading" class="flex items-center justify-center py-20 bg-white dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-800">
           <div class="text-center">
-            <div class="relative w-12 h-12">
-              <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#0EA5E9" stroke-width="6" opacity="0.3" />
-              </svg>
-              <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
-                <svg viewBox="0 0 100 100" class="w-full h-full">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="#FBBF24" stroke-width="8" stroke-linecap="round" stroke-dasharray="70 280" />
-                </svg>
-              </div>
+            <div class="inline-block relative w-12 h-12 mb-3">
+              <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20 border-t-indigo-600 dark:border-t-indigo-400 animate-spin"></div>
             </div>
-            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm mt-4">Loading orders...</p>
+            <p class="text-slate-600 dark:text-slate-400 text-sm font-medium">Loading assigned orders...</p>
           </div>
         </div>
 
         <!-- Error State -->
-        <div v-if="error && !loading" class="bg-red-50 border-l-4 border-red-600 rounded-lg p-6 mb-6">
-          <p class="text-red-700 font-semibold">Error</p>
-          <p class="text-red-600 text-sm mt-2">{{ error }}</p>
+        <div v-else-if="error && !loading" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-6">
+          <p class="text-rose-700 dark:text-rose-400 font-semibold text-sm">Error loading orders</p>
+          <p class="text-rose-600 dark:text-rose-300 text-xs mt-1">{{ error }}</p>
           <button 
             @click="retryLoad"
-            class="mt-4 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+            class="mt-4 px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-semibold hover:bg-rose-700 transition shadow-sm"
           >
             Retry
           </button>
         </div>
 
         <!-- Empty State -->
-        <div v-else-if="assignments.length === 0 && !loading" class="bg-white rounded-lg shadow-sm p-12 text-center">
-          <p class="text-slate-600 text-lg">No assigned orders yet</p>
-          <p class="text-slate-500 mt-2">Check back later for new assignments</p>
+        <div v-else-if="assignments.length === 0 && !loading" class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center">
+          <span class="material-symbols-rounded text-5xl block mb-2 text-slate-400 dark:text-slate-600">inbox</span>
+          <p class="text-slate-700 dark:text-slate-300 text-lg font-bold">No assigned orders yet</p>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Check back later for new assignments</p>
         </div>
 
-        <!-- Orders Table -->
-        <div v-else class="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="bg-slate-100 border-b border-slate-200">
+        <!-- Orders Table Container -->
+        <div v-else class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
+          <div class="w-full overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                 <tr>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-slate-900">Order #</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-slate-900">Room</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-slate-900">Guest Name</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-slate-900">Items</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-slate-900">Status</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-slate-900">Assigned Time</th>
-                  <th class="px-6 py-4 text-left text-sm font-semibold text-slate-900">Actions</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Order #</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Room</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Guest</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Items</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Status</th>
+                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Assigned Time</th>
+                  <th class="px-3 sm:px-4 py-3.5 text-right whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200">
-                <tr v-for="order in paginatedAssignments" :key="order.id" class="hover:bg-slate-50 transition">
-                  <td class="px-6 py-4 text-sm text-slate-900 font-semibold">{{ order.order_number }}</td>
-                  <td class="px-6 py-4 text-sm text-slate-600">{{ order.room_number || 'N/A' }}</td>
-                  <td class="px-6 py-4 text-sm text-slate-600">{{ order.guest_name || 'N/A' }}</td>
-                  <td class="px-6 py-4 text-sm text-slate-600">{{ order.items }} items</td>
-                  <td class="px-6 py-4 text-sm">
-                    <span :class="[
-                      'px-3 py-1 rounded-full text-xs font-semibold',
-                      order.order_status === 'assigned' ? 'bg-amber-100 text-amber-800' : 
-                      order.order_status === 'accepted' ? 'bg-blue-100 text-blue-800' :
-                      order.order_status === 'picked_up' ? 'bg-purple-100 text-purple-800' :
-                      order.order_status === 'on_delivery' ? 'bg-green-100 text-green-800' :
-                      'bg-slate-100 text-slate-800'
-                    ]">
-                      {{ order.order_status }}
+              <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-xs sm:text-sm">
+                <tr v-for="order in paginatedAssignments" :key="order.id" class="hover:bg-slate-50/80 dark:hover:bg-slate-950/50 transition duration-150">
+                  <td class="px-3 sm:px-4 py-3 font-bold text-slate-900 dark:text-white max-w-[130px] sm:max-w-[160px]">
+                    <div class="truncate" :title="order.order_number || order.order_id">
+                      #{{ order.order_number || order.order_id || order.id.substring(0,8) }}
+                    </div>
+                  </td>
+                  <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
+                    <span class="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded text-xs font-bold">
+                      {{ order.room_number || 'N/A' }}
                     </span>
                   </td>
-                  <td class="px-6 py-4 text-sm text-slate-600">{{ formatDateTime(order.assigned_at) }}</td>
-                  <td class="px-6 py-4 text-sm">
-                    <div class="flex gap-2">
+                  <td class="px-3 sm:px-4 py-3 font-medium text-slate-700 dark:text-slate-300 max-w-[120px] sm:max-w-[150px] truncate" :title="order.guest_name">
+                    {{ order.guest_name || 'Guest' }}
+                  </td>
+                  <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
+                    <span class="px-2 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 rounded text-xs font-bold">
+                      {{ typeof order.items === 'number' ? order.items : (Array.isArray(order.items) ? order.items.length : 1) }} items
+                    </span>
+                  </td>
+                  <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
+                    <span :class="[
+                      'px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider border',
+                      order.order_status === 'assigned' ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/20' : 
+                      order.order_status === 'accepted' ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20' :
+                      order.order_status === 'picked_up' ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-500/20' :
+                      order.order_status === 'on_delivery' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' :
+                      'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                    ]">
+                      {{ order.order_status || 'assigned' }}
+                    </span>
+                  </td>
+                  <td class="px-3 sm:px-4 py-3 text-slate-600 dark:text-slate-400 whitespace-nowrap text-xs">
+                    {{ formatDateTime(order.assigned_at || order.created_at) }}
+                  </td>
+                  <td class="px-3 sm:px-4 py-3 text-right whitespace-nowrap">
+                    <div class="relative inline-block text-left">
                       <button
-                        @click="selectedOrder = order; showDetailModal = true"
-                        class="px-3 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-xs font-medium whitespace-nowrap"
+                        @click.stop="toggleMenu(order.id)"
+                        class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center justify-center transition shadow-xs border border-slate-200 dark:border-slate-700"
+                        title="Actions"
                       >
-                        View Details
+                        <span class="material-symbols-rounded text-lg">more_vert</span>
                       </button>
-                      <button
-                        v-if="order.order_status === 'assigned'"
-                        @click="acceptOrder(order.id)"
-                        :disabled="loadingOrderId === order.id"
-                        class="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+
+                      <div
+                        v-if="activeMenuId === order.id"
+                        @click.stop
+                        class="absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1 text-left overflow-hidden transition-all duration-150"
                       >
-                        {{ loadingOrderId === order.id ? 'Accepting...' : 'Accept' }}
-                      </button>
-                      <button
-                        v-if="order.order_status === 'accepted'"
-                        @click="pickupOrder(order.id)"
-                        :disabled="loadingOrderId === order.id"
-                        class="px-3 py-1 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                      >
-                        {{ loadingOrderId === order.id ? 'Picking up...' : 'Pickup Order' }}
-                      </button>
-                      <button
-                        v-if="order.order_status === 'picked_up'"
-                        @click="startDelivery(order.id)"
-                        :disabled="loadingOrderId === order.id"
-                        class="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                      >
-                        {{ loadingOrderId === order.id ? 'Starting...' : 'Start Delivery' }}
-                      </button>
+                        <button
+                          @click="selectedOrder = order; showDetailModal = true; activeMenuId = null"
+                          class="w-full px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-2 transition"
+                        >
+                          <span class="material-symbols-rounded text-sm">visibility</span>
+                          View Details
+                        </button>
+
+                        <button
+                          v-if="order.order_status === 'assigned'"
+                          @click="acceptOrder(order.id); activeMenuId = null"
+                          class="w-full px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2 transition"
+                        >
+                          <span class="material-symbols-rounded text-sm">check_circle</span>
+                          Accept Order
+                        </button>
+
+                        <button
+                          v-if="order.order_status === 'accepted'"
+                          @click="pickupOrder(order.id); activeMenuId = null"
+                          class="w-full px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-400 flex items-center gap-2 transition"
+                        >
+                          <span class="material-symbols-rounded text-sm">shopping_bag</span>
+                          Pickup Order
+                        </button>
+
+                        <button
+                          v-if="order.order_status === 'picked_up'"
+                          @click="startDelivery(order.id); activeMenuId = null"
+                          class="w-full px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-2 transition"
+                        >
+                          <span class="material-symbols-rounded text-sm">local_shipping</span>
+                          Start Delivery
+                        </button>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -119,55 +156,51 @@
             </table>
           </div>
 
-          <!-- Pagination Controls -->
-          <div class="bg-slate-50 border-t border-slate-200 px-6 py-4 flex items-center justify-between">
-            <div class="text-sm text-slate-600">
-              Page {{ currentPage }} of {{ totalPages }} ({{ totalAssignments }} total)
+          <!-- Pagination Bar with Per-Page Dropdown Selector -->
+          <div class="bg-slate-50 dark:bg-slate-950/60 px-4 py-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+              <div class="flex items-center gap-1.5">
+                <label class="font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">Per page:</label>
+                <select
+                  v-model="itemsPerPage"
+                  @change="currentPage = 1"
+                  class="px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs"
+                >
+                  <option :value="5">5</option>
+                  <option :value="10">10</option>
+                  <option :value="20">20</option>
+                  <option :value="50">50</option>
+                  <option :value="100">100</option>
+                </select>
+              </div>
+              <span>
+                Showing {{ startIndex + 1 }} to {{ Math.min(startIndex + itemsPerPage, totalAssignments) }} of {{ totalAssignments }} entries
+              </span>
             </div>
-            <div class="flex gap-2 items-center">
-              <!-- Items per page selector -->
-              <select 
-                v-model.number="itemsPerPage"
-                @change="currentPage = 1"
-                class="px-3 py-1 border border-slate-300 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              >
-                <option value="5">5 per page</option>
-                <option value="10">10 per page</option>
-                <option value="20">20 per page</option>
-                <option value="50">50 per page</option>
-              </select>
 
-              <!-- Previous button -->
+            <div class="flex gap-1.5">
               <button
                 @click="previousPage"
                 :disabled="currentPage === 1"
-                class="px-3 py-1 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                class="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
               >
-                ← Previous
+                ← Prev
               </button>
-
-              <!-- Page numbers -->
-              <div class="flex gap-1">
+              <div class="flex items-center gap-1">
                 <button
                   v-for="pageNum in visiblePages"
                   :key="pageNum"
                   @click="currentPage = pageNum"
-                  :class="[
-                    'px-3 py-1 rounded-lg text-sm font-medium transition',
-                    currentPage === pageNum
-                      ? 'bg-blue-600 text-white'
-                      : 'border border-slate-300 text-slate-700 hover:bg-slate-100'
-                  ]"
+                  :class="pageNum === currentPage ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
+                  class="px-2.5 py-1 rounded-lg text-xs font-semibold transition"
                 >
                   {{ pageNum }}
                 </button>
               </div>
-
-              <!-- Next button -->
               <button
                 @click="nextPage"
-                :disabled="currentPage === totalPages"
-                class="px-3 py-1 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="currentPage === totalPages || totalPages === 0"
+                class="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
               >
                 Next →
               </button>
@@ -178,13 +211,12 @@
     </div>
 
     <!-- Order Detail Modal -->
-    <div v-if="showDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <!-- Modal Header -->
-        <div class="sticky top-0 bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-6 flex justify-between items-center">
+    <div v-if="showDetailModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+      <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-indigo-600 text-white p-5 flex justify-between items-center rounded-t-2xl">
           <div>
-            <h2 class="text-2xl font-bold">Order Details</h2>
-            <p class="text-indigo-100 mt-1">{{ selectedOrder?.order_number }}</p>
+            <h2 class="text-xl font-bold">Order Details</h2>
+            <p class="text-indigo-100 text-xs mt-1">#{{ selectedOrder?.order_number || selectedOrder?.id }}</p>
           </div>
           <button
             @click="showDetailModal = false"
@@ -194,131 +226,18 @@
           </button>
         </div>
 
-        <!-- Modal Error Alert -->
-        <div v-if="error" class="bg-red-50 border-b-2 border-red-600 p-4">
-          <p class="text-red-700 font-semibold">⚠️ Error</p>
-          <p class="text-red-600 text-sm mt-1">{{ error }}</p>
-        </div>
-
-        <!-- Modal Success Alert -->
-        <div v-if="!error && loadingOrderId === null && selectedOrder?.id" class="bg-green-50 border-b-2 border-green-600 p-4">
-          <p class="text-green-700 font-semibold">✓ Order Updated Successfully</p>
-        </div>
-
-        <!-- Modal Content -->
         <div class="p-6 space-y-6">
-          <!-- Order Status Section -->
-          <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-            <h3 class="font-semibold text-slate-900 mb-3">Order Status</h3>
-            <div class="grid grid-cols-2 gap-4">
+          <div class="bg-slate-50 dark:bg-slate-950 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+            <h3 class="font-bold text-slate-900 dark:text-white mb-3 text-sm">Order Summary</h3>
+            <div class="grid grid-cols-2 gap-4 text-xs">
               <div>
-                <p class="text-xs text-slate-600 uppercase font-semibold">Status</p>
-                <span :class="[
-                  'px-3 py-1 rounded-full text-sm font-semibold inline-block mt-1',
-                  selectedOrder?.order_status === 'assigned' ? 'bg-amber-100 text-amber-800' : 
-                  selectedOrder?.order_status === 'accepted' ? 'bg-blue-100 text-blue-800' :
-                  selectedOrder?.order_status === 'picked_up' ? 'bg-purple-100 text-purple-800' :
-                  selectedOrder?.order_status === 'on_delivery' ? 'bg-green-100 text-green-800' :
-                  'bg-slate-100 text-slate-800'
-                ]">
-                  {{ selectedOrder?.order_status }}
-                </span>
+                <p class="text-slate-500 uppercase font-semibold">Guest</p>
+                <p class="font-bold text-slate-900 dark:text-white mt-1">{{ selectedOrder?.guest_name || 'Guest' }}</p>
               </div>
               <div>
-                <p class="text-xs text-slate-600 uppercase font-semibold">Assigned Time</p>
-                <p class="text-slate-900 font-semibold mt-1">{{ selectedOrder?.assigned_at }}</p>
+                <p class="text-slate-500 uppercase font-semibold">Room</p>
+                <p class="font-bold text-slate-900 dark:text-white mt-1">{{ selectedOrder?.room_number || 'N/A' }}</p>
               </div>
-            </div>
-          </div>
-
-          <!-- Guest & Room Information -->
-          <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-            <h3 class="font-semibold text-slate-900 mb-3">Delivery Information</h3>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <p class="text-xs text-slate-600 uppercase font-semibold">Guest Name</p>
-                <p class="text-slate-900 font-semibold mt-1">{{ selectedOrder?.guest_name }}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-600 uppercase font-semibold">Room Number</p>
-                <p class="text-slate-900 font-semibold mt-1">{{ selectedOrder?.room_number }}</p>
-              </div>
-            </div>
-            <div v-if="selectedOrder?.special_requests && selectedOrder.special_requests !== 'None'" class="mt-4 pt-4 border-t border-slate-200">
-              <p class="text-xs text-slate-600 uppercase font-semibold">Special Requests</p>
-              <p class="text-slate-900 mt-1 italic">{{ selectedOrder?.special_requests }}</p>
-            </div>
-          </div>
-
-          <!-- Items Section -->
-          <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-            <h3 class="font-semibold text-slate-900 mb-3">Order Items ({{ selectedOrder?.items }})</h3>
-            <div v-if="selectedOrder?.items_detail && selectedOrder.items_detail.length > 0" class="space-y-2">
-              <div v-for="(item, index) in selectedOrder.items_detail" :key="index" class="bg-white rounded-lg p-3 border border-slate-200">
-                <div class="flex justify-between items-start">
-                  <div class="flex-1">
-                    <p class="font-semibold text-slate-900">{{ item.name }}</p>
-                    <p class="text-sm text-slate-600 mt-1">Quantity: <span class="font-semibold">{{ item.quantity }}</span></p>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-xs text-slate-600">Item</p>
-                  </div>
-                </div>
-                <div v-if="item.notes && item.notes !== 'None'" class="mt-2 pt-2 border-t border-slate-200">
-                  <p class="text-xs text-slate-600 font-semibold">Notes</p>
-                  <p class="text-sm text-slate-700 italic">{{ item.notes }}</p>
-                </div>
-              </div>
-            </div>
-            <div v-else class="text-center py-4 text-slate-500">
-              No items found
-            </div>
-          </div>
-
-          <!-- Wait Time -->
-          <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-            <p class="text-xs text-slate-600 uppercase font-semibold">Wait Time</p>
-            <p class="text-2xl font-bold text-indigo-600 mt-1">{{ selectedOrder?.wait_time_minutes }} minutes</p>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-            <h3 class="font-semibold text-slate-900 mb-3">Actions</h3>
-            <div class="flex gap-3 flex-wrap">
-              <button
-                v-if="selectedOrder?.order_status === 'assigned'"
-                @click="handleAcceptFromModal"
-                :disabled="loadingOrderId === selectedOrder?.id"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                <span v-if="loadingOrderId === selectedOrder?.id" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                {{ loadingOrderId === selectedOrder?.id ? 'Accepting...' : 'Accept Order' }}
-              </button>
-              <button
-                v-if="selectedOrder?.order_status === 'accepted'"
-                @click="handlePickupFromModal"
-                :disabled="loadingOrderId === selectedOrder?.id"
-                class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                <span v-if="loadingOrderId === selectedOrder?.id" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                {{ loadingOrderId === selectedOrder?.id ? 'Picking up...' : 'Pickup Order' }}
-              </button>
-              <button
-                v-if="selectedOrder?.order_status === 'picked_up'"
-                @click="handleDeliveryFromModal"
-                :disabled="loadingOrderId === selectedOrder?.id"
-                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                <span v-if="loadingOrderId === selectedOrder?.id" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                {{ loadingOrderId === selectedOrder?.id ? 'Starting...' : 'Start Delivery' }}
-              </button>
-              <button
-                @click="showDetailModal = false"
-                :disabled="loadingOrderId !== null"
-                class="px-4 py-2 bg-slate-300 text-slate-900 rounded-lg hover:bg-slate-400 transition font-medium disabled:opacity-50"
-              >
-                Close
-              </button>
             </div>
           </div>
         </div>
@@ -328,74 +247,56 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import waiterService from '@/services/waiterService'
 
 const loading = ref(true)
 const error = ref<string | null>(null)
-const loadingOrderId = ref<string | null>(null)
 const assignments = ref<any[]>([])
-const showDetailModal = ref(false)
-const selectedOrder = ref<any>(null)
-
-// Pagination state
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
+const selectedOrder = ref<any>(null)
+const showDetailModal = ref(false)
+const loadingOrderId = ref<string | null>(null)
+const activeMenuId = ref<string | null>(null)
 
-// Computed properties for pagination
 const totalAssignments = computed(() => assignments.value.length)
-
-const totalPages = computed(() => {
-  return Math.ceil(totalAssignments.value / itemsPerPage.value)
-})
-
-const startIndex = computed(() => {
-  return (currentPage.value - 1) * itemsPerPage.value
-})
-
-const paginatedAssignments = computed(() => {
-  const end = startIndex.value + itemsPerPage.value
-  return assignments.value.slice(startIndex.value, end)
-})
+const totalPages = computed(() => Math.ceil(totalAssignments.value / itemsPerPage.value))
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value)
+const paginatedAssignments = computed(() => assignments.value.slice(startIndex.value, startIndex.value + itemsPerPage.value))
 
 const visiblePages = computed(() => {
   const pages = []
   const maxVisible = 5
-  let start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let start = Math.max(1, currentPage.value - 2)
   let end = Math.min(totalPages.value, start + maxVisible - 1)
-  
-  // Adjust if we're near the end
-  if (end - start + 1 < maxVisible) {
+  if (end - start < maxVisible - 1) {
     start = Math.max(1, end - maxVisible + 1)
   }
-  
   for (let i = start; i <= end; i++) {
     pages.push(i)
   }
   return pages
 })
 
+const toggleMenu = (id: string) => {
+  activeMenuId.value = activeMenuId.value === id ? null : id
+}
+
+const handleOutsideClick = () => {
+  activeMenuId.value = null
+}
+
 const loadAssignments = async () => {
   try {
     loading.value = true
     error.value = null
-    console.log('[AssignedOrders] Loading assignments...')
-    
     const data = await waiterService.getRecentAssignments(100)
-    console.log('[AssignedOrders] ✅ Assignments loaded:', data)
     assignments.value = data || []
-    currentPage.value = 1 // Reset to first page
-    
-    if (assignments.value.length === 0) {
-      console.warn('[AssignedOrders] ⚠️  No assignments found')
-    }
+    currentPage.value = 1
   } catch (err: any) {
-    console.error('[AssignedOrders] ❌ Error loading assignments:', {
-      status: err.response?.status,
-      message: err.response?.data?.message || err.message,
-      error: err.response?.data?.error,
-    })
+    console.error('[AssignedOrders] Error:', err)
     error.value = err.message || 'Failed to load orders'
   } finally {
     loading.value = false
@@ -404,187 +305,70 @@ const loadAssignments = async () => {
 
 onMounted(() => {
   loadAssignments()
+  window.addEventListener('click', handleOutsideClick)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', handleOutsideClick)
 })
 
 const formatDateTime = (dateTime: string) => {
   if (!dateTime) return 'N/A'
-  const date = new Date(dateTime)
-  return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  })
-}
-
-const retryLoad = () => {
-  loadAssignments()
-}
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
+  try {
+    const date = new Date(dateTime)
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+  } catch (e) {
+    return dateTime
   }
 }
 
-const previousPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
-}
+const retryLoad = () => loadAssignments()
+const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
+const previousPage = () => { if (currentPage.value > 1) currentPage.value-- }
 
 const acceptOrder = async (orderId: string) => {
-  if (!orderId) {
-    console.error('[AssignedOrders] ❌ No order ID provided')
-    error.value = 'No order ID provided'
-    return
-  }
-  
   try {
     loadingOrderId.value = orderId
-    console.log('[AssignedOrders] Accepting order:', orderId)
-    console.log('[AssignedOrders] Order data:', assignments.value.find(o => o.id === orderId))
-    
-    // Use the API endpoint directly with proper error handling
-    const response = await waiterService.acceptAssignment(orderId)
-    console.log('[AssignedOrders] ✅ Order accepted:', response)
-    
-    // Show success message
-    error.value = null
-    
-    // Reload assignments
+    await waiterService.acceptAssignment(orderId)
     await loadAssignments()
   } catch (err: any) {
-    console.error('[AssignedOrders] ❌ Error accepting order:', {
-      orderId,
-      status: err.response?.status,
-      message: err.response?.data?.message || err.message,
-      error: err.response?.data?.error,
-      fullResponse: err.response?.data,
-    })
-    error.value = `Error: ${err.response?.data?.message || err.message}`
-  } finally {
-    loadingOrderId.value = null
-  }
-}
-
-const startDelivery = async (orderId: string) => {
-  if (!orderId) {
-    console.error('[AssignedOrders] ❌ No order ID provided for delivery')
-    error.value = 'No order ID provided for delivery'
-    return
-  }
-  
-  try {
-    loadingOrderId.value = orderId
-    console.log('[AssignedOrders] Starting delivery for order:', orderId)
-    console.log('[AssignedOrders] Full order data:', assignments.value.find(o => o.id === orderId))
-    
-    const response = await waiterService.startDelivery(orderId)
-    console.log('[AssignedOrders] ✅ Delivery started successfully:', response)
-    
-    // Show success message
-    error.value = null
-    
-    // Reload assignments to update status
-    await loadAssignments()
-    console.log('[AssignedOrders] ✅ Assignments reloaded after delivery start')
-  } catch (err: any) {
-    console.error('[AssignedOrders] ❌ Error starting delivery:', {
-      orderId,
-      status: err.response?.status,
-      statusText: err.response?.statusText,
-      message: err.response?.data?.message || err.message,
-      error: err.response?.data?.error,
-      fullResponse: err.response?.data,
-    })
-    error.value = `Error: ${err.response?.data?.message || err.message}`
+    error.value = err.response?.data?.message || err.message
   } finally {
     loadingOrderId.value = null
   }
 }
 
 const pickupOrder = async (orderId: string) => {
-  if (!orderId) {
-    console.error('[AssignedOrders] ❌ No order ID provided for pickup')
-    error.value = 'No order ID provided for pickup'
-    return
-  }
-  
   try {
     loadingOrderId.value = orderId
-    console.log('[AssignedOrders] Picking up order:', orderId)
-    console.log('[AssignedOrders] Full order data:', assignments.value.find(o => o.id === orderId))
-    
-    const response = await waiterService.pickupOrder(orderId)
-    console.log('[AssignedOrders] ✅ Order picked up successfully:', response)
-    
-    // Show success message
-    error.value = null
-    
-    // Reload assignments to update status
+    await waiterService.pickupOrder(orderId)
     await loadAssignments()
-    console.log('[AssignedOrders] ✅ Assignments reloaded after pickup')
   } catch (err: any) {
-    console.error('[AssignedOrders] ❌ Error picking up order:', {
-      orderId,
-      status: err.response?.status,
-      statusText: err.response?.statusText,
-      message: err.response?.data?.message || err.message,
-      error: err.response?.data?.error,
-      fullResponse: err.response?.data,
-    })
-    error.value = `Error: ${err.response?.data?.message || err.message}`
+    error.value = err.response?.data?.message || err.message
   } finally {
     loadingOrderId.value = null
   }
 }
 
-const handleAcceptFromModal = async () => {
-  if (selectedOrder.value?.id) {
-    await acceptOrder(selectedOrder.value.id)
-    // Close modal after successful action
-    if (!error.value) {
-      showDetailModal.value = false
-    }
-  }
-}
-
-const handlePickupFromModal = async () => {
-  if (selectedOrder.value?.id) {
-    await pickupOrder(selectedOrder.value.id)
-    // Close modal after successful action
-    if (!error.value) {
-      showDetailModal.value = false
-    }
-  }
-}
-
-const handleDeliveryFromModal = async () => {
-  if (selectedOrder.value?.id) {
-    await startDelivery(selectedOrder.value.id)
-    // Close modal after successful action
-    if (!error.value) {
-      showDetailModal.value = false
-    }
+const startDelivery = async (orderId: string) => {
+  try {
+    loadingOrderId.value = orderId
+    await waiterService.startDelivery(orderId)
+    await loadAssignments()
+  } catch (err: any) {
+    error.value = err.response?.data?.message || err.message
+  } finally {
+    loadingOrderId.value = null
   }
 }
 </script>
 
 <style scoped>
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1.5s linear infinite;
-}
 </style>

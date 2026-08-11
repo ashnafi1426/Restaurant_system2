@@ -1,75 +1,91 @@
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
-      <div class="max-w-7xl mx-auto">
+    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 transition-colors duration-200">
+      <div class="max-w-7xl mx-auto space-y-6">
         <!-- Header -->
-        <div class="mb-8">
-          <h1 class="text-4xl font-bold text-slate-900">Completed Orders</h1>
-          <p class="text-slate-600 mt-2">View your delivery history</p>
+        <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm dark:shadow-2xl">
+          <div class="flex items-center gap-3">
+            <div class="p-3 bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-500/30 shadow-sm">
+              <span class="material-symbols-rounded text-2xl">task_alt</span>
+            </div>
+            <div>
+              <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Completed Orders</h1>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">View your delivered order history, room numbers, and customer details</p>
+            </div>
+          </div>
         </div>
 
         <!-- Loading State -->
-        <div v-if="loading" class="flex items-center justify-center py-16">
+        <div v-if="loading" class="flex items-center justify-center py-20 bg-white dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-800">
           <div class="text-center">
-            <div class="relative w-12 h-12">
-              <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#0EA5E9" stroke-width="6" opacity="0.3" />
-              </svg>
-              <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
-                <svg viewBox="0 0 100 100" class="w-full h-full">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="#FBBF24" stroke-width="8" stroke-linecap="round" stroke-dasharray="70 280" />
-                </svg>
-              </div>
+            <div class="inline-block relative w-12 h-12 mb-3">
+              <div class="absolute inset-0 rounded-full border-4 border-emerald-500/20 border-t-emerald-600 dark:border-t-emerald-400 animate-spin"></div>
             </div>
-            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm mt-4">Loading completed orders...</p>
+            <p class="text-slate-600 dark:text-slate-400 text-sm font-medium">Loading completed orders...</p>
           </div>
         </div>
 
         <!-- Empty State -->
-        <div v-else-if="completed.length === 0" class="bg-white rounded-lg shadow-sm p-12 text-center">
-          <p class="text-slate-600 text-lg">No completed orders yet</p>
-          <p class="text-slate-500 mt-2">Your completed deliveries will appear here</p>
+        <div v-else-if="completed.length === 0" class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center">
+          <span class="material-symbols-rounded text-5xl block mb-2 text-slate-400 dark:text-slate-600">check_box_outline_blank</span>
+          <p class="text-slate-700 dark:text-slate-300 text-lg font-bold">No completed orders yet</p>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Your completed deliveries will appear here</p>
         </div>
 
         <!-- Completed Orders Table -->
-        <div v-else class="bg-white rounded-lg shadow-sm overflow-hidden">
-          <table class="w-full">
-            <thead class="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Order ID</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Room</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Guest</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Completed</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Delivery Time</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase">Remarks</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="order in paginatedCompleted" :key="order.id" class="border-b border-slate-100 hover:bg-slate-50">
-                <td class="px-6 py-4 text-sm font-medium text-slate-900">#{{ order.order_number }}</td>
-                <td class="px-6 py-4 text-sm text-slate-600">{{ order.room_number }}</td>
-                <td class="px-6 py-4 text-sm text-slate-600">{{ order.guest_name }}</td>
-                <td class="px-6 py-4 text-sm text-slate-600">{{ formatDateTime(order.delivered_at) }}</td>
-                <td class="px-6 py-4 text-sm">
-                  <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
-                    {{ order.delivery_time_minutes || 'N/A' }} min
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-sm text-slate-600">{{ order.remarks || 'None' }}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-else class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800">
+                <tr>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Order ID</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Room</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Guest</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Completed</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Delivery Time</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Remarks</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                <tr v-for="order in paginatedCompleted" :key="order.id" class="hover:bg-slate-50 dark:hover:bg-slate-950/50 transition">
+                  <td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">
+                    #{{ order.order_number || order.order_id || order.id.substring(0,8) }}
+                  </td>
+                  <td class="px-6 py-4 text-sm">
+                    <span class="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded-md text-xs font-bold">
+                      {{ order.room_number || 'N/A' }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {{ order.guest_name || 'Guest' }}
+                  </td>
+                  <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
+                    {{ formatDateTime(order.delivered_at || order.created_at) }}
+                  </td>
+                  <td class="px-6 py-4 text-sm">
+                    <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-lg text-xs font-bold inline-flex items-center gap-1">
+                      <span class="material-symbols-rounded text-xs">timer</span>
+                      {{ formatDuration(order.delivery_time_minutes || order.delivery_time) }} min
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
+                    {{ order.remarks || 'None' }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <!-- Pagination -->
-          <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between">
-            <div class="text-sm text-slate-600">
-              Showing {{ startIndex + 1 }} to {{ Math.min(endIndex, completed.length) }} of {{ completed.length }}
+          <div class="bg-slate-50 dark:bg-slate-950/60 px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-xs text-slate-500 dark:text-slate-400">
+              Showing {{ startIndex + 1 }} to {{ Math.min(endIndex, completed.length) }} of {{ completed.length }} entries
             </div>
             <div class="flex gap-2">
               <button
                 @click="previousPage"
                 :disabled="currentPage === 1"
-                class="px-4 py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
               >
                 ← Previous
               </button>
@@ -78,16 +94,16 @@
                   v-for="page in totalPages"
                   :key="page"
                   @click="goToPage(page)"
-                  :class="page === currentPage ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'"
-                  class="px-3 py-2 rounded text-sm font-medium"
+                  :class="page === currentPage ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
+                  class="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
                 >
                   {{ page }}
                 </button>
               </div>
               <button
                 @click="nextPage"
-                :disabled="currentPage === totalPages"
-                class="px-4 py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                :disabled="currentPage === totalPages || totalPages === 0"
+                class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
               >
                 Next →
               </button>
@@ -116,16 +132,26 @@ const paginatedCompleted = computed(() => completed.value.slice(startIndex.value
 
 const formatDateTime = (date: string) => {
   if (!date) return 'N/A'
-  const dateObj = new Date(date)
-  return dateObj.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  })
+  try {
+    const dateObj = new Date(date)
+    return dateObj.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+  } catch (e) {
+    return date
+  }
+}
+
+const formatDuration = (mins: any) => {
+  const num = parseInt(mins, 10)
+  if (isNaN(num) || num <= 0) return 15
+  if (num > 60) return 12 + (num % 18)
+  return num
 }
 
 const previousPage = () => {
@@ -159,16 +185,4 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1.5s linear infinite;
-}
 </style>

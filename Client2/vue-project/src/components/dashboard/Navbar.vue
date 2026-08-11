@@ -54,8 +54,6 @@ const handleFullscreenChange = () => {
 if (typeof document !== 'undefined') {
   document.addEventListener('fullscreenchange', handleFullscreenChange)
 }
-
-// Cleanup on unmount
 onUnmounted(() => {
   if (typeof document !== 'undefined') {
     document.removeEventListener('fullscreenchange', handleFullscreenChange)
@@ -65,7 +63,7 @@ onUnmounted(() => {
 const logout = async () => {
   profileOpen.value = false
   await auth.logout()
-  router.push('/')
+  router.push('/login')
 }
 
 // Desktop: Toggle collapse | Mobile: Toggle overlay
