@@ -198,7 +198,7 @@ onUnmounted(() => {
               </div>
             </div>
             <h3 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-3">{{ totalWaiters }}</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Hospitality Service Team</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Hotel Service Team</p>
           </div>
 
           <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl">

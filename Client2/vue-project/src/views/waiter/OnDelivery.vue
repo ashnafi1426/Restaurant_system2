@@ -222,7 +222,7 @@ const loadDeliveries = async () => {
 const completeDelivery = async (id: string) => {
   try {
     completingId.value = id
-    await waiterService.completeDelivery(id)
+    await waiterService.deliverOrder(id)
     await loadDeliveries()
   } catch (err) {
     console.error('[OnDelivery] Complete error:', err)

@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Cashier extends Model
+{
+    use HasFactory, HasUuids;
+
+    protected $fillable = [
+        'id',
+        'employee_code',
+        'shift',
+        'bio',
+        'profile_photo',
+        'hire_date',
+        'status',
+        'register_number',
+    ];
+
+    protected $casts = [
+        'hire_date' => 'date',
+    ];
+
+    /**
+     * Get the user associated with this cashier
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'id', 'id');
+    }
+
+    /**
+     * Check if cashier is active
+     */
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    /**
+     * Check if cashier is on break
+     */
+    public function isOnBreak(): bool
+    {
+        return $this->status === 'on_break';
+    }
+
+    /**
+     * Scope to get active cashiers
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+}

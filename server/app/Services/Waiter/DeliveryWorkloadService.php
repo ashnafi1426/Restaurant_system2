@@ -72,6 +72,53 @@ class DeliveryWorkloadService
     }
 
     /**
+     * Assign delivery for walk-in table orders
+     * Same as assignDelivery but includes table_id
+     */
+    public function assignTableDelivery(Order $order, Waiter $waiter, $table): DeliveryTask
+    {
+        try {
+            $delivery = DeliveryTask::create([
+                'order_id'        => $order->id,
+                'reservation_id'  => $order->reservation_id,
+                'table_id'        => $table->id,
+                'waiter_id'       => $waiter->id,
+                'assigned_by'     => $this->resolveSystemAssignedBy(),
+                'assignment_type' => 'automatic',
+                'status'          => 'accepted',
+                'assigned_at'     => now(),
+                'accepted_at'     => now(),
+            ]);
+
+            // Atomically increment orders and update last_assigned_at
+            $waiter->incrementOrders();
+            $waiter->update(['last_assigned_at' => now()]);
+
+            Log::info('✅ Table Delivery Task Assigned', [
+                'delivery_id' => $delivery->id,
+                'order_id' => $order->id,
+                'order_type' => 'walk_in',
+                'table_id' => $table->id,
+                'table_number' => $table->table_number,
+                'waiter_id' => $waiter->id,
+                'waiter_name' => $waiter->user->email ?? 'Unknown',
+                'current_orders' => $waiter->current_orders,
+                'last_assigned_at' => now()->toDateTimeString(),
+            ]);
+
+            return $delivery;
+        } catch (Throwable $e) {
+            Log::error('Table Delivery Assignment Creation Exception', [
+                'order_id' => $order->id,
+                'table_id' => $table->id,
+                'waiter_id' => $waiter->id,
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
      * Create a pending delivery when no waiter is available.
      */
     public function createWaitingDelivery(Order $order, ?HotelFloor $floor, string $reason): DeliveryTask

@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 class ReservationController extends Controller
 {
     public function index(Request $request)
@@ -145,34 +146,35 @@ class ReservationController extends Controller
                 'has_checkin' => $reservation->checkIn !== null,
             ]);
 
-            // Check if reservation is currently checked in
-            if ($reservation->status === 'checked_in') {
-                Log::warning('⚠️ [RESERVATION DELETE] Cannot delete - reservation is checked in', [
-                    'reservation_id' => $reservation->id,
-                ]);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot delete an active check-in. Please check out the guest first.',
-                ], 422);
-            }
-
             // Use database transaction for atomic deletion
             DB::beginTransaction();
 
             try {
-                // Delete CheckIn record if it exists (for checked_out reservations)
+                // Delete CheckIn record if it exists
                 if ($reservation->checkIn) {
                     Log::info('🔍 [RESERVATION DELETE] CheckIn record found, deleting it first', [
                         'reservation_id' => $reservation->id,
                         'checkin_id' => $reservation->checkIn->id,
-                        'checked_out_at' => $reservation->checkIn->checked_out_at,
                     ]);
                     $reservation->checkIn()->delete();
                     Log::info('✅ [RESERVATION DELETE] CheckIn record deleted successfully');
                 }
 
-                // Update room status to available if needed
-                if (in_array($reservation->status, ['confirmed', 'checked_out', 'pending']) && $reservation->room) {
+                // Disassociate orders linked to this reservation
+                DB::table('orders')->where('reservation_id', $reservation->id)->update(['reservation_id' => null]);
+
+                // Disassociate delivery tasks linked to this reservation if table exists
+                if (Schema::hasTable('delivery_tasks')) {
+                    DB::table('delivery_tasks')->where('reservation_id', $reservation->id)->update(['reservation_id' => null]);
+                }
+
+                // Disassociate payments linked to this reservation if table exists
+                if (Schema::hasTable('payments')) {
+                    DB::table('payments')->where('reservation_id', $reservation->id)->update(['reservation_id' => null]);
+                }
+
+                // Update room status to available if room is attached to this reservation
+                if ($reservation->room) {
                     $oldStatus = $reservation->room->status;
                     $reservation->room->update([
                         'status' => 'available',

@@ -59,6 +59,8 @@ class WaiterProfileController extends Controller
                         'phone' => $user->waiter->phone ?? null,
                         'shift' => $user->waiter->shift ?? 'flexible',
                         'status' => $user->waiter->status ?? 'active',
+                        'profile_photo' => $user->waiter->profile_photo ?? null,
+                        'bio' => $user->waiter->bio ?? null,
                         'created_at' => $user->waiter->created_at,
                         'updated_at' => $user->waiter->updated_at,
                     ] : null,
@@ -97,10 +99,20 @@ class WaiterProfileController extends Controller
                 'phone' => $validated['phone'] ?? $waiter->phone,
             ]);
 
-            if ($waiter->waiter && isset($validated['shift'])) {
-                $waiter->waiter->update([
-                    'shift' => $validated['shift'],
-                ]);
+            if ($waiter->waiter) {
+                $waiterData = [];
+                
+                if (isset($validated['shift'])) {
+                    $waiterData['shift'] = $validated['shift'];
+                }
+                
+                if (isset($validated['bio'])) {
+                    $waiterData['bio'] = $validated['bio'];
+                }
+                
+                if (!empty($waiterData)) {
+                    $waiter->waiter->update($waiterData);
+                }
             }
 
             return response()->json([
@@ -115,6 +127,8 @@ class WaiterProfileController extends Controller
                         'employee_code' => $waiter->waiter->employee_code,
                         'shift' => $waiter->waiter->shift,
                         'status' => $waiter->waiter->status,
+                        'bio' => $waiter->waiter->bio,
+                        'profile_photo' => $waiter->waiter->profile_photo,
                     ] : null,
                 ],
             ]);
@@ -302,6 +316,127 @@ class WaiterProfileController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch availability',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Upload profile photo
+     * POST /api/waiter/profile/photo
+     */
+    public function uploadPhoto(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB max
+            ]);
+
+            $user = auth()->user();
+            
+            if (!$user->waiter) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Waiter profile not found',
+                ], 404);
+            }
+
+            // Delete old photo if exists
+            if ($user->waiter->profile_photo) {
+                \Storage::disk('public')->delete($user->waiter->profile_photo);
+            }
+
+            // Store new photo
+            $path = $request->file('photo')->store('profile_photos', 'public');
+            
+            // Update waiter profile
+            $user->waiter->update([
+                'profile_photo' => $path,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Photo uploaded successfully',
+                'data' => [
+                    'profile_photo' => $path,
+                    'photo_url' => asset('storage/' . $path),
+                ],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to upload photo',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get waiter statistics
+     * GET /api/waiter/profile/stats
+     */
+    public function getStats(): JsonResponse
+    {
+        try {
+            $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
+            
+            if (!$waiterId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Waiter profile not linked to this account',
+                ], 403);
+            }
+
+            // Get today's deliveries
+            $deliveriesToday = DB::table('delivery_tasks')
+                ->where('waiter_id', $waiterId)
+                ->whereDate('created_at', today())
+                ->count();
+
+            // Get this week's deliveries
+            $deliveriesWeek = DB::table('delivery_tasks')
+                ->where('waiter_id', $waiterId)
+                ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
+                ->count();
+
+            // Get completed today
+            $completedToday = DB::table('delivery_tasks')
+                ->where('waiter_id', $waiterId)
+                ->where('status', 'delivered')
+                ->whereDate('updated_at', today())
+                ->count();
+
+            // Get pending assignments
+            $pendingAssignments = DB::table('delivery_tasks')
+                ->where('waiter_id', $waiterId)
+                ->whereIn('status', ['pending', 'accepted', 'picked_up'])
+                ->count();
+
+            // Get average rating from performance
+            $avgRating = DB::table('waiter_performance')
+                ->where('waiter_id', $waiterId)
+                ->avg('guest_rating') ?? 0;
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'total_deliveries_today' => $deliveriesToday,
+                    'total_deliveries_week' => $deliveriesWeek,
+                    'average_rating' => round($avgRating, 2),
+                    'pending_assignments' => $pendingAssignments,
+                    'completed_today' => $completedToday,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch statistics',
                 'error' => $e->getMessage(),
             ], 500);
         }

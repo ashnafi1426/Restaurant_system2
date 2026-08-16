@@ -215,6 +215,12 @@ export const useNotificationStore = defineStore('notification', () => {
    * Start polling for real-time notifications
    */
   const startPolling = (interval: number = 5000) => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      console.warn('⚠️ [NOTIFICATION STORE] No auth token found - skipping notification polling')
+      return
+    }
+
     if (pollIntervalId.value) {
       console.log('[NOTIFICATION STORE] Polling already active')
       return

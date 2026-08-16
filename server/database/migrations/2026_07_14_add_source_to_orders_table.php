@@ -14,18 +14,10 @@ return new class extends Migration
         Schema::table('orders', function (Blueprint $table) {
             // Add source column to track order origin (guest_qr, receptionist, etc.)
             $table->enum('source', ['receptionist', 'guest_qr', 'system'])->default('receptionist')->after('status');
-            
-            // Add special_requests for guest QR orders
             $table->text('special_requests')->nullable()->after('notes');
-            
-            // Make reservation_id nullable for guest QR orders (no reservation required)
             $table->foreignUuid('reservation_id')->nullable()->change();
         });
     }
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('orders', function (Blueprint $table) {

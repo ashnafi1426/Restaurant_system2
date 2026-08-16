@@ -3,6 +3,7 @@ import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '../../layouts/DashboardLayout.vue'
 import { useCashierStore } from '@/stores/cashierStore'
+import { useAuthStore } from '@/stores/auth'
 import {
   TrendingUp,
   Clock,
@@ -18,6 +19,7 @@ import {
 
 const router = useRouter()
 const cashierStore = useCashierStore()
+const auth = useAuthStore()
 
 // Load dashboard data
 onMounted(() => {
@@ -159,6 +161,7 @@ const refreshDashboard = () => {
         <h2 class="text-xl font-semibold text-slate-800 dark:text-white mb-4">Quick Actions</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <button
+            v-if="auth.can('payments.view')"
             @click="navigateToPayments()"
             class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors"
           >
@@ -166,6 +169,7 @@ const refreshDashboard = () => {
             View Payments
           </button>
           <button
+            v-if="auth.can('payments.view')"
             @click="navigateToPayments('paid')"
             class="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-colors"
           >
@@ -173,6 +177,7 @@ const refreshDashboard = () => {
             Paid Payments
           </button>
           <button
+            v-if="auth.can('payments.view')"
             @click="navigateToPayments('pending')"
             class="flex items-center justify-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg transition-colors"
           >
@@ -180,6 +185,7 @@ const refreshDashboard = () => {
             Pending Payments
           </button>
           <button
+            v-if="auth.can('reports.sales')"
             @click="router.push({ name: 'cashier-reports' })"
             class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition-colors"
           >

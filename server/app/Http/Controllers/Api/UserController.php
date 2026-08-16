@@ -8,10 +8,13 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\ActivationService;
+use App\Mail\NewUserCreated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 class UserController extends Controller
 {
     protected ActivationService $activationService;
@@ -66,36 +69,69 @@ class UserController extends Controller
   }
   public function store(StoreUserRequest $request)
   {
+    // Ensure database column accepts dynamic role names (VARCHAR instead of ENUM)
+    try {
+      DB::statement("ALTER TABLE users MODIFY COLUMN role VARCHAR(100) NOT NULL DEFAULT 'guest'");
+    } catch (\Exception $e) {}
+
     DB::beginTransaction();
     try {
-      // Create user without password - will be set via activation
+      // Generate a random password (12 characters with mix of letters, numbers, and symbols)
+      $temporaryPassword = $this->generateSecurePassword();
+
+      // Create user with auto-generated password
       $user = User::create([
         'first_name' => $request->first_name,
         'last_name' => $request->last_name,
         'email' => $request->email,
         'phone' => $request->phone,
-        'password_hash' => null, // No password yet - user will create via activation
+        'password_hash' => Hash::make($temporaryPassword),
         'role' => $request->role,
         'is_active' => $request->is_active,
-        'activation_status' => 'pending', // Set to pending activation
-        'email_verified_at' => null
+        'activation_status' => 'activated', // User can login immediately
+        'email_verified_at' => now() // Mark email as verified
       ]);
 
-      // Generate activation token and send email
-      $activationResult = $this->activationService->generateActivationToken($user);
+      // Sync role pivot table
+      if (!empty($user->role)) {
+        $targetRoleStr = strtolower($user->role);
+        $roleModel = \App\Models\Role::whereRaw('LOWER(slug) = ?', [$targetRoleStr])
+          ->orWhereRaw('LOWER(name) = ?', [$targetRoleStr])
+          ->first();
+        if ($roleModel) {
+          try {
+            $user->roles()->syncWithoutDetaching([
+              $roleModel->id => ['is_primary' => true]
+            ]);
+          } catch (\Exception $e) {}
+        }
+      }
 
-      if (!$activationResult['success']) {
-        DB::rollBack();
+      // Send email with temporary password
+      try {
+        Mail::to($user->email)->send(new NewUserCreated($user, $temporaryPassword));
+      } catch (\Exception $mailException) {
+        Log::error('Failed to send new user email', [
+          'user_id' => $user->id,
+          'email' => $user->email,
+          'error' => $mailException->getMessage()
+        ]);
+        
+        // Don't rollback - user is created, just email failed
+        DB::commit();
+        
         return response()->json([
-          'success' => false,
-          'message' => 'User created but failed to send activation email. Please resend the activation link.',
-          'user' => new UserResource($user)
-        ], 500);
+          'success' => true,
+          'message' => 'User created successfully but failed to send email. Please provide password manually: ' . $temporaryPassword,
+          'data' => new UserResource($user),
+          'temporary_password' => $temporaryPassword, // Return it if email fails
+          'email_sent' => false
+        ], 201);
       }
 
       DB::commit();
 
-      Log::info('User created with activation workflow', [
+      Log::info('User created with auto-generated password', [
         'user_id' => $user->id,
         'email' => $user->email,
         'role' => $user->role,
@@ -104,9 +140,9 @@ class UserController extends Controller
 
       return response()->json([
         'success' => true,
-        'message' => 'User created successfully. Activation email sent to ' . $user->email,
+        'message' => 'User created successfully. Login credentials sent to ' . $user->email,
         'data' => new UserResource($user),
-        'activation_sent' => true
+        'email_sent' => true
       ], 201);
     }
      catch (\Exception $exception) {
@@ -130,6 +166,33 @@ class UserController extends Controller
 
       ], 500);
     }
+  }
+
+  /**
+   * Generate a secure random password
+   */
+  private function generateSecurePassword(int $length = 12): string
+  {
+    $uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Excluding I, O
+    $lowercase = 'abcdefghjkmnpqrstuvwxyz'; // Excluding i, l, o
+    $numbers = '23456789'; // Excluding 0, 1
+    $symbols = '!@#$%&*';
+    
+    // Ensure at least one character from each group
+    $password = 
+      $uppercase[random_int(0, strlen($uppercase) - 1)] .
+      $lowercase[random_int(0, strlen($lowercase) - 1)] .
+      $numbers[random_int(0, strlen($numbers) - 1)] .
+      $symbols[random_int(0, strlen($symbols) - 1)];
+    
+    // Fill the rest with random characters from all groups
+    $allChars = $uppercase . $lowercase . $numbers . $symbols;
+    for ($i = 4; $i < $length; $i++) {
+      $password .= $allChars[random_int(0, strlen($allChars) - 1)];
+    }
+    
+    // Shuffle the password to randomize character positions
+    return str_shuffle($password);
   }
   public function show(User $user)
   {

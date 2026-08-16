@@ -70,6 +70,72 @@ class WaiterSelectionEngine
 
         return null;
     }
+
+    /**
+     * Select waiter for a restaurant table (walk-in orders)
+     */
+    public function selectWaiterForTable($table, HotelShift $shift): ?Waiter
+    {
+        Log::info('🔵 [SELECTION ENGINE] Starting waiter selection for table', [
+            'table_id' => $table->id,
+            'table_number' => $table->table_number,
+            'shift_id' => $shift->id,
+            'shift_name' => $shift->name,
+            'timestamp' => now(),
+        ]);
+
+        try {
+            $waiter = Waiter::query()
+                ->select('waiters.*')
+                ->join('waiter_table_assignments', 'waiter_table_assignments.waiter_id', '=', 'waiters.id')
+                ->where('waiter_table_assignments.table_id', $table->id)
+                ->where('waiter_table_assignments.shift_id', $shift->id)
+                ->whereDate('waiter_table_assignments.assignment_date', today())
+                ->where('waiter_table_assignments.status', 'active')
+                ->where('waiters.status', 'active')
+                ->where('waiters.availability', 'available')
+                ->whereRaw('waiters.current_orders < waiters.maximum_orders')
+                ->with(['user'])
+                ->orderBy('waiters.current_orders', 'asc')
+                ->orderByRaw("COALESCE(waiters.last_assigned_at, '1970-01-01 00:00:00') ASC")
+                ->orderBy('waiters.id', 'asc')
+                ->sharedLock()
+                ->first();
+
+            if ($waiter) {
+                Log::info('✅ [SELECTION] Waiter selected for table', [
+                    'waiter_id' => $waiter->id,
+                    'name' => $waiter->user->email ?? 'Unknown',
+                    'table_id' => $table->id,
+                    'table_number' => $table->table_number,
+                    'shift_id' => $shift->id,
+                    'current_orders' => $waiter->current_orders,
+                    'last_assigned_at' => $waiter->last_assigned_at?->toDateTimeString() ?? 'never',
+                ]);
+
+                return $waiter;
+            }
+        } catch (Throwable $e) {
+            Log::error('❌ [SELECTION] Error selecting waiter for table', [
+                'error' => $e->getMessage(),
+                'table_id' => $table->id,
+                'shift_id' => $shift->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return null;
+        }
+
+        Log::warning('⚠️ [SELECTION] NO WAITER ASSIGNED TO TABLE', [
+            'table_id' => $table->id,
+            'table_number' => $table->table_number,
+            'shift_id' => $shift->id,
+            'timestamp' => now(),
+            'action' => 'Will create waiting_assignment task',
+            'reason' => 'No active, available waiter assigned to this table/shift',
+        ]);
+
+        return null;
+    }
     private function selectFromFloorStaff(HotelFloor $floor, HotelShift $shift): ?Waiter
     {
         Log::info('🔍 [TIER 1-3] Starting floor staff selection (Primary → Secondary → Backup)', [

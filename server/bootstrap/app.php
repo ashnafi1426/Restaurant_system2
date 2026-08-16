@@ -16,9 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Apply custom CORS middleware globally
         $middleware->prepend(\App\Http\Middleware\CorsMiddleware::class);
         
-        // Register role middleware alias
+        // Register role and permission middleware aliases
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'permission' => \App\Http\Middleware\PermissionMiddleware::class,
         ]);
         
         // Configure API routes - exclude unified orders from Sanctum auth

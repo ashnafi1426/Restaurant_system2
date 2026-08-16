@@ -146,12 +146,35 @@ class RoomController extends Controller
     */
     public function destroy(Room $room)
     {
-        $room->delete();
+        try {
+            // Check if there are associated reservations or check-ins
+            $hasReservations = \App\Models\Reservation::where('room_id', $room->id)->exists();
+            $hasCheckIns = \App\Models\CheckIn::where('room_id', $room->id)->exists();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Room deleted successfully'
-        ]);
+            if ($hasReservations || $hasCheckIns) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete room because it has associated reservations or check-ins. Deactivate the room instead.'
+                ], 422);
+            }
+
+            $room->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Room deleted successfully'
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete room due to linked database records (reservations, check-ins, or orders).'
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete room: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /*

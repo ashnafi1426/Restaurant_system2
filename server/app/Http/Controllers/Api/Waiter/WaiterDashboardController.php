@@ -14,68 +14,14 @@ class WaiterDashboardController extends Controller
     {
         $this->dashboardService = $dashboardService;
     }
-    private function getWaiterId(): ?int
+    private function getWaiterId()
     {
         try {
             $user = auth()->user();
-            
-            if (!$user) {
-                \Log::warning('No authenticated user found');
-                return null;
-            }
-            \Log::debug('🔵 [CONTROLLER] User authenticated:', [
-                'user_id' => $user->id,
-                'role' => $user->role,
-            ]);
-
-            // Load waiter relationship if not already loaded
-            if (!$user->relationLoaded('waiter')) {
-                \Log::debug('📥 Loading waiter relationship...');
-                $user->load('waiter');
-            }
-
-            $waiter = $user->waiter;
-            
-            // If no waiter profile exists, try to find by user_id directly
-            if (!$waiter) {
-                \Log::warning('❌ No waiter relation found, searching by user_id', ['user_id' => $user->id]);
-                $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
-                
-                if ($waiter) {
-                    \Log::info('✅ Found waiter by direct user_id lookup', [
-                        'user_id' => $user->id,
-                        'waiter_id' => $waiter->id,
-                    ]);
-                } else {
-                    \Log::error('❌ No waiter profile found for user', [
-                        'user_id' => $user->id,
-                        'user_role' => $user->role,
-                    ]);
-                    
-                    // Log all waiters to debug
-                    $allWaiters = \App\Models\Waiter::select('id', 'user_id', 'section')->get();
-                    \Log::debug('📊 All waiters in system:', ['count' => $allWaiters->count(), 'waiters' => $allWaiters->toArray()]);
-                    
-                    return null;
-                }
-            }
-            
-            $waiterId = $waiter->id;
-            
-            \Log::debug('✅ [CONTROLLER] Waiter ID resolved:', [
-                'user_id' => $user->id,
-                'waiter_id' => $waiterId,
-                'waiter_section' => $waiter->section ?? 'N/A',
-            ]);
-
-            return $waiterId;
+            if (!$user) return null;
+            return app(\App\Services\Waiter\WaiterContextResolver::class)->resolveWaiterId($user);
         } catch (\Throwable $e) {
-            \Log::error('❌ Auth error:', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            \Log::error('❌ Auth error in getWaiterId: ' . $e->getMessage());
             return null;
         }
     }

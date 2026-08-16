@@ -308,38 +308,35 @@ class WaiterAssignmentService
             'waiter_id' => $waiterId,
         ]);
         
-        $task = DeliveryTask::where('id', $id)->where('waiter_id', $waiterId)->firstOrFail();
+        $task = DeliveryTask::where('id', $id)->first() ?? DeliveryTask::where('order_id', $id)->first();
+        if (!$task) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Task {$id} not found");
+        }
+
+        if ($task->waiter_id != $waiterId) {
+            $task->waiter_id = $waiterId;
+            $task->save();
+        }
         
-        \Log::info('📦 [SERVICE] Task found before accept', [
-            'task_id' => $task->id,
-            'status_before' => $task->status,
-            'waiter_id' => $task->waiter_id,
-        ]);
+        $waiter = Waiter::find($waiterId);
+        if ($waiter) {
+            $task->accept($waiter);
+        } else {
+            $task->update(['status' => 'accepted', 'accepted_at' => now()]);
+        }
         
-        $waiter = Waiter::findOrFail($waiterId);
-        $task->accept($waiter);
-        
-        \Log::info('✅ [SERVICE] Task accepted', [
-            'task_id' => $task->id,
-            'status_after' => $task->status,
-            'accepted_at' => $task->accepted_at,
-        ]);
-        
-        // Re-fetch fresh from database to ensure response has updated status
-        $task = DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($id);
-        
-        return $task;
+        return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
     }
 
     public function rejectAssignment(string $id, int|string $waiterId, ?string $reason): DeliveryTask
     {
-        $task = DeliveryTask::where('id', $id)->where('waiter_id', $waiterId)->firstOrFail();
-        $task->cancel($reason ?? 'Rejected by Waiter');
+        $task = DeliveryTask::where('id', $id)->first() ?? DeliveryTask::where('order_id', $id)->first();
+        if (!$task) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Task {$id} not found");
+        }
+        $task->cancel($reason ?? 'Rejected by Staff');
         
-        // Re-fetch fresh from database to ensure response has updated status
-        $task = DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($id);
-        
-        return $task;
+        return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
     }
 
     public function pickupOrder(string $id, int|string $waiterId): DeliveryTask
@@ -349,29 +346,20 @@ class WaiterAssignmentService
             'waiter_id' => $waiterId,
         ]);
         
-        $task = DeliveryTask::where('id', $id)->where('waiter_id', $waiterId)->firstOrFail();
-        
-        \Log::info('📦 [SERVICE] Task found before markPickedUp', [
-            'task_id' => $task->id,
-            'status_before' => $task->status,
-            'waiter_id' => $task->waiter_id,
-            'order_id' => $task->order_id,
-        ]);
+        $task = DeliveryTask::where('id', $id)->first() ?? DeliveryTask::where('order_id', $id)->first();
+        if (!$task) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Task {$id} not found");
+        }
+
+        if ($task->waiter_id != $waiterId) {
+            \Log::info("Reassigning delivery task {$id} to taking waiter {$waiterId}");
+            $task->waiter_id = $waiterId;
+            $task->save();
+        }
         
         try {
-            // Mark task as picked up from kitchen
-            // Do NOT auto-transition to on_delivery - let the waiter explicitly call startDelivery
             $task->markPickedUp();
-            
-            \Log::info('✅ [SERVICE] Task marked as picked up from kitchen', [
-                'task_id' => $task->id,
-                'new_status' => $task->status,
-                'picked_up_at' => $task->picked_up_at,
-            ]);
-            
-            // Re-fetch fresh from database to ensure response has updated status
-            $task = DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($id);
-            
+            return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
         } catch (\Exception $e) {
             \Log::error('❌ [SERVICE] Error in pickup workflow', [
                 'task_id' => $task->id,
@@ -380,8 +368,6 @@ class WaiterAssignmentService
             ]);
             throw $e;
         }
-        
-        return $task;
     }
 
     public function startDelivery(string $id, int|string $waiterId): DeliveryTask
@@ -391,45 +377,52 @@ class WaiterAssignmentService
             'waiter_id' => $waiterId,
         ]);
         
-        $task = DeliveryTask::where('id', $id)->where('waiter_id', $waiterId)->firstOrFail();
-        
-        \Log::info('📦 [SERVICE] Task found before markOnDelivery', [
-            'task_id' => $task->id,
-            'status_before' => $task->status,
-            'waiter_id' => $task->waiter_id,
-            'order_id' => $task->order_id,
-        ]);
+        $task = DeliveryTask::where('id', $id)->first() ?? DeliveryTask::where('order_id', $id)->first();
+        if (!$task) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Task {$id} not found");
+        }
+
+        if ($task->waiter_id != $waiterId) {
+            $task->waiter_id = $waiterId;
+            $task->save();
+        }
         
         $task->markOnDelivery();
         
-        // Re-fetch fresh from database to ensure response has updated status
-        $task = DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($id);
-        
-        \Log::info('✅ [SERVICE] Task updated to on_delivery', [
-            'task_id' => $task->id,
-            'status_after' => $task->status,
-            'on_delivery_at' => $task->on_delivery_at,
-        ]);
-        
-        return $task;
+        return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
     }
 
     public function deliverOrder(string $id, int|string $waiterId, ?string $remarks): DeliveryTask
     {
-        $task = DeliveryTask::where('id', $id)->where('waiter_id', $waiterId)->firstOrFail();
+        $task = DeliveryTask::where('id', $id)->first() ?? DeliveryTask::where('order_id', $id)->first();
+        if (!$task) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Task {$id} not found");
+        }
+
+        if ($task->waiter_id != $waiterId) {
+            $task->waiter_id = $waiterId;
+            $task->save();
+        }
+
         $task->markDelivered($remarks);
         
-        // Re-fetch fresh from database to ensure response has updated status
-        $task = DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($id);
-        
-        return $task;
+        return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
     }
 
     public function failDelivery(string $id, int|string $waiterId, string $reason, ?string $remarks): DeliveryTask
     {
-        $task = DeliveryTask::where('id', $id)->where('waiter_id', $waiterId)->firstOrFail();
+        $task = DeliveryTask::where('id', $id)->first() ?? DeliveryTask::where('order_id', $id)->first();
+        if (!$task) {
+            throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Task {$id} not found");
+        }
+
+        if ($task->waiter_id != $waiterId) {
+            $task->waiter_id = $waiterId;
+            $task->save();
+        }
+
         $task->cancel("Failed: {$reason}" . ($remarks ? " - {$remarks}" : ''));
-        return $task;
+        return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
     }
 
     /**
@@ -438,21 +431,30 @@ class WaiterAssignmentService
      */
     public function getDeliveryHistory(int|string $waiterId, array $filters = [], int $perPage = 15)
     {
-        $query = DeliveryTask::where('waiter_id', $waiterId)
-            ->whereIn('status', ['delivered', 'cancelled'])
-            ->with([
-                'order:id,order_number,room_id,guest_id,status',
-                'order.guest:id,first_name,last_name',
-                'order.room:id,room_number',
-                'assignedBy:id,first_name,last_name'
-            ]);
+        $baseQuery = DeliveryTask::whereIn('status', ['delivered', 'cancelled']);
 
-        // Apply date range filter
+        $waiterQuery = (clone $baseQuery)->whereIn('waiter_id', [$waiterId, auth()->id()]);
+        if ($waiterQuery->exists()) {
+            $query = $waiterQuery;
+        } else {
+            $query = $baseQuery;
+        }
+
+        $query->with([
+            'room',
+            'order',
+            'order.guest',
+            'order.room',
+            'order.reservation.room',
+            'assignedBy'
+        ]);
+
+        // Apply date range filter using COALESCE
         if (!empty($filters['start_date'])) {
-            $query->whereDate('assigned_at', '>=', $filters['start_date']);
+            $query->whereRaw("COALESCE(delivered_at, assigned_at, created_at) >= ?", [$filters['start_date'] . ' 00:00:00']);
         }
         if (!empty($filters['end_date'])) {
-            $query->whereDate('assigned_at', '<=', $filters['end_date']);
+            $query->whereRaw("COALESCE(delivered_at, assigned_at, created_at) <= ?", [$filters['end_date'] . ' 23:59:59']);
         }
 
         // Apply action filter (status filter)
@@ -469,11 +471,16 @@ class WaiterAssignmentService
         $paginated = $query->paginate($perPage);
 
         return $paginated->through(function ($task) {
+            $roomNumber = $task->room?->room_number
+                ?? $task->order?->room?->room_number
+                ?? $task->order?->reservation?->room?->room_number
+                ?? ($task->room_id ? $task->room_id : 'N/A');
+
             return [
                 'id' => $task->id,
                 'order_id' => $task->order_id,
-                'order_number' => $task->order?->order_number,
-                'room_number' => $task->order?->room?->room_number,
+                'order_number' => $task->order?->order_number ?? (is_numeric($task->order_id) ? 'ORD-' . $task->order_id : substr($task->id, 0, 8)),
+                'room_number' => $roomNumber,
                 'guest_name' => ($task->order?->guest ? $task->order->guest->first_name . ' ' . $task->order->guest->last_name : 'N/A'),
                 'status' => $task->status,
                 'assigned_at' => $task->assigned_at?->format('Y-m-d H:i:s'),
@@ -482,7 +489,7 @@ class WaiterAssignmentService
                 'delivery_time_minutes' => $task->getDeliveryDurationMinutes(),
                 'remarks' => $task->remarks ?? 'None',
                 'cancellation_reason' => $task->cancellation_reason ?? null,
-                'created_at' => $task->created_at?->format('Y-m-d H:i:s'),
+                'created_at' => ($task->delivered_at ?? $task->created_at)?->format('Y-m-d H:i:s'),
             ];
         });
     }

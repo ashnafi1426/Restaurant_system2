@@ -30,6 +30,7 @@ class Waiter extends Model
         'maximum_orders',
         'last_assigned_at',
         'profile_photo',
+        'bio',
     ];
 
     protected $casts = [

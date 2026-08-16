@@ -18,7 +18,7 @@ const waiterRoutes: RouteRecordRaw[] = [
     component: WaiterDashboard,
     meta: {
       requiresAuth: true,
-      role: 'waiter',
+      permission: 'dashboard.view',
       title: 'Waiter Dashboard',
     },
   },
@@ -28,7 +28,7 @@ const waiterRoutes: RouteRecordRaw[] = [
     component: AssignedOrders,
     meta: {
       requiresAuth: true,
-      role: 'waiter',
+      permission: 'delivery.accept',
       title: 'Assigned Orders',
     },
   },
@@ -38,7 +38,7 @@ const waiterRoutes: RouteRecordRaw[] = [
     component: ReadyPickup,
     meta: {
       requiresAuth: true,
-      role: 'waiter',
+      permission: 'delivery.pickup',
       title: 'Ready for Pickup',
     },
   },
@@ -48,7 +48,7 @@ const waiterRoutes: RouteRecordRaw[] = [
     component: OnDelivery,
     meta: {
       requiresAuth: true,
-      role: 'waiter',
+      permission: 'delivery.deliver',
       title: 'On Delivery',
     },
   },
@@ -58,7 +58,7 @@ const waiterRoutes: RouteRecordRaw[] = [
     component: CompletedOrders,
     meta: {
       requiresAuth: true,
-      role: 'waiter',
+      permission: 'delivery.view',
       title: 'Completed Orders',
     },
   },
@@ -68,7 +68,7 @@ const waiterRoutes: RouteRecordRaw[] = [
     component: DeliveryHistory,
     meta: {
       requiresAuth: true,
-      role: 'waiter',
+      permission: 'delivery.view',
       title: 'Delivery History',
     },
   },
@@ -78,7 +78,7 @@ const waiterRoutes: RouteRecordRaw[] = [
     component: Performance,
     meta: {
       requiresAuth: true,
-      role: 'waiter',
+      permission: 'delivery.view',
       title: 'Performance',
     },
   },
@@ -88,7 +88,7 @@ const waiterRoutes: RouteRecordRaw[] = [
     component: Notifications,
     meta: {
       requiresAuth: true,
-      role: 'waiter',
+      permission: 'notifications.view',
       title: 'Notifications',
     },
   },
@@ -98,7 +98,6 @@ const waiterRoutes: RouteRecordRaw[] = [
     component: WaiterProfile,
     meta: {
       requiresAuth: true,
-      role: 'waiter',
       title: 'My Profile',
     },
   },
@@ -108,7 +107,6 @@ const waiterRoutes: RouteRecordRaw[] = [
     component: WaiterSettings,
     meta: {
       requiresAuth: true,
-      role: 'waiter',
       title: 'Settings',
     },
   },

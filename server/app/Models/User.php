@@ -31,7 +31,6 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'password_hash' => 'hashed',
             'is_active' => 'boolean',
             'activation_token_expires_at' => 'datetime',
             'email_verified_at' => 'datetime'
@@ -137,4 +136,121 @@ class User extends Authenticatable
     {
         return $this->hasOne(Waiter::class, 'user_id', 'id');
     }
+
+    /**
+     * Get the administrator profile linked to this user.
+     */
+    public function administrator()
+    {
+        return $this->hasOne(Administrator::class, 'id', 'id');
+    }
+
+    /**
+     * Get the manager profile linked to this user.
+     */
+    public function manager()
+    {
+        return $this->hasOne(Manager::class, 'id', 'id');
+    }
+
+    /**
+     * Get the receptionist profile linked to this user.
+     */
+    public function receptionist()
+    {
+        return $this->hasOne(Receptionist::class, 'id', 'id');
+    }
+
+    /**
+     * Get the cashier profile linked to this user.
+     */
+    public function cashier()
+    {
+        return $this->hasOne(Cashier::class, 'id', 'id');
+    }
+
+    /**
+     * Get the chef profile linked to this user.
+     */
+    public function chef()
+    {
+        return $this->hasOne(Chef::class, 'id', 'id');
+    }
+
+    /**
+     * RBAC: User's permanent assigned roles.
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id')
+                    ->withPivot('is_primary')
+                    ->withTimestamps();
+    }
+
+    /**
+     * RBAC: User's temporary role assignments.
+     */
+    public function temporaryRoleAssignments()
+    {
+        return $this->hasMany(TemporaryRoleAssignment::class, 'user_id');
+    }
+
+    /**
+     * RBAC: Direct user permission assignments.
+     */
+    public function userPermissions()
+    {
+        return $this->hasMany(UserPermission::class, 'user_id');
+    }
+
+    /**
+     * RBAC: Direct permissions relationship.
+     */
+    public function directPermissions()
+    {
+        return $this->belongsToMany(Permission::class, 'user_permissions', 'user_id', 'permission_id')
+                    ->withPivot('granted_by', 'starts_at', 'expires_at')
+                    ->withTimestamps();
+    }
+
+    /**
+     * RBAC: Helper method to check if user has a permission.
+     */
+    public function hasPermission(string $permissionSlug): bool
+    {
+        return app(\App\Services\AuthorizationService::class)->hasPermission($this, $permissionSlug);
+    }
+
+    /**
+     * RBAC: Helper method to check if user has any permission.
+     */
+    public function hasAnyPermission(array $permissionSlugs): bool
+    {
+        return app(\App\Services\AuthorizationService::class)->hasAnyPermission($this, $permissionSlugs);
+    }
+
+    /**
+     * RBAC: Helper method to check if user has all permissions.
+     */
+    public function hasAllPermissions(array $permissionSlugs): bool
+    {
+        return app(\App\Services\AuthorizationService::class)->hasAllPermissions($this, $permissionSlugs);
+    }
+
+    /**
+     * RBAC: Helper method to check if user has a role.
+     */
+    public function hasRole(string $roleSlug): bool
+    {
+        return app(\App\Services\AuthorizationService::class)->hasRole($this, $roleSlug);
+    }
+
+    /**
+     * RBAC: Helper method to get effective permissions list.
+     */
+    public function getEffectivePermissions(): array
+    {
+        return app(\App\Services\AuthorizationService::class)->getEffectivePermissions($this);
+    }
 }
+

@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { useThemeStore } from './stores/theme'
 import { usePageLoaderStore } from './stores/pageLoaderStore'
+import { useAuthStore } from './stores/auth'
 import './assets/main.css'
 import './styles/dark-mode.css'
 import App from './App.vue'
@@ -25,7 +26,16 @@ const loaderStore = usePageLoaderStore()
 loaderStore.showLoader('Loading...')
 
 // Wait for router to be ready and hide initial loader
-router.isReady().then(() => {
+router.isReady().then(async () => {
+  const authStore = useAuthStore()
+  if (authStore.token) {
+    try {
+      await authStore.initializeAuth()
+    } catch (e) {
+      console.error('[MAIN] Session initialization error:', e)
+    }
+  }
+
   // Hide the initial HTML loader if it exists
   if (initialLoader) {
     initialLoader.style.opacity = '0'

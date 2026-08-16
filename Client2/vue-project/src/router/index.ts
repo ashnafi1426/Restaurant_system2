@@ -48,9 +48,17 @@ import PaymentFailedPage from '../views/payment/PaymentFailedPage.vue'
 import PaymentPendingPage from '../views/payment/PaymentPendingPage.vue'
 import CheckoutPage from '../views/payment/CheckoutPage.vue'
 import OrderPaymentSuccessPage from '../views/payment/OrderPaymentSuccessPage.vue'
-import managerRoutes from './managerRouter'
+import managerRoutes from './managerRouter.ts'
 import waiterRoutes from './waiterRouter'
 import cashierRoutes from './cashierRouter'
+import RoleManagementView from '@/views/Admin/rbac/RoleManagementView.vue'
+import PermissionManagementView from '@/views/Admin/rbac/PermissionManagementView.vue'
+import RolePermissionMatrixView from '@/views/Admin/RolePermissionManagement.vue'
+import UserRoleAssignmentView from '@/views/Admin/rbac/UserRoleAssignmentView.vue'
+import TemporaryRoleAssignmentView from '@/views/Admin/rbac/TemporaryRoleAssignmentView.vue'
+import AuditLogView from '@/views/Admin/rbac/AuditLogView.vue'
+import UnauthorizedView from '@/views/UnauthorizedView.vue'
+import { useAuthStore } from '../stores/auth'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -167,7 +175,7 @@ const router = createRouter({
       component: MenuManagement,
       meta: {
         requiresAuth: true,
-        roles: ['admin'],
+        permission: 'menu.view',
       },
     },
     {
@@ -176,7 +184,7 @@ const router = createRouter({
       component: MenuManagement,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'menu.view',
       },
     },
     {
@@ -185,7 +193,7 @@ const router = createRouter({
       component: AddMenuItemView,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'menu.create',
       },
     },
     {
@@ -194,7 +202,7 @@ const router = createRouter({
       component: AddCategoryView,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'menu.create',
       },
     },
     {
@@ -203,7 +211,7 @@ const router = createRouter({
       component: ReceptionDashboard,
       meta: {
         requiresAuth: true,
-        role: 'receptionist',
+        permission: 'dashboard.view',
       },
     },
     {
@@ -212,7 +220,6 @@ const router = createRouter({
       component: () => import('../views/receptionist/ReceptionistProfile.vue'),
       meta: {
         requiresAuth: true,
-        role: 'receptionist',
         title: 'Receptionist Profile',
       },
     },
@@ -222,7 +229,7 @@ const router = createRouter({
       component: CashierDashboard,
       meta: {
         requiresAuth: true,
-        role: 'cashier',
+        permission: 'dashboard.view',
       },
     },
     {
@@ -231,7 +238,7 @@ const router = createRouter({
       component: kitchenDashboard,
       meta: {
         requiresAuth: true,
-        role: 'chef',
+        permission: 'dashboard.view',
       },
     },
     {
@@ -240,7 +247,6 @@ const router = createRouter({
       component: () => import('../views/kitchen/ChefProfile.vue'),
       meta: {
         requiresAuth: true,
-        role: 'chef',
         title: 'Chef Profile',
       },
     },
@@ -250,7 +256,7 @@ const router = createRouter({
       component: FoodOrdersView,
       meta: {
         requiresAuth: true,
-        role: 'chef',
+        permission: 'kitchen.view',
       },
     },
     {
@@ -259,7 +265,7 @@ const router = createRouter({
       component: PendingOrdersView,
       meta: {
         requiresAuth: true,
-        role: 'chef',
+        permission: 'kitchen.view',
       },
     },
     {
@@ -268,7 +274,7 @@ const router = createRouter({
       component: PreparingOrdersView,
       meta: {
         requiresAuth: true,
-        role: 'chef',
+        permission: 'kitchen.prepare',
       },
     },
     {
@@ -277,7 +283,7 @@ const router = createRouter({
       component: ServedOrdersView,
       meta: {
         requiresAuth: true,
-        role: 'chef',
+        permission: 'kitchen.mark_ready',
       },
     },
 
@@ -286,7 +292,7 @@ const router = createRouter({
       component: UserList,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'users.view',
       },
     },
 
@@ -295,7 +301,7 @@ const router = createRouter({
       component: CreateUser,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'users.create',
       },
     },
 
@@ -304,7 +310,7 @@ const router = createRouter({
       component: EditUser,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'users.update',
       },
     },
     {
@@ -313,7 +319,7 @@ const router = createRouter({
       component: RoomList,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'rooms.view',
       },
     },
     {
@@ -321,7 +327,7 @@ const router = createRouter({
       component: CreateRoom,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'rooms.create',
       },
     },
     {
@@ -329,7 +335,7 @@ const router = createRouter({
       component: ViewRoom,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'rooms.view',
       },
     },
     {
@@ -337,7 +343,7 @@ const router = createRouter({
       component: EditRoom,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'rooms.update',
       },
     },
     {
@@ -345,7 +351,7 @@ const router = createRouter({
       component: RoomTypeList,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'rooms.view',
       },
     },
 
@@ -354,7 +360,7 @@ const router = createRouter({
       component: CreateRoomType,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'rooms.create',
       },
     },
 
@@ -363,7 +369,7 @@ const router = createRouter({
       component: ViewRoomType,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'rooms.view',
       },
     },
 
@@ -372,7 +378,7 @@ const router = createRouter({
       component: EditRoomType,
       meta: {
         requiresAuth: true,
-        role: 'admin',
+        permission: 'rooms.update',
       },
     },
     {
@@ -380,7 +386,7 @@ const router = createRouter({
       component: GuestList,
       meta: {
         requiresAuth: true,
-        role: 'receptionist',
+        permission: 'guests.view',
       },
     },
     {
@@ -388,7 +394,7 @@ const router = createRouter({
       component: CreateGuest,
       meta: {
         requiresAuth: true,
-        role: 'receptionist',
+        permission: 'guests.create',
       },
     },
     {
@@ -396,7 +402,7 @@ const router = createRouter({
       component: GuestDetails,
       meta: {
         requiresAuth: true,
-        role: 'receptionist',
+        permission: 'guests.view',
       },
     },
     {
@@ -404,7 +410,7 @@ const router = createRouter({
       component: EditGuest,
       meta: {
         requiresAuth: true,
-        role: 'receptionist',
+        permission: 'guests.update',
       },
     },
     {
@@ -414,6 +420,7 @@ const router = createRouter({
       meta: {
         title: 'Reservations',
         requiresAuth: true,
+        permission: 'reservations.view',
       },
     },
 
@@ -424,6 +431,7 @@ const router = createRouter({
       meta: {
         title: 'Create Reservation',
         requiresAuth: true,
+        permission: 'reservations.create',
       },
     },
 
@@ -434,11 +442,8 @@ const router = createRouter({
       meta: {
         title: 'Edit Reservation',
         requiresAuth: true,
+        permission: 'reservations.update',
       },
-    },
-    {
-      path: '/:pathMatch(.*)*',
-      redirect: '/login',
     },
     {
       path: '/check-in',
@@ -447,7 +452,7 @@ const router = createRouter({
       meta: {
         title: 'Check In Management',
         requiresAuth: true,
-        role: 'receptionist',
+        permission: 'reservations.checkin',
       },
     },
     {
@@ -457,7 +462,7 @@ const router = createRouter({
       meta: {
         title: 'Check Out Management',
         requiresAuth: true,
-        role: 'receptionist',
+        permission: 'reservations.checkout',
       },
     },
     {
@@ -467,7 +472,7 @@ const router = createRouter({
       meta: {
         title: 'Reception Reports',
         requiresAuth: true,
-        role: 'receptionist',
+        permission: 'reports.view',
       },
     },
 
@@ -476,8 +481,9 @@ const router = createRouter({
       name: 'orders',
       component: orderManagment,
       meta: {
-        title: 'order In Management',
+        title: 'Order Management',
         requiresAuth: true,
+        permission: 'orders.view',
       },
     },
     {
@@ -487,7 +493,7 @@ const router = createRouter({
       meta: {
         title: 'Create Order',
         requiresAuth: true,
-        roles: ['admin', 'receptionist'],
+        permission: 'orders.create',
       },
     },
     {
@@ -497,7 +503,7 @@ const router = createRouter({
       meta: {
         title: 'Edit Order',
         requiresAuth: true,
-        roles: ['admin', 'receptionist'],
+        permission: 'orders.update',
       },
     },
     {
@@ -507,7 +513,7 @@ const router = createRouter({
       meta: {
         title: 'View Order',
         requiresAuth: true,
-        roles: ['admin', 'receptionist'],
+        permission: 'orders.view',
       },
     },
     {
@@ -595,44 +601,120 @@ const router = createRouter({
         requiresAuth: false,
       },
     },
-   
+
+    // ============================================================================
+    // Dynamic RBAC Routes & Unauthorized View
+    // ============================================================================
+    {
+      path: '/unauthorized',
+      name: 'unauthorized',
+      component: UnauthorizedView,
+      meta: { requiresAuth: false, title: '403 Unauthorized' },
+    },
+    {
+      path: '/admin/roles',
+      name: 'admin-roles',
+      component: RoleManagementView,
+      meta: { requiresAuth: true, permission: 'roles.view', title: 'Role Management' },
+    },
+    {
+      path: '/admin/permissions',
+      name: 'admin-permissions',
+      component: PermissionManagementView,
+      meta: { requiresAuth: true, permission: 'permissions.view', title: 'Permission Catalog' },
+    },
+    {
+      path: '/admin/permission-matrix',
+      name: 'admin-permission-matrix',
+      component: RolePermissionMatrixView,
+      meta: { requiresAuth: true, permission: 'roles.assign_permissions', title: 'Permission Matrix' },
+    },
+    {
+      path: '/admin/user-roles',
+      name: 'admin-user-roles',
+      component: UserRoleAssignmentView,
+      meta: { requiresAuth: true, permission: 'users.update', title: 'User Roles' },
+    },
+    {
+      path: '/admin/temporary-roles',
+      name: 'admin-temporary-roles',
+      component: TemporaryRoleAssignmentView,
+      meta: { requiresAuth: true, permission: 'roles.assign_permissions', title: 'Temporary Roles' },
+    },
+    {
+      path: '/admin/audit-logs',
+      name: 'admin-audit-logs',
+      component: AuditLogView,
+      meta: { requiresAuth: true, permission: 'audit_logs.view', title: 'Audit Logs' },
+    },
+
     ...managerRoutes,
     ...waiterRoutes,
     ...cashierRoutes,
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/login',
+    },
   ],
 })
 
-router.beforeEach((to) => {
-  // NO automatic loader on navigation
-  // Loader only shows on initial app load (handled in main.ts)
-  
-  const token = localStorage.getItem('token')
-  const user = JSON.parse(localStorage.getItem('user') || 'null')
+router.beforeEach(async (to) => {
+  const authStore = useAuthStore()
+  const token = authStore.token || localStorage.getItem('token')
 
+  // Unauthenticated route protection
   if (to.meta.requiresAuth && !token) {
     return '/login'
   }
 
-  if (to.meta.role && user?.role !== to.meta.role) {
-    console.warn(
-      ` Access Denied: User role '${user?.role}' is not allowed for '${to.path}'. Required role: '${to.meta.role}'`,
-    )
-
-    // Redirect to appropriate dashboard based on role
-    if (user?.role === 'admin') {
-      return '/admin'
-    } else if (user?.role === 'receptionist') {
-      return '/receptionist'
-    } else if (user?.role === 'cashier') {
-      return '/cashier'
-    } else if (user?.role === 'manager') {
-      return '/manager'
-    } else if (user?.role === 'chef') {
-      return '/chef'
-    } else if (user?.role === 'waiter') {
-      return '/waiter'
+  // Hydrate auth store user & permissions if token exists and state not initialized
+  if (token && (!authStore.user || !authStore.isInitialized)) {
+    try {
+      await authStore.initializeAuth()
+    } catch (err) {
+      console.error('[RBAC GUARD] Session initialization error:', err)
     }
-    return '/login'
+  }
+
+  // Allow public routes
+  if (!to.meta.requiresAuth && !to.meta.permission && !to.meta.role && !to.meta.roles) {
+    return true
+  }
+
+  // ADMIN SUPER-OVERRIDE: Admin user has unlimited access to all system routes
+  if (authStore.isAdmin) {
+    return true
+  }
+
+  // 1. Permission authorization check
+  if (to.meta.permission && typeof to.meta.permission === 'string') {
+    if (authStore.can(to.meta.permission)) {
+      return true
+    } else {
+      console.warn(`[RBAC GUARD] Access denied to ${to.path}. Required permission: ${to.meta.permission}`)
+      return '/unauthorized'
+    }
+  }
+
+  // 2. Single role authorization check
+  if (to.meta.role && typeof to.meta.role === 'string') {
+    if (authStore.hasRole(to.meta.role)) {
+      return true
+    } else {
+      console.warn(`[RBAC GUARD] Access denied to ${to.path}. Required role: ${to.meta.role}`)
+      return '/unauthorized'
+    }
+  }
+
+  // 3. Multiple roles authorization check (to.meta.roles array)
+  if (to.meta.roles && Array.isArray(to.meta.roles)) {
+    const hasAnyRequiredRole = (to.meta.roles as string[]).some(r => authStore.hasRole(r))
+    if (hasAnyRequiredRole) {
+      return true
+    } else {
+      console.warn(`[RBAC GUARD] Access denied to ${to.path}. Required one of roles:`, to.meta.roles)
+      return '/unauthorized'
+    }
   }
 
   return true

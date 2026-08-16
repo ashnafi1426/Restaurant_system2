@@ -61,7 +61,14 @@ api.interceptors.response.use(
     } else {
       console.error('[API INTERCEPTOR] Response error:', error.response.status)
       
-      // Log detailed 422 validation errors
+      // Handle 401 Unauthorized (Expired or Missing Token)
+      if (error.response.status === 401) {
+        console.warn('[API INTERCEPTOR] 401 Unauthorized - token missing or session expired')
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+      }
+
+      // Log detailed 422 Validation Errors
       if (error.response.status === 422) {
         console.error('[API INTERCEPTOR] 422 Validation Errors:', error.response.data)
         if (error.response.data?.errors) {

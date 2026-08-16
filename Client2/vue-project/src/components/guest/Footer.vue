@@ -10,17 +10,18 @@
         <div class="footer-section">
           <h4>Quick Links</h4>
           <ul>
-            <li><a href="#home">Home</a></li>
-            <li><a href="#rooms">Rooms</a></li>
-            <li><a href="#about">About Us</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li><RouterLink to="/">Home</RouterLink></li>
+            <li><RouterLink to="/rooms">Rooms</RouterLink></li>
+            <li><RouterLink to="/about">About Us</RouterLink></li>
+            <li><RouterLink to="/contact">Contact</RouterLink></li>
+            <li><RouterLink to="/login">Login</RouterLink></li>
           </ul>
         </div>
 
         <div class="footer-section">
           <h4>Services</h4>
           <ul>
-            <li><a href="#">Room Booking</a></li>
+            <li><RouterLink to="/rooms">Room Booking</RouterLink></li>
             <li><a href="#">Events & Conferences</a></li>
             <li><a href="#">Dining Reservations</a></li>
             <li><a href="#">Spa & Wellness</a></li>
@@ -48,12 +49,20 @@
 
       <div class="footer-bottom">
         <p>&copy; 2024 Luxe Heritage Hotel. All rights reserved.</p>
+        <RouterLink to="/login" class="footer-login-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3h7a3 3 0 013 3v1" />
+          </svg>
+          <span>System Login</span>
+        </RouterLink>
       </div>
     </div>
   </footer>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { RouterLink } from 'vue-router'
+</script>
 
 <style scoped>
 .footer {
@@ -135,10 +144,43 @@
 }
 
 .footer-bottom {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   padding-top: 1.5rem;
   font-size: 0.85rem;
-  opacity: 0.7;
+  opacity: 0.9;
+}
+
+@media (min-width: 640px) {
+  .footer-bottom {
+    flex-direction: row;
+  }
+}
+
+.footer-login-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.footer-login-btn:hover {
+  background-color: #f59e0b;
+  color: #ffffff;
+  border-color: #f59e0b;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {

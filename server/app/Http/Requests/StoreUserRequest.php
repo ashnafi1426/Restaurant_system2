@@ -88,13 +88,17 @@ class StoreUserRequest extends FormRequest
             */
             'role' => [
                 'required',
-                Rule::in([
-                    'admin',
-                    'receptionist',
-                    'cashier',
-                    'manager',
-                    'chef'
-                ])
+                'string',
+                'max:100',
+                function ($attribute, $value, $fail) {
+                    $slug = strtolower($value);
+                    $exists = \App\Models\Role::whereRaw('LOWER(slug) = ?', [$slug])
+                        ->orWhereRaw('LOWER(name) = ?', [$slug])
+                        ->exists();
+                    if (!$exists) {
+                        $fail('The selected role is invalid.');
+                    }
+                }
             ],
 
             /*

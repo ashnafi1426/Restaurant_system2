@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { reactive, watch } from 'vue'
+import { reactive, watch, ref, onMounted } from 'vue'
+import { rbacService } from '../../services/rbacService'
+import type { Role } from '../../types/rbacTypes'
 
 interface UserFormProps {
   initialData?: {
@@ -23,6 +25,19 @@ const props = withDefaults(defineProps<UserFormProps>(), {
 })
 
 const emit = defineEmits(['submit'])
+
+const availableRoles = ref<Role[]>([])
+
+onMounted(async () => {
+  try {
+    const data = await rbacService.getRoles()
+    if (Array.isArray(data) && data.length > 0) {
+      availableRoles.value = data
+    }
+  } catch (e) {
+    console.warn('[UserForm] Could not fetch dynamic roles:', e)
+  }
+})
 
 const form = reactive({
   first_name: props.initialData?.first_name || '',
@@ -224,11 +239,19 @@ const getFieldError = (fieldName: string): string | null => {
         :disabled="loading"
       >
         <option value="">-- Select Role --</option>
-        <option value="admin">👑 Admin</option>
-        <option value="receptionist">🏨 Receptionist</option>
-        <option value="cashier">💳 Cashier</option>
-        <option value="chef">👨‍🍳 Chef</option>
-        <option value="manager">📊 Manager</option>
+        <template v-if="availableRoles.length > 0">
+          <option v-for="r in availableRoles" :key="r.id" :value="r.slug || r.name.toLowerCase()">
+            {{ r.name }}
+          </option>
+        </template>
+        <template v-else>
+          <option value="admin">👑 Admin</option>
+          <option value="receptionist">🏨 Receptionist</option>
+          <option value="cashier">💳 Cashier</option>
+          <option value="chef">👨‍🍳 Chef</option>
+          <option value="manager">📊 Manager</option>
+          <option value="waiter">🍽️ Waiter</option>
+        </template>
       </select>
       <p v-if="getFieldError('role')" class="mt-1 text-xs text-red-600 flex items-center gap-1">
         <span>❌</span> {{ getFieldError('role') }}

@@ -202,31 +202,37 @@ class WaiterManagementController extends Controller
                         
                         $user = $existingUser;
                     } else {
-                        // Create new user WITHOUT password (will be set via activation)
+                        // Create new user WITH auto-generated password (sent via email)
+                        $temporaryPassword = $this->generateSecurePassword();
+                        
                         $user = User::create([
                             'first_name' => $validated['first_name'],
                             'last_name' => $validated['last_name'],
                             'email' => $validated['email'],
                             'phone' => $validated['phone'] ?? null,
-                            'password_hash' => null, // No password yet - will be set via activation
+                            'password_hash' => \Illuminate\Support\Facades\Hash::make($temporaryPassword),
                             'role' => 'waiter',
-                            'is_active' => false, // Will be activated when they set password
-                            'activation_status' => 'pending',
+                            'is_active' => true, // User can login immediately
+                            'activation_status' => 'activated',
+                            'email_verified_at' => now(),
                         ]);
 
-                        // Generate activation token and send email
-                        $activationService = new ActivationService();
-                        $result = $activationService->generateActivationToken($user);
-
-                        if (!$result['success']) {
-                            throw new \Exception('Failed to send activation email');
+                        // Send email with temporary password
+                        try {
+                            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\NewUserCreated($user, $temporaryPassword));
+                            
+                            Log::info('Waiter user created with auto-generated password', [
+                                'user_id' => $user->id,
+                                'email' => $user->email,
+                            ]);
+                        } catch (\Exception $mailException) {
+                            Log::error('Failed to send waiter credentials email', [
+                                'user_id' => $user->id,
+                                'email' => $user->email,
+                                'error' => $mailException->getMessage()
+                            ]);
+                            // Don't fail - just log the error
                         }
-
-                        Log::info('Waiter user created successfully with activation email sent', [
-                            'user_id' => $user->id,
-                            'email' => $user->email,
-                            'activation_token_expires_at' => $result['expires_at']
-                        ]);
                     }
 
                     $validated['user_id'] = $user->id;
@@ -279,11 +285,8 @@ class WaiterManagementController extends Controller
                 }
 
                 // Prepare waiter data
-                // For new users: check if their User account is pending activation
-                // If User.activation_status = 'pending', force waiter status to 'inactive'
-                // If User.activation_status = 'activated', allow the provided status
+                // Get user to check activation status
                 $user = User::find($validated['user_id']);
-                $shouldForceInactive = $user && $user->activation_status === 'pending';
                 
                 $waiterData = [
                     'user_id' => $validated['user_id'],
@@ -293,7 +296,7 @@ class WaiterManagementController extends Controller
                     'experience_level' => $validated['experience_level'],
                     'employment_type' => $validated['employment_type'] ?? 'full_time',
                     'hire_date' => $request->input('hire_date') ? $validated['hire_date'] : now()->toDateString(),
-                    'status' => $shouldForceInactive ? 'inactive' : ($validated['status'] ?? 'active'), // Force inactive until activation
+                    'status' => $validated['status'] ?? 'active', // Now they can be active immediately since they have password
                     'availability' => 'offline',
                     'current_orders' => 0,
                     'maximum_orders' => $validated['maximum_orders'],
@@ -331,7 +334,7 @@ class WaiterManagementController extends Controller
                     'success' => true,
                     'data' => $responseData,
                     'message' => $isNewUser 
-                        ? 'Waiter created successfully. Activation email has been sent to ' . $validated['email']
+                        ? 'Waiter created successfully. Login credentials sent to ' . $validated['email']
                         : 'Waiter created successfully',
                 ], 201);
             } catch (\Illuminate\Database\QueryException $dbError) {
@@ -689,5 +692,32 @@ class WaiterManagementController extends Controller
                 'assigned_by' => auth()->id(), // Current manager
             ]);
         }
+    }
+
+    /**
+     * Generate a secure random password
+     */
+    private function generateSecurePassword(int $length = 12): string
+    {
+        $uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Excluding I, O
+        $lowercase = 'abcdefghjkmnpqrstuvwxyz'; // Excluding i, l, o
+        $numbers = '23456789'; // Excluding 0, 1
+        $symbols = '!@#$%&*';
+        
+        // Ensure at least one character from each group
+        $password = 
+            $uppercase[random_int(0, strlen($uppercase) - 1)] .
+            $lowercase[random_int(0, strlen($lowercase) - 1)] .
+            $numbers[random_int(0, strlen($numbers) - 1)] .
+            $symbols[random_int(0, strlen($symbols) - 1)];
+        
+        // Fill the rest with random characters from all groups
+        $allChars = $uppercase . $lowercase . $numbers . $symbols;
+        for ($i = 4; $i < $length; $i++) {
+            $password .= $allChars[random_int(0, strlen($allChars) - 1)];
+        }
+        
+        // Shuffle the password to randomize character positions
+        return str_shuffle($password);
     }
 }

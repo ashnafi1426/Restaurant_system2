@@ -17,16 +17,13 @@ import Setting from '../views/manager/Setting.vue'
 import ManagerProfile from '../views/manager/ManagerProfile.vue'
 
 const managerRoutes: RouteRecordRaw[] = [
-  /*|--------------------------------------------------------------------------
-  | Manager Dashboard
-  |--------------------------------------------------------------------------*/
   {
     path: '/manager',
     name: 'ManagerDashboard',
     component: ManagerDashboard,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'dashboard.view',
       title: 'Manager Dashboard',
     },
   },
@@ -36,49 +33,37 @@ const managerRoutes: RouteRecordRaw[] = [
     component: ManagerRevenue,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'reports.view',
       title: 'Revenue Report',
     },
   },
-
-  /*|--------------------------------------------------------------------------
-  | Operations
-  |--------------------------------------------------------------------------*/
   {
     path: '/manager/operations',
     name: 'Operations',
     component: ManagerOperations,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'reports.view',
       title: 'Operations',
     },
   },
-
-  /*|--------------------------------------------------------------------------
-  | Laundry Management
-  |--------------------------------------------------------------------------*/
   {
     path: '/manager/laundry',
     name: 'LaundryManagement',
     component: ManagerLaundry,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'reports.view',
       title: 'Laundry Management',
     },
   },
-
-  /*|--------------------------------------------------------------------------
-  | Waiter Management
-  |--------------------------------------------------------------------------*/
   {
     path: '/manager/waiters',
     name: 'WaiterManagement',
     component: ManagerWaiters,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'waiters.view',
       title: 'Waiter Management',
     },
   },
@@ -88,7 +73,7 @@ const managerRoutes: RouteRecordRaw[] = [
     component: WaiterManagement,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'waiters.manage',
       title: 'Waiter Management',
     },
   },
@@ -98,7 +83,7 @@ const managerRoutes: RouteRecordRaw[] = [
     component: FloorAssignment,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'floors.view',
       title: 'Floor Assignment',
     },
   },
@@ -108,7 +93,7 @@ const managerRoutes: RouteRecordRaw[] = [
     component: AddFloor,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'floors.manage',
       title: 'Add New Floor',
     },
   },
@@ -118,105 +103,75 @@ const managerRoutes: RouteRecordRaw[] = [
     component: DeliveryManagement,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'delivery.reassign',
       title: 'Delivery Management',
     },
   },
-
-  /*|--------------------------------------------------------------------------
-  | Food Orders Management
-  |--------------------------------------------------------------------------*/
   {
     path: '/manager/orders',
     name: 'ManagerFoodOrders',
     component: ManagerOrders,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'kitchen.view',
       title: 'Food Orders Management',
     },
   },
-
-  /*|--------------------------------------------------------------------------
-  | Restaurant Tables Management
-  |--------------------------------------------------------------------------*/
   {
     path: '/manager/restaurant-tables',
     name: 'RestaurantTables',
     component: RestaurantTables,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'tables.view',
       title: 'Restaurant Tables',
     },
   },
-
-  /*|--------------------------------------------------------------------------
-  | Inventory Management
-  |--------------------------------------------------------------------------*/
   {
     path: '/manager/inventory',
     name: 'InventoryManagement',
     component: ManagerInventory,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'reports.view',
       title: 'Inventory Management',
     },
   },
-
-  /*|--------------------------------------------------------------------------
-  | Finance Management
-  |--------------------------------------------------------------------------*/
   {
     path: '/manager/finance',
     name: 'FinanceManagement',
     component: ManagerFinance,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'reports.view',
       title: 'Finance Management',
     },
   },
-
-  /*|--------------------------------------------------------------------------
-  | Analytics Dashboard
-  |--------------------------------------------------------------------------*/
   {
     path: '/manager/analytics',
     name: 'AnalyticsDashboard',
     component: ManagerAnalytics,
     meta: {
       requiresAuth: true,
-      role: 'manager',
+      permission: 'reports.view',
       title: 'Analytics Dashboard',
     },
   },
-
-  /*|--------------------------------------------------------------------------
-  | Manager Settings
-  |--------------------------------------------------------------------------*/
   {
     path: '/manager/settings',
     name: 'ManagerSettings',
     component: Setting,
     meta: {
       requiresAuth: true,
-      role: 'manager',
       title: 'Manager Settings',
     },
   },
-
-  /*|--------------------------------------------------------------------------
-  | Manager Profile
-  |--------------------------------------------------------------------------*/
   {
     path: '/manager/profile',
     name: 'ManagerProfile',
     component: ManagerProfile,
     meta: {
       requiresAuth: true,
-      role: 'manager',
       title: 'Manager Profile',
     },
   },

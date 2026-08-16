@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import DashboardLayout from '../../layouts/DashboardLayout.vue'
+import DashboardLayout from '../../Layouts/DashboardLayout.vue'
 import AdminStatCard from '../../components/dashboard/AdminStatCard.vue'
 import MonthlyRevenueChart from '../../components/dashboard/MonthlyRevenueChart.vue'
 import RoomStatusChart from '../../components/dashboard/RoomStatusChart.vue'

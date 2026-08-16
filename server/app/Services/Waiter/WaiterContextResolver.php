@@ -60,6 +60,33 @@ class WaiterContextResolver
             ]);
             return $waiterId;
         }
+
+        // 4. Try finding directly by user_id
+        $directWaiter = Waiter::where('user_id', $user->id)->first();
+        if ($directWaiter?->id) {
+            return (int) $directWaiter->id;
+        }
+
+        // 5. Auto-heal / Link: Create linked waiter profile record if user has order/delivery perms or is staff
+        try {
+            $createdWaiter = Waiter::create([
+                'user_id' => (string) $user->id,
+                'section' => 'All Sections',
+                'shift' => 'morning',
+                'experience_level' => 'junior',
+                'status' => 'active',
+            ]);
+
+            \Log::info('✅ [RESOLVER] Auto-linked Waiter profile for user', [
+                'user_id' => $user->id,
+                'waiter_id' => $createdWaiter->id,
+                'primary_role' => $user->role,
+            ]);
+
+            return (int) $createdWaiter->id;
+        } catch (\Throwable $e) {
+            \Log::error('❌ [RESOLVER] Error auto-creating waiter profile: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+        }
         
         \Log::error('❌ [RESOLVER] Could not resolve waiter ID for user', [
             'user_id' => $user->id,

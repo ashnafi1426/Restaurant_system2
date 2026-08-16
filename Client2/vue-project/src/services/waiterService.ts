@@ -166,6 +166,10 @@ class WaiterService {
     return response.data.data
   }
 
+  async completeDelivery(id: string, remarks?: string): Promise<WaiterAssignment> {
+    return this.deliverOrder(id, remarks)
+  }
+
   async failDelivery(
     id: string,
     reason: string,
