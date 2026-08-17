@@ -20,13 +20,7 @@ return new class extends Migration
             $table->integer('total_nights')->storedAs(
                 'DATEDIFF(check_out_date, check_in_date)'
             );
-            $table->enum('status', [
-                'pending',
-                'confirmed',
-                'checked_in',
-                'checked_out',
-                'cancelled'
-            ])->default('pending');
+            $table->string('status', 50)->default('pending');
             $table->text('special_requests')->nullable();
             $table->timestamp('cancelled_at')->nullable();
             $table->uuid('created_by')->nullable();

@@ -25,8 +25,7 @@ return new class extends Migration
             $table->integer('capacity')->default(4)->comment('Number of seats/guests the table can accommodate');
             $table->string('location')->nullable()->comment('Physical location (e.g., "Main Hall", "Terrace", "VIP Section")');
             
-            // Table status
-            $table->enum('status', ['available', 'occupied', 'reserved', 'maintenance'])
+            $table->string('status', 50)
                   ->default('available')
                   ->comment('Current table status');
             $table->boolean('is_active')->default(true)->comment('Whether table is active and can be used');

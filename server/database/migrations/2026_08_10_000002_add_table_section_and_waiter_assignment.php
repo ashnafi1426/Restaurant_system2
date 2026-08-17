@@ -35,8 +35,8 @@ return new class extends Migration
             
             // Assignment details
             $table->date('assignment_date');
-            $table->enum('priority', ['primary', 'secondary', 'backup'])->default('primary');
-            $table->enum('status', ['active', 'completed', 'cancelled'])->default('active');
+            $table->string('priority', 50)->default('primary');
+            $table->string('status', 50)->default('active');
             
             // Assigned by (manager)
             $table->foreignUuid('assigned_by')->nullable()->constrained('users')->onDelete('set null');

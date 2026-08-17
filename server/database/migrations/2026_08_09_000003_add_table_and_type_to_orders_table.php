@@ -19,8 +19,7 @@ return new class extends Migration
             // Add table_id for restaurant table orders (nullable, not all orders have tables)
             $table->uuid('table_id')->nullable()->after('room_id');
             
-            // Add order_type enum to distinguish order context
-            $table->enum('order_type', ['room_service', 'walk_in'])
+            $table->string('order_type', 50)
                   ->default('room_service')
                   ->after('table_id')
                   ->comment('Order context: room_service for hotel guests, walk_in for restaurant customers');

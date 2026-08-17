@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->uuid('room_id');
             $table->uuid('assigned_to')->nullable();
-            $table->enum('status', ['pending', 'in_progress', 'completed', 'cancelled'])->default('pending');
+            $table->string('status', 50)->default('pending');
             $table->string('task_type'); // cleaning, maintenance, inspection, etc.
             $table->text('description')->nullable();
-            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
+            $table->string('priority', 50)->default('medium');
             $table->dateTime('scheduled_time')->nullable();
             $table->dateTime('completed_time')->nullable();
             $table->text('notes')->nullable();

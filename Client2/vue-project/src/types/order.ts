@@ -89,11 +89,12 @@ export interface Order {
   items?: OrderItem[]
   guest?: {
     id: string
-    first_name: string
-    last_name: string
+    first_name?: string
+    last_name?: string
+    name?: string
+    full_name?: string
     email?: string
     phone?: string
-    full_name?: string
   }
   room?: {
     id: string

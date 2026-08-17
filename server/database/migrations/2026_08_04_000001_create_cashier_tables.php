@@ -27,8 +27,8 @@ return new class extends Migration
             $table->uuid('guest_id')->index();
             
             // Invoice Status
-            $table->enum('status', ['pending', 'paid', 'cancelled', 'refunded'])->default('pending')->index();
-            
+            $table->string('status', 50)->default('pending')->index();
+
             // Amounts
             $table->decimal('subtotal', 10, 2);
             $table->decimal('tax', 10, 2)->default(0);
@@ -72,7 +72,7 @@ return new class extends Migration
             $table->uuid('guest_id')->index();
             
             // Transaction Type
-            $table->enum('type', ['payment', 'refund', 'chargeback'])->default('payment')->index();
+            $table->string('type', 50)->default('payment')->index();
             
             // Amounts
             $table->decimal('amount', 10, 2);
@@ -84,8 +84,8 @@ return new class extends Migration
             $table->string('provider_transaction_id')->nullable();
             
             // Status
-            $table->enum('status', ['pending', 'completed', 'failed', 'refunded'])->default('pending')->index();
-            
+            $table->string('status', 50)->default('pending')->index();
+
             // Additional Info
             $table->text('description')->nullable();
             $table->json('metadata')->nullable();
@@ -130,8 +130,8 @@ return new class extends Migration
             $table->string('pdf_path')->nullable();
             
             // Status
-            $table->enum('status', ['issued', 'sent', 'printed'])->default('issued')->index();
-            
+            $table->string('status', 50)->default('issued')->index();
+
             // Email Info
             $table->string('email_to')->nullable();
             $table->timestamp('emailed_at')->nullable();
@@ -172,8 +172,8 @@ return new class extends Migration
             $table->string('currency')->default('ETB');
             
             // Refund Status
-            $table->enum('status', ['requested', 'approved', 'rejected', 'completed', 'failed'])->default('requested')->index();
-            
+            $table->string('status', 50)->default('requested')->index();
+
             // Refund Reason
             $table->text('reason');
             $table->text('rejection_reason')->nullable();
@@ -186,7 +186,7 @@ return new class extends Migration
             $table->timestamp('completed_at')->nullable();
             
             // Refund Method
-            $table->enum('refund_method', ['original_payment', 'cash', 'bank_transfer'])->default('original_payment');
+            $table->string('refund_method', 50)->default('original_payment');
             
             // Provider Info
             $table->string('provider_refund_id')->nullable();

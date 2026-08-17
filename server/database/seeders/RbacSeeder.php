@@ -173,37 +173,59 @@ class RbacSeeder extends Seeder
             [
                 'name' => 'Manager',
                 'slug' => 'manager',
-                'description' => 'Hotel Operational Manager - Assign permissions via Admin Permission Matrix.',
+                'description' => 'Hotel Operational Manager with oversight over hotel operations.',
                 'is_system' => true,
-                'permissions' => [], // Empty - Admin assigns permissions
+                'permissions' => [
+                    'dashboard.view', 'users.view', 'guests.view', 'reservations.view', 'rooms.view',
+                    'tables.view', 'menu.view', 'orders.view', 'kitchen.view', 'delivery.view',
+                    'delivery.reassign', 'payments.view', 'reports.view', 'reports.sales',
+                    'reports.orders', 'reports.occupancy', 'waiters.view', 'waiters.manage',
+                    'floors.view', 'floors.assign', 'floors.manage', 'notifications.view'
+                ],
             ],
             [
                 'name' => 'Receptionist',
                 'slug' => 'receptionist',
-                'description' => 'Front Desk & Guest Services Specialist - Assign permissions via Admin Permission Matrix.',
+                'description' => 'Front Desk & Guest Services Specialist.',
                 'is_system' => true,
-                'permissions' => [], // Empty - Admin assigns permissions
+                'permissions' => [
+                    'dashboard.view', 'guests.view', 'guests.create', 'guests.update',
+                    'reservations.view', 'reservations.create', 'reservations.update',
+                    'reservations.cancel', 'reservations.checkin', 'reservations.checkout',
+                    'rooms.view', 'checkin.view', 'checkin.create', 'checkout.view',
+                    'checkout.create', 'reports.view', 'notifications.view'
+                ],
             ],
             [
                 'name' => 'Chef',
                 'slug' => 'chef',
-                'description' => 'Kitchen Head & Culinary Operations Specialist - Assign permissions via Admin Permission Matrix.',
+                'description' => 'Kitchen Head & Culinary Operations Specialist.',
                 'is_system' => true,
-                'permissions' => ['kitchen.view', 'kitchen.accept', 'kitchen.prepare', 'kitchen.mark_ready', 'orders.view'],
+                'permissions' => [
+                    'dashboard.view', 'kitchen.view', 'kitchen.accept', 'kitchen.prepare',
+                    'kitchen.mark_ready', 'orders.view', 'notifications.view'
+                ],
             ],
             [
                 'name' => 'Waiter',
                 'slug' => 'waiter',
-                'description' => 'Dining & Room Service Delivery Specialist - Assign permissions via Admin Permission Matrix.',
+                'description' => 'Dining & Room Service Delivery Specialist.',
                 'is_system' => true,
-                'permissions' => [], // Empty - Admin assigns permissions
+                'permissions' => [
+                    'dashboard.view', 'orders.view', 'orders.accept', 'orders.deliver',
+                    'delivery.view', 'delivery.accept', 'delivery.pickup', 'delivery.deliver',
+                    'notifications.view'
+                ],
             ],
             [
                 'name' => 'Cashier',
                 'slug' => 'cashier',
-                'description' => 'Financial Transactions & Billing Specialist - Assign permissions via Admin Permission Matrix.',
+                'description' => 'Financial Transactions & Billing Specialist.',
                 'is_system' => true,
-                'permissions' => [], // Empty - Admin assigns permissions
+                'permissions' => [
+                    'dashboard.view', 'payments.view', 'payments.create', 'payments.refund',
+                    'orders.view', 'reports.view', 'notifications.view'
+                ],
             ],
         ];
 

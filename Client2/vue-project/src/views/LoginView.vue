@@ -99,34 +99,17 @@ const login = async (): Promise<void> => {
     
     setTimeout(async () => {
       showToast.value = false
-      const role = rawRole.toLowerCase()
-      const availableRoutes = router.getRoutes().map(r => r.path.toLowerCase())
+      const role = rawRole.toLowerCase().trim()
       
-      // Smart permission-driven routing for standard and custom roles (e.g. Gebere, Balager, etc.)
+      // 100% Dynamic role-based routing for all standard & custom roles
       if (auth.isAdmin || role === 'admin') {
         router.push('/admin')
-      } else if (role === 'receptionist') {
-        router.push('/receptionist')
-      } else if (role === 'manager') {
-        router.push('/manager')
       } else if (role === 'chef') {
         router.push('/chef/pending-orders')
-      } else if (role === 'cashier') {
-        router.push('/cashier')
       } else if (role === 'waiter') {
-        router.push('/waiter/ready-pickup')
-      } else if (auth.can('orders.view')) {
-        router.push('/orders')
-      } else if (auth.can('kitchen.view') || auth.can('kitchen.accept')) {
-        router.push('/chef/pending-orders')
-      } else if (auth.can('menu.view')) {
-        router.push('/menu-management')
-      } else if (auth.can('rooms.view') || auth.can('guests.view') || auth.can('dashboard.view')) {
-        router.push('/receptionist')
-      } else if (auth.can('payments.view')) {
-        router.push('/cashier/payments')
-      } else if (auth.can('delivery.pickup') || auth.can('delivery.deliver')) {
-        router.push('/waiter/ready-pickup')
+        router.push('/waiter')
+      } else if (role) {
+        router.push(`/${role}`)
       } else {
         router.push('/orders')
       }

@@ -1,15 +1,15 @@
 <template>
   <div
-    class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 md:px-8 lg:px-10 py-4 sm:py-5 md:py-6 lg:py-8"
+    class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-1"
   >
     <div>
       <h1
-        class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100"
+        class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"
       >
         Order Management
       </h1>
-      <p class="mt-1 text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400">
-        Manage all restaurant orders
+      <p class="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+        Manage, track, and process all restaurant orders
       </p>
     </div>
     <div class="flex gap-2 sm:gap-3 md:gap-4">

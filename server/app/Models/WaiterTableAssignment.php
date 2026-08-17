@@ -3,32 +3,38 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * WaiterTableAssignment Model
- * Represents daily table assignments for waiters (walk-in/dine-in service)
- * Links: Waiter -> Table -> Shift on a specific date
+ * 
+ * Manages the assignment of waiters to restaurant tables for walk-in customer service.
+ * This allows managers to assign specific waiters to specific tables during specific shifts.
+ * 
+ * Database Relationships:
+ * - waiter_id (bigint) -> waiters.id
+ * - table_id (uuid) -> restaurant_tables.id
+ * - shift_id (uuid) -> hotel_shifts.id
+ * - assigned_by (uuid) -> users.id
+ * 
+ * Use Cases:
+ * 1. Manager assigns waiter to table for a specific shift
+ * 2. Walk-in customer scans table QR code
+ * 3. System finds assigned waiter for that table + current shift
+ * 4. Order is automatically assigned to the waiter
  */
 class WaiterTableAssignment extends Model
 {
-    use HasFactory;
-
-    protected $table = 'waiter_table_assignments';
-    
-    // UUID is primary key, not auto-incrementing
-    protected $keyType = 'string';
-    public $incrementing = false;
+    use HasUuids;
 
     protected $fillable = [
-        'id',
         'waiter_id',
         'table_id',
         'shift_id',
         'assignment_date',
-        'status',
         'priority',
+        'status',
         'assigned_by',
     ];
 
@@ -36,8 +42,32 @@ class WaiterTableAssignment extends Model
         'assignment_date' => 'date',
     ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | Priority Constants
+    |--------------------------------------------------------------------------
+    */
+    public const PRIORITY_PRIMARY = 'primary';
+    public const PRIORITY_SECONDARY = 'secondary';
+    public const PRIORITY_BACKUP = 'backup';
+
+    /*
+    |--------------------------------------------------------------------------
+    | Status Constants
+    |--------------------------------------------------------------------------
+    */
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_INACTIVE = 'inactive';
+    public const STATUS_COMPLETED = 'completed';
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+
     /**
-     * Get the waiter
+     * Get the waiter assigned to this table
      */
     public function waiter(): BelongsTo
     {
@@ -45,7 +75,7 @@ class WaiterTableAssignment extends Model
     }
 
     /**
-     * Get the table
+     * Get the restaurant table for this assignment
      */
     public function table(): BelongsTo
     {
@@ -53,31 +83,61 @@ class WaiterTableAssignment extends Model
     }
 
     /**
-     * Get the shift
+     * Get the shift for this assignment
      */
     public function shift(): BelongsTo
     {
-        return $this->belongsTo(HotelShift::class);
+        return $this->belongsTo(HotelShift::class, 'shift_id');
     }
 
     /**
-     * Get the manager who assigned
+     * Get the manager who made this assignment
      */
-    public function assignedBy(): BelongsTo
+    public function assignedByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_by');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    */
+
     /**
-     * Scope to get active assignments today
+     * Scope for active assignments only
      */
-    public function scopeToday($query)
+    public function scopeActive($query)
     {
-        return $query->where('assignment_date', now()->toDateString());
+        return $query->where('status', self::STATUS_ACTIVE);
     }
 
     /**
-     * Scope to get assignments for a specific table
+     * Scope for today's assignments
+     */
+    public function scopeToday($query)
+    {
+        return $query->whereDate('assignment_date', today());
+    }
+
+    /**
+     * Scope for specific date
+     */
+    public function scopeForDate($query, $date)
+    {
+        return $query->whereDate('assignment_date', $date);
+    }
+
+    /**
+     * Scope for specific waiter
+     */
+    public function scopeForWaiter($query, $waiterId)
+    {
+        return $query->where('waiter_id', $waiterId);
+    }
+
+    /**
+     * Scope for specific table
      */
     public function scopeForTable($query, $tableId)
     {
@@ -85,7 +145,7 @@ class WaiterTableAssignment extends Model
     }
 
     /**
-     * Scope to get assignments for a specific shift
+     * Scope for specific shift
      */
     public function scopeForShift($query, $shiftId)
     {
@@ -93,75 +153,123 @@ class WaiterTableAssignment extends Model
     }
 
     /**
-     * Scope to get active assignments only
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('status', 'active');
-    }
-
-    /**
-     * Scope to get primary waiter
+     * Scope for primary assignments
      */
     public function scopePrimary($query)
     {
-        return $query->where('priority', 'primary');
+        return $query->where('priority', self::PRIORITY_PRIMARY);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helper Methods
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Check if this is a primary assignment
+     */
+    public function isPrimary(): bool
+    {
+        return $this->priority === self::PRIORITY_PRIMARY;
     }
 
     /**
-     * Scope to get secondary waiters
+     * Check if this is a secondary assignment
      */
-    public function scopeSecondary($query)
+    public function isSecondary(): bool
     {
-        return $query->where('priority', 'secondary');
+        return $this->priority === self::PRIORITY_SECONDARY;
     }
 
     /**
-     * Scope to get backup waiters
+     * Check if this is a backup assignment
      */
-    public function scopeBackup($query)
+    public function isBackup(): bool
     {
-        return $query->where('priority', 'backup');
+        return $this->priority === self::PRIORITY_BACKUP;
+    }
+
+    /**
+     * Check if assignment is active
+     */
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
     }
 
     /**
      * Mark assignment as completed
      */
-    public function markCompleted(): void
+    public function markCompleted(): bool
     {
-        $this->update(['status' => 'completed']);
+        return $this->update(['status' => self::STATUS_COMPLETED]);
     }
 
     /**
-     * Cancel assignment
+     * Mark assignment as inactive
      */
-    public function cancel(): void
+    public function markInactive(): bool
     {
-        $this->update(['status' => 'cancelled']);
+        return $this->update(['status' => self::STATUS_INACTIVE]);
     }
 
     /**
-     * Get delivery count
+     * Get the assigned waiter for a table at a specific time
+     * 
+     * @param string $tableId
+     * @param string|null $shiftId
+     * @param string|null $date
+     * @return WaiterTableAssignment|null
      */
-    public function getDeliveryCount(): int
+    public static function getAssignedWaiter($tableId, $shiftId = null, $date = null)
     {
-        return $this->waiter->deliveryTasks()
-            ->where('table_id', $this->table_id)
-            ->where('shift_id', $this->shift_id)
-            ->whereDate('assigned_at', $this->assignment_date)
-            ->whereIn('status', ['delivered', 'completed'])
-            ->count();
+        $query = self::query()
+            ->with(['waiter', 'waiter.user', 'table', 'shift'])
+            ->where('table_id', $tableId)
+            ->active();
+
+        if ($date) {
+            $query->forDate($date);
+        } else {
+            $query->today();
+        }
+
+        if ($shiftId) {
+            $query->where('shift_id', $shiftId);
+        }
+
+        // Get primary assignment first, fallback to secondary, then backup
+        return $query->orderByRaw("
+            CASE 
+                WHEN priority = 'primary' THEN 1
+                WHEN priority = 'secondary' THEN 2
+                WHEN priority = 'backup' THEN 3
+                ELSE 4
+            END
+        ")->first();
     }
 
     /**
-     * Get pending delivery count
+     * Get all tables assigned to a waiter
+     * 
+     * @param int $waiterId
+     * @param string|null $date
+     * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getPendingDeliveryCount(): int
+    public static function getWaiterTables($waiterId, $date = null)
     {
-        return $this->waiter->deliveryTasks()
-            ->where('table_id', $this->table_id)
-            ->whereDate('assigned_at', $this->assignment_date)
-            ->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery'])
-            ->count();
+        $query = self::query()
+            ->with(['table', 'shift'])
+            ->where('waiter_id', $waiterId)
+            ->active();
+
+        if ($date) {
+            $query->forDate($date);
+        } else {
+            $query->today();
+        }
+
+        return $query->get();
     }
 }

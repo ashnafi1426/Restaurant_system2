@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->uuid('user_id');
             $table->string('section')->nullable(); 
-            $table->enum('status', ['active', 'inactive', 'on_break'])->default('active');
+            $table->string('status', 50)->default('active');
             $table->json('current_tables')->nullable();
-            $table->enum('shift', ['morning', 'afternoon', 'evening', 'night'])->default('morning');
-            $table->enum('experience_level', ['junior', 'senior', 'head'])->default('junior');
+            $table->string('shift', 50)->default('morning');
+            $table->string('experience_level', 50)->default('junior');
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });

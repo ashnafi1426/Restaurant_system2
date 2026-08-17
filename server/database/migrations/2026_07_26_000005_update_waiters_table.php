@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::table('waiters', function (Blueprint $table) {
             // Ensure status column exists
             if (!Schema::hasColumn('waiters', 'status')) {
-                $table->enum('status', ['active', 'inactive', 'on_break'])->default('active');
+                $table->string('status', 50)->default('active');
             }
             
             // Add phone first if not exists
@@ -25,8 +25,7 @@ return new class extends Migration
             
             // Check if columns don't exist before adding
             if (!Schema::hasColumn('waiters', 'employment_type')) {
-                $table->enum('employment_type', ['full_time', 'part_time', 'contract'])
-                    ->default('full_time');
+                $table->string('employment_type', 50)->default('full_time');
             }
             
             if (!Schema::hasColumn('waiters', 'hire_date')) {
@@ -34,8 +33,7 @@ return new class extends Migration
             }
             
             if (!Schema::hasColumn('waiters', 'availability')) {
-                $table->enum('availability', ['available', 'busy', 'break', 'offline'])
-                    ->default('offline');
+                $table->string('availability', 50)->default('offline');
             }
             
             if (!Schema::hasColumn('waiters', 'current_orders')) {

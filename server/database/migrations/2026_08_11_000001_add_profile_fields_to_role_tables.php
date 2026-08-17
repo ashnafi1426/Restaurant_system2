@@ -15,7 +15,7 @@ return new class extends Migration
             $table->text('bio')->nullable()->after('department');
             $table->string('profile_photo')->nullable()->after('bio');
             $table->date('hire_date')->nullable()->after('profile_photo');
-            $table->enum('status', ['active', 'inactive', 'suspended'])->default('active')->after('hire_date');
+            $table->string('status', 50)->default('active')->after('hire_date');
         });
 
         // Add profile fields to receptionists table
@@ -25,7 +25,7 @@ return new class extends Migration
             $table->text('bio')->nullable()->after('shift');
             $table->string('profile_photo')->nullable()->after('bio');
             $table->date('hire_date')->nullable()->after('profile_photo');
-            $table->enum('status', ['active', 'inactive', 'on_break', 'off_duty'])->default('active')->after('hire_date');
+            $table->string('status', 50)->default('active')->after('hire_date');
             $table->string('desk_number')->nullable()->after('status');
         });
 
@@ -36,7 +36,7 @@ return new class extends Migration
             $table->text('bio')->nullable()->after('shift');
             $table->string('profile_photo')->nullable()->after('bio');
             $table->date('hire_date')->nullable()->after('profile_photo');
-            $table->enum('status', ['active', 'inactive', 'on_break', 'off_duty'])->default('active')->after('hire_date');
+            $table->string('status', 50)->default('active')->after('hire_date');
             $table->string('register_number')->nullable()->after('status');
         });
 
@@ -47,7 +47,7 @@ return new class extends Migration
             $table->text('bio')->nullable()->after('department');
             $table->string('profile_photo')->nullable()->after('bio');
             $table->date('hire_date')->nullable()->after('profile_photo');
-            $table->enum('status', ['active', 'inactive', 'on_leave'])->default('active')->after('hire_date');
+            $table->string('status', 50)->default('active')->after('hire_date');
             $table->json('permissions')->nullable()->after('status');
         });
 
@@ -60,8 +60,8 @@ return new class extends Migration
             $table->text('bio')->nullable()->after('experience_years');
             $table->string('profile_photo')->nullable()->after('bio');
             $table->date('hire_date')->nullable()->after('profile_photo');
-            $table->enum('status', ['active', 'inactive', 'on_break', 'off_duty'])->default('active')->after('hire_date');
-            $table->enum('rank', ['junior', 'senior', 'head_chef', 'executive_chef'])->default('junior')->after('status');
+            $table->string('status', 50)->default('active')->after('hire_date');
+            $table->string('rank', 50)->default('junior')->after('status');
         });
     }
 

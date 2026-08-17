@@ -47,9 +47,13 @@ class OrderResource extends JsonResource
             */
 
             'guest' => $this->whenLoaded('guest', function () {
+                $fullName = $this->guest->full_name ?? trim(($this->guest->first_name ?? '') . ' ' . ($this->guest->last_name ?? ''));
                 return [
                     'id' => $this->guest->id,
-                    'name' => $this->guest->full_name ?? $this->guest->name,
+                    'first_name' => $this->guest->first_name,
+                    'last_name' => $this->guest->last_name,
+                    'name' => $fullName ?: ($this->guest->name ?? 'Guest'),
+                    'full_name' => $fullName ?: ($this->guest->name ?? 'Guest'),
                     'email' => $this->guest->email,
                     'phone' => $this->guest->phone,
                 ];

@@ -48,18 +48,38 @@ class GuestController extends Controller
     }
 
     /**
-     * Store a newly created guest.
+     * Store a newly created guest or reuse existing guest if email/passport matches.
      */
     public function store(GuestRequest $request)
     {
-        $guest = Guest::create(
-            $request->validated()
-        );
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+            $validated = $request->validated();
+            $existingGuest = null;
 
-        return response()->json([
-            'message' => 'Guest created successfully.',
-            'data' => new GuestResource($guest)
-        ], 201);
+            if (!empty($validated['email'])) {
+                $existingGuest = Guest::where('email', strtolower(trim($validated['email'])))->first();
+            }
+
+            if (!$existingGuest && !empty($validated['passport_number'])) {
+                $existingGuest = Guest::where('passport_number', trim($validated['passport_number']))->first();
+            }
+
+            if ($existingGuest) {
+                // Update existing guest details with any new non-null fields provided
+                $existingGuest->update(array_filter($validated, fn($val) => !is_null($val) && $val !== ''));
+                return response()->json([
+                    'message' => 'Existing guest record found and updated successfully.',
+                    'data' => new GuestResource($existingGuest)
+                ], 200);
+            }
+
+            $guest = Guest::create($validated);
+
+            return response()->json([
+                'message' => 'Guest created successfully.',
+                'data' => new GuestResource($guest)
+            ], 201);
+        });
     }
 
     /**

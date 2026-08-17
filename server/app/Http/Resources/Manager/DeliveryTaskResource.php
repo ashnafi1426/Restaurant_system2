@@ -25,6 +25,11 @@ class DeliveryTaskResource extends JsonResource
             'floor_id' => $this->floor_id,
             'waiter' => new WaiterResource($this->waiter),
             'floor' => new FloorResource($this->floor),
+            'room' => $this->room ? [
+                'id' => $this->room->id,
+                'room_number' => $this->room->room_number,
+                'room_type' => $this->room->room_type ?? null,
+            ] : null,
             'assigned_by' => [
                 'id' => $this->assignedBy?->id,
                 'name' => $this->assignedBy?->full_name,

@@ -12,8 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // For MySQL, we need to modify the ENUM to include the new types
-        DB::statement("ALTER TABLE notifications MODIFY type ENUM('booking', 'check_in', 'check_out', 'cancellation', 'system', 'order_created', 'order_preparing', 'order_ready', 'order_served') DEFAULT 'booking'");
+        DB::statement("ALTER TABLE notifications MODIFY type VARCHAR(100) DEFAULT 'booking'");
     }
 
     /**
@@ -21,7 +20,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revert to original ENUM values
-        DB::statement("ALTER TABLE notifications MODIFY type ENUM('booking', 'check_in', 'check_out', 'cancellation', 'system') DEFAULT 'booking'");
+        DB::statement("ALTER TABLE notifications MODIFY type VARCHAR(100) DEFAULT 'booking'");
     }
 };

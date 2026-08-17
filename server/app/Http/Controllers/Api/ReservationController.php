@@ -19,18 +19,31 @@ class ReservationController extends Controller
     {
         $query = Reservation::with([
             'guest',
-            'room',
+            'room.roomType',
             'creator'
         ]);
 
-        // Search by booking reference
+        // Search by booking reference, guest info, room number, or status
         if ($request->filled('search')) {
-            $query->search($request->search);
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('booking_reference', 'LIKE', "%{$search}%")
+                  ->orWhere('status', 'LIKE', "%{$search}%")
+                  ->orWhereHas('guest', function ($g) use ($search) {
+                      $g->where('first_name', 'LIKE', "%{$search}%")
+                        ->orWhere('last_name', 'LIKE', "%{$search}%")
+                        ->orWhere('email', 'LIKE', "%{$search}%")
+                        ->orWhere('phone', 'LIKE', "%{$search}%");
+                  })
+                  ->orWhereHas('room', function ($r) use ($search) {
+                      $r->where('room_number', 'LIKE', "%{$search}%");
+                  });
+            });
         }
 
         // Filter by status
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('status', strtolower(trim($request->status)));
         }
 
         // Filter by room
@@ -44,13 +57,15 @@ class ReservationController extends Controller
         }
 
         // Filter by check-in date
-        if ($request->filled('check_in_date')) {
-            $query->whereDate('check_in_date', '>=', $request->check_in_date);
+        $checkInDate = $request->input('check_in_date') ?: $request->input('start_date');
+        if (!empty($checkInDate)) {
+            $query->whereDate('check_in_date', '>=', $checkInDate);
         }
 
         // Filter by check-out date
-        if ($request->filled('check_out_date')) {
-            $query->whereDate('check_out_date', '<=', $request->check_out_date);
+        $checkOutDate = $request->input('check_out_date') ?: $request->input('end_date');
+        if (!empty($checkOutDate)) {
+            $query->whereDate('check_out_date', '<=', $checkOutDate);
         }
 
         $reservations = $query
@@ -62,41 +77,70 @@ class ReservationController extends Controller
         return new ReservationCollection($reservations);
     }
     public function store(StoreReservationRequest $request)
-     {
-     DB::beginTransaction();
+    {
+        DB::beginTransaction();
 
-     try {
+        try {
+            $data = $request->validated();
+            $guestId = $data['guest_id'] ?? null;
 
-        $reservation = Reservation::create(
-            $request->validated()
-        );
+            // Automatically resolve or create guest if guest_id is not provided directly
+            if (!$guestId) {
+                $email = !empty($data['email']) ? strtolower(trim($data['email'])) : null;
+                $phone = !empty($data['phone']) ? trim($data['phone']) : null;
+                $existingGuest = null;
 
-        // Load relations for complete reservation data
-        $reservation->load(['guest', 'room', 'creator']);
+                if ($email) {
+                    $existingGuest = \App\Models\Guest::where('email', $email)->first();
+                }
 
-        // Create notification for receptionist staff
-        $this->createReservationNotification($reservation);
+                if (!$existingGuest && $phone) {
+                    $existingGuest = \App\Models\Guest::where('phone', $phone)->first();
+                }
 
-        DB::commit();
+                if ($existingGuest) {
+                    $guestId = $existingGuest->id;
+                    $existingGuest->update(array_filter([
+                        'first_name' => $data['first_name'] ?? $existingGuest->first_name,
+                        'last_name'  => $data['last_name'] ?? $existingGuest->last_name,
+                        'phone'      => $phone ?? $existingGuest->phone,
+                    ]));
+                } else {
+                    $newGuest = \App\Models\Guest::create([
+                        'first_name' => $data['first_name'] ?? 'Guest',
+                        'last_name'  => $data['last_name'] ?? 'Booking',
+                        'email'      => $email,
+                        'phone'      => $phone ?? 'N/A',
+                    ]);
+                    $guestId = $newGuest->id;
+                }
+            }
 
-        return response()->json([
+            $reservationData = array_merge($data, ['guest_id' => $guestId]);
 
-            'message' =>
-                'Reservation created successfully.',
+            $reservation = Reservation::create($reservationData);
 
-            'data' =>
-                new ReservationResource($reservation)
+            // Load relations for complete reservation data
+            $reservation->load(['guest', 'room', 'creator']);
 
-        ],201);
+            // Create notification for receptionist staff
+            $this->createReservationNotification($reservation);
 
-    } catch (\Exception $e){
-        DB::rollBack();
-        return response()->json([
-            'message'=>'Reservation creation failed.',
-            'error'=>$e->getMessage()
-        ],500);
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Reservation created successfully.',
+                'data' => new ReservationResource($reservation)
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Reservation creation failed.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
-     }
     public function show(Reservation $reservation)
     {
     $reservation->load([

@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import type { ReservationInfo } from '@/types/reception'
+import { Calendar, User, BedDouble, Clock, ChevronLeft, ChevronRight, Eye } from 'lucide-vue-next'
 
 interface Props {
   reservations: ReservationInfo[]
 }
 
 const props = defineProps<Props>()
+const router = useRouter()
 
 const currentPage = ref(1)
 const itemsPerPage = 5
@@ -18,38 +21,60 @@ const paginatedReservations = computed(() => {
 })
 
 const totalPages = computed(() => {
-  return Math.ceil(props.reservations.length / itemsPerPage)
+  return Math.ceil(props.reservations.length / itemsPerPage) || 1
 })
 
-const getStatusColor = (status: string) => {
-  const colors: Record<string, { bg: string; text: string }> = {
-    pending: { bg: 'bg-yellow-100', text: 'text-yellow-700' },
-    confirmed: { bg: 'bg-blue-100', text: 'text-blue-700' },
-    checked_in: { bg: 'bg-green-100', text: 'text-green-700' },
-    checked_out: { bg: 'bg-gray-100', text: 'text-gray-700' },
-    cancelled: { bg: 'bg-red-100', text: 'text-red-700' },
+const getStatusBadge = (status: string) => {
+  const map: Record<string, { bg: string; text: string; dot: string; label: string }> = {
+    pending: {
+      bg: 'bg-amber-500/10 dark:bg-amber-500/20',
+      text: 'text-amber-700 dark:text-amber-400',
+      dot: 'bg-amber-500',
+      label: 'Pending'
+    },
+    confirmed: {
+      bg: 'bg-blue-500/10 dark:bg-blue-500/20',
+      text: 'text-blue-700 dark:text-blue-400',
+      dot: 'bg-blue-500',
+      label: 'Confirmed'
+    },
+    checked_in: {
+      bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+      text: 'text-emerald-700 dark:text-emerald-400',
+      dot: 'bg-emerald-500',
+      label: 'Checked In'
+    },
+    checked_out: {
+      bg: 'bg-slate-500/10 dark:bg-slate-500/20',
+      text: 'text-slate-700 dark:text-slate-400',
+      dot: 'bg-slate-500',
+      label: 'Checked Out'
+    },
+    cancelled: {
+      bg: 'bg-rose-500/10 dark:bg-rose-500/20',
+      text: 'text-rose-700 dark:text-rose-400',
+      dot: 'bg-rose-500',
+      label: 'Cancelled'
+    },
   }
-  return colors[status] || { bg: 'bg-gray-100', text: 'text-gray-700' }
-}
-
-const getStatusLabel = (status: string) => {
-  const labels: Record<string, string> = {
-    pending: 'Pending',
-    confirmed: 'Confirmed',
-    checked_in: 'Checked In',
-    checked_out: 'Checked Out',
-    cancelled: 'Cancelled',
+  return map[status] || {
+    bg: 'bg-slate-100 dark:bg-slate-800',
+    text: 'text-slate-700 dark:text-slate-300',
+    dot: 'bg-slate-400',
+    label: status
   }
-  return labels[status] || status
 }
 
 const formatDate = (date: string) => {
+  if (!date) return 'N/A'
   const d = new Date(date)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 const getInitials = (firstName: string, lastName: string) => {
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+  const f = firstName ? firstName.charAt(0) : 'G'
+  const l = lastName ? lastName.charAt(0) : ''
+  return `${f}${l}`.toUpperCase()
 }
 
 const goToPage = (page: number) => {
@@ -57,157 +82,112 @@ const goToPage = (page: number) => {
     currentPage.value = page
   }
 }
+
+const viewReservationDetails = (id: string) => {
+  router.push('/reservations')
+}
 </script>
 
 <template>
-  <div class="bg-blue-50 dark:bg-slate-800/50 rounded-lg border border-blue-200 dark:border-slate-700 p-5 sm:p-6 shadow-sm">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
     <!-- Header -->
-    <div
-      class="flex items-center justify-between mb-4 flex-col sm:flex-row gap-2 sm:gap-0"
-    >
-      <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-        Recent Guest Requests
-      </h3>
-      <div class="text-sm text-gray-600 dark:text-slate-400 font-medium">
-        Showing {{ (currentPage - 1) * itemsPerPage + 1 }}-{{
-          Math.min(currentPage * itemsPerPage, reservations.length)
-        }}
-        of {{ reservations.length }}
+    <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">
+          <Calendar class="w-4 h-4" />
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Recent Guest Reservations</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Live booking activity and requests</p>
+        </div>
+      </div>
+
+      <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl">
+        {{ reservations.length }} total
       </div>
     </div>
 
-    <!-- Table -->
-    <div v-if="reservations.length > 0" class="overflow-x-auto -mx-4 sm:mx-0 rounded-lg">
-      <table class="w-full text-xs sm:text-sm md:text-base bg-white dark:bg-slate-900">
+    <!-- Table Container -->
+    <div v-if="reservations.length > 0" class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="border-b-2 border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800">
-            <th
-              class="text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 dark:text-slate-300 text-xs md:text-sm"
-            >
-              BOOKING REF
-            </th>
-            <th
-              class="text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 dark:text-slate-300 text-xs md:text-sm"
-            >
-              GUEST
-            </th>
-            <th
-              class="hidden sm:table-cell text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 dark:text-slate-300 text-xs md:text-sm"
-            >
-              ROOM
-            </th>
-            <th
-              class="hidden md:table-cell text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 dark:text-slate-300 text-xs md:text-sm"
-            >
-              CHECK-IN
-            </th>
-            <th
-              class="hidden lg:table-cell text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 dark:text-slate-300 text-xs md:text-sm"
-            >
-              CHECK-OUT
-            </th>
-            <th
-              class="hidden lg:table-cell text-center py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 dark:text-slate-300 text-xs md:text-sm"
-            >
-              NIGHTS
-            </th>
-            <th
-              class="text-left py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 dark:text-slate-300 text-xs md:text-sm"
-            >
-              STATUS
-            </th>
-            <th
-              class="text-center py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 font-bold text-gray-700 dark:text-slate-300 text-xs md:text-sm"
-            >
-              ACTION
-            </th>
+          <tr class="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+            <th class="py-3 px-4">Booking Ref</th>
+            <th class="py-3 px-4">Guest</th>
+            <th class="py-3 px-4">Room</th>
+            <th class="py-3 px-4">Check-In</th>
+            <th class="py-3 px-4">Check-Out</th>
+            <th class="py-3 px-4 text-center">Nights</th>
+            <th class="py-3 px-4 text-center">Status</th>
+            <th class="py-3 px-4 text-right">Action</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
           <tr
-            v-for="reservation in paginatedReservations"
-            :key="reservation.id"
-            class="border-b border-gray-200 dark:border-slate-700 hover:bg-blue-100 dark:hover:bg-slate-700/50 transition py-1 text-xs sm:text-sm md:text-base"
+            v-for="res in paginatedReservations"
+            :key="res.id"
+            class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
           >
-            <!-- Booking Reference -->
-            <td class="py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5">
-              <p class="text-xs sm:text-sm md:text-base font-bold text-blue-600 dark:text-blue-400">
-                {{ reservation.booking_reference }}
-              </p>
+            <!-- Booking Ref -->
+            <td class="py-3 px-4 font-mono font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">
+              {{ res.booking_reference }}
             </td>
 
-            <!-- Guest (Compact) -->
-            <td class="py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5">
-              <div class="flex items-center gap-2">
-                <div
-                  class="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-purple-400 dark:bg-purple-900/60 flex items-center justify-center flex-shrink-0 text-xs font-bold text-white dark:text-purple-300"
-                >
-                  {{
-                    getInitials(
-                      reservation.guest?.first_name || 'U',
-                      reservation.guest?.last_name || 'N',
-                    )
-                  }}
+            <!-- Guest -->
+            <td class="py-3 px-4 whitespace-nowrap">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-full bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-300 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  {{ getInitials(res.guest?.first_name || '', res.guest?.last_name || '') }}
                 </div>
-                <span class="text-xs sm:text-sm md:text-base text-gray-700 dark:text-slate-300 truncate">{{
-                  reservation.guest?.first_name || 'N/A'
-                }}</span>
+                <span class="font-semibold text-slate-900 dark:text-white truncate max-w-[120px]">
+                  {{ res.guest?.first_name }} {{ res.guest?.last_name }}
+                </span>
               </div>
             </td>
 
             <!-- Room -->
-            <td class="hidden sm:table-cell py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5">
-              <p class="text-xs sm:text-sm md:text-base font-semibold text-gray-900 dark:text-white">
-                {{ reservation.room?.room_number }}
-              </p>
-            </td>
-
-            <!-- Check-in Date -->
-            <td class="hidden md:table-cell py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5">
-              <p class="text-xs sm:text-sm md:text-base text-gray-700 dark:text-slate-300">
-                {{ formatDate(reservation.check_in_date) }}
-              </p>
-            </td>
-
-            <!-- Check-out Date -->
-            <td class="hidden lg:table-cell py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5">
-              <p class="text-xs sm:text-sm md:text-base text-gray-700 dark:text-slate-300">
-                {{ formatDate(reservation.check_out_date) }}
-              </p>
-            </td>
-
-            <!-- Nights -->
-            <td
-              class="hidden lg:table-cell py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 text-center"
-            >
-              <span class="text-xs sm:text-sm md:text-base font-bold text-gray-900 dark:text-white">{{
-                reservation.total_nights
-              }}</span>
-            </td>
-
-            <!-- Status Badge -->
-            <td class="py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5">
-              <span
-                :class="`inline-block text-xs sm:text-sm md:text-base font-bold px-2 sm:px-2.5 md:px-3 py-1 md:py-1.5 rounded-full min-h-10 flex items-center justify-center ${getStatusColor(reservation.status).bg} ${getStatusColor(reservation.status).text}`"
-              >
-                {{ getStatusLabel(reservation.status) }}
+            <td class="py-3 px-4 whitespace-nowrap">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 font-bold text-slate-800 dark:text-slate-200">
+                <BedDouble class="w-3.5 h-3.5 text-slate-400" />
+                Room {{ res.room?.room_number || 'N/A' }}
               </span>
             </td>
 
-            <!-- Action Button -->
-            <td class="py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 md:px-5 text-center">
-              <button
-                class="text-gray-500 dark:text-slate-500 hover:text-gray-700 dark:hover:text-slate-300 transition p-1 md:p-2 min-h-10 flex items-center justify-center w-full"
+            <!-- Check-in -->
+            <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-600 dark:text-slate-300">
+              {{ formatDate(res.check_in_date) }}
+            </td>
+
+            <!-- Check-out -->
+            <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-600 dark:text-slate-300">
+              {{ formatDate(res.check_out_date) }}
+            </td>
+
+            <!-- Nights -->
+            <td class="py-3 px-4 whitespace-nowrap text-center font-bold text-slate-900 dark:text-white">
+              {{ res.total_nights || 1 }}
+            </td>
+
+            <!-- Status -->
+            <td class="py-3 px-4 whitespace-nowrap text-center">
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
+                :class="[getStatusBadge(res.status).bg, getStatusBadge(res.status).text]"
               >
-                <svg
-                  class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-                  />
-                </svg>
+                <span class="w-1.5 h-1.5 rounded-full" :class="getStatusBadge(res.status).dot" />
+                {{ getStatusBadge(res.status).label }}
+              </span>
+            </td>
+
+            <!-- Action -->
+            <td class="py-3 px-4 whitespace-nowrap text-right">
+              <button
+                @click="viewReservationDetails(res.id)"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition"
+                title="View Reservation"
+              >
+                <Eye class="w-3.5 h-3.5" />
+                <span>View</span>
               </button>
             </td>
           </tr>
@@ -216,44 +196,34 @@ const goToPage = (page: number) => {
     </div>
 
     <!-- Empty State -->
-    <div v-else class="text-center py-6 sm:py-8 md:py-10">
-      <p class="text-xs sm:text-sm md:text-base text-gray-500 dark:text-slate-400">No requests</p>
+    <div v-else class="text-center py-12 px-4">
+      <Clock class="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+      <p class="text-sm font-semibold text-slate-600 dark:text-slate-400">No recent reservations found</p>
     </div>
 
-    <!-- Pagination Footer -->
+    <!-- Footer / Pagination -->
     <div
       v-if="reservations.length > 0"
-      class="flex items-center justify-between mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-blue-200 dark:border-slate-700 flex-col sm:flex-row gap-2 sm:gap-0"
+      class="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900 flex items-center justify-between text-xs"
     >
-      <div class="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400">
-        Page {{ currentPage }} of {{ totalPages }}
-      </div>
-      <div class="flex gap-1 flex-wrap justify-center">
+      <span class="text-slate-500 dark:text-slate-400">
+        Page <strong>{{ currentPage }}</strong> of <strong>{{ totalPages }}</strong>
+      </span>
+
+      <div class="flex items-center gap-1">
         <button
           @click="goToPage(currentPage - 1)"
           :disabled="currentPage === 1"
-          class="px-2 sm:px-2.5 md:px-3 py-1 md:py-1.5 min-h-10 text-xs sm:text-sm md:text-base font-bold text-gray-700 dark:text-slate-300 bg-gray-200 dark:bg-slate-700 rounded hover:bg-gray-300 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
         >
-          ← Prev
-        </button>
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          @click="goToPage(page)"
-          :class="`px-2 sm:px-2.5 md:px-3 py-1 md:py-1.5 min-h-10 text-xs sm:text-sm md:text-base font-bold rounded transition ${
-            currentPage === page
-              ? 'bg-teal-600 dark:bg-teal-700 text-white'
-              : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-600'
-          }`"
-        >
-          {{ page }}
+          <ChevronLeft class="w-4 h-4" />
         </button>
         <button
           @click="goToPage(currentPage + 1)"
           :disabled="currentPage === totalPages"
-          class="px-2 sm:px-2.5 md:px-3 py-1 md:py-1.5 min-h-10 text-xs sm:text-sm md:text-base font-bold text-gray-700 dark:text-slate-300 bg-gray-200 dark:bg-slate-700 rounded hover:bg-gray-300 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
         >
-          Next →
+          <ChevronRight class="w-4 h-4" />
         </button>
       </div>
     </div>

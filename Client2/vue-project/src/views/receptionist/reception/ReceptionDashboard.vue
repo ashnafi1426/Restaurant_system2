@@ -7,9 +7,9 @@ import TodaysArrivals from '@/components/reception/TodaysArrivals.vue'
 import TodaysDepartures from '@/components/reception/TodaysDepartures.vue'
 import RoomStatusMatrix from '@/components/reception/RoomStatusMatrix.vue'
 import RecentReservations from '@/components/reception/RecentReservations.vue'
-import NotificationCenter from '@/components/reception/NotificationCenter.vue'
 import { getReceptionDashboard } from '@/services/receptionService'
 import type { ReceptionDashboardData } from '@/types/reception'
+import { LogIn, CalendarPlus, RefreshCw, AlertCircle } from 'lucide-vue-next'
 
 const router = useRouter()
 const dashboard = ref<ReceptionDashboardData | null>(null)
@@ -34,116 +34,128 @@ const quickCheckIn = () => {
   router.push('/check-in')
 }
 
+const newBooking = () => {
+  router.push('/reservations/create')
+}
+
 onMounted(loadDashboard)
 </script>
 
 <template>
   <DashboardLayout>
-    <div class="w-full bg-white dark:bg-slate-900">
-      <!-- Header Section -->
-      <div class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-0 py-4 md:py-5">
-        <div class="flex flex-col sm:flex-row items-start justify-between gap-3">
-          <div class="flex-1">
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Receptionist Dashboard</h1>
-            <p class="text-gray-500 dark:text-slate-400 text-xs md:text-sm mt-1 md:mt-2">Manage your property efficiently today.</p>
+    <div class="space-y-6 w-full">
+      <!-- Header Banner -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs w-full">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              Receptionist Front Desk
+            </h1>
+            <span class="px-2.5 py-0.5 text-xs font-black rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              LIVE SYSTEM
+            </span>
           </div>
-          <!-- Action Buttons (Right Aligned) -->
-          <div class="flex gap-2 md:gap-3 flex-shrink-0 w-full sm:w-auto">
-            <button
-              @click="quickCheckIn"
-              class="flex-1 sm:flex-none px-4 md:px-5 py-2 md:py-2.5 bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 text-xs md:text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition flex items-center justify-center gap-2"
-            >
-              <svg class="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-              </svg>
-              Quick Check In
-            </button>
-          </div>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Real-time property occupancy, guest arrivals, and check-in management.
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <button
+            @click="loadDashboard"
+            :disabled="loading"
+            class="px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+            title="Refresh Data"
+          >
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+            <span>Refresh</span>
+          </button>
+
+          <button
+            @click="newBooking"
+            class="px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer"
+          >
+            <CalendarPlus class="w-4 h-4" />
+            <span>+ New Booking</span>
+          </button>
+
+          <button
+            @click="quickCheckIn"
+            class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer"
+          >
+            <LogIn class="w-4 h-4" />
+            <span>Quick Check-In</span>
+          </button>
         </div>
       </div>
 
-      <!-- Main Content -->
-      <div v-if="loading" class="p-4 md:p-6 bg-white dark:bg-slate-900">
-        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
-          <div v-for="i in 6" :key="i" class="h-20 md:h-24 bg-gray-200 dark:bg-slate-800 rounded-lg animate-pulse"></div>
-        </div>
+      <!-- Loading State -->
+      <div v-if="loading && !dashboard" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div v-for="i in 6" :key="i" class="h-24 bg-slate-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
       </div>
+
       <!-- Error State -->
       <div
         v-else-if="errorOccurred"
-        class="flex flex-col items-center justify-center min-h-[60vh] text-center px-8 bg-white dark:bg-slate-900"
+        class="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/50"
       >
-        <div class="p-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full mb-4">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 9v2m0 4v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
+        <div class="p-3 bg-rose-500/10 text-rose-600 rounded-2xl mb-3">
+          <AlertCircle class="w-8 h-8" />
         </div>
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Unable to load dashboard</h3>
-        <p class="text-gray-600 dark:text-slate-400 mt-2 mb-6">
-          Make sure you are logged in with a valid receptionist or admin account.
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Unable to load dashboard</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">
+          Failed to communicate with hotel management API.
         </p>
-        <div class="flex gap-3">
-          <button
-            @click="loadDashboard"
-            class="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition"
-          >
-            Try Again
-          </button>
-          <button
-            @click="router.push('/login')"
-            class="px-6 py-2 bg-gray-300 dark:bg-slate-700 text-gray-800 dark:text-slate-200 rounded-lg hover:bg-gray-400 dark:hover:bg-slate-600 transition"
-          >
-            Back to Login
-          </button>
-        </div>
+        <button
+          @click="loadDashboard"
+          class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition"
+        >
+          Try Again
+        </button>
       </div>
 
-      <!-- Main Grid Layout -->
-      <div v-else-if="dashboard" class="p-4 md:p-6 space-y-4 md:space-y-6 bg-white dark:bg-slate-900">
-        <!-- Statistics Cards (Responsive: 2 cols mobile, 3 cols tablet, 6 cols desktop) -->
-        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
+      <!-- Main Dashboard View -->
+      <div v-else-if="dashboard" class="space-y-6 w-full">
+        <!-- Stat Cards Grid (6 Columns) -->
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 w-full">
           <ReceptionStatCard
-            title="CHECK-INS"
+            title="Check-Ins"
             :value="dashboard.statistics.today_check_ins"
             icon="checkin"
-            color="teal"
+            color="green"
             subtext="Today"
           />
           <ReceptionStatCard
-            title="CHECK-OUTS"
+            title="Check-Outs"
             :value="dashboard.statistics?.checkout_count || 0"
             icon="checkout"
             color="red"
             subtext="Today"
           />
           <ReceptionStatCard
-            title="ACTIVE GUESTS"
+            title="Active Guests"
             :value="dashboard.statistics.active_guests"
             icon="guests"
             color="blue"
             subtext="In property"
           />
           <ReceptionStatCard
-            title="AVAILABLE ROOMS"
+            title="Available Rooms"
             :value="dashboard.statistics.available_rooms"
             icon="rooms"
-            color="green"
+            color="teal"
             subtext="Ready"
           />
           <ReceptionStatCard
-            title="PENDING"
+            title="Pending"
             :value="dashboard.statistics.pending_reservations"
             icon="pending"
             color="orange"
             subtext="Reservations"
           />
           <ReceptionStatCard
-            title="CONFIRMED"
+            title="Confirmed"
             :value="dashboard.statistics.confirmed_reservations"
             icon="confirmed"
             color="purple"
@@ -151,25 +163,20 @@ onMounted(loadDashboard)
           />
         </div>
 
-        <!-- Content Grid: 2 columns on desktop, 1 on mobile/tablet -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-          <!-- Left Column -->
-          <div class="space-y-4 md:space-y-6">
-            <!-- Today's Arrivals -->
-            <TodaysArrivals :arrivals="dashboard.today_arrivals" />
+        <!-- Middle Section: Today's Arrivals & Departures (2 Columns) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+          <TodaysArrivals :arrivals="dashboard.today_arrivals" />
+          <TodaysDepartures :departures="dashboard.today_departures" />
+        </div>
 
-            <!-- Today's Departures -->
-            <TodaysDepartures :departures="dashboard.today_departures" />
-          </div>
+        <!-- Room Status Matrix (Full Width / Section) -->
+        <div class="w-full">
+          <RoomStatusMatrix :rooms="dashboard.room_matrix" />
+        </div>
 
-          <!-- Right Column -->
-          <div class="space-y-4 md:space-y-6">
-            <!-- Room Status Matrix -->
-            <RoomStatusMatrix :rooms="dashboard.room_matrix" />
-
-            <!-- Recent Guest Requests -->
-            <RecentReservations :reservations="dashboard.recent_reservations" />
-          </div>
+        <!-- Recent Reservations Table (Full Width Across Bottom) -->
+        <div class="w-full">
+          <RecentReservations :reservations="dashboard.recent_reservations" />
         </div>
       </div>
     </div>

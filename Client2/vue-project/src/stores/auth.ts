@@ -138,15 +138,36 @@ export const useAuthStore = defineStore('auth', {
 
       const target = String(permissionSlug).toLowerCase().trim()
 
-      // 1. Dashboard access (every authenticated user can view their role dashboard)
+      // 1. Admin superuser access
+      if (this.isAdmin) return true
+
+      // 2. Dashboard access (every authenticated user can view their role dashboard)
       if (target === 'dashboard.view' || target === 'dashboard') return true
 
-      // 2. Exact match in effective user permissions granted dynamically by Admin
+      // 3. Dynamic match in effective user permissions granted by Database
       if (this.userPermissions.includes(target)) {
         return true
       }
 
-      // 3. Exact synonym checks for legacy permissions
+      // 4. Role domain fallback for standard system roles
+      const role = String(this.user.role || '').toLowerCase().trim()
+      // if (role === 'waiter' && (target.startsWith('delivery.') || target.startsWith('orders.') || target.startsWith('notifications.'))) {
+      //   return true
+      // }
+      // if (role === 'chef' && (target.startsWith('kitchen.') || target.startsWith('orders.') || target.startsWith('notifications.'))) {
+      //   return true
+      // }
+      // if (role === 'receptionist' && (target.startsWith('reservations.') || target.startsWith('guests.') || target.startsWith('rooms.') || target.startsWith('checkin.') || target.startsWith('checkout.') || target.startsWith('notifications.'))) {
+      //   return true
+      // }
+      // if (role === 'cashier' && (target.startsWith('payments.') || target.startsWith('orders.') || target.startsWith('reports.') || target.startsWith('notifications.'))) {
+      //   return true
+      // }
+      // if (role === 'manager') {
+      //   return true
+      // }
+
+      // 5. Exact synonym checks for legacy permissions
       if (target === 'checkin.view') {
         return this.userPermissions.includes('checkin.view') || this.userPermissions.includes('reservations.checkin')
       }
@@ -157,12 +178,11 @@ export const useAuthStore = defineStore('auth', {
 
       if (target === 'kitchen.view' || target === 'kitchen.accept') {
         return this.userPermissions.includes('kitchen.view') ||
-               this.userPermissions.includes('kitchen.accept') ||
-               this.userPermissions.includes('kitchen.prepare') ||
-               this.userPermissions.includes('orders.view')
+          this.userPermissions.includes('kitchen.accept') ||
+          this.userPermissions.includes('kitchen.prepare') ||
+          this.userPermissions.includes('orders.view')
       }
 
-      // If Admin has not explicitly granted this permission, deny access & do not render item
       return false
     },
 

@@ -12,13 +12,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->enum('category', [
-                'breakfast',
-                'lunch',
-                'dinner',
-                'drinks',
-                'dessert'
-            ]);
+            $table->string('category', 100)->nullable();
             $table->decimal('price', 10, 2);
             $table->boolean('is_available')->default(true);
             $table->timestamps();

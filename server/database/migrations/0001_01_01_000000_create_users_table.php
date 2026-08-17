@@ -13,13 +13,7 @@ return new class extends Migration
             $table->string('first_name');
             $table->string('last_name');
             $table->string('phone')->nullable();
-            $table->enum('role', [
-                'admin',
-                'receptionist',
-                'cashier',
-                'manager',
-                'chef'
-            ]);
+            $table->string('role', 100)->default('guest');
             $table->boolean('is_active')
                 ->default(true);
             $table->timestamp('deleted_at')

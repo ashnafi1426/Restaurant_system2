@@ -24,12 +24,7 @@ return new class extends Migration
             $table->decimal('amount', 10, 2);
 
             $table->string('description');
-            $table->enum('status', [
-                'unpaid',
-                'paid',
-                'cancelled',
-
-            ])->default('unpaid');
+            $table->string('status', 50)->default('unpaid');
             $table->timestamp('paid_at')->nullable();
 
             $table->string('payment_reference')->nullable();

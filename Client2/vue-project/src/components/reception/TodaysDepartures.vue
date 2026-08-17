@@ -1,94 +1,87 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import type { CheckInInfo } from '@/types/reception'
+import { LogOut, CheckCircle, Clock } from 'lucide-vue-next'
 
 interface Props {
   departures: CheckInInfo[]
 }
 
 defineProps<Props>()
+const router = useRouter()
 
 const getInitials = (firstName: string, lastName: string) => {
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+  const f = firstName ? firstName.charAt(0) : 'G'
+  const l = lastName ? lastName.charAt(0) : ''
+  return `${f}${l}`.toUpperCase()
 }
 
-const getStatusDisplay = (checkout_at: string | null) => {
-  if (checkout_at) {
-    return { label: 'Checked Out', color: 'text-green-600' }
-  }
-  return { label: 'Pending', color: 'text-orange-600' }
+const goToCheckOut = () => {
+  router.push('/check-out')
 }
 </script>
 
 <template>
-  <div class="bg-blue-50 dark:bg-slate-800/50 rounded-lg border border-blue-200 dark:border-slate-700 p-5 sm:p-6 shadow-sm">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
     <!-- Header -->
-    <div
-      class="flex items-center justify-between mb-4 pb-4 border-b border-blue-200 dark:border-slate-700"
-    >
-      <h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-        Today's Departures
-      </h3>
-      <span class="text-sm sm:text-base font-bold text-red-600 dark:text-red-400"
-        >{{ departures.length }} Total</span
-      >
+    <div class="flex items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-sm">
+          <LogOut class="w-4 h-4" />
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Today's Expected Departures</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Scheduled guest check-outs</p>
+        </div>
+      </div>
+      <span class="px-2.5 py-1 text-xs font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 rounded-full">
+        {{ departures.length }} Total
+      </span>
     </div>
 
     <!-- Departures List -->
-    <div v-if="departures.length > 0" class="space-y-4">
+    <div v-if="departures.length > 0" class="divide-y divide-slate-100 dark:divide-slate-800/60 my-2">
       <div
-        v-for="departure in departures.slice(0, 3)"
-        :key="departure.id"
-        class="flex items-start gap-4 pb-4 border-b border-gray-100 dark:border-slate-700 last:pb-0 last:border-b-0"
+        v-for="dep in departures.slice(0, 4)"
+        :key="dep.id"
+        class="py-3 flex items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 px-2 rounded-xl transition"
       >
-        <!-- Avatar -->
-        <div class="flex-shrink-0">
-          <div
-            class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center"
-          >
-            <span class="text-sm sm:text-base font-bold text-purple-700 dark:text-purple-300">
-              {{
-                getInitials(departure.guest?.first_name || 'U', departure.guest?.last_name || 'N')
-              }}
-            </span>
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-full bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-300 font-extrabold flex items-center justify-center text-xs flex-shrink-0">
+            {{ getInitials(dep.guest?.first_name || '', dep.guest?.last_name || '') }}
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-bold text-slate-900 dark:text-white truncate">
+              {{ dep.guest?.first_name }} {{ dep.guest?.last_name }}
+            </p>
+            <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate">
+              Room {{ dep.room?.room_number || 'N/A' }}
+            </p>
           </div>
         </div>
 
-        <!-- Guest & Room Info -->
-        <div class="flex-1 min-w-0">
-          <p class="text-sm sm:text-base font-bold text-gray-900 dark:text-white truncate">
-            {{ departure.guest?.first_name }} {{ departure.guest?.last_name }}
-          </p>
-          <p class="text-sm text-gray-600 dark:text-slate-400 mt-1 truncate">
-            Room {{ departure.room?.room_number }} · {{ departure.room?.room_type?.name }}
-          </p>
-        </div>
-
-        <!-- Status Badge -->
-        <div class="flex-shrink-0 text-right">
+        <div class="flex items-center gap-2 flex-shrink-0">
           <span
-            :class="`text-sm font-bold px-3 py-1 rounded-full ${getStatusDisplay(departure.checked_out_at).color}`"
+            v-if="dep.checked_out_at"
+            class="px-2.5 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 rounded-full inline-flex items-center gap-1"
           >
-            {{ getStatusDisplay(departure.checked_out_at).label }}
+            <CheckCircle class="w-3 h-3" /> Checked Out
           </span>
+          <button
+            v-else
+            @click="goToCheckOut"
+            class="px-2.5 py-1 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition"
+          >
+            Check Out
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Empty State -->
     <div v-else class="text-center py-8">
-      <p class="text-sm text-gray-500 dark:text-slate-400">No departures today</p>
-    </div>
-
-    <!-- View All Link -->
-    <div
-      v-if="departures.length > 3"
-      class="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700"
-    >
-      <button
-        class="w-full py-2.5 text-sm sm:text-base font-bold text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition"
-      >
-        View All Departures
-      </button>
+      <Clock class="w-7 h-7 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+      <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">No scheduled departures for today</p>
     </div>
   </div>
 </template>

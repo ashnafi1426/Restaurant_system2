@@ -78,6 +78,7 @@ class AuthorizationService
     public function getEffectivePermissions(User $user): array
     {
         $cacheKey = "user_permissions_{$user->id}";
+        Cache::forget($cacheKey);
 
         return Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($user) {
             $roles = $this->getUserRoles($user);

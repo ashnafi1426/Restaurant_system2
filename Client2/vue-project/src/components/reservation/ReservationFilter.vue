@@ -1,33 +1,17 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue'
-
 import type { ReservationFilter } from '@/types/reservation'
-
-interface Guest {
-  id: string
-  first_name: string
-  last_name: string
-}
-interface Room {
-  id: string
-  room_number: string
-}
+import { Search, X, RotateCcw } from 'lucide-vue-next'
 
 interface Props {
   filters: ReservationFilter
-
-  guests: Guest[]
-
-  rooms: Room[]
 }
 
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: 'update:filters', value: ReservationFilter): void
-
   (e: 'search'): void
-
   (e: 'reset'): void
 }>()
 
@@ -35,150 +19,79 @@ const localFilters = reactive({
   ...props.filters,
 })
 
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
 watch(
   () => props.filters,
-
   (value) => {
     Object.assign(localFilters, value)
   },
-
-  {
-    deep: true,
-  },
+  { deep: true }
 )
 
-watch(
-  localFilters,
+const handleSearchInput = () => {
+  emit('update:filters', { ...localFilters, page: 1 })
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    emit('search')
+  }, 250)
+}
 
-  () => {
-    emit(
-      'update:filters',
-
-      {
-        ...localFilters,
-      },
-    )
-  },
-
-  {
-    deep: true,
-  },
-)
-
-const search = () => {
-  emit('search')
+const clearSearch = () => {
+  localFilters.search = ''
+  handleSearchInput()
 }
 
 const reset = () => {
+  localFilters.search = ''
+  localFilters.status = ''
+  localFilters.guest_id = ''
+  localFilters.room_id = ''
+  localFilters.check_in_date = ''
+  localFilters.check_out_date = ''
+  localFilters.page = 1
+  emit('update:filters', { ...localFilters })
   emit('reset')
 }
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-sm border p-6">
-    <div class="mb-5">
-      <h2 class="text-xl font-semibold">Reservation Filters</h2>
-
-      <p class="text-gray-500">Search reservations quickly using multiple criteria.</p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-      <!-- Search -->
-
-      <div>
-        <label class="block text-sm font-medium mb-2"> Booking Reference </label>
-
-        <input
-          v-model="localFilters.search"
-          type="text"
-          placeholder="Search booking..."
-          class="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-blue-500"
-        />
+  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs">
+    <!-- Single Universal Search Bar -->
+    <div class="relative flex items-center w-full">
+      <div class="absolute left-4 text-purple-600 dark:text-purple-400 pointer-events-none">
+        <Search class="w-5 h-5" />
       </div>
 
-      <!-- Guest -->
+      <input
+        v-model="localFilters.search"
+        @input="handleSearchInput"
+        @keyup.enter="emit('search')"
+        type="text"
+        placeholder="Search everything... (Booking reference, guest name, email, phone, room number, or status)"
+        class="w-full pl-12 pr-28 py-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:bg-white dark:focus:bg-slate-900 transition shadow-xs"
+      />
 
-      <div>
-        <label class="block text-sm font-medium mb-2"> Guest </label>
+      <div class="absolute right-3 flex items-center gap-1.5">
+        <button
+          v-if="localFilters.search"
+          @click="clearSearch"
+          class="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-800 rounded-lg transition"
+          title="Clear Search"
+        >
+          <X class="w-4 h-4" />
+        </button>
 
-        <select v-model="localFilters.guest_id" class="w-full rounded-lg border px-4 py-2">
-          <option value="">All Guests</option>
-
-          <option v-for="guest in guests" :key="guest.id" :value="guest.id">
-            {{ guest.first_name }}
-
-            {{ guest.last_name }}
-          </option>
-        </select>
+        <button
+          @click="reset"
+          v-if="localFilters.search || localFilters.status || localFilters.check_in_date"
+          class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-200/60 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 rounded-lg transition cursor-pointer"
+          title="Reset Search"
+        >
+          <RotateCcw class="w-3.5 h-3.5" />
+          <span>Reset</span>
+        </button>
       </div>
-
-      <!-- Room -->
-
-      <div>
-        <label class="block text-sm font-medium mb-2"> Room </label>
-
-        <select v-model="localFilters.room_id" class="w-full rounded-lg border px-4 py-2">
-          <option value="">All Rooms</option>
-
-          <option v-for="room in rooms" :key="room.id" :value="room.id">
-            Room
-
-            {{ room.room_number }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Status -->
-
-      <div>
-        <label class="block text-sm font-medium mb-2"> Status </label>
-
-        <select v-model="localFilters.status" class="w-full rounded-lg border px-4 py-2">
-          <option value="">All Status</option>
-
-          <option value="pending">Pending</option>
-
-          <option value="confirmed">Confirmed</option>
-
-          <option value="checked_in">Checked In</option>
-
-          <option value="checked_out">Checked Out</option>
-
-          <option value="cancelled">Cancelled</option>
-        </select>
-      </div>
-
-      <!-- Check In -->
-
-      <div>
-        <label class="block text-sm font-medium mb-2"> Check In </label>
-
-        <input
-          type="date"
-          v-model="localFilters.check_in_date"
-          class="w-full rounded-lg border px-4 py-2"
-        />
-      </div>
-
-      <!-- Check Out -->
-
-      <div>
-        <label class="block text-sm font-medium mb-2"> Check Out </label>
-
-        <input
-          type="date"
-          v-model="localFilters.check_out_date"
-          class="w-full rounded-lg border px-4 py-2"
-        />
-      </div>
-    </div>
-
-    <div class="flex justify-end gap-3 mt-6">
-      <button @click="reset" class="px-5 py-2 rounded-lg border hover:bg-gray-100">Reset</button>
-
-      <button @click="search" class="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white">
-        Search
-      </button>
     </div>
   </div>
 </template>

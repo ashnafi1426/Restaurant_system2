@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('room_id');
             $table->uuid('order_id')->nullable();
             $table->uuid('delivered_by')->nullable();
-            $table->enum('status', ['pending', 'in_progress', 'delivered', 'cancelled'])->default('pending');
+            $table->string('status', 50)->default('pending');
             $table->dateTime('scheduled_time')->nullable();
             $table->dateTime('delivered_time')->nullable();
             $table->text('notes')->nullable();

@@ -46,32 +46,33 @@ class ReceptionController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Today's Arrivals
+        | Today's Arrivals (Pending or Confirmed reservations due today or earlier not yet checked in)
         |--------------------------------------------------------------------------
         */
 
         $todayArrivals = Reservation::with([
                 'guest',
-                'room'
+                'room.roomType'
             ])
-            ->whereDate('check_in_date', $today)
-            ->where('status', 'confirmed')
-            ->orderBy('check_in_date')
+            ->whereIn('status', ['confirmed', 'pending'])
+            ->whereDate('check_in_date', '<=', $today)
+            ->whereDoesntHave('checkIn')
+            ->orderBy('check_in_date', 'asc')
             ->get();
 
         /*
         |--------------------------------------------------------------------------
-        | Today's Departures
+        | Today's Departures (Active check-ins due for check-out today or earlier)
         |--------------------------------------------------------------------------
         */
 
         $todayDepartures = CheckIn::with([
                 'guest',
-                'room'
+                'room.roomType'
             ])
-            ->whereDate('expected_check_out_at', $today)
+            ->whereDate('expected_check_out_at', '<=', $today)
             ->whereNull('checked_out_at')
-            ->orderBy('expected_check_out_at')
+            ->orderBy('expected_check_out_at', 'asc')
             ->get();
 
         /*

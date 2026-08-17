@@ -20,13 +20,7 @@ $table->foreignUuid('guest_id')->constrained();
 $table->foreignUuid('room_id')->constrained();
 $table->timestamp('order_time')->useCurrent();
 
-$table->enum('status',[
-    'pending',
-    'preparing',
-    'ready',
-    'served',
-    'cancelled'
-])->default('pending');
+$table->string('status', 50)->default('pending');
 
 $table->decimal('subtotal',10,2)->default(0);
 
@@ -36,11 +30,7 @@ $table->decimal('discount',10,2)->default(0);
 
 $table->decimal('total',10,2)->default(0);
 
-$table->enum('payment_type',[
-    'room_charge',
-    'cash',
-    'card'
-])->default('room_charge');
+$table->string('payment_type', 50)->default('room_charge');
 $table->text('notes')->nullable();
 $table->timestamp('served_at')->nullable();
 $table->timestamp('cancelled_at')->nullable();

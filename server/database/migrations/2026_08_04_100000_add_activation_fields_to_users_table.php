@@ -21,13 +21,7 @@ return new class extends Migration
             // Activation token expiration timestamp (default: 24 hours)
             $table->timestamp('activation_token_expires_at')->nullable()->after('activation_token');
             
-            // Activation status tracking
-            $table->enum('activation_status', [
-                'pending',      // Account created, waiting activation
-                'activated',    // Successfully activated
-                'expired',      // Activation link expired
-                'deactivated'   // Account deactivated by admin
-            ])->default('activated')->after('activation_token_expires_at');
+            $table->string('activation_status', 50)->default('activated')->after('activation_token_expires_at');
             
             // Email verification timestamp (Laravel standard)
             $table->timestamp('email_verified_at')->nullable()->after('activation_status');

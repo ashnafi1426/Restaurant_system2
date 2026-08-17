@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->uuid('room_id');
             $table->uuid('guest_id')->nullable();
-            $table->enum('status', ['pending', 'processing', 'ready', 'delivered', 'cancelled'])->default('pending');
+            $table->string('status', 50)->default('pending');
             $table->json('items')->nullable();
             $table->dateTime('requested_time')->nullable();
             $table->dateTime('pickup_time')->nullable();

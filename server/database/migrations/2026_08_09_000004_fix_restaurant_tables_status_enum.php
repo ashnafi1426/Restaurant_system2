@@ -15,8 +15,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // For MySQL, we need to use ALTER TABLE to modify the ENUM
-        DB::statement("ALTER TABLE restaurant_tables MODIFY COLUMN status ENUM('available', 'occupied', 'reserved', 'cleaning', 'out_of_service') DEFAULT 'available' COMMENT 'Current table status'");
+        DB::statement("ALTER TABLE restaurant_tables MODIFY COLUMN status VARCHAR(100) DEFAULT 'available' COMMENT 'Current table status'");
         
         // Update any existing 'maintenance' records to 'cleaning'
         DB::table('restaurant_tables')
@@ -29,8 +28,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revert back to old enum
-        DB::statement("ALTER TABLE restaurant_tables MODIFY COLUMN status ENUM('available', 'occupied', 'reserved', 'maintenance') DEFAULT 'available' COMMENT 'Current table status'");
+        DB::statement("ALTER TABLE restaurant_tables MODIFY COLUMN status VARCHAR(100) DEFAULT 'available' COMMENT 'Current table status'");
         
         // Convert cleaning and out_of_service back to maintenance
         DB::table('restaurant_tables')

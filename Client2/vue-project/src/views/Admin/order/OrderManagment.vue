@@ -188,7 +188,7 @@ async function deleteOrder() {
       <OrderHeader @create="openCreate" />
 
       <!-- Statistics -->
-      <OrderStatistics :statistics="orderStore.statistics" />
+      <OrderStatistics :statistics="orderStore.statistics" :loading="orderStore.loading" />
 
       <!-- Filters -->
       <OrderFilters

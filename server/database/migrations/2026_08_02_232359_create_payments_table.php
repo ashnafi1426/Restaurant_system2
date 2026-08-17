@@ -30,21 +30,11 @@ return new class extends Migration
             $table->string('phone');
 
             // Payment Provider and Method
-            $table->enum('payment_provider', ['chapa'])->default('chapa');
+            $table->string('payment_provider', 50)->default('chapa');
             $table->string('payment_method')->nullable();
 
             // Payment Status
-            $table->enum('status', [
-                'pending',
-                'initialized',
-                'processing',
-                'paid',
-                'verified',
-                'failed',
-                'cancelled',
-                'expired',
-                'refunded'
-            ])->default('pending')->index();
+            $table->string('status', 50)->default('pending')->index();
 
             // URLs
             $table->text('checkout_url')->nullable();

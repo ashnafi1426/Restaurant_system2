@@ -251,6 +251,42 @@ const handleClose = () => {
   emit('close')
 }
 
+// Format time from ISO string or HH:MM:SS to readable format
+const formatTime = (timeString: string): string => {
+  if (!timeString) return ''
+  
+  try {
+    // Check if it's an ISO timestamp (contains 'T')
+    if (timeString.includes('T')) {
+      const date = new Date(timeString)
+      return date.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+      })
+    }
+    
+    // If it's already in HH:MM:SS or HH:MM format
+    const timeParts = timeString.split(':')
+    if (timeParts.length >= 2) {
+      let hours = parseInt(timeParts[0])
+      const minutes = timeParts[1]
+      const ampm = hours >= 12 ? 'PM' : 'AM'
+      
+      // Convert to 12-hour format
+      hours = hours % 12
+      hours = hours ? hours : 12 // the hour '0' should be '12'
+      
+      return `${hours}:${minutes} ${ampm}`
+    }
+    
+    return timeString
+  } catch (err) {
+    console.error('Error formatting time:', err)
+    return timeString
+  }
+}
+
 // PART 0: Initialize - Load data on mount
 onMounted(() => {
   console.log('[Modal] PART 0: Modal mounted, isOpen=', props.isOpen)
@@ -355,35 +391,104 @@ watch(() => props.isOpen, (newVal) => {
             </select>
           </div>
 
-          <!-- Selected Waiter Card -->
+          <!-- Selected Waiter Card - Enhanced with Deep Information -->
           <transition name="slide-up">
-            <div v-if="selectedWaiterData" class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 p-6">
-              <div class="flex items-start justify-between mb-4">
+            <div v-if="selectedWaiterData" class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 p-6 space-y-4">
+              <!-- Header Section -->
+              <div class="flex items-start justify-between">
                 <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+                  <div class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
                     {{ selectedWaiterData.user?.name?.charAt(0).toUpperCase() }}
                   </div>
                   <div>
-                    <h3 class="font-bold text-lg text-slate-900">{{ selectedWaiterData.user?.name }}</h3>
-                    <p class="text-sm text-slate-600">{{ selectedWaiterData.employment_type?.replace(/_/g, ' ').toUpperCase() }}</p>
+                    <h3 class="font-bold text-xl text-slate-900">{{ selectedWaiterData.user?.name }}</h3>
+                    <p class="text-sm text-slate-600 font-medium">{{ selectedWaiterData.employment_type?.replace(/_/g, ' ').toUpperCase() }}</p>
                   </div>
                 </div>
-                <span class="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full">SELECTED</span>
+                <span class="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full shadow-md">SELECTED</span>
               </div>
 
-              <!-- Waiter Details Grid -->
+              <!-- Contact Information Section -->
+              <div class="bg-white rounded-lg p-4 border border-blue-100 space-y-3">
+                <h4 class="text-xs font-bold text-slate-600 uppercase mb-2 flex items-center gap-2">
+                  <span class="text-blue-600">📧</span>
+                  Contact Details
+                </h4>
+                
+                <!-- Email -->
+                <div class="flex items-start gap-3">
+                  <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2" y="4" width="20" height="16" rx="2"/>
+                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                    </svg>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-xs text-slate-500 font-semibold">Email Address</p>
+                    <p class="text-sm text-slate-900 font-medium break-all">{{ selectedWaiterData.user?.email || 'No email provided' }}</p>
+                  </div>
+                </div>
+
+                <!-- Phone -->
+                <div class="flex items-start gap-3">
+                  <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-xs text-slate-500 font-semibold">Phone Number</p>
+                    <p class="text-sm text-slate-900 font-medium">{{ selectedWaiterData.phone || selectedWaiterData.user?.phone || 'No phone provided' }}</p>
+                  </div>
+                </div>
+
+                <!-- Employee Number (if exists) -->
+                <div v-if="selectedWaiterData.employee_number" class="flex items-start gap-3">
+                  <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-xs text-slate-500 font-semibold">Employee ID</p>
+                    <p class="text-sm text-slate-900 font-medium font-mono">{{ selectedWaiterData.employee_number }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Work Details Grid -->
               <div class="grid grid-cols-3 gap-3">
-                <div class="bg-white rounded-lg p-3 text-center">
-                  <p class="text-xs text-slate-500 mb-1">Status</p>
-                  <p class="font-semibold text-slate-900 capitalize">{{ selectedWaiterData.status || 'N/A' }}</p>
+                <div class="bg-white rounded-lg p-3 text-center border border-slate-200">
+                  <p class="text-xs text-slate-500 mb-1 font-semibold">Status</p>
+                  <p :class="[
+                    'font-bold capitalize text-sm',
+                    selectedWaiterData.status === 'active' ? 'text-emerald-600' : 'text-slate-600'
+                  ]">
+                    {{ selectedWaiterData.status || 'N/A' }}
+                  </p>
                 </div>
-                <div class="bg-white rounded-lg p-3 text-center">
-                  <p class="text-xs text-slate-500 mb-1">Experience</p>
-                  <p class="font-semibold text-slate-900 capitalize">{{ selectedWaiterData.experience_level || 'N/A' }}</p>
+                <div class="bg-white rounded-lg p-3 text-center border border-slate-200">
+                  <p class="text-xs text-slate-500 mb-1 font-semibold">Experience</p>
+                  <p class="font-bold text-slate-900 capitalize text-sm">{{ selectedWaiterData.experience_level || 'N/A' }}</p>
                 </div>
-                <div class="bg-white rounded-lg p-3 text-center">
-                  <p class="text-xs text-slate-500 mb-1">Section</p>
-                  <p class="font-semibold text-slate-900">{{ selectedWaiterData.section || 'N/A' }}</p>
+                <div class="bg-white rounded-lg p-3 text-center border border-slate-200">
+                  <p class="text-xs text-slate-500 mb-1 font-semibold">Section</p>
+                  <p class="font-bold text-slate-900 text-sm">{{ selectedWaiterData.section || 'N/A' }}</p>
+                </div>
+              </div>
+
+              <!-- Additional Info Row -->
+              <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white rounded-lg p-3 border border-slate-200">
+                  <p class="text-xs text-slate-500 mb-1 font-semibold">Max Orders</p>
+                  <p class="font-bold text-slate-900 text-sm">{{ selectedWaiterData.maximum_orders || 'N/A' }}</p>
+                </div>
+                <div class="bg-white rounded-lg p-3 border border-slate-200">
+                  <p class="text-xs text-slate-500 mb-1 font-semibold">Availability</p>
+                  <p class="font-bold text-slate-900 capitalize text-sm">{{ selectedWaiterData.availability || 'Available' }}</p>
                 </div>
               </div>
             </div>
@@ -411,7 +516,7 @@ watch(() => props.isOpen, (newVal) => {
                 :key="shift.id"
                 :value="shift.id"
               >
-                {{ shift.name }} ({{ shift.start_time }} - {{ shift.end_time }})
+                {{ shift.name }} ({{ formatTime(shift.start_time) }} - {{ formatTime(shift.end_time) }})
               </option>
             </select>
           </div>

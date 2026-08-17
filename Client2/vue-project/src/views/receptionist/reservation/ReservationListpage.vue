@@ -347,8 +347,6 @@ onMounted(() => {
       <!-- Filter -->
       <ReservationFilter
         :filters="filters"
-        :guests="guestStore.guests"
-        :rooms="rooms"
         @update:filters="filters = $event"
         @search="loadReservations"
         @reset="resetFilters"

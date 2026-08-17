@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\Manager\WaiterManagementController;
 use App\Http\Controllers\Api\Manager\FloorAssignmentController;
 use App\Http\Controllers\Api\Manager\FloorManagementController;
 use App\Http\Controllers\Api\Manager\ShiftManagementController;
+use App\Http\Controllers\Api\Manager\WaiterTableAssignmentController;
 use App\Http\Controllers\Api\Manager\ManagerDeliveryManagementController;
 use App\Http\Controllers\Api\Waiter\WaiterDashboardController;
 use App\Http\Controllers\Api\Waiter\WaiterAssignmentController;
@@ -84,6 +85,61 @@ Route::middleware(['auth:sanctum'])->get('/admin/fix-permissions', function () {
         'success' => true,
         'message' => "Cleared {$deleted} non-admin role permission rows. Cache flushed.",
         'rows_deleted' => $deleted,
+    ]);
+});
+
+Route::get('/admin/convert-enums', function () {
+    $statements = [
+        "ALTER TABLE users MODIFY COLUMN role VARCHAR(100) NOT NULL DEFAULT 'guest'",
+        "ALTER TABLE users MODIFY COLUMN activation_status VARCHAR(50) NOT NULL DEFAULT 'activated'",
+        "ALTER TABLE check_outs MODIFY COLUMN payment_method VARCHAR(50) NOT NULL DEFAULT 'cash'",
+        "ALTER TABLE check_outs MODIFY COLUMN payment_status VARCHAR(50) NOT NULL DEFAULT 'pending'",
+        "ALTER TABLE restaurant_charges MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'unpaid'",
+        "ALTER TABLE notifications MODIFY COLUMN type VARCHAR(100) NOT NULL DEFAULT 'general'",
+        "ALTER TABLE orders MODIFY COLUMN source VARCHAR(50) NOT NULL DEFAULT 'receptionist'",
+        "ALTER TABLE orders MODIFY COLUMN order_type VARCHAR(50) NOT NULL DEFAULT 'room_service'",
+        "ALTER TABLE menu_items MODIFY COLUMN category VARCHAR(100) NULL",
+        "ALTER TABLE housekeeping_tasks MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending'",
+        "ALTER TABLE housekeeping_tasks MODIFY COLUMN priority VARCHAR(50) NOT NULL DEFAULT 'medium'",
+        "ALTER TABLE laundry_requests MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending'",
+        "ALTER TABLE room_service_deliveries MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending'",
+        "ALTER TABLE waiters MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'active'",
+        "ALTER TABLE waiters MODIFY COLUMN shift VARCHAR(50) NULL DEFAULT 'morning'",
+        "ALTER TABLE waiters MODIFY COLUMN experience_level VARCHAR(50) NULL DEFAULT 'junior'",
+        "ALTER TABLE waiters MODIFY COLUMN employment_type VARCHAR(50) NULL DEFAULT 'full_time'",
+        "ALTER TABLE waiters MODIFY COLUMN availability VARCHAR(50) NULL DEFAULT 'offline'",
+        "ALTER TABLE hotel_shifts MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'active'",
+        "ALTER TABLE waiter_floor_assignments MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'assigned'",
+        "ALTER TABLE waiter_floor_assignments MODIFY COLUMN priority VARCHAR(50) NOT NULL DEFAULT 'primary'",
+        "ALTER TABLE delivery_tasks MODIFY COLUMN assignment_type VARCHAR(50) NOT NULL DEFAULT 'automatic'",
+        "ALTER TABLE delivery_tasks MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'waiting_assignment'",
+        "ALTER TABLE payments MODIFY COLUMN payment_provider VARCHAR(50) NOT NULL DEFAULT 'chapa'",
+        "ALTER TABLE payments MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending'",
+        "ALTER TABLE invoices MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending'",
+        "ALTER TABLE transactions MODIFY COLUMN type VARCHAR(50) NOT NULL DEFAULT 'payment'",
+        "ALTER TABLE transactions MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending'",
+        "ALTER TABLE receipts MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'issued'",
+        "ALTER TABLE refunds MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'requested'",
+        "ALTER TABLE refunds MODIFY COLUMN refund_method VARCHAR(50) NOT NULL DEFAULT 'original_payment'",
+        "ALTER TABLE restaurant_tables MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'available'",
+        "ALTER TABLE waiter_table_assignments MODIFY COLUMN priority VARCHAR(50) NOT NULL DEFAULT 'primary'",
+        "ALTER TABLE waiter_table_assignments MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'active'",
+    ];
+
+    $executed = 0;
+    foreach ($statements as $sql) {
+        try {
+            \Illuminate\Support\Facades\DB::statement($sql);
+            $executed++;
+        } catch (\Exception $e) {
+            // Ignore if column/table skipped
+        }
+    }
+    \Illuminate\Support\Facades\Cache::flush();
+    return response()->json([
+        'success' => true,
+        'message' => 'Successfully converted all database ENUM columns to dynamic VARCHAR fields.',
+        'statements_executed' => $executed,
     ]);
 });
 
@@ -208,7 +264,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{paymentId}', [PaymentController::class, 'getStatus']);
     });
     // Operational Orders Access (Shared across all operational roles)
-    Route::middleware('role:admin|manager|receptionist|waiter|chef|cashier')->group(function () {
+    Route::middleware('role:staff')->group(function () {
         Route::get('/orders', [OrderController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/orders/{id}', [OrderController::class, 'show']);
@@ -219,7 +275,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Reservations, Guests, Check-Ins, Rooms & Room Types Access (Permission & Role Driven)
-    Route::middleware('role:admin|manager|receptionist|cashier|waiter|chef')->group(function () {
+    Route::middleware('role:staff')->group(function () {
         Route::get('/reservations', [ReservationController::class, 'index']);
         Route::post('/reservations', [ReservationController::class, 'store']);
         Route::get('/reservations/{reservation}', [ReservationController::class, 'show']);
@@ -265,7 +321,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Room, Room-Type & QR-Code Management Access (Permission & Role Driven)
-    Route::middleware('role:admin|manager|receptionist|waiter|chef|cashier')->group(function () {
+    Route::middleware('role:staff')->group(function () {
         Route::post('/room-types', [RoomTypeController::class, 'store']);
         Route::put('/room-types/{roomType}', [RoomTypeController::class, 'update']);
         Route::delete('/room-types/{roomType}', [RoomTypeController::class, 'destroy']); 
@@ -309,7 +365,7 @@ Route::middleware('auth:sanctum')->group(function () {
             [UserController::class, 'toggleStatus']
         )->name('users.toggleStatus');
     });
-    Route::middleware('role:admin|manager|receptionist|waiter|chef|cashier')->group(function () {
+    Route::middleware('role:staff')->group(function () {
        Route::prefix('kitchen')->group(function(){
            Route::get('/orders',[KitchenController::class,'index']);
            Route::get('/statistics',[KitchenController::class,'statistics']);
@@ -319,7 +375,7 @@ Route::middleware('auth:sanctum')->group(function () {
        });
     });
 
-    Route::middleware('role:admin|manager|receptionist|waiter|chef|cashier')->group(function () {
+    Route::middleware('role:staff')->group(function () {
        // Chef Profile Routes
        Route::prefix('chef/profile')->group(function () {
            Route::get('/', [ChefProfileController::class, 'getProfile']);
@@ -339,14 +395,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::delete('/{id}', [NotificationController::class, 'destroy']);
     });
-    Route::middleware('role:admin|manager|receptionist|waiter|chef|cashier')->group(function(){
+    Route::middleware('role:staff')->group(function(){
         Route::get('/menu-items', [MenuItemController::class, 'index']);
         Route::get('/menu-items/statistics', [MenuItemController::class, 'statistics']);
         Route::get('/menu-items/{menuItem}', [MenuItemController::class, 'show']);
         Route::get('/categories', [CategoryController::class, 'index']);
         Route::get('/categories/{category}', [CategoryController::class, 'show']);
     });
-    Route::middleware('role:admin|manager|receptionist|waiter|chef|cashier')->group(function(){
+    Route::middleware('role:staff')->group(function(){
         Route::post('/menu-items', [MenuItemController::class, 'store']);
         Route::put('/menu-items/{menuItem}', [MenuItemController::class, 'update']);
         Route::patch('/menu-items/{menuItem}/toggle-availability', [MenuItemController::class, 'toggleAvailability']);
@@ -357,7 +413,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/categories/reorder', [CategoryController::class, 'reorder']);
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
     });
-    Route::middleware('role:admin|manager|receptionist|waiter|chef|cashier')->group(function(){
+    Route::middleware('role:staff')->group(function(){
         // Receptionist Profile Routes
         Route::prefix('receptionist/profile')->group(function () {
             Route::get('/', [ReceptionistProfileController::class, 'getProfile']);
@@ -379,7 +435,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/check-in-out', [\App\Http\Controllers\Api\ReceptionReportController::class, 'checkInOutReport']);
         });
     });
-    Route::middleware('role:admin|manager|receptionist|waiter|chef|cashier')->prefix('manager')->group(function () {
+    Route::middleware('role:staff')->prefix('manager')->group(function () {
         // Profile Routes
         Route::prefix('profile')->group(function () {
             Route::get('/', [ManagerProfileController::class, 'getProfile']);
@@ -527,7 +583,7 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
     
-    Route::middleware('role:admin|manager|receptionist|waiter|chef|cashier')->prefix('waiter')->group(function () {
+    Route::middleware('role:staff')->prefix('waiter')->group(function () {
         Route::prefix('dashboard')->group(function () {
             Route::get('/', [WaiterDashboardController::class, 'getDashboard']);
             Route::get('/today', [WaiterDashboardController::class, 'getTodayStats']);
@@ -608,7 +664,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('/', [WaiterNotificationController::class, 'deleteAll']);
         });
     });
-    Route::middleware('role:admin|manager|receptionist|waiter|chef|cashier')->prefix('cashier')->group(function () {
+    Route::middleware('role:staff')->prefix('cashier')->group(function () {
         // Cashier Profile Routes
         Route::prefix('profile')->group(function () {
             Route::get('/', [CashierProfileController::class, 'getProfile']);

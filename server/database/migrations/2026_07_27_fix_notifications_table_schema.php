@@ -28,12 +28,7 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('user_id');
-            $table->enum('type', [
-                'reservation',
-                'order',
-                'delivery',
-                'general'
-            ])->default('general');
+            $table->string('type', 100)->default('general');
             $table->string('title');
             $table->text('message');
             $table->uuid('reservation_id')->nullable();

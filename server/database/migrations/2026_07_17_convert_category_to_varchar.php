@@ -24,8 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('menu_items', function (Blueprint $table) {
-            // Revert back to ENUM if rolling back
-            $table->enum('category', ['breakfast', 'lunch', 'dinner', 'appetizers', 'pizza', 'pasta', 'dessert', 'drinks'])->nullable()->change();
+            $table->string('category', 100)->nullable()->change();
         });
     }
 };

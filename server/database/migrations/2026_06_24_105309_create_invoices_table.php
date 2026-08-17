@@ -26,12 +26,7 @@ return new class extends Migration
                 ->default(0);
             $table->decimal('balance_due', 10, 2)
                 ->storedAs('total_amount - amount_paid');
-            $table->enum('status', [
-                'unpaid',
-                'partially_paid',
-                'paid',
-                'refunded'
-            ])->default('unpaid');
+            $table->string('status', 50)->default('unpaid');
             $table->timestamps();
             $table->foreign('reservation_id')
                 ->references('id')

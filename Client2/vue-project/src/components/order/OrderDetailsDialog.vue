@@ -197,9 +197,7 @@ function closeDialog() {
                 <p class="text-xs sm:text-sm text-gray-500">Name</p>
 
                 <p class="mt-0.5 sm:mt-1 font-medium text-xs sm:text-sm md:text-base">
-                  {{ order.guest?.first_name }}
-
-                  {{ order.guest?.last_name }}
+                  {{ (order.guest?.first_name || order.guest?.last_name) ? `${order.guest?.first_name || ''} ${order.guest?.last_name || ''}`.trim() : (order.guest?.full_name || order.guest?.name || '-') }}
                 </p>
               </div>
 

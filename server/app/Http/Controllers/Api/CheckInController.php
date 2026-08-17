@@ -27,31 +27,43 @@ class CheckInController extends Controller
             'reservation',
         ]);
 
-        \Log::info(' [CHECK-IN] Total check-ins before filters', [
-            'count' => $query->count(),
-        ]);
-        if ($request->filled('guest')) {
-            $query->whereHas('guest', function ($q) use ($request) {
-                $q->where('full_name', 'like', "%{$request->guest}%");
+        // General search filter
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('guest', function ($g) use ($search) {
+                    $g->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%");
+                })
+                ->orWhereHas('room', function ($r) use ($search) {
+                    $r->where('room_number', 'like', "%{$search}%");
+                })
+                ->orWhereHas('reservation', function ($res) use ($search) {
+                    $res->where('booking_reference', 'like', "%{$search}%");
+                });
             });
-            \Log::info(' [CHECK-IN] Applied guest filter', ['guest' => $request->guest]);
-        }
-        if ($request->filled('room')) {
-            $query->whereHas('room', function ($q) use ($request) {
-                $q->where('room_number', 'like', "%{$request->room}%");
-            });
-            \Log::info('[CHECK-IN] Applied room filter', ['room' => $request->room]);
         }
 
-        if ($request->filled('reservation')) {
-            $query->whereHas('reservation', function ($q) use ($request) {
-                $q->where(
-                    'reservation_number',
-                    'like',
-                    "%{$request->reservation}%"
-                );
-            });
-            \Log::info('[CHECK-IN] Applied reservation filter', ['reservation' => $request->reservation]);
+        // Filter by guest
+        if ($request->filled('guest_id')) {
+            $query->where('guest_id', $request->guest_id);
+        }
+
+        // Filter by room
+        if ($request->filled('room_id')) {
+            $query->where('room_id', $request->room_id);
+        }
+
+        // Status filter (active vs checked_out)
+        if ($request->filled('status')) {
+            $status = strtolower($request->status);
+            if ($status === 'active' || $status === 'checked_in') {
+                $query->whereNull('checked_out_at');
+            } elseif ($status === 'checked_out') {
+                $query->whereNotNull('checked_out_at');
+            }
         }
 
         $checkIns = $query

@@ -20,16 +20,8 @@ return new class extends Migration
             $table->uuid('floor_id');
             $table->unsignedBigInteger('waiter_id')->nullable(); // References waiters table (auto-increment int)
             $table->uuid('assigned_by')->nullable(); // Manager ID
-            $table->enum('assignment_type', ['automatic', 'manual'])->default('automatic');
-            $table->enum('status', [
-                'waiting_assignment',
-                'assigned',
-                'accepted',
-                'picked_up',
-                'on_delivery',
-                'delivered',
-                'cancelled'
-            ])->default('waiting_assignment');
+            $table->string('assignment_type', 50)->default('automatic');
+            $table->string('status', 50)->default('waiting_assignment');
             $table->timestamp('assigned_at')->nullable();
             $table->timestamp('accepted_at')->nullable();
             $table->timestamp('picked_up_at')->nullable();

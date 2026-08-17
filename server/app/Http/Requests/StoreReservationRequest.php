@@ -23,9 +23,33 @@ class StoreReservationRequest extends FormRequest
         return [
 
             'guest_id' => [
-                'required',
+                'nullable',
                 'uuid',
                 'exists:guests,id',
+            ],
+
+            'first_name' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'last_name' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+            ],
+
+            'phone' => [
+                'nullable',
+                'string',
+                'max:20',
             ],
 
             'room_id' => [

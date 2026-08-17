@@ -51,9 +51,9 @@ const closeMobileSidebar = () => {
       <Navbar />
 
       <!-- ===== MAIN CONTENT ===== -->
-      <main class="flex-1 overflow-y-scroll bg-white dark:bg-slate-950 transition-colors duration-300">
+      <main class="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-slate-950 transition-colors duration-300">
         <!-- Content Container -->
-        <div class="max-w-7xl mx-auto px-4 md:px-6">
+        <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
           <!-- Page Header (Optional) -->
           <div>
             <slot name="header"></slot>
@@ -65,9 +65,9 @@ const closeMobileSidebar = () => {
       </main>
 
       <!-- ===== FOOTER ===== -->
-      <footer class="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 backdrop-blur-sm px-4 md:px-6 py-3 transition-colors flex-shrink-0">
+      <footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 backdrop-blur-sm px-4 sm:px-6 lg:px-8 py-3 transition-colors flex-shrink-0">
         <div
-          class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400"
+          class="w-full flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400"
         >
           <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
             <span class="whitespace-nowrap">&copy; 2024 Hotel Management System</span>

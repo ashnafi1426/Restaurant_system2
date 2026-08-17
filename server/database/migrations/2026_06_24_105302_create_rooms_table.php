@@ -14,13 +14,7 @@ return new class extends Migration
             $table->uuid('room_type_id');
             $table->integer('floor')->nullable();
             $table->text('description')->nullable();
-            $table->enum('status', [
-                'available',
-                'reserved',
-                'occupied',
-                'cleaning',
-                'maintenance'
-            ])->default('available');
+            $table->string('status', 50)->default('available');
             $table->boolean('is_active')
                 ->default(true);
             $table->timestamps();

@@ -1,21 +1,23 @@
 <template>
-  <div v-if="isOpen" class="modal-overlay" @click.self="close">
-    <div class="modal-container">
-      <!-- Modal Header -->
-      <div class="modal-header">
-        <div class="header-content">
-          <div class="header-icon">
-            <UserPlus :size="20" />
-          </div>
-          <div class="header-text">
-            <h2>{{ props.isEditMode ? 'Edit Waiter' : 'Register New Waiter' }}</h2>
-            <p class="header-subtitle">{{ props.isEditMode ? 'Update waiter information' : 'Create waiter account' }}</p>
-          </div>
-        </div>
-        <button class="btn-close" @click="close" type="button" title="Close">
-          <X :size="18" />
-        </button>
-      </div>
+  <Teleport to="body">
+    <Transition name="modal">
+      <div v-if="isOpen" class="modal-overlay" @click.self="close">
+        <div class="modal-container">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <div class="header-content">
+                <div class="header-icon">
+                  <UserPlus :size="20" />
+                </div>
+                <div class="header-text">
+                  <h2>{{ props.isEditMode ? 'Edit Waiter' : 'Register New Waiter' }}</h2>
+                  <p class="header-subtitle">{{ props.isEditMode ? 'Update waiter information' : 'Create waiter account' }}</p>
+                </div>
+              </div>
+              <button class="btn-close" @click="close" type="button" title="Close">
+                <X :size="18" />
+              </button>
+            </div>
 
       <!-- Modal Body with Two Columns -->
       <div class="modal-body">
@@ -259,8 +261,10 @@
           {{ submitting ? (props.isEditMode ? 'Updating...' : 'Registering...') : (props.isEditMode ? 'Update' : 'Register') }}
         </button>
       </div>
-    </div>
-  </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -489,6 +493,7 @@ const close = () => {
   box-sizing: border-box;
 }
 
+/* Modal Overlay - Full Screen with Centering */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -496,20 +501,22 @@ const close = () => {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 12px;
-  backdrop-filter: blur(4px);
+  z-index: 9999;
+  padding: 20px;
 }
 
+/* Modal Container - Centered Content */
 .modal-container {
+  position: relative;
   background: white;
   border-radius: 12px;
   max-width: 900px;
   width: 100%;
-  max-height: 80vh;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
@@ -517,8 +524,14 @@ const close = () => {
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { 
+    opacity: 0; 
+    transform: translateY(20px) scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
 }
 
 /* Header */
@@ -879,6 +892,10 @@ label {
 
 /* Mobile */
 @media (max-width: 768px) {
+  .modal-overlay {
+    padding: 12px;
+  }
+
   .modal-container {
     max-height: 90vh;
   }
@@ -992,5 +1009,27 @@ label {
   border-radius: 6px;
   font-size: 12px;
   color: #666;
+}
+
+/* Vue Transition Animations */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .modal-container,
+.modal-leave-active .modal-container {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.modal-enter-from .modal-container,
+.modal-leave-to .modal-container {
+  transform: scale(0.95) translateY(20px);
+  opacity: 0;
 }
 </style>

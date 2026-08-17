@@ -20,16 +20,12 @@ return new class extends Migration
             
             // Add shift field for scheduling
             if (!Schema::hasColumn('waiters', 'shift')) {
-                $table->enum('shift', ['morning', 'afternoon', 'evening', 'night'])
-                    ->nullable()
-                    ->after('section');
+                $table->string('shift', 50)->nullable()->after('section');
             }
             
             // Add experience level for qualification
             if (!Schema::hasColumn('waiters', 'experience_level')) {
-                $table->enum('experience_level', ['junior', 'senior', 'head'])
-                    ->default('junior')
-                    ->after('shift');
+                $table->string('experience_level', 50)->default('junior')->after('shift');
             }
             
             // Add employee number for identification

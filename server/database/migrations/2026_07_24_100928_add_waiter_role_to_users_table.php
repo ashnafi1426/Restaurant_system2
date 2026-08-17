@@ -12,16 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // First, modify the role enum to include 'waiter'
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'receptionist', 'cashier', 'manager', 'chef', 'waiter')");
+        DB::statement("ALTER TABLE users MODIFY COLUMN role VARCHAR(100)");
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        // Revert back to original enum without 'waiter'
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'receptionist', 'cashier', 'manager', 'chef')");
+        DB::statement("ALTER TABLE users MODIFY COLUMN role VARCHAR(100)");
     }
 };

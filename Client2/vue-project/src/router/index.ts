@@ -70,21 +70,9 @@ const router = createRouter({
         const token = localStorage.getItem('token')
         const user = JSON.parse(localStorage.getItem('user') || 'null')
 
-        // If user is authenticated, redirect to their dashboard
-        if (token && user) {
-          if (user.role === 'admin') {
-            return next('/admin')
-          } else if (user.role === 'receptionist') {
-            return next('/receptionist')
-          } else if (user.role === 'cashier') {
-            return next('/cashier')
-          } else if (user.role === 'chef') {
-            return next('/chef')
-          } else if (user.role === 'manager') {
-            return next('/manager')
-          } else if (user.role === 'waiter') {
-            return next('/waiter')
-          }
+        // If user is authenticated, redirect dynamically to their role path
+        if (token && user?.role) {
+          return next(`/${user.role}`)
         }
 
         // If not authenticated, show guest home page

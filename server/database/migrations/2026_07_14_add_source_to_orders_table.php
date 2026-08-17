@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            // Add source column to track order origin (guest_qr, receptionist, etc.)
-            $table->enum('source', ['receptionist', 'guest_qr', 'system'])->default('receptionist')->after('status');
+            $table->string('source', 50)->default('receptionist')->after('status');
             $table->text('special_requests')->nullable()->after('notes');
             $table->foreignUuid('reservation_id')->nullable()->change();
         });

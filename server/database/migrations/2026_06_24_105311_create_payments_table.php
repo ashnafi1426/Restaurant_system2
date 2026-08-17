@@ -18,8 +18,8 @@ return new class extends Migration
     $table->uuid('invoice_id');
     $table->uuid('guest_id');
     $table->decimal('amount',10,2);
-    $table->enum('payment_method',['cash','card','bank_transfer','online' ]);
-    $table->enum('status',['pending','completed','failed','refunded' ])->default('pending');
+    $table->string('payment_method', 50)->default('cash');
+    $table->string('status', 50)->default('pending');
     $table->dateTime('payment_date')
           ->useCurrent();
     $table->uuid('processed_by')

@@ -37,7 +37,6 @@ class GuestRequest extends FormRequest
                 'nullable',
                 'email',
                 'max:255',
-                Rule::unique('guests', 'email')->ignore($guestId)
             ],
 
             'phone' => [
@@ -62,7 +61,6 @@ class GuestRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:100',
-                Rule::unique('guests', 'passport_number')->ignore($guestId)
             ],
 
             'date_of_birth' => [

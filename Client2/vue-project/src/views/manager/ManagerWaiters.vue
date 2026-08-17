@@ -71,9 +71,11 @@ const handleOutsideClick = () => {
 }
 
 const openAddModal = () => {
+  console.log('🟢 Opening waiter registration modal...')
   isEditMode.value = false
   selectedWaiter.value = null
   showModal.value = true
+  console.log('🟢 Modal state:', showModal.value)
 }
 
 const openEditModal = (waiter: any) => {
@@ -180,6 +182,7 @@ onUnmounted(() => {
             </div>
             <button
               @click="openAddModal"
+              type="button"
               class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-indigo-600/20 flex items-center gap-2 self-start sm:self-auto whitespace-nowrap"
             >
               <UserPlus class="w-4 h-4" />
@@ -459,9 +462,9 @@ onUnmounted(() => {
 
       <!-- Edit/Add Modal -->
       <WaiterFormModal
-        v-if="showModal"
-        :is-edit="isEditMode"
-        :waiter="selectedWaiter"
+        :is-open="showModal"
+        :is-edit-mode="isEditMode"
+        :waiter-data="selectedWaiter"
         @close="closeModal"
         @submit="handleSubmitWaiter"
       />

@@ -18,8 +18,8 @@ return new class extends Migration
             $table->uuid('floor_id');
             $table->uuid('shift_id');
             $table->date('assignment_date');
-            $table->enum('status', ['assigned', 'active', 'completed', 'cancelled'])->default('assigned');
-            $table->enum('priority', ['primary', 'secondary', 'backup'])->default('primary');
+            $table->string('status', 50)->default('assigned');
+            $table->string('priority', 50)->default('primary');
             $table->uuid('assigned_by')->nullable(); // Manager ID
             $table->timestamps();
             

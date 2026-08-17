@@ -3,10 +3,18 @@ import type { Reservation, ReservationFormData, ReservationFilter } from '../typ
 
 export default {
   async getReservations(filters?: ReservationFilter) {
+    const cleanParams: Record<string, any> = {}
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== '' && value !== null && value !== undefined) {
+          cleanParams[key] = value
+        }
+      })
+    }
     const response = await api.get('/reservations', {
       params: {
-        ...filters,
-        include: 'guest,room', // Include guest and room relationships
+        ...cleanParams,
+        include: 'guest,room',
       },
     })
     return response.data

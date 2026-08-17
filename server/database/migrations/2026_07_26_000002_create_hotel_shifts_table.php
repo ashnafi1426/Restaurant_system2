@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name')->unique(); // Morning, Afternoon, Night
             $table->time('start_time');
             $table->time('end_time');
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->string('status', 50)->default('active');
             $table->text('description')->nullable();
             $table->timestamps();
             

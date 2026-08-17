@@ -61,17 +61,9 @@ return new class extends Migration
             |--------------------------------------------------------------------------
             */
 
-            $table->enum('payment_method', [
-                'cash',
-                'card',
-                'bank_transfer',
-                'mobile_money'
-            ]);
+            $table->string('payment_method', 50)->default('cash');
 
-            $table->enum('payment_status', [
-                'pending',
-                'paid'
-            ])->default('pending');
+            $table->string('payment_status', 50)->default('pending');
 
             /*
             |--------------------------------------------------------------------------

@@ -14,11 +14,7 @@ return new class extends Migration
 
             $table->uuid('user_id');
 
-            $table->enum('type', [
-                'email',
-                'sms',
-                'push'
-            ]);
+            $table->string('type', 100)->default('general');
 
             $table->string('subject')
                 ->nullable();
@@ -28,11 +24,7 @@ return new class extends Migration
             $table->dateTime('sent_at')
                 ->useCurrent();
 
-            $table->enum('status', [
-                'pending',
-                'sent',
-                'failed'
-            ])->default('pending');
+            $table->string('status', 50)->default('pending');
 
             $table->text('error_message')
                 ->nullable();

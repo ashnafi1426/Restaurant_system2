@@ -9,14 +9,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // For MySQL, we need to modify the enum column
-        // The safest way is to use raw SQL to change the enum values
-        DB::statement("ALTER TABLE menu_items MODIFY category ENUM('breakfast', 'lunch', 'dinner', 'drinks', 'dessert', 'appetizers')");
+        DB::statement("ALTER TABLE menu_items MODIFY category VARCHAR(100)");
     }
 
     public function down(): void
     {
-        // Rollback to original enum values
-        DB::statement("ALTER TABLE menu_items MODIFY category ENUM('breakfast', 'lunch', 'dinner', 'drinks', 'dessert')");
+        DB::statement("ALTER TABLE menu_items MODIFY category VARCHAR(100)");
     }
 };

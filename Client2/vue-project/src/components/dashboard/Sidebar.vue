@@ -130,23 +130,15 @@ interface MenuItem {
   roleSlug?: string
 }
 
-const allMenuItems: MenuItem[] = [
-  // Dashboards (Role Scoped Overview)
-  { name: 'Dashboard', path: '/admin', icon: 'Dashboard', isDashboard: true, roleSlug: 'admin', section: 'General'},
-  { name: 'Dashboard', path: '/manager', icon: 'Dashboard', isDashboard: true, roleSlug: 'manager', section: 'General'},
-  { name: 'Dashboard', path: '/receptionist', icon: 'Dashboard', isDashboard: true, roleSlug: 'receptionist', section: 'General'},
-  { name: 'Dashboard', path: '/cashier/dashboard', icon: 'Dashboard', isDashboard: true, roleSlug: 'cashier', section: 'General'},
-  { name: 'Dashboard', path: '/chef', icon: 'Dashboard', isDashboard: true, roleSlug: 'chef', section: 'General'},
-  { name: 'Dashboard', path: '/waiter', icon: 'Dashboard', isDashboard: true, roleSlug: 'waiter', section: 'General'},
-
+const operationalMenuItems: MenuItem[] = [
   // Dynamic System Administration (Permission-Driven)
   { name: 'Users & Staff', path: '/users', icon: 'Users', permission: 'users.view', section: 'Administration' },
   { name: 'Role Management', path: '/admin/roles', icon: 'Security', permission: 'roles.view', section: 'Administration' },
   { name: 'Permission Catalog', path: '/admin/permissions', icon: 'Key', permission: 'permissions.view', section: 'Administration' },
   { name: 'Permission Matrix', path: '/admin/permission-matrix', icon: 'Grid', permission: 'roles.assign_permissions', section: 'Administration' },
   { name: 'User Role Assignments', path: '/admin/user-roles', icon: 'Staff', permission: 'users.update', section: 'Administration' },
-  { name: 'Temporary Delegations', path: '/admin/temporary-roles', icon: 'Manager', permission: 'roles.assign_permissions', section: 'Administration' },
-  { name: 'Security Audit Logs', path: '/admin/audit-logs', icon: 'Reports', permission: 'audit_logs.view', section: 'Administration' },
+  // { name: 'Temporary Delegations', path: '/admin/temporary-roles', icon: 'Manager', permission: 'roles.assign_permissions', section: 'Administration' },
+  // { name: 'Security Audit Logs', path: '/admin/audit-logs', icon: 'Reports', permission: 'audit_logs.view', section: 'Administration' },
 
   // Property & Front Desk (Permission-Driven)
   { name: 'Rooms Management', path: '/Admin/rooms', icon: 'Rooms', permission: 'rooms.view', section: 'Property Management' },
@@ -180,14 +172,6 @@ const allMenuItems: MenuItem[] = [
   { name: 'Payments & Billing', path: '/cashier/payments', icon: 'Payments', permission: 'payments.view', section: 'Billing' },
   { name: 'Financial Reports', path: '/cashier/reports', icon: 'Reports', permission: 'reports.sales', section: 'Billing' },
   { name: 'Reports & Analytics', path: '/reports', icon: 'Reports', permission: 'reports.view', section: 'Reports & Analytics' },
-
-  // Profile Settings (Role Scoped)
-  { name: 'Profile Settings', path: '/admin/profile', icon: 'Settings', isProfile: true, roleSlug: 'admin', section: 'Account' },
-  { name: 'Profile Settings', path: '/manager/profile', icon: 'Settings', isProfile: true, roleSlug: 'manager', section: 'Account' },
-  { name: 'Profile Settings', path: '/receptionist/profile', icon: 'Settings', isProfile: true, roleSlug: 'receptionist', section: 'Account' },
-  { name: 'Profile Settings', path: '/cashier/profile', icon: 'Settings', isProfile: true, roleSlug: 'cashier', section: 'Account' },
-  { name: 'Profile Settings', path: '/chef/profile', icon: 'Settings', isProfile: true, roleSlug: 'chef', section: 'Account' },
-  { name: 'Profile Settings', path: '/waiter/profile', icon: 'Settings', isProfile: true, roleSlug: 'waiter', section: 'Account' },
 ]
 
 const rolePermissionsMap = ref<Record<string, string[]>>({})
@@ -214,71 +198,68 @@ const userRoleSlug = computed(() => {
 })
 
 const activeRouteRole = computed(() => {
-  const p = route.path.toLowerCase()
-  if (p.startsWith('/cashier')) return 'cashier'
-  if (p.startsWith('/receptionist')) return 'receptionist'
-  if (p.startsWith('/waiter')) return 'waiter'
-  if (p.startsWith('/chef')) return 'chef'
-  if (p.startsWith('/manager')) return 'manager'
-  if (p.startsWith('/admin')) return 'admin'
-  return userRoleSlug.value
+  const parts = route.path.toLowerCase().split('/').filter(Boolean)
+  return parts[0] || userRoleSlug.value
 })
 
+const userDashboardPath = computed(() => {
+  if (auth.isAdmin) return '/admin'
+  const role = userRoleSlug.value
+  if (!role || role === 'guest') return '/orders'
+  if (role === 'cashier') return '/cashier/dashboard'
+  return `/${role}`
+})
+
+const userProfilePath = computed(() => {
+  const role = userRoleSlug.value
+  return `/${role}/profile`
+})
+
+const checkRoleHasPerm = (perms: string[] | undefined, perm: string): boolean => {
+  if (!perms || !Array.isArray(perms)) return false
+  return perms.includes(perm)
+}
+
 const menus = computed(() => {
-  const currentRole = auth.isAdmin ? activeRouteRole.value : userRoleSlug.value
+  const items: MenuItem[] = [
+    { name: 'Dashboard', path: userDashboardPath.value, icon: 'Dashboard', section: 'General' }
+  ]
 
-  return allMenuItems.filter(item => {
-    // 1. Dashboard filter: match active role context
-    if (item.isDashboard) {
-      return item.roleSlug === currentRole || (auth.isAdmin && item.roleSlug === 'admin')
-    }
-
-    // 2. Profile filter: match active role context
-    if (item.isProfile) {
-      return item.roleSlug === currentRole || (auth.isAdmin && item.roleSlug === 'admin')
-    }
-
-    // 3. Dynamic Permission Check: Filter ALL operational modules strictly by current context role permissions!
+  const filteredOps = operationalMenuItems.filter(item => {
     if (item.permission) {
       const targetPerm = String(item.permission).toLowerCase().trim()
+      if (auth.isAdmin && activeRouteRole.value === 'admin') return auth.can(targetPerm)
 
-      // If user is Admin and viewing Admin dashboard/routes, allow admin tools
-      if (auth.isAdmin && currentRole === 'admin') {
-        return auth.can(targetPerm)
-      }
-
-      // Helper for role permission matching with synonym fallback
-      const checkRoleHasPerm = (perms: string[] | undefined, perm: string): boolean => {
-        if (!perms || !Array.isArray(perms)) return false
-        if (perms.includes(perm)) return true
-        if (perm === 'kitchen.view' || perm === 'kitchen.accept') {
-          return perms.includes('kitchen.view') || perms.includes('kitchen.accept') || perms.includes('orders.view')
-        }
-        if (perm === 'checkin.view') {
-          return perms.includes('checkin.view') || perms.includes('reservations.checkin')
-        }
-        if (perm === 'checkout.view') {
-          return perms.includes('checkout.view') || perms.includes('reservations.checkout')
-        }
-        return false
-      }
-
-      // Check if current context role permissions map contains targetPerm
-      const rolePerms = rolePermissionsMap.value[currentRole]
+      const rolePerms = rolePermissionsMap.value[userRoleSlug.value]
       if (rolePerms && Array.isArray(rolePerms)) {
         return checkRoleHasPerm(rolePerms, targetPerm)
       }
-
-      // Fallback check against auth.can()
       return auth.can(targetPerm)
     }
-
     return true
   })
+
+  items.push(...filteredOps)
+  items.push({ name: 'Profile Settings', path: userProfilePath.value, icon: 'Settings', section: 'Account' })
+
+  return items
+})
+
+// Check if current user is admin
+const isAdminUser = computed(() => {
+  return auth.isAdmin || userRoleSlug.value === 'admin'
 })
 
 // Group menus by section
 const groupedMenus = computed(() => {
+  // For non-admin users, return all items in a single "General" section (flat list)
+  if (!isAdminUser.value) {
+    return {
+      'General': menus.value
+    }
+  }
+
+  // For admin users, group by sections as usual
   const groups: Record<string, MenuItem[]> = {}
   menus.value.forEach(menu => {
     const section = menu.section || 'General'
@@ -293,8 +274,8 @@ const groupedMenus = computed(() => {
 const searchQuery = ref('')
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const openSections = ref<Record<string, boolean>>({
-  'General': true,
-  'Administration': true,
+  'General': false,
+  'Administration': false,
 })
 
 const toggleSection = (section: string) => {
@@ -453,74 +434,209 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Grouped Module Sections (Clean Accordion Headers without Number Badges) -->
-      <div v-for="(items, section) in filteredGroupedMenus" :key="section" class="space-y-1">
-        <!-- Module Section Header Trigger -->
-        <button
-          v-if="sidebarStore.isExpanded && section !== 'General'"
-          @click="toggleSection(section)"
-          class="w-full flex items-center justify-between px-2.5 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/40 rounded-xl transition cursor-pointer"
-        >
-          <div class="flex items-center gap-2 min-w-0 truncate">
-            <component
-              :is="sectionIcons[section] || ShieldCheck"
-              class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0"
-            />
-            <span class="truncate">{{ section }}</span>
-          </div>
-
-          <ChevronDown
-            class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 flex-shrink-0"
-            :class="openSections[section] ? 'rotate-180' : ''"
-          />
-        </button>
-
-        <!-- Module Items (Clean Item Rows without Chevron Arrows) -->
-        <div
-          v-show="!sidebarStore.isExpanded || section === 'General' || openSections[section]"
-          class="space-y-1 transition-all duration-200"
-        >
+      <!-- Menu Sections -->
+      <div v-for="(items, section) in filteredGroupedMenus" :key="section" class="space-y-0.5">
+        
+        <!-- For NON-ADMIN users: Render everything as a flat list (all in General section) -->
+        <template v-if="!isAdminUser && section === 'General'">
           <router-link
             v-for="menu in items"
             :key="menu.path"
             :to="menu.path"
             @click="handleNavigate"
-            class="group relative flex items-center rounded-xl transition-all duration-200"
+            class="group relative flex items-center gap-3 rounded-lg transition-all duration-200"
             :class="[
               sidebarStore.isExpanded 
-                ? 'gap-3 px-3 py-2.5' 
-                : 'justify-center py-2.5',
+                ? 'px-4 py-3' 
+                : 'justify-center py-3',
               isActive(menu.path)
-                ? 'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 font-bold shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800/70 font-medium'
+                ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
             ]"
             :title="!sidebarStore.isExpanded ? menu.name : ''"
           >
-            <!-- Left Menu Icon -->
             <component
               :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
-              class="flex-shrink-0 w-4.5 h-4.5 transition-transform group-hover:scale-105"
-              :class="isActive(menu.path) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'"
+              class="flex-shrink-0 w-5 h-5"
+              :class="isActive(menu.path) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500'"
               :stroke-width="1.75"
             />
-
-            <!-- Menu Name Label -->
             <span
               v-if="sidebarStore.isExpanded"
-              class="flex-1 truncate text-xs font-semibold"
+              class="text-sm font-medium"
             >
               {{ menu.name }}
             </span>
-
+            
             <!-- Tooltip for collapsed state -->
             <div
               v-if="!sidebarStore.isExpanded && !sidebarStore.hoverExpand"
-              class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 border border-slate-800 text-white text-xs font-bold rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none"
+              class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none"
             >
               {{ menu.name }}
             </div>
           </router-link>
-        </div>
+        </template>
+
+        <!-- For ADMIN users: Dashboard in General section -->
+        <template v-else-if="isAdminUser && section === 'General'">
+          <router-link
+            :to="items[0].path"
+            @click="handleNavigate"
+            class="group relative flex items-center gap-3 rounded-lg transition-all duration-200"
+            :class="[
+              sidebarStore.isExpanded 
+                ? 'px-4 py-3' 
+                : 'justify-center py-3',
+              isActive(items[0].path)
+                ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
+            ]"
+            :title="!sidebarStore.isExpanded ? items[0].name : ''"
+          >
+            <component
+              :is="menuIcons[items[0].icon] || menuIcons['Dashboard']"
+              class="flex-shrink-0 w-5 h-5"
+              :class="isActive(items[0].path) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500'"
+              :stroke-width="1.75"
+            />
+            <span
+              v-if="sidebarStore.isExpanded"
+              class="text-sm font-medium"
+            >
+              {{ items[0].name }}
+            </span>
+            
+            <!-- Tooltip for collapsed state -->
+            <div
+              v-if="!sidebarStore.isExpanded && !sidebarStore.hoverExpand"
+              class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none"
+            >
+              {{ items[0].name }}
+            </div>
+          </router-link>
+        </template>
+
+        <!-- For ADMIN users: Collapsible Sections (other than General) -->
+        <template v-else-if="isAdminUser && section !== 'General'">
+          <!-- Section Label (uppercase text label) - Only when expanded -->
+          <div
+            v-if="sidebarStore.isExpanded"
+            class="px-4 pt-4 pb-1"
+          >
+            <p class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              {{ section }}
+            </p>
+          </div>
+
+          <!-- When COLLAPSED: Show all menu items as icons -->
+          <template v-if="!sidebarStore.isExpanded">
+            <router-link
+              v-for="menu in items"
+              :key="menu.path"
+              :to="menu.path"
+              @click="handleNavigate"
+              class="group relative flex items-center justify-center py-3 rounded-lg transition-all duration-200"
+              :class="
+                isActive(menu.path)
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
+              "
+              :title="menu.name"
+            >
+              <component
+                :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
+                class="flex-shrink-0 w-5 h-5"
+                :class="isActive(menu.path) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500'"
+                :stroke-width="1.75"
+              />
+              
+              <!-- Tooltip -->
+              <div
+                v-if="!sidebarStore.hoverExpand"
+                class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none"
+              >
+                {{ menu.name }}
+              </div>
+            </router-link>
+          </template>
+
+          <!-- When EXPANDED: Show collapsible section with nested items -->
+          <template v-else>
+            <!-- Section Header Button (Collapsible Trigger) -->
+            <button
+              v-if="items.length > 1"
+              @click="toggleSection(section)"
+              class="w-full flex items-center justify-between px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-200 group"
+            >
+              <div class="flex items-center gap-3">
+                <component
+                  :is="sectionIcons[section] || ShieldCheck"
+                  class="w-5 h-5 text-slate-500 dark:text-slate-500 flex-shrink-0"
+                  :stroke-width="1.75"
+                />
+                <span class="text-sm font-medium">{{ items[0]?.name || section }}</span>
+              </div>
+              
+              <ChevronDown
+                class="w-4 h-4 text-slate-400 dark:text-slate-500 transition-transform duration-300 flex-shrink-0"
+                :class="openSections[section] ? '' : '-rotate-90'"
+              />
+            </button>
+
+            <!-- Expandable Sub-items (Indented) -->
+            <div
+              v-show="openSections[section]"
+              class="space-y-0.5 pl-4 transition-all duration-200"
+            >
+              <router-link
+                v-for="menu in items.slice(items.length > 1 ? 0 : 0)"
+                :key="menu.path"
+                :to="menu.path"
+                @click="handleNavigate"
+                class="group relative flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
+                :class="
+                  isActive(menu.path)
+                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
+                "
+              >
+                <component
+                  :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
+                  class="flex-shrink-0 w-4.5 h-4.5"
+                  :class="isActive(menu.path) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500'"
+                  :stroke-width="1.75"
+                />
+                <span class="text-sm font-medium">
+                  {{ menu.name }}
+                </span>
+              </router-link>
+            </div>
+
+            <!-- Single Item Section (no collapsing) -->
+            <router-link
+              v-if="items.length === 1"
+              :to="items[0].path"
+              @click="handleNavigate"
+              class="group relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200"
+              :class="
+                isActive(items[0].path)
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
+              "
+            >
+              <component
+                :is="menuIcons[items[0].icon] || menuIcons['Dashboard']"
+                class="flex-shrink-0 w-5 h-5"
+                :class="isActive(items[0].path) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500'"
+                :stroke-width="1.75"
+              />
+              <span class="text-sm font-medium">
+                {{ items[0].name }}
+              </span>
+            </router-link>
+          </template>
+        </template>
       </div>
     </nav>
 
