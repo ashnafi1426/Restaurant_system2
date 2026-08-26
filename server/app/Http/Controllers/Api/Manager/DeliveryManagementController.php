@@ -19,23 +19,23 @@ class DeliveryManagementController extends Controller
                 'per_page_param' => $request->input('per_page'),
                 'page_param' => $request->input('page'),
             ]);
-            $query = DeliveryTask::with('waiter', 'floor', 'assignedBy');
-            if ($request->has('status')) {
+            $query = DeliveryTask::with('waiter', 'floor', 'assignedBy', 'room', 'order.room');
+            if ($request->filled('status')) {
                 $query->where('status', $request->input('status'));
             }
-            if ($request->has('waiter_id')) {
+            if ($request->filled('waiter_id')) {
                 $query->where('waiter_id', $request->input('waiter_id'));
             }
-            if ($request->has('floor_id')) {
+            if ($request->filled('floor_id')) {
                 $query->where('floor_id', $request->input('floor_id'));
             }
-            if ($request->has('start_date')) {
+            if ($request->filled('start_date')) {
                 $query->whereDate('assigned_at', '>=', $request->input('start_date'));
             }
-            if ($request->has('end_date')) {
+            if ($request->filled('end_date')) {
                 $query->whereDate('assigned_at', '<=', $request->input('end_date'));
             }
-            if ($request->has('assignment_type')) {
+            if ($request->filled('assignment_type')) {
                 $query->where('assignment_type', $request->input('assignment_type'));
             }
             $sortBy = $request->input('sort_by', 'assigned_at');

@@ -99,10 +99,39 @@ class QRResolutionService
                                     ->first();
 
             if ($table) {
+                // Get assigned waiter for this table at current time
+                $assignedWaiter = null;
+                $currentShift = \App\Models\HotelShift::getCurrentShift();
+                
+                if ($currentShift) {
+                    $assignment = \App\Models\WaiterTableAssignment::getAssignedWaiter(
+                        $table->id,
+                        $currentShift->id,
+                        today()
+                    );
+
+                    if ($assignment && $assignment->waiter) {
+                        $assignedWaiter = [
+                            'waiter_id' => $assignment->waiter_id,
+                            'waiter_name' => $assignment->waiter->user->name ?? 'Unknown',
+                            'waiter_email' => $assignment->waiter->user->email ?? null,
+                            'priority' => $assignment->priority,
+                            'shift' => [
+                                'id' => $currentShift->id,
+                                'name' => $currentShift->name,
+                                'start_time' => $currentShift->start_time,
+                                'end_time' => $currentShift->end_time,
+                            ],
+                        ];
+                    }
+                }
+
                 Log::info('QR Token resolved to Restaurant Table', [
                     'token' => $qrToken,
                     'table_id' => $table->id,
                     'table_number' => $table->table_number,
+                    'has_assigned_waiter' => $assignedWaiter !== null,
+                    'waiter_name' => $assignedWaiter['waiter_name'] ?? null,
                 ]);
 
                 return [
@@ -115,6 +144,7 @@ class QRResolutionService
                         'capacity' => $table->capacity,
                         'location' => $table->location,
                         'status' => $table->status,
+                        'assigned_waiter' => $assignedWaiter, // Include assigned waiter info
                     ],
                     'message' => 'QR code belongs to a restaurant table',
                 ];

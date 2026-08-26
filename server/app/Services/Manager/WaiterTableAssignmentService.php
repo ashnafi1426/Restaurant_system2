@@ -17,6 +17,38 @@ use Carbon\Carbon;
 class WaiterTableAssignmentService
 {
     /**
+     * Auto-seed table assignments if DB table is empty or missing assignments for today
+     */
+    public function autoSeedAssignmentsIfEmpty()
+    {
+        $tables = RestaurantTable::get();
+        $waiters = Waiter::with('user')->get();
+        $shift = HotelShift::first();
+
+        if ($tables->isEmpty() || $waiters->isEmpty()) {
+            return;
+        }
+
+        $today = Carbon::today()->format('Y-m-d');
+        $existingTableIds = WaiterTableAssignment::where('assignment_date', $today)->pluck('table_id')->toArray();
+
+        foreach ($tables as $index => $table) {
+            if (in_array($table->id, $existingTableIds)) {
+                continue;
+            }
+            $waiter = $waiters[$index % $waiters->count()];
+            WaiterTableAssignment::create([
+                'waiter_id' => $waiter->id,
+                'table_id' => $table->id,
+                'shift_id' => $shift ? $shift->id : null,
+                'assignment_date' => $today,
+                'priority' => ($index % 3 === 0) ? 'primary' : (($index % 3 === 1) ? 'secondary' : 'backup'),
+                'status' => 'active',
+            ]);
+        }
+    }
+
+    /**
      * Get all table assignments with filters
      * 
      * @param array $filters
@@ -24,6 +56,8 @@ class WaiterTableAssignmentService
      */
     public function getAssignments(array $filters = [])
     {
+        $this->autoSeedAssignmentsIfEmpty();
+
         $query = WaiterTableAssignment::query()
             ->with([
                 'waiter.user',
@@ -32,35 +66,36 @@ class WaiterTableAssignmentService
                 'assignedByUser'
             ]);
 
-        // Filter by date
-        if (isset($filters['date'])) {
-            $query->forDate($filters['date']);
-        } else {
-            $query->today();
+        // Filter by date if provided (and not empty/'all')
+        if (!empty($filters['date']) && $filters['date'] !== 'all') {
+            $filteredQuery = (clone $query)->forDate($filters['date']);
+            if ($filteredQuery->count() > 0) {
+                $query = $filteredQuery;
+            }
         }
 
         // Filter by waiter
-        if (isset($filters['waiter_id'])) {
+        if (!empty($filters['waiter_id'])) {
             $query->forWaiter($filters['waiter_id']);
         }
 
         // Filter by table
-        if (isset($filters['table_id'])) {
+        if (!empty($filters['table_id'])) {
             $query->forTable($filters['table_id']);
         }
 
         // Filter by shift
-        if (isset($filters['shift_id'])) {
+        if (!empty($filters['shift_id'])) {
             $query->forShift($filters['shift_id']);
         }
 
         // Filter by status
-        if (isset($filters['status'])) {
+        if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
         // Filter by priority
-        if (isset($filters['priority'])) {
+        if (!empty($filters['priority'])) {
             $query->where('priority', $filters['priority']);
         }
 
@@ -74,7 +109,7 @@ class WaiterTableAssignmentService
             END
         ")->orderBy('created_at', 'desc');
 
-        $perPage = $filters['per_page'] ?? 15;
+        $perPage = $filters['per_page'] ?? 100;
         
         return $query->paginate($perPage);
     }
@@ -209,14 +244,11 @@ class WaiterTableAssignmentService
     {
         $assignment = WaiterTableAssignment::findOrFail($assignmentId);
 
-        $updateData = [];
-
-        if (isset($data['priority'])) {
-            $updateData['priority'] = $data['priority'];
-        }
-
-        if (isset($data['status'])) {
-            $updateData['status'] = $data['status'];
+        $updateFields = ['waiter_id', 'table_id', 'shift_id', 'priority', 'status'];
+        foreach ($updateFields as $field) {
+            if (array_key_exists($field, $data) && $data[$field] !== null) {
+                $updateData[$field] = $data[$field];
+            }
         }
 
         $assignment->update($updateData);
@@ -257,20 +289,26 @@ class WaiterTableAssignmentService
      */
     public function getAssignmentStats(?string $date = null)
     {
-        $query = WaiterTableAssignment::query()->active();
+        $this->autoSeedAssignmentsIfEmpty();
 
-        if ($date) {
-            $query->forDate($date);
-        } else {
-            $query->today();
+        $query = WaiterTableAssignment::query();
+
+        if ($date && $date !== 'all') {
+            $filteredQuery = (clone $query)->where('assignment_date', $date);
+            if ($filteredQuery->count() > 0) {
+                $query = $filteredQuery;
+            }
         }
 
         $assignments = $query->get();
 
+        $totalTablesCount = RestaurantTable::count();
+        $totalWaitersCount = Waiter::count();
+
         return [
             'total_assignments' => $assignments->count(),
-            'total_tables' => $assignments->pluck('table_id')->unique()->count(),
-            'total_waiters' => $assignments->pluck('waiter_id')->unique()->count(),
+            'total_tables' => max($assignments->pluck('table_id')->unique()->count(), $totalTablesCount),
+            'total_waiters' => max($assignments->pluck('waiter_id')->unique()->count(), $totalWaitersCount),
             'primary_assignments' => $assignments->where('priority', WaiterTableAssignment::PRIORITY_PRIMARY)->count(),
             'secondary_assignments' => $assignments->where('priority', WaiterTableAssignment::PRIORITY_SECONDARY)->count(),
             'backup_assignments' => $assignments->where('priority', WaiterTableAssignment::PRIORITY_BACKUP)->count(),

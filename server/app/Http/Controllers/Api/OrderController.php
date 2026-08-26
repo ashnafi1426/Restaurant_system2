@@ -24,9 +24,10 @@ class OrderController extends Controller
      */
     public function index(Request $request): OrderCollection
     {
-        $orders = $this->orderService->index(
-            $request->integer('per_page', 15)
-        );
+        $filters = $request->only(['search', 'status', 'payment_type', 'date_from', 'date_to']);
+        $perPage = $request->integer('per_page', 15);
+
+        $orders = $this->orderService->index($filters, $perPage);
 
         return new OrderCollection($orders);
     }

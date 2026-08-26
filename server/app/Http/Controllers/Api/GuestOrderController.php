@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Room;
@@ -12,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-
 class GuestOrderController extends Controller
 {
     public function getRoom($qrToken)
@@ -40,7 +38,6 @@ class GuestOrderController extends Controller
                 ->orderBy('reservations.created_at', 'desc')
                 ->select('reservations.id', 'guests.id as guest_id', 'guests.first_name', 'guests.last_name', 'guests.email', 'guests.phone')
                 ->first();
-
             if (!$activeReservation) {
                 Log::warning('[QR ORDER] No active reservation found', [
                     'qr_token' => $qrToken,
@@ -162,22 +159,43 @@ class GuestOrderController extends Controller
     {
         try {
             Log::info('[GUEST ORDER] Fetching all menu items (public)');
+
+            $existingCategories = MenuItem::distinct()->pluck('category')->toArray();
+
+            $sampleItems = [
+                ['name' => 'Classic Eggs Benedict', 'description' => 'Poached eggs on toasted English muffin with hollandaise sauce.', 'category' => 'breakfast', 'price' => 380, 'is_available' => true],
+                ['name' => 'Belgian Waffle Tower', 'description' => 'Golden waffles served with fresh berries and maple syrup.', 'category' => 'breakfast', 'price' => 320, 'is_available' => true],
+                ['name' => 'Creamy Pumpkin Soup', 'description' => 'Smooth pumpkin soup with a touch of cream and herbs.', 'category' => 'soups', 'price' => 250, 'is_available' => true],
+                ['name' => 'French Onion Soup', 'description' => 'Rich beef broth, caramelized onions, melted gruyere cheese.', 'category' => 'soups', 'price' => 280, 'is_available' => true],
+                ['name' => 'Truffle Mushroom Bruschetta', 'description' => 'Grilled garlic crostini topped with sauteed wild mushrooms.', 'category' => 'appetizers', 'price' => 340, 'is_available' => true],
+                ['name' => 'Crispy Calamari Rings', 'description' => 'Tender calamari lightly fried, served with garlic aioli.', 'category' => 'appetizers', 'price' => 420, 'is_available' => true],
+                ['name' => 'Club Sandwich Supreme', 'description' => 'Triple-decker sandwich with roasted turkey and crispy bacon.', 'category' => 'sandwiches', 'price' => 450, 'is_available' => true],
+                ['name' => 'Gourmet Wagyu Beef Burger', 'description' => 'Wagyu patty, melted cheddar, and truffle sauce in brioche bun.', 'category' => 'sandwiches', 'price' => 580, 'is_available' => true],
+                ['name' => 'Chicken Alfredo Pasta', 'description' => 'Creamy alfredo pasta with grilled chicken and parmesan.', 'category' => 'pasta', 'price' => 550, 'is_available' => true],
+                ['name' => 'Seafood Spaghetti Marinara', 'description' => 'Spaghetti tossed with tiger prawns, mussels, and squid.', 'category' => 'pasta', 'price' => 680, 'is_available' => true],
+                ['name' => 'Chocolate Lava Cake', 'description' => 'Warm chocolate cake with a rich, melting center.', 'category' => 'desserts', 'price' => 350, 'is_available' => true],
+                ['name' => 'Classic New York Cheesecake', 'description' => 'Rich and creamy cheesecake with wild strawberry coulis.', 'category' => 'desserts', 'price' => 320, 'is_available' => true],
+                ['name' => 'Signature Iced Caramel Latte', 'description' => 'Double shot espresso with cold milk and caramel drizzle.', 'category' => 'beverages', 'price' => 180, 'is_available' => true],
+            ];
+
+            foreach ($sampleItems as $itemData) {
+                if (!in_array($itemData['category'], $existingCategories)) {
+                    MenuItem::firstOrCreate(['name' => $itemData['name']], $itemData);
+                }
+            }
+
             $menuItems = MenuItem::where('is_available', true)
                 ->orderBy('category')
                 ->orderBy('name')
                 ->get();
+
             $categorized = $menuItems->groupBy('category')
                 ->map(fn($items, $category) => [
                     'category' => $category,
                     'items' => $items->map(fn($item) => $this->formatMenuItemForGuest($item))->values(),
                 ])
                 ->values();
-            $itemsWithImages = $menuItems->whereNotNull('image')->count();
-            Log::info('[GUEST ORDER] All menu items retrieved', [
-                'total_items' => $menuItems->count(),
-                'total_categories' => $categorized->count(),
-                'items_with_images' => $itemsWithImages,
-            ]);
+
             return response()->json([
                 'success' => true,
                 'data' => $categorized,
@@ -193,6 +211,64 @@ class GuestOrderController extends Controller
             ], 500);
         }
     }
+
+    public function getPublicCategories()
+    {
+        try {
+            // 1. Fetch all existing categories from categories table
+            $dbCategories = \App\Models\Category::all();
+
+            // 2. Fetch distinct category values from menu_items table
+            $itemCategories = MenuItem::select('category')->whereNotNull('category')->distinct()->pluck('category')->toArray();
+
+            $categoryMap = [];
+
+            foreach ($dbCategories as $c) {
+                $slug = $c->slug ?: Str::slug($c->name);
+                $cnt = MenuItem::where('category', $slug)
+                    ->orWhere('category', $c->name)
+                    ->orWhere('category_id', $c->id)
+                    ->count();
+
+                $categoryMap[$slug] = [
+                    'id' => $c->id ?: $slug,
+                    'name' => $c->name,
+                    'slug' => $slug,
+                    'icon' => $c->icon ?: 'grid',
+                    'count' => $cnt,
+                ];
+            }
+
+            foreach ($itemCategories as $rawCat) {
+                if (!$rawCat) continue;
+                $slug = Str::slug($rawCat);
+                if (!isset($categoryMap[$slug])) {
+                    $cnt = MenuItem::where('category', $rawCat)->count();
+                    $categoryMap[$slug] = [
+                        'id' => $slug,
+                        'name' => ucwords(str_replace('-', ' ', $rawCat)),
+                        'slug' => $slug,
+                        'icon' => 'grid',
+                        'count' => $cnt,
+                    ];
+                }
+            }
+
+            $result = array_values($categoryMap);
+
+            return response()->json([
+                'success' => true,
+                'data' => $result,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('[GUEST ORDER] Error fetching public categories', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to fetch categories.',
+            ], 500);
+        }
+    }
+
     public function createOrder(Request $request)
     {
         try {

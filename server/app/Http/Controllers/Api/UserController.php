@@ -30,41 +30,21 @@ class UserController extends Controller
     if ($request->filled('search')) {
       $search = $request->search;
       $query->where(function ($q) use ($search) {
-        $q->where(
-          'first_name',
-          'like',
-          "%{$search}%"
-        )
-          ->orWhere(
-            'last_name',
-            'like',
-            "%{$search}%"
-          )
-
-          ->orWhere(
-            'email',
-            'like',
-            "%{$search}%"
-          );
+        $q->where('first_name', 'like', "%{$search}%")
+          ->orWhere('last_name', 'like', "%{$search}%")
+          ->orWhere('email', 'like', "%{$search}%")
+          ->orWhere('role', 'like', "%{$search}%");
       });
     }
     if ($request->filled('role')) {
-      $query->where(
-        'role',
-        $request->role
-      );
+      $query->where('role', $request->role);
     }
     if ($request->filled('is_active')) {
-
-      $query->where(
-        'is_active',
-        $request->boolean('is_active')
-      );
+      $query->where('is_active', $request->boolean('is_active'));
     }
     $query->latest();
-    $users = $query->paginate(
-      $request->get('per_page', 10)
-    );
+    $perPage = (int) $request->get('per_page', 500);
+    $users = $query->paginate($perPage);
     return UserResource::collection($users);
   }
   public function store(StoreUserRequest $request)
@@ -215,12 +195,27 @@ class UserController extends Controller
         $user->role = $request->role;
         $user->is_active = $request->is_active;
 
-        // Hash the password if provided
-        if ($request->filled('password')) {
+        // Hash the password if provided and not empty
+        if ($request->filled('password') && !empty($request->password)) {
             $user->password_hash = Hash::make($request->password);
         }
 
         $user->save();
+
+        // Sync role pivot table if role model exists
+        if (!empty($user->role)) {
+            $targetRoleStr = strtolower($user->role);
+            $roleModel = \App\Models\Role::whereRaw('LOWER(slug) = ?', [$targetRoleStr])
+                ->orWhereRaw('LOWER(name) = ?', [$targetRoleStr])
+                ->first();
+            if ($roleModel) {
+                try {
+                    $user->roles()->sync([
+                        $roleModel->id => ['is_primary' => true]
+                    ]);
+                } catch (\Exception $e) {}
+            }
+        }
 
         DB::commit();
 

@@ -222,19 +222,22 @@ class WaiterProfileController extends Controller
                 'new_password' => 'required|string|min:8|confirmed',
             ]);
 
-            $waiter = auth()->user();
+            $user = auth()->user();
 
+            // Check if password_hash exists, if not use password field
+            $passwordField = $user->password_hash ? 'password_hash' : 'password';
+            
             // Verify current password
-            if (!\Hash::check($validated['current_password'], $waiter->password)) {
+            if (!\Hash::check($validated['current_password'], $user->{$passwordField})) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Current password is incorrect',
                 ], 422);
             }
 
-            // Update password
-            $waiter->update([
-                'password' => \Hash::make($validated['new_password']),
+            // Update password - use password_hash if it exists
+            $user->update([
+                $passwordField => \Hash::make($validated['new_password']),
             ]);
 
             return response()->json([
@@ -418,10 +421,10 @@ class WaiterProfileController extends Controller
                 ->whereIn('status', ['pending', 'accepted', 'picked_up'])
                 ->count();
 
-            // Get average rating from performance
-            $avgRating = DB::table('waiter_performance')
+            // Get average rating from performance - use correct table name
+            $avgRating = DB::table('waiters_performance')
                 ->where('waiter_id', $waiterId)
-                ->avg('guest_rating') ?? 0;
+                ->avg('guest_rating_avg') ?? 0;
 
             return response()->json([
                 'success' => true,
@@ -434,6 +437,13 @@ class WaiterProfileController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
+            \Log::error('Failed to fetch waiter statistics', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch statistics',

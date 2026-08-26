@@ -393,4 +393,49 @@ class RestaurantTableController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Download table QR code image as binary file attachment
+     */
+    public function downloadQR(string $id)
+    {
+        try {
+            $table = RestaurantTable::findOrFail($id);
+            if (!$table->qr_image_path) {
+                $table->regenerateQRCode();
+            }
+
+            $relativePath = ltrim(str_replace('/storage/', '', $table->qr_image_path), '/');
+            $filePath = storage_path('app/public/' . $relativePath);
+
+            if (!file_exists($filePath)) {
+                $table->regenerateQRCode();
+                $relativePath = ltrim(str_replace('/storage/', '', $table->qr_image_path), '/');
+                $filePath = storage_path('app/public/' . $relativePath);
+            }
+
+            if (!file_exists($filePath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'QR image file missing on disk',
+                ], 404);
+            }
+
+            $fileName = "Table_{$table->table_number}_QR.png";
+            return response()->download($filePath, $fileName, [
+                'Content-Type' => 'image/png',
+                'Access-Control-Allow-Origin' => '*',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to download table QR image', [
+                'table_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to download QR code',
+            ], 500);
+        }
+    }
 }

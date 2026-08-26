@@ -29,7 +29,15 @@ class DeliveryTaskResource extends JsonResource
                 'id' => $this->room->id,
                 'room_number' => $this->room->room_number,
                 'room_type' => $this->room->room_type ?? null,
-            ] : null,
+            ] : ($this->order && $this->order->room ? [
+                'id' => $this->order->room->id,
+                'room_number' => $this->order->room->room_number,
+                'room_type' => $this->order->room->room_type ?? null,
+            ] : ($this->order && isset($this->order->room_number) && $this->order->room_number !== '' ? [
+                'id' => null,
+                'room_number' => $this->order->room_number,
+                'room_type' => null,
+            ] : null)),
             'assigned_by' => [
                 'id' => $this->assignedBy?->id,
                 'name' => $this->assignedBy?->full_name,

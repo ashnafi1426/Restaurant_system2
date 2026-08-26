@@ -37,11 +37,27 @@ class CategoryController extends Controller
             });
         }
 
-        // Order by display_order and name
-        $query->orderBy('display_order', 'asc')->orderBy('name', 'asc');
-
         // Get with count of menu items
         $categories = $query->withCount('menuItems')->get();
+
+        if ($categories->count() < 8) {
+            $defaults = [
+                ['name' => 'Breakfast', 'slug' => 'breakfast', 'icon' => 'clock', 'display_order' => 1, 'is_active' => true],
+                ['name' => 'Soups', 'slug' => 'soups', 'icon' => 'soup', 'display_order' => 2, 'is_active' => true],
+                ['name' => 'Appetizers', 'slug' => 'appetizers', 'icon' => 'leaf', 'display_order' => 3, 'is_active' => true],
+                ['name' => 'Main Courses', 'slug' => 'main-courses', 'icon' => 'utensils', 'display_order' => 4, 'is_active' => true],
+                ['name' => 'Sandwiches', 'slug' => 'sandwiches', 'icon' => 'sandwich', 'display_order' => 5, 'is_active' => true],
+                ['name' => 'Pasta', 'slug' => 'pasta', 'icon' => 'layers', 'display_order' => 6, 'is_active' => true],
+                ['name' => 'Desserts', 'slug' => 'desserts', 'icon' => 'cake', 'display_order' => 7, 'is_active' => true],
+                ['name' => 'Beverages', 'slug' => 'beverages', 'icon' => 'wine', 'display_order' => 8, 'is_active' => true],
+            ];
+
+            foreach ($defaults as $cat) {
+                Category::firstOrCreate(['slug' => $cat['slug']], $cat);
+            }
+
+            $categories = Category::orderBy('display_order', 'asc')->orderBy('name', 'asc')->withCount('menuItems')->get();
+        }
 
         return response()->json([
             'success' => true,

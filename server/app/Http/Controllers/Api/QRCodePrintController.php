@@ -33,12 +33,22 @@ class QRCodePrintController extends Controller
         
         // If QR image doesn't exist, regenerate it
         if (!$room->qr_image_path || !Storage::exists("public/{$room->qr_image_path}")) {
+            \Log::warning('QR code image not found, regenerating', [
+                'room_id' => $roomId,
+                'qr_image_path' => $room->qr_image_path,
+            ]);
+            
             try {
                 QRCodeService::regenerateQRCode(
                     $room,
                     config('app.frontend_url', 'http://localhost:5173')
                 );
+                $room->refresh();
             } catch (\Exception $e) {
+                \Log::error('Failed to regenerate QR code', [
+                    'room_id' => $roomId,
+                    'error' => $e->getMessage(),
+                ]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to generate QR code: ' . $e->getMessage()
@@ -194,11 +204,8 @@ class QRCodePrintController extends Controller
         ]);
     }
     
-    /**
-     * Get print template with QR code embedded (HTML)
-     * GET /api/admin/qr-codes/{roomId}/print-template
-     */
-    public function getPrintTemplate($roomId)
+    
+    public function getPrintTemplate(Request $request, $roomId)
     {
         $room = Room::find($roomId);
         
@@ -209,73 +216,12 @@ class QRCodePrintController extends Controller
             ], 404);
         }
         
+        $copies = min(10, max(1, (int) $request->query('copies', $request->query('quantity', 1))));
         $qrUrl = $room->qr_code_url;
         
-        $html = <<<HTML
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Room {$room->room_number} - QR Code</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    min-height: 100vh;
-                    margin: 0;
-                    background-color: #f5f5f5;
-                }
-                .card {
-                    background: white;
-                    padding: 30px;
-                    border-radius: 10px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    text-align: center;
-                    width: 400px;
-                }
-                h1 {
-                    margin: 0 0 10px 0;
-                    color: #333;
-                    font-size: 24px;
-                }
-                .hotel-name {
-                    color: #666;
-                    font-size: 14px;
-                    margin-bottom: 20px;
-                }
-                .qr-container {
-                    margin: 20px 0;
-                }
-                .qr-container img {
-                    width: 250px;
-                    height: 250px;
-                    border: 2px solid #ddd;
-                    padding: 10px;
-                    background: white;
-                }
-                .info {
-                    margin-top: 20px;
-                    color: #666;
-                    font-size: 12px;
-                }
-                .divider {
-                    border-top: 2px dashed #ddd;
-                    margin: 30px 0;
-                }
-                @media print {
-                    body {
-                        background-color: white;
-                    }
-                    .card {
-                        box-shadow: none;
-                        width: 100%;
-                        max-width: 100%;
-                    }
-                }
-            </style>
-        </head>
-        <body>
+        $cardsHtml = '';
+        for ($i = 0; $i < $copies; $i++) {
+            $cardsHtml .= <<<CARD
             <div class="card">
                 <h1>HOTEL SERVICE</h1>
                 <div class="hotel-name">Room Service Order</div>
@@ -284,14 +230,101 @@ class QRCodePrintController extends Controller
                     <img src="{$qrUrl}" alt="QR Code for Room {$room->room_number}">
                 </div>
                 
-                <h2 style="font-size: 20px; margin: 20px 0;">Room {$room->room_number}</h2>
+                <h2 style="font-size: 20px; margin: 15px 0 5px 0;">Room {$room->room_number}</h2>
                 
                 <div class="info">
                     <p>📱 Scan this code to order food</p>
-                    <p style="margin-top: 15px; color: #999; font-size: 11px;">
+                    <p style="margin-top: 10px; color: #999; font-size: 11px;">
                         Token: {$room->qr_token}
                     </p>
                 </div>
+            </div>
+            CARD;
+        }
+
+        $html = <<<HTML
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Room {$room->room_number} - QR Code ({$copies} copies)</title>
+            <style>
+                body {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    background-color: #f8fafc;
+                    margin: 0;
+                    padding: 24px;
+                    color: #0f172a;
+                }
+                .print-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+                    gap: 20px;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
+                .card {
+                    background: white;
+                    padding: 24px;
+                    border-radius: 16px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+                    text-align: center;
+                    border: 1px solid #e2e8f0;
+                    page-break-inside: avoid;
+                    break-inside: avoid;
+                }
+                h1 {
+                    margin: 0 0 4px 0;
+                    color: #0f172a;
+                    font-size: 18px;
+                    font-weight: 900;
+                    letter-spacing: 0.5px;
+                }
+                .hotel-name {
+                    color: #64748b;
+                    font-size: 12px;
+                    margin-bottom: 12px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+                .qr-container {
+                    margin: 12px 0;
+                }
+                .qr-container img {
+                    width: 170px;
+                    height: 170px;
+                    border: 1px solid #cbd5e1;
+                    padding: 8px;
+                    background: white;
+                    border-radius: 12px;
+                }
+                .info {
+                    margin-top: 12px;
+                    color: #475569;
+                    font-size: 12px;
+                    font-weight: 600;
+                }
+                @media print {
+                    body {
+                        background-color: white;
+                        padding: 0;
+                    }
+                    .print-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 16px;
+                        max-width: 100%;
+                    }
+                    .card {
+                        box-shadow: none;
+                        border: 1px solid #cbd5e1;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="print-grid">
+                {$cardsHtml}
             </div>
         </body>
         </html>

@@ -19,7 +19,7 @@ class DashboardController extends Controller
         $occupiedRooms = Room::where('status', 'occupied')->count();
         $occupancyRate = $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100) : 0;
 
-        // Get active staff count (users with roles: receptionist, manager, chef, cashier)
+        // Get active staff count
         $activeStaff = User::whereIn('role', ['receptionist', 'manager', 'chef', 'cashier'])
             ->where('is_active', true)
             ->count();
@@ -29,10 +29,16 @@ class DashboardController extends Controller
         $todayEnd = Carbon::today()->endOfDay();
         
         $todayRevenue = Reservation::whereBetween('created_at', [$todayStart, $todayEnd])
-            ->where('status', 'checked_out')
             ->get()
             ->sum(function($reservation) {
-                return ($reservation->total_nights ?? 0) * ($reservation->room?->roomType?->base_price_per_night ?? 0);
+                if ($reservation->total_amount && $reservation->total_amount > 0) {
+                    return (float)$reservation->total_amount;
+                }
+                $checkIn = $reservation->check_in_date ? Carbon::parse($reservation->check_in_date) : Carbon::today();
+                $checkOut = $reservation->check_out_date ? Carbon::parse($reservation->check_out_date) : Carbon::today()->addDay();
+                $nights = max(1, $checkIn->diffInDays($checkOut));
+                $price = $reservation->room?->roomType?->base_price_per_night ?? $reservation->room?->price_per_night ?? 1500;
+                return $nights * $price;
             });
 
         // Recent reservations (last 5)
@@ -41,49 +47,68 @@ class DashboardController extends Controller
             ->take(5)
             ->get()
             ->map(function($res) {
+                $guestFirstName = $res->guest?->first_name ?? '';
+                $guestLastName = $res->guest?->last_name ?? '';
+                $guestName = trim($guestFirstName . ' ' . $guestLastName);
+                
+                if (empty($guestName)) {
+                    $guestName = $res->guest?->email ?? ('Guest #' . substr($res->id, 0, 6));
+                }
+
+                $checkIn = $res->check_in_date ? Carbon::parse($res->check_in_date) : Carbon::today();
+                $checkOut = $res->check_out_date ? Carbon::parse($res->check_out_date) : Carbon::today()->addDay();
+                $nights = max(1, $checkIn->diffInDays($checkOut));
+                $price = $res->room?->roomType?->base_price_per_night ?? $res->room?->price_per_night ?? 1500;
+                
+                $totalPrice = ($res->total_amount && $res->total_amount > 0)
+                    ? (float)$res->total_amount
+                    : (float)($nights * $price);
+
                 return [
                     'id' => $res->id,
                     'booking_reference' => $res->booking_reference,
+                    'guest_name' => $guestName,
                     'guest' => [
                         'id' => $res->guest?->id,
-                        'name' => $res->guest?->first_name . ' ' . $res->guest?->last_name,
-                        'initials' => strtoupper(substr($res->guest?->first_name, 0, 1) . substr($res->guest?->last_name, 0, 1)),
+                        'name' => $guestName,
                         'email' => $res->guest?->email,
                     ],
-                    'room_type' => $res->room?->roomType?->name ?? 'Standard',
-                    'check_in_date' => $res->check_in_date,
+                    'room_type' => $res->room?->roomType?->name ?? ($res->room?->room_number ? 'Room ' . $res->room->room_number : 'Standard Suite'),
+                    'check_in' => $checkIn->format('Y-m-d'),
+                    'check_in_date' => $checkIn->format('Y-m-d'),
                     'status' => ucfirst($res->status),
-                    'total_price' => ($res->total_nights ?? 0) * ($res->room?->roomType?->base_price_per_night ?? 0),
+                    'total' => $totalPrice,
+                    'total_price' => $totalPrice,
                 ];
             });
 
         // Monthly revenue data - REAL DATA from last 6 months
         $monthlyRevenue = [];
-        $months = [
-            'Jan' => 1, 'Feb' => 2, 'Mar' => 3, 'Apr' => 4, 'May' => 5, 'Jun' => 6,
-            'Jul' => 7, 'Aug' => 8, 'Sep' => 9, 'Oct' => 10, 'Nov' => 11, 'Dec' => 12
-        ];
-        
         for ($i = 5; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);
             $monthStart = $date->copy()->startOfMonth();
             $monthEnd = $date->copy()->endOfMonth();
             
             $revenue = Reservation::whereBetween('created_at', [$monthStart, $monthEnd])
-                ->where('status', 'checked_out')
                 ->get()
                 ->sum(function($reservation) {
-                    return ($reservation->total_nights ?? 0) * ($reservation->room?->roomType?->base_price_per_night ?? 0);
+                    if ($reservation->total_amount && $reservation->total_amount > 0) {
+                        return (float)$reservation->total_amount;
+                    }
+                    $checkIn = $reservation->check_in_date ? Carbon::parse($reservation->check_in_date) : Carbon::today();
+                    $checkOut = $reservation->check_out_date ? Carbon::parse($reservation->check_out_date) : Carbon::today()->addDay();
+                    $nights = max(1, $checkIn->diffInDays($checkOut));
+                    $price = $reservation->room?->roomType?->base_price_per_night ?? $reservation->room?->price_per_night ?? 1500;
+                    return $nights * $price;
                 });
             
-            $monthName = array_search($date->month, $months);
             $monthlyRevenue[] = [
-                'month' => $monthName,
+                'month' => $date->format('M'),
                 'revenue' => (int)$revenue
             ];
         }
 
-        // Staff activity feed - REAL DATA from active users
+        // Staff activity feed
         $staffActivity = User::whereIn('role', ['receptionist', 'manager', 'chef', 'cashier', 'admin'])
             ->where('is_active', true)
             ->latest('updated_at')
@@ -98,18 +123,15 @@ class DashboardController extends Controller
                     'Completed payment processing'
                 ];
                 
-                $timeAgo = $user->updated_at->diffForHumans();
-                
                 return [
                     'id' => $user->id,
-                    'staff_name' => $user->first_name . ' ' . $user->last_name,
-                    'staff_initials' => strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)),
+                    'staff_name' => trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')),
                     'action' => $actions[$index % count($actions)],
-                    'timestamp' => $timeAgo,
+                    'timestamp' => $user->updated_at ? $user->updated_at->diffForHumans() : 'Just now',
                 ];
             });
 
-        // Maintenance alerts - REAL DATA from maintenance rooms
+        // Maintenance alerts
         $maintenanceAlerts = [];
         $maintenanceRooms = Room::where('status', 'maintenance')->take(3)->get();
         
@@ -119,16 +141,6 @@ class DashboardController extends Controller
                 'title' => 'Maintenance - Room ' . $room->room_number,
                 'description' => 'Room ' . $room->room_number . ' is currently under maintenance.',
                 'severity' => 'medium',
-            ];
-        }
-        
-        // If no maintenance rooms, show placeholder
-        if (count($maintenanceAlerts) === 0) {
-            $maintenanceAlerts[] = [
-                'id' => 0,
-                'title' => 'All Systems Operational',
-                'description' => 'No active maintenance alerts at this time.',
-                'severity' => 'low',
             ];
         }
 
@@ -149,10 +161,6 @@ class DashboardController extends Controller
                     "occupied" => Room::where('status', 'occupied')->count(),
                     "maintenance" => Room::where('status', 'maintenance')->count(),
                 ],
-                "recentUsers" => User::latest()
-                    ->take(5)
-                    ->select('id', 'first_name', 'last_name', 'email', 'created_at')
-                    ->get(),
                 "recentReservations" => $recentReservations,
                 "monthlyRevenue" => $monthlyRevenue,
                 "staffActivity" => $staffActivity,

@@ -22,10 +22,19 @@ use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends FormRequest
 {
-    public function authorize(): bool
+    protected function prepareForValidation(): void
     {
-        return true;
+        if ($this->has('password') && ($this->password === '' || $this->password === null)) {
+            $this->getInputSource()->remove('password');
+            $this->getInputSource()->remove('password_confirmation');
+            $this->request->remove('password');
+            $this->request->remove('password_confirmation');
+        }
+        if ($this->has('phone') && ($this->phone === '' || $this->phone === null)) {
+            $this->merge(['phone' => null]);
+        }
     }
+
     public function rules(): array
     {
         return [

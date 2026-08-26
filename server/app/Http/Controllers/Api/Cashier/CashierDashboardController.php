@@ -27,7 +27,6 @@ class CashierDashboardController extends Controller
                 'refund_requests' => $this->getRefundRequestsCount(),
                 'total_transactions' => $this->getTotalTransactionsCount(),
             ];
-
             return response()->json([
                 'success' => true,
                 'data' => $stats,
@@ -40,10 +39,6 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Get recent payments
-     */
     public function recentPayments(): JsonResponse
     {
         try {
@@ -83,10 +78,6 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Get pending payments
-     */
     public function pendingPayments(): JsonResponse
     {
         try {
@@ -121,10 +112,6 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Get recent transactions
-     */
     public function recentTransactions(): JsonResponse
     {
         try {
@@ -162,10 +149,6 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Get revenue chart data (last 7 days)
-     */
     public function revenueChart(): JsonResponse
     {
         try {
@@ -195,10 +178,6 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Get payment method distribution
-     */
     public function paymentMethodChart(): JsonResponse
     {
         try {
@@ -226,10 +205,6 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Get refund requests (payments marked as refunded)
-     */
     public function refundRequests(): JsonResponse
     {
         try {
@@ -262,25 +237,18 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
-
-    // ========================================================================
-    // Private Helper Methods
-    // ========================================================================
-
     private function getTodayRevenue(): float
     {
         return (float) Payment::whereDate('paid_at', today())
             ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
             ->sum('amount');
     }
-
     private function getWeeklyRevenue(): float
     {
         return (float) Payment::whereBetween('paid_at', [now()->startOfWeek(), now()->endOfWeek()])
             ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
             ->sum('amount');
     }
-
     private function getMonthlyRevenue(): float
     {
         return (float) Payment::whereMonth('paid_at', now()->month)

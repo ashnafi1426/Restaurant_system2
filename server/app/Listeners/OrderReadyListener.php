@@ -4,6 +4,9 @@ namespace App\Listeners;
 
 use App\Events\OrderReadyEvent;
 use App\Services\Waiter\AutomaticWaiterAssignmentService;
+use App\Models\WaiterTableAssignment;
+use App\Models\HotelShift;
+use App\Models\DeliveryTask;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
@@ -56,19 +59,85 @@ class OrderReadyListener implements ShouldQueue
             Log::info('🟢 [LISTENER] Order loaded with relationships', [
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
+                'order_type' => $order->order_type,
                 'room_id' => $order->room_id,
+                'table_id' => $order->table_id,
                 'reservation_id' => $order->reservation_id,
                 'guest_id' => $order->guest_id,
             ]);
 
-            // Get the automatic waiter assignment service
-            $assignmentService = app(AutomaticWaiterAssignmentService::class);
+            // Check if this is a walk-in order (table-based)
+            if ($order->order_type === 'walk_in' && $order->table_id) {
+                Log::info('🟡 [LISTENER] Walk-in order detected - checking table assignment', [
+                    'order_id' => $order->id,
+                    'table_id' => $order->table_id,
+                ]);
 
-            // Trigger automatic waiter assignment
-            Log::info('🟢 [LISTENER] Calling AutomaticWaiterAssignmentService::assignWaiterToReadyOrder', [
+                // Get current shift based on time
+                $currentShift = HotelShift::getCurrentShift();
+                
+                if ($currentShift) {
+                    Log::info('🟡 [LISTENER] Current shift found', [
+                        'shift_id' => $currentShift->id,
+                        'shift_name' => $currentShift->name,
+                    ]);
+
+                    // Get assigned waiter for this table
+                    $assignment = WaiterTableAssignment::getAssignedWaiter(
+                        $order->table_id,
+                        $currentShift->id,
+                        today()
+                    );
+
+                    if ($assignment && $assignment->waiter) {
+                        Log::info('✅ [LISTENER] Found waiter assigned to table', [
+                            'assignment_id' => $assignment->id,
+                            'waiter_id' => $assignment->waiter_id,
+                            'waiter_name' => $assignment->waiter->user->name ?? 'Unknown',
+                            'priority' => $assignment->priority,
+                        ]);
+
+                        // Create delivery task directly
+                        $deliveryTask = DeliveryTask::create([
+                            'order_id' => $order->id,
+                            'waiter_id' => $assignment->waiter_id,
+                            'table_id' => $order->table_id,
+                            'status' => 'pending',
+                            'assigned_at' => now(),
+                        ]);
+
+                        Log::info('✅ [LISTENER] Delivery task created for walk-in order', [
+                            'delivery_task_id' => $deliveryTask->id,
+                            'waiter_id' => $assignment->waiter_id,
+                            'table_id' => $order->table_id,
+                        ]);
+
+                        // TODO: Send notification to waiter
+                        // event(new WaiterNotificationEvent($assignment->waiter_id, ...));
+
+                        return; // Success - waiter assigned based on table assignment
+                    } else {
+                        Log::warning('⚠️ [LISTENER] No waiter assigned to this table', [
+                            'table_id' => $order->table_id,
+                            'shift_id' => $currentShift->id,
+                            'date' => today()->toDateString(),
+                        ]);
+                        // Fall through to automatic assignment
+                    }
+                } else {
+                    Log::warning('⚠️ [LISTENER] No active shift found at current time');
+                    // Fall through to automatic assignment
+                }
+            }
+
+            // For room service orders OR walk-in orders without table assignment,
+            // use the automatic waiter assignment service
+            Log::info('🟢 [LISTENER] Using automatic waiter assignment', [
                 'order_id' => $order->id,
+                'order_type' => $order->order_type,
             ]);
 
+            $assignmentService = app(AutomaticWaiterAssignmentService::class);
             $result = $assignmentService->assignWaiterToReadyOrder($order);
 
             if ($result['success']) {

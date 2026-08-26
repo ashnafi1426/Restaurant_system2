@@ -32,7 +32,6 @@ class AuthController extends Controller
                     'message' => 'Invalid credentials'
                 ], 401);
             }
-
             // Check if account needs activation
             if ($user->needsActivation()) {
                 Log::warning('Login: Account not activated', [
@@ -73,7 +72,6 @@ class AuthController extends Controller
             $user->update([
                 'last_login' => now()
             ]);
-            
             $token = $user
                 ->createToken('hotel_token')
                 ->plainTextToken;

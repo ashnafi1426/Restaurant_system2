@@ -158,6 +158,24 @@ class RestaurantTable extends Model
         return $this->hasMany(Order::class, 'table_id');
     }
 
+    /**
+     * Get waiter assignments for this table
+     */
+    public function waiterAssignments()
+    {
+        return $this->hasMany(WaiterTableAssignment::class, 'table_id');
+    }
+
+    /**
+     * Get active waiter assignments for this table
+     */
+    public function activeAssignments()
+    {
+        return $this->waiterAssignments()
+            ->where('status', WaiterTableAssignment::STATUS_ACTIVE)
+            ->whereDate('assignment_date', today());
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Status Helper Methods

@@ -22,7 +22,7 @@ class UpdateRoomTypeRequest extends FormRequest
                     'room_types',
                     'name'
                 )->ignore(
-                    $this->route('room_type')
+                    $this->route('roomType')
                 ),
             ],
             'description' => [

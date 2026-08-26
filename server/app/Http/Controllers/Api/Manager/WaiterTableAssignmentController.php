@@ -191,6 +191,9 @@ class WaiterTableAssignmentController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         $validator = Validator::make($request->all(), [
+            'waiter_id' => 'nullable|integer|exists:waiters,id',
+            'table_id' => 'nullable|uuid|exists:restaurant_tables,id',
+            'shift_id' => 'nullable|uuid|exists:shifts,id',
             'priority' => 'nullable|in:primary,secondary,backup',
             'status' => 'nullable|in:active,inactive,completed',
         ]);
@@ -206,7 +209,7 @@ class WaiterTableAssignmentController extends Controller
         try {
             $assignment = $this->assignmentService->updateAssignment(
                 $id,
-                $request->only(['priority', 'status'])
+                $request->only(['waiter_id', 'table_id', 'shift_id', 'priority', 'status'])
             );
 
             return response()->json([

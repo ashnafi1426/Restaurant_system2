@@ -73,7 +73,6 @@ class PermissionController extends Controller
             null,
             $permission->toArray()
         );
-
         return response()->json([
             'success' => true,
             'message' => 'Permission created successfully',

@@ -13,18 +13,51 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Exception;
 class OrderService{
-    public function index(int $perPage = 15): LengthAwarePaginator
-       {
-          return Order::query()
+    public function index(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    {
+        $query = Order::query()
             ->with([
                 'reservation',
                 'guest',
                 'room',
                 'orderItems',
                 'orderItems.menuItem',
-            ])
-            ->latest('order_time')
-            ->paginate($perPage);
+            ]);
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhere('id', 'like', "%{$search}%")
+                  ->orWhereHas('guest', function ($gq) use ($search) {
+                      $gq->where('first_name', 'like', "%{$search}%")
+                         ->orWhere('last_name', 'like', "%{$search}%")
+                         ->orWhere('phone', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('room', function ($rq) use ($search) {
+                      $rq->where('room_number', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['payment_type'])) {
+            $query->where('payment_type', $filters['payment_type']);
+        }
+
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('order_time', '>=', $filters['date_from']);
+        }
+
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('order_time', '<=', $filters['date_to']);
+        }
+
+        return $query->latest('order_time')->paginate($perPage);
     }
     public function show(string $id): Order
     {
