@@ -1,47 +1,47 @@
 <template>
-  <div class="rounded-lg bg-white shadow-md overflow-hidden">
+  <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
     <!-- Header -->
-    <div class="bg-gradient-to-r from-slate-700 to-slate-900 px-6 py-4 text-white">
+    <div class="bg-slate-900 dark:bg-slate-950 px-5 py-3.5 text-white border-b border-slate-800">
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <Activity :size="24" :stroke-width="2" />
-          <h3 class="text-lg font-bold">Recently Updated Orders</h3>
+        <div class="flex items-center gap-2.5">
+          <Activity :size="20" class="text-amber-500" />
+          <h3 class="text-sm font-black tracking-wide uppercase">Recently Updated Orders</h3>
         </div>
-        <span class="text-xs bg-white/20 px-3 py-1 rounded-full">Live Feed</span>
+        <span class="text-[10px] font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider">Live Feed</span>
       </div>
     </div>
 
     <!-- Content -->
     <div class="max-h-96 overflow-y-auto">
       <!-- Empty State -->
-      <div v-if="recentOrders.length === 0" class="px-6 py-12 text-center text-slate-500">
-        <ListX :size="32" class="mx-auto mb-3 text-slate-400" />
+      <div v-if="recentOrders.length === 0" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+        <ListX :size="32" class="mx-auto mb-3 text-slate-400 dark:text-slate-600" />
         <p class="text-sm font-medium">No recent orders</p>
       </div>
 
       <!-- Order Items -->
-      <div v-else class="divide-y divide-slate-200">
+      <div v-else class="divide-y divide-slate-100 dark:divide-slate-800">
         <div
           v-for="(order, idx) in recentOrders"
           :key="order.id"
           :class="[
-            'px-6 py-4 border-l-4 transition hover:bg-slate-50',
+            'px-5 py-3.5 border-l-4 transition hover:bg-slate-50 dark:hover:bg-slate-800/50',
             getOrderBorderColor(order.status),
           ]"
         >
           <!-- Timeline Indicator -->
-          <div class="flex gap-4">
+          <div class="flex gap-3.5">
             <!-- Status Icon -->
             <div
               :class="[
-                'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center',
+                'flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center',
                 getStatusBg(order.status),
               ]"
             >
               <component
                 :is="getStatusIcon(order.status)"
-                :size="20"
-                :stroke-width="2"
+                :size="16"
+                :stroke-width="2.5"
                 class="text-white"
               />
             </div>
@@ -51,10 +51,18 @@
               <!-- Room & Order Number -->
               <div class="flex items-center justify-between gap-2 mb-1">
                 <div class="flex items-center gap-2">
-                  <span class="text-sm font-bold text-slate-900">
-                    {{ order.room?.room_number ? `Room ${order.room.room_number}` : '🍽️ Takeout' }}
+                  <span class="text-xs font-bold text-slate-900 dark:text-white">
+                    <template v-if="order.room?.room_number">
+                      Room {{ order.room.room_number }}
+                    </template>
+                    <template v-else>
+                      <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                        <ShoppingBag class="w-3.5 h-3.5" />
+                        Takeout
+                      </span>
+                    </template>
                   </span>
-                  <span class="text-xs text-slate-500 font-mono">{{ order.order_number }}</span>
+                  <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono font-bold">{{ order.order_number }}</span>
                 </div>
                 <span
                   :class="[
@@ -111,7 +119,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Clock, ChefHat, CheckCircle, XCircle, Activity, ListX } from 'lucide-vue-next'
+import { Clock, ChefHat, CheckCircle, XCircle, Activity, ListX, ShoppingBag } from 'lucide-vue-next'
 import type { KitchenOrder } from '@/types/kitchen'
 
 const props = defineProps<{

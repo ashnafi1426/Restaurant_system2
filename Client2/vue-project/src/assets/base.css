@@ -23,30 +23,41 @@
 
 /* semantic color variables for this project */
 :root {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
+  --color-primary: #d97706;
+  --color-primary-hover: #b45309;
+  --color-primary-light: #fef3c7;
+  --color-accent: #059669;
 
-  --color-border: var(--vt-c-divider-light-2);
-  --color-border-hover: var(--vt-c-divider-light-1);
+  --color-background: #ffffff;
+  --color-background-soft: #f8fafc;
+  --color-background-mute: #f1f5f9;
 
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-light-1);
+  --color-border: #e2e8f0;
+  --color-border-hover: #cbd5e1;
+
+  --color-heading: #0f172a;
+  --color-text: #334155;
 
   --section-gap: 160px;
 }
 
+html.dark,
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: var(--vt-c-black);
-    --color-background-soft: var(--vt-c-black-soft);
-    --color-background-mute: var(--vt-c-black-mute);
+    --color-primary: #f59e0b;
+    --color-primary-hover: #d97706;
+    --color-primary-light: rgba(245, 158, 11, 0.15);
+    --color-accent: #10b981;
 
-    --color-border: var(--vt-c-divider-dark-2);
-    --color-border-hover: var(--vt-c-divider-dark-1);
+    --color-background: #020617;
+    --color-background-soft: #0f172a;
+    --color-background-mute: #1e293b;
 
-    --color-heading: var(--vt-c-text-dark-1);
-    --color-text: var(--vt-c-text-dark-2);
+    --color-border: #334155;
+    --color-border-hover: #475569;
+
+    --color-heading: #f8fafc;
+    --color-text: #cbd5e1;
   }
 }
 

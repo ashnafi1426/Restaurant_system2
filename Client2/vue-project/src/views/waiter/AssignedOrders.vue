@@ -6,9 +6,6 @@
         <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-sm dark:shadow-2xl">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex items-center gap-3">
-              <div class="p-3 bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-500/30 shadow-sm flex-shrink-0">
-                <span class="material-symbols-rounded text-2xl">assignment</span>
-              </div>
               <div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Assigned Orders</h1>
                 <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Manage your assigned orders and delivery progress</p>
@@ -250,6 +247,11 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import waiterService from '@/services/waiterService'
+import { 
+  Beef, Coffee, Cake, Fish, Pizza, Soup, 
+  Sandwich, Apple, Wine, IceCream, Cookie, 
+  Egg, Salad, UtensilsCrossed, ChefHat 
+} from 'lucide-vue-next'
 
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -260,6 +262,45 @@ const selectedOrder = ref<any>(null)
 const showDetailModal = ref(false)
 const loadingOrderId = ref<string | null>(null)
 const activeMenuId = ref<string | null>(null)
+
+// Map food items to appropriate Lucide icons
+const getFoodIcon = (itemName: string, category?: string): Component => {
+  const name = itemName?.toLowerCase() || ''
+  const cat = category?.toLowerCase() || ''
+
+  // Breakfast items
+  if (name.includes('egg') || name.includes('omelet')) return Egg
+  if (name.includes('bacon') || name.includes('pancake') || name.includes('waffle')) return ChefHat
+  
+  // Main dishes
+  if (name.includes('burger') || name.includes('sandwich')) return Sandwich
+  if (name.includes('pizza')) return Pizza
+  if (name.includes('steak') || name.includes('beef') || name.includes('mignon')) return Beef
+  if (name.includes('chicken') || name.includes('poultry')) return ChefHat
+  if (name.includes('fish') || name.includes('salmon') || name.includes('tuna')) return Fish
+  
+  // Soups & bowls
+  if (name.includes('soup') || name.includes('ramen') || name.includes('noodle') || name.includes('bowl')) return Soup
+  
+  // Salads
+  if (cat.includes('salad') || name.includes('salad')) return Salad
+  
+  // Desserts
+  if (cat.includes('dessert') || name.includes('cake') || name.includes('lava')) return Cake
+  if (name.includes('ice cream') || name.includes('gelato')) return IceCream
+  if (name.includes('cookie') || name.includes('chocolate')) return Cookie
+  
+  // Drinks
+  if (cat.includes('drink') || cat.includes('beverage')) return Coffee
+  if (name.includes('coffee') || name.includes('espresso') || name.includes('tea')) return Coffee
+  if (name.includes('wine') || name.includes('beer') || name.includes('cocktail')) return Wine
+  
+  // Fruits
+  if (name.includes('fruit') || name.includes('apple') || name.includes('banana') || name.includes('orange')) return Apple
+  
+  // Default
+  return UtensilsCrossed
+}
 
 const totalAssignments = computed(() => assignments.value.length)
 const totalPages = computed(() => Math.ceil(totalAssignments.value / itemsPerPage.value))

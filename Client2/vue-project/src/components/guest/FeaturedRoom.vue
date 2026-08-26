@@ -3,470 +3,153 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRoomStore } from '@/stores/room'
 import type { Room } from '@/types/room'
+import { BedDouble, Users, ArrowRight, Check } from 'lucide-vue-next'
 
 const router = useRouter()
 const roomStore = useRoomStore()
 const loading = ref(false)
-const error = ref<string | null>(null)
-const rooms = computed(() => roomStore.rooms)
-const featuredRooms = computed(() => {
-  if (!Array.isArray(rooms.value)) {
-    console.warn('❌ [FeaturedRoom] rooms is not an array:', rooms.value)
-    return []
+
+const fallbackRooms = [
+  {
+    id: 'f1',
+    room_number: '101',
+    room_type: { name: 'Executive Deluxe Suite', base_price_per_night: 2500, max_occupancy: 2 },
+    images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop'],
+    amenities: ['King Bed', 'City View', 'Free Wi-Fi', 'Jacuzzi'],
+  },
+  {
+    id: 'f2',
+    room_number: '202',
+    room_type: { name: 'Presidential Family Suite', base_price_per_night: 4500, max_occupancy: 4 },
+    images: ['https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&h=600&fit=crop'],
+    amenities: ['2 Bedrooms', 'Balcony', 'Breakfast Included', 'Mini Bar'],
+  },
+  {
+    id: 'f3',
+    room_number: '303',
+    room_type: { name: 'Standard King Room', base_price_per_night: 1800, max_occupancy: 2 },
+    images: ['https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&h=600&fit=crop'],
+    amenities: ['King Bed', 'Work Desk', 'Smart TV', 'Room Service'],
+  },
+]
+
+const rooms = computed(() => {
+  if (roomStore.rooms && roomStore.rooms.length > 0) {
+    return roomStore.rooms.slice(0, 3)
   }
-
-  // Get first 3 rooms that are available and active
-  const filtered = rooms.value
-    .filter((room: Room) => {
-      const isActive = room.is_active !== false
-      return isActive
-    })
-    .slice(0, 3)
-
-  // Log data for debugging
-  if (filtered.length > 0) {
-    console.log(' [FeaturedRoom] Featured rooms loaded:', filtered)
-    filtered.forEach((room: Room, idx: number) => {
-      console.log(`Room ${idx + 1}:`, {
-        id: room.id,
-        number: room.room_number,
-        status: room.status,
-        price: room.room_type?.base_price_per_night,
-        type: room.room_type?.name,
-      })
-    })
-  }
-
-  return filtered
+  return fallbackRooms
 })
 
-/*
-|--------------------------------------------------------------------------
-| Helpers - Property Extraction
-|--------------------------------------------------------------------------
-*/
-/**
- * Extracts room name with fallback chain
- */
-function getRoomName(room: Room): string {
-  if (!room) return 'Room'
-
-  // Try room_name first
-  if (room.room_number) {
-    return `Room ${room.room_number}`
-  }
-
-  // Fallback to generic
-  return 'Luxury Suite'
+function getRoomName(room: any): string {
+  return room.room_type?.name || `Luxury Suite #${room.room_number || ''}`
 }
 
-/**
- * Extracts room price with proper fallback
- */
-function getRoomPrice(room: Room): number {
-  if (!room) return 0
-
-  // Price comes from room_type.base_price_per_night
-  if (room.room_type && typeof room.room_type === 'object') {
-    const price = room.room_type.base_price_per_night
-    if (price) {
-      return Math.round(parseFloat(String(price)))
-    }
-  }
-
-  return 299 // Default fallback
+function getRoomPrice(room: any): string {
+  const price = room.room_type?.base_price_per_night || room.price_per_night || 2500
+  return `${Number(price).toLocaleString()} ETB`
 }
 
-/**
- * Extracts room type/category
- */
-function getRoomType(room: Room): string {
-  if (!room) return 'Standard'
-
-  // Get room type name - room_type is an object with name property
-  if (room.room_type && typeof room.room_type === 'object') {
-    if (room.room_type.name) {
-      return room.room_type.name
-    }
-  }
-
-  // Fallback
-  return 'Standard Room'
-}
-
-/**
- * Extracts room capacity
- */
-function getRoomCapacity(room: Room): number {
-  if (!room) return 2
-
-  // Capacity is in room_type object
-  if (room.room_type && typeof room.room_type === 'object') {
-    if (room.room_type.capacity) {
-      return room.room_type.capacity
-    }
-  }
-
-  return 2 // Default fallback
-}
-
-/**
- * Extracts room description
- */
-function getRoomDescription(room: Room): string {
-  if (!room) return 'Comfortable and well-appointed room'
-
-  // Try description from room_type first
-  if (room.room_type && typeof room.room_type === 'object') {
-    if (room.room_type.description) {
-      return room.room_type.description
-    }
-  }
-
-  // Try room description
-  if (room.description) {
-    return room.description
-  }
-
-  return 'Discover luxury comfort in our carefully designed room'
-}
-
-/**
- * Gets image URL based on room type - matches RoomGrid pattern
- */
-function getRoomImage(room: Room): string {
-  if (!room) return '/images/rooms/deluxe.jpg'
-
-  // Get room type name safely
-  const roomType = getRoomType(room).toLowerCase()
-
-  const imageMap: Record<string, string> = {
-    deluxe: '/images/rooms/deluxe.jpg',
-    vip: '/images/rooms/suite.jpg',
-    wvip: '/images/rooms/suite.jpg',
-    suite: '/images/rooms/suite.jpg',
-    'twin small': '/images/rooms/family.jpg',
-    'twin big': '/images/rooms/family.jpg',
-    standard: '/images/rooms/deluxe.jpg',
-  }
-
-  // Try to match the room type with image map
-  for (const [key, value] of Object.entries(imageMap)) {
-    if (roomType.includes(key)) {
-      return value
-    }
-  }
-
-  return '/images/rooms/deluxe.jpg'
-}
-
-/**
- * Gets room status - defaults to available if not set
- */
-function getRoomStatus(room: Room): string {
-  if (!room) return 'available'
-
-  // Status can be: available, occupied, reserved, maintenance
-  return room.status || 'available'
-}
-
-/**
- * Gets status badge styling
- */
-function getStatusBadgeClass(status: string): string {
-  const statusMap: Record<string, string> = {
-    available: 'bg-green-500 text-white',
-    occupied: 'bg-red-500 text-white',
-    reserved: 'bg-yellow-500 text-white',
-    maintenance: 'bg-gray-500 text-white',
-  }
-
-  return statusMap[status] || 'bg-green-500 text-white'
-}
-
-/**
- * Gets room rating (default 4.5)
- */
-function getRoomRating(room: Room): number {
-  // For now, return a default rating since it's not in the model
-  // You can update this if you add rating to the database later
-  return 4.5
-}
-
-/*
-|--------------------------------------------------------------------------
-| Formatting Helpers
-|--------------------------------------------------------------------------
-*/
-
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(price)
-}
-
-function ratingStars(rating: number): string {
-  return '★'.repeat(Math.round(rating))
-}
-
-/*
-|--------------------------------------------------------------------------
-| Navigation
-|--------------------------------------------------------------------------
-*/
-
-function viewRoom(room: Room) {
-  if (room && room.id) {
-    router.push(`/rooms/${room.id}`)
-  }
-}
-
-function reserveRoom(room: Room) {
-  if (room && room.id) {
-    router.push({
-      path: '/reservation',
-      query: {
-        room: room.id,
-      },
-    })
-  }
-}
-
-function viewAllRooms() {
+function goToRooms() {
   router.push('/rooms')
 }
-async function loadRooms() {
+
+onMounted(async () => {
   loading.value = true
-  error.value = null
-
   try {
-    console.log('🔄 [FeaturedRoom] Loading featured rooms...')
-    await roomStore.fetchRooms({ per_page: 10 })
-    console.log(' [FeaturedRoom] Rooms loaded successfully:', rooms.value)
-
-    if (rooms.value.length === 0) {
-      console.warn('[FeaturedRoom] No rooms returned from API')
-    }
-  } catch (err: any) {
-    console.error('❌ [FeaturedRoom] Failed to load featured rooms:', err)
-    error.value = err.message || 'Failed to load rooms. Please try again.'
+    await roomStore.fetchRooms()
+  } catch (err) {
+    console.error('Error loading rooms:', err)
   } finally {
     loading.value = false
   }
-}
-
-onMounted(() => {
-  // Load rooms on component mount
-  if (rooms.value.length === 0) {
-    loadRooms()
-  }
 })
 </script>
+
 <template>
-  <section class="bg-[#f8f5f0] py-12 sm:py-16 md:py-20 lg:py-24">
-    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10">
+  <section class="bg-white dark:bg-slate-900 py-12 sm:py-16 lg:py-24 transition-colors duration-300 font-sans border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
       <!-- Section Header -->
-      <div class="mx-auto mb-8 sm:mb-12 md:mb-16 max-w-3xl text-center">
-        <p
-          class="mb-2 sm:mb-4 text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] sm:tracking-[0.3em] text-amber-600"
-        >
-          Luxury Accommodation
-        </p>
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="space-y-2">
+          <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+            Featured Accommodation
+          </span>
+          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+            Explore Our Fine Rooms
+          </h2>
+          <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">
+            Designed for luxury, comfort, and peaceful relaxation during your stay.
+          </p>
+        </div>
 
-        <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-slate-900">
-          The Art of Rest
-        </h2>
-
-        <p
-          class="mt-3 sm:mt-4 md:mt-6 text-sm sm:text-base md:text-lg leading-6 sm:leading-7 md:leading-8 text-slate-500"
-        >
-          Discover beautifully designed rooms that combine modern luxury, exceptional comfort and
-          unforgettable hospitality.
-        </p>
-      </div>
-
-      <!-- Error Message -->
-      <div v-if="error" class="mb-6 rounded-lg bg-red-50 p-4 border border-red-200">
-        <p class="text-sm text-red-700">{{ error }}</p>
         <button
-          @click="loadRooms"
-          class="mt-2 text-sm font-semibold text-red-600 hover:text-red-800 underline"
+          @click="goToRooms"
+          class="px-5 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold text-xs transition flex items-center gap-2 cursor-pointer self-start md:self-auto border border-slate-200 dark:border-slate-700"
         >
-          Retry
+          <span>View All Rooms</span>
+          <ArrowRight class="w-4 h-4" />
         </button>
       </div>
 
-      <!-- Loading -->
-      <div v-if="loading" class="flex justify-center py-12 sm:py-16 md:py-24">
-        <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-12 h-12) -->
-        <div class="relative w-12 h-12 sm:w-14 sm:h-14">
-          <!-- Static background - BRIGHT CYAN -->
-          <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
-          </svg>
-          
-          <!-- Animated spinner - BRIGHT YELLOW -->
-          <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
-            <svg viewBox="0 0 100 100" class="w-full h-full">
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div
-        v-if="!loading && !error && featuredRooms.length === 0"
-        class="flex flex-col items-center justify-center py-12 sm:py-16 md:py-24"
-      >
-        <div class="rounded-full bg-slate-100 p-4 mb-4">
-          <svg class="h-8 w-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3 12a9 9 0 010-18 9 9 0 010 18z"
-            />
-          </svg>
-        </div>
-        <p class="text-lg text-slate-600">No rooms available at the moment</p>
-        <p class="text-sm text-slate-500">Please check back later or view all rooms</p>
-      </div>
-
-      <!-- Room Cards -->
-      <div
-        v-if="!loading && !error && featuredRooms.length > 0"
-        class="grid gap-6 sm:gap-8 md:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-      >
-        <article
-          v-for="room in featuredRooms"
+      <!-- Rooms Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div
+          v-for="room in rooms"
           :key="room.id"
-          class="group overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow transition-all duration-500 hover:-translate-y-2 sm:hover:-translate-y-3 hover:shadow-xl md:hover:shadow-2xl"
+          class="group bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs hover:border-amber-500/40 transition duration-300 flex flex-col justify-between"
         >
-          <!-- Room Image -->
-          <div class="relative overflow-hidden">
+          <!-- Image -->
+          <div class="relative h-64 overflow-hidden bg-slate-900">
             <img
-              :src="getRoomImage(room)"
+              :src="room.images?.[0] || 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop'"
               :alt="getRoomName(room)"
-              class="h-48 sm:h-56 md:h-64 lg:h-80 w-full object-cover transition duration-700 group-hover:scale-110"
-              @error="(e: any) => (e.target.src = '/images/placeholder.png')"
+              class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
             />
-            <div
-              class="absolute right-3 sm:right-5 top-3 sm:top-5 rounded-full bg-white px-3 sm:px-5 py-1.5 sm:py-2 shadow-lg"
-            >
-              <span class="text-sm sm:text-lg font-bold text-amber-600">
-                {{ formatPrice(getRoomPrice(room)) }}
-              </span>
-              <div class="text-xs uppercase tracking-wider text-slate-500">per night</div>
-            </div>
-
-            <!-- Availability Badge -->
-            <div
-              class="absolute left-3 sm:left-5 top-3 sm:top-5 rounded-full px-3 sm:px-4 py-1 sm:py-2 text-xs font-semibold uppercase tracking-wider text-white"
-              :class="getStatusBadgeClass(getRoomStatus(room))"
-            >
-              {{ getRoomStatus(room) }}
+            <div class="absolute top-4 right-4 px-3 py-1 bg-slate-950/80 backdrop-blur-md text-amber-400 font-black text-xs rounded-full border border-amber-500/30">
+              {{ getRoomPrice(room) }} <span class="text-[10px] text-slate-300 font-medium">/ night</span>
             </div>
           </div>
 
           <!-- Content -->
-          <div class="p-4 sm:p-6 md:p-8">
-            <!-- Rating -->
-            <div class="mb-2 sm:mb-3 flex items-center justify-between">
-              <span class="text-amber-500 text-lg sm:text-xl">
-                {{ ratingStars(getRoomRating(room)) }}
-              </span>
-              <span class="text-xs sm:text-sm text-slate-500"> {{ getRoomRating(room) }}/5 </span>
+          <div class="p-6 space-y-4 flex-1 flex flex-col justify-between">
+            <div class="space-y-2">
+              <h3 class="text-lg font-black text-slate-900 dark:text-white group-hover:text-amber-500 transition">
+                {{ getRoomName(room) }}
+              </h3>
+
+              <div class="flex items-center gap-4 text-xs font-bold text-slate-500 dark:text-slate-400">
+                <div class="flex items-center gap-1.5">
+                  <Users class="w-4 h-4 text-amber-500" />
+                  <span>Up to {{ room.room_type?.max_occupancy || 2 }} Guests</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <BedDouble class="w-4 h-4 text-amber-500" />
+                  <span>Room #{{ room.room_number }}</span>
+                </div>
+              </div>
             </div>
-
-            <!-- Room Name -->
-            <h3 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900">
-              {{ getRoomName(room) }}
-            </h3>
-
-            <!-- Type -->
-            <p
-              class="mt-1 sm:mt-2 text-xs sm:text-sm uppercase tracking-[2px] sm:tracking-[4px] text-amber-600"
-            >
-              {{ getRoomType(room) }}
-            </p>
-
-            <!-- Description -->
-            <p
-              class="mt-3 sm:mt-4 md:mt-5 leading-6 sm:leading-7 text-xs sm:text-sm md:text-base text-slate-500"
-            >
-              {{ getRoomDescription(room) }}
-            </p>
 
             <!-- Amenities -->
-            <div
-              class="mt-6 sm:mt-8 grid grid-cols-2 gap-2 sm:gap-4 border-y border-slate-200 py-4 sm:py-6"
+            <div class="pt-4 border-t border-slate-200/60 dark:border-slate-800 flex flex-wrap gap-2">
+              <span
+                v-for="amenity in (room.amenities || ['King Bed', 'City View', 'Free Wi-Fi'])"
+                :key="amenity"
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-200/60 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-300/60 dark:border-slate-800"
+              >
+                {{ amenity }}
+              </span>
+            </div>
+
+            <button
+              @click="goToRooms"
+              class="w-full mt-4 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2"
             >
-              <div class="flex items-center gap-2">
-                <span class="text-lg sm:text-xl">👥</span>
-                <span class="text-xs sm:text-sm text-slate-600">
-                  {{ getRoomCapacity(room) }} Guests
-                </span>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <span class="text-lg sm:text-xl">🛏️</span>
-                <span class="text-xs sm:text-sm text-slate-600"> Double Bed </span>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <span class="text-lg sm:text-xl">📐</span>
-                <span class="text-xs sm:text-sm text-slate-600"> Spacious </span>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <span class="text-lg sm:text-xl">📶</span>
-                <span class="text-xs sm:text-sm text-slate-600"> Free WiFi </span>
-              </div>
-            </div>
-
-            <!-- Buttons -->
-            <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-2 sm:gap-4">
-              <button
-                class="flex-1 rounded-full border border-slate-300 px-3 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm md:text-base font-medium transition hover:border-amber-500 hover:text-amber-600"
-                @click="viewRoom(room)"
-              >
-                View Details
-              </button>
-
-              <button
-                class="flex-1 rounded-full bg-amber-600 px-3 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm md:text-base font-semibold text-white transition hover:bg-amber-700"
-                @click="reserveRoom(room)"
-              >
-                Book Now
-              </button>
-            </div>
+              <span>Book Suite</span>
+              <ArrowRight class="w-4 h-4" />
+            </button>
           </div>
-        </article>
-      </div>
-
-      <!-- Bottom CTA -->
-      <div class="mt-12 sm:mt-16 md:mt-20 text-center">
-        <button
-          class="rounded-full border border-slate-300 px-6 sm:px-8 md:px-10 py-2.5 sm:py-3 md:py-4 text-xs sm:text-sm md:text-base font-semibold uppercase tracking-wider md:tracking-widest text-slate-800 transition hover:border-amber-600 hover:bg-amber-600 hover:text-white"
-          @click="viewAllRooms"
-        >
-          View All Rooms →
-        </button>
+        </div>
       </div>
     </div>
   </section>
 </template>
-
-<style scoped>
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-</style>

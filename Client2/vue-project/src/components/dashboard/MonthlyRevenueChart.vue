@@ -11,7 +11,6 @@ import {
 } from 'chart.js'
 import { Bar } from 'vue-chartjs'
 import type { MonthlyRevenueData } from '../../types/dashboard'
-import { getDashboard } from '../../services/dashboardService'
 import api from '../../api/auth'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
@@ -26,43 +25,39 @@ const props = withDefaults(defineProps<Props>(), {
   timeframe: 'month',
 })
 
-// State for revenue data
 const revenueData = ref<MonthlyRevenueData[]>([])
-
 const loading = ref(false)
-const error = ref<string | null>(null)
 const selectedTimeframe = ref<'week' | 'month' | 'year'>(props.timeframe)
 
-// Sample data for different timeframes
 const sampleData = {
   week: [
-    { month: 'Mon', revenue: 340 },
-    { month: 'Tue', revenue: 450 },
-    { month: 'Wed', revenue: 520 },
-    { month: 'Thu', revenue: 380 },
-    { month: 'Fri', revenue: 620 },
-    { month: 'Sat', revenue: 850 },
-    { month: 'Sun', revenue: 700 },
+    { month: 'Mon', revenue: 34000 },
+    { month: 'Tue', revenue: 45000 },
+    { month: 'Wed', revenue: 52000 },
+    { month: 'Thu', revenue: 38000 },
+    { month: 'Fri', revenue: 62000 },
+    { month: 'Sat', revenue: 85000 },
+    { month: 'Sun', revenue: 70000 },
   ],
   month: [
-    { month: 'Week 1', revenue: 2400 },
-    { month: 'Week 2', revenue: 2800 },
-    { month: 'Week 3', revenue: 3200 },
-    { month: 'Week 4', revenue: 2900 },
+    { month: 'Week 1', revenue: 120000 },
+    { month: 'Week 2', revenue: 145000 },
+    { month: 'Week 3', revenue: 160000 },
+    { month: 'Week 4', revenue: 138000 },
   ],
   year: [
-    { month: 'Jan', revenue: 2400 },
-    { month: 'Feb', revenue: 2800 },
-    { month: 'Mar', revenue: 3200 },
-    { month: 'Apr', revenue: 2900 },
-    { month: 'May', revenue: 3600 },
-    { month: 'Jun', revenue: 4100 },
-    { month: 'Jul', revenue: 3800 },
-    { month: 'Aug', revenue: 4200 },
-    { month: 'Sep', revenue: 3900 },
-    { month: 'Oct', revenue: 4400 },
-    { month: 'Nov', revenue: 4600 },
-    { month: 'Dec', revenue: 5000 },
+    { month: 'Jan', revenue: 120000 },
+    { month: 'Feb', revenue: 140000 },
+    { month: 'Mar', revenue: 160000 },
+    { month: 'Apr', revenue: 145000 },
+    { month: 'May', revenue: 180000 },
+    { month: 'Jun', revenue: 210000 },
+    { month: 'Jul', revenue: 190000 },
+    { month: 'Aug', revenue: 220000 },
+    { month: 'Sep', revenue: 195000 },
+    { month: 'Oct', revenue: 230000 },
+    { month: 'Nov', revenue: 240000 },
+    { month: 'Dec', revenue: 260000 },
   ],
 }
 
@@ -73,59 +68,32 @@ const chartData = ref({
       label: 'Revenue',
       data: [] as number[],
       backgroundColor: [
-        'rgba(13, 148, 136, 0.7)',
-        'rgba(13, 148, 136, 0.75)',
-        'rgba(13, 148, 136, 0.8)',
-        'rgba(13, 148, 136, 0.85)',
-        'rgba(13, 148, 136, 0.9)',
-        'rgba(13, 148, 136, 0.95)',
-        'rgba(13, 148, 136, 1)',
-        'rgba(13, 148, 136, 0.95)',
-        'rgba(13, 148, 136, 0.9)',
-        'rgba(13, 148, 136, 0.85)',
-        'rgba(13, 148, 136, 0.8)',
-        'rgba(13, 148, 136, 0.75)',
+        '#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6',
+        '#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6',
+        '#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6'
       ],
-      borderColor: '#0d9488',
-      borderWidth: 2,
-      borderRadius: 6,
-      hoverBackgroundColor: 'rgba(13, 148, 136, 1)',
+      borderColor: '#2563eb',
+      borderWidth: 1.5,
+      borderRadius: 8,
+      hoverBackgroundColor: '#60a5fa',
     },
   ],
 })
 
-const chartOptions = {
+const chartOptions = ref({
   responsive: true,
-  maintainAspectRatio: true,
-  indexAxis: 'x' as const,
+  maintainAspectRatio: false,
   plugins: {
-    legend: {
-      display: true,
-      position: 'top' as const,
-      labels: {
-        boxWidth: 12,
-        padding: 15,
-        font: {
-          size: 12,
-          weight: '600' as const,
-        },
-        color: '#64748b',
-      },
-    },
+    legend: { display: false },
     tooltip: {
-      backgroundColor: 'rgba(15, 23, 42, 0.9)',
+      backgroundColor: '#0f172a',
       padding: 12,
-      cornerRadius: 8,
-      titleFont: { size: 13, weight: 'bold' as const },
-      bodyFont: { size: 12 },
+      cornerRadius: 12,
+      titleFont: { size: 12, weight: 'bold' as const },
+      bodyFont: { size: 11 },
       callbacks: {
         label: function (context: any) {
-          return `Revenue: $${context.parsed.y.toLocaleString()}`
-        },
-        afterLabel: function (context: any) {
-          const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0)
-          const percentage = ((context.parsed.y / total) * 100).toFixed(1)
-          return `Share: ${percentage}%`
+          return `Revenue: ${context.parsed.y.toLocaleString()} ETB`
         },
       },
     },
@@ -135,69 +103,53 @@ const chartOptions = {
       beginAtZero: true,
       ticks: {
         callback: function (value: any) {
-          return '$' + (value / 1000).toFixed(0) + 'k'
+          const val = Number(value)
+          if (val === 0) return '0 ETB'
+          if (val >= 1000) {
+            const k = val / 1000
+            return (k % 1 === 0 ? k.toFixed(0) : k.toFixed(1)) + 'k ETB'
+          }
+          return val + ' ETB'
         },
-        font: {
-          size: 11,
-        },
+        font: { size: 11, weight: '600' as const },
         color: '#94a3b8',
       },
       grid: {
-        color: 'rgba(0, 0, 0, 0.05)',
+        color: 'rgba(148, 163, 184, 0.1)',
         drawBorder: false,
       },
     },
     x: {
-      grid: {
-        display: false,
-      },
+      grid: { display: false },
       ticks: {
-        font: {
-          size: 11,
-        },
-        color: '#64748b',
+        font: { size: 11, weight: '600' as const },
+        color: '#94a3b8',
       },
     },
   },
-}
+})
 
 const totalRevenue = ref(0)
 const averageRevenue = ref(0)
 const maxRevenue = ref(0)
 
-// Fetch revenue data from backend based on timeframe
 const fetchRevenueData = async (timeframe: 'week' | 'month' | 'year') => {
+  loading.value = true
   try {
-    loading.value = true
-    error.value = null
-
-    // Try to fetch from backend API with timeframe parameter
     const response = await api.get('/admin/dashboard/revenue', {
-      params: {
-        timeframe: timeframe,
-      },
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
+      params: { timeframe },
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
     })
 
-    // Extract revenue data from response
-    if (response.data && Array.isArray(response.data.data)) {
+    if (response.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
       revenueData.value = response.data.data
-    } else if (response.data && Array.isArray(response.data)) {
-      revenueData.value = response.data
     } else {
-      // Fallback to sample data if backend doesn't have the endpoint
       revenueData.value = sampleData[timeframe]
     }
-
-    updateChart()
-  } catch (err: any) {
-    console.warn(`Failed to fetch ${timeframe} revenue data from backend, using sample data:`, err)
-    // Use sample data as fallback
+  } catch (err) {
     revenueData.value = sampleData[timeframe]
-    updateChart()
   } finally {
+    updateChart()
     loading.value = false
   }
 }
@@ -212,13 +164,11 @@ const updateChart = () => {
   maxRevenue.value = revenues.length > 0 ? Math.max(...revenues) : 0
 }
 
-// Set timeframe and fetch data
-const setTimeframe = (timeframe: 'week' | 'month' | 'year') => {
-  selectedTimeframe.value = timeframe
-  fetchRevenueData(timeframe)
+const setTimeframe = (tf: 'week' | 'month' | 'year') => {
+  selectedTimeframe.value = tf
+  fetchRevenueData(tf)
 }
 
-// Fetch data on component mount
 onMounted(() => {
   if (props.data && props.data.length > 0) {
     revenueData.value = props.data
@@ -228,135 +178,84 @@ onMounted(() => {
   }
 })
 
-// Watch for prop changes
-watch(
-  () => props.data,
-  () => {
-    if (props.data && props.data.length > 0) {
-      revenueData.value = props.data
-      updateChart()
-    }
-  },
-  { deep: true },
-)
+watch(() => props.data, () => {
+  if (props.data && props.data.length > 0) {
+    revenueData.value = props.data
+    updateChart()
+  }
+}, { deep: true })
 </script>
 
 <template>
-  <div
-    class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8 hover:shadow-md transition-shadow duration-300"
-  >
+  <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-5">
     <!-- Header Section -->
-    <div
-      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-5 border-b border-gray-100"
-    >
-      <div class="flex-1">
-        <h3 class="text-xl sm:text-2xl font-bold text-slate-900">Revenue Analytics</h3>
-        <p class="text-sm text-slate-600 mt-1.5">Financial performance and revenue trends</p>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+      <div>
+        <h3 class="text-base font-black text-slate-900 dark:text-white">Revenue Analytics</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Financial performance & revenue trends</p>
       </div>
-      <div class="flex gap-2 flex-wrap">
+
+      <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800">
         <button
           @click="setTimeframe('week')"
-          class="px-3 py-2 text-xs font-semibold rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-          :class="selectedTimeframe === 'week' ? 'bg-blue-50 border-blue-200 text-blue-700' : ''"
+          :class="[
+            'px-3 py-1 text-xs font-black rounded-xl transition cursor-pointer',
+            selectedTimeframe === 'week' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          ]"
         >
           Week
         </button>
         <button
           @click="setTimeframe('month')"
-          class="px-3 py-2 text-xs font-semibold rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-          :class="selectedTimeframe === 'month' ? 'bg-blue-50 border-blue-200 text-blue-700' : ''"
+          :class="[
+            'px-3 py-1 text-xs font-black rounded-xl transition cursor-pointer',
+            selectedTimeframe === 'month' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          ]"
         >
           Month
         </button>
         <button
           @click="setTimeframe('year')"
-          class="px-3 py-2 text-xs font-semibold rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-          :class="selectedTimeframe === 'year' ? 'bg-blue-50 border-blue-200 text-blue-700' : ''"
+          :class="[
+            'px-3 py-1 text-xs font-black rounded-xl transition cursor-pointer',
+            selectedTimeframe === 'year' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          ]"
         >
           Year
         </button>
       </div>
     </div>
 
-    <!-- Error State -->
-    <div v-if="error && !loading" class="p-4 bg-amber-50 border border-amber-200 rounded-lg mb-6">
-      <div class="flex items-start gap-3">
-        <span class="material-symbols-rounded text-amber-600 flex-shrink-0">warning</span>
-        <div>
-          <p class="text-sm font-medium text-amber-800">{{ error }}</p>
-          <p class="text-xs text-amber-700 mt-1">Using cached data</p>
-        </div>
+    <!-- Key Revenue Metrics Pills -->
+    <div class="grid grid-cols-3 gap-3">
+      <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+        <p class="text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400">Total Revenue</p>
+        <p class="text-lg font-black text-slate-900 dark:text-white mt-0.5">
+          {{ (totalRevenue / 1000).toFixed(1) }}k ETB
+        </p>
       </div>
-    </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
-      <div
-        class="p-3 sm:p-4 bg-gradient-to-br from-teal-50 to-teal-100/30 rounded-lg border border-teal-200"
-      >
-        <p class="text-xs text-teal-700 font-semibold uppercase tracking-wide">Total Revenue</p>
-        <p class="text-xl sm:text-2xl font-bold text-teal-900 mt-1">
-          <span v-if="loading" class="text-base">Loading...</span>
-          <span v-else>${{ (totalRevenue / 1000).toFixed(1) }}k</span>
+      <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+        <p class="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400">Average</p>
+        <p class="text-lg font-black text-slate-900 dark:text-white mt-0.5">
+          {{ (averageRevenue / 1000).toFixed(1) }}k ETB
         </p>
       </div>
-      <div
-        class="p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-blue-100/30 rounded-lg border border-blue-200"
-      >
-        <p class="text-xs text-blue-700 font-semibold uppercase tracking-wide">Average</p>
-        <p class="text-xl sm:text-2xl font-bold text-blue-900 mt-1">
-          <span v-if="loading" class="text-base">Loading...</span>
-          <span v-else>${{ (averageRevenue / 1000).toFixed(1) }}k</span>
-        </p>
-      </div>
-      <div
-        class="p-3 sm:p-4 bg-gradient-to-br from-emerald-50 to-emerald-100/30 rounded-lg border border-emerald-200"
-      >
-        <p class="text-xs text-emerald-700 font-semibold uppercase tracking-wide">Peak Revenue</p>
-        <p class="text-xl sm:text-2xl font-bold text-emerald-900 mt-1">
-          <span v-if="loading" class="text-base">Loading...</span>
-          <span v-else>${{ (maxRevenue / 1000).toFixed(1) }}k</span>
+
+      <div class="p-3 bg-purple-500/10 border border-purple-500/20 rounded-2xl">
+        <p class="text-[10px] font-bold uppercase text-purple-600 dark:text-purple-400">Peak Revenue</p>
+        <p class="text-lg font-black text-slate-900 dark:text-white mt-0.5">
+          {{ (maxRevenue / 1000).toFixed(1) }}k ETB
         </p>
       </div>
     </div>
 
-    <!-- Chart Container -->
-    <div class="overflow-x-auto -mx-4 sm:-mx-6 lg:-mx-8">
-      <div class="px-4 sm:px-6 lg:px-8">
-        <div class="min-h-80 sm:min-h-96">
-        <div v-if="loading" class="flex items-center justify-center h-full">
-            <div class="text-center">
-              <!-- UNIFIED CYAN + YELLOW SPINNER -->
-              <div class="relative w-10 h-10 mx-auto mb-3">
-                <!-- Static background - BRIGHT CYAN -->
-                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
-                </svg>
-                
-                <!-- Animated spinner - BRIGHT YELLOW -->
-                <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
-                  <svg viewBox="0 0 100 100" class="w-full h-full">
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
-                  </svg>
-                </div>
-              </div>
-              <p class="text-slate-600 dark:text-slate-400 font-medium">Loading chart data...</p>
-            </div>
-          </div>
-          <Bar v-else :data="chartData" :options="chartOptions" />
-        </div>
+    <!-- Bar Chart Canvas -->
+    <div class="h-64 relative w-full">
+      <Bar v-if="!loading" :data="chartData" :options="chartOptions" />
+      <div v-else class="flex items-center justify-center h-full text-xs font-bold text-slate-400">
+        Loading chart...
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-</style>

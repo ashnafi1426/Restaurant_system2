@@ -97,7 +97,6 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
   const fetchTableById = async (id: string) => {
     loading.value = true
     error.value = null
-
     try {
       const table = await restaurantTableService.getTableById(id)
       currentTable.value = table
@@ -198,9 +197,19 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
 
   const fetchStatistics = async () => {
     try {
-      statistics.value = await restaurantTableService.getStatistics()
+      console.log('📊 [STORE] Fetching statistics...')
+      const response = await restaurantTableService.getStatistics()
+      console.log('📊 [STORE] Statistics response:', response)
+      
+      // Extract data from response wrapper
+      if (response && response.data) {
+        statistics.value = response.data
+        console.log('📊 [STORE] Statistics loaded:', statistics.value)
+      } else {
+        console.warn('📊 [STORE] Invalid statistics response structure')
+      }
     } catch (err: any) {
-      console.error('Error fetching statistics:', err)
+      console.error('📊 [STORE] Error fetching statistics:', err)
     }
   }
 
@@ -221,9 +230,9 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
     }
   }
 
-  const downloadQRCode = (table: RestaurantTable) => {
-    if (table.qr_code_url) {
-      restaurantTableService.downloadQRCode(table.qr_code_url, table.table_number)
+  const downloadQRCode = async (table: RestaurantTable) => {
+    if (table) {
+      await restaurantTableService.downloadQRCode(table)
     }
   }
 

@@ -17,13 +17,10 @@ const router = useRouter()
 const store = useCheckInStore()
 const reservationStore = useReservationStore()
 const authStore = useAuthStore()
-
 const showSuccessMessage = ref(false)
 const successMessage = ref('')
 const showCheckInDialog = ref(false)
-
 const selectedCheckIn = ref<CheckIn | null>(null)
-
 const filters = ref({
   search: '',
   guest_id: '',
@@ -31,14 +28,10 @@ const filters = ref({
   page: 1,
   per_page: 10,
 })
-
-// User Role Display Name
 const userRoleName = computed(() => {
   const role = String(authStore.user?.role || 'Staff').toLowerCase()
   return role.charAt(0).toUpperCase() + role.slice(1)
 })
-
-// Get only confirmed reservations for check-in
 const availableReservations = computed(() => {
   const filtered = reservationStore.reservations.filter((r: any) => r.status === 'confirmed')
   return filtered
@@ -74,7 +67,6 @@ const handlePerPageChange = async (newPerPage: number) => {
   filters.value.page = 1
   await loadCheckIns()
 }
-
 const loadReservations = async () => {
   try {
     await reservationStore.fetchReservations()
@@ -165,7 +157,7 @@ onMounted(async () => {
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6">
+    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans">
       <!-- Check-In Dialog -->
       <CheckInDialog
         v-model="showCheckInDialog"
@@ -199,23 +191,23 @@ onMounted(async () => {
       </nav>
 
       <!-- Header -->
-      <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-xl p-8 text-white">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-6 sm:p-8">
         <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div class="flex items-center gap-2 mb-2">
-              <h1 class="text-3xl sm:text-4xl font-bold">Guest Check-In Management</h1>
-              <span class="text-xs uppercase font-extrabold bg-white/20 backdrop-blur-md text-white px-2.5 py-1 rounded-full">
+              <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">Guest Check-In Management</h1>
+              <span class="text-xs uppercase font-extrabold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-full">
                 {{ userRoleName }}
               </span>
             </div>
-            <p class="text-blue-100 text-base sm:text-lg">
+            <p class="text-slate-600 dark:text-slate-400 text-base sm:text-lg">
               Track guest arrivals, manage check-ins, and monitor occupancy in real-time
             </p>
           </div>
           <div class="flex gap-3">
             <button
               @click="openNewCheckInDialog"
-              class="flex items-center gap-2 rounded-xl bg-white text-blue-600 px-6 py-3 hover:bg-blue-50 transition shadow-lg font-bold cursor-pointer"
+              class="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 dark:from-blue-700 dark:to-blue-800 dark:hover:from-blue-600 dark:hover:to-blue-700 text-white px-6 py-3 transition shadow-sm hover:shadow-md font-semibold cursor-pointer"
             >
               <span class="material-symbols-rounded text-xl">login</span>
               <span>New Check-In</span>
@@ -235,9 +227,6 @@ onMounted(async () => {
               <p class="text-sm font-medium text-slate-600">Total Check-Ins</p>
               <h2 class="mt-2 text-3xl font-bold text-slate-900">{{ totalCheckIns }}</h2>
             </div>
-            <div class="rounded-full bg-blue-100 p-3">
-              <span class="material-symbols-rounded text-3xl text-blue-600">assignment_ind</span>
-            </div>
           </div>
         </div>
 
@@ -249,9 +238,6 @@ onMounted(async () => {
             <div>
               <p class="text-sm font-medium text-slate-600">Active Guests</p>
               <h2 class="mt-2 text-3xl font-bold text-slate-900">{{ activeGuestCount }}</h2>
-            </div>
-            <div class="rounded-full bg-green-100 p-3">
-              <span class="material-symbols-rounded text-3xl text-green-600">person_check</span>
             </div>
           </div>
         </div>
@@ -265,21 +251,18 @@ onMounted(async () => {
               <p class="text-sm font-medium text-slate-600">Checked Out</p>
               <h2 class="mt-2 text-3xl font-bold text-slate-900">{{ checkedOutCount }}</h2>
             </div>
-            <div class="rounded-full bg-purple-100 p-3">
-              <span class="material-symbols-rounded text-3xl text-purple-600">logout</span>
-            </div>
           </div>
         </div>
       </div>
 
       <!-- Search & Filter Section -->
-      <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs">
         <div class="flex flex-col gap-4">
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-slate-800">Search & Filter</h3>
+            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Search & Filter</h3>
             <button
               @click="resetFilters"
-              class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 border border-slate-200 rounded-lg hover:bg-slate-50 transition cursor-pointer"
+              class="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
             >
               Reset Filters
             </button>
@@ -287,7 +270,7 @@ onMounted(async () => {
 
           <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-2">
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Search guest name, room, or booking reference
               </label>
               <input
@@ -295,29 +278,29 @@ onMounted(async () => {
                 @keyup.enter="() => search(filters)"
                 type="text"
                 placeholder="Enter search term..."
-                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white text-xs rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-2">Guest ID</label>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Guest ID</label>
               <input
                 v-model="filters.guest_id"
                 @keyup.enter="() => search(filters)"
                 type="text"
                 placeholder="Filter by Guest ID..."
-                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white text-xs rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-2">Room ID</label>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Room ID</label>
               <input
                 v-model="filters.room_id"
                 @keyup.enter="() => search(filters)"
                 type="text"
                 placeholder="Filter by Room ID..."
-                class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3.5 py-2 border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white text-xs rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
             </div>
           </div>
@@ -335,11 +318,11 @@ onMounted(async () => {
       </div>
 
       <!-- Check-In Records Table -->
-      <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden space-y-0">
-        <div class="border-b border-slate-200 bg-slate-50 px-6 py-4 flex items-center justify-between">
+      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden space-y-0">
+        <div class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 px-4 sm:px-6 py-4 flex items-center justify-between">
           <div>
-            <h2 class="text-lg font-semibold text-slate-800">Check-In Records</h2>
-            <p class="text-sm text-slate-500 mt-0.5">
+            <h2 class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">Check-In Records</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
               Showing page {{ store.pagination.current_page }} of {{ store.pagination.last_page }} ({{ store.pagination.total }} total records)
             </p>
           </div>

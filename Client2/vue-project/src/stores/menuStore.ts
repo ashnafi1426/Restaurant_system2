@@ -38,27 +38,34 @@ export const useMenuStore = defineStore('menu', () => {
     try {
       const response = await menuService.getMenus(filters)
       console.log('Menu API Response:', response.data)
-      if (response.data.data && response.data.meta) {
-        menuItems.value = Array.isArray(response.data.data) ? response.data.data : []
-        // Store pagination metadata
+
+      const raw = response.data
+      if (raw.data && Array.isArray(raw.data)) {
+        menuItems.value = raw.data
+        const meta = raw.meta || raw.pagination || raw
         pagination.value = {
-          current_page: response.data.meta.current_page,
-          last_page: response.data.meta.last_page,
-          per_page: response.data.meta.per_page,
-          total: response.data.meta.total,
+          current_page: meta.current_page || 1,
+          last_page: meta.last_page || 1,
+          per_page: meta.per_page || 10,
+          total: meta.total !== undefined ? meta.total : menuItems.value.length,
+          from: meta.from !== undefined ? meta.from : (menuItems.value.length > 0 ? 1 : 0),
+          to: meta.to !== undefined ? meta.to : menuItems.value.length,
         }
-        console.log('Pagination:', pagination.value)
-      } else if (response.data.data) {
-        menuItems.value = Array.isArray(response.data.data) ? response.data.data : []
-      } else if (Array.isArray(response.data)) {
-        // Format: [...] direct array
-        menuItems.value = response.data
+      } else if (Array.isArray(raw)) {
+        menuItems.value = raw
+        pagination.value = {
+          current_page: 1,
+          last_page: 1,
+          per_page: raw.length || 10,
+          total: raw.length,
+          from: raw.length > 0 ? 1 : 0,
+          to: raw.length,
+        }
       } else {
-        console.warn('Unexpected response format:', response.data)
         menuItems.value = []
       }
 
-      console.log(' Menu Items Loaded:', menuItems.value.length, 'items')
+      console.log(' Menu Items Loaded:', menuItems.value.length, 'items', pagination.value)
     } catch (error) {
       console.error('❌ Error fetching menu items:', error)
       menuItems.value = []

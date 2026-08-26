@@ -40,36 +40,35 @@ onMounted(async () => {
 })
 
 const form = reactive({
-  first_name: props.initialData?.first_name || '',
-  last_name: props.initialData?.last_name || '',
-  email: props.initialData?.email || '',
-  phone: props.initialData?.phone || '',
-  password: '',
-  password_confirmation: '',
-  role: props.initialData?.role || 'receptionist',
-  is_active: props.initialData?.is_active ?? true,
+  first_name: '',
+  last_name: '',
+  email: '',
+  phone: '',
+  role: 'receptionist',
+  is_active: true,
 })
+
+const populateForm = (data: any) => {
+  if (!data) return
+  form.first_name = data.first_name || ''
+  form.last_name = data.last_name || ''
+  form.email = data.email || ''
+  form.phone = data.phone || ''
+  form.role = data.role || 'receptionist'
+  form.is_active = data.is_active ?? true
+}
+
 // Watch for changes in initial data (for edit mode)
 watch(
   () => props.initialData,
   (newData) => {
-    if (newData) {
-      form.first_name = newData.first_name || ''
-      form.last_name = newData.last_name || ''
-      form.email = newData.email || ''
-      form.phone = newData.phone || ''
-      form.role = newData.role || 'receptionist'
-      form.is_active = newData.is_active ?? true
-      // Clear password fields on edit mode data load
-      form.password = ''
-      form.password_confirmation = ''
-    }
+    populateForm(newData)
   },
-  { deep: true },
+  { immediate: true, deep: true },
 )
 
 const saveUser = () => {
-  emit('submit', form)
+  emit('submit', { ...form })
 }
 
 const getFieldError = (fieldName: string): string | null => {
@@ -171,58 +170,7 @@ const getFieldError = (fieldName: string): string | null => {
 
     
 
-    <!-- Password Fields (for editing existing users only) -->
-    <div v-if="isEditMode" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
-      <div>
-        <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900">
-          Password <span class="text-slate-400 text-xs">(Optional)</span>
-        </label>
-        <input
-          v-model="form.password"
-          type="password"
-          minlength="8"
-          placeholder="Leave blank to keep current"
-          :class="[
-            'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
-            getFieldError('password') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
-          ]"
-          :disabled="loading"
-        />
-        <p class="mt-1 text-xs text-slate-500">Only fill to change password</p>
-        <p
-          v-if="getFieldError('password')"
-          class="mt-1 text-xs text-red-600 flex items-center gap-1"
-        >
-          <span>❌</span> {{ getFieldError('password') }}
-        </p>
-      </div>
 
-      <div>
-        <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900">
-          Confirm Password <span v-if="form.password !== ''" class="text-red-500">*</span>
-        </label>
-        <input
-          v-model="form.password_confirmation"
-          type="password"
-          :required="form.password !== ''"
-          minlength="8"
-          placeholder="Re-enter password"
-          :class="[
-            'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
-            getFieldError('password_confirmation')
-              ? 'border-red-500 ring-2 ring-red-200'
-              : 'border-slate-300',
-          ]"
-          :disabled="loading"
-        />
-        <p
-          v-if="getFieldError('password_confirmation')"
-          class="mt-1 text-xs text-red-600 flex items-center gap-1"
-        >
-          <span>❌</span> {{ getFieldError('password_confirmation') }}
-        </p>
-      </div>
-    </div>
 
     <!-- Role -->
     <div>
@@ -245,12 +193,12 @@ const getFieldError = (fieldName: string): string | null => {
           </option>
         </template>
         <template v-else>
-          <option value="admin">👑 Admin</option>
-          <option value="receptionist">🏨 Receptionist</option>
-          <option value="cashier">💳 Cashier</option>
-          <option value="chef">👨‍🍳 Chef</option>
-          <option value="manager">📊 Manager</option>
-          <option value="waiter">🍽️ Waiter</option>
+          <option value="admin">Admin</option>
+          <option value="receptionist">Receptionist</option>
+          <option value="cashier">Cashier</option>
+          <option value="chef">Chef</option>
+          <option value="manager">Manager</option>
+          <option value="waiter">Waiter</option>
         </template>
       </select>
       <p v-if="getFieldError('role')" class="mt-1 text-xs text-red-600 flex items-center gap-1">

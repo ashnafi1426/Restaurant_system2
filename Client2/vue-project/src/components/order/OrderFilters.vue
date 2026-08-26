@@ -1,24 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-
 import type { OrderFilters, OrderStatus, PaymentType } from '@/types/order'
-
-/*
-|--------------------------------------------------------------------------
-| Props
-|--------------------------------------------------------------------------
-*/
+import { Search, RotateCcw, Filter } from 'lucide-vue-next'
 
 const props = defineProps<{
   filters: OrderFilters
   loading?: boolean
 }>()
-
-/*
-|--------------------------------------------------------------------------
-| Emits
-|--------------------------------------------------------------------------
-*/
 
 const emit = defineEmits<{
   (e: 'update:filters', value: OrderFilters): void
@@ -26,83 +14,34 @@ const emit = defineEmits<{
   (e: 'reset'): void
 }>()
 
-/*
-|--------------------------------------------------------------------------
-| Two-way Binding
-|--------------------------------------------------------------------------
-*/
-
 const localFilters = computed({
   get: () => props.filters,
-
   set: (value: OrderFilters) => {
     emit('update:filters', value)
   },
 })
 
-/*
-|--------------------------------------------------------------------------
-| Select Options
-|--------------------------------------------------------------------------
-*/
-
 const statusOptions: {
   label: string
   value: OrderStatus | ''
 }[] = [
-  {
-    label: 'All Status',
-    value: '',
-  },
-  {
-    label: 'Pending',
-    value: 'pending',
-  },
-  {
-    label: 'Preparing',
-    value: 'preparing',
-  },
-  {
-    label: 'Ready',
-    value: 'ready',
-  },
-  {
-    label: 'Served',
-    value: 'served',
-  },
-  {
-    label: 'Cancelled',
-    value: 'cancelled',
-  },
+  { label: 'All Statuses', value: '' },
+  { label: 'Pending', value: 'pending' },
+  { label: 'Preparing', value: 'preparing' },
+  { label: 'Ready', value: 'ready' },
+  { label: 'Served', value: 'served' },
+  { label: 'Cancelled', value: 'cancelled' },
 ]
 
 const paymentOptions: {
   label: string
   value: PaymentType | ''
 }[] = [
-  {
-    label: 'All Payments',
-    value: '',
-  },
-  {
-    label: 'Room Charge',
-    value: 'room_charge',
-  },
-  {
-    label: 'Cash',
-    value: 'cash',
-  },
-  {
-    label: 'Card',
-    value: 'card',
-  },
+  { label: 'All Payments', value: '' },
+  { label: 'Room Charge', value: 'room_charge' },
+  { label: 'Cash', value: 'cash' },
+  { label: 'Card', value: 'card' },
 ]
-
-/*
-|--------------------------------------------------------------------------
-| Methods
-|--------------------------------------------------------------------------
-*/
 
 function search(): void {
   emit('search')
@@ -114,43 +53,42 @@ function reset(): void {
 </script>
 
 <template>
-  <div class="rounded-xl border border-gray-200 bg-white p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm">
-    <div
-      class="grid grid-cols-1 gap-3 sm:gap-4 md:gap-5 lg:gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
-    >
-      <!-- ===================================================== -->
-      <!-- Search -->
-      <!-- ===================================================== -->
+  <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs font-sans">
+    <div class="flex items-center gap-2 mb-4">
+      <div class="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
+        <Filter class="w-4 h-4" />
+      </div>
+      <h3 class="text-sm font-black text-slate-900 dark:text-white">Filter & Search Orders</h3>
+    </div>
 
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
+      <!-- Search Input -->
       <div class="lg:col-span-2">
-        <label
-          class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700"
-        >
+        <label class="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
           Search
         </label>
-
-        <input
-          v-model="localFilters.search"
-          type="text"
-          placeholder="Order number, guest..."
-          class="w-full rounded-lg border border-gray-300 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-10"
-        />
+        <div class="relative">
+          <Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            v-model="localFilters.search"
+            @input="search"
+            @keyup.enter="search"
+            type="text"
+            placeholder="Order number, guest name..."
+            class="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white pl-9 pr-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+          />
+        </div>
       </div>
 
-      <!-- ===================================================== -->
-      <!-- Status -->
-      <!-- ===================================================== -->
-
+      <!-- Status Dropdown -->
       <div>
-        <label
-          class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700"
-        >
+        <label class="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
           Status
         </label>
-
         <select
           v-model="localFilters.status"
-          class="w-full rounded-lg border border-gray-300 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-10"
+          @change="search"
+          class="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent transition cursor-pointer font-semibold"
         >
           <option v-for="status in statusOptions" :key="status.value" :value="status.value">
             {{ status.label }}
@@ -158,20 +96,15 @@ function reset(): void {
         </select>
       </div>
 
-      <!-- ===================================================== -->
-      <!-- Payment -->
-      <!-- ===================================================== -->
-
+      <!-- Payment Dropdown -->
       <div>
-        <label
-          class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700"
-        >
+        <label class="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
           Payment
         </label>
-
         <select
           v-model="localFilters.payment_type"
-          class="w-full rounded-lg border border-gray-300 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base bg-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-10"
+          @change="search"
+          class="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent transition cursor-pointer font-semibold"
         >
           <option v-for="payment in paymentOptions" :key="payment.value" :value="payment.value">
             {{ payment.label }}
@@ -179,66 +112,53 @@ function reset(): void {
         </select>
       </div>
 
-      <!-- ===================================================== -->
       <!-- Date From -->
-      <!-- ===================================================== -->
-
       <div>
-        <label
-          class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700"
-        >
+        <label class="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
           From
         </label>
-
         <input
           v-model="localFilters.date_from"
+          @change="search"
           type="date"
-          class="w-full rounded-lg border border-gray-300 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-10"
+          class="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
         />
       </div>
 
-      <!-- ===================================================== -->
       <!-- Date To -->
-      <!-- ===================================================== -->
-
       <div>
-        <label
-          class="mb-1.5 sm:mb-2 block text-xs sm:text-sm md:text-base font-medium text-gray-700"
-        >
+        <label class="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
           To
         </label>
-
         <input
           v-model="localFilters.date_to"
+          @change="search"
           type="date"
-          class="w-full rounded-lg border border-gray-300 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-10"
+          class="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
         />
       </div>
     </div>
 
-    <!-- ======================================================= -->
-    <!-- Actions -->
-    <!-- ======================================================= -->
-
-    <div
-      class="mt-4 sm:mt-5 md:mt-6 lg:mt-8 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-end"
-    >
+    <!-- Action Buttons -->
+    <div class="mt-5 flex items-center justify-end gap-3">
       <button
         type="button"
         :disabled="loading"
-        class="rounded-lg border border-gray-300 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 min-h-10"
+        class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-800 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition disabled:opacity-50 cursor-pointer"
         @click="reset"
       >
-        Reset
+        <RotateCcw class="w-3.5 h-3.5" />
+        <span>Reset</span>
       </button>
 
       <button
         type="button"
         :disabled="loading"
-        class="rounded-lg bg-indigo-600 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 min-h-10"
+        class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 px-5 py-2 text-xs font-bold text-white shadow-md shadow-blue-600/20 transition disabled:opacity-50 cursor-pointer"
         @click="search"
       >
-        Search
+        <Search class="w-3.5 h-3.5" />
+        <span>Search</span>
       </button>
     </div>
   </div>

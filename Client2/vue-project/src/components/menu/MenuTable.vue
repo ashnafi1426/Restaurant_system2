@@ -50,7 +50,7 @@
                   :class="getCategoryBadgeClass(item.category)"
                   class="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-extrabold tracking-wider uppercase border"
                 >
-                  {{ item.category }}
+                  {{ getCategoryName(item.category) }}
                 </span>
               </td>
               <!-- Price -->
@@ -247,7 +247,7 @@
                   :class="getCategoryBadgeClass(item.category)"
                   class="inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-bold tracking-wider uppercase border"
                 >
-                  {{ item.category }}
+                  {{ getCategoryName(item.category) }}
                 </span>
               </td>
               <!-- Status -->
@@ -413,7 +413,7 @@
                   :class="getCategoryBadgeClass(item.category)"
                   class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold tracking-wider uppercase border"
                 >
-                  {{ item.category }}
+                  {{ getCategoryName(item.category) }}
                 </span>
                 <span class="font-black text-slate-900 text-sm font-mono">
                   ${{
@@ -570,9 +570,18 @@ function toggleRowMenu(id: number) {
   activeMenuId.value = activeMenuId.value === id ? null : id
 }
 
-function getCategoryBadgeClass(category: string) {
-  if (!category) return 'bg-slate-100 text-slate-500 border-slate-200'
-  switch (category.toLowerCase()) {
+function getCategoryName(category: any): string {
+  if (!category) return 'General'
+  if (typeof category === 'string') return category
+  if (typeof category === 'object') {
+    return category.name || category.slug || category.category_name || 'General'
+  }
+  return String(category)
+}
+
+function getCategoryBadgeClass(category: any) {
+  const catName = getCategoryName(category).toLowerCase()
+  switch (catName) {
     case 'dinner':
       return 'bg-emerald-50 text-emerald-600 border-emerald-100/60'
     case 'lunch':
@@ -582,9 +591,12 @@ function getCategoryBadgeClass(category: string) {
     case 'drinks':
       return 'bg-orange-50 text-orange-600 border-orange-100/60'
     case 'dessert':
+    case 'desserts':
       return 'bg-rose-50 text-rose-600 border-rose-100/60'
+    case 'pasta':
+      return 'bg-amber-50 text-amber-600 border-amber-100/60'
     default:
-      return 'bg-slate-50 text-slate-500 border-slate-200'
+      return 'bg-slate-50 text-slate-600 border-slate-200'
   }
 }
 

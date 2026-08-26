@@ -4,9 +4,9 @@
     <div class="max-w-2xl mx-auto px-4">
       <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
         <!-- Header -->
-        <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-8 py-6">
+        <div class="bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 px-8 py-6">
           <h1 class="text-3xl font-bold text-white">Payment Checkout</h1>
-          <p class="text-blue-100 mt-2">Complete your payment securely</p>
+          <p class="text-amber-100 mt-2">Complete your payment securely</p>
         </div>
 
         <!-- Content -->
@@ -166,7 +166,7 @@
               <button
                 type="submit"
                 :disabled="paymentStore.isInitializing || paymentStore.isLoading"
-                class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold py-3.5 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
               >
                 <span
                   v-if="paymentStore.isInitializing || paymentStore.isLoading"

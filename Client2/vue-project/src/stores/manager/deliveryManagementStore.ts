@@ -30,16 +30,16 @@ export const useDeliveryManagementStore = defineStore('deliveryManagement', () =
       console.log('Page parameter:', page)
       console.log('perPage.value:', perPage.value)
       
-      const params = {
+      const params: Record<string, any> = {
         page,
         per_page: perPage.value,
-        status: filterStatus.value,
-        waiter_id: filterWaiterId.value,
-        floor_id: filterFloorId.value,
-        assignment_type: filterType.value,
-        start_date: startDate.value,
-        end_date: endDate.value,
       }
+      if (filterStatus.value) params.status = filterStatus.value
+      if (filterWaiterId.value) params.waiter_id = filterWaiterId.value
+      if (filterFloorId.value) params.floor_id = filterFloorId.value
+      if (filterType.value) params.assignment_type = filterType.value
+      if (startDate.value) params.start_date = startDate.value
+      if (endDate.value) params.end_date = endDate.value
       
       console.log('=== STORE: Parameters object about to send ===')
       console.log('Full params object:', params)

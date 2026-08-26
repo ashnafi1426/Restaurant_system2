@@ -1,8 +1,7 @@
 <script setup lang="ts">
-// MenuCategoryTabs - Category Filtering Component
-// NO MOCK DATA: Categories derived from actual menu items in store
 import { useMenuStore } from '@/stores/menuStore'
 import { computed } from 'vue'
+import { Folder, Sun, Utensils, Soup, Wine, Cake, Leaf, Layers, Sandwich, Plus, UtensilsCrossed, ArrowRight } from 'lucide-vue-next'
 
 defineProps<{
   selected: string | null
@@ -15,34 +14,52 @@ const emit = defineEmits<{
 
 const store = useMenuStore()
 
-// UI Metadata (icons and labels using pure characters/emojis)
-const categoryIcons: Record<string, string> = {
-  breakfast: '☀️',
-  lunch: '🍔',
-  dessert: '🍦',
-  drinks: '🍹',
-  dinner: '🍲',
-}
-
 const categoryLabels: Record<string, string> = {
   breakfast: 'Breakfast',
   lunch: 'Lunch',
   dinner: 'Dinner',
   drinks: 'Drinks',
   dessert: 'Dessert',
+  appetizers: 'Appetizers',
+  beverages: 'Beverages',
+  pasta: 'Pasta',
+  sandwiches: 'Sandwiches',
+  soups: 'Soups',
 }
 
-// BACKEND-DRIVEN: Categories generated from actual menu items
+const iconMap: Record<string, any> = {
+  breakfast: Sun,
+  lunch: Utensils,
+  dinner: Soup,
+  drinks: Wine,
+  beverages: Wine,
+  dessert: Cake,
+  desserts: Cake,
+  appetizers: Leaf,
+  pasta: Layers,
+  sandwiches: Sandwich,
+  soups: Soup,
+  newfood: UtensilsCrossed,
+}
+
+function getCategoryIcon(cat: string) {
+  return iconMap[cat?.toLowerCase()] || Utensils
+}
+
 const categories = computed(() => {
   const uniqueCategories = new Set(
-    store.menuItems.map((item) => item.category?.toLowerCase()).filter(Boolean),
+    store.menuItems.map((item) => {
+      const c = item.category
+      if (!c) return ''
+      return (typeof c === 'object' ? (c.name || c.slug) : String(c)).toLowerCase()
+    }).filter(Boolean),
   )
   return Array.from(uniqueCategories)
     .sort()
     .map((cat) => ({
       value: cat,
       label: categoryLabels[cat] || cat.charAt(0).toUpperCase() + cat.slice(1),
-      icon: categoryIcons[cat] || '🍽️',
+      iconComponent: getCategoryIcon(cat),
     }))
 })
 </script>
@@ -50,14 +67,14 @@ const categories = computed(() => {
 <template>
   <div>
     <!-- Header Row Matching Layout -->
-    <div class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 px-4 sm:px-0">
-      <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">Filter by Category</h3>
+    <div class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 px-1 sm:px-0">
+      <h3 class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Filter by Category</h3>
       <button
         @click="emit('select', null)"
-        class="text-indigo-600 hover:text-indigo-700 font-bold text-xs transition flex items-center gap-1"
+        class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 font-bold text-xs transition flex items-center gap-1 cursor-pointer"
       >
-        View All
-        <span class="text-sm">→</span>
+        <span>View All</span>
+        <ArrowRight class="w-3.5 h-3.5" />
       </button>
     </div>
 
@@ -67,13 +84,13 @@ const categories = computed(() => {
       <button
         @click="emit('select', null)"
         :class="[
-          'px-3 sm:px-5 py-2 sm:py-2.5 min-h-10 rounded-lg sm:rounded-xl font-bold text-xs tracking-wide transition flex items-center gap-1.5 sm:gap-2 select-none',
+          'px-3.5 sm:px-5 py-2 sm:py-2.5 min-h-10 rounded-xl font-extrabold text-xs tracking-wide transition flex items-center gap-2 select-none cursor-pointer shadow-xs',
           selected === null
-            ? 'bg-slate-900 text-white shadow-sm'
-            : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50',
+            ? 'bg-amber-600 text-white shadow-amber-600/20'
+            : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-amber-500',
         ]"
       >
-        <span class="text-sm">📁</span>
+        <Folder class="w-4 h-4" />
         <span class="hidden sm:inline">All Items</span><span class="sm:hidden">All</span>
       </button>
 
@@ -83,22 +100,23 @@ const categories = computed(() => {
         :key="category.value"
         @click="emit('select', category.value)"
         :class="[
-          'px-3 sm:px-5 py-2 sm:py-2.5 min-h-10 rounded-lg sm:rounded-xl font-bold text-xs tracking-wide transition flex items-center gap-1.5 sm:gap-2 select-none whitespace-nowrap',
+          'px-3.5 sm:px-5 py-2 sm:py-2.5 min-h-10 rounded-xl font-extrabold text-xs tracking-wide transition flex items-center gap-2 select-none whitespace-nowrap cursor-pointer shadow-xs',
           selected === category.value
-            ? 'bg-teal-800 text-white shadow-sm'
-            : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50',
+            ? 'bg-amber-600 text-white shadow-amber-600/20'
+            : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-amber-500',
         ]"
       >
-        <span class="text-sm leading-none">{{ category.icon }}</span>
+        <component :is="category.iconComponent" class="w-4 h-4" />
         <span class="hidden sm:inline">{{ category.label }}</span>
+        <span class="sm:hidden capitalize">{{ category.label }}</span>
       </button>
 
       <!-- Action Create Category Pill Button -->
       <button
         @click="emit('manage-categories')"
-        class="px-3 sm:px-5 py-2 sm:py-2.5 min-h-10 rounded-lg sm:rounded-xl font-bold text-xs tracking-wide bg-slate-50 border border-slate-200 border-dashed text-slate-400 hover:border-slate-400 hover:text-slate-600 transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap"
+        class="px-3.5 sm:px-5 py-2 sm:py-2.5 min-h-10 rounded-xl font-extrabold text-xs tracking-wide bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 border-dashed text-slate-500 dark:text-slate-400 hover:border-amber-500 hover:text-amber-600 transition flex items-center gap-2 whitespace-nowrap cursor-pointer"
       >
-        <span>＋</span>
+        <Plus class="w-4 h-4" />
         <span class="hidden sm:inline">New Cat</span><span class="sm:hidden">New</span>
       </button>
     </div>

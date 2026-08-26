@@ -1,55 +1,39 @@
-import axios from 'axios'
+import api from '@/api/auth'
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api'
-const getAuthHeader = () => {
-  const token = localStorage.getItem('token')
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
+
 export async function getDashboardStats() {
-  const response = await axios.get(`${API_BASE_URL}/cashier/dashboard`, {
-    headers: getAuthHeader(),
-  })
+  const response = await api.get(`/cashier/dashboard`)
   return response.data
 }
+
 export async function getRecentPayments() {
-  const response = await axios.get(`${API_BASE_URL}/cashier/dashboard/recent-payments`, {
-    headers: getAuthHeader(),
-  })
+  const response = await api.get(`/cashier/dashboard/recent-payments`)
   return response.data
 }
 
 export async function getPendingPayments() {
-  const response = await axios.get(`${API_BASE_URL}/cashier/dashboard/pending-payments`, {
-    headers: getAuthHeader(),
-  })
+  const response = await api.get(`/cashier/dashboard/pending-payments`)
   return response.data
 }
 
 export async function getRecentTransactions() {
-  const response = await axios.get(`${API_BASE_URL}/cashier/dashboard/recent-transactions`, {
-    headers: getAuthHeader(),
-  })
+  const response = await api.get(`/cashier/dashboard/recent-transactions`)
   return response.data
 }
 
 export async function getRevenueChart() {
-  const response = await axios.get(`${API_BASE_URL}/cashier/dashboard/revenue-chart`, {
-    headers: getAuthHeader(),
-  })
+  const response = await api.get(`/cashier/dashboard/revenue-chart`)
   return response.data
 }
 
 export async function getPaymentMethodChart() {
-  const response = await axios.get(`${API_BASE_URL}/cashier/dashboard/payment-method-chart`, {
-    headers: getAuthHeader(),
-  })
+  const response = await api.get(`/cashier/dashboard/payment-method-chart`)
   return response.data
 }
 
 export async function getRefundRequests() {
-  const response = await axios.get(`${API_BASE_URL}/cashier/dashboard/refund-requests`, {
-    headers: getAuthHeader(),
-  })
+  const response = await api.get(`/cashier/dashboard/refund-requests`)
   return response.data
 }
 
@@ -72,24 +56,19 @@ export interface PaymentFilters {
 }
 
 export async function getPayments(filters?: PaymentFilters) {
-  const response = await axios.get(`${API_BASE_URL}/cashier/payments`, {
-    headers: getAuthHeader(),
+  const response = await api.get(`/cashier/payments`, {
     params: filters,
   })
   return response.data
 }
 
 export async function getPaymentById(id: string) {
-  const response = await axios.get(`${API_BASE_URL}/cashier/payments/${id}`, {
-    headers: getAuthHeader(),
-  })
+  const response = await api.get(`/cashier/payments/${id}`)
   return response.data
 }
 
 export async function refundPayment(id: string) {
-  const response = await axios.post(`${API_BASE_URL}/cashier/payments/${id}/refund`, {}, {
-    headers: getAuthHeader(),
-  })
+  const response = await api.post(`/cashier/payments/${id}/refund`, {})
   return response.data
 }
 export interface ReportFilters {
@@ -98,24 +77,21 @@ export interface ReportFilters {
   date_to?: string
 }
 export async function getRevenueReport(filters?: ReportFilters) {
-  const response = await axios.get(`${API_BASE_URL}/cashier/reports/revenue`, {
-    headers: getAuthHeader(),
+  const response = await api.get(`/cashier/reports/revenue`, {
     params: filters,
   })
   return response.data
 }
 
 export async function getPaymentReport(filters?: ReportFilters) {
-  const response = await axios.get(`${API_BASE_URL}/cashier/reports/payment`, {
-    headers: getAuthHeader(),
+  const response = await api.get(`/cashier/reports/payment`, {
     params: filters,
   })
   return response.data
 }
 
 export async function getRefundReport(filters?: ReportFilters) {
-  const response = await axios.get(`${API_BASE_URL}/cashier/reports/refund`, {
-    headers: getAuthHeader(),
+  const response = await api.get(`/cashier/reports/refund`, {
     params: filters,
   })
   return response.data

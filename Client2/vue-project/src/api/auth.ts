@@ -22,7 +22,7 @@ api.interceptors.request.use(
         `Bearer ${token.substring(0, 20)}...`,
       )
     } else {
-      console.warn(' [API INTERCEPTOR] No token found - request will fail with 401')
+      // Unauthenticated request (Public Guest Endpoint)
     }
 
     if (user) {
@@ -30,8 +30,11 @@ api.interceptors.request.use(
       console.log(' [API INTERCEPTOR] Current User Role:', userData.role)
     }
 
-    // Ensure proper content type for FormData
-    if (!(config.data instanceof FormData)) {
+    // Handle FormData - let browser set the Content-Type with boundary
+    if (config.data instanceof FormData) {
+      // Remove Content-Type to let browser set it automatically with boundary
+      delete config.headers['Content-Type']
+    } else {
       config.headers['Content-Type'] = 'application/json'
     }
 

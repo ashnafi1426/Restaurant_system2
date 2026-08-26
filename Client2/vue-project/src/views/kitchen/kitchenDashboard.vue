@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useKitchenStore } from '@/stores/kitchenStore'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
-import KitchenHeader from '@/components/kitchen/KitchenHeader.vue'
 import KitchenStats from '@/components/kitchen/KitchenStats.vue'
 import KitchenQueue from '@/components/kitchen/KitchenQueue.vue'
 import RecentOrdersActivity from '@/components/kitchen/RecentOrdersActivity.vue'
@@ -14,6 +14,7 @@ import KitchenOrderDetailsDialog from '@/components/kitchen/KitchenOrderDetailsD
 
 import type { KitchenOrder } from '@/types/kitchen'
 
+const router = useRouter()
 const kitchenStore = useKitchenStore()
 
 const {
@@ -105,32 +106,23 @@ onBeforeUnmount(() => {
 
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-slate-50 py-4 md:py-6">
-      <!-- Header -->
-      <KitchenHeader
-        :loading="loading"
-        :auto-refresh="autoRefresh"
-        @refresh="refreshDashboard"
-        @toggle-auto-refresh="autoRefresh = !autoRefresh"
-        @update-menu="() => {}"
-        @new-ticket="() => {}"
-      />
-
+    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 py-4 md:py-6 transition-colors duration-300">
       <!-- Statistics -->
-      <div class="pt-4 md:pt-6">
+      <div>
         <KitchenStats :statistics="statistics" :loading="loading" />
       </div>
 
       <!-- Main Content -->
-      <div class="grid grid-cols-1 gap-6 py-4 md:py-6 xl:grid-cols-12">
+      <div class="grid grid-cols-1 gap-6 py-4 md:py-6 lg:grid-cols-12">
         <!-- Kitchen Queue -->
-        <div class="xl:col-span-9">
+        <div class="lg:col-span-7 xl:col-span-8">
           <KitchenQueue
             :pending-orders="pendingOrders"
             :preparing-orders="preparingOrders"
             :ready-orders="readyOrders"
             :completed-orders="completedOrders"
             :processing="actionLoading !== null"
+            :loading="loading"
             @view="openOrder"
             @start="startPreparing"
             @ready="markReady"
@@ -139,7 +131,7 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- Right Sidebar -->
-        <div class="space-y-6 xl:col-span-3">
+        <div class="space-y-6 lg:col-span-5 xl:col-span-4">
           <RecentOrdersActivity :orders="allOrders" />
           <PopularMenu />
           <KitchenEfficiency :statistics="statistics" />

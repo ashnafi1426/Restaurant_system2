@@ -2,51 +2,56 @@
 import { computed } from 'vue'
 
 interface Props {
-  status: 'pending' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled'
+  status: 'pending' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled' | string
 }
 
 const props = defineProps<Props>()
 
-const badgeClass = computed(() => {
-  const classes: Record<string, string> = {
-    pending: 'bg-amber-100 text-amber-700 border-amber-200',
-    confirmed: 'bg-green-100 text-green-700 border-green-200',
-    checked_in: 'bg-blue-100 text-blue-700 border-blue-200',
-    checked_out: 'bg-slate-100 text-slate-700 border-slate-200',
-    cancelled: 'bg-red-100 text-red-700 border-red-200',
+const badgeConfig = computed(() => {
+  switch (props.status) {
+    case 'confirmed':
+      return {
+        label: 'Confirmed',
+        dot: 'bg-emerald-500',
+        styles: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+      }
+    case 'checked_in':
+      return {
+        label: 'Checked In',
+        dot: 'bg-blue-500 animate-pulse',
+        styles: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
+      }
+    case 'checked_out':
+      return {
+        label: 'Checked Out',
+        dot: 'bg-slate-400',
+        styles: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+      }
+    case 'cancelled':
+      return {
+        label: 'Cancelled',
+        dot: 'bg-rose-500',
+        styles: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+      }
+    case 'pending':
+    default:
+      return {
+        label: 'Pending',
+        dot: 'bg-amber-500',
+        styles: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+      }
   }
-  return classes[props.status] || classes.pending
-})
-
-const statusIcon = computed(() => {
-  const icons: Record<string, string> = {
-    pending: 'schedule',
-    confirmed: 'check_circle',
-    checked_in: 'login',
-    checked_out: 'logout',
-    cancelled: 'cancel',
-  }
-  return icons[props.status] || 'help'
-})
-
-const statusLabel = computed(() => {
-  const labels: Record<string, string> = {
-    pending: 'Pending',
-    confirmed: 'Confirmed',
-    checked_in: 'Checked In',
-    checked_out: 'Checked Out',
-    cancelled: 'Cancelled',
-  }
-  return labels[props.status] || 'Unknown'
 })
 </script>
 
 <template>
   <span
-    :class="badgeClass"
-    class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border"
+    :class="[
+      'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border select-none transition-all whitespace-nowrap',
+      badgeConfig.styles
+    ]"
   >
-    <span class="material-symbols-rounded text-sm">{{ statusIcon }}</span>
-    {{ statusLabel }}
+    <span :class="['w-1.5 h-1.5 rounded-full flex-shrink-0', badgeConfig.dot]"></span>
+    <span>{{ badgeConfig.label }}</span>
   </span>
 </template>

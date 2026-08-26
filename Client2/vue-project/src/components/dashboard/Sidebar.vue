@@ -135,7 +135,7 @@ const operationalMenuItems: MenuItem[] = [
   { name: 'Users & Staff', path: '/users', icon: 'Users', permission: 'users.view', section: 'Administration' },
   { name: 'Role Management', path: '/admin/roles', icon: 'Security', permission: 'roles.view', section: 'Administration' },
   { name: 'Permission Catalog', path: '/admin/permissions', icon: 'Key', permission: 'permissions.view', section: 'Administration' },
-  { name: 'Permission Matrix', path: '/admin/permission-matrix', icon: 'Grid', permission: 'roles.assign_permissions', section: 'Administration' },
+  // { name: 'Permission Matrix', path: '/admin/permission-matrix', icon: 'Grid', permission: 'roles.assign_permissions', section: 'Administration' },
   { name: 'User Role Assignments', path: '/admin/user-roles', icon: 'Staff', permission: 'users.update', section: 'Administration' },
   // { name: 'Temporary Delegations', path: '/admin/temporary-roles', icon: 'Manager', permission: 'roles.assign_permissions', section: 'Administration' },
   // { name: 'Security Audit Logs', path: '/admin/audit-logs', icon: 'Reports', permission: 'audit_logs.view', section: 'Administration' },
@@ -158,6 +158,7 @@ const operationalMenuItems: MenuItem[] = [
   // Restaurant & Floor Operations (Permission-Driven)
   { name: 'Waiter Management', path: '/manager/waiters', icon: 'Waiters', permission: 'waiters.view', section: 'Operations' },
   { name: 'Restaurant Tables', path: '/manager/restaurant-tables', icon: 'Restaurant', permission: 'tables.view', section: 'Operations' },
+  { name: 'Table Assignments', path: '/manager/table-assignments', icon: 'MapPin', permission: 'tables.assign', section: 'Operations' },
   { name: 'Assign Floors', path: '/manager/floor-assignment', icon: 'Manager', permission: 'floors.view', section: 'Operations' },
   { name: 'Daily Operations', path: '/manager/operations', icon: 'Operations', permission: 'reports.occupancy', section: 'Operations' },
 
@@ -209,7 +210,6 @@ const userDashboardPath = computed(() => {
   if (role === 'cashier') return '/cashier/dashboard'
   return `/${role}`
 })
-
 const userProfilePath = computed(() => {
   const role = userRoleSlug.value
   return `/${role}/profile`
@@ -219,7 +219,6 @@ const checkRoleHasPerm = (perms: string[] | undefined, perm: string): boolean =>
   if (!perms || !Array.isArray(perms)) return false
   return perms.includes(perm)
 }
-
 const menus = computed(() => {
   const items: MenuItem[] = [
     { name: 'Dashboard', path: userDashboardPath.value, icon: 'Dashboard', section: 'General' }
@@ -373,10 +372,6 @@ onUnmounted(() => {
               alt="Grand Horizon Hotel Logo" 
               class="w-full h-full object-contain"
             />
-          </div>
-          <div class="space-y-0.5 min-w-0">
-            <h2 class="text-xs font-black tracking-wider text-slate-900 dark:text-white uppercase truncate">Grand Horizon</h2>
-            <p class="text-[9px] font-bold text-blue-600 dark:text-blue-400 tracking-widest uppercase truncate">Luxury Hotel</p>
           </div>
         </div>
         

@@ -1,399 +1,522 @@
 <template>
   <DashboardLayout>
-    <div class="restaurant-tables-page p-6 bg-gray-50 min-h-screen">
-    <!-- Page Header -->
-    <div class="mb-6">
-      <h1 class="text-3xl font-bold text-gray-800 mb-2">Restaurant Tables</h1>
-      <p class="text-gray-600">Manage restaurant tables and QR codes</p>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div v-if="statistics" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
-      <div class="bg-white rounded-lg shadow p-4">
-        <div class="text-sm text-gray-600 mb-1">Total Tables</div>
-        <div class="text-2xl font-bold text-gray-800">{{ statistics.total }}</div>
-      </div>
-      <div class="bg-white rounded-lg shadow p-4">
-        <div class="text-sm text-gray-600 mb-1">Active</div>
-        <div class="text-2xl font-bold text-blue-600">{{ statistics.active }}</div>
-      </div>
-      <div class="bg-white rounded-lg shadow p-4">
-        <div class="text-sm text-gray-600 mb-1">Available</div>
-        <div class="text-2xl font-bold text-green-600">{{ statistics.available }}</div>
-      </div>
-      <div class="bg-white rounded-lg shadow p-4">
-        <div class="text-sm text-gray-600 mb-1">Occupied</div>
-        <div class="text-2xl font-bold text-amber-600">{{ statistics.occupied }}</div>
-      </div>
-      <div class="bg-white rounded-lg shadow p-4">
-        <div class="text-sm text-gray-600 mb-1">Cleaning</div>
-        <div class="text-2xl font-bold text-orange-600">{{ statistics.cleaning || 0 }}</div>
-      </div>
-      <div class="bg-white rounded-lg shadow p-4">
-        <div class="text-sm text-gray-600 mb-1">Out of Service</div>
-        <div class="text-2xl font-bold text-red-600">{{ statistics.out_of_service || 0 }}</div>
-      </div>
-    </div>
-
-    <!-- Filters and Actions -->
-    <div class="bg-white rounded-lg shadow p-4 mb-6">
-      <div class="flex flex-wrap gap-4 items-center">
-        <!-- Search -->
-        <div class="flex-1 min-w-[200px]">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search by table number, name, or location..."
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            @input="handleSearchChange"
-          />
+    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans">
+      <!-- Page Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-xs">
+        <div>
+          <h1 class="text-2xl font-black text-slate-900 dark:text-white">Restaurant Tables</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Manage restaurant tables, floor layouts, and guest QR codes.</p>
         </div>
 
-        <!-- Status Filter -->
-        <select
-          v-model="statusFilter"
-          class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
-          @change="handleFilterChange"
-        >
-          <option value="">All Status</option>
-          <option value="available">Available</option>
-          <option value="occupied">Occupied</option>
-          <option value="reserved">Reserved</option>
-          <option value="cleaning">Cleaning</option>
-          <option value="out_of_service">Out of Service</option>
-        </select>
-
-        <!-- Active Filter -->
-        <select
-          v-model="activeFilter"
-          class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
-          @change="handleFilterChange"
-        >
-          <option :value="null">All Tables</option>
-          <option :value="true">Active Only</option>
-          <option :value="false">Inactive Only</option>
-        </select>
-
-        <!-- Create Button -->
         <button
           @click="openCreateModal"
-          class="px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors flex items-center gap-2"
+          class="bg-amber-500 hover:bg-amber-600 text-slate-950 px-5 py-2.5 rounded-xl font-extrabold text-xs shadow-md shadow-amber-500/20 transition cursor-pointer flex items-center justify-center gap-2"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 4v16m8-8H4"
-            ></path>
-          </svg>
-          Create Table
+          <Plus class="w-4 h-4 stroke-[3]" />
+          <span>Create Table</span>
         </button>
       </div>
-    </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="bg-white rounded-lg shadow p-8 text-center">
-      <div class="animate-spin w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-      <p class="text-gray-600">Loading tables...</p>
-    </div>
+      <!-- Statistics Cards Grid -->
+      <div v-if="statistics" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        <!-- Total -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Tables</p>
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ statistics.total }}</h2>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            <UtensilsCrossed class="w-5 h-5" />
+          </div>
+        </div>
 
-    <!-- Error State -->
-    <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-      <strong>Error:</strong> {{ error }}
-    </div>
+        <!-- Active -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active</p>
+            <h2 class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">{{ statistics.active }}</h2>
+          </div>
+          <div class="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+            <CheckCircle2 class="w-5 h-5" />
+          </div>
+        </div>
 
-    <!-- Tables List -->
-    <div v-else class="bg-white rounded-lg shadow overflow-hidden">
-      <!-- Table -->
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Table
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Capacity
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Location
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Active
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                QR Code
-              </th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-if="tables.length === 0">
-              <td colspan="7" class="px-6 py-12 text-center text-gray-500">
-                No tables found. Create your first table to get started.
-              </td>
-            </tr>
-            <tr v-for="table in tables" :key="table.id" class="hover:bg-gray-50 transition-colors">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="font-medium text-gray-900">{{ table.table_number }}</div>
-                <div v-if="table.table_name" class="text-sm text-gray-500">{{ table.table_name }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                {{ table.capacity }} guests
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                {{ table.location || '-' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span
-                  :class="getStatusBadgeClass(table.status)"
-                  class="px-3 py-1 text-xs font-semibold rounded-full"
-                >
-                  {{ table.status }}
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span
-                  :class="table.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'"
-                  class="px-3 py-1 text-xs font-semibold rounded-full"
-                >
-                  {{ table.is_active ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <button
-                  @click="viewQRCode(table)"
-                  class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1"
-                  title="View QR Code"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
-                    ></path>
-                  </svg>
-                  View
-                </button>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div class="flex items-center justify-end gap-2">
-                  <button
-                    @click="editTable(table)"
-                    class="text-amber-600 hover:text-amber-900 transition-colors"
-                    title="Edit"
+        <!-- Available -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Available</p>
+            <h2 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ statistics.available }}</h2>
+          </div>
+          <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <Sparkles class="w-5 h-5" />
+          </div>
+        </div>
+
+        <!-- Occupied -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Occupied</p>
+            <h2 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ statistics.occupied }}</h2>
+          </div>
+          <div class="p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+            <Users class="w-5 h-5" />
+          </div>
+        </div>
+
+        <!-- Cleaning -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cleaning</p>
+            <h2 class="text-2xl font-black text-sky-600 dark:text-sky-400 mt-1">{{ statistics.cleaning || 0 }}</h2>
+          </div>
+          <div class="p-2.5 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
+            <RefreshCw class="w-5 h-5" />
+          </div>
+        </div>
+
+        <!-- Out of Service -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Service Off</p>
+            <h2 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ statistics.out_of_service || 0 }}</h2>
+          </div>
+          <div class="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <AlertCircle class="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters & Controls Bar -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+          <!-- Search Input -->
+          <div class="relative w-full md:w-80">
+            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search by table number, name, or location..."
+              class="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-xl text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none transition font-medium"
+              @input="handleSearchChange"
+            />
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <!-- Status Filter -->
+            <select
+              v-model="statusFilter"
+              class="px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 cursor-pointer"
+              @change="handleFilterChange"
+            >
+              <option value="">All Status</option>
+              <option value="available">Available</option>
+              <option value="occupied">Occupied</option>
+              <option value="reserved">Reserved</option>
+              <option value="cleaning">Cleaning</option>
+              <option value="out_of_service">Out of Service</option>
+            </select>
+
+            <!-- Active Filter -->
+            <select
+              v-model="activeFilter"
+              class="px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 cursor-pointer"
+              @change="handleFilterChange"
+            >
+              <option :value="null">All Tables</option>
+              <option :value="true">Active Only</option>
+              <option :value="false">Inactive Only</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="loading" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-3">
+        <Loader2 class="w-8 h-8 text-amber-500 animate-spin mx-auto" />
+        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Loading tables catalog...</p>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-bold">
+        <strong>Error:</strong> {{ error }}
+      </div>
+
+      <!-- Tables Data Container -->
+      <div v-else class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden w-full">
+        <!-- Desktop Table View -->
+        <div class="hidden sm:block overflow-x-auto w-full">
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-50/90 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+              <tr class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider select-none">
+                <th class="px-3.5 py-3 whitespace-nowrap">Table</th>
+                <th class="px-3.5 py-3 whitespace-nowrap">Capacity</th>
+                <th class="px-3.5 py-3 whitespace-nowrap">Location</th>
+                <th class="px-3.5 py-3 text-center whitespace-nowrap">Status</th>
+                <th class="px-3.5 py-3 text-center whitespace-nowrap">Active</th>
+                <th class="px-3.5 py-3 text-center whitespace-nowrap">QR Code</th>
+                <th class="px-3.5 py-3 text-right whitespace-nowrap pr-6">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+              <tr v-if="tables.length === 0">
+                <td colspan="7" class="px-4 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                  No tables found. Create your first table to get started.
+                </td>
+              </tr>
+
+              <tr
+                v-for="table in tables"
+                :key="table.id"
+                class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors duration-150 group"
+              >
+                <!-- Table Number / Name -->
+                <td class="px-3.5 py-3 whitespace-nowrap">
+                  <div class="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm">
+                    Table {{ table.table_number }}
+                  </div>
+                  <div v-if="table.table_name" class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                    {{ table.table_name }}
+                  </div>
+                </td>
+
+                <!-- Capacity -->
+                <td class="px-3.5 py-3 whitespace-nowrap font-extrabold text-slate-700 dark:text-slate-300">
+                  {{ table.capacity }} guests
+                </td>
+
+                <!-- Location -->
+                <td class="px-3.5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 font-medium">
+                  {{ table.location || '-' }}
+                </td>
+
+                <!-- Status Badge -->
+                <td class="px-3.5 py-3 text-center whitespace-nowrap">
+                  <span
+                    :class="[
+                      'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border select-none uppercase tracking-wider',
+                      getStatusBadgeClass(table.status)
+                    ]"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      ></path>
-                    </svg>
+                    <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                    {{ table.status ? table.status.replace(/_/g, ' ') : 'N/A' }}
+                  </span>
+                </td>
+
+                <!-- Active Badge -->
+                <td class="px-3.5 py-3 text-center whitespace-nowrap">
+                  <span
+                    v-if="table.is_active"
+                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Active</span>
+                  </span>
+                  <span
+                    v-else
+                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                    <span>Inactive</span>
+                  </span>
+                </td>
+
+                <!-- QR Code View -->
+                <td class="px-3.5 py-3 text-center whitespace-nowrap">
+                  <button
+                    @click="viewQRCode(table)"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition cursor-pointer font-extrabold text-[11px] border border-blue-500/20"
+                    title="View QR Code"
+                  >
+                    <QrCode class="w-3.5 h-3.5 text-blue-500" />
+                    <span>View QR</span>
+                  </button>
+                </td>
+
+                <!-- Actions -->
+                <td class="px-3.5 py-3 text-right whitespace-nowrap pr-6">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button
+                      @click="editTable(table)"
+                      class="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                      title="Edit Table"
+                    >
+                      <Edit class="w-4 h-4" />
+                    </button>
+                    <button
+                      @click="confirmDelete(table)"
+                      class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                      title="Delete Table"
+                    >
+                      <Trash2 class="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile View -->
+        <div class="sm:hidden divide-y divide-slate-100 dark:divide-slate-800">
+          <div v-if="tables.length === 0" class="p-8 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+            No tables found
+          </div>
+
+          <div
+            v-for="table in tables"
+            :key="'mob-' + table.id"
+            class="p-4 space-y-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition"
+          >
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Table {{ table.table_number }}</h3>
+                <p v-if="table.table_name" class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ table.table_name }}</p>
+              </div>
+              <span
+                :class="[
+                  'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-wider',
+                  getStatusBadgeClass(table.status)
+                ]"
+              >
+                {{ table.status }}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div>
+                <span class="text-[10px] text-slate-400 block font-bold uppercase">Capacity</span>
+                <span class="font-bold text-slate-900 dark:text-white">{{ table.capacity }} guests</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 block font-bold uppercase">Location</span>
+                <span class="font-bold text-slate-900 dark:text-white truncate block">{{ table.location || '-' }}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <button
+                @click="viewQRCode(table)"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-xs"
+              >
+                <QrCode class="w-3.5 h-3.5" />
+                <span>QR Code</span>
+              </button>
+
+              <div class="flex items-center gap-2">
+                <button
+                  @click="editTable(table)"
+                  class="p-1.5 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  <Edit class="w-4 h-4" />
+                </button>
+                <button
+                  @click="confirmDelete(table)"
+                  class="p-1.5 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Bar with 5, 10, 20, 50 Options -->
+        <div
+          v-if="pagination && (pagination.last_page || 1) >= 1"
+          class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-4 text-xs font-sans"
+        >
+          <!-- Left Side: Per Page Selector & Showing Count -->
+          <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
+              <select
+                :value="localPerPage"
+                @change="changePerPage"
+                class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-black focus:outline-none focus:border-amber-500 cursor-pointer shadow-2xs"
+              >
+                <option :value="5">5</option>
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
+
+            <div class="text-xs font-medium">
+              Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ pagination.from || 0 }}</span> to
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ pagination.to || 0 }}</span> of
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ pagination.total || 0 }}</span> tables
+            </div>
+          </div>
+
+          <!-- Right Side: Page Controls -->
+          <div class="flex items-center gap-1.5">
+            <button
+              @click="goToPage((pagination.current_page || 1) - 1)"
+              :disabled="(pagination.current_page || 1) <= 1"
+              class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
+              title="Previous Page"
+            >
+              <ChevronLeft class="w-4 h-4" />
+              <span class="hidden sm:inline">Prev</span>
+            </button>
+
+            <div class="flex items-center gap-1">
+              <button
+                v-for="p in getPageNumbers()"
+                :key="p"
+                @click="goToPage(p)"
+                :class="[
+                  'w-8 h-8 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center border',
+                  (pagination.current_page || 1) === p
+                    ? 'bg-amber-500 border-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ]"
+              >
+                {{ p }}
+              </button>
+            </div>
+
+            <button
+              @click="goToPage((pagination.current_page || 1) + 1)"
+              :disabled="(pagination.current_page || 1) >= (pagination.last_page || 1)"
+              class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
+              title="Next Page"
+            >
+              <span class="hidden sm:inline">Next</span>
+              <ChevronRight class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Create/Edit Modal -->
+      <RestaurantTableFormModal
+        v-if="showFormModal"
+        :table="selectedTable"
+        @close="closeFormModal"
+        @success="handleFormSuccess"
+      />
+
+      <!-- QR Code Modal -->
+      <Teleport to="body">
+        <Transition name="fade">
+          <div
+            v-if="showQRModal && selectedTable"
+            class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
+            @click.self="closeQRModal"
+          >
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-md w-full p-6 space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-black text-slate-900 dark:text-white">QR Code - Table {{ selectedTable.table_number }}</h3>
+                <button
+                  @click="closeQRModal"
+                  class="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                >
+                  <X class="w-5 h-5" />
+                </button>
+              </div>
+
+              <div v-if="selectedTable.qr_code_url" class="space-y-4">
+                <img
+                  :src="selectedTable.qr_code_url"
+                  :alt="`QR Code for ${selectedTable.table_number}`"
+                  class="w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white p-2"
+                />
+                <div class="text-center text-xs text-slate-500 dark:text-slate-400">
+                  <p>Token: <code class="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white px-2 py-0.5 rounded-lg font-mono font-bold">{{ selectedTable.qr_token }}</code></p>
+                  <p v-if="selectedTable.table_name" class="mt-1 font-bold text-slate-900 dark:text-white">{{ selectedTable.table_name }}</p>
+                </div>
+                <div class="flex gap-3">
+                  <button
+                    @click="downloadQR(selectedTable)"
+                    class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-blue-600/20"
+                  >
+                    <Download class="w-4 h-4" />
+                    <span>Download</span>
                   </button>
                   <button
-                    @click="confirmDelete(table)"
-                    class="text-red-600 hover:text-red-900 transition-colors"
-                    title="Delete"
+                    @click="regenerateQRCode(selectedTable.id)"
+                    class="flex-1 px-4 py-2.5 bg-amber-500 text-slate-950 rounded-xl font-black text-xs hover:bg-amber-600 transition cursor-pointer flex items-center justify-center gap-2 shadow-md shadow-amber-500/20"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      ></path>
-                    </svg>
+                    <RefreshCw class="w-4 h-4" />
+                    <span>Regenerate</span>
                   </button>
                 </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              </div>
+              <div v-else class="text-center text-slate-500 text-xs py-8 font-bold">
+                No QR code available
+              </div>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
 
-      <!-- Pagination -->
-      <div
-        v-if="pagination && pagination.last_page && pagination.last_page > 1"
-        class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200"
-      >
-        <div class="text-sm text-gray-700">
-          Showing {{ pagination.from || 0 }} to {{ pagination.to || 0 }} of {{ pagination.total || 0 }} results
-        </div>
-        <div class="flex gap-2">
-          <button
-            :disabled="!pagination.prev_page_url"
-            @click="goToPage(pagination.current_page - 1)"
-            class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+      <!-- Delete Confirmation Modal -->
+      <Teleport to="body">
+        <Transition name="fade">
+          <div
+            v-if="showDeleteModal"
+            class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
+            @click.self="closeDeleteModal"
           >
-            Previous
-          </button>
-          <button
-            v-for="page in getPageNumbers()"
-            :key="page"
-            :class="page === pagination.current_page ? 'bg-amber-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100'"
-            @click="goToPage(page)"
-            class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium"
-          >
-            {{ page }}
-          </button>
-          <button
-            :disabled="!pagination.next_page_url"
-            @click="goToPage(pagination.current_page + 1)"
-            class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
-        </div>
-      </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-md w-full p-6 space-y-4">
+              <div class="text-center space-y-3">
+                <div class="w-12 h-12 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-2xl flex items-center justify-center mx-auto">
+                  <AlertCircle class="w-6 h-6" />
+                </div>
+                <h3 class="text-lg font-black text-slate-900 dark:text-white">Delete Table?</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                  Are you sure you want to delete <strong class="text-slate-900 dark:text-white">Table {{ selectedTable?.table_number }}</strong>?
+                  This action cannot be undone.
+                </p>
+              </div>
+              <div class="flex gap-3 pt-2">
+                <button
+                  @click="closeDeleteModal"
+                  class="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  @click="handleDelete"
+                  class="flex-1 px-4 py-2.5 bg-rose-600 text-white rounded-xl font-bold text-xs hover:bg-rose-700 transition cursor-pointer shadow-md shadow-rose-600/20"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
     </div>
-
-    <!-- Create/Edit Modal -->
-    <RestaurantTableFormModal
-      v-if="showFormModal"
-      :table="selectedTable"
-      @close="closeFormModal"
-      @success="handleFormSuccess"
-    />
-
-    <!-- QR Code Modal -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="showQRModal && selectedTable"
-          class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-          @click.self="closeQRModal"
-        >
-          <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xl font-bold text-gray-800">QR Code - {{ selectedTable.table_number }}</h3>
-              <button
-                @click="closeQRModal"
-                class="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  ></path>
-                </svg>
-              </button>
-            </div>
-
-            <div v-if="selectedTable.qr_code_url" class="space-y-4">
-              <img
-                :src="selectedTable.qr_code_url"
-                :alt="`QR Code for ${selectedTable.table_number}`"
-                class="w-full rounded-lg border border-gray-200"
-              />
-              <div class="text-center text-sm text-gray-600">
-                <p>Token: <code class="bg-gray-100 px-2 py-1 rounded">{{ selectedTable.qr_token }}</code></p>
-                <p v-if="selectedTable.table_name" class="mt-1">{{ selectedTable.table_name }}</p>
-              </div>
-              <div class="flex gap-3">
-                <button
-                  @click="downloadQR(selectedTable)"
-                  class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    ></path>
-                  </svg>
-                  Download
-                </button>
-                <button
-                  @click="regenerateQRCode(selectedTable.id)"
-                  class="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors flex items-center justify-center gap-2"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    ></path>
-                  </svg>
-                  Regenerate
-                </button>
-              </div>
-            </div>
-            <div v-else class="text-center text-gray-500 py-8">
-              No QR code available
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
-
-    <!-- Delete Confirmation Modal -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="showDeleteModal"
-          class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-          @click.self="closeDeleteModal"
-        >
-          <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-            <div class="text-center mb-4">
-              <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  ></path>
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold text-gray-800 mb-2">Delete Table?</h3>
-              <p class="text-gray-600">
-                Are you sure you want to delete <strong>{{ selectedTable?.table_number }}</strong>?
-                This action cannot be undone.
-              </p>
-            </div>
-            <div class="flex gap-3">
-              <button
-                @click="closeDeleteModal"
-                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                @click="handleDelete"
-                class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
-  </div>
   </DashboardLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRestaurantTableStore } from '@/stores/restaurantTableStore'
 import { storeToRefs } from 'pinia'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import RestaurantTableFormModal from '@/components/manager/RestaurantTableFormModal.vue'
 import type { RestaurantTable } from '@/types/restaurantTable'
+import {
+  UtensilsCrossed,
+  CheckCircle2,
+  Sparkles,
+  Users,
+  RefreshCw,
+  AlertCircle,
+  Search,
+  Plus,
+  QrCode,
+  Edit,
+  Trash2,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  X
+} from 'lucide-vue-next'
 
 // Store
 const tableStore = useRestaurantTableStore()
@@ -403,6 +526,7 @@ const { tables, statistics, pagination, loading, error } = storeToRefs(tableStor
 const searchQuery = ref('')
 const statusFilter = ref('')
 const activeFilter = ref<boolean | null>(null)
+const localPerPage = ref(10)
 const showFormModal = ref(false)
 const showQRModal = ref(false)
 const showDeleteModal = ref(false)
@@ -412,13 +536,13 @@ let searchTimeout: ReturnType<typeof setTimeout> | null = null
 // Methods
 const getStatusBadgeClass = (status: string) => {
   const classes: Record<string, string> = {
-    available: 'bg-green-100 text-green-700',
-    occupied: 'bg-amber-100 text-amber-700',
-    reserved: 'bg-blue-100 text-blue-700',
-    cleaning: 'bg-orange-100 text-orange-700',
-    out_of_service: 'bg-red-100 text-red-700',
+    available: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+    occupied: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+    reserved: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+    cleaning: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+    out_of_service: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20',
   }
-  return classes[status] || 'bg-gray-100 text-gray-700'
+  return classes[status] || 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
 }
 
 const handleSearchChange = () => {
@@ -435,6 +559,13 @@ const handleFilterChange = () => {
     is_active: activeFilter.value,
     page: 1,
   })
+  tableStore.fetchTables()
+}
+
+const changePerPage = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  localPerPage.value = Number(target.value)
+  tableStore.setFilters({ per_page: localPerPage.value, page: 1 })
   tableStore.fetchTables()
 }
 
@@ -469,8 +600,8 @@ const closeQRModal = () => {
   selectedTable.value = null
 }
 
-const downloadQR = (table: RestaurantTable) => {
-  tableStore.downloadQRCode(table)
+const downloadQR = async (table: RestaurantTable) => {
+  await tableStore.downloadQRCode(table)
 }
 
 const regenerateQRCode = async (tableId: string) => {
@@ -519,15 +650,10 @@ const getPageNumbers = () => {
   const last = pagination.value.last_page
   const pages: number[] = []
 
-  // Show first page
   pages.push(1)
-
-  // Show pages around current
   for (let i = Math.max(2, current - 2); i <= Math.min(last - 1, current + 2); i++) {
     pages.push(i)
   }
-
-  // Show last page
   if (last > 1) pages.push(last)
 
   return [...new Set(pages)].sort((a, b) => a - b)
@@ -549,14 +675,5 @@ onMounted(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
 }
 </style>

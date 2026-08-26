@@ -1,39 +1,42 @@
 <template>
-  <div class="rounded-lg bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-lg">
-    <div class="px-4 sm:px-5 py-3 sm:py-4">
-      <h2 class="text-base sm:text-lg font-bold">Kitchen Efficiency</h2>
+  <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white shadow-md overflow-hidden">
+    <div class="border-b border-slate-200 dark:border-slate-800 px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50 dark:bg-slate-800/80">
+      <h2 class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+        <Clock class="w-4 h-4 text-amber-500" />
+        <span>Kitchen Efficiency</span>
+      </h2>
     </div>
 
-    <div class="space-y-4 sm:space-y-5 md:space-y-6 px-4 sm:px-5 py-3 sm:py-4">
+    <div class="space-y-4 sm:space-y-5 px-4 sm:px-5 py-4">
       <!-- Avg Prep Time -->
       <div>
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Avg. Prep Time</p>
-        <p class="mt-1 text-3xl sm:text-4xl font-bold text-white" v-if="avgPrepTime">
-          {{ avgPrepTimeMinutes }}<span class="text-lg sm:text-2xl">:{{ avgPrepTimeSeconds }}</span>
-          <span class="text-sm sm:text-lg text-slate-400">min</span>
+        <p class="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Avg. Prep Time</p>
+        <p class="mt-1 text-3xl font-black text-slate-900 dark:text-white" v-if="avgPrepTime">
+          {{ avgPrepTimeMinutes }}<span class="text-xl">:{{ avgPrepTimeSeconds }}</span>
+          <span class="text-xs text-slate-500 dark:text-slate-400 ml-1 font-bold">min</span>
         </p>
-        <p v-else class="mt-1 text-sm sm:text-lg text-slate-400">-- No data</p>
+        <p v-else class="mt-1 text-sm text-slate-400">-- No data</p>
         <p
           v-if="prepTimeTrend"
-          class="mt-1 text-xs"
-          :class="prepTimeTrend > 0 ? 'text-red-400' : 'text-green-400'"
+          class="mt-1 text-xs font-bold flex items-center gap-1"
+          :class="prepTimeTrend > 0 ? 'text-rose-500' : 'text-emerald-500'"
         >
-          {{ prepTimeTrend > 0 ? '↑' : '↓' }} {{ Math.abs(prepTimeTrend) }}% vs. yesterday
+          <span>{{ prepTimeTrend > 0 ? '↑' : '↓' }} {{ Math.abs(prepTimeTrend) }}% vs. yesterday</span>
         </p>
       </div>
 
       <!-- Orders in Progress -->
       <div>
-        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">In Progress</p>
-        <p class="mt-2 text-xl sm:text-2xl font-bold text-white">
-          <span class="text-blue-400">{{ statistics?.preparing_orders || 0 }}</span>
-          <span class="text-slate-400 text-sm sm:text-lg ml-2">preparing</span>
+        <p class="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">In Progress</p>
+        <p class="mt-1 text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+          <span class="text-amber-500 text-2xl font-black">{{ statistics?.preparing_orders || 0 }}</span>
+          <span class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase">preparing</span>
         </p>
       </div>
 
       <!-- Action Button -->
       <button
-        class="w-full rounded-lg bg-teal-600 px-3 sm:px-4 py-2 sm:py-2.5 font-bold text-xs sm:text-sm text-white transition hover:bg-teal-700"
+        class="w-full rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 px-3.5 py-2 font-black text-xs transition cursor-pointer shadow-md shadow-amber-500/20"
       >
         VIEW DETAILS
       </button>
@@ -43,6 +46,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { Clock } from 'lucide-vue-next'
 
 defineProps<{
   statistics?: {

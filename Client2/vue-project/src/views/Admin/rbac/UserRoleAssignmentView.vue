@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import DashboardLayout from '../../../Layouts/DashboardLayout.vue'
 import { rbacService } from '../../../services/rbacService'
 import type { RbacUserSummary, Role } from '../../../types/rbacTypes'
@@ -19,7 +19,10 @@ import {
   SlidersHorizontal,
   Check,
   Zap,
-  Filter
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  MoreVertical
 } from 'lucide-vue-next'
 
 const userSummaries = ref<RbacUserSummary[]>([])
@@ -29,6 +32,11 @@ const errorMessage = ref('')
 const successMessage = ref('')
 const searchFilter = ref('')
 const roleFilter = ref('all')
+const openActionMenuId = ref<number | null>(null)
+
+// Pagination state
+const currentPage = ref(1)
+const perPage = ref(10)
 
 // Assign Roles Modal State
 const showAssignModal = ref(false)
@@ -93,6 +101,63 @@ const filteredUsers = computed(() => {
     (u.primary_role_name && u.primary_role_name.toLowerCase().includes(q))
   )
 })
+
+const total = computed(() => filteredUsers.value.length)
+const lastPage = computed(() => Math.ceil(total.value / perPage.value) || 1)
+
+const paginatedUsers = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value
+  const end = start + perPage.value
+  return filteredUsers.value.slice(start, end)
+})
+
+const showingFrom = computed(() => {
+  if (total.value === 0) return 0
+  return (currentPage.value - 1) * perPage.value + 1
+})
+
+const showingTo = computed(() => {
+  return Math.min(currentPage.value * perPage.value, total.value)
+})
+
+const paginationPages = computed(() => {
+  const pages: number[] = []
+  const max = lastPage.value
+  const cur = currentPage.value
+
+  for (let i = Math.max(1, cur - 2); i <= Math.min(max, cur + 2); i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+watch([searchFilter, roleFilter], () => {
+  currentPage.value = 1
+})
+
+const changePerPage = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  perPage.value = Number(target.value)
+  currentPage.value = 1
+}
+
+const goToPage = (p: number) => {
+  if (p >= 1 && p <= lastPage.value) {
+    currentPage.value = p
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < lastPage.value) {
+    currentPage.value++
+  }
+}
 
 // Role Assignment Modal logic
 const openAssignModal = (user: RbacUserSummary) => {
@@ -366,76 +431,162 @@ const handleSaveAccessPermissions = async () => {
       </div>
 
       <!-- Staff Table -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-xs font-black uppercase text-slate-700 dark:text-slate-300">
-              <th class="p-4">Staff Member</th>
-              <th class="p-4">Primary Role</th>
-              <th class="p-4">Additional Direct Permissions</th>
-              <th class="p-4 text-center">Effective Capabilities</th>
-              <th class="p-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-            <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-              <td class="p-4 space-y-0.5">
-                <div class="font-extrabold text-slate-900 dark:text-white">
-                  {{ user.full_name }}
-                </div>
-                <div class="text-[11px] text-slate-500 dark:text-slate-400">
-                  {{ user.email }}
-                </div>
-              </td>
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+        <div class="overflow-x-auto w-full">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+                <th class="px-3 py-2.5 whitespace-nowrap">Staff Member</th>
+                <th class="px-3 py-2.5 whitespace-nowrap">Primary Role</th>
+                <th class="px-3 py-2.5 whitespace-nowrap">Direct Permissions</th>
+                <th class="px-3 py-2.5 text-center whitespace-nowrap">Capabilities</th>
+                <th class="px-3 py-2.5 text-right whitespace-nowrap pr-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+              <tr v-for="user in paginatedUsers" :key="user.id" class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                <!-- Staff Member -->
+                <td class="px-3 py-2.5 whitespace-nowrap">
+                  <div class="flex items-center gap-2 max-w-[180px]">
+                    <div class="w-6 h-6 rounded-full bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20 font-black text-[10px] flex items-center justify-center flex-shrink-0">
+                      {{ (user.full_name?.[0] || 'S').toUpperCase() }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="font-extrabold text-slate-900 dark:text-white text-xs truncate">
+                        {{ user.full_name }}
+                      </div>
+                      <div class="text-[9px] text-slate-500 dark:text-slate-400 truncate">
+                        {{ user.email }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
 
-              <!-- Primary Role Badge -->
-              <td class="p-4">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 uppercase tracking-wider">
-                  <Users class="w-3.5 h-3.5" />
-                  {{ user.primary_role_name || user.legacy_role || 'Staff' }}
-                </span>
-              </td>
+                <!-- Primary Role Badge -->
+                <td class="px-3 py-2.5 whitespace-nowrap">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 uppercase tracking-wider">
+                    <Users class="w-3 h-3 text-amber-500" />
+                    {{ user.primary_role_name || user.legacy_role || 'Staff' }}
+                  </span>
+                </td>
 
-              <!-- Direct Permissions Badge -->
-              <td class="p-4">
-                <div v-if="user.direct_permissions_count && user.direct_permissions_count > 0" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-300 font-bold text-xs">
-                  <Sparkles class="w-3.5 h-3.5 text-blue-500" />
-                  <span>+{{ user.direct_permissions_count }} direct permissions</span>
-                </div>
-                <span v-else class="text-[11px] text-slate-400 font-medium">Standard role access</span>
-              </td>
+                <!-- Direct Permissions Badge -->
+                <td class="px-3 py-2.5 whitespace-nowrap">
+                  <div v-if="user.direct_permissions_count && user.direct_permissions_count > 0" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-300 font-extrabold text-[10px]">
+                    <Sparkles class="w-3 h-3 text-blue-500" />
+                    <span>+{{ user.direct_permissions_count }} direct</span>
+                  </div>
+                  <span v-else class="text-[10px] text-slate-400 font-medium">Standard role</span>
+                </td>
 
-              <!-- Effective Permissions Count -->
-              <td class="p-4 text-center font-bold text-emerald-600 dark:text-emerald-400">
-                <span class="px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                  {{ user.effective_permissions_count }} permissions
-                </span>
-              </td>
+                <!-- Effective Permissions Count -->
+                <td class="px-3 py-2.5 text-center whitespace-nowrap font-bold text-emerald-600 dark:text-emerald-400">
+                  <span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-extrabold">
+                    {{ user.effective_permissions_count }} permissions
+                  </span>
+                </td>
 
-              <!-- Actions -->
-              <td class="p-4 text-right">
-                <div class="flex items-center justify-end gap-2">
-                  <button
-                    @click="openAccessModal(user)"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition cursor-pointer"
-                  >
-                    <Key class="w-3.5 h-3.5" />
-                    <span>Manage Access</span>
-                  </button>
+                <!-- Actions -->
+                <td class="px-3 py-2.5 text-right whitespace-nowrap pr-4">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button
+                      @click="openAccessModal(user)"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shadow-sm transition cursor-pointer"
+                      title="Manage Direct Permissions"
+                    >
+                      <Key class="w-3 h-3" />
+                      <span>Manage Access</span>
+                    </button>
 
-                  <button
-                    @click="openAssignModal(user)"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition cursor-pointer"
-                    title="Change Primary/Secondary Role"
-                  >
-                    <Edit2 class="w-3.5 h-3.5" />
-                    <span>Roles</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                    <button
+                      @click="openAssignModal(user)"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-[11px] transition cursor-pointer border border-slate-200 dark:border-slate-700"
+                      title="Change Primary/Secondary Role"
+                    >
+                      <Edit2 class="w-3 h-3" />
+                      <span>Roles</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Empty State -->
+              <tr v-if="filteredUsers.length === 0">
+                <td colspan="5" class="p-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                  No staff members match your search query or role filter.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Bar with 5, 10, 20, 50 Options -->
+        <div
+          v-if="filteredUsers.length > 0"
+          class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-4 text-xs font-sans"
+        >
+          <!-- Left Side: Per Page Selector & Showing Count -->
+          <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
+              <select
+                :value="perPage"
+                @change="changePerPage"
+                class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-black focus:outline-none focus:border-amber-500 cursor-pointer shadow-2xs"
+              >
+                <option :value="5">5</option>
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
+
+            <div class="text-xs font-medium">
+              Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ showingTo }}</span> of
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ total }}</span> staff members
+            </div>
+          </div>
+
+          <!-- Right Side: Page Controls -->
+          <div class="flex items-center gap-1.5">
+            <button
+              @click="prevPage"
+              :disabled="currentPage <= 1"
+              class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
+              title="Previous Page"
+            >
+              <ChevronLeft class="w-4 h-4" />
+              <span class="hidden sm:inline">Prev</span>
+            </button>
+
+            <div class="flex items-center gap-1">
+              <button
+                v-for="p in paginationPages"
+                :key="p"
+                @click="goToPage(p)"
+                :class="[
+                  'w-8 h-8 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center border',
+                  currentPage === p
+                    ? 'bg-amber-500 border-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ]"
+              >
+                {{ p }}
+              </button>
+            </div>
+
+            <button
+              @click="nextPage"
+              :disabled="currentPage >= lastPage"
+              class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
+              title="Next Page"
+            >
+              <span class="hidden sm:inline">Next</span>
+              <ChevronRight class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- ========================================================================= -->

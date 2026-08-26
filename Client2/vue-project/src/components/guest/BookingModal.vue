@@ -5,6 +5,7 @@ import { useGuestStore } from '../../stores/guestStore'
 import { useRoomStore } from '../../stores/room'
 import { roomService } from '../../services/roomService'
 import paymentService from '../../services/paymentService'
+import { publicAxios } from '../../services/axios'
 import {
   X,
   Calendar,
@@ -424,36 +425,29 @@ async function submitBooking() {
 
     console.log('👤 [BOOKING] Processing guest:', { firstName, lastName })
 
-    const apiUrl = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000/api'
     let guestId: string | undefined
 
     // Try to get guest by email or create new
     console.log('📤 [BOOKING] Creating/getting guest via public API...')
-    const guestResponse = await fetch(`${apiUrl}/guests`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        first_name: firstName,
-        last_name: lastName,
-        email: bookingForm.value.guestEmail,
-        phone: bookingForm.value.guestPhone,
-        address: '',
-        nationality: '',
-        passport_number: '',
-        date_of_birth: '',
-        preferences: [],
-      }),
+    const guestResponse = await publicAxios.post('/guests', {
+      first_name: firstName,
+      last_name: lastName,
+      email: bookingForm.value.guestEmail,
+      phone: bookingForm.value.guestPhone,
+      address: '',
+      nationality: '',
+      passport_number: '',
+      date_of_birth: '',
+      preferences: [],
     })
 
-    const guestData = await guestResponse.json()
+    const guestData = guestResponse.data
     console.log('📡 [BOOKING] Guest API response:', guestData)
 
-    if (guestResponse.ok && guestData.data?.id) {
+    if (guestData.data?.id) {
       guestId = guestData.data.id
       console.log('✅ [BOOKING] Guest processed with ID:', guestId)
-    } else if (guestResponse.ok && guestData.id) {
+    } else if (guestData.id) {
       // Handle case where response structure is different
       guestId = guestData.id
       console.log('✅ [BOOKING] Guest processed with ID:', guestId)
@@ -484,20 +478,13 @@ async function submitBooking() {
 
     console.log('📤 [BOOKING] Payment init request:', paymentInitRequest)
 
-    // Call backend to initialize payment (requires authentication)
-    const paymentResponse = await fetch(
-      `${apiUrl}/reservation-payments/initialize`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-        },
-        body: JSON.stringify(paymentInitRequest),
-      }
+    // Call backend to initialize payment (public route, no auth required)
+    const paymentAxiosResponse = await publicAxios.post(
+      '/reservation-payments/initialize',
+      paymentInitRequest,
     )
 
-    const paymentData = await paymentResponse.json()
+    const paymentData = paymentAxiosResponse.data
 
     console.log('📡 [BOOKING] Raw payment API response:', paymentData)
     console.log('📡 [BOOKING] Response has checkout_url?', !!paymentData.checkout_url)
@@ -506,7 +493,7 @@ async function submitBooking() {
     console.log('📡 [BOOKING] Price breakdown:', paymentData.price_breakdown)
     console.log('📡 [BOOKING] Amount from response:', paymentData.amount)
 
-    if (!paymentResponse.ok || !paymentData.success) {
+    if (!paymentData.success) {
       const errorMsg = paymentData.error || paymentData.message || 'Failed to initialize payment'
       const errorDetails = paymentData.details || paymentData.errors || null
       
@@ -519,7 +506,7 @@ async function submitBooking() {
       if (errorDetails) {
         if (typeof errorDetails === 'object') {
           const detailMessages = Object.entries(errorDetails)
-            .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+            .map(([key, value]: [string, any]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
             .join('\n')
           if (detailMessages) {
             detailedError += '\n\nDetails:\n' + detailMessages

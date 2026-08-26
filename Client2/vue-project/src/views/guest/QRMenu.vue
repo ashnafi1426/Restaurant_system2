@@ -1,24 +1,6 @@
 <template>
   <div class="qr-menu-page">
-    <!-- Debug Banner (Development Only) -->
-    <div v-if="orderContext" class="fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r text-white px-4 py-2 text-xs font-mono shadow-lg"
-         :class="orderContext.type === 'room' ? 'from-blue-600 to-blue-700' : 'from-amber-600 to-amber-700'">
-      <div class="max-w-7xl mx-auto flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <span class="font-bold">🔍 DEBUG:</span>
-          <span>Context: <strong>{{ orderContext.type.toUpperCase() }}</strong></span>
-          <span>|</span>
-          <span>Location: <strong>{{ orderContext.displayName }}</strong></span>
-          <span>|</span>
-          <span>QR Token: <strong>{{ qrToken }}</strong></span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span v-if="orderContext.type === 'room'" class="px-2 py-1 bg-blue-800 rounded">🏨 Hotel Guest</span>
-          <span v-else class="px-2 py-1 bg-amber-800 rounded">🍽️ Walk-in Customer</span>
-        </div>
-      </div>
-    </div>
-    
+
     <!-- Main Layout -->
     <QRMenuLayout
       ref="menuLayoutRef"

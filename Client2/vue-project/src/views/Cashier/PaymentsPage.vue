@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import DashboardLayout from '../../layouts/DashboardLayout.vue'
+import DashboardLayout from '../../Layouts/DashboardLayout.vue'
 import { useCashierStore } from '@/stores/cashierStore'
 import {
   Search,
@@ -13,6 +13,8 @@ import {
   ChevronRight,
   Calendar,
   X,
+  CreditCard,
+  Loader2
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -30,7 +32,7 @@ const filters = ref({
   date_to: '',
   sort_by: 'created_at',
   sort_order: 'desc' as 'asc' | 'desc',
-  per_page: 15,
+  per_page: 10,
   page: 1,
 })
 
@@ -43,8 +45,9 @@ onMounted(() => {
 
 // Watch for query parameter changes
 watch(() => route.query.filter, (newFilter) => {
-  if (newFilter) {
-    filters.value.filter = newFilter as string
+  if (newFilter !== undefined) {
+    filters.value.filter = (newFilter as string) || ''
+    filters.value.page = 1
     loadPayments()
   }
 })
@@ -77,7 +80,7 @@ const clearFilters = () => {
     date_to: '',
     sort_by: 'created_at',
     sort_order: 'desc',
-    per_page: 15,
+    per_page: filters.value.per_page,
     page: 1,
   }
   loadPayments()
@@ -89,6 +92,13 @@ const setQuickFilter = (filter: string) => {
   loadPayments()
 }
 
+const changePerPage = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  filters.value.per_page = Number(target.value)
+  filters.value.page = 1
+  loadPayments()
+}
+
 // Pagination handlers
 const goToPage = (page: number) => {
   filters.value.page = page
@@ -96,7 +106,7 @@ const goToPage = (page: number) => {
 }
 
 const nextPage = () => {
-  if (filters.value.page < cashierStore.pagination.last_page) {
+  if (filters.value.page < (cashierStore.pagination?.last_page || 1)) {
     filters.value.page++
     loadPayments()
   }
@@ -109,6 +119,17 @@ const previousPage = () => {
   }
 }
 
+const paginationPages = computed(() => {
+  const pages: number[] = []
+  const max = cashierStore.pagination?.last_page || 1
+  const cur = cashierStore.pagination?.current_page || 1
+
+  for (let i = Math.max(1, cur - 2); i <= Math.min(max, cur + 2); i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
 // Sorting
 const sortBy = (column: string) => {
   if (filters.value.sort_by === column) {
@@ -120,32 +141,53 @@ const sortBy = (column: string) => {
   loadPayments()
 }
 
-// Format helpers
+// Compact Format helpers
 const formatCurrency = (amount: number | string) => {
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
-  return `${numAmount.toFixed(2)} ETB`
+  return `${(numAmount || 0).toFixed(2)} ETB`
 }
 
-const formatDate = (date: string) => {
+const formatDateShort = (date: string) => {
+  if (!date) return '-'
   return new Date(date).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   })
 }
 
-const getStatusColor = (status: string) => {
-  const statusColors: Record<string, string> = {
-    paid: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    verified: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-    initialized: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-    failed: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-    refunded: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
+const formatTxRefShort = (ref: string) => {
+  if (!ref) return 'N/A'
+  if (ref.length <= 16) return ref
+  return `${ref.substring(0, 8)}...${ref.slice(-4)}`
+}
+
+const formatTypeShort = (type: string) => {
+  if (!type) return '-'
+  const lower = type.toLowerCase()
+  if (lower.includes('order')) return 'Order'
+  if (lower.includes('reservation')) return 'Booking'
+  return type
+}
+
+const getStatusBadgeClass = (status: string) => {
+  switch ((status || '').toLowerCase()) {
+    case 'paid':
+    case 'verified':
+    case 'completed':
+      return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 font-black'
+    case 'pending':
+    case 'initialized':
+      return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 font-black'
+    case 'failed':
+    case 'cancelled':
+      return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 font-black'
+    case 'refunded':
+      return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 font-black'
+    default:
+      return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20 font-black'
   }
-  return statusColors[status.toLowerCase()] || 'bg-gray-100 text-gray-700'
 }
 
 // View payment details
@@ -156,33 +198,33 @@ const viewPayment = (id: string) => {
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6">
-      <!-- Header -->
-      <div class="flex justify-between items-center">
+    <div class="space-y-5 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-5 max-w-full font-sans">
+      <!-- Header Banner -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Payments</h1>
-          <p class="text-slate-500 dark:text-slate-400 mt-1">
-            View and manage all payment transactions
-          </p>
+          <h1 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Payments & Transactions</h1>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">View and manage all payment transaction logs.</p>
         </div>
+
         <button
           @click="loadPayments"
-          class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          :disabled="cashierStore.isLoading"
+          class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700 disabled:opacity-50"
         >
-          <RefreshCw :size="18" />
-          Refresh
+          <RefreshCw :class="['w-3.5 h-3.5', cashierStore.isLoading && 'animate-spin']" />
+          <span>Refresh</span>
         </button>
       </div>
 
-      <!-- Quick Filters -->
-      <div class="flex flex-wrap gap-2">
+      <!-- Quick Filter Pills -->
+      <div class="flex flex-wrap items-center gap-1.5 text-xs">
         <button
           @click="setQuickFilter('')"
           :class="[
-            'px-4 py-2 rounded-lg transition-colors',
+            'px-3 py-1 rounded-xl font-black transition cursor-pointer border',
             filters.filter === ''
-              ? 'bg-blue-600 text-white'
-              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700',
+              ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
           All
@@ -190,10 +232,10 @@ const viewPayment = (id: string) => {
         <button
           @click="setQuickFilter('today')"
           :class="[
-            'px-4 py-2 rounded-lg transition-colors',
+            'px-3 py-1 rounded-xl font-black transition cursor-pointer border',
             filters.filter === 'today'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700',
+              ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
           Today
@@ -201,32 +243,32 @@ const viewPayment = (id: string) => {
         <button
           @click="setQuickFilter('week')"
           :class="[
-            'px-4 py-2 rounded-lg transition-colors',
+            'px-3 py-1 rounded-xl font-black transition cursor-pointer border',
             filters.filter === 'week'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700',
+              ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
-          This Week
+          Week
         </button>
         <button
           @click="setQuickFilter('month')"
           :class="[
-            'px-4 py-2 rounded-lg transition-colors',
+            'px-3 py-1 rounded-xl font-black transition cursor-pointer border',
             filters.filter === 'month'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700',
+              ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
-          This Month
+          Month
         </button>
         <button
           @click="setQuickFilter('paid')"
           :class="[
-            'px-4 py-2 rounded-lg transition-colors',
+            'px-3 py-1 rounded-xl font-black transition cursor-pointer border',
             filters.filter === 'paid'
-              ? 'bg-green-600 text-white'
-              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700',
+              ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
           Paid
@@ -234,10 +276,10 @@ const viewPayment = (id: string) => {
         <button
           @click="setQuickFilter('pending')"
           :class="[
-            'px-4 py-2 rounded-lg transition-colors',
+            'px-3 py-1 rounded-xl font-black transition cursor-pointer border',
             filters.filter === 'pending'
-              ? 'bg-yellow-600 text-white'
-              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700',
+              ? 'bg-amber-500 border-amber-500 text-slate-950 shadow-xs'
+              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
           Pending
@@ -245,10 +287,10 @@ const viewPayment = (id: string) => {
         <button
           @click="setQuickFilter('failed')"
           :class="[
-            'px-4 py-2 rounded-lg transition-colors',
+            'px-3 py-1 rounded-xl font-black transition cursor-pointer border',
             filters.filter === 'failed'
-              ? 'bg-red-600 text-white'
-              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700',
+              ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
           Failed
@@ -256,56 +298,55 @@ const viewPayment = (id: string) => {
         <button
           @click="setQuickFilter('refunded')"
           :class="[
-            'px-4 py-2 rounded-lg transition-colors',
+            'px-3 py-1 rounded-xl font-black transition cursor-pointer border',
             filters.filter === 'refunded'
-              ? 'bg-purple-600 text-white'
-              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700',
+              ? 'bg-purple-600 border-purple-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
           Refunded
         </button>
       </div>
 
-      <!-- Search and Filters -->
-      <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-4">
-        <div class="flex gap-4">
+      <!-- Search and Filter Controls -->
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-3.5 shadow-xs space-y-3">
+        <div class="flex flex-col sm:flex-row gap-2.5">
           <div class="flex-1 relative">
-            <Search
-              :size="20"
-              class="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
-            />
+            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               v-model="filters.search"
               @keyup.enter="handleSearch"
               type="text"
-              placeholder="Search by transaction ref, email, or name..."
-              class="w-full pl-10 pr-4 py-2 border dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+              placeholder="Search ref, email, or name..."
+              class="w-full pl-10 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-amber-500 transition"
             />
           </div>
-          <button
-            @click="handleSearch"
-            class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            Search
-          </button>
-          <button
-            @click="showFilters = !showFilters"
-            class="flex items-center gap-2 px-4 py-2 border dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors dark:text-white"
-          >
-            <Filter :size="18" />
-            Filters
-          </button>
+
+          <div class="flex items-center gap-2">
+            <button
+              @click="handleSearch"
+              class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold shadow-xs transition cursor-pointer"
+            >
+              Search
+            </button>
+
+            <button
+              @click="showFilters = !showFilters"
+              class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer border border-slate-200 dark:border-slate-700 flex items-center gap-1"
+            >
+              <Filter class="w-3.5 h-3.5" />
+              <span>Filters</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Advanced Filters -->
-        <div v-if="showFilters" class="mt-4 pt-4 border-t dark:border-slate-700 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Advanced Filter Dropdowns -->
+        <div v-if="showFilters" class="pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Status
-            </label>
+            <label class="block text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Status</label>
             <select
               v-model="filters.status"
-              class="w-full px-4 py-2 border dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none"
             >
               <option value="">All Statuses</option>
               <option value="paid">Paid</option>
@@ -316,130 +357,83 @@ const viewPayment = (id: string) => {
               <option value="refunded">Refunded</option>
             </select>
           </div>
+
           <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Type
-            </label>
+            <label class="block text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Type</label>
             <select
               v-model="filters.type"
-              class="w-full px-4 py-2 border dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none"
             >
               <option value="">All Types</option>
               <option value="reservation">Reservation</option>
               <option value="order">Restaurant Order</option>
             </select>
           </div>
+
           <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Provider
-            </label>
+            <label class="block text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Provider</label>
             <select
               v-model="filters.provider"
-              class="w-full px-4 py-2 border dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none"
             >
               <option value="">All Providers</option>
               <option value="chapa">Chapa</option>
             </select>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Date From
-            </label>
-            <input
-              v-model="filters.date_from"
-              type="date"
-              class="w-full px-4 py-2 border dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Date To
-            </label>
-            <input
-              v-model="filters.date_to"
-              type="date"
-              class="w-full px-4 py-2 border dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
-            />
-          </div>
-          <div class="flex items-end gap-2">
+
+          <div class="flex items-center gap-2 md:col-span-3 justify-end pt-1">
             <button
               @click="applyFilters"
-              class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer"
             >
-              Apply Filters
+              Apply
             </button>
             <button
               @click="clearFilters"
-              class="px-4 py-2 border dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition cursor-pointer border border-slate-200 dark:border-slate-700"
             >
-              <X :size="18" class="dark:text-white" />
+              Reset
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Payments Table -->
-      <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm">
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-slate-50 dark:bg-slate-900">
-              <tr>
-                <th
-                  @click="sortBy('tx_ref')"
-                  class="text-left p-4 text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Transaction Ref
-                </th>
-                <th
-                  @click="sortBy('customer_name')"
-                  class="text-left p-4 text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Customer
-                </th>
-                <th
-                  @click="sortBy('amount')"
-                  class="text-left p-4 text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Amount
-                </th>
-                <th class="text-left p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  Type
-                </th>
-                <th class="text-left p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  Method
-                </th>
-                <th
-                  @click="sortBy('status')"
-                  class="text-left p-4 text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Status
-                </th>
-                <th
-                  @click="sortBy('created_at')"
-                  class="text-left p-4 text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Date
-                </th>
-                <th class="text-left p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  Actions
-                </th>
+      <!-- Payments Data Table Card -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
+          <div class="flex items-center gap-2">
+            <CreditCard class="w-4 h-4 text-blue-500" />
+            <h2 class="text-sm font-extrabold text-slate-900 dark:text-white">Transaction Logs</h2>
+          </div>
+          <span v-if="cashierStore.pagination" class="px-2.5 py-0.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-black rounded-full border border-slate-300/60 dark:border-slate-700">
+            {{ cashierStore.pagination.total || 0 }} Records
+          </span>
+        </div>
+
+        <div class="overflow-x-auto w-full">
+          <table class="w-full text-left border-collapse table-fixed min-w-[700px]">
+            <thead>
+              <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+                <th @click="sortBy('tx_ref')" class="w-[18%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">Ref</th>
+                <th @click="sortBy('customer_name')" class="w-[22%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">Customer</th>
+                <th @click="sortBy('amount')" class="w-[13%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">Amount</th>
+                <th class="w-[10%] px-2.5 py-2.5 whitespace-nowrap">Type</th>
+                <th class="w-[9%] px-2.5 py-2.5 whitespace-nowrap">Method</th>
+                <th @click="sortBy('status')" class="w-[12%] px-2.5 py-2.5 text-center whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">Status</th>
+                <th @click="sortBy('created_at')" class="w-[11%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">Date</th>
+                <th class="w-[5%] px-2 py-2 text-right whitespace-nowrap pr-3">Action</th>
               </tr>
             </thead>
-            <tbody>
-              <tr
-                v-if="cashierStore.isLoading"
-                v-for="i in 5"
-                :key="i"
-                class="border-t dark:border-slate-700"
-              >
-                <td colspan="8" class="p-4">
-                  <div class="h-6 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-[11px]">
+              <tr v-if="cashierStore.isLoading" v-for="i in 5" :key="i">
+                <td colspan="8" class="p-3">
+                  <div class="h-5 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse"></div>
                 </td>
               </tr>
 
-              <tr v-else-if="cashierStore.payments.length === 0" class="border-t dark:border-slate-700">
-                <td colspan="8" class="p-12 text-center text-slate-500 dark:text-slate-400">
-                  No payments found
+              <tr v-else-if="cashierStore.payments.length === 0">
+                <td colspan="8" class="p-10 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                  No payment records found matching criteria.
                 </td>
               </tr>
 
@@ -447,49 +441,65 @@ const viewPayment = (id: string) => {
                 v-else
                 v-for="payment in cashierStore.payments"
                 :key="payment.id"
-                class="border-t dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer"
+                class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition cursor-pointer"
                 @click="viewPayment(payment.id)"
               >
-                <td class="p-4 text-sm text-slate-700 dark:text-slate-300 font-mono">
-                  {{ payment.tx_ref }}
+                <!-- Transaction Ref -->
+                <td class="px-2.5 py-2.5 whitespace-nowrap font-mono text-[10px] font-extrabold text-slate-900 dark:text-white truncate" :title="payment.tx_ref">
+                  {{ formatTxRefShort(payment.tx_ref) }}
                 </td>
-                <td class="p-4">
-                  <div class="text-sm text-slate-800 dark:text-white font-medium">
+
+                <!-- Customer -->
+                <td class="px-2.5 py-2.5 whitespace-nowrap">
+                  <div class="font-extrabold text-slate-900 dark:text-white text-[11px] truncate" :title="payment.customer_name">
                     {{ payment.customer_name }}
                   </div>
-                  <div class="text-xs text-slate-500 dark:text-slate-400">
+                  <div class="text-[9px] text-slate-500 dark:text-slate-400 font-medium truncate" :title="payment.email">
                     {{ payment.email }}
                   </div>
                 </td>
-                <td class="p-4 text-sm font-semibold text-slate-800 dark:text-white">
+
+                <!-- Amount -->
+                <td class="px-2.5 py-2.5 whitespace-nowrap font-black text-slate-900 dark:text-white text-[11px]">
                   {{ formatCurrency(payment.amount) }}
                 </td>
-                <td class="p-4 text-sm text-slate-600 dark:text-slate-400">
-                  {{ payment.type }}
+
+                <!-- Type -->
+                <td class="px-2.5 py-2.5 whitespace-nowrap text-slate-700 dark:text-slate-300 font-semibold text-[11px] capitalize">
+                  {{ formatTypeShort(payment.type) }}
                 </td>
-                <td class="p-4 text-sm text-slate-600 dark:text-slate-400 capitalize">
+
+                <!-- Method -->
+                <td class="px-2.5 py-2.5 whitespace-nowrap text-slate-600 dark:text-slate-400 text-[10px] capitalize font-medium">
                   {{ payment.payment_method || '-' }}
                 </td>
-                <td class="p-4">
+
+                <!-- Status Pill -->
+                <td class="px-2.5 py-2.5 text-center whitespace-nowrap">
                   <span
                     :class="[
-                      getStatusColor(payment.status),
-                      'px-3 py-1 rounded-full text-xs font-medium capitalize',
+                      'inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[9px] font-black uppercase tracking-wider border',
+                      getStatusBadgeClass(payment.status)
                     ]"
                   >
+                    <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                     {{ payment.status }}
                   </span>
                 </td>
-                <td class="p-4 text-sm text-slate-600 dark:text-slate-400">
-                  {{ formatDate(payment.created_at) }}
+
+                <!-- Date -->
+                <td class="px-2.5 py-2.5 whitespace-nowrap text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  {{ formatDateShort(payment.created_at) }}
                 </td>
-                <td class="p-4">
+
+                <!-- Actions -->
+                <td class="px-2 py-2 text-right whitespace-nowrap pr-3">
                   <button
                     @click.stop="viewPayment(payment.id)"
-                    class="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                    class="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition cursor-pointer border border-blue-500/20"
+                    title="View Transaction"
                   >
-                    <Eye :size="16" />
-                    View
+                    <Eye class="w-3.5 h-3.5" />
                   </button>
                 </td>
               </tr>
@@ -497,44 +507,70 @@ const viewPayment = (id: string) => {
           </table>
         </div>
 
-        <!-- Pagination -->
+        <!-- Pagination Bar with 5, 10, 20, 50 Options -->
         <div
-          v-if="cashierStore.pagination.total > 0"
-          class="px-6 py-4 border-t dark:border-slate-700 flex items-center justify-between"
+          v-if="cashierStore.pagination && cashierStore.pagination.total > 0"
+          class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-3.5 text-xs font-sans"
         >
-          <div class="text-sm text-slate-600 dark:text-slate-400">
-            Showing {{ cashierStore.pagination.from }} to {{ cashierStore.pagination.to }} of
-            {{ cashierStore.pagination.total }} payments
+          <!-- Left Side: Per Page Selector & Showing Count -->
+          <div class="flex flex-wrap items-center gap-3 text-slate-600 dark:text-slate-400">
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-slate-700 dark:text-slate-300 text-xs">Items per page:</span>
+              <select
+                :value="filters.per_page"
+                @change="changePerPage"
+                class="px-2 py-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-black text-xs focus:outline-none cursor-pointer shadow-2xs"
+              >
+                <option :value="5">5</option>
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
+
+            <div class="text-[11px] font-medium">
+              Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ cashierStore.pagination.from || 0 }}</span> to
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ cashierStore.pagination.to || 0 }}</span> of
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ cashierStore.pagination.total || 0 }}</span> payments
+            </div>
           </div>
-          <div class="flex items-center gap-2">
+
+          <!-- Right Side: Page Controls -->
+          <div class="flex items-center gap-1">
             <button
               @click="previousPage"
-              :disabled="cashierStore.pagination.current_page === 1"
-              class="p-2 border dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              :disabled="cashierStore.pagination.current_page <= 1"
+              class="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold text-xs"
+              title="Previous Page"
             >
-              <ChevronLeft :size="18" class="dark:text-white" />
+              <ChevronLeft class="w-3.5 h-3.5" />
+              <span class="hidden sm:inline">Prev</span>
             </button>
-            <div class="flex gap-1">
+
+            <div class="flex items-center gap-1">
               <button
-                v-for="page in cashierStore.pagination.last_page"
-                :key="page"
-                @click="goToPage(page)"
+                v-for="p in paginationPages"
+                :key="p"
+                @click="goToPage(p)"
                 :class="[
-                  'px-3 py-1 rounded-lg transition-colors',
-                  page === cashierStore.pagination.current_page
-                    ? 'bg-blue-600 text-white'
-                    : 'border dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 dark:text-white',
+                  'w-7 h-7 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center border',
+                  cashierStore.pagination.current_page === p
+                    ? 'bg-amber-500 border-amber-500 text-slate-950 font-black shadow-xs'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 ]"
               >
-                {{ page }}
+                {{ p }}
               </button>
             </div>
+
             <button
               @click="nextPage"
-              :disabled="cashierStore.pagination.current_page === cashierStore.pagination.last_page"
-              class="p-2 border dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              :disabled="cashierStore.pagination.current_page >= cashierStore.pagination.last_page"
+              class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold text-xs"
+              title="Next Page"
             >
-              <ChevronRight :size="18" class="dark:text-white" />
+              <span class="hidden sm:inline">Next</span>
+              <ChevronRight class="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

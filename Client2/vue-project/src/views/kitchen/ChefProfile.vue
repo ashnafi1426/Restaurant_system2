@@ -1,346 +1,299 @@
 <template>
   <DashboardLayout>
-    <div class="py-8">
-      <!-- Header -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Profile Settings</h1>
-        <p class="mt-2 text-sm text-gray-600">Manage your personal information and account settings</p>
+    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans">
+
+      <!-- Loading -->
+      <div v-if="loading" class="flex items-center justify-center py-24">
+        <div class="flex flex-col items-center gap-3">
+          <div class="w-10 h-10 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+          <p class="text-sm text-slate-500 dark:text-slate-400 font-semibold">Loading profile...</p>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Sidebar -->
-        <div class="lg:col-span-1">
-          <div class="bg-white rounded-lg shadow">
-            <div class="p-6">
-              <!-- Profile Photo -->
-              <div class="flex flex-col items-center">
-                <div class="relative">
-                  <img
-                    :src="profilePhotoUrl"
-                    alt="Profile"
-                    class="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                  />
-                  <label
-                    for="photo-upload"
-                    class="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition"
-                  >
-                    <Camera class="w-4 h-4" />
-                  </label>
-                  <input
-                    id="photo-upload"
-                    type="file"
-                    accept="image/*"
-                    class="hidden"
-                    @change="handlePhotoUpload"
-                  />
-                </div>
-                <h2 class="mt-4 text-xl font-semibold text-gray-900">{{ profile?.full_name }}</h2>
-                <p class="text-sm text-gray-500">{{ profile?.chef?.employee_code || 'No Employee Code' }}</p>
-                <span
-                  :class="[
-                    'mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium',
-                    statusColor
-                  ]"
-                >
-                  {{ profile?.chef?.status || 'active' }}
-                </span>
-                <span
-                  v-if="profile?.chef?.rank"
-                  class="mt-1 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
-                >
-                  {{ profile?.chef?.rank }}
+      <template v-else>
+        <!-- Alert Banner -->
+        <transition name="fade-slide">
+          <div
+            v-if="alert.show"
+            :class="[
+              'flex items-start gap-3 px-4 py-3 rounded-2xl text-sm font-semibold border',
+              alert.type === 'success'
+                ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300'
+                : 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300'
+            ]"
+          >
+            <component :is="alert.type === 'success' ? CheckCircle : AlertCircle" class="w-5 h-5 mt-0.5 flex-shrink-0" />
+            <span>{{ alert.message }}</span>
+            <button @click="alert.show = false" class="ml-auto opacity-60 hover:opacity-100 transition">
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+        </transition>
+
+        <!-- Profile Header -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row items-center gap-6">
+          <div class="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
+
+            <!-- Avatar with upload -->
+            <div class="relative flex-shrink-0 group cursor-pointer" @click="triggerPhotoUpload" title="Click to change photo">
+              <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-rose-500/30 shadow-md bg-rose-500/10 flex items-center justify-center">
+                <img
+                  v-if="photoPreview || profileData.chef?.profile_photo"
+                  :src="photoPreview || getPhotoUrl(profileData.chef?.profile_photo)"
+                  alt="Profile"
+                  class="w-full h-full object-cover"
+                />
+                <span v-else class="text-rose-600 dark:text-rose-400 font-black text-2xl">
+                  {{ (profileData.first_name || 'K')?.[0]?.toUpperCase() }}
                 </span>
               </div>
-
-              <!-- Quick Stats -->
-              <div class="mt-6 space-y-3">
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600">Specialization</span>
-                  <span class="font-medium text-gray-900">{{ profile?.chef?.specialization || 'N/A' }}</span>
-                </div>
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600">Experience</span>
-                  <span class="font-medium text-gray-900">{{ profile?.chef?.experience_years || 0 }} years</span>
-                </div>
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600">Shift</span>
-                  <span class="font-medium text-gray-900">{{ profile?.chef?.shift || 'N/A' }}</span>
-                </div>
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600">Hire Date</span>
-                  <span class="font-medium text-gray-900">{{ formatDate(profile?.chef?.hire_date) }}</span>
-                </div>
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600">Email</span>
-                  <span class="font-medium text-gray-900 truncate">{{ profile?.email }}</span>
-                </div>
+              <!-- Hover overlay -->
+              <div class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Camera class="w-6 h-6 text-white" />
               </div>
-
-              <!-- Status Toggle -->
-              <div class="mt-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Update Status</label>
-                <select
-                  v-model="selectedStatus"
-                  @change="updateStatus"
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="active">Active</option>
-                  <option value="on_break">On Break</option>
-                  <option value="off_duty">Off Duty</option>
-                </select>
+              <!-- Upload spinner -->
+              <div v-if="uploadingPhoto" class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center">
+                <div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               </div>
             </div>
 
-            <!-- Navigation -->
-            <div class="border-t border-gray-200">
-              <nav class="flex flex-col">
-                <button
-                  v-for="tab in tabs"
-                  :key="tab.id"
-                  @click="activeTab = tab.id"
-                  :class="[
-                    'flex items-center px-6 py-3 text-sm font-medium transition',
-                    activeTab === tab.id
-                      ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  ]"
-                >
-                  <component :is="tab.icon" class="w-5 h-5 mr-3" />
-                  {{ tab.label }}
-                </button>
-              </nav>
+            <!-- Hidden file input -->
+            <input ref="photoInput" type="file" accept="image/jpeg,image/png,image/jpg,image/gif" class="hidden" @change="onPhotoSelected" />
+
+            <!-- Name & role -->
+            <div>
+              <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
+                <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  {{ profileData.first_name }} {{ profileData.last_name }}
+                </h1>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  {{ profileData.role || 'Kitchen Staff' }}
+                </span>
+              </div>
+              <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                <span class="font-mono font-bold text-rose-600 dark:text-rose-400">Kitchen Operations</span>
+                <span>•</span>
+                <span>{{ profileData.email }}</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">Click your avatar to upload a profile photo</p>
             </div>
           </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="lg:col-span-2">
-          <div class="bg-white rounded-lg shadow">
-            <!-- Personal Information Tab -->
-            <div v-if="activeTab === 'personal'" class="p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-6">Personal Information</h3>
-              <form @submit.prevent="updateProfile" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+          <!-- Sidebar -->
+          <div class="lg:col-span-1 space-y-6">
+            <!-- Quick Info -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4">
+              <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">Quick Info</h3>
+              <div class="space-y-3 text-xs">
+                <div class="flex items-start gap-3">
+                  <Briefcase class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                      First Name *
-                    </label>
-                    <input
-                      v-model="formData.first_name"
-                      type="text"
-                      required
-                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Role</p>
+                    <p class="font-extrabold text-slate-900 dark:text-white capitalize">{{ profileData.role || 'Kitchen Staff' }}</p>
                   </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <Mail class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                  <div class="min-w-0 flex-1">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Email</p>
+                    <p class="font-extrabold text-slate-900 dark:text-white truncate">{{ profileData.email }}</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <Phone class="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                      Last Name *
-                    </label>
-                    <input
-                      v-model="formData.last_name"
-                      type="text"
-                      required
-                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Phone</p>
+                    <p class="font-extrabold text-slate-900 dark:text-white">{{ profileData.phone || 'Not provided' }}</p>
                   </div>
                 </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Email (Read Only)
-                  </label>
-                  <input
-                    :value="profile?.email"
-                    type="email"
-                    disabled
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-                  />
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    v-model="formData.phone"
-                    type="tel"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div v-if="profileData.chef?.specialization" class="flex items-start gap-3">
+                  <ChefHat class="w-4 h-4 text-rose-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                      Specialization
-                    </label>
-                    <input
-                      v-model="formData.specialization"
-                      type="text"
-                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="e.g., Italian Cuisine, Pastry"
-                    />
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Specialization</p>
+                    <p class="font-extrabold text-slate-900 dark:text-white">{{ profileData.chef.specialization }}</p>
                   </div>
+                </div>
+                <div v-if="profileData.chef?.shift" class="flex items-start gap-3">
+                  <Clock class="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                      Experience Years
-                    </label>
-                    <input
-                      v-model.number="formData.experience_years"
-                      type="number"
-                      min="0"
-                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Shift
-                  </label>
-                  <select
-                    v-model="formData.shift"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select Shift</option>
-                    <option value="morning">Morning</option>
-                    <option value="evening">Evening</option>
-                    <option value="night">Night</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Bio
-                  </label>
-                  <textarea
-                    v-model="formData.bio"
-                    rows="4"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Tell us about yourself and your culinary journey..."
-                  ></textarea>
-                </div>
-
-                <div class="flex justify-end gap-3">
-                  <button
-                    type="button"
-                    @click="resetForm"
-                    class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    :disabled="loading"
-                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-                  >
-                    {{ loading ? 'Saving...' : 'Save Changes' }}
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <!-- Security Tab -->
-            <div v-if="activeTab === 'security'" class="p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-6">Change Password</h3>
-              <form @submit.prevent="changePassword" class="space-y-6">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Current Password *
-                  </label>
-                  <input
-                    v-model="passwordData.current_password"
-                    type="password"
-                    required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    New Password *
-                  </label>
-                  <input
-                    v-model="passwordData.new_password"
-                    type="password"
-                    required
-                    minlength="8"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p class="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Confirm New Password *
-                  </label>
-                  <input
-                    v-model="passwordData.new_password_confirmation"
-                    type="password"
-                    required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div class="flex justify-end">
-                  <button
-                    type="submit"
-                    :disabled="loading"
-                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-                  >
-                    {{ loading ? 'Updating...' : 'Update Password' }}
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <!-- Statistics Tab -->
-            <div v-if="activeTab === 'statistics'" class="p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-6">Kitchen Statistics</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-blue-50 rounded-lg p-4">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm text-gray-600">Total Orders Prepared</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.total_orders_prepared || 0 }}</p>
-                    </div>
-                    <ChefHat class="w-10 h-10 text-blue-600" />
-                  </div>
-                </div>
-
-                <div class="bg-green-50 rounded-lg p-4">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm text-gray-600">Orders Today</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.orders_today || 0 }}</p>
-                    </div>
-                    <Clock class="w-10 h-10 text-green-600" />
-                  </div>
-                </div>
-
-                <div class="bg-purple-50 rounded-lg p-4">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm text-gray-600">Orders in Progress</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.orders_in_progress || 0 }}</p>
-                    </div>
-                    <Loader class="w-10 h-10 text-purple-600" />
-                  </div>
-                </div>
-
-                <div class="bg-yellow-50 rounded-lg p-4">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm text-gray-600">Completed Today</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.completed_orders_today || 0 }}</p>
-                    </div>
-                    <CheckCircle class="w-10 h-10 text-yellow-600" />
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Shift</p>
+                    <p class="font-extrabold text-slate-900 dark:text-white capitalize">{{ profileData.chef.shift }}</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- Main Content -->
+          <div class="lg:col-span-3 space-y-6">
+
+            <!-- Personal Information Card -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+              <div>
+                <h3 class="text-lg font-black text-slate-900 dark:text-white">Personal Information</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Update your kitchen staff account details.</p>
+              </div>
+
+              <form @submit.prevent="saveProfile" class="space-y-4 text-xs font-sans">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">First Name *</label>
+                    <input v-model="form.first_name" type="text" required
+                      class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-rose-500 transition" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Last Name *</label>
+                    <input v-model="form.last_name" type="text" required
+                      class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-rose-500 transition" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Email Address</label>
+                  <input v-model="form.email" type="email" disabled
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 font-bold cursor-not-allowed" />
+                  <p class="text-[10px] text-slate-400 mt-1">Email cannot be changed. Contact your administrator.</p>
+                </div>
+
+                <div>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Phone Number</label>
+                  <input v-model="form.phone" type="tel" placeholder="+251 XXX XXX XXX"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-rose-500 transition" />
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Specialization</label>
+                    <input v-model="form.specialization" type="text" placeholder="e.g. Pastry, Grilling..."
+                      class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-rose-500 transition" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Shift</label>
+                    <select v-model="form.shift"
+                      class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-rose-500 transition">
+                      <option value="">Select shift</option>
+                      <option value="morning">Morning</option>
+                      <option value="afternoon">Afternoon</option>
+                      <option value="evening">Evening</option>
+                      <option value="night">Night</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Bio</label>
+                  <textarea v-model="form.bio" rows="3" placeholder="A short bio about yourself..."
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-rose-500 transition resize-none"></textarea>
+                </div>
+
+                <div class="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <button type="submit" :disabled="saving"
+                    class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/20 transition flex items-center gap-1.5 disabled:opacity-50">
+                    <div v-if="saving" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <Save v-else class="w-3.5 h-3.5" />
+                    <span>{{ saving ? 'Saving...' : 'Save Changes' }}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Change Password Card -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                  <Lock class="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <h3 class="text-lg font-black text-slate-900 dark:text-white">Change Password</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Change your temporary or current password here.</p>
+                </div>
+              </div>
+
+              <form @submit.prevent="changePassword" class="space-y-4 text-xs font-sans">
+                <!-- Current / Temporary Password -->
+                <div>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">
+                    Current / Temporary Password *
+                  </label>
+                  <div class="relative">
+                    <input v-model="pwForm.current_password" :type="showCurrentPw ? 'text' : 'password'" required
+                      placeholder="Enter your current or temporary password"
+                      class="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 transition" />
+                    <button type="button" @click="showCurrentPw = !showCurrentPw"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
+                      <Eye v-if="!showCurrentPw" class="w-4 h-4" />
+                      <EyeOff v-else class="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <!-- New Password -->
+                <div>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">New Password *</label>
+                  <div class="relative">
+                    <input v-model="pwForm.new_password" :type="showNewPw ? 'text' : 'password'" required minlength="8"
+                      placeholder="Minimum 8 characters"
+                      class="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 transition" />
+                    <button type="button" @click="showNewPw = !showNewPw"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
+                      <Eye v-if="!showNewPw" class="w-4 h-4" />
+                      <EyeOff v-else class="w-4 h-4" />
+                    </button>
+                  </div>
+                  <!-- Password strength -->
+                  <div v-if="pwForm.new_password" class="mt-2 space-y-1">
+                    <div class="flex gap-1">
+                      <div v-for="i in 4" :key="i"
+                        class="h-1 flex-1 rounded-full transition-all"
+                        :class="passwordStrength >= i ? strengthColor : 'bg-slate-200 dark:bg-slate-700'">
+                      </div>
+                    </div>
+                    <p class="text-[10px] font-bold" :class="strengthTextColor">{{ strengthLabel }}</p>
+                  </div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Confirm New Password *</label>
+                  <div class="relative">
+                    <input v-model="pwForm.new_password_confirmation" :type="showConfirmPw ? 'text' : 'password'" required
+                      placeholder="Re-enter new password"
+                      :class="[
+                        'w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border text-slate-900 dark:text-white font-bold focus:outline-none transition',
+                        pwForm.new_password_confirmation && pwForm.new_password !== pwForm.new_password_confirmation
+                          ? 'border-red-400 focus:border-red-400'
+                          : 'border-slate-200 dark:border-slate-800 focus:border-amber-500'
+                      ]" />
+                    <button type="button" @click="showConfirmPw = !showConfirmPw"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
+                      <Eye v-if="!showConfirmPw" class="w-4 h-4" />
+                      <EyeOff v-else class="w-4 h-4" />
+                    </button>
+                  </div>
+                  <p v-if="pwForm.new_password_confirmation && pwForm.new_password !== pwForm.new_password_confirmation"
+                    class="text-[10px] text-red-500 font-bold mt-1">
+                    Passwords do not match
+                  </p>
+                </div>
+
+                <div class="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <button type="submit"
+                    :disabled="changingPw || !!(pwForm.new_password_confirmation && pwForm.new_password !== pwForm.new_password_confirmation)"
+                    class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs shadow-md shadow-amber-500/20 transition flex items-center gap-1.5 disabled:opacity-50">
+                    <div v-if="changingPw" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <Lock v-else class="w-3.5 h-3.5" />
+                    <span>{{ changingPw ? 'Changing...' : 'Change Password' }}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+          </div>
         </div>
-      </div>
+      </template>
     </div>
   </DashboardLayout>
 </template>
@@ -348,203 +301,267 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
-import { chefProfileService, type ChefProfile, type ChefStats } from '@/services/profile/chefProfileService'
-import { Camera, User, Lock, BarChart3, ChefHat, Clock, Loader, CheckCircle } from 'lucide-vue-next'
-import { useToast } from 'vue-toastification'
+import {
+  Briefcase, Mail, Phone, Save, Lock, Eye, EyeOff,
+  Camera, ChefHat, Clock, ShieldCheck, CheckCircle, AlertCircle, X
+} from 'lucide-vue-next'
+import api from '@/api/auth'
 
-const toast = useToast()
+// ── State ─────────────────────────────────────────────────────────────────────
+const loading = ref(true)
+const saving = ref(false)
+const changingPw = ref(false)
+const uploadingPhoto = ref(false)
 
-// State
-const profile = ref<ChefProfile | null>(null)
-const stats = ref<ChefStats | null>(null)
-const loading = ref(false)
-const activeTab = ref('personal')
-const selectedStatus = ref('active')
+const photoInput = ref<HTMLInputElement | null>(null)
+const photoPreview = ref<string | null>(null)
 
-// Form Data
-const formData = ref({
+const profileData = ref<any>({
   first_name: '',
   last_name: '',
+  email: '',
+  phone: '',
+  role: '',
+  chef: null,
+})
+const form = ref({
+  first_name: '',
+  last_name: '',
+  email: '',
   phone: '',
   specialization: '',
   shift: '',
-  experience_years: 0,
-  bio: ''
+  bio: '',
 })
 
-const passwordData = ref({
+const pwForm = ref({
   current_password: '',
   new_password: '',
-  new_password_confirmation: ''
+  new_password_confirmation: '',
 })
 
-// Tabs Configuration
-const tabs = [
-  { id: 'personal', label: 'Personal Info', icon: User },
-  { id: 'security', label: 'Security', icon: Lock },
-  { id: 'statistics', label: 'Statistics', icon: BarChart3 }
-]
+const showCurrentPw = ref(false)
+const showNewPw = ref(false)
+const showConfirmPw = ref(false)
 
-// Computed
-const profilePhotoUrl = computed(() => {
-  if (profile.value?.chef?.profile_photo) {
-    return `http://127.0.0.1:8000/storage/${profile.value.chef.profile_photo}`
-  }
-  return '/images/avatar.png'
+const alert = ref({ show: false, type: 'success' as 'success' | 'error', message: '' })
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const showAlert = (type: 'success' | 'error', message: string) => {
+  alert.value = { show: true, type, message }
+  setTimeout(() => { alert.value.show = false }, 5000)
+}
+
+const getPhotoUrl = (path: string | null | undefined) => {
+  if (!path) return null
+  if (path.startsWith('http')) return path
+  return `http://127.0.0.1:8000/storage/${path}`
+}
+
+const populateForm = (data: any) => {
+  form.value.first_name = data.first_name || ''
+  form.value.last_name = data.last_name || ''
+  form.value.email = data.email || ''
+  form.value.phone = data.phone || ''
+  form.value.specialization = data.chef?.specialization || ''
+  form.value.shift = data.chef?.shift || ''
+  form.value.bio = data.chef?.bio || ''
+}
+
+// ── Password Strength ─────────────────────────────────────────────────────────
+const passwordStrength = computed(() => {
+  const pw = pwForm.value.new_password
+  if (!pw) return 0
+  let score = 0
+  if (pw.length >= 8) score++
+  if (/[A-Z]/.test(pw)) score++
+  if (/[0-9]/.test(pw)) score++
+  if (/[^A-Za-z0-9]/.test(pw)) score++
+  return score
+})
+const strengthColor = computed(() => {
+  const s = passwordStrength.value
+  if (s === 1) return 'bg-red-500'
+  if (s === 2) return 'bg-amber-400'
+  if (s === 3) return 'bg-blue-400'
+  return 'bg-emerald-500'
+})
+const strengthTextColor = computed(() => {
+  const s = passwordStrength.value
+  if (s === 1) return 'text-red-500'
+  if (s === 2) return 'text-amber-500'
+  if (s === 3) return 'text-blue-500'
+  return 'text-emerald-500'
+})
+const strengthLabel = computed(() => {
+  const s = passwordStrength.value
+  if (s === 1) return 'Weak'
+  if (s === 2) return 'Fair'
+  if (s === 3) return 'Good'
+  return 'Strong'
 })
 
-const statusColor = computed(() => {
-  const status = profile.value?.chef?.status
-  if (status === 'active') return 'bg-green-100 text-green-800'
-  if (status === 'on_break') return 'bg-yellow-100 text-yellow-800'
-  if (status === 'off_duty') return 'bg-gray-100 text-gray-800'
-  return 'bg-gray-100 text-gray-800'
-})
-
-// Methods
-async function loadProfile() {
+// ── API Calls ─────────────────────────────────────────────────────────────────
+const fetchProfile = async () => {
+  loading.value = true
   try {
-    loading.value = true
-    profile.value = await chefProfileService.getProfile()
-    selectedStatus.value = profile.value.chef?.status || 'active'
-    
-    // Populate form
-    formData.value = {
-      first_name: profile.value.first_name,
-      last_name: profile.value.last_name,
-      phone: profile.value.phone || '',
-      specialization: profile.value.chef?.specialization || '',
-      shift: profile.value.chef?.shift || '',
-      experience_years: profile.value.chef?.experience_years || 0,
-      bio: profile.value.chef?.bio || ''
+    const res = await api.get('/chef/profile')
+    if (res.data?.success) {
+      profileData.value = res.data.data
+      populateForm(res.data.data)
+    } else {
+      showAlert('error', res.data?.message || 'Failed to load profile.')
     }
-  } catch (error: any) {
-    toast.error(error.response?.data?.message || 'Failed to load profile')
+  } catch (err: any) {
+    showAlert('error', err.response?.data?.message || 'Failed to load profile data.')
   } finally {
     loading.value = false
   }
 }
 
-async function loadStats() {
+const saveProfile = async () => {
+  saving.value = true
   try {
-    stats.value = await chefProfileService.getStats()
-  } catch (error: any) {
-    console.error('Failed to load stats:', error)
-  }
-}
-
-async function updateProfile() {
-  try {
-    loading.value = true
-    await chefProfileService.updateProfile(formData.value)
-    await loadProfile()
-    toast.success('Profile updated successfully')
-  } catch (error: any) {
-    toast.error(error.response?.data?.message || 'Failed to update profile')
+    const res = await api.put('/chef/profile', {
+      first_name: form.value.first_name,
+      last_name: form.value.last_name,
+      phone: form.value.phone,
+      specialization: form.value.specialization,
+      shift: form.value.shift,
+      bio: form.value.bio,
+    })
+    if (res.data?.success) {
+      // Merge updated data back
+      profileData.value = {
+        ...profileData.value,
+        first_name: res.data.data.first_name,
+        last_name: res.data.data.last_name,
+        phone: res.data.data.phone,
+        chef: res.data.data.chef
+          ? { ...profileData.value.chef, ...res.data.data.chef }
+          : profileData.value.chef,
+      }
+      showAlert('success', 'Profile updated successfully!')
+    } else {
+      showAlert('error', res.data?.message || 'Failed to update profile.')
+    }
+  } catch (err: any) {
+    const errors = err.response?.data?.errors
+    if (errors) {
+      const first = Object.values(errors)[0] as string[]
+      showAlert('error', first[0])
+    } else {
+      showAlert('error', err.response?.data?.message || 'Failed to update profile.')
+    }
   } finally {
-    loading.value = false
+    saving.value = false
   }
 }
 
-async function handlePhotoUpload(event: Event) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  
+const changePassword = async () => {
+  if (pwForm.value.new_password !== pwForm.value.new_password_confirmation) {
+    showAlert('error', 'New passwords do not match.')
+    return
+  }
+  if (pwForm.value.new_password.length < 8) {
+    showAlert('error', 'New password must be at least 8 characters.')
+    return
+  }
+  changingPw.value = true
+  try {
+    const res = await api.post('/chef/profile/change-password', {
+      current_password: pwForm.value.current_password,
+      new_password: pwForm.value.new_password,
+      new_password_confirmation: pwForm.value.new_password_confirmation,
+    })
+    if (res.data?.success) {
+      pwForm.value = { current_password: '', new_password: '', new_password_confirmation: '' }
+      showAlert('success', 'Password changed successfully! Your account is now secured.')
+    } else {
+      showAlert('error', res.data?.message || 'Failed to change password.')
+    }
+  } catch (err: any) {
+    const errors = err.response?.data?.errors
+    if (errors) {
+      const first = Object.values(errors)[0] as string[]
+      showAlert('error', first[0])
+    } else {
+      showAlert('error', err.response?.data?.message || 'Incorrect current password or server error.')
+    }
+  } finally {
+    changingPw.value = false
+  }
+}
+
+// ── Photo Upload ──────────────────────────────────────────────────────────────
+const triggerPhotoUpload = () => {
+  photoInput.value?.click()
+}
+
+const onPhotoSelected = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
   if (!file) return
-  
-  // Validate file size (2MB)
-  if (file.size > 2 * 1024 * 1024) {
-    alert('Error: Photo size must be less than 2MB')
-    return
-  }
-  
+
   // Validate file type
-  if (!file.type.startsWith('image/')) {
-    alert('Error: Please upload an image file')
+  const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
+  if (!validTypes.includes(file.type)) {
+    showAlert('error', 'Please select a valid image file (JPEG, PNG, JPG, or GIF)')
+    if (photoInput.value) photoInput.value.value = ''
     return
   }
-  
-  try {
-    loading.value = true
-    const result = await chefProfileService.uploadPhoto(file)
-    console.log('Photo uploaded:', result)
-    
-    // Reload profile to get updated photo
-    await loadProfile()
-    
-    alert('Photo uploaded successfully')
-  } catch (error: any) {
-    console.error('Photo upload error:', error)
-    alert(`Error: ${error.response?.data?.message || 'Failed to upload photo'}`)
-  } finally {
-    loading.value = false
-    // Reset file input
-    if (target) {
-      target.value = ''
-    }
-  }
-}
 
-async function changePassword() {
-  if (passwordData.value.new_password !== passwordData.value.new_password_confirmation) {
-    toast.error('Passwords do not match')
+  // Validate file size (2MB)
+  if (file.size > 2048 * 1024) {
+    showAlert('error', 'Image file size must be less than 2MB')
+    if (photoInput.value) photoInput.value.value = ''
     return
   }
-  
+
+  // Show preview immediately
+  const reader = new FileReader()
+  reader.onload = (e) => { photoPreview.value = e.target?.result as string }
+  reader.readAsDataURL(file)
+
+  uploadingPhoto.value = true
   try {
-    loading.value = true
-    await chefProfileService.changePassword(passwordData.value)
-    toast.success('Password changed successfully')
+    const formData = new FormData()
+    formData.append('photo', file)
     
-    // Reset form
-    passwordData.value = {
-      current_password: '',
-      new_password: '',
-      new_password_confirmation: ''
+    // Don't set Content-Type manually - let browser set it with boundary
+    const res = await api.post('/chef/profile/photo', formData)
+    
+    if (res.data?.success) {
+      if (profileData.value.chef) {
+        profileData.value.chef.profile_photo = res.data.data?.profile_photo
+      }
+      showAlert('success', 'Profile photo updated successfully!')
+    } else {
+      photoPreview.value = null
+      showAlert('error', res.data?.message || 'Failed to upload photo.')
     }
-  } catch (error: any) {
-    toast.error(error.response?.data?.message || 'Failed to change password')
+  } catch (err: any) {
+    console.error('Photo upload error:', err)
+    photoPreview.value = null
+    showAlert('error', err.response?.data?.message || 'Failed to upload photo. Please try again.')
   } finally {
-    loading.value = false
+    uploadingPhoto.value = false
+    if (photoInput.value) photoInput.value.value = ''
   }
 }
 
-async function updateStatus() {
-  try {
-    await chefProfileService.updateStatus(selectedStatus.value as 'active' | 'on_break' | 'off_duty')
-    await loadProfile()
-    toast.success('Status updated successfully')
-  } catch (error: any) {
-    toast.error(error.response?.data?.message || 'Failed to update status')
-  }
-}
-
-function resetForm() {
-  if (profile.value) {
-    formData.value = {
-      first_name: profile.value.first_name,
-      last_name: profile.value.last_name,
-      phone: profile.value.phone || '',
-      specialization: profile.value.chef?.specialization || '',
-      shift: profile.value.chef?.shift || '',
-      experience_years: profile.value.chef?.experience_years || 0,
-      bio: profile.value.chef?.bio || ''
-    }
-  }
-}
-
-function formatDate(date: string | null | undefined): string {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
-
-// Lifecycle
-onMounted(() => {
-  loadProfile()
-  loadStats()
-})
+// ── Lifecycle ─────────────────────────────────────────────────────────────────
+onMounted(fetchProfile)
 </script>
+
+<style scoped>
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.3s ease;
+}
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+</style>

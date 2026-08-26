@@ -5,9 +5,6 @@
         <!-- Header -->
         <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-sm dark:shadow-2xl">
           <div class="flex items-center gap-3">
-            <div class="p-3 bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-500/30 shadow-sm flex-shrink-0">
-              <span class="material-symbols-rounded text-2xl">local_shipping</span>
-            </div>
             <div>
               <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">On Delivery</h1>
               <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Track your active room deliveries and mark completed</p>

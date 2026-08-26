@@ -1,10 +1,3 @@
-/**
- * ============================================================================
- * Cashier Store
- * ============================================================================
- * Pinia store for cashier module state management
- */
-
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import cashierService, { type PaymentFilters, type ReportFilters } from '@/services/cashierService'
@@ -19,7 +12,6 @@ interface DashboardStats {
   refund_requests: number
   total_transactions: number
 }
-
 interface Payment {
   id: string
   tx_ref: string

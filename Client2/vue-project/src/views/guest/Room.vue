@@ -2,8 +2,11 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoomStore } from '@/stores/room'
 import RoomHero from '@/components/guest/RoomHero.vue'
+import RoomSearchBar from '@/components/guest/RoomSearchBar.vue'
 import RoomGrid from '@/components/guest/RoomGrid.vue'
+import NoRoomsFound from '@/components/guest/NoRoomsFound.vue'
 import RoomPagination from '@/components/guest/RoomPagination.vue'
+import RoomCTA from '@/components/guest/RoomCTA.vue'
 import GuestLayout from '@/layouts/GuestLayout.vue'
 const roomStore = useRoomStore()
 
@@ -19,10 +22,12 @@ const error = computed(() => roomStore.error)
 
 // Filter rooms based on search and filters
 const filteredRooms = computed(() => {
-  return rooms.value.filter((room: any) => {
+  const roomList = Array.isArray(rooms.value) ? rooms.value : []
+  return roomList.filter((room: any) => {
+    if (!room) return false
     // Safely get room name from various possible fields
-    const roomName = (room.room_name || room.name || `Room ${room.room_number}`).toLowerCase()
-    const matchesSearch = roomName.includes(search.value.toLowerCase())
+    const roomName = (room.room_name || room.name || `Room ${room.room_number || ''}`).toLowerCase()
+    const matchesSearch = roomName.includes((search.value || '').toLowerCase())
 
     // Get room type - could be string or object
     const roomType =
@@ -101,18 +106,12 @@ watch([search, selectedType, selectedCapacity], () => {
       <!-- Hero -->
       <RoomHero />
 
-      <!-- Search -->
-      <section class="mx-auto -mt-16 max-w-7xl px-6 relative z-20">
-        <RoomSearchBar v-model="search" />
-      </section>
-
-      <!-- Filters -->
-      <section class="mx-auto mt-12 max-w-7xl px-6">
-        <RoomFilters
+      <!-- Unified Search + Filters -->
+      <section class="mx-auto -mt-14 max-w-6xl px-4 sm:px-6 relative z-20">
+        <RoomSearchBar
+          v-model="search"
           :type="selectedType"
-          :capacity="selectedCapacity"
           @update:type="selectedType = $event"
-          @update:capacity="selectedCapacity = $event"
         />
       </section>
 

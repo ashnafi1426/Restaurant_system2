@@ -209,7 +209,7 @@ const onImageError = () => {
         </span>
 
         <span
-          class="inline-flex items-center rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700"
+          class="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/40 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-300"
         >
           Freshly Prepared
         </span>
@@ -221,7 +221,7 @@ const onImageError = () => {
         <div>
           <p class="text-xs uppercase tracking-wide text-slate-500">Price</p>
 
-          <h2 class="text-3xl font-bold text-teal-600">
+          <h2 class="text-3xl font-bold text-amber-600 dark:text-amber-400">
             {{ item.price.toFixed(2) }}
 
             <span class="text-base font-medium"> ETB </span>
@@ -231,30 +231,30 @@ const onImageError = () => {
         <div class="text-right">
           <p class="text-xs text-slate-500">Estimated Time</p>
 
-          <p class="font-semibold text-slate-700">{{ preparationTime }} mins</p>
+          <p class="font-semibold text-slate-700 dark:text-slate-300">{{ preparationTime }} mins</p>
         </div>
       </div>
 
       <!-- Quantity -->
 
       <div class="mt-6 flex items-center justify-between">
-        <span class="font-semibold text-slate-700"> Quantity </span>
+        <span class="font-semibold text-slate-700 dark:text-slate-300"> Quantity </span>
 
-        <div class="flex items-center rounded-xl border border-slate-200 overflow-hidden">
+        <div class="flex items-center rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
           <button
             @click="decrease"
-            class="w-11 h-11 flex items-center justify-center hover:bg-slate-100 transition"
+            class="w-11 h-11 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition"
           >
             −
           </button>
 
-          <div class="w-12 text-center font-semibold">
+          <div class="w-12 text-center font-semibold text-slate-900 dark:text-slate-100">
             {{ quantity }}
           </div>
 
           <button
             @click="increase"
-            class="w-11 h-11 flex items-center justify-center hover:bg-slate-100 transition"
+            class="w-11 h-11 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition"
           >
             +
           </button>
@@ -263,7 +263,7 @@ const onImageError = () => {
 
       <!-- Divider -->
 
-      <div class="my-6 border-t border-slate-200" />
+      <div class="my-6 border-t border-slate-200 dark:border-slate-700" />
 
       <!-- Footer -->
 
@@ -271,7 +271,7 @@ const onImageError = () => {
         <div>
           <p class="text-sm text-slate-500">Total</p>
 
-          <p class="text-2xl font-bold text-slate-900">
+          <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">
             {{ (item.price * quantity).toFixed(2) }}
 
             ETB
@@ -280,7 +280,7 @@ const onImageError = () => {
 
         <button
           @click="addToCart"
-          class="flex-1 rounded-2xl bg-teal-600 px-6 py-4 font-semibold text-white transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95"
+          class="flex-1 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 font-semibold text-white transition-all duration-300 hover:from-emerald-700 hover:to-teal-700 hover:shadow-lg active:scale-95"
         >
           <div class="flex items-center justify-center gap-2">
             <svg

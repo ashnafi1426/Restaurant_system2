@@ -13,6 +13,7 @@ import FloorAssignment from '../views/manager/FloorAssignment.vue'
 import AddFloor from '../views/manager/AddFloor.vue'
 import DeliveryManagement from '../views/manager/DeliveryManagement.vue'
 import RestaurantTables from '../views/manager/RestaurantTables.vue'
+import TableAssignments from '../views/manager/TableAssignments.vue'
 import Setting from '../views/manager/Setting.vue'
 import ManagerProfile from '../views/manager/ManagerProfile.vue'
 
@@ -125,6 +126,16 @@ const managerRoutes: RouteRecordRaw[] = [
       requiresAuth: true,
       permission: 'tables.view',
       title: 'Restaurant Tables',
+    },
+  },
+  {
+    path: '/manager/table-assignments',
+    name: 'TableAssignments',
+    component: TableAssignments,
+    meta: {
+      requiresAuth: true,
+      permission: 'tables.assign',
+      title: 'Table Assignments',
     },
   },
   {

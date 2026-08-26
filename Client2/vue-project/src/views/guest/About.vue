@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import AboutHero from '@/components/guest/AboutHero.vue'
 import HotelHistory from '@/components/guest/HotelHistory.vue'
-import MissionVision from '@/components/guest/MissionVision.vue'
 import HotelStatistics from '@/components/guest/HotelStatistics.vue'
 import HotelGallery from '@/components/guest/HotelGallery.vue'
 import MeetOurTeam from '@/components/guest/MeetOurTeam.vue'
@@ -12,10 +11,9 @@ import GuestLayout from '@/layouts/GuestLayout.vue'
 
 <template>
   <GuestLayout>
-    <div class="bg-white">
+    <div class="bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-white transition-colors duration-300 font-sans">
       <AboutHero />
       <HotelHistory />
-      <!-- <MissionVision /> -->
       <HotelStatistics />
       <HotelGallery />
       <MeetOurTeam />

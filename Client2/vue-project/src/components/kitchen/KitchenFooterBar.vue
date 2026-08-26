@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { Printer, BellOff } from 'lucide-vue-next'
+
 defineProps<{
   statistics?: {
     pending_orders: number
@@ -14,43 +17,42 @@ defineProps<{
   }
 }>()
 
-import { computed } from 'vue'
-
 const ticketsNeeding = computed(() => {
   return 4 // This would come from statistics
 })
 </script>
 
 <template>
-  <div class="border-t border-slate-200 bg-white px-4 sm:px-6 md:px-8 py-3 sm:py-4 shadow-lg">
+  <div class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 sm:px-6 md:px-8 py-3 sm:py-4 shadow-lg rounded-2xl transition-colors duration-300">
     <div class="flex flex-col items-center justify-between gap-3 sm:gap-4 md:flex-row">
       <!-- Live Status -->
       <div class="flex items-center gap-2 flex-wrap justify-center md:justify-start">
         <span
-          class="h-2 sm:h-3 w-2 sm:w-3 animate-pulse rounded-full bg-green-500 flex-shrink-0"
+          class="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-500 flex-shrink-0"
         ></span>
-        <p class="text-xs sm:text-sm font-semibold text-slate-900 whitespace-nowrap">
+        <p class="text-xs sm:text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
           LIVE SYNCING
         </p>
-        <p class="text-xs sm:text-sm text-slate-500 hidden sm:inline">
-          {{ ticketsNeeding }} Tickets needing immediate attention
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium hidden sm:inline">
+          • <span class="font-extrabold text-amber-500">{{ ticketsNeeding }}</span> Tickets needing immediate attention
         </p>
       </div>
 
       <!-- Action Buttons -->
       <div class="flex gap-2 sm:gap-3 flex-wrap justify-center">
         <button
-          class="flex items-center gap-1 sm:gap-2 rounded-lg border border-slate-300 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-sm text-slate-700 transition hover:bg-slate-50 whitespace-nowrap"
+          class="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/80 px-3 sm:px-4 py-2 font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700 whitespace-nowrap cursor-pointer"
         >
-          <span class="text-xs sm:text-sm">🖨️</span>
-          <span class="hidden sm:inline">PRINT ALL TICKETS</span
-          ><span class="sm:hidden">PRINT</span>
+          <Printer class="w-4 h-4 text-slate-500 dark:text-slate-400" />
+          <span class="hidden sm:inline">PRINT ALL TICKETS</span>
+          <span class="sm:hidden">PRINT</span>
         </button>
         <button
-          class="flex items-center gap-1 sm:gap-2 rounded-lg bg-slate-900 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-sm text-white transition hover:bg-black whitespace-nowrap"
+          class="flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-slate-800 px-3 sm:px-4 py-2 font-bold text-xs sm:text-sm text-white transition hover:bg-slate-800 dark:hover:bg-slate-700 whitespace-nowrap cursor-pointer"
         >
-          <span class="text-xs sm:text-sm">🔔</span>
-          <span class="hidden sm:inline">MUTE ALERTS</span><span class="sm:hidden">MUTE</span>
+          <BellOff class="w-4 h-4 text-amber-400" />
+          <span class="hidden sm:inline">MUTE ALERTS</span>
+          <span class="sm:hidden">MUTE</span>
         </button>
       </div>
     </div>

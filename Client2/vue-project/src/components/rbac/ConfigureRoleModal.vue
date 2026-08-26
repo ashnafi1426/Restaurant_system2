@@ -2,11 +2,17 @@
 import { ref, computed, watch } from 'vue'
 import type { Role, Permission } from '../../types/rbacTypes'
 import {
-  XCircle,
+  X,
   Key,
   Search,
   Check,
-  ShieldCheck
+  ShieldCheck,
+  ShieldAlert,
+  Loader2,
+  CheckSquare,
+  Square,
+  Sparkles,
+  Filter
 } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -14,7 +20,8 @@ const props = defineProps<{
   editingRole: Role | null
   initialPermissionIds?: number[]
   permissions: Permission[]
-  loading: boolean
+  loading: boolean // saving loading state
+  loadingPermissions?: boolean // fetching permissions loading state
 }>()
 
 const emit = defineEmits<{
@@ -30,30 +37,22 @@ const roleForm = ref({
 })
 
 const permissionSearch = ref('')
-watch(
-  () => props.initialPermissionIds,
-  (newIds) => {
-    if (newIds && Array.isArray(newIds) && newIds.length > 0) {
-      roleForm.value.selectedPermissions = [...newIds]
-    }
-  },
-  { immediate: true, deep: true }
-)
+const selectedActionFilter = ref<string>('all')
 
+// Sync form state when modal opens or editingRole / initialPermissionIds change
 watch(
-  () => [props.editingRole, props.show],
+  () => [props.show, props.editingRole, props.initialPermissionIds],
   () => {
     if (props.show) {
       if (props.editingRole) {
-        const rolePerms = props.editingRole.permissions ? props.editingRole.permissions.map((p: any) => p.id || p) : []
-        const idsToUse = props.initialPermissionIds && props.initialPermissionIds.length > 0
+        const idsToUse = props.initialPermissionIds !== undefined
           ? props.initialPermissionIds
-          : rolePerms
+          : (props.editingRole.permissions ? props.editingRole.permissions.map((p: any) => typeof p === 'number' ? p : p.id) : [])
 
         roleForm.value = {
           name: props.editingRole.name,
           description: props.editingRole.description || '',
-          is_active: props.editingRole.is_active,
+          is_active: props.editingRole.is_active ?? true,
           selectedPermissions: [...idsToUse],
         }
       } else {
@@ -64,31 +63,33 @@ watch(
           selectedPermissions: [],
         }
       }
+      permissionSearch.value = ''
+      selectedActionFilter.value = 'all'
     }
   },
   { immediate: true, deep: true }
 )
 
-const moduleDisplayNames: Record<string, { title: string; color: string }> = {
-  rooms: { title: 'ROOM MANAGEMENT', color: 'bg-emerald-500' },
-  reservations: { title: 'RESERVATIONS', color: 'bg-blue-500' },
-  orders: { title: 'ORDERS MANAGEMENT', color: 'bg-amber-500' },
-  menu: { title: 'MENU MANAGEMENT', color: 'bg-indigo-500' },
-  payments: { title: 'PAYMENTS & BILLING', color: 'bg-purple-500' },
-  users: { title: 'USERS MANAGEMENT', color: 'bg-rose-500' },
-  guests: { title: 'GUESTS MANAGEMENT', color: 'bg-teal-500' },
-  tables: { title: 'RESTAURANT TABLES', color: 'bg-cyan-500' },
-  kitchen: { title: 'KITCHEN OPERATIONS', color: 'bg-orange-500' },
-  delivery: { title: 'DELIVERY & ROOM SERVICE', color: 'bg-sky-500' },
-  reports: { title: 'REPORTS & ANALYTICS', color: 'bg-violet-500' },
-  roles: { title: 'ROLES MANAGEMENT', color: 'bg-yellow-500' },
-  permissions: { title: 'PERMISSIONS CATALOG', color: 'bg-pink-500' },
-  checkin: { title: 'CHECK-IN MANAGEMENT', color: 'bg-emerald-600' },
-  checkout: { title: 'CHECK-OUT MANAGEMENT', color: 'bg-rose-600' },
-  notifications: { title: 'NOTIFICATIONS', color: 'bg-blue-600' },
-  audit_logs: { title: 'SECURITY AUDIT LOGS', color: 'bg-slate-600' },
-  waiters: { title: 'WAITER MANAGEMENT', color: 'bg-emerald-600' },
-  floors: { title: 'FLOOR MANAGEMENT', color: 'bg-indigo-600' },
+const moduleDisplayNames: Record<string, { title: string; color: string; iconBg: string }> = {
+  rooms: { title: 'ROOM MANAGEMENT', color: 'bg-emerald-500', iconBg: 'bg-emerald-500/10 text-emerald-500' },
+  reservations: { title: 'RESERVATIONS & BOOKINGS', color: 'bg-blue-500', iconBg: 'bg-blue-500/10 text-blue-500' },
+  orders: { title: 'ORDERS & POS', color: 'bg-amber-500', iconBg: 'bg-amber-500/10 text-amber-500' },
+  menu: { title: 'MENU & INVENTORY', color: 'bg-indigo-500', iconBg: 'bg-indigo-500/10 text-indigo-500' },
+  payments: { title: 'PAYMENTS & BILLING', color: 'bg-purple-500', iconBg: 'bg-purple-500/10 text-purple-500' },
+  users: { title: 'USER MANAGEMENT', color: 'bg-rose-500', iconBg: 'bg-rose-500/10 text-rose-500' },
+  guests: { title: 'GUEST MANAGEMENT', color: 'bg-teal-500', iconBg: 'bg-teal-500/10 text-teal-500' },
+  tables: { title: 'RESTAURANT TABLES', color: 'bg-cyan-500', iconBg: 'bg-cyan-500/10 text-cyan-500' },
+  kitchen: { title: 'KITCHEN DISPLAY (KDS)', color: 'bg-orange-500', iconBg: 'bg-orange-500/10 text-orange-500' },
+  delivery: { title: 'DELIVERY & ROOM SERVICE', color: 'bg-sky-500', iconBg: 'bg-sky-500/10 text-sky-500' },
+  reports: { title: 'REPORTS & ANALYTICS', color: 'bg-violet-500', iconBg: 'bg-violet-500/10 text-violet-500' },
+  roles: { title: 'ROLE MANAGEMENT (RBAC)', color: 'bg-yellow-500', iconBg: 'bg-yellow-500/10 text-yellow-500' },
+  permissions: { title: 'PERMISSIONS CATALOG', color: 'bg-pink-500', iconBg: 'bg-pink-500/10 text-pink-500' },
+  checkin: { title: 'CHECK-IN MANAGEMENT', color: 'bg-emerald-600', iconBg: 'bg-emerald-600/10 text-emerald-600' },
+  checkout: { title: 'CHECK-OUT MANAGEMENT', color: 'bg-rose-600', iconBg: 'bg-rose-600/10 text-rose-600' },
+  notifications: { title: 'SYSTEM NOTIFICATIONS', color: 'bg-blue-600', iconBg: 'bg-blue-600/10 text-blue-600' },
+  audit_logs: { title: 'SECURITY AUDIT LOGS', color: 'bg-slate-600', iconBg: 'bg-slate-600/10 text-slate-400' },
+  waiters: { title: 'WAITER MANAGEMENT', color: 'bg-emerald-600', iconBg: 'bg-emerald-600/10 text-emerald-600' },
+  floors: { title: 'FLOOR PLAN & LAYOUT', color: 'bg-indigo-600', iconBg: 'bg-indigo-600/10 text-indigo-600' },
 }
 
 const getModuleInfo = (mod: string) => {
@@ -98,17 +99,37 @@ const getModuleInfo = (mod: string) => {
   }
   const cleanName = norm.replace(/_/g, ' ').toUpperCase()
   const title = cleanName.includes('MANAGEMENT') ? cleanName : `${cleanName} MANAGEMENT`
-  return { title, color: 'bg-amber-500' }
+  return { title, color: 'bg-amber-500', iconBg: 'bg-amber-500/10 text-amber-500' }
 }
-const filteredPermissions = computed(() => {
-  if (!permissionSearch.value.trim()) return props.permissions
-  const q = permissionSearch.value.toLowerCase().trim()
-  return props.permissions.filter(p =>
-    p.name.toLowerCase().includes(q) ||
-    p.slug.toLowerCase().includes(q) ||
-    p.module.toLowerCase().includes(q)
-  )
+
+// Action Types for Filter Tabs
+const availableActions = computed(() => {
+  const actions = new Set<string>()
+  props.permissions.forEach(p => {
+    if (p.action) actions.add(p.action.toLowerCase())
+  })
+  return Array.from(actions)
 })
+
+const filteredPermissions = computed(() => {
+  let list = props.permissions
+  if (permissionSearch.value.trim()) {
+    const q = permissionSearch.value.toLowerCase().trim()
+    list = list.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.slug.toLowerCase().includes(q) ||
+      p.module.toLowerCase().includes(q) ||
+      (p.description && p.description.toLowerCase().includes(q))
+    )
+  }
+
+  if (selectedActionFilter.value !== 'all') {
+    list = list.filter(p => (p.action || '').toLowerCase() === selectedActionFilter.value.toLowerCase())
+  }
+
+  return list
+})
+
 const groupedPermissions = computed(() => {
   const groups: Record<string, Permission[]> = {}
   filteredPermissions.value.forEach(p => {
@@ -116,11 +137,18 @@ const groupedPermissions = computed(() => {
     if (!groups[mod]) groups[mod] = []
     groups[mod].push(p)
   })
-  return Object.entries(groups).map(([modKey, perms]) => ({
-    moduleKey: modKey,
-    info: getModuleInfo(modKey),
-    permissions: perms,
-  }))
+  return Object.entries(groups).map(([modKey, perms]) => {
+    const selectedCount = perms.filter(p => roleForm.value.selectedPermissions.includes(p.id)).length
+    return {
+      moduleKey: modKey,
+      info: getModuleInfo(modKey),
+      permissions: perms,
+      selectedCount,
+      totalCount: perms.length,
+      isAllSelected: perms.length > 0 && selectedCount === perms.length,
+      isSomeSelected: selectedCount > 0 && selectedCount < perms.length,
+    }
+  })
 })
 
 const togglePermission = (id: number) => {
@@ -132,24 +160,40 @@ const togglePermission = (id: number) => {
   }
 }
 
-const selectAllInModule = (groupPerms: Permission[]) => {
-  groupPerms.forEach(p => {
-    if (!roleForm.value.selectedPermissions.includes(p.id)) {
-      roleForm.value.selectedPermissions.push(p.id)
-    }
-  })
+const toggleModulePermissions = (groupPerms: Permission[], isAllSelected: boolean) => {
+  const permIds = groupPerms.map(p => p.id)
+  if (isAllSelected) {
+    const idsToRemove = new Set(permIds)
+    roleForm.value.selectedPermissions = roleForm.value.selectedPermissions.filter(id => !idsToRemove.has(id))
+  } else {
+    permIds.forEach(id => {
+      if (!roleForm.value.selectedPermissions.includes(id)) {
+        roleForm.value.selectedPermissions.push(id)
+      }
+    })
+  }
 }
 
-const deselectAllInModule = (groupPerms: Permission[]) => {
-  const idsToRemove = new Set(groupPerms.map(p => p.id))
-  roleForm.value.selectedPermissions = roleForm.value.selectedPermissions.filter(id => !idsToRemove.has(id))
+const selectAllGlobal = () => {
+  const allIds = filteredPermissions.value.map(p => p.id)
+  const set = new Set([...roleForm.value.selectedPermissions, ...allIds])
+  roleForm.value.selectedPermissions = Array.from(set)
+}
+
+const deselectAllGlobal = () => {
+  if (permissionSearch.value.trim() || selectedActionFilter.value !== 'all') {
+    const filteredIds = new Set(filteredPermissions.value.map(p => p.id))
+    roleForm.value.selectedPermissions = roleForm.value.selectedPermissions.filter(id => !filteredIds.has(id))
+  } else {
+    roleForm.value.selectedPermissions = []
+  }
 }
 
 const handleSave = () => {
   if (!roleForm.value.name.trim()) return
   emit('save', {
-    name: roleForm.value.name,
-    description: roleForm.value.description,
+    name: roleForm.value.name.trim(),
+    description: roleForm.value.description.trim(),
     is_active: roleForm.value.is_active,
     permissions: roleForm.value.selectedPermissions,
   })
@@ -157,154 +201,259 @@ const handleSave = () => {
 </script>
 
 <template>
-  <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
-      
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
-        <div class="flex items-center gap-3">
-          <span class="p-2.5 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-            <ShieldCheck class="w-6 h-6" />
-          </span>
+  <Teleport to="body">
+    <div v-if="show" class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-hidden">
+      <!-- Backdrop -->
+      <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity" @click="emit('close')"></div>
+
+      <!-- Modal Window -->
+      <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in duration-150">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs">
+          <div class="flex items-center gap-3.5">
+            <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-xs">
+              <ShieldCheck class="w-6 h-6" />
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+                  {{ editingRole ? `Configure Role: ${editingRole.name}` : 'Create New System Role' }}
+                </h2>
+                <span v-if="editingRole?.is_system" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                  System Role
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                Set role title, description, and select feature access privileges for your staff members.
+              </p>
+            </div>
+          </div>
+
+          <button
+            @click="emit('close')"
+            class="p-2.5 rounded-2xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+          >
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+
+      <!-- Modal Body -->
+      <div class="flex-1 overflow-y-auto p-6 space-y-6">
+        
+        <!-- System Role Warning Banner -->
+        <div v-if="editingRole?.slug === 'admin'" class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs font-semibold flex items-start gap-3">
+          <ShieldAlert class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
-            <h2 class="text-lg font-black text-slate-900 dark:text-white">
-              {{ editingRole ? `Configure Role: ${editingRole.name}` : 'Create New System Role' }}
-            </h2>
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Assign role capabilities grouped strictly by business module.
-            </p>
+            <strong class="font-extrabold">System Administrator Protection:</strong> This is a core system role with global access rights across the platform. Modifications affect all root administrator accounts.
           </div>
         </div>
 
-        <button @click="emit('close')" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
-          <XCircle class="w-6 h-6" />
-        </button>
-      </div>
-
-      <!-- Modal Body -->
-      <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
-        
-        <!-- Role Details Section -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="space-y-1 sm:col-span-2">
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+        <!-- Role Details Form -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/50 dark:bg-slate-950/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80">
+          <div class="space-y-1.5 sm:col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
               Role Name <span class="text-rose-500">*</span>
             </label>
             <input
               v-model="roleForm.name"
               type="text"
-              placeholder="e.g. Front Desk Supervisor, Waiter Lead..."
-              class="w-full px-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-semibold"
+              placeholder="e.g. Head Receptionist, Senior Cashier, Kitchen Supervisor..."
+              class="w-full px-4 py-3 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 font-semibold transition"
             />
           </div>
 
-          <div class="space-y-1 sm:col-span-2">
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Description</label>
+          <div class="space-y-1.5 sm:col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+              Description & Operational Scope
+            </label>
             <textarea
               v-model="roleForm.description"
               rows="2"
-              placeholder="Primary responsibilities and scope of this role..."
-              class="w-full px-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-medium"
+              placeholder="Specify duties, key responsibilities, and operational scope for this role..."
+              class="w-full px-4 py-2.5 text-xs bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 font-medium transition"
             ></textarea>
           </div>
 
-          <div class="flex items-center gap-2 pt-1 sm:col-span-2">
-            <input
-              v-model="roleForm.is_active"
-              type="checkbox"
-              id="role_is_active"
-              class="w-4 h-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
-            />
-            <label for="role_is_active" class="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
-              Active Status
+          <div class="flex items-center justify-between sm:col-span-2 pt-1">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <div class="relative">
+                <input
+                  v-model="roleForm.is_active"
+                  type="checkbox"
+                  class="sr-only peer"
+                  :disabled="editingRole?.slug === 'admin'"
+                />
+                <div class="w-11 h-6 bg-slate-200 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+              </div>
+              <div>
+                <span class="text-xs font-bold text-slate-900 dark:text-white">Active Status</span>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">Inactivating a role temporarily suspends capability inheritance for assigned users.</p>
+              </div>
             </label>
           </div>
         </div>
 
-        <!-- Permission Selection Header & Search -->
-        <div class="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="flex items-center gap-2">
-              <Key class="w-4 h-4 text-amber-500" />
-              <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
-                Assign Permissions (Grouped by Module)
-              </h3>
+        <!-- Permissions Catalog Section -->
+        <div class="space-y-4">
+          <!-- Permission Catalog Header & Controls -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div class="flex items-center gap-2.5">
+              <div class="p-2 rounded-xl bg-amber-500/10 text-amber-500">
+                <Key class="w-4.5 h-4.5" />
+              </div>
+              <div>
+                <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                  Module Permissions Catalog
+                  <span class="px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-extrabold text-[11px]">
+                    {{ roleForm.selectedPermissions.length }} selected
+                  </span>
+                </h3>
+              </div>
             </div>
 
+            <!-- Global Action Controls -->
             <div class="flex items-center gap-2">
-              <div class="relative w-full sm:w-60">
-                <Search class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
-                <input
-                  v-model="permissionSearch"
-                  type="text"
-                  placeholder="Search capabilities..."
-                  class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-medium"
-                />
-              </div>
-
-              <span class="px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 font-black text-xs whitespace-nowrap">
-                {{ roleForm.selectedPermissions.length }} selected
-              </span>
+              <button
+                type="button"
+                @click="selectAllGlobal"
+                class="px-3 py-1.5 rounded-xl text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 transition cursor-pointer flex items-center gap-1.5"
+              >
+                <CheckSquare class="w-3.5 h-3.5" />
+                <span>Select All</span>
+              </button>
+              <button
+                type="button"
+                @click="deselectAllGlobal"
+                class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition cursor-pointer flex items-center gap-1.5"
+              >
+                <Square class="w-3.5 h-3.5" />
+                <span>Clear</span>
+              </button>
             </div>
           </div>
-          <!-- Grouped Module Cards Container -->
-          <div class="space-y-4 max-h-80 overflow-y-auto p-3 bg-slate-50/70 dark:bg-slate-950/70 rounded-2xl border border-slate-200 dark:border-slate-800">
+
+          <!-- Search & Action Filters -->
+          <div class="flex flex-col sm:flex-row items-center gap-3">
+            <div class="relative flex-1 w-full">
+              <Search class="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+              <input
+                v-model="permissionSearch"
+                type="text"
+                placeholder="Search capabilities by name, slug, or module..."
+                class="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-medium"
+              />
+            </div>
+
+            <!-- Action Filters -->
+            <div class="flex items-center gap-1 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+              <button
+                @click="selectedActionFilter = 'all'"
+                :class="[
+                  'px-3 py-2 rounded-xl text-[11px] font-bold transition whitespace-nowrap cursor-pointer',
+                  selectedActionFilter === 'all'
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                ]"
+              >
+                All Actions
+              </button>
+              <button
+                v-for="act in availableActions"
+                :key="act"
+                @click="selectedActionFilter = act"
+                :class="[
+                  'px-3 py-2 rounded-xl text-[11px] font-bold uppercase transition whitespace-nowrap cursor-pointer',
+                  selectedActionFilter === act
+                    ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                ]"
+              >
+                {{ act }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Permissions Loading Spinner State -->
+          <div v-if="loadingPermissions" class="py-12 text-center bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <Loader2 class="w-8 h-8 text-amber-500 animate-spin mx-auto mb-2" />
+            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Loading role permissions matrix...</p>
+          </div>
+
+          <!-- Empty Search State -->
+          <div v-else-if="groupedPermissions.length === 0" class="py-12 text-center bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <Key class="w-8 h-8 text-slate-400 mx-auto mb-2 opacity-50" />
+            <p class="text-xs font-bold text-slate-600 dark:text-slate-300">No permissions match your filter criteria.</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Try adjusting your search query or action filter.</p>
+          </div>
+
+          <!-- Grouped Module Cards -->
+          <div v-else class="space-y-4 max-h-[380px] overflow-y-auto pr-1">
             <div
               v-for="group in groupedPermissions"
               :key="group.moduleKey"
-              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 space-y-2.5 shadow-2xs"
+              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition"
             >
               <!-- Module Header Banner -->
-              <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                <div class="flex items-center gap-2">
-                  <span :class="['w-3 h-3 rounded-full', group.info.color]"></span>
+              <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center gap-2.5">
+                  <span :class="['w-3 h-3 rounded-full flex-shrink-0', group.info.color]"></span>
                   <h4 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
                     {{ group.info.title }}
                   </h4>
                   <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-[10px]">
-                    {{ group.permissions.length }} permissions
+                    {{ group.selectedCount }} / {{ group.totalCount }}
                   </span>
                 </div>
 
-                <div class="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    @click="selectAllInModule(group.permissions)"
-                    class="px-2 py-0.5 rounded-md text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 transition cursor-pointer"
-                  >
-                    + Select Module
-                  </button>
-                  <button
-                    type="button"
-                    @click="deselectAllInModule(group.permissions)"
-                    class="px-2 py-0.5 rounded-md text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 transition cursor-pointer"
-                  >
-                    Clear
-                  </button>
-                </div>
+                <!-- Module Select All / Clear Toggle Button -->
+                <button
+                  type="button"
+                  @click="toggleModulePermissions(group.permissions, group.isAllSelected)"
+                  :class="[
+                    'px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center gap-1',
+                    group.isAllSelected
+                      ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+                      : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20'
+                  ]"
+                >
+                  <CheckSquare v-if="!group.isAllSelected" class="w-3 h-3" />
+                  <Square v-else class="w-3 h-3" />
+                  <span>{{ group.isAllSelected ? 'Deselect Module' : 'Select Module' }}</span>
+                </button>
               </div>
 
               <!-- Module Permissions Grid -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div
                   v-for="perm in group.permissions"
                   :key="perm.id"
                   @click="togglePermission(perm.id)"
                   :class="[
-                    'flex items-center gap-2.5 p-2.5 rounded-xl border text-xs font-medium cursor-pointer transition-all',
+                    'flex items-center gap-3 p-3 rounded-xl border text-xs font-medium cursor-pointer transition-all select-none',
                     roleForm.selectedPermissions.includes(perm.id)
-                      ? 'bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-300 shadow-2xs'
-                      : 'bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                      ? 'bg-amber-500/10 border-amber-500/40 text-slate-900 dark:text-amber-200 shadow-2xs'
+                      : 'bg-slate-50/60 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
                   ]"
                 >
-                  <input
-                    type="checkbox"
-                    :checked="roleForm.selectedPermissions.includes(perm.id)"
-                    class="w-3.5 h-3.5 rounded border-slate-300 text-amber-500 pointer-events-none"
-                  />
-                  <div class="truncate">
-                    <p class="font-bold text-slate-900 dark:text-slate-100 truncate">{{ perm.name }}</p>
-                    <p class="text-[10px] opacity-75 font-mono">{{ perm.slug }}</p>
+                  <div :class="[
+                    'w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition border',
+                    roleForm.selectedPermissions.includes(perm.id)
+                      ? 'bg-amber-500 border-amber-500 text-slate-950'
+                      : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900'
+                  ]">
+                    <Check v-if="roleForm.selectedPermissions.includes(perm.id)" class="w-3 h-3 stroke-[3]" />
+                  </div>
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between gap-1">
+                      <p class="font-bold text-slate-900 dark:text-slate-100 truncate text-xs">{{ perm.name }}</p>
+                      <span v-if="perm.action" class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                        {{ perm.action }}
+                      </span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate mt-0.5 opacity-80">{{ perm.slug }}</p>
                   </div>
                 </div>
               </div>
@@ -314,28 +463,32 @@ const handleSave = () => {
       </div>
 
       <!-- Modal Footer -->
-      <div class="flex items-center justify-between p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
-        <div class="text-xs font-bold text-slate-500">
-          Total Selected: <strong class="text-amber-600 dark:text-amber-400">{{ roleForm.selectedPermissions.length }}</strong>
+      <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs">
+        <div class="text-xs font-bold text-slate-500 dark:text-slate-400">
+          Selected Permissions: <strong class="text-amber-600 dark:text-amber-400 font-black">{{ roleForm.selectedPermissions.length }}</strong>
         </div>
 
         <div class="flex items-center gap-3">
           <button
+            type="button"
             @click="emit('close')"
-            class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition cursor-pointer"
           >
             Cancel
           </button>
           <button
+            type="button"
             @click="handleSave"
             :disabled="loading || !roleForm.name.trim()"
-            class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-md shadow-amber-500/20 transition cursor-pointer flex items-center gap-2"
+            class="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 text-xs font-black shadow-md shadow-amber-500/20 transition cursor-pointer flex items-center gap-2"
           >
-            <Check class="w-4 h-4" />
-            <span>{{ editingRole ? 'Save Changes' : 'Create Role' }}</span>
+            <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
+            <Check v-else class="w-4 h-4 stroke-[2.5]" />
+            <span>{{ loading ? 'Saving Role...' : (editingRole ? 'Save Changes' : 'Create Role') }}</span>
           </button>
+        </div>
         </div>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>

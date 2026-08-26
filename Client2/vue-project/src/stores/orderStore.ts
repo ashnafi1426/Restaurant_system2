@@ -65,18 +65,29 @@ export const useOrderStore = defineStore('order', () => {
   const totalRevenue = computed(() => {
     return orders.value.reduce((sum, order) => sum + Number(order.total), 0)
   })
-  async function fetchOrders(): Promise<void> {
+  async function fetchOrders(params?: OrderFilters): Promise<void> {
+    if (params) {
+      filters.value = { ...filters.value, ...params }
+    }
     loading.value = true
     try {
       const response = await orderService.getOrders(filters.value)
-      orders.value = response.data
-      if (response.meta) {
-        currentPage.value = response.meta.current_page
-        lastPage.value = response.meta.last_page
-        perPage.value = response.meta.per_page
-        total.value = response.meta.total
+      const orderData = response.data?.data || response.data || response || []
+      orders.value = Array.isArray(orderData) ? orderData : []
+
+      const meta = response.data?.meta || response.meta
+      if (meta) {
+        currentPage.value = meta.current_page || 1
+        lastPage.value = meta.last_page || 1
+        perPage.value = meta.per_page || 10
+        total.value = meta.total || orders.value.length
+      } else {
+        total.value = orders.value.length
+        lastPage.value = Math.ceil(total.value / (filters.value.per_page || 10)) || 1
       }
       calculateStatistics()
+    } catch (err) {
+      console.error('Failed to fetch orders:', err)
     } finally {
       loading.value = false
     }

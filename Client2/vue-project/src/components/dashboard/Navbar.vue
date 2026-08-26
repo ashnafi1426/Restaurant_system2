@@ -180,12 +180,6 @@ const handleHamburgerClick = () => {
 
             <p class="text-xs text-slate-500 dark:text-slate-400 hidden md:block">Administrator</p>
           </div>
-
-          <span
-            class="material-symbols-rounded text-slate-500 dark:text-slate-400 text-sm sm:text-base flex-shrink-0 hidden sm:inline"
-          >
-            expand_more
-          </span>
         </button>
 
         <!-- Profile Dropdown -->
@@ -218,9 +212,6 @@ const handleHamburgerClick = () => {
           <button
             class="flex w-full items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-5 py-2 sm:py-3 text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300 transition hover:bg-slate-100 dark:hover:bg-slate-800"
           >
-            <span class="material-symbols-rounded text-sm sm:text-base flex-shrink-0">
-              person
-            </span>
 
             Profile
           </button>
@@ -228,18 +219,12 @@ const handleHamburgerClick = () => {
           <button
             class="flex w-full items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-5 py-2 sm:py-3 text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300 transition hover:bg-slate-100 dark:hover:bg-slate-800"
           >
-            <span class="material-symbols-rounded text-sm sm:text-base flex-shrink-0">
-              settings
-            </span>
-
             Settings
           </button>
 
           <button
             class="flex w-full items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-5 py-2 sm:py-3 text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300 transition hover:bg-slate-100 dark:hover:bg-slate-800"
           >
-            <span class="material-symbols-rounded text-sm sm:text-base flex-shrink-0"> lock </span>
-
             Change Password
           </button>
 
@@ -249,9 +234,6 @@ const handleHamburgerClick = () => {
             @click="logout"
             class="flex w-full items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-5 py-2 sm:py-3 text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300 transition hover:bg-slate-100 dark:hover:bg-slate-800"
           >
-            <span class="material-symbols-rounded text-sm sm:text-base flex-shrink-0">
-              logout
-            </span>
             Logout
           </button>
         </div>

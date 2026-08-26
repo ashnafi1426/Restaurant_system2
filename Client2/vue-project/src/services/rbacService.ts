@@ -99,13 +99,11 @@ export const rbacService = {
   async removeUserRole(userId: string, roleId: number): Promise<void> {
     await api.delete(`/users/${userId}/roles/${roleId}`)
   },
-
   // Temporary Roles API
   async getTemporaryRoles(): Promise<TemporaryRoleAssignment[]> {
     const response = await api.get('/temporary-roles')
     return response.data.data
   },
-
   async createTemporaryRole(data: {
     user_id: string
     role_id: number

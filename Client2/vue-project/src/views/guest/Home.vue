@@ -1,23 +1,21 @@
 <script setup lang="ts">
 import HeroSection from '@/components/guest/HeroSection.vue'
 import FeaturedRooms from '@/components/guest/FeaturedRoom.vue'
-import HotelFacilities from '@/components/guest/HotelFacilitaties.vue'
-import ExperienceSection from '@/components/guest/ExperienceSection.vue'
+import HotelFacilitaties from '@/components/guest/HotelFacilitaties.vue'
 import RestaurantSection from '@/components/guest/RestaurantSection.vue'
-import Testimonials from '@/components/guest/Testimonial.vue'
-import ContactSection from '@/components/guest/ContactSection.vue'
+import Testimonial from '@/components/guest/Testimonial.vue'
+import ContactSection from '@/components/landing/ContactSection.vue'
 import GuestLayout from '@/layouts/GuestLayout.vue'
 </script>
 
 <template>
   <GuestLayout>
-    <div class="bg-white">
+    <div class="bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-white transition-colors duration-300">
       <HeroSection />
       <FeaturedRooms />
-      <HotelFacilities />
-      <ExperienceSection />
+      <HotelFacilitaties />
       <RestaurantSection />
-      <Testimonials />
+      <Testimonial />
       <ContactSection />
     </div>
   </GuestLayout>

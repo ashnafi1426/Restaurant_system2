@@ -1,50 +1,50 @@
 <script setup lang="ts">
+import { BedDouble, Star, Award, Users } from 'lucide-vue-next'
+
 const statistics = [
   {
     value: '150+',
-    label: 'Luxury Rooms',
-    icon: '🛏️',
+    label: 'Luxury Suites & Rooms',
+    icon: BedDouble,
+    color: 'text-amber-400'
   },
   {
     value: '98%',
-    label: 'Guest Satisfaction',
-    icon: '⭐',
+    label: 'Guest Satisfaction Rate',
+    icon: Star,
+    color: 'text-emerald-400'
   },
   {
     value: '25+',
-    label: 'Years Experience',
-    icon: '🎖️',
+    label: 'Years of Excellence',
+    icon: Award,
+    color: 'text-blue-400'
   },
   {
     value: '50+',
-    label: 'Staff Members',
-    icon: '👥',
+    label: 'Professional Staff',
+    icon: Users,
+    color: 'text-purple-400'
   },
 ]
 </script>
 
 <template>
-  <section class="bg-gradient-to-r from-slate-900 to-slate-800 py-12 sm:py-16 md:py-20">
-    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10">
-      <!-- Stats Grid -->
-      <div class="grid gap-8 sm:gap-10 md:gap-12 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+  <section class="bg-slate-900 border-y border-slate-800 py-12 sm:py-16 text-white font-sans">
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
         <div
           v-for="stat in statistics"
           :key="stat.label"
-          class="flex flex-col items-center text-center text-white py-4 sm:py-6 md:py-8"
+          class="p-6 rounded-3xl bg-slate-950/60 border border-slate-800 flex flex-col items-center justify-center space-y-3"
         >
-          <!-- Icon -->
-          <div class="text-5xl sm:text-6xl md:text-7xl mb-3 sm:mb-4 md:mb-6">
-            {{ stat.icon }}
+          <div class="p-3 bg-slate-800/80 rounded-2xl border border-slate-700">
+            <component :is="stat.icon" :class="['w-7 h-7', stat.color]" />
           </div>
-
-          <!-- Value -->
-          <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold text-amber-400">
+          <h3 class="text-3xl sm:text-4xl font-black tracking-tight text-white">
             {{ stat.value }}
           </h3>
-
-          <!-- Label -->
-          <p class="mt-2 sm:mt-3 text-xs sm:text-sm md:text-lg text-slate-300">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">
             {{ stat.label }}
           </p>
         </div>

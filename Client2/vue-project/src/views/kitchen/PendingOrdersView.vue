@@ -3,6 +3,7 @@ import { onMounted, computed, ref } from 'vue'
 import { useKitchenStore } from '@/stores/kitchenStore'
 import { storeToRefs } from 'pinia'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
+import { Clock, CookingPot, ShoppingBag, FileText, Loader2, Inbox } from 'lucide-vue-next'
 
 const kitchenStore = useKitchenStore()
 const { pendingOrders, statistics, actionLoading, error } = storeToRefs(kitchenStore)
@@ -20,7 +21,7 @@ const itemsPerPage = ref(10)
 
 // Computed properties for pagination
 const totalPages = computed(() => {
-  return Math.ceil((pendingOrders.value?.length || 0) / itemsPerPage.value)
+  return Math.ceil((pendingOrders.value?.length || 0) / itemsPerPage.value) || 1
 })
 
 const paginatedOrders = computed(() => {
@@ -176,55 +177,60 @@ const formatTime = (dateTime: string) => {
               <th class="px-4 py-3 text-left font-bold text-slate-700">Items</th>
               <th class="px-4 py-3 text-left font-bold text-slate-700">Notes</th>
               <th class="px-4 py-3 text-left font-bold text-slate-700">Time</th>
-              <th class="px-4 py-3 text-right font-bold text-slate-700">Total</th>
-              <th class="px-4 py-3 text-center font-bold text-slate-700">Action</th>
+              <th class="px-4 py-3.5 text-right">Total</th>
+              <th class="px-4 py-3.5 text-center">Action</th>
             </tr>
           </thead>
 
           <!-- Table Body -->
-          <tbody>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
             <tr
               v-for="order in paginatedOrders"
               :key="order.id"
-              class="border-b border-slate-200 transition hover:bg-amber-50"
+              class="transition hover:bg-slate-50/50 dark:hover:bg-slate-800/30"
             >
               <!-- Order ID -->
               <td class="px-4 py-3">
-                <div class="font-mono text-xs font-semibold text-slate-900">
+                <div class="font-mono text-xs font-bold text-slate-900 dark:text-white">
                   {{ order.order_number }}
                 </div>
               </td>
 
               <!-- Room -->
               <td class="px-4 py-3">
-                <div class="font-semibold text-slate-900">
-                  {{ order.room?.room_number ? `ROOM ${order.room.room_number}` : '🍽️ TAKEOUT' }}
+                <div class="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5">
+                  <span v-if="order.room?.room_number">ROOM {{ order.room.room_number }}</span>
+                  <span v-else class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold">
+                    <ShoppingBag class="w-3.5 h-3.5" />
+                    <span>TAKEOUT</span>
+                  </span>
                 </div>
               </td>
 
               <!-- Guest -->
               <td class="px-4 py-3">
-                <div class="text-slate-700">
+                <div class="text-slate-700 dark:text-slate-300 text-xs font-medium">
                   {{ order.guest?.full_name || 'Walk-in Guest' }}
                 </div>
               </td>
 
               <!-- Items -->
               <td class="px-4 py-3">
-                <div class="text-slate-700 space-y-1">
+                <div class="text-slate-700 dark:text-slate-300 space-y-1">
                   <div
                     v-for="(item, idx) in (order.items || []).slice(0, 2)"
                     :key="idx"
-                    class="text-sm"
+                    class="text-xs font-medium"
                   >
-                    <span class="font-semibold">{{ item.quantity }}x</span> {{ item.name }}
-                    <span v-if="item.notes" class="block text-xs text-amber-600 mt-0.5">
-                      📝 {{ item.notes }}
+                    <span class="font-bold text-amber-600 dark:text-amber-400">{{ item.quantity }}x</span> {{ item.name }}
+                    <span v-if="item.notes" class="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
+                      <FileText class="w-3 h-3" />
+                      <span>{{ item.notes }}</span>
                     </span>
                   </div>
                   <div
                     v-if="(order.items || []).length > 2"
-                    class="text-xs text-slate-500 font-semibold"
+                    class="text-[10px] text-slate-400 font-bold"
                   >
                     +{{ (order.items || []).length - 2 }} more items
                   </div>
@@ -233,22 +239,23 @@ const formatTime = (dateTime: string) => {
 
               <!-- Notes -->
               <td class="px-4 py-3">
-                <div v-if="order.notes" class="text-xs text-red-600 font-bold">
-                  {{ order.notes }}
+                <div v-if="order.notes" class="text-xs text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1">
+                  <FileText class="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{{ order.notes }}</span>
                 </div>
                 <div v-else class="text-xs text-slate-400">—</div>
               </td>
 
               <!-- Time -->
               <td class="px-4 py-3">
-                <div class="font-semibold text-slate-900">
+                <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">
                   {{ formatTime(order.order_time) }}
                 </div>
               </td>
 
               <!-- Total -->
               <td class="px-4 py-3 text-right">
-                <div class="font-bold text-slate-900">
+                <div class="font-black text-slate-900 dark:text-white text-xs font-mono">
                   ${{ parseFloat(order.total).toFixed(2) }}
                 </div>
               </td>
@@ -258,10 +265,10 @@ const formatTime = (dateTime: string) => {
                 <button
                   @click="startPreparing(order.id)"
                   :disabled="actionLoading !== null"
-                  class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 disabled:cursor-not-allowed text-white font-bold rounded text-xs transition flex items-center justify-center gap-1"
+                  class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs transition inline-flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                 >
-                  <span v-if="actionLoading === order.id" class="inline-block animate-spin">⟳</span>
-                  <span v-else>👨‍🍳</span>
+                  <Loader2 v-if="actionLoading === order.id" class="w-3.5 h-3.5 animate-spin" />
+                  <CookingPot v-else class="w-3.5 h-3.5" />
                   <span class="hidden sm:inline">{{
                     actionLoading === order.id ? 'STARTING...' : 'START'
                   }}</span>
@@ -272,10 +279,10 @@ const formatTime = (dateTime: string) => {
         </table>
 
         <!-- Empty State -->
-        <div v-else class="text-center py-16 bg-slate-50">
-          <p class="text-6xl mb-4"></p>
-          <p class="text-2xl font-bold text-slate-900">No Pending Orders</p>
-          <p class="text-slate-500 mt-2">All orders have been started!</p>
+        <div v-else class="text-center py-16 bg-slate-50 dark:bg-slate-950">
+          <Clock class="w-12 h-12 text-slate-400 dark:text-slate-600 mx-auto mb-3" />
+          <p class="text-2xl font-bold text-slate-900 dark:text-white">No Pending Orders</p>
+          <p class="text-slate-500 dark:text-slate-400 mt-1 text-xs">All orders have been started!</p>
         </div>
       </div>
 

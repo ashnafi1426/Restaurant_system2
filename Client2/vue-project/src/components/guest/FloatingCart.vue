@@ -71,7 +71,7 @@ const openCart = () => {
     leave-to-class="translate-y-full opacity-0"
   >
     <div v-if="isVisible" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-lg">
-      <div class="rounded-2xl bg-teal-600 shadow-2xl overflow-hidden">
+      <div class="rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 shadow-2xl overflow-hidden">
         <!-- Button -->
 
         <button @click="openCart" class="w-full px-6 py-5 text-white">

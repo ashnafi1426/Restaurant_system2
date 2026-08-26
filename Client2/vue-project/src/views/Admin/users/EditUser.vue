@@ -1,44 +1,51 @@
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-
 import DashboardLayout from '../../../layouts/DashboardLayout.vue'
 import UserForm from '../../../components/user/UserForm.vue'
-
 import { useUserStore } from '../../../stores/user'
-
 import type { User } from '../../../types/user'
 
 const route = useRoute()
 const router = useRouter()
-
 const userStore = useUserStore()
 
 const id = route.params.id as string
-
 const loadingUser = ref(true)
-
 const successMessage = ref('')
+const userData = ref<any>(null)
 
-const form = reactive({
-  first_name: '',
-  last_name: '',
-  email: '',
-  phone: '',
-  role: 'receptionist',
-  is_active: true,
-})
+const extractUserData = (raw: any) => {
+  if (!raw) return null
+  if (raw.first_name) return raw
+  if (raw.data?.first_name) return raw.data
+  if (raw.data?.data?.first_name) return raw.data.data
+  return raw.data || raw
+}
 
 const loadUser = async () => {
   loadingUser.value = true
   try {
-    const response = await userStore.fetchUser(id)
-    Object.assign(form, response.data.data)
+    const res = await userStore.fetchUser(id)
+    console.log('[EditUser] Raw response:', res)
+    console.log('[EditUser] userStore.user:', userStore.user)
+    
+    const extracted = extractUserData(res) || extractUserData(userStore.user)
+    console.log('[EditUser] Final extracted user data:', extracted)
+    
+    if (extracted) {
+      userData.value = {
+        first_name: extracted.first_name || '',
+        last_name: extracted.last_name || '',
+        email: extracted.email || '',
+        phone: extracted.phone || '',
+        role: extracted.role || 'receptionist',
+        is_active: extracted.is_active ?? true,
+      }
+    }
   } catch (error) {
-    console.error(error)
-
+    console.error('[EditUser] Failed to load user:', error)
     alert('Failed to load user.')
-
     router.push('/users')
   } finally {
     loadingUser.value = false
@@ -50,17 +57,16 @@ const updateUser = async (data: User) => {
 
   try {
     await userStore.updateUser(id, data)
-
     successMessage.value = 'User updated successfully.'
 
     setTimeout(() => {
       router.push('/users')
     }, 1000)
   } catch (error: any) {
-    console.error(error)
-    console.error(error.response?.data)
+    console.error('[EditUser] Update error:', error)
   }
 }
+
 onMounted(() => {
   loadUser()
 })
@@ -68,33 +74,28 @@ onMounted(() => {
 
 <template>
   <DashboardLayout>
-    <div class="max-w-5xl mx-auto">
+    <div class="max-w-5xl mx-auto px-4 py-6">
       <!-- Header -->
-
       <div class="flex items-center justify-between mb-6">
         <div>
           <h1 class="text-3xl font-bold text-slate-800">Edit User</h1>
-
           <p class="text-gray-500 mt-1">Update an existing system user.</p>
         </div>
 
-        <button @click="$router.back()" class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
+        <button @click="$router.back()" class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 font-medium text-sm transition">
           Cancel
         </button>
       </div>
 
       <!-- Card -->
-
       <div class="bg-white rounded-xl shadow p-8">
         <!-- Loading -->
-
         <div v-if="loadingUser" class="text-center py-12">
-          <p class="text-gray-500">Loading user...</p>
+          <p class="text-gray-500">Loading user details...</p>
         </div>
 
         <template v-else>
           <!-- Success -->
-
           <div
             v-if="successMessage"
             class="mb-6 rounded-lg border border-green-200 bg-green-50 p-4"
@@ -103,27 +104,22 @@ onMounted(() => {
           </div>
 
           <!-- Validation Errors -->
-
           <div
             v-if="Object.keys(userStore.errors).length"
             class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4"
           >
             <h3 class="mb-2 font-semibold text-red-700">Please fix the following errors</h3>
-
             <ul class="list-disc list-inside text-sm text-red-600">
               <li v-for="(messages, field) in userStore.errors" :key="field">
-                <strong>{{ field }}</strong>
-
-                :
-                {{ messages[0] }}
+                <strong class="capitalize">{{ field.replace('_', ' ') }}</strong>: {{ messages[0] }}
               </li>
             </ul>
           </div>
 
           <!-- User Form -->
-
           <UserForm
-            :initialData="form"
+            v-if="userData"
+            :initialData="userData"
             :loading="userStore.loading"
             :errors="userStore.errors"
             :is-edit-mode="true"

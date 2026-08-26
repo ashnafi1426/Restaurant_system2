@@ -5,9 +5,6 @@
         <!-- Header -->
         <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-sm dark:shadow-2xl">
           <div class="flex items-center gap-3">
-            <div class="p-3 bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-100 dark:border-amber-500/30 shadow-sm flex-shrink-0">
-              <span class="material-symbols-rounded text-2xl">restaurant</span>
-            </div>
             <div>
               <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Ready for Pickup</h1>
               <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Orders ready to be picked up from the kitchen</p>
@@ -111,7 +108,6 @@
               </tbody>
             </table>
           </div>
-
           <!-- Pagination Bar with Per-Page Dropdown Selector -->
           <div class="bg-slate-50 dark:bg-slate-950/60 px-4 py-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">

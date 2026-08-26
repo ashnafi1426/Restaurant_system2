@@ -1,163 +1,110 @@
 <script setup lang="ts">
+import { Wifi, Utensils, Waves, Sparkles, Dumbbell, Car, ShieldCheck, ConciergeBell } from 'lucide-vue-next'
+
 interface Facility {
   id: number
-  icon: string
+  icon: any
   title: string
   description: string
+  color: string
 }
 
 const facilities: Facility[] = [
   {
     id: 1,
-    icon: '📶',
-    title: 'Free High-Speed WiFi',
-    description:
-      'Stay connected throughout the hotel with complimentary high-speed internet access.',
+    icon: Wifi,
+    title: 'Free High-Speed Wi-Fi',
+    description: 'Stay connected throughout the hotel with complimentary high-speed fiber internet.',
+    color: 'text-blue-500 bg-blue-500/10 border-blue-500/20'
   },
   {
     id: 2,
-    icon: '🍽️',
+    icon: Utensils,
     title: 'Fine Dining Restaurant',
-    description:
-      'Enjoy gourmet cuisine prepared by experienced chefs using fresh local ingredients.',
+    description: 'Enjoy gourmet cuisine prepared by experienced chefs using fresh local ingredients.',
+    color: 'text-amber-500 bg-amber-500/10 border-amber-500/20'
   },
   {
     id: 3,
-    icon: '🏊',
+    icon: Waves,
     title: 'Infinity Swimming Pool',
-    description:
-      'Relax and unwind in our luxurious outdoor pool overlooking beautiful surroundings.',
+    description: 'Relax and unwind in our luxury outdoor pool overlooking stunning city panoramas.',
+    color: 'text-teal-500 bg-teal-500/10 border-teal-500/20'
   },
   {
     id: 4,
-    icon: '💆',
-    title: 'Spa & Wellness',
-    description: 'Refresh your body and mind with premium spa treatments and wellness therapies.',
+    icon: Sparkles,
+    title: 'Luxury Spa & Wellness',
+    description: 'Refresh your body and mind with premium massage treatments and thermal saunas.',
+    color: 'text-purple-500 bg-purple-500/10 border-purple-500/20'
   },
   {
     id: 5,
-    icon: '🏋️',
+    icon: Dumbbell,
     title: 'Modern Fitness Center',
-    description: 'Fully equipped gym with the latest fitness equipment available every day.',
+    description: 'Fully equipped gym with modern cardio & strength training gear open 24/7.',
+    color: 'text-rose-500 bg-rose-500/10 border-rose-500/20'
   },
   {
     id: 6,
-    icon: '🚗',
-    title: 'Free Secure Parking',
-    description: 'Safe and spacious parking area with 24-hour security for all hotel guests.',
+    icon: Car,
+    title: 'Free Valet & Secure Parking',
+    description: 'Safe and spacious parking area with 24-hour security & valet service.',
+    color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20'
   },
   {
     id: 7,
-    icon: '🚐',
-    title: 'Airport Shuttle',
-    description: 'Convenient airport transportation service available upon request.',
+    icon: ShieldCheck,
+    title: 'Airport Luxury Transfer',
+    description: 'Complimentary airport pickup and shuttle services available upon request.',
+    color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20'
   },
   {
     id: 8,
-    icon: '🛎️',
-    title: '24/7 Room Service',
-    description: 'Order delicious meals and hotel services any time during your stay.',
+    icon: ConciergeBell,
+    title: '24/7 Personal Concierge',
+    description: 'Order delicious meals and guest services anytime directly through QR room menu.',
+    color: 'text-amber-500 bg-amber-500/10 border-amber-500/20'
   },
 ]
 </script>
 
 <template>
-  <section class="bg-white py-12 sm:py-16 md:py-20 lg:py-24">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10">
-      <!-- ========================================= -->
+  <section class="bg-white dark:bg-slate-900 py-12 sm:py-16 md:py-20 lg:py-24 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 font-sans">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10 space-y-12">
       <!-- Section Header -->
-      <!-- ========================================= -->
-
-      <div class="mx-auto mb-12 sm:mb-14 md:mb-16 lg:mb-20 max-w-3xl text-center">
-        <p
-          class="mb-2 sm:mb-3 md:mb-4 uppercase tracking-[3px] sm:tracking-[4px] md:tracking-[5px] lg:tracking-[6px] text-amber-600 text-xs sm:text-sm md:text-base"
-        >
+      <div class="mx-auto max-w-3xl text-center space-y-3">
+        <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
           Curated Comfort
-        </p>
+        </span>
 
-        <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-slate-900">
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
           World-Class Hotel Facilities
         </h2>
 
-        <p
-          class="mt-4 sm:mt-5 md:mt-6 text-sm sm:text-base md:text-lg lg:text-lg leading-6 sm:leading-7 md:leading-8 text-slate-500"
-        >
-          Every facility has been thoughtfully designed to provide comfort, relaxation and
-          unforgettable experiences throughout your stay.
+        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
+          Every facility has been thoughtfully designed to provide comfort, relaxation, and unforgettable luxury experiences.
         </p>
       </div>
 
-      <!-- ========================================= -->
       <!-- Facilities Grid -->
-      <!-- ========================================= -->
-
-      <div class="grid gap-4 sm:gap-6 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <article
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div
           v-for="facility in facilities"
           :key="facility.id"
-          class="group rounded-lg sm:rounded-xl md:rounded-2xl lg:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 md:p-8 lg:p-10 transition-all duration-300 hover:-translate-y-1 sm:hover:-translate-y-2 md:hover:-translate-y-3 hover:border-amber-500 hover:shadow-lg md:hover:shadow-xl lg:hover:shadow-2xl"
+          class="group rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-6 transition-all duration-300 hover:border-amber-500/40 hover:shadow-md space-y-3"
         >
-          <!-- Icon -->
-
-          <div
-            class="mb-4 sm:mb-5 md:mb-6 flex h-14 sm:h-16 md:h-18 lg:h-20 w-14 sm:w-16 md:w-18 lg:w-20 items-center justify-center rounded-full bg-amber-100 text-3xl sm:text-4xl md:text-5xl transition group-hover:bg-amber-500"
-          >
-            <span class="group-hover:scale-110 transition">
-              {{ facility.icon }}
-            </span>
+          <div :class="['w-12 h-12 rounded-2xl border flex items-center justify-center', facility.color]">
+            <component :is="facility.icon" class="w-6 h-6" />
           </div>
 
-          <!-- Title -->
-
-          <h3
-            class="mb-3 sm:mb-4 text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-slate-900"
-          >
+          <h3 class="text-base font-black text-slate-900 dark:text-white group-hover:text-amber-500 transition">
             {{ facility.title }}
           </h3>
 
-          <!-- Description -->
-
-          <p
-            class="text-xs sm:text-sm md:text-base leading-5 sm:leading-6 md:leading-7 text-slate-500"
-          >
+          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
             {{ facility.description }}
           </p>
-        </article>
-      </div>
-
-      <!-- ========================================= -->
-      <!-- Bottom CTA -->
-      <!-- ========================================= -->
-
-      <div class="mt-12 sm:mt-16 md:mt-20 lg:mt-24">
-        <div
-          class="overflow-hidden rounded-2xl sm:rounded-2xl md:rounded-3xl lg:rounded-4xl bg-slate-900 px-4 sm:px-6 md:px-8 lg:px-10 py-8 sm:py-10 md:py-12 lg:py-14 text-center text-white"
-        >
-          <p
-            class="uppercase tracking-[2px] sm:tracking-[3px] md:tracking-[4px] lg:tracking-[5px] text-amber-400 text-xs sm:text-sm md:text-base"
-          >
-            Luxury Redefined
-          </p>
-
-          <h2
-            class="mt-3 sm:mt-4 md:mt-5 lg:mt-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light"
-          >
-            Everything You Need for the Perfect Stay
-          </h2>
-
-          <p
-            class="mx-auto mt-4 sm:mt-5 md:mt-6 lg:mt-8 max-w-3xl text-sm sm:text-base md:text-lg lg:text-xl leading-6 sm:leading-7 md:leading-8 text-slate-300"
-          >
-            Whether you're travelling for business, leisure or a family vacation, our exceptional
-            facilities ensure comfort and unforgettable memories from check-in to check-out.
-          </p>
-
-          <RouterLink
-            to="/reservation"
-            class="mt-6 sm:mt-8 md:mt-10 lg:mt-12 inline-flex rounded-full bg-amber-500 px-6 sm:px-8 md:px-10 lg:px-12 py-2.5 sm:py-3 md:py-4 lg:py-5 font-semibold text-xs sm:text-sm md:text-base text-white transition hover:bg-amber-600 hover:-translate-y-1 sm:hover:-translate-y-1.5 md:hover:-translate-y-2"
-          >
-            Book Your Stay
-          </RouterLink>
         </div>
       </div>
     </div>

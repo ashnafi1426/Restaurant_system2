@@ -37,161 +37,90 @@
           <p class="text-xs text-slate-500 dark:text-slate-400 transition-colors">Delicious meals, delivered to your room</p>
         </div>
 
-        <!-- Right: Controls -->
-        <div class="flex items-center gap-2 md:gap-3">
-          <!-- Desktop: Room + Profile Dropdowns -->
-          <div class="hidden md:flex items-center gap-3">
+        <!-- Right: Controls (Mobile, Tablet & Desktop Responsive) -->
+        <div class="flex items-center gap-1.5 sm:gap-3">
+          <div class="flex items-center gap-1.5 sm:gap-3">
             <!-- Theme Toggle Button -->
             <button
               @click="handleThemeToggle"
-              class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 hover:border-amber-300 dark:hover:border-amber-600 hover:bg-amber-50 dark:hover:bg-slate-700/80 transition-all"
-              :title="theme.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+              class="flex items-center justify-center w-10 h-10 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-amber-500 transition cursor-pointer shadow-xs"
+              :title="theme.isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
             >
-              <Sun
-                v-if="!theme.isDarkMode"
-                class="w-5 h-5 text-amber-600"
-              />
-              <Moon
-                v-else
-                class="w-5 h-5 text-amber-400"
-              />
+              <Sun v-if="theme.isDark" class="w-5 h-5 text-amber-400" />
+              <Moon v-else class="w-5 h-5 text-slate-700" />
             </button>
 
-            <!-- Room Selector -->
-            <div class="relative">
-              <button
-                @click="toggleRoomDropdown"
-                class="flex items-center gap-2 px-3 py-1.5 rounded-full border border-gray-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 hover:border-amber-300 dark:hover:border-amber-600 hover:bg-amber-50 dark:hover:bg-slate-700 transition-all"
-              >
-                <span class="text-sm">🏨</span>
-                <span class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                  >Room {{ currentRoom || 'Select' }}</span
-                >
-                <svg
-                  class="w-3 h-3 text-slate-400 dark:text-slate-500 transition-transform"
-                  :class="{ 'rotate-180': showRoomDropdown }"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-              <Transition name="dropdown">
-                <div
-                  v-if="showRoomDropdown"
-                  class="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 z-50 transition-colors"
-                >
-                  <div class="px-4 py-2 bg-amber-50 dark:bg-amber-900/30 border-b border-gray-100 dark:border-slate-700">
-                    <h4 class="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase">Select Room</h4>
-                  </div>
-                  <div v-if="roomsLoading" class="px-4 py-3 text-center text-sm text-slate-400 dark:text-slate-500">
-                    Loading...
-                  </div>
-                  <button
-                    v-for="room in availableRooms"
-                    :key="room.id"
-                    @click="selectRoom(room.room_number)"
-                    class="flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-amber-50 dark:hover:bg-slate-800 border-b border-gray-50 dark:border-slate-700 last:border-0 transition-colors"
-                  >
-                    <span>🛏️</span>
-                    <span class="text-sm font-medium text-slate-700 dark:text-slate-200"
-                      >Room {{ room.room_number }}</span
-                    >
-                  </button>
-                </div>
-              </Transition>
-            </div>
+            <!-- Fullscreen Toggle Button matching Screenshot Image 1 -->
+            <button
+              @click="toggleFullscreen"
+              class="flex items-center justify-center w-10 h-10 rounded-2xl border-2 border-amber-400 bg-white dark:bg-slate-900 hover:border-amber-500 hover:scale-105 transition-all cursor-pointer shadow-xs"
+              :title="isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'"
+            >
+              <Maximize v-if="!isFullscreen" class="w-5 h-5 text-amber-500 stroke-[2.5]" />
+              <Minimize v-else class="w-5 h-5 text-amber-500 stroke-[2.5]" />
+            </button>
+
+
 
             <!-- Profile Button -->
             <button
               @click="toggleProfileDropdown"
-              class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 hover:border-amber-300 dark:hover:border-amber-600 transition-all"
+              class="flex items-center gap-2 px-4 py-2 rounded-full bg-[#c29353] hover:bg-[#b08244] text-white text-xs font-black shadow-md transition cursor-pointer"
             >
-              <img
-                v-if="guestAvatar"
-                :src="guestAvatar"
-                :alt="guestName"
-                class="w-6 h-6 rounded-full object-cover border border-amber-200 dark:border-amber-700"
-              />
-              <span v-else class="text-sm">👤</span>
-              <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ guestName }}</span>
-              <svg
-                class="w-3 h-3 text-slate-400 dark:text-slate-500 transition-transform"
-                :class="{ 'rotate-180': showProfileDropdown }"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+              <User class="w-4 h-4 text-white" />
+              <span>{{ guestName }}</span>
+              <ChevronDown class="w-3.5 h-3.5 text-white/80" />
             </button>
 
-            <!-- Profile Dropdown -->
+            <!-- Profile Dropdown matching Screenshot -->
             <Transition name="dropdown">
               <div
                 v-if="showProfileDropdown"
-                class="absolute right-6 mt-2 top-full w-64 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 z-50 transition-colors"
+                class="absolute right-0 mt-2 top-full w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 z-50 overflow-hidden font-sans"
               >
-                <div class="px-4 py-3 bg-amber-50 dark:bg-amber-900/30 border-b border-gray-100 dark:border-slate-700">
-                  <div class="flex items-center gap-2">
-                    <img
-                      v-if="guestAvatar"
-                      :src="guestAvatar"
-                      :alt="guestName"
-                      class="w-10 h-10 rounded-full border-2 border-amber-300 dark:border-amber-600"
-                    />
-                    <div
-                      v-else
-                      class="w-10 h-10 rounded-full bg-amber-200 dark:bg-amber-900/40 flex items-center justify-center text-lg"
-                    >
-                      👤
-                    </div>
-                    <div>
-                      <p class="text-sm font-bold text-slate-800 dark:text-slate-100">{{ guestName }}</p>
-                      <p class="text-xs text-slate-500 dark:text-slate-400">Room {{ currentRoom || '-' }}</p>
-                    </div>
+                <!-- Profile Header Card matching Screenshot -->
+                <div class="p-4 bg-[#fffdf5] dark:bg-slate-800/80 border-b border-amber-100 dark:border-slate-800 flex items-center gap-3">
+                  <div class="w-11 h-11 rounded-full border-2 border-[#c29353] bg-[#c29353]/10 flex items-center justify-center text-amber-700 dark:text-amber-400 flex-shrink-0">
+                    <User class="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p class="text-sm font-black text-slate-900 dark:text-white leading-tight">{{ guestName }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Room {{ currentRoom || '101' }}</p>
                   </div>
                 </div>
-                <button
-                  @click="handleViewProfile"
-                  class="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
-                >
-                  <span>👤</span>
-                  <span class="text-sm">My Profile</span>
-                </button>
-                <button
-                  @click="handleMyOrders"
-                  class="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
-                >
-                  <span>📋</span>
-                  <span class="text-sm">My Orders</span>
-                </button>
-                <button
-                  @click="handleSettings"
-                  class="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
-                >
-                  <span>⚙️</span>
-                  <span class="text-sm">Settings</span>
-                </button>
-                <div class="border-t border-gray-100 dark:border-slate-700 my-1"></div>
-                <button
-                  @click="handleLogout"
-                  class="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
-                >
-                  <span>🚪</span>
-                  <span class="text-sm font-medium">Logout</span>
-                </button>
+
+                <!-- Dropdown Menu Actions -->
+                <div class="py-1">
+                  <button
+                    @click="handleViewProfile"
+                    class="w-full px-5 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-3 cursor-pointer"
+                  >
+                    <User class="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    <span>My Profile</span>
+                  </button>
+                  <button
+                    @click="handleMyOrders"
+                    class="w-full px-5 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-3 cursor-pointer"
+                  >
+                    <ShoppingBag class="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    <span>My Orders</span>
+                  </button>
+                  <button
+                    @click="handleSettings"
+                    class="w-full px-5 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-3 cursor-pointer"
+                  >
+                    <Settings class="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                    <span>Settings</span>
+                  </button>
+                  <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+                  <button
+                    @click="handleLogout"
+                    class="w-full px-5 py-3 text-left text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition flex items-center gap-3 cursor-pointer"
+                  >
+                    <LogOut class="w-4 h-4 text-rose-500" />
+                    <span>Logout</span>
+                  </button>
+                </div>
               </div>
             </Transition>
           </div>
@@ -280,8 +209,20 @@
         <!-- Tab Content -->
         <div class="p-4 space-y-3">
           <!-- Categories Tab -->
-          <div v-if="mobileMenuTab === 'categories'" class="space-y-2">
-            <div class="px-4 py-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg border border-amber-200 dark:border-amber-700 mb-3">
+          <div v-if="mobileMenuTab === 'categories'" class="space-y-3">
+            <!-- Mobile Live Search Bar -->
+            <div class="relative">
+              <input
+                v-model="mobileSearchQuery"
+                @input="handleMobileSearch"
+                type="text"
+                placeholder="Search delicious meals, drinks, desserts..."
+                class="w-full pl-9 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-amber-500 font-medium"
+              />
+              <Search class="absolute left-3 top-3 w-4 h-4 text-amber-600 dark:text-amber-400" />
+            </div>
+
+            <div class="px-4 py-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg border border-amber-200 dark:border-amber-700 mb-2">
               <p class="text-xs font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wide">
                 Browse Categories
               </p>
@@ -289,12 +230,12 @@
             <div class="space-y-1">
               <button
                 v-for="category in mobileCategories"
-                :key="category.id"
-                @click="selectCategoryMobile(category.id)"
-                class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 transition-colors text-left border-l-4"
+                :key="category.id || category.slug || category.name"
+                @click.stop="selectCategoryMobile(category)"
+                class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 transition-colors text-left border-l-4 cursor-pointer"
                 :class="[
-                  selectedMobileCategory === category.id
-                    ? 'bg-amber-100 dark:bg-amber-900/40 border-l-amber-500 text-slate-900 dark:text-slate-100'
+                  (selectedMobileCategory === (category.id || category.slug || category.name) || (category.name === 'All Categories' && selectedMobileCategory === null))
+                    ? 'bg-amber-100 dark:bg-amber-900/40 border-l-amber-500 text-slate-900 dark:text-slate-100 font-bold'
                     : 'border-l-transparent text-slate-700 dark:text-slate-300',
                 ]"
               >
@@ -406,7 +347,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../../stores/auth'
 import { useThemeStore } from '../../../stores/themeStore'
 import api from '../../../api/auth'
-import { Sun, Moon } from 'lucide-vue-next'
+import { Sun, Moon, Maximize, Minimize, User, ShoppingBag, Settings, LogOut, ChevronDown, Search } from 'lucide-vue-next'
 import {
   Clock,
   Utensils,
@@ -466,7 +407,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  search: []
+  search: [query: string]
   logout: []
   settings: []
   orders: []
@@ -488,6 +429,28 @@ const availableRooms = ref<Room[]>([])
 const roomsLoading = ref(false)
 const mobileMenuTab = ref<'categories' | 'profile'>('categories')
 const selectedMobileCategory = ref<string | null>(null)
+const isFullscreen = ref(false)
+const mobileSearchQuery = ref('')
+
+function handleMobileSearch() {
+  emit('search', mobileSearchQuery.value)
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().then(() => {
+      isFullscreen.value = true
+    }).catch(err => {
+      console.error('Error attempting to enable fullscreen:', err)
+    })
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().then(() => {
+        isFullscreen.value = false
+      })
+    }
+  }
+}
 
 // Icon mapping
 const getIconComponent = (categoryId: string | null) => {
@@ -567,10 +530,21 @@ function selectRoom(room: string) {
   emit('room-selected', room)
 }
 
-function selectCategoryMobile(categoryId: string | null) {
+function selectCategoryMobile(cat: any) {
+  let categoryId: string | null = null
+  if (typeof cat === 'object' && cat !== null) {
+    if (cat.name === 'All Categories' || cat.id === null) {
+      categoryId = null
+    } else {
+      categoryId = cat.name || cat.slug || cat.id
+    }
+  } else {
+    categoryId = (cat === 'All Categories' || cat === 'all') ? null : cat
+  }
+
   selectedMobileCategory.value = categoryId
+  showMobileMenu.value = false
   emit('category-selected', categoryId)
-  console.log(`[GuestNavbar] Category selected: ${categoryId}`)
 }
 
 function handleViewProfile() {

@@ -12,15 +12,5 @@
         Manage, track, and process all restaurant orders
       </p>
     </div>
-    <div class="flex gap-2 sm:gap-3 md:gap-4">
-      <router-link
-        to="/orders/create"
-        class="flex items-center justify-center gap-2 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs sm:text-sm md:text-base font-medium rounded-lg transition min-h-10 touch-none"
-      >
-        <span class="text-lg sm:text-xl font-bold">+</span>
-        <span class="hidden sm:inline">New Order</span>
-        <span class="sm:hidden">Add</span>
-      </router-link>
-    </div>
   </div>
 </template>

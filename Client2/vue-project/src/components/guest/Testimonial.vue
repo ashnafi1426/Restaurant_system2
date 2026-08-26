@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
+import { Star, Quote } from 'lucide-vue-next'
 
 interface Testimonial {
   id: string
@@ -10,17 +11,12 @@ interface Testimonial {
   comment: string
 }
 
-const testimonials = ref<Testimonial[]>([])
-const loading = ref(false)
-const error = ref<string | null>(null)
-
-// Mock data fallback (for now, since we might not have a backend endpoint for testimonials)
-const mockTestimonials: Testimonial[] = [
+const testimonials: Testimonial[] = [
   {
     id: '1',
     name: 'Emily Johnson',
     country: 'United States',
-    image: '/images/avatar.png',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop',
     rating: 5,
     comment:
       'The hotel exceeded every expectation. The room was spotless, the staff were incredibly friendly, and the restaurant served amazing food. I will definitely return.',
@@ -29,205 +25,70 @@ const mockTestimonials: Testimonial[] = [
     id: '2',
     name: 'Michael Brown',
     country: 'Canada',
-    image: '/images/avatar.png',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
     rating: 5,
     comment:
-      'Beautiful hotel with excellent facilities. The check-in process was smooth, and the panoramic view from our room was unforgettable.',
+      'Beautiful hotel with excellent facilities. The check-in process was smooth, and the panoramic view from our executive suite was unforgettable.',
   },
   {
     id: '3',
     name: 'Sophia Martinez',
     country: 'Spain',
-    image: '/images/avatar.png',
+    image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop',
     rating: 5,
     comment:
-      "One of the best luxury hotels I've ever stayed in. Comfortable rooms, professional staff, and exceptional hospitality throughout our stay.",
+      "One of the best luxury hotels I've ever stayed in Africa. Comfortable rooms, professional staff, and exceptional hospitality throughout our stay.",
   },
 ]
-
-function stars(count: number) {
-  return '★'.repeat(count)
-}
-
-/**
- * Load testimonials from backend
- * Currently using mock data as fallback since testimonials endpoint may not exist
- */
-async function loadTestimonials() {
-  loading.value = true
-  error.value = null
-
-  try {
-    // For now, use mock testimonials
-    // In the future, replace with: const response = await testimonialService.getTestimonials()
-    testimonials.value = mockTestimonials
-    console.log(`[Testimonial] Loaded ${testimonials.value.length} testimonials`)
-  } catch (err: any) {
-    error.value = err.message || 'Failed to load testimonials'
-    console.error('[Testimonial] Error loading testimonials:', err)
-
-    // Fallback to mock data
-    testimonials.value = mockTestimonials
-  } finally {
-    loading.value = false
-  }
-}
-
-/**
- * Load testimonials on mount
- */
-onMounted(() => {
-  loadTestimonials()
-})
 </script>
 
 <template>
-  <section class="bg-white py-12 sm:py-16 md:py-20 lg:py-24">
-    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10">
+  <section class="bg-slate-50 dark:bg-slate-950 py-12 sm:py-16 md:py-20 lg:py-24 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 font-sans">
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10 space-y-12">
       <!-- Header -->
-      <div class="mx-auto mb-8 sm:mb-12 md:mb-16 max-w-3xl text-center">
-        <p
-          class="mb-2 sm:mb-4 text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-amber-600"
-        >
+      <div class="mx-auto max-w-3xl text-center space-y-3">
+        <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
           Guest Reviews
-        </p>
+        </span>
 
-        <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-slate-900">
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
           What Our Guests Say
         </h2>
 
-        <p
-          class="mt-3 sm:mt-4 md:mt-6 text-sm sm:text-base md:text-lg leading-6 sm:leading-7 md:leading-8 text-slate-500"
-        >
-          Every guest experience matters. Read what visitors from around the world have shared about
-          their stay at our hotel.
+        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
+          Read real reviews from international travelers who experienced the luxury of Grand Horizon Hotel.
         </p>
       </div>
 
-      <!-- Loading -->
-      <div v-if="loading" class="flex justify-center py-12">
-        <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-12 h-12) -->
-        <div class="relative w-12 h-12">
-          <!-- Static background - BRIGHT CYAN -->
-          <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
-          </svg>
-          
-          <!-- Animated spinner - BRIGHT YELLOW -->
-          <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
-            <svg viewBox="0 0 100 100" class="w-full h-full">
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <!-- Testimonials -->
-      <div
-        v-if="!loading && testimonials.length > 0"
-        class="grid gap-6 sm:gap-8 md:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-      >
-        <article
-          v-for="guest in testimonials"
-          :key="guest.id"
-          class="rounded-lg sm:rounded-2xl lg:rounded-3xl bg-[#faf8f4] p-4 sm:p-6 md:p-8 shadow transition duration-500 hover:-translate-y-1 sm:hover:-translate-y-2 hover:shadow-lg md:hover:shadow-2xl"
+      <!-- Testimonials Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div
+          v-for="item in testimonials"
+          :key="item.id"
+          class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-xs flex flex-col justify-between space-y-4 hover:border-amber-500/40 transition duration-300"
         >
-          <!-- Rating -->
-          <div class="mb-3 sm:mb-4 md:mb-6 text-lg sm:text-2xl text-amber-500">
-            {{ stars(guest.rating) }}
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1 text-amber-400">
+                <Star v-for="i in item.rating" :key="i" class="w-4 h-4 fill-amber-400" />
+              </div>
+              <Quote class="w-6 h-6 text-slate-300 dark:text-slate-700" />
+            </div>
+
+            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium italic">
+              "{{ item.comment }}"
+            </p>
           </div>
 
-          <!-- Review -->
-          <p
-            class="leading-6 sm:leading-7 md:leading-8 italic text-xs sm:text-sm md:text-base text-slate-600"
-          >
-            "{{ guest.comment }}"
-          </p>
-
-          <!-- Guest -->
-          <div class="mt-6 sm:mt-8 flex items-center gap-3 sm:gap-4">
-            <img
-              :src="guest.image"
-              :alt="guest.name"
-              class="h-12 sm:h-14 md:h-16 w-12 sm:w-14 md:w-16 flex-shrink-0 rounded-full object-cover ring-2 sm:ring-4 ring-white"
-            />
-
-            <div class="min-w-0">
-              <h3 class="text-sm sm:text-base md:text-lg font-semibold text-slate-900">
-                {{ guest.name }}
-              </h3>
-
-              <p class="text-xs sm:text-sm text-slate-500">
-                {{ guest.country }}
-              </p>
+          <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
+            <img :src="item.image" :alt="item.name" class="w-10 h-10 rounded-full object-cover border border-amber-500/30" />
+            <div>
+              <h3 class="text-xs font-black text-slate-900 dark:text-white">{{ item.name }}</h3>
+              <p class="text-[10px] text-slate-400 font-bold uppercase">{{ item.country }}</p>
             </div>
           </div>
-        </article>
-      </div>
-
-      <div v-if="!loading && testimonials.length === 0" class="text-center py-12">
-        <p class="text-slate-500">{{ error || 'No testimonials available at this time' }}</p>
-      </div>
-
-      <!-- Bottom Statistics -->
-      <div
-        class="mt-12 sm:mt-16 md:mt-20 lg:mt-24 grid gap-4 sm:gap-6 md:gap-8 rounded-lg sm:rounded-2xl lg:rounded-3xl bg-slate-900 p-4 sm:p-6 md:p-8 lg:p-12 text-center text-white grid-cols-2 sm:grid-cols-2 lg:grid-cols-4"
-      >
-        <div>
-          <h3 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-amber-400">
-            4.9★
-          </h3>
-
-          <p
-            class="mt-1 sm:mt-2 md:mt-3 text-xs sm:text-sm uppercase tracking-[0.15em] sm:tracking-[0.2em] text-slate-300"
-          >
-            Average Rating
-          </p>
-        </div>
-
-        <div>
-          <h3 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-amber-400">
-            15K+
-          </h3>
-
-          <p
-            class="mt-1 sm:mt-2 md:mt-3 text-xs sm:text-sm uppercase tracking-[0.15em] sm:tracking-[0.2em] text-slate-300"
-          >
-            Happy Guests
-          </p>
-        </div>
-
-        <div>
-          <h3 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-amber-400">98%</h3>
-
-          <p
-            class="mt-1 sm:mt-2 md:mt-3 text-xs sm:text-sm uppercase tracking-[0.15em] sm:tracking-[0.2em] text-slate-300"
-          >
-            Satisfaction Rate
-          </p>
-        </div>
-
-        <div>
-          <h3 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-amber-400">25+</h3>
-
-          <p
-            class="mt-1 sm:mt-2 md:mt-3 text-xs sm:text-sm uppercase tracking-[0.15em] sm:tracking-[0.2em] text-slate-300"
-          >
-            Years Experience
-          </p>
         </div>
       </div>
     </div>
   </section>
 </template>
-
-<style scoped>
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-</style>

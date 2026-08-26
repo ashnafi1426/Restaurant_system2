@@ -6,6 +6,7 @@ import DashboardLayout from '../../../layouts/DashboardLayout.vue'
 import ReservationFilter from '../../../components/reservation/ReservationFilter.vue'
 import ReservationTable from '../../../components/reservation/ReservationTable.vue'
 import DeleteReservationDialog from '../../../components/reservation/DeleteReservationDialog.vue'
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
 import { useReservationStore } from '@/stores/reservationStore'
 import { useGuestStore } from '@/stores/guestStore'
@@ -34,7 +35,7 @@ const filters = ref<Filter>({
   per_page: 10,
 })
 
-const totalReservations = computed(() => {
+const totalReservations = computed(() =>  {
   const total = store.pagination.total || 0
   // Ensure it's a number, not an array
   return typeof total === 'number' ? total : Array.isArray(total) ? total[0] : 0
@@ -75,10 +76,6 @@ const loadGuestsAndRooms = async () => {
   } catch (error) {
     console.error('Error loading guests/rooms:', error)
   }
-}
-
-const createReservation = () => {
-  router.push('/reservations/create')
 }
 
 const viewReservation = (reservation: Reservation) => {
@@ -188,6 +185,19 @@ const confirmReservation = async (reservation: Reservation) => {
   }
 }
 
+const changePerPage = async (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  filters.value.per_page = Number(target.value)
+  filters.value.page = 1
+  await loadReservations()
+}
+
+const goToPage = async (page: number) => {
+  if (page < 1 || page > lastPage.value) return
+  filters.value.page = page
+  await loadReservations()
+}
+
 const previousPage = async () => {
   if (filters.value.page <= 1) return
   filters.value.page--
@@ -199,6 +209,26 @@ const nextPage = async () => {
   filters.value.page++
   await loadReservations()
 }
+
+const showingFrom = computed(() => {
+  if (totalReservations.value === 0) return 0
+  return (currentPage.value - 1) * (filters.value.per_page || 10) + 1
+})
+
+const showingTo = computed(() => {
+  return Math.min(currentPage.value * (filters.value.per_page || 10), totalReservations.value)
+})
+
+const paginationPages = computed(() => {
+  const pages: number[] = []
+  const total = lastPage.value
+  const current = currentPage.value
+
+  for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) {
+    pages.push(i)
+  }
+  return pages
+})
 
 const refreshReservations = async () => {
   await loadReservations()
@@ -235,7 +265,7 @@ onMounted(() => {
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6 bg-white dark:bg-slate-900 min-h-screen p-6">
+    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans">
       <!-- Success/Error Toast -->
       <transition
         enter-active-class="transition ease-out duration-300"
@@ -249,7 +279,6 @@ onMounted(() => {
           v-if="showSuccessMessage"
           class="fixed top-4 right-4 z-50 bg-green-500 dark:bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3"
         >
-          <span class="material-symbols-rounded">check_circle</span>
           <span>{{ successMessage }}</span>
         </div>
       </transition>
@@ -263,21 +292,11 @@ onMounted(() => {
 
       <!-- Header -->
       <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-6 sm:p-8">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">Reservations</h1>
-            <p class="text-slate-600 dark:text-slate-400 text-base sm:text-lg mt-2">
-              Manage hotel reservations, check-ins and guest stays
-            </p>
-          </div>
-          <button
-            @click="createReservation"
-            class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 dark:from-purple-700 dark:to-purple-800 dark:hover:from-purple-600 dark:hover:to-purple-700 text-white px-5 sm:px-6 py-2.5 sm:py-3 font-semibold transition-all shadow-sm hover:shadow-md whitespace-nowrap group"
-          >
-            <span class="material-symbols-rounded text-lg">add</span>
-            <span class="hidden sm:inline">New Reservation</span>
-            <span class="sm:hidden">Add</span>
-          </button>
+        <div>
+          <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">Reservations</h1>
+          <p class="text-slate-600 dark:text-slate-400 text-base sm:text-lg mt-2">
+            Manage hotel reservations, check-ins and guest stays
+          </p>
         </div>
       </div>
 
@@ -292,9 +311,9 @@ onMounted(() => {
               <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Total</p>
               <h2 class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{{ totalReservations }}</h2>
             </div>
-            <div class="rounded-full bg-blue-100 dark:bg-blue-900/40 p-3">
+            <!-- <div class="rounded-full bg-blue-100 dark:bg-blue-900/40 p-3">
               <span class="material-symbols-rounded text-3xl text-blue-600 dark:text-blue-400">event</span>
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -306,9 +325,6 @@ onMounted(() => {
             <div>
               <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Pending</p>
               <h2 class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{{ pendingCount }}</h2>
-            </div>
-            <div class="rounded-full bg-amber-100 dark:bg-amber-900/40 p-3">
-              <span class="material-symbols-rounded text-3xl text-amber-600 dark:text-amber-400">schedule</span>
             </div>
           </div>
         </div>
@@ -322,9 +338,9 @@ onMounted(() => {
               <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Confirmed</p>
               <h2 class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{{ confirmedCount }}</h2>
             </div>
-            <div class="rounded-full bg-green-100 dark:bg-green-900/40 p-3">
+            <!-- <div class="rounded-full bg-green-100 dark:bg-green-900/40 p-3">
               <span class="material-symbols-rounded text-3xl text-green-600 dark:text-green-400">check_circle</span>
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -336,9 +352,6 @@ onMounted(() => {
             <div>
               <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Checked In</p>
               <h2 class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{{ checkedInCount }}</h2>
-            </div>
-            <div class="rounded-full bg-purple-100 dark:bg-purple-900/40 p-3">
-              <span class="material-symbols-rounded text-3xl text-purple-600 dark:text-purple-400">login</span>
             </div>
           </div>
         </div>
@@ -377,51 +390,74 @@ onMounted(() => {
         </div>
         <h2 class="text-2xl font-bold text-slate-700 dark:text-slate-300 mb-2">No Reservations Found</h2>
         <p class="text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
-          No reservations match your current filters. Create your first reservation to get started.
+          No reservations match your current filters. Guests can make reservations online.
         </p>
-        <button
-          @click="createReservation"
-          class="inline-flex items-center gap-2 rounded-lg bg-purple-600 dark:bg-purple-700 hover:bg-purple-700 dark:hover:bg-purple-600 px-6 py-3 text-white transition shadow-lg font-medium"
-        >
-          <span class="material-symbols-rounded">add</span>
-          Create First Reservation
-        </button>
       </div>
 
-      <!-- Pagination -->
+      <!-- Pagination Bar with Per-Page options 5, 10, 20, 50 -->
       <div
         v-if="hasReservations"
-        class="flex flex-col gap-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+        class="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs text-xs font-sans"
       >
-        <div class="text-slate-600 dark:text-slate-400">
-          Showing
-          <span class="font-semibold text-slate-900 dark:text-white">{{ reservationsOnPage }}</span>
-          of
-          <span class="font-semibold text-slate-900 dark:text-white">{{ totalReservations }}</span>
-          reservations
+        <!-- Left Side: Per Page Selector & Showing Count Info -->
+        <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
+            <select
+              :value="filters.per_page"
+              @change="changePerPage"
+              class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-black focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
+            >
+              <option :value="5">5</option>
+              <option :value="10">10</option>
+              <option :value="20">20</option>
+              <option :value="50">50</option>
+            </select>
+          </div>
+
+          <div class="text-xs font-medium">
+            Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
+            <span class="font-extrabold text-slate-900 dark:text-white">{{ showingTo }}</span> of
+            <span class="font-extrabold text-slate-900 dark:text-white">{{ totalReservations }}</span> reservations
+          </div>
         </div>
-        <div class="flex items-center gap-2">
+
+        <!-- Right Side: Page Navigation Buttons -->
+        <div class="flex items-center gap-1.5">
           <button
             @click="previousPage"
             :disabled="currentPage <= 1"
-            class="flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 disabled:cursor-not-allowed disabled:opacity-50 transition text-slate-700 dark:text-slate-300"
+            class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
+            title="Previous Page"
           >
-            <span class="material-symbols-rounded text-sm">chevron_left</span>
-            <span>Previous</span>
+            <ChevronLeft class="w-4 h-4" />
+            <span class="hidden sm:inline">Prev</span>
           </button>
 
-          <div class="flex items-center gap-1 px-4">
-            <span class="font-semibold text-slate-700 dark:text-white">Page {{ currentPage }}</span>
-            <span class="text-slate-500 dark:text-slate-400">of {{ lastPage }}</span>
+          <div class="flex items-center gap-1">
+            <button
+              v-for="p in paginationPages"
+              :key="p"
+              @click="goToPage(p)"
+              :class="[
+                'w-8 h-8 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center border',
+                currentPage === p
+                  ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-600/20'
+                  : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ]"
+            >
+              {{ p }}
+            </button>
           </div>
 
           <button
             @click="nextPage"
             :disabled="currentPage >= lastPage"
-            class="flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 disabled:cursor-not-allowed disabled:opacity-50 transition text-slate-700 dark:text-slate-300"
+            class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
+            title="Next Page"
           >
-            <span>Next</span>
-            <span class="material-symbols-rounded text-sm">chevron_right</span>
+            <span class="hidden sm:inline">Next</span>
+            <ChevronRight class="w-4 h-4" />
           </button>
         </div>
       </div>

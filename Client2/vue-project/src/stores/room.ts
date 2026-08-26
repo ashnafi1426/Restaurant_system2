@@ -18,23 +18,38 @@ export const useRoomStore = defineStore('rooms', {
         console.log('📡 [ROOM STORE] Full API response:', response)
         console.log('[ROOM STORE] response.data:', response.data)
 
+        // Handle string responses if backend output PHP notices before JSON
+        let responseData = response.data
+        if (typeof responseData === 'string') {
+          const jsonStart = responseData.indexOf('{')
+          const arrayStart = responseData.indexOf('[')
+          let startIdx = -1
+          if (jsonStart !== -1 && (arrayStart === -1 || jsonStart < arrayStart)) {
+            startIdx = jsonStart
+          } else if (arrayStart !== -1) {
+            startIdx = arrayStart
+          }
+          if (startIdx !== -1) {
+            try {
+              responseData = JSON.parse(responseData.slice(startIdx))
+            } catch (e) {
+              console.error(' [ROOM STORE] Failed to parse JSON from string response:', e)
+            }
+          }
+        }
+
         // Handle paginated response from Laravel
-        let roomsData = response.data
+        let roomsData = responseData
 
         // Check if response is paginated (has 'data' key from pagination)
-        if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        if (responseData && responseData.data && Array.isArray(responseData.data)) {
           console.log('📋 [ROOM STORE] Detected paginated response')
-          roomsData = response.data.data
+          roomsData = responseData.data
         }
         // Check if response.data is directly the rooms array
-        else if (Array.isArray(response.data)) {
+        else if (Array.isArray(responseData)) {
           console.log('📋 [ROOM STORE] Detected direct array response')
-          roomsData = response.data
-        }
-        // Fallback to response.data.data if it exists
-        else if (response.data.data) {
-          console.log('📋 [ROOM STORE] Using response.data.data')
-          roomsData = response.data.data
+          roomsData = responseData
         }
 
         console.log('[ROOM STORE] Final rooms data:', roomsData)
@@ -71,7 +86,7 @@ export const useRoomStore = defineStore('rooms', {
           console.warn('[ROOM STORE] No rooms returned or not an array!')
         }
 
-        this.rooms = roomsData || []
+        this.rooms = Array.isArray(roomsData) ? roomsData : []
         console.log(' [ROOM STORE] Rooms assigned, current rooms:', this.rooms)
       } catch (error: any) {
         const statusCode = error.response?.status
@@ -102,7 +117,27 @@ export const useRoomStore = defineStore('rooms', {
         const response = await roomService.searchRooms(searchTerm, params)
         console.log('📡 [ROOM STORE] Search response:', response)
 
-        const roomsData = response.data.data || response.data
+        let responseData = response.data
+        if (typeof responseData === 'string') {
+          const jsonStart = responseData.indexOf('{')
+          const arrayStart = responseData.indexOf('[')
+          let startIdx = -1
+          if (jsonStart !== -1 && (arrayStart === -1 || jsonStart < arrayStart)) {
+            startIdx = jsonStart
+          } else if (arrayStart !== -1) {
+            startIdx = arrayStart
+          }
+          if (startIdx !== -1) {
+            try {
+              responseData = JSON.parse(responseData.slice(startIdx))
+            } catch (e) {
+              console.error(' [ROOM STORE] Failed to parse JSON from search response:', e)
+            }
+          }
+        }
+
+        const rawData = responseData?.data || responseData
+        const roomsData = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : [])
         this.rooms = roomsData
         console.log(
           '[ROOM STORE] Search found:',

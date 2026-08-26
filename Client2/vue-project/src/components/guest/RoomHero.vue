@@ -1,102 +1,6 @@
-<template>
-  <div
-    class="relative w-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-700 overflow-hidden"
-  >
-    <!-- Background Image with Overlay -->
-    <div class="absolute inset-0 w-full h-full">
-      <img
-        src="/images/hero/hero.jpg"
-        alt="Hotel Rooms"
-        class="w-full h-full object-cover opacity-40"
-      />
-      <!-- Multi-layer Overlay for Better Text Readability -->
-      <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70"></div>
-      <div
-        class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60"
-      ></div>
-    </div>
-
-    <!-- Content Container -->
-    <div class="relative w-full">
-      <!-- Main Hero Section -->
-      <div
-        class="min-h-screen sm:min-h-[500px] md:min-h-[600px] lg:min-h-[700px] flex items-center justify-center px-4 sm:px-6 md:px-8 lg:px-10 py-16 sm:py-24 md:py-32"
-      >
-        <div class="text-center max-w-5xl mx-auto w-full">
-          <!-- Main Heading with Animation -->
-          <h1
-            class="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-medium text-white mb-2 sm:mb-3 md:mb-4 leading-tight drop-shadow-2xl"
-          >
-            Discover Our
-            <span class="block text-amber-400 mt-1 sm:mt-1.5 md:mt-2 font-normal">Luxurious Room Collection</span>
-          </h1>
-
-          <!-- Subheading -->
-          <p
-            class="text-[11px] sm:text-xs md:text-sm lg:text-base text-slate-200 max-w-3xl mx-auto leading-relaxed drop-shadow-lg mb-4 sm:mb-5 md:mb-6 font-light"
-          >
-            Experience unparalleled comfort and elegance in our exquisitely designed rooms. Each
-            accommodation is crafted with premium amenities, modern furnishings, and stunning views
-            for an unforgettable stay.
-          </p>
-
-          <!-- Features Highlight -->
-          <div
-            class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 max-w-3xl mx-auto mb-5 sm:mb-6 md:mb-8"
-          >
-            <div class="flex flex-col items-center">
-              <div class="w-8 sm:w-9 md:w-10 h-8 sm:h-9 md:h-10 mb-1 text-amber-400">
-                <Bed class="w-full h-full" />
-              </div>
-              <span class="text-[10px] sm:text-xs text-slate-300 font-light">Luxury Beds</span>
-            </div>
-            <div class="flex flex-col items-center">
-              <div class="w-8 sm:w-9 md:w-10 h-8 sm:h-9 md:h-10 mb-1 text-amber-400">
-                <Droplet class="w-full h-full" />
-              </div>
-              <span class="text-[10px] sm:text-xs text-slate-300 font-light">Modern Bath</span>
-            </div>
-            <div class="flex flex-col items-center">
-              <div class="w-8 sm:w-9 md:w-10 h-8 sm:h-9 md:h-10 mb-1 text-amber-400">
-                <Tv class="w-full h-full" />
-              </div>
-              <span class="text-[10px] sm:text-xs text-slate-300 font-light">Smart TV</span>
-            </div>
-            <div class="flex flex-col items-center">
-              <div class="w-8 sm:w-9 md:w-10 h-8 sm:h-9 md:h-10 mb-1 text-amber-400">
-                <Wifi class="w-full h-full" />
-              </div>
-              <span class="text-[10px] sm:text-xs text-slate-300 font-light">Fast WiFi</span>
-            </div>
-          </div>
-
-          <!-- CTA Buttons -->
-          <div
-            class="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 justify-center items-center"
-          >
-            <button
-              @click="exploreRooms"
-              class="w-full sm:w-auto px-5 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm md:text-sm font-normal rounded-lg md:rounded-xl transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl cursor-pointer"
-            >
-              ✨ Explore Rooms
-            </button>
-          </div>
-
-          <!-- Scroll Indicator -->
-          <div class="mt-8 sm:mt-10 md:mt-12 animate-bounce">
-            <div class="text-slate-400 text-[10px] sm:text-xs font-light mb-1.5">Scroll to see rooms</div>
-            <div class="text-lg sm:text-xl">↓</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { Bed, Droplet, Tv, Wifi } from 'lucide-vue-next'
+import { Bed, Droplet, Tv, Wifi, Sparkles, ChevronDown } from 'lucide-vue-next'
 
-// Scroll to rooms section
 const exploreRooms = () => {
   const roomsSection = document.getElementById('rooms-section')
   if (roomsSection) {
@@ -105,6 +9,76 @@ const exploreRooms = () => {
 }
 </script>
 
-<style scoped>
-/* Responsive hero section */
-</style>
+<template>
+  <section class="relative min-h-[75vh] flex items-center justify-center overflow-hidden bg-slate-950 font-sans pt-16">
+    <!-- Hero Background Image (Fully Visible & Vibrant) -->
+    <div class="absolute inset-0 z-0">
+      <img
+        src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=1920&h=1080&fit=crop"
+        alt="Grand Horizon Luxury Suite"
+        class="h-full w-full object-cover scale-105 transition-all duration-700 opacity-90 dark:opacity-85 brightness-95 dark:brightness-80"
+        @error="(e: any) => (e.target.src = '/images/hero/hero.jpg')"
+      />
+      <!-- Soft Vignette Overlay for High-Contrast Text Readability -->
+      <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/55 to-slate-950/30"></div>
+    </div>
+
+    <!-- Content Container -->
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center space-y-6">
+      <!-- Badge Pill -->
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-950/75 text-amber-400 border border-amber-500/40 text-xs font-black uppercase tracking-widest backdrop-blur-md shadow-md">
+        <span>Grand Horizon Suites</span>
+      </div>
+
+      <!-- Main Title -->
+      <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight max-w-4xl mx-auto drop-shadow-md">
+        Discover Our <span class="text-amber-400 drop-shadow-sm">Luxurious Rooms</span>
+      </h1>
+
+      <!-- Description -->
+      <p class="text-sm sm:text-base lg:text-lg text-slate-200 font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-xs">
+        Experience unparalleled comfort and elegance in our exquisitely designed rooms. Each accommodation is crafted with premium amenities, modern furnishings, and stunning views.
+      </p>
+
+      <!-- Key Amenities Highlight -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto pt-2">
+        <div class="p-3.5 rounded-2xl bg-slate-950/75 border border-slate-800/80 backdrop-blur-md flex items-center justify-center gap-2.5 text-white shadow-md">
+          <Bed class="w-4 h-4 text-amber-400 flex-shrink-0" />
+          <span class="text-xs font-bold">Luxury Beds</span>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-950/75 border border-slate-800/80 backdrop-blur-md flex items-center justify-center gap-2.5 text-white shadow-md">
+          <Droplet class="w-4 h-4 text-amber-400 flex-shrink-0" />
+          <span class="text-xs font-bold">Modern Bath</span>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-950/75 border border-slate-800/80 backdrop-blur-md flex items-center justify-center gap-2.5 text-white shadow-md">
+          <Tv class="w-4 h-4 text-amber-400 flex-shrink-0" />
+          <span class="text-xs font-bold">Smart HD TV</span>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-950/75 border border-slate-800/80 backdrop-blur-md flex items-center justify-center gap-2.5 text-white shadow-md">
+          <Wifi class="w-4 h-4 text-amber-400 flex-shrink-0" />
+          <span class="text-xs font-bold">Fast Wi-Fi</span>
+        </div>
+      </div>
+
+      <!-- Action CTA Button -->
+      <div class="pt-4 flex justify-center">
+        <button
+          @click="exploreRooms"
+          class="px-8 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition flex items-center gap-2 cursor-pointer"
+        >
+          <Sparkles class="w-4 h-4" />
+          <span>Explore Available Suites</span>
+        </button>
+      </div>
+
+      <!-- Scroll Indicator -->
+      <div @click="exploreRooms" class="pt-6 animate-bounce cursor-pointer inline-flex flex-col items-center text-slate-300 hover:text-white transition">
+        <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400">Scroll Down</span>
+        <ChevronDown class="w-5 h-5 text-amber-400 mt-1" />
+      </div>
+    </div>
+  </section>
+</template>

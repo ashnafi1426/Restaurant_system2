@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ChefHat, Clock, CheckCircle2, AlertCircle } from 'lucide-vue-next'
+import { ChefHat, Clock, CheckCircle2, AlertCircle, Sparkles } from 'lucide-vue-next'
 import { useManagerOperationsStore } from '@/stores/manager/operationsStore'
 
 const operationsStore = useManagerOperationsStore()
@@ -16,99 +16,109 @@ const orderStats = computed(() => {
 </script>
 
 <template>
-  <section class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+  <section class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs p-6 flex flex-col justify-between space-y-6">
     <!-- HEADER -->
-    <div class="flex justify-between items-center mb-8">
+    <div class="flex justify-between items-center pb-2">
       <div>
-        <h2 class="text-xl font-bold">Restaurant Orders</h2>
-        <p class="text-sm text-slate-500">Order pipeline status</p>
+        <h2 class="text-lg font-black text-slate-900 dark:text-white">Restaurant Orders</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Order pipeline status</p>
       </div>
-      <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center">
-        <ChefHat class="w-6 h-6 text-orange-600" />
+      <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center">
+        <ChefHat class="w-5 h-5" />
       </div>
     </div>
 
-    <!-- STATISTICS -->
-    <div class="grid grid-cols-2 gap-4 mb-8">
-      <div class="bg-purple-50 rounded-2xl p-4">
-        <p class="text-sm text-slate-500">Total Orders</p>
-        <h3 class="text-3xl font-bold text-purple-700 mt-2">{{ orderStats.total }}</h3>
+    <!-- STATISTICS GRID -->
+    <div class="grid grid-cols-2 gap-3">
+      <!-- Total Orders -->
+      <div class="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-4">
+        <p class="text-[10px] font-extrabold uppercase text-purple-700 dark:text-purple-300 tracking-wider">Total Orders</p>
+        <h3 class="text-2xl font-black text-purple-900 dark:text-purple-200 mt-1">{{ orderStats.total }}</h3>
       </div>
 
-      <div class="bg-red-50 rounded-2xl p-4">
-        <p class="text-sm text-slate-500">Pending</p>
-        <h3 class="text-3xl font-bold text-red-700 mt-2">{{ orderStats.pending }}</h3>
+      <!-- Pending -->
+      <div class="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4">
+        <p class="text-[10px] font-extrabold uppercase text-rose-700 dark:text-rose-300 tracking-wider">Pending</p>
+        <h3 class="text-2xl font-black text-rose-900 dark:text-rose-200 mt-1">{{ orderStats.pending }}</h3>
       </div>
 
-      <div class="bg-yellow-50 rounded-2xl p-4">
-        <p class="text-sm text-slate-500">Preparing</p>
-        <h3 class="text-3xl font-bold text-yellow-700 mt-2">{{ orderStats.preparing }}</h3>
+      <!-- Preparing -->
+      <div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4">
+        <p class="text-[10px] font-extrabold uppercase text-amber-700 dark:text-amber-300 tracking-wider">Preparing</p>
+        <h3 class="text-2xl font-black text-amber-900 dark:text-amber-200 mt-1">{{ orderStats.preparing }}</h3>
       </div>
 
-      <div class="bg-green-50 rounded-2xl p-4">
-        <p class="text-sm text-slate-500">Ready</p>
-        <h3 class="text-3xl font-bold text-green-700 mt-2">{{ orderStats.ready }}</h3>
+      <!-- Ready -->
+      <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4">
+        <p class="text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-300 tracking-wider">Ready</p>
+        <h3 class="text-2xl font-black text-emerald-900 dark:text-emerald-200 mt-1">{{ orderStats.ready }}</h3>
       </div>
     </div>
 
     <!-- PROGRESS BAR -->
-    <div class="mb-6">
-      <p class="text-sm font-medium text-slate-600 mb-2">Pipeline Progress</p>
-      <div class="flex gap-2 h-2 rounded-full overflow-hidden bg-slate-100">
+    <div class="space-y-2">
+      <div class="flex justify-between items-center text-xs font-bold text-slate-700 dark:text-slate-300">
+        <span>Pipeline Progress</span>
+        <span class="text-[10px] text-slate-400 font-normal">Real-time</span>
+      </div>
+
+      <div class="flex gap-1.5 h-2 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 p-0.5">
         <div
-          class="bg-red-500"
+          class="bg-rose-500 rounded-full transition-all duration-300"
           :style="{ width: `${(orderStats.pending / (orderStats.total || 1)) * 100}%` }"
         ></div>
         <div
-          class="bg-yellow-500"
+          class="bg-amber-500 rounded-full transition-all duration-300"
           :style="{ width: `${(orderStats.preparing / (orderStats.total || 1)) * 100}%` }"
         ></div>
         <div
-          class="bg-green-500"
+          class="bg-emerald-500 rounded-full transition-all duration-300"
           :style="{ width: `${(orderStats.ready / (orderStats.total || 1)) * 100}%` }"
         ></div>
       </div>
-      <div class="flex justify-between mt-2 text-xs text-slate-500">
-        <span>Pending</span>
-        <span>Preparing</span>
-        <span>Ready</span>
+
+      <div class="flex justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
+        <span class="text-rose-600 dark:text-rose-400">Pending</span>
+        <span class="text-amber-600 dark:text-amber-400">Preparing</span>
+        <span class="text-emerald-600 dark:text-emerald-400">Ready</span>
       </div>
     </div>
 
-    <!-- RECENT ORDERS -->
-    <div class="space-y-3">
-      <p class="text-sm font-medium text-slate-600">Recent Orders</p>
+    <!-- RECENT ORDERS LIST -->
+    <div class="space-y-2.5">
+      <p class="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Recent Orders</p>
 
       <div
         v-for="order in operationsStore.orders.slice(0, 4)"
         :key="order.id"
-        class="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition"
+        class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition"
       >
-        <div class="flex items-center gap-3 flex-1">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
           <div
             :class="[
-              'w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-medium',
-              order.status === 'pending' && 'bg-red-500',
-              order.status === 'preparing' && 'bg-yellow-500',
-              order.status === 'ready' && 'bg-green-500',
-              order.status === 'served' && 'bg-blue-500',
+              'w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-black shrink-0',
+              order.status === 'pending' && 'bg-rose-500 shadow-xs shadow-rose-500/30',
+              order.status === 'preparing' && 'bg-amber-500 shadow-xs shadow-amber-500/30',
+              order.status === 'ready' && 'bg-emerald-500 shadow-xs shadow-emerald-500/30',
+              order.status === 'served' && 'bg-blue-500 shadow-xs shadow-blue-500/30',
             ]"
           >
-            #{{ order.orderNumber.split('-').pop() }}
+            #{{ (order.orderNumber || '').split('-').pop() || '1' }}
           </div>
-          <div class="flex-1">
-            <p class="text-sm font-medium">{{ order.guestName }}</p>
-            <p class="text-xs text-slate-500">Room {{ order.roomNumber }} • {{ order.itemCount }} items</p>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-extrabold text-slate-900 dark:text-white truncate">{{ order.guestName }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">Room {{ order.roomNumber }} • {{ order.itemCount }} items</p>
           </div>
         </div>
 
-        <div class="flex items-center gap-2 text-xs">
-          <Clock class="w-3 h-3 text-slate-400" />
-          <span class="text-slate-500">{{ order.total }} Birr</span>
+        <div class="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-white ml-2">
+          <span class="px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-[11px]">
+            {{ order.total }} Birr
+          </span>
         </div>
       </div>
 
-      <div v-if="operationsStore.orders.length === 0" class="py-6 text-center text-slate-500">
+      <div v-if="operationsStore.orders.length === 0" class="py-8 text-center text-slate-500 dark:text-slate-400 text-xs font-bold bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
         No orders at this time
       </div>
     </div>

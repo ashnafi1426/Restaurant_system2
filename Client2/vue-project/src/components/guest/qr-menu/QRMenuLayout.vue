@@ -52,36 +52,30 @@
 
     <!-- Main Content Container -->
     <div class="flex relative">
-      <!-- LEFT SIDEBAR - FIXED NO SCROLL (Desktop Only) -->
+      <!-- LEFT SIDEBAR - COMPACT WIDTH & SMOOTH SCROLLABLE -->
       <aside
-        class="hidden lg:block fixed left-0 top-20 w-48 h-auto bg-white border-r border-gray-100 z-40 overflow-hidden"
+        class="hidden lg:block fixed left-0 top-16 w-48 h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800/80 z-40 overflow-y-auto p-2 transition-colors"
       >
-        <!-- Sidebar Wrapper - Exactly sized content -->
-        <div class="w-full p-2 space-y-2">
-          <!-- Part 1: Categories - Fixed Height -->
-          <div class="w-full max-h-max">
-            <CategorySidebar
-              :categories="categories"
-              :selected-category-id="selectedCategory"
-              :total-items="allMenuItems.length"
-              @category-selected="handleCategorySelected"
-            />
-          </div>
-        </div>
+        <CategorySidebar
+          :categories="categories"
+          :selected-category-id="selectedCategory"
+          :total-items="allMenuItems.length"
+          @category-selected="handleCategorySelected"
+        />
       </aside>
 
       <!-- Mobile Sidebar (Slide-out) -->
       <div
         v-if="sidebarOpen"
-        class="fixed inset-0 bg-black/50 z-30 lg:hidden top-20"
+        class="fixed inset-0 bg-black/50 z-30 lg:hidden top-16"
         @click="sidebarOpen = false"
       ></div>
 
       <aside
-        class="fixed left-0 top-20 w-64 sm:w-72 h-auto bg-white border-r border-gray-100 z-40 overflow-y-auto lg:hidden transition-transform duration-300"
+        class="fixed left-0 top-16 w-56 sm:w-64 h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800/80 z-40 overflow-y-auto lg:hidden transition-transform duration-300"
         :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full']"
       >
-        <div class="w-full p-4 sm:p-6 space-y-4">
+        <div class="w-full p-2">
           <CategorySidebar
             :categories="categories"
             :selected-category-id="selectedCategory"
@@ -91,100 +85,49 @@
         </div>
       </aside>
 
-      <!-- RIGHT CONTENT - Full Width on Mobile, Adjusted on Desktop -->
-      <main class="w-full lg:ml-48 bg-white px-4 lg:px-6">
-        <!-- Hero Section - Compact Height -->
+      <!-- RIGHT CONTENT - Compact Offsets & Minimized Hero Height -->
+      <main class="w-full lg:ml-48 bg-[#f9f8f6] dark:bg-slate-950 px-3 sm:px-5 lg:px-6 py-2 transition-colors pb-3">
+        <!-- Hero Section - Spacious Height & Gourmet Food Photography -->
         <div
-          class="relative h-48 sm:h-56 md:h-64 lg:h-72 rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg mt-6"
+          class="relative h-48 sm:h-60 md:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-md bg-slate-950 border border-slate-800/80 font-sans mt-3"
         >
-          <!-- Background Image -->
-          <div class="absolute inset-0 bg-slate-800">
+          <!-- Background Gourmet Food Photo -->
+          <div class="absolute inset-0 z-0">
             <img
-              :src="heroImage"
-              alt="Restaurant Hero"
-              class="w-full h-full object-cover"
-              loading="eager"
+              src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=1200&h=800&fit=crop"
+              alt="Good Food Great Moments"
+              class="w-full h-full object-cover object-right opacity-100 brightness-105 contrast-105 transition-transform duration-500 hover:scale-105"
             />
-            <div
-              class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40"
-            ></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/70 to-transparent"></div>
           </div>
 
-          <!-- Content -->
-          <div class="absolute inset-0 flex items-center">
-            <div class="container mx-auto px-4 sm:px-6 md:px-8">
-              <div class="max-w-2xl">
-                <!-- Badge -->
-                <div class="flex items-center gap-2 mb-1 sm:mb-2">
-                  <div class="w-6 sm:w-8 h-0.5 bg-amber-400 rounded-full"></div>
-                  <span
-                    class="text-[10px] sm:text-xs font-semibold text-amber-300 tracking-widest uppercase"
-                  >
-                    {{ heroSubheading || 'LUXURY DINING' }}
-                  </span>
-                </div>
+          <!-- Content Container -->
+          <div class="relative z-10 h-full flex items-center px-6 sm:px-8 md:px-10">
+            <div class="max-w-md space-y-2 sm:space-y-3 text-white">
+              <h1 class="text-2xl sm:text-3xl md:text-4xl font-serif font-bold tracking-tight leading-tight">
+                <span class="inline block text-white">Good Food, </span>
+                <span class="inline block text-[#c29353] drop-shadow-md">Great Moments</span>
+              </h1>
 
-                <!-- Heading -->
-                <h1
-                  class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-white leading-tight"
+              <p class="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed max-w-sm">
+                Fresh ingredients, expertly prepared. Delivered directly to your room.
+              </p>
+
+              <div class="pt-2">
+                <button
+                  @click="handleViewSpecials"
+                  class="px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-[#c29353] hover:bg-[#b08244] text-white font-black text-xs sm:text-sm shadow-lg hover:shadow-xl transition cursor-pointer inline-flex items-center gap-2 transform hover:-translate-y-0.5"
                 >
-                  <span class="block">Good Food,</span>
-                  <span class="block text-amber-400 drop-shadow-lg">Great Moments</span>
-                </h1>
-
-                <!-- Description -->
-                <p
-                  class="hidden sm:block text-xs sm:text-sm text-gray-200 font-light mt-1 sm:mt-2 max-w-md leading-relaxed"
-                >
-                  Indulge in our meticulously curated menu, crafted by award-winning chefs.
-                </p>
-
-                <!-- Buttons -->
-                <div class="flex flex-wrap gap-2 sm:gap-3 mt-2 sm:mt-3">
-                  <button
-                    @click="handleExplore"
-                    class="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-1.5 sm:py-2.5 bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-gray-900 font-bold rounded-full shadow-lg hover:shadow-amber-500/50 transition-all duration-300 text-xs sm:text-sm"
-                  >
-                    <span>Explore Menu</span>
-                    <svg
-                      class="w-3.5 h-3.5 sm:w-4 sm:h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2.5"
-                        d="M13 7l5 5m0 0l-5 5m5-5H6"
-                      ></path>
-                    </svg>
-                  </button>
-                  <button
-                    @click="handleViewSpecials"
-                    class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-1.5 sm:py-2.5 border-2 border-amber-400 text-amber-300 font-semibold rounded-full hover:bg-white/10 transition-all duration-300 text-xs sm:text-sm"
-                  >
-                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path
-                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                      ></path>
-                    </svg>
-                    <span class="hidden xs:inline">View Specials</span>
-                    <span class="xs:hidden">Specials</span>
-                  </button>
-                </div>
+                  <span>View Specials</span>
+                  <ChevronRight class="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
-
-          <!-- Bottom accent -->
-          <div
-            class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 via-amber-500 to-transparent"
-          ></div>
         </div>
 
         <!-- Search -->
-        <div class="mt-4 sm:mt-6">
+        <div class="mt-2.5">
           <MenuSearch
             :menu-items="allMenuItems"
             @search="handleSearchQueryChanged"
@@ -192,34 +135,45 @@
           />
         </div>
 
-        <!-- Quick Category Pills (Mobile) -->
-        <!-- Hidden for now - categories shown in mobile sidebar instead -->
-        <!-- Will be re-enabled if needed for mobile view -->
-
-        <!-- Filter Bar -->
-        <!-- <div class="mt-3 sm:mt-4"> -->
-        <!-- <MenuFilter
-              :sort-options="sortOptions"
-              :initial-view-mode="viewMode"
-              @sort-changed="handleSortChanged"
-              @view-mode-changed="handleViewModeChanged"
-              @filters-applied="handleFiltersApplied"
-            />
-          </div> -->
+        <!-- Mobile/Tablet Horizontal Category Swipe Pills Bar -->
+        <div class="lg:hidden mt-2.5 overflow-x-auto hide-scrollbar flex items-center gap-2 py-1">
+          <button
+            v-for="cat in categories"
+            :key="cat.id ?? 'all'"
+            @click="handleCategorySelected(cat.id)"
+            :class="[
+              'px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 flex-shrink-0',
+              selectedCategory === cat.id
+                ? 'bg-[#c29353] text-white shadow-xs font-black'
+                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800'
+            ]"
+          >
+            <span>{{ cat.name }}</span>
+            <span
+              v-if="cat.count !== undefined"
+              :class="[
+                'px-1.5 py-0.2 rounded-full text-[10px] font-black',
+                selectedCategory === cat.id ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+              ]"
+            >
+              {{ cat.count }}
+            </span>
+          </button>
+        </div>
 
         <!-- Section Header -->
-        <div class="mt-6 sm:mt-8 mb-3 sm:mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div class="mt-3 mb-1.5 flex items-center justify-between">
           <div>
-            <h2 class="text-lg sm:text-2xl md:text-3xl font-bold text-slate-900">
+            <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
               Recommended for You
             </h2>
-            <p class="text-xs sm:text-sm text-slate-500 mt-0.5 sm:mt-1">
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">
               Fresh ingredients, expertly prepared
             </p>
           </div>
           <button
             v-if="filteredMenuItems.length > itemsPerPage"
-            class="text-sm sm:text-base font-semibold text-amber-600 hover:text-amber-700 transition-colors"
+            class="text-xs font-bold text-[#c29353] hover:underline transition-colors"
           >
             View All →
           </button>
@@ -237,39 +191,47 @@
           />
         </div>
 
-        <!-- Features -->
+        <!-- Features Bar matching Screenshot -->
         <div
-          class="mt-8 sm:mt-12 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 md:p-8 shadow-sm mb-6"
+          class="mt-2.5 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 rounded-2xl bg-white dark:bg-slate-900 p-3 sm:p-4 border border-slate-200/80 dark:border-slate-800 shadow-xs mb-2 font-sans"
         >
-          <div class="flex items-center gap-2 sm:gap-3">
-            <div class="text-2xl sm:text-3xl">🍽️</div>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-[#c29353] flex-shrink-0">
+              <Utensils class="w-4 h-4" />
+            </div>
             <div>
-              <h4 class="font-bold text-xs sm:text-sm">Freshly Prepared</h4>
-              <p class="hidden sm:block text-xs text-slate-500">Premium ingredients</p>
+              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">Freshly Prepared</h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Premium ingredients</p>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 sm:gap-3">
-            <div class="text-2xl sm:text-3xl">🚚</div>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-[#c29353] flex-shrink-0">
+              <Truck class="w-4 h-4" />
+            </div>
             <div>
-              <h4 class="font-bold text-xs sm:text-sm">Fast Delivery</h4>
-              <p class="hidden sm:block text-xs text-slate-500">Within 30 minutes</p>
+              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">Fast Delivery</h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Within 30 minutes</p>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 sm:gap-3">
-            <div class="text-2xl sm:text-3xl">🛡️</div>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-[#c29353] flex-shrink-0">
+              <ShieldCheck class="w-4 h-4" />
+            </div>
             <div>
-              <h4 class="font-bold text-xs sm:text-sm">Safe & Hygienic</h4>
-              <p class="hidden sm:block text-xs text-slate-500">Highest standards</p>
+              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">Safe & Hygienic</h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Highest standards</p>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 sm:gap-3">
-            <div class="text-2xl sm:text-3xl">⏰</div>
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-[#c29353] flex-shrink-0">
+              <Clock class="w-4 h-4" />
+            </div>
             <div>
-              <h4 class="font-bold text-xs sm:text-sm">24/7 Service</h4>
-              <p class="hidden sm:block text-xs text-slate-500">Always here to serve</p>
+              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">24/7 Service</h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Always here to serve</p>
             </div>
           </div>
         </div>
@@ -340,6 +302,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { Utensils, Truck, ShieldCheck, Clock, ChevronRight } from 'lucide-vue-next'
 import GuestNavbar from './GuestNavbar.vue'
 import CategorySidebar from './CategorySidebar.vue'
 import MenuSearch from './MenuSearch.vue'
@@ -422,73 +385,86 @@ const loadingCategories = ref(false)
 /**
  * Load categories from backend API
  */
+function deriveCategoriesFromMenuItems() {
+  const catMap: { [key: string]: { name: string; count: number; icon: string } } = {}
+
+  if (allMenuItems.value && allMenuItems.value.length > 0) {
+    allMenuItems.value.forEach((item) => {
+      const rawCat = item.category || 'Other'
+      const norm = normalizeCategory(rawCat)
+      let title = rawCat.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+
+      if (!catMap[norm]) {
+        catMap[norm] = { name: title, count: 0, icon: norm }
+      }
+      catMap[norm].count++
+    })
+  }
+
+  const derived: Category[] = Object.keys(catMap).map((key) => ({
+    id: key,
+    slug: key,
+    name: catMap[key].name,
+    icon: catMap[key].icon,
+    count: catMap[key].count,
+  }))
+
+  const defaultCategories: Category[] = [
+    { id: 'breakfast', name: 'Breakfast', icon: 'clock', count: 0 },
+    { id: 'soups', name: 'Soups', icon: 'soup', count: 0 },
+    { id: 'appetizers', name: 'Appetizers', icon: 'leaf', count: 0 },
+    { id: 'main-courses', name: 'Main Courses', icon: 'utensils', count: 0 },
+    { id: 'sandwiches', name: 'Sandwiches', icon: 'sandwich', count: 0 },
+    { id: 'pasta', name: 'Pasta', icon: 'layers', count: 0 },
+    { id: 'desserts', name: 'Desserts', icon: 'cake', count: 0 },
+    { id: 'beverages', name: 'Beverages', icon: 'wine', count: 0 },
+  ]
+
+  const combined = [...derived]
+  defaultCategories.forEach((def) => {
+    if (!combined.some((c) => normalizeCategory(c.name) === normalizeCategory(def.name))) {
+      combined.push(def)
+    }
+  })
+
+  categories.value = [
+    { id: null, name: 'All Categories', icon: 'grid', count: allMenuItems.value.length },
+    ...combined,
+  ]
+}
+
 const loadCategories = async () => {
   loadingCategories.value = true
   try {
     // Debug logging
     console.log('[QRMenuLayout] Fetching categories from API...')
 
-    const response = await api.get('/api/categories?is_active=true')
+    const response = await api.get('/guest/categories')
+    const rawCategories = response.data?.data || response.data || []
 
-    console.log('[QRMenuLayout] API Response:', response)
-
-    if (response.data?.data && Array.isArray(response.data.data)) {
-      // Map backend categories to frontend format
-      const backendCategories = response.data.data.map((cat: any) => ({
-        id: cat.slug || cat.id, // Use slug as ID for filtering
+    if (Array.isArray(rawCategories) && rawCategories.length > 0) {
+      const backendCategories = rawCategories.map((cat: any) => ({
+        id: cat.slug || cat.id,
         name: cat.name,
         icon: cat.icon || '🍽️',
-        count: cat.menu_items_count || 0, // Menu items count from backend
+        count: cat.count ?? cat.menu_items_count ?? 0,
       }))
 
-      // Add "All Categories" option at the beginning
       categories.value = [
-        { id: null, name: 'All Categories', icon: '📋', count: 0 },
+        { id: null, name: 'All Categories', icon: 'grid', count: allMenuItems.value.length },
         ...backendCategories,
       ]
-
-      console.log(
-        `[QRMenuLayout]  Loaded ${backendCategories.length} categories from backend:`,
-        categories.value,
-      )
-    } else {
-      console.warn('[QRMenuLayout] No categories in response, using fallback defaults')
-      // Use fallback categories if no data
-      categories.value = [
-        { id: null, name: 'All Categories', icon: '📋', count: 0 },
-        { id: 'breakfast', name: 'Breakfast', icon: '☀️', count: 0 },
-        { id: 'lunch', name: 'Lunch', icon: '🍔', count: 0 },
-        { id: 'dinner', name: 'Dinner', icon: '🍲', count: 0 },
-        { id: 'appetizers', name: 'Appetizers', icon: '🥗', count: 0 },
-        { id: 'pizza', name: 'Pizza', icon: '🍕', count: 0 },
-        { id: 'pasta', name: 'Pasta', icon: '🍝', count: 0 },
-        { id: 'desserts', name: 'Desserts', icon: '🍰', count: 0 },
-        { id: 'drinks', name: 'Beverages', icon: '🍷', count: 0 },
-      ]
+      updateCategoryCounts()
+      return
     }
   } catch (error: any) {
-    console.error(
-      '[QRMenuLayout] ❌ Error loading categories:',
-      error.message,
-      error.response?.data,
-    )
-
-    // Use fallback categories on error
-    console.log('[QRMenuLayout] Using fallback categories due to API error')
-    categories.value = [
-      { id: null, name: 'All Categories', icon: '📋', count: 0 },
-      { id: 'breakfast', name: 'Breakfast', icon: '☀️', count: 0 },
-      { id: 'lunch', name: 'Lunch', icon: '🍔', count: 0 },
-      { id: 'dinner', name: 'Dinner', icon: '🍲', count: 0 },
-      { id: 'appetizers', name: 'Appetizers', icon: '🥗', count: 0 },
-      { id: 'pizza', name: 'Pizza', icon: '🍕', count: 0 },
-      { id: 'pasta', name: 'Pasta', icon: '🍝', count: 0 },
-      { id: 'desserts', name: 'Desserts', icon: '🍰', count: 0 },
-      { id: 'drinks', name: 'Beverages', icon: '🍷', count: 0 },
-    ]
+    console.warn('[QRMenuLayout] Error loading categories from backend API:', error)
   } finally {
     loadingCategories.value = false
   }
+
+  deriveCategoriesFromMenuItems()
+  updateCategoryCounts()
 }
 
 const sortOptions = [
@@ -498,6 +474,16 @@ const sortOptions = [
   { value: 'rating', label: 'Highest Rated' },
   { value: 'newest', label: 'Newest' },
 ]
+
+function parseCategoryName(item: any): string {
+  if (!item) return 'Other'
+  if (item.category_name) return String(item.category_name)
+  if (typeof item.category === 'string') return item.category
+  if (typeof item.category === 'object' && item.category !== null) {
+    return item.category.name || item.category.slug || item.category.title || 'Other'
+  }
+  return 'Other'
+}
 
 // Load menu items from API - DEFINED BEFORE BEING USED
 const loadMenuItems = async () => {
@@ -526,7 +512,7 @@ const loadMenuItems = async () => {
               description: item.description || '',
               price: isNaN(price) ? 0 : price,
               image: item.image || '/images/placeholder.png',
-              category: categoryName || 'Other',
+              category: categoryName || parseCategoryName(item),
               rating: item.rating || 4.5,
               is_available: item.is_available !== false,
             }
@@ -541,7 +527,7 @@ const loadMenuItems = async () => {
             description: item.description || '',
             price: isNaN(price) ? 0 : price,
             image: item.image || '/images/placeholder.png',
-            category: item.category || 'Other',
+            category: parseCategoryName(item),
             rating: item.rating || 4.5,
             is_available: item.is_available !== false,
           }
@@ -556,7 +542,7 @@ const loadMenuItems = async () => {
           description: item.description || '',
           price: isNaN(price) ? 0 : price,
           image: item.image || '/images/placeholder.png',
-          category: item.category || 'Other',
+          category: parseCategoryName(item),
           rating: item.rating || 4.5,
           is_available: item.is_available !== false,
         }
@@ -572,12 +558,58 @@ const loadMenuItems = async () => {
   }
 }
 
+function normalizeCat(str: string | number | null | undefined): string {
+  if (!str) return ''
+  return String(str)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, '')
+}
+
+function matchCategory(itemCat: string | null | undefined, selectedCat: string | number | null | undefined): boolean {
+  if (selectedCat === null || selectedCat === undefined || selectedCat === '' || selectedCat === 'all') return true
+
+  let targetNameOrSlug = String(selectedCat)
+  if (categories.value && categories.value.length > 0) {
+    const matchedCatObj = categories.value.find(
+      (c) => String(c.id) === String(selectedCat) || String(c.slug) === String(selectedCat) || String(c.name).toLowerCase() === String(selectedCat).toLowerCase()
+    )
+    if (matchedCatObj) {
+      targetNameOrSlug = matchedCatObj.name + ' ' + (matchedCatObj.slug || '')
+    }
+  }
+
+  const normItem = normalizeCat(itemCat)
+  const normSelected = normalizeCat(selectedCat)
+  const normTarget = normalizeCat(targetNameOrSlug)
+
+  if (!normItem) return false
+  if (normItem === normSelected || normItem === normTarget) return true
+
+  const itemStem = normItem.replace(/s$/, '')
+  const selectedStem = normSelected.replace(/s$/, '')
+  const targetStem = normTarget.replace(/s$/, '')
+
+  return (
+    itemStem === selectedStem ||
+    itemStem === targetStem ||
+    normItem.includes(normSelected) ||
+    normSelected.includes(normItem) ||
+    normItem.includes(normTarget) ||
+    normTarget.includes(normItem) ||
+    itemStem.includes(selectedStem) ||
+    selectedStem.includes(itemStem) ||
+    itemStem.includes(targetStem) ||
+    targetStem.includes(itemStem)
+  )
+}
+
 // Update category counts - DEFINED BEFORE BEING USED
 const updateCategoryCounts = () => {
   categories.value.forEach((cat) => {
     if (cat.id) {
       const count = allMenuItems.value.filter(
-        (item) => item.category.toLowerCase() === cat.id?.toLowerCase(),
+        (item) => matchCategory(item.category, cat.id || cat.name),
       ).length
       cat.count = count
     } else {
@@ -593,9 +625,7 @@ const filteredMenuItems = computed(() => {
   items = items.filter((item) => item.is_available !== false)
 
   if (selectedCategory.value) {
-    items = items.filter(
-      (item) => item.category.toLowerCase() === selectedCategory.value?.toLowerCase(),
-    )
+    items = items.filter((item) => matchCategory(item.category, selectedCategory.value))
   }
 
   if (searchQuery.value) {
@@ -634,12 +664,15 @@ const handleLogout = () => {
 }
 
 const handleCategorySelected = (categoryId: string | null) => {
+  console.log(`[QRMenuLayout] Category selected from header/sidebar: ${categoryId}`)
   selectedCategory.value = categoryId
+  sidebarOpen.value = false
 }
 
 const handleCategorySelectedMobile = (categoryId: string | null) => {
+  console.log(`[QRMenuLayout] Mobile Category selected: ${categoryId}`)
   selectedCategory.value = categoryId
-  sidebarOpen.value = false // Close sidebar after selection
+  sidebarOpen.value = false
 }
 
 const handleSearchQueryChanged = (query: string) => {
@@ -744,5 +777,20 @@ defineExpose({
 }
 .animate-spin {
   animation: spin 0.8s linear infinite;
+}
+
+/* Luxury 4px Thin Scrollbar for Sidebar */
+aside::-webkit-scrollbar {
+  width: 4px;
+}
+aside::-webkit-scrollbar-track {
+  background: transparent;
+}
+aside::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+aside::-webkit-scrollbar-thumb:hover {
+  background: #c29353;
 }
 </style>

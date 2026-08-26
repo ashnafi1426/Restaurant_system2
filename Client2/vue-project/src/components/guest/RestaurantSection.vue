@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import menuService from '@/services/menuService'
+import { Utensils, Calendar, ArrowRight, Star } from 'lucide-vue-next'
 
 const router = useRouter()
 
@@ -15,234 +16,127 @@ interface MenuItem {
 
 const featuredMenu = ref<MenuItem[]>([])
 const loading = ref(false)
-const error = ref<string | null>(null)
+
+const fallbackMenuItems: MenuItem[] = [
+  { id: 'm1', name: 'Traditional Ethiopian Platter', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&h=600&fit=crop', description: 'Assorted Injera with Doro Wat, Kitfo, Alicha, and fresh Ayib cheese.', price: 650 },
+  { id: 'm2', name: 'Grilled Prime Ribeye Steak', image: 'https://images.unsplash.com/photo-1558030006-450675393462?w=800&h=600&fit=crop', description: 'Aged Ethiopian beef steak served with truffle mash and red wine jus.', price: 950 },
+  { id: 'm3', name: 'Seafood Symphony Pasta', image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&h=600&fit=crop', description: 'Fresh prawns, calamari, and salmon tossed in garlic cream sauce.', price: 820 },
+]
 
 function reserveTable() {
-  router.push('/reservation')
+  router.push('/contact')
 }
 
-function viewRestaurant() {
-  router.push('/restaurant')
+function viewRestaurantMenu() {
+  router.push('/guest/qr-menu')
 }
 
 function formatPrice(price: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(price)
+  return `${(price || 0).toLocaleString()} ETB`
 }
 
-/**
- * Load featured menu items from backend
- */
 async function loadFeaturedMenu() {
   loading.value = true
-  error.value = null
-
   try {
     const response = await menuService.getMenuItems({ per_page: 3, is_active: true })
-
-    if (response.data?.data && Array.isArray(response.data.data)) {
-      // Take first 3 items as featured
+    if (response.data?.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
       featuredMenu.value = response.data.data.slice(0, 3).map((item: any) => ({
         id: item.id,
         name: item.name,
-        image: item.image || '/images/placeholder.png',
-        description: item.description || 'Delicious menu item',
-        price: item.price || 0,
+        image: item.image || fallbackMenuItems[0].image,
+        description: item.description || 'Delicious gourmet chef specialty dish.',
+        price: item.price || 450,
       }))
-
-      console.log(
-        `[RestaurantSection] Loaded ${featuredMenu.value.length} featured menu items from backend`,
-      )
     } else {
-      // Fallback to empty or default items
-      error.value = 'No menu items available'
-      console.warn('[RestaurantSection] No menu items found in response')
+      featuredMenu.value = fallbackMenuItems
     }
-  } catch (err: any) {
-    error.value = err.message || 'Failed to load menu items'
-    console.error('[RestaurantSection] Error loading menu items:', err)
-
-    // Still show section but with empty items
-    featuredMenu.value = []
+  } catch (err) {
+    featuredMenu.value = fallbackMenuItems
   } finally {
     loading.value = false
   }
 }
 
-/**
- * Load menu on mount
- */
 onMounted(() => {
   loadFeaturedMenu()
 })
 </script>
 
 <template>
-  <section class="bg-[#faf8f4] py-12 sm:py-16 md:py-20 lg:py-24">
-    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10">
+  <section class="bg-slate-50 dark:bg-slate-950 py-12 sm:py-16 lg:py-24 transition-colors duration-300 font-sans border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
       <!-- Section Header -->
-      <div class="mx-auto mb-8 sm:mb-12 md:mb-16 max-w-3xl text-center">
-        <p
-          class="mb-2 sm:mb-4 text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-amber-600"
-        >
-          Signature Restaurant
-        </p>
-
-        <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-slate-900">
+      <div class="mx-auto max-w-3xl text-center space-y-3">
+        <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+          Signature Dining
+        </span>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
           A Culinary Experience
         </h2>
-
-        <p
-          class="mt-3 sm:mt-4 md:mt-6 text-sm sm:text-base md:text-lg leading-6 sm:leading-7 md:leading-8 text-slate-500"
-        >
-          Enjoy international cuisine, freshly prepared by experienced chefs using premium
-          ingredients in an elegant dining atmosphere.
+        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
+          Indulge in authentic Ethiopian culinary traditions and international fine dining crafted by award-winning chefs.
         </p>
       </div>
 
-      <!-- Restaurant Banner -->
-      <div
-        class="mb-12 sm:mb-16 md:mb-20 overflow-hidden rounded-2xl sm:rounded-3xl bg-slate-900 grid grid-cols-1 lg:grid-cols-2"
-      >
-        <img
-          src="/images/food/coffee.jpg"
-          alt="Restaurant"
-          class="h-48 sm:h-56 md:h-80 lg:h-full lg:min-h-[420px] w-full object-cover"
-        />
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-center gap-3">
+        <button
+          @click="viewRestaurantMenu"
+          class="px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider shadow-md shadow-amber-500/20 transition cursor-pointer flex items-center gap-2"
+        >
+          <Utensils class="w-4 h-4" />
+          <span>Explore Full Menu</span>
+        </button>
 
-        <div class="flex flex-col justify-center p-4 sm:p-6 md:p-8 lg:p-12 text-white">
-          <p
-            class="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] md:tracking-[0.35em] text-amber-400"
-          >
-            Fine Dining
-          </p>
-
-          <h3 class="mt-2 sm:mt-3 md:mt-4 text-2xl sm:text-3xl md:text-4xl font-light">
-            Taste Excellence
-          </h3>
-
-          <p
-            class="mt-3 sm:mt-4 md:mt-6 text-sm sm:text-base md:text-lg leading-6 sm:leading-7 md:leading-8 text-slate-300"
-          >
-            Our restaurant offers breakfast, lunch and dinner, combining local flavors with
-            international cuisine in a sophisticated setting.
-          </p>
-
-          <div class="mt-6 sm:mt-8 md:mt-10 flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4">
-            <button
-              class="rounded-full bg-amber-500 px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 text-xs sm:text-sm md:text-base font-semibold transition hover:bg-amber-600"
-              @click="reserveTable"
-            >
-              Reserve a Table
-            </button>
-
-            <button
-              class="rounded-full border border-white px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 text-xs sm:text-sm md:text-base font-semibold transition hover:bg-white hover:text-slate-900"
-              @click="viewRestaurant"
-            >
-              View Menu
-            </button>
-          </div>
-        </div>
+        <button
+          @click="reserveTable"
+          class="px-6 py-3 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-white font-extrabold text-xs transition border border-slate-200 dark:border-slate-800 cursor-pointer flex items-center gap-2"
+        >
+          <Calendar class="w-4 h-4 text-amber-500" />
+          <span>Reserve a Table</span>
+        </button>
       </div>
 
-      <!-- Featured Dishes -->
-      <div v-if="loading" class="flex justify-center py-12">
-        <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-12 h-12) -->
-        <div class="relative w-12 h-12">
-          <!-- Static background - BRIGHT CYAN -->
-          <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
-          </svg>
-          
-          <!-- Animated spinner - BRIGHT YELLOW -->
-          <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
-            <svg viewBox="0 0 100 100" class="w-full h-full">
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div
-        v-if="!loading && featuredMenu.length > 0"
-        class="grid gap-4 sm:gap-6 md:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-      >
-        <article
+      <!-- Menu Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div
           v-for="item in featuredMenu"
           :key="item.id"
-          class="group overflow-hidden rounded-lg sm:rounded-2xl lg:rounded-3xl bg-white shadow transition duration-500 hover:-translate-y-1 sm:hover:-translate-y-2 hover:shadow-lg md:hover:shadow-2xl"
+          class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs hover:border-amber-500/40 transition duration-300 flex flex-col justify-between"
         >
-          <div class="overflow-hidden">
+          <!-- Dish Image -->
+          <div class="relative h-60 overflow-hidden bg-slate-900">
             <img
               :src="item.image"
               :alt="item.name"
-              class="h-40 sm:h-48 md:h-56 lg:h-72 w-full object-cover transition duration-700 group-hover:scale-110"
+              class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
             />
+            <div class="absolute top-4 right-4 px-3 py-1 bg-slate-950/80 backdrop-blur-md text-amber-400 font-black text-xs rounded-full border border-amber-500/30">
+              {{ formatPrice(item.price) }}
+            </div>
           </div>
 
-          <div class="p-4 sm:p-6 md:p-8">
-            <div
-              class="mb-2 sm:mb-3 md:mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-            >
-              <h3 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900">
+          <!-- Dish Info -->
+          <div class="p-6 space-y-3 flex-1 flex flex-col justify-between">
+            <div class="space-y-2">
+              <h3 class="text-base font-black text-slate-900 dark:text-white group-hover:text-amber-500 transition">
                 {{ item.name }}
               </h3>
-
-              <span
-                class="text-sm sm:text-base md:text-lg font-bold text-amber-600 whitespace-nowrap"
-              >
-                {{ formatPrice(item.price) }}
-              </span>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                {{ item.description }}
+              </p>
             </div>
 
-            <p class="text-xs sm:text-sm md:text-base leading-6 sm:leading-7 text-slate-500">
-              {{ item.description }}
-            </p>
+            <button
+              @click="viewRestaurantMenu"
+              class="w-full mt-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <span>Order Food Online</span>
+              <ArrowRight class="w-3.5 h-3.5" />
+            </button>
           </div>
-        </article>
-      </div>
-
-      <div v-if="!loading && featuredMenu.length === 0" class="text-center py-12">
-        <p class="text-slate-500">{{ error || 'No menu items available at this time' }}</p>
-      </div>
-
-      <!-- Bottom CTA -->
-      <div class="mt-12 sm:mt-16 md:mt-20">
-        <div
-          class="rounded-lg sm:rounded-2xl lg:rounded-3xl bg-amber-600 px-4 sm:px-6 md:px-8 lg:px-10 py-8 sm:py-10 md:py-12 lg:py-16 text-center text-white"
-        >
-          <h2 class="text-2xl sm:text-3xl md:text-4xl font-light">Dine With Us</h2>
-
-          <p
-            class="mx-auto mt-3 sm:mt-4 md:mt-6 max-w-3xl text-xs sm:text-sm md:text-base lg:text-lg leading-6 sm:leading-7 md:leading-8 text-amber-100"
-          >
-            Whether you're enjoying breakfast before a busy day or a romantic dinner in the evening,
-            our chefs are ready to make every meal memorable.
-          </p>
-
-          <button
-            class="mt-6 sm:mt-8 md:mt-10 rounded-full bg-white px-6 sm:px-8 md:px-10 py-2.5 sm:py-3 md:py-4 text-xs sm:text-sm md:text-base font-semibold text-amber-600 transition hover:bg-slate-100"
-            @click="viewRestaurant"
-          >
-            Explore Our Restaurant
-          </button>
         </div>
       </div>
     </div>
   </section>
 </template>
-
-<style scoped>
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-</style>

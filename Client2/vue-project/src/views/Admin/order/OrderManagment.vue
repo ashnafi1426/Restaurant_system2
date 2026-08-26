@@ -183,7 +183,7 @@ async function deleteOrder() {
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6">
+    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans">
       <!-- Header -->
       <OrderHeader @create="openCreate" />
 

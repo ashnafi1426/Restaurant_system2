@@ -1,36 +1,22 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { useThemeStore } from '../../stores/themeStore'
-import { Sun, Moon } from 'lucide-vue-next'
+import { useThemeStore } from '../../stores/theme'
+import { Sun, Moon, QrCode, Maximize, Minimize, Menu as MenuIcon, X as CloseIcon } from 'lucide-vue-next'
 
 const route = useRoute()
 const theme = useThemeStore()
 
 const mobileMenu = ref(false)
 const scrolled = ref(false)
+const isFullscreen = ref(false)
 
 const menus = [
-  {
-    title: 'Home',
-    route: '/',
-  },
-  {
-    title: 'Rooms',
-    route: '/rooms',
-  },
-  {
-    title: 'Gallery',
-    route: '/gallery',
-  },
-  {
-    title: 'About',
-    route: '/about',
-  },
-  {
-    title: 'Contact',
-    route: '/contact',
-  },
+  { title: 'Home', route: '/' },
+  { title: 'Rooms', route: '/rooms' },
+  { title: 'Gallery', route: '/gallery' },
+  { title: 'About', route: '/about' },
+  { title: 'Contact', route: '/contact' },
 ]
 
 function toggleMenu() {
@@ -42,16 +28,27 @@ function closeMenu() {
 }
 
 function handleScroll() {
-  scrolled.value = window.scrollY > 50
+  scrolled.value = window.scrollY > 40
 }
 
-const handleThemeToggle = () => {
-  console.log('[GuestNavbar] 🎨 Theme toggle clicked')
+function handleThemeToggle() {
   theme.toggleTheme()
-  console.log('[GuestNavbar] 🎨 New theme:', theme.isDarkMode ? 'dark' : 'light')
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {})
+    isFullscreen.value = true
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {})
+      isFullscreen.value = false
+    }
+  }
 }
 
 onMounted(() => {
+  theme.initializeTheme()
   window.addEventListener('scroll', handleScroll)
 })
 
@@ -62,175 +59,150 @@ onUnmounted(() => {
 
 <template>
   <header
-    class="fixed inset-x-0 top-0 z-50 transition-all duration-300"
-    :class="
-      scrolled 
-        ? 'bg-white dark:bg-slate-900 shadow-lg dark:shadow-slate-950/50' 
-        : 'bg-gradient-to-b from-black/70 dark:from-slate-950/90 via-black/20 dark:via-slate-900/40 to-transparent dark:to-transparent'
-    "
+    class="fixed inset-x-0 top-0 z-50 transition-all duration-300 backdrop-blur-md"
+    :class="[
+      scrolled
+        ? 'bg-white/95 dark:bg-slate-900/95 shadow-md border-b border-slate-200/80 dark:border-slate-800/80'
+        : 'bg-slate-50/80 dark:bg-slate-950/80 border-b border-slate-200/40 dark:border-slate-800/40'
+    ]"
   >
-    <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-10">
-      <!-- =========================== -->
+    <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-10">
       <!-- Logo -->
-      <!-- =========================== -->
-
       <RouterLink to="/" class="flex items-center gap-3">
-        <div
-          class="flex h-12 w-12 items-center justify-center rounded-full border border-amber-400 bg-white/10 backdrop-blur-md"
-        >
-          <span class="text-xl font-bold text-amber-400"> H </span>
+        <div class="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-black text-xl shadow-xs">
+          H
         </div>
 
         <div>
-          <h2
-            class="text-xl font-bold tracking-wide transition-colors"
-            :class="scrolled ? 'text-slate-900 dark:text-slate-100' : 'text-white'"
-          >
+          <h2 class="text-lg font-black tracking-wide text-slate-900 dark:text-white transition-colors">
             Grand Horizon
           </h2>
-
-          <p
-            class="text-xs uppercase tracking-[4px] transition-colors"
-            :class="scrolled ? 'text-slate-500 dark:text-slate-400' : 'text-gray-300 dark:text-gray-400'"
-          >
+          <p class="text-[9px] uppercase tracking-[3px] font-extrabold text-amber-600 dark:text-amber-400">
             Luxury Hotel
           </p>
         </div>
       </RouterLink>
 
-      <!-- =========================== -->
       <!-- Desktop Navigation -->
-      <!-- =========================== -->
-
-      <nav class="hidden items-center gap-10 lg:flex">
+      <nav class="hidden items-center gap-8 lg:flex">
         <RouterLink
           v-for="menu in menus"
           :key="menu.route"
           :to="menu.route"
-          class="font-medium transition"
-          :class="
+          class="text-xs uppercase tracking-wider font-extrabold transition-colors"
+          :class="[
             route.path === menu.route
-              ? 'text-amber-500 dark:text-amber-400'
-              : scrolled
-                ? 'text-slate-700 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-400'
-                : 'text-white hover:text-amber-400'
-          "
+              ? 'text-amber-600 dark:text-amber-400 font-black'
+              : 'text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400'
+          ]"
         >
           {{ menu.title }}
         </RouterLink>
       </nav>
 
-      <!-- =========================== -->
-      <!-- Theme Toggle & Buttons -->
-      <!-- =========================== -->
-
+      <!-- Action Control Buttons & Book Now -->
       <div class="hidden items-center gap-3 lg:flex">
-        <!-- Theme Toggle Button -->
+        <!-- Digital QR Menu Icon Button -->
+        <RouterLink
+          to="/menu"
+          class="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:border-amber-500 hover:text-amber-500 transition cursor-pointer shadow-xs"
+          title="Digital QR Room Service & Restaurant Menu"
+        >
+          <QrCode class="w-5 h-5 text-amber-500" />
+        </RouterLink>
+
+        <!-- Fullscreen Toggle Button (From Screenshot) -->
+        <button
+          @click="toggleFullscreen"
+          type="button"
+          class="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:border-amber-500 hover:text-amber-500 transition cursor-pointer shadow-xs"
+          :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen View'"
+        >
+          <Maximize v-if="!isFullscreen" class="w-5 h-5" />
+          <Minimize v-else class="w-5 h-5 text-amber-500" />
+        </button>
+
+        <!-- Interactive Theme Toggle Button -->
         <button
           @click="handleThemeToggle"
-          class="flex h-10 w-10 items-center justify-center rounded-lg border transition"
-          :class="
-            scrolled
-              ? 'border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800'
-              : 'border-white/30 hover:bg-white/10'
-          "
-          :title="theme.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+          type="button"
+          class="flex items-center gap-2 px-3.5 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-amber-500 transition cursor-pointer shadow-xs font-black text-xs"
+          :title="theme.isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
         >
-          <Sun
-            v-if="!theme.isDarkMode"
-            class="w-5 h-5"
-            :class="scrolled ? 'text-slate-700' : 'text-white'"
-          />
-          <Moon
-            v-else
-            class="w-5 h-5"
-            :class="scrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white'"
-          />
+          <template v-if="theme.isDark">
+            <Sun class="w-4 h-4 text-amber-400" />
+            <span>Light Mode</span>
+          </template>
+
+          <template v-else>
+            <Moon class="w-4 h-4 text-slate-700" />
+            <span>Dark Mode</span>
+          </template>
         </button>
 
         <!-- Book Now Button -->
         <RouterLink
           to="/rooms"
-          class="rounded-full border border-amber-500 px-6 py-3 text-sm font-semibold text-amber-500 transition hover:bg-amber-500 hover:text-white dark:border-amber-600 dark:text-amber-400 dark:hover:bg-amber-600"
+          class="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider shadow-md shadow-amber-500/20 transition"
         >
           Book Now
         </RouterLink>
       </div>
 
-      <!-- =========================== -->
-      <!-- Mobile Button -->
-      <!-- =========================== -->
-
-      <button class="lg:hidden" @click="toggleMenu">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-8 w-8 transition-colors"
-          :class="scrolled ? 'text-slate-900 dark:text-slate-100' : 'text-white'"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+      <!-- Mobile Controls -->
+      <div class="flex items-center gap-2 lg:hidden">
+        <!-- QR Menu Shortcut -->
+        <RouterLink
+          to="/menu"
+          class="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-amber-500"
+          title="Digital QR Menu"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M4 6h16M4 12h16M4 18h16"
-          />
-        </svg>
-      </button>
+          <QrCode class="w-5 h-5" />
+        </RouterLink>
+
+        <!-- Theme Toggle Button -->
+        <button
+          @click="handleThemeToggle"
+          type="button"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 text-xs font-bold"
+        >
+          <Sun v-if="theme.isDark" class="w-4 h-4 text-amber-400" />
+          <Moon v-else class="w-4 h-4 text-slate-700" />
+        </button>
+
+        <button @click="toggleMenu" class="p-2 rounded-2xl text-slate-900 dark:text-white">
+          <MenuIcon v-if="!mobileMenu" class="w-7 h-7" />
+          <CloseIcon v-else class="w-7 h-7" />
+        </button>
+      </div>
     </div>
 
-    <!-- =========================== -->
-    <!-- Mobile Menu -->
-    <!-- =========================== -->
-
-    <transition
-      enter-active-class="duration-300"
-      leave-active-class="duration-200"
-      enter-from-class="opacity-0 -translate-y-3"
-      enter-to-class="opacity-100 translate-y-0"
-      leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 -translate-y-3"
-    >
-      <div v-if="mobileMenu" class="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl dark:shadow-slate-950/50 lg:hidden transition-colors">
-        <div class="space-y-2 px-6 py-6">
-          <RouterLink
-            v-for="menu in menus"
-            :key="menu.route"
-            :to="menu.route"
-            class="block rounded-lg px-4 py-3 font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            @click="closeMenu"
-          >
-            {{ menu.title }}
-          </RouterLink>
-
-          <!-- Theme Toggle in Mobile Menu -->
-          <button
-            @click="handleThemeToggle"
-            class="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-3 font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors mt-4"
-          >
-            <Sun v-if="!theme.isDarkMode" class="w-5 h-5" />
-            <Moon v-else class="w-5 h-5" />
-            <span>{{ theme.isDarkMode ? 'Light Mode' : 'Dark Mode' }}</span>
-          </button>
-
-          <RouterLink
-            to="/rooms"
-            class="mt-4 block rounded-lg bg-amber-500 dark:bg-amber-600 py-3 text-center font-semibold text-white hover:bg-amber-600 dark:hover:bg-amber-700 transition-colors"
-            @click="closeMenu"
-          >
-            Book Now
-          </RouterLink>
-
-          <RouterLink
-            to="/my-reservation"
-            class="block rounded-lg border border-amber-500 dark:border-amber-600 py-3 text-center font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
-            @click="closeMenu"
-          >
-            My Reservation
-          </RouterLink>
-        </div>
-      </div>
-    </transition>
+    <!-- Mobile Dropdown Menu -->
+    <div v-if="mobileMenu" class="lg:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 space-y-3">
+      <RouterLink
+        v-for="menu in menus"
+        :key="menu.route"
+        :to="menu.route"
+        @click="closeMenu"
+        class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:text-amber-500 py-1.5"
+      >
+        {{ menu.title }}
+      </RouterLink>
+      <RouterLink
+        to="/menu"
+        @click="closeMenu"
+        class="block text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 py-1.5 flex items-center gap-2"
+      >
+        <QrCode class="w-4 h-4" />
+        <span>Digital QR Menu & Food Order</span>
+      </RouterLink>
+      <RouterLink
+        to="/rooms"
+        @click="closeMenu"
+        class="block w-full text-center py-3 rounded-2xl bg-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider mt-2"
+      >
+        Book Now
+      </RouterLink>
+    </div>
   </header>
 </template>

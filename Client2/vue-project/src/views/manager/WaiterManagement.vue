@@ -713,4 +713,47 @@ function clearError() {
   padding: 20px;
   border-top: 1px solid #f0f0f0;
 }
+
+/* Dark mode support */
+:global(.dark) .modal-content,
+.dark .modal-content {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border: 1px solid #1e293b !important;
+}
+
+:global(.dark) .modal-header,
+.dark .modal-header {
+  border-bottom-color: #1e293b !important;
+}
+
+:global(.dark) .modal-header h2,
+.dark .modal-header h2 {
+  color: #f8fafc !important;
+}
+
+:global(.dark) .form-group label,
+.dark .form-group label {
+  color: #cbd5e1 !important;
+}
+
+:global(.dark) .form-group input,
+:global(.dark) .form-group select,
+.dark .form-group input,
+.dark .form-group select {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+:global(.dark) .form-group select option,
+.dark .form-group select option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+:global(.dark) .modal-footer,
+.dark .modal-footer {
+  border-top-color: #1e293b !important;
+}
 </style>

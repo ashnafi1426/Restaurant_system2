@@ -1,530 +1,85 @@
-<template>
-  <div class="w-full">
-    <!-- Desktop Table View (md and above) -->
-    <div
-      class="hidden md:block bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden"
-    >
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr
-              class="border-b border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-400 uppercase tracking-widest select-none"
-            >
-              <th class="py-4 px-8 w-[30%]">Type Name</th>
-              <th class="py-4 px-6 w-[20%]">Price/Night</th>
-              <th class="py-4 px-6 w-[15%]">Capacity</th>
-              <th class="py-4 px-6 w-[15%]">Status</th>
-              <th class="py-4 px-8 text-right w-[20%]">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
-            <tr
-              v-for="rt in roomTypes"
-              :key="rt.id"
-              class="hover:bg-slate-50/50 transition-colors duration-150 group"
-            >
-              <!-- Room Type Name -->
-              <td class="py-5 px-8 flex items-center gap-4">
-                <div class="min-w-0 flex flex-col justify-center gap-0.5">
-                  <div
-                    class="font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors text-base tracking-wide"
-                  >
-                    {{ rt.name }}
-                  </div>
-                  <div class="text-xs text-slate-400 font-medium">ID: #{{ rt.id }}</div>
-                </div>
-              </td>
-              <!-- Price per Night -->
-              <td
-                class="py-5 px-6 align-middle font-black text-slate-900 text-base tracking-wide font-mono"
-              >
-                ₹{{ parseFloat(rt.base_price_per_night).toLocaleString('en-IN') }}
-              </td>
-              <!-- Capacity -->
-              <td class="py-5 px-6 align-middle">
-                <span
-                  class="inline-flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100"
-                >
-                  {{ rt.capacity }} Guests
-                </span>
-              </td>
-              <!-- Status -->
-              <td class="py-5 px-6 align-middle whitespace-nowrap">
-                <span v-if="rt.is_active" class="inline-flex items-center gap-2 font-bold text-sm">
-                  <span class="w-2 h-2 rounded-full relative flex flex-shrink-0">
-                    <span
-                      class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40 bg-emerald-400"
-                    ></span>
-                    <span
-                      class="relative inline-flex rounded-full h-full w-full bg-emerald-500"
-                    ></span>
-                  </span>
-                  <span class="text-sm font-bold text-slate-600">Active</span>
-                </span>
-                <span v-else class="inline-flex items-center gap-2 font-bold text-sm">
-                  <span class="w-2 h-2 rounded-full relative flex flex-shrink-0">
-                    <span
-                      class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40 bg-rose-400"
-                    ></span>
-                    <span
-                      class="relative inline-flex rounded-full h-full w-full bg-rose-500"
-                    ></span>
-                  </span>
-                  <span class="text-sm font-bold text-slate-600">Inactive</span>
-                </span>
-              </td>
-              <!-- Actions Menu -->
-              <td
-                class="py-5 px-8 text-right align-middle relative whitespace-nowrap"
-                data-menu-container
-              >
-                <div class="flex justify-end">
-                  <button
-                    @click.stop="toggleMenu(rt.id)"
-                    class="text-slate-400 hover:text-slate-800 p-2 rounded-xl transition hover:bg-slate-100 inline-flex items-center justify-center min-h-10 w-10"
-                  >
-                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                      <path
-                        d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <!-- Desktop Dropdown Menu -->
-                <div
-                  v-if="openMenuId === rt.id"
-                  class="absolute right-8 top-14 bg-white shadow-xl border border-slate-200/80 rounded-xl py-1 z-40 w-44 text-left animate-in fade-in zoom-in-95 duration-100"
-                >
-                  <button
-                    @click="
-                      () => {
-                        handleView(rt)
-                      }
-                    "
-                    class="w-full text-xs font-bold px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors min-h-10"
-                  >
-                    <svg
-                      class="w-4 h-4 text-slate-400 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                    <span class="truncate">View Details</span>
-                  </button>
-                  <button
-                    @click="
-                      () => {
-                        handleEdit(rt)
-                      }
-                    "
-                    class="w-full text-xs font-bold px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors min-h-10"
-                  >
-                    <svg
-                      class="w-4 h-4 text-slate-400 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                    <span class="truncate">Edit Type</span>
-                  </button>
-                  <div class="border-t border-slate-100 my-1"></div>
-                  <button
-                    @click="
-                      () => {
-                        handleDelete(rt)
-                      }
-                    "
-                    class="w-full text-xs font-extrabold px-4 py-2.5 text-rose-600 hover:bg-rose-50 flex items-center gap-3 transition-colors min-h-10"
-                  >
-                    <svg
-                      class="w-4 h-4 text-rose-500 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    <span class="truncate">Delete Type</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Tablet View (sm to md) -->
-    <div
-      class="hidden sm:block md:hidden bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden"
-    >
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr
-              class="border-b border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-400 uppercase tracking-wider select-none"
-            >
-              <th class="py-3 px-4 w-[35%]">Type</th>
-              <th class="py-3 px-3 w-[20%]">Price</th>
-              <th class="py-3 px-3 w-[15%]">Cap</th>
-              <th class="py-3 px-3 w-[15%]">Status</th>
-              <th class="py-3 px-4 text-right w-[15%]">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 text-xs font-medium text-slate-600">
-            <tr
-              v-for="rt in roomTypes"
-              :key="rt.id"
-              class="hover:bg-slate-50/50 transition-colors duration-150 group"
-            >
-              <!-- Room Type Name -->
-              <td class="py-4 px-4">
-                <div class="min-w-0 flex flex-col justify-center gap-0.5">
-                  <div
-                    class="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-xs tracking-wide"
-                  >
-                    {{ rt.name }}
-                  </div>
-                  <div class="text-xs text-slate-400 font-medium">ID: #{{ rt.id }}</div>
-                </div>
-              </td>
-              <!-- Price per Night -->
-              <td
-                class="py-4 px-3 align-middle font-black text-slate-900 text-xs tracking-wide font-mono"
-              >
-                ₹{{ parseFloat(rt.base_price_per_night).toLocaleString('en-IN') }}
-              </td>
-              <!-- Capacity -->
-              <td class="py-4 px-3 align-middle">
-                <span
-                  class="inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100"
-                >
-                  {{ rt.capacity }}
-                </span>
-              </td>
-              <!-- Status -->
-              <td class="py-4 px-3 align-middle whitespace-nowrap">
-                <span
-                  v-if="rt.is_active"
-                  class="inline-flex items-center gap-1.5 font-bold text-xs"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full relative flex flex-shrink-0">
-                    <span
-                      class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40 bg-emerald-400"
-                    ></span>
-                    <span
-                      class="relative inline-flex rounded-full h-full w-full bg-emerald-500"
-                    ></span>
-                  </span>
-                  <span class="text-xs font-bold text-slate-600">Act</span>
-                </span>
-                <span v-else class="inline-flex items-center gap-1.5 font-bold text-xs">
-                  <span class="w-1.5 h-1.5 rounded-full relative flex flex-shrink-0">
-                    <span
-                      class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40 bg-rose-400"
-                    ></span>
-                    <span
-                      class="relative inline-flex rounded-full h-full w-full bg-rose-500"
-                    ></span>
-                  </span>
-                  <span class="text-xs font-bold text-slate-600">Ina</span>
-                </span>
-              </td>
-              <!-- Actions Menu -->
-              <td
-                class="py-4 px-4 text-right align-middle relative whitespace-nowrap"
-                data-menu-container
-              >
-                <div class="flex justify-end">
-                  <button
-                    @click.stop="toggleMenu(rt.id)"
-                    class="text-slate-400 hover:text-slate-800 p-1.5 rounded-lg transition hover:bg-slate-100 inline-flex items-center justify-center min-h-9 w-9"
-                  >
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                      <path
-                        d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <!-- Tablet Dropdown Menu -->
-                <div
-                  v-if="openMenuId === rt.id"
-                  class="absolute right-4 top-10 bg-white shadow-xl border border-slate-200/80 rounded-lg py-1 z-40 w-40 text-left animate-in fade-in zoom-in-95 duration-100"
-                >
-                  <button
-                    @click="
-                      () => {
-                        handleView(rt)
-                      }
-                    "
-                    class="w-full text-xs font-bold px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors min-h-9"
-                  >
-                    <svg
-                      class="w-3 h-3 text-slate-400 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                    <span class="truncate text-xs">View</span>
-                  </button>
-                  <button
-                    @click="
-                      () => {
-                        handleEdit(rt)
-                      }
-                    "
-                    class="w-full text-xs font-bold px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors min-h-9"
-                  >
-                    <svg
-                      class="w-3 h-3 text-slate-400 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                    <span class="truncate text-xs">Edit</span>
-                  </button>
-                  <div class="border-t border-slate-100 my-1"></div>
-                  <button
-                    @click="
-                      () => {
-                        handleDelete(rt)
-                      }
-                    "
-                    class="w-full text-xs font-extrabold px-3 py-2 text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition-colors min-h-9"
-                  >
-                    <svg
-                      class="w-3 h-3 text-rose-500 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    <span class="truncate text-xs">Delete</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Mobile View (below sm) -->
-    <div class="sm:hidden space-y-3">
-      <div
-        v-if="roomTypes.length === 0"
-        class="bg-white rounded-lg border border-slate-200/80 shadow-sm p-6 text-center text-slate-500 text-sm"
-      >
-        No room types found
-      </div>
-      <div
-        v-for="rt in roomTypes"
-        :key="rt.id"
-        class="bg-white rounded-lg border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-150"
-      >
-        <!-- Card Header -->
-        <div class="p-4 border-b border-slate-100" data-menu-container>
-          <div class="flex items-start gap-3 mb-3">
-            <!-- Type Info -->
-            <div class="min-w-0 flex-1">
-              <h3 class="font-bold text-slate-900 text-sm leading-tight mb-1">{{ rt.name }}</h3>
-              <p class="text-xs text-slate-400 mb-2">Type ID: #{{ rt.id }}</p>
-              <div class="flex items-center gap-2">
-                <span
-                  v-if="rt.is_active"
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-100"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span>
-                  Active
-                </span>
-                <span
-                  v-else
-                  class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-600 border border-rose-100"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1"></span>
-                  Inactive
-                </span>
-              </div>
-            </div>
-            <!-- Three-Dot Menu Button -->
-            <div class="flex-shrink-0">
-              <button
-                @click.stop="toggleMenu(rt.id)"
-                class="text-slate-400 hover:text-slate-800 p-1.5 rounded-lg transition hover:bg-slate-100 inline-flex items-center justify-center min-h-9 w-9"
-              >
-                <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                  <path
-                    d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Details Grid -->
-          <div class="grid grid-cols-2 gap-2">
-            <div class="bg-slate-50 p-2.5 rounded-lg">
-              <p class="text-slate-500 mb-1 text-xs font-medium">Price/Night</p>
-              <p class="font-black text-slate-900 text-sm font-mono">
-                ₹{{ parseFloat(rt.base_price_per_night).toLocaleString('en-IN') }}
-              </p>
-            </div>
-            <div class="bg-slate-50 p-2.5 rounded-lg">
-              <p class="text-slate-500 mb-1 text-xs font-medium">Capacity</p>
-              <p class="font-black text-slate-900 text-sm">{{ rt.capacity }} Guests</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Mobile Dropdown Menu -->
-        <div
-          v-if="openMenuId === rt.id"
-          class="bg-slate-50/50 border-t border-slate-100"
-          data-menu-container
-        >
-          <button
-            @click="
-              () => {
-                handleView(rt)
-              }
-            "
-            class="w-full px-4 py-3 text-left flex items-center gap-3 text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-100"
-          >
-            <svg
-              class="w-4 h-4 text-slate-400 flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-              />
-            </svg>
-            <div class="text-sm font-bold">View Details</div>
-          </button>
-          <button
-            @click="
-              () => {
-                handleEdit(rt)
-              }
-            "
-            class="w-full px-4 py-3 text-left flex items-center gap-3 text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-100"
-          >
-            <svg
-              class="w-4 h-4 text-slate-400 flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-              />
-            </svg>
-            <div class="text-sm font-bold">Edit Type</div>
-          </button>
-          <button
-            @click="
-              () => {
-                handleDelete(rt)
-              }
-            "
-            class="w-full px-4 py-3 text-left flex items-center gap-3 text-rose-600 hover:bg-rose-50 transition-colors"
-          >
-            <svg
-              class="w-4 h-4 text-rose-500 flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-            <div class="text-sm font-bold">Delete Type</div>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import type { RoomType } from '../../types/roomType'
+import {
+  MoreVertical,
+  Eye,
+  Edit,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Users
+} from 'lucide-vue-next'
 
-defineProps<{
+const props = defineProps<{
   roomTypes: RoomType[]
 }>()
 
 const emit = defineEmits(['view', 'edit', 'delete'])
 
 const openMenuId = ref<number | null>(null)
+const currentPage = ref(1)
+const perPage = ref(10)
 
-const toggleMenu = (id: number) => {
+const total = computed(() => props.roomTypes?.length || 0)
+const lastPage = computed(() => Math.ceil(total.value / perPage.value) || 1)
+
+const paginatedRoomTypes = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value
+  const end = start + perPage.value
+  return (props.roomTypes || []).slice(start, end)
+})
+
+const showingFrom = computed(() => {
+  if (total.value === 0) return 0
+  return (currentPage.value - 1) * perPage.value + 1
+})
+
+const showingTo = computed(() => {
+  return Math.min(currentPage.value * perPage.value, total.value)
+})
+
+const paginationPages = computed(() => {
+  const pages: number[] = []
+  const max = lastPage.value
+  const cur = currentPage.value
+
+  for (let i = Math.max(1, cur - 2); i <= Math.min(max, cur + 2); i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+watch(() => props.roomTypes, () => {
+  currentPage.value = 1
+})
+
+const changePerPage = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  perPage.value = Number(target.value)
+  currentPage.value = 1
+}
+
+const goToPage = (p: number) => {
+  if (p >= 1 && p <= lastPage.value) {
+    currentPage.value = p
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < lastPage.value) {
+    currentPage.value++
+  }
+}
+
+const toggleMenu = (id: number, e: MouseEvent) => {
+  e.stopPropagation()
   openMenuId.value = openMenuId.value === id ? null : id
 }
 
@@ -549,13 +104,7 @@ const handleDelete = (rt: RoomType) => {
 
 const handleClickOutside = (e: MouseEvent) => {
   const target = e.target as HTMLElement
-  const isMenuOpen = openMenuId.value !== null
-
-  // Check if click is inside any menu container
-  const isInsideMenu = target.closest('[data-menu-container]')
-
-  // Close menu only if click is outside of it
-  if (isMenuOpen && !isInsideMenu) {
+  if (openMenuId.value !== null && !target.closest('[data-menu-container]')) {
     closeMenu()
   }
 }
@@ -568,3 +117,248 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
+
+<template>
+  <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+    <!-- Desktop Table View -->
+    <div class="hidden md:block overflow-x-auto w-full">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-slate-50/90 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+          <tr class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider select-none">
+            <th class="py-3 px-6">Type Name</th>
+            <th class="py-3 px-6">Price/Night</th>
+            <th class="py-3 px-6 text-center">Capacity</th>
+            <th class="py-3 px-6 text-center">Status</th>
+            <th class="py-3 px-6 text-right pr-6">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+          <tr
+            v-for="rt in paginatedRoomTypes"
+            :key="rt.id"
+            class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors duration-150 group"
+          >
+            <!-- Type Name -->
+            <td class="py-3.5 px-6 whitespace-nowrap">
+              <div class="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm">
+                {{ rt.name }}
+              </div>
+              <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
+                ID: #{{ rt.id }}
+              </div>
+            </td>
+
+            <!-- Price per Night -->
+            <td class="py-3.5 px-6 whitespace-nowrap font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm font-mono">
+              ₹{{ parseFloat(rt.base_price_per_night || 0).toLocaleString('en-IN') }}
+            </td>
+
+            <!-- Capacity -->
+            <td class="py-3.5 px-6 text-center whitespace-nowrap">
+              <span class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-xl text-xs font-black border border-slate-200 dark:border-slate-700">
+                <Users class="w-3.5 h-3.5 text-slate-400" />
+                {{ rt.capacity }} Guests
+              </span>
+            </td>
+
+            <!-- Status -->
+            <td class="py-3.5 px-6 text-center whitespace-nowrap">
+              <span
+                v-if="rt.is_active"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 select-none"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Active</span>
+              </span>
+              <span
+                v-else
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 select-none"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                <span>Inactive</span>
+              </span>
+            </td>
+
+            <!-- Actions Menu -->
+            <td class="py-3.5 px-6 text-right whitespace-nowrap pr-6 relative" data-menu-container>
+              <div class="relative inline-block text-left">
+                <button
+                  @click="toggleMenu(rt.id, $event)"
+                  class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                  :class="{ 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white': openMenuId === rt.id }"
+                  title="Actions"
+                >
+                  <MoreVertical class="w-4 h-4" />
+                </button>
+
+                <!-- Dropdown Card Popup -->
+                <transition
+                  enter-active-class="transition duration-100 ease-out"
+                  leave-active-class="transition duration-75 ease-in"
+                  enter-from-class="opacity-0 scale-95 -translate-y-2"
+                  enter-to-class="opacity-100 scale-100 translate-y-0"
+                  leave-from-class="opacity-100 scale-100 translate-y-0"
+                  leave-to-class="opacity-0 scale-95 -translate-y-2"
+                >
+                  <div
+                    v-if="openMenuId === rt.id"
+                    class="absolute right-0 top-8 z-50 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 text-left"
+                    @click.stop
+                  >
+                    <button
+                      @click="handleView(rt)"
+                      class="flex w-full items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                    >
+                      <Eye class="w-3.5 h-3.5 text-blue-500" />
+                      <span>View Details</span>
+                    </button>
+
+                    <button
+                      @click="handleEdit(rt)"
+                      class="flex w-full items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition cursor-pointer"
+                    >
+                      <Edit class="w-3.5 h-3.5 text-amber-500" />
+                      <span>Edit Type</span>
+                    </button>
+
+                    <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+
+                    <button
+                      @click="handleDelete(rt)"
+                      class="flex w-full items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer"
+                    >
+                      <Trash2 class="w-3.5 h-3.5 text-rose-500" />
+                      <span>Delete Type</span>
+                    </button>
+                  </div>
+                </transition>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Empty State -->
+          <tr v-if="roomTypes.length === 0">
+            <td colspan="5" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+              No room types found.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+      <div v-if="roomTypes.length === 0" class="px-4 py-8 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+        No room types found
+      </div>
+
+      <div
+        v-for="rt in paginatedRoomTypes"
+        :key="rt.id"
+        class="p-4 space-y-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition duration-150"
+      >
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">{{ rt.name }}</h3>
+            <p class="text-xs text-slate-400 dark:text-slate-500 font-mono mt-0.5">ID: #{{ rt.id }}</p>
+          </div>
+          <span
+            v-if="rt.is_active"
+            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Active
+          </span>
+          <span
+            v-else
+            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+            Inactive
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+          <div>
+            <span class="text-[10px] text-slate-400 block font-bold uppercase">Price/Night</span>
+            <span class="font-mono font-black text-slate-900 dark:text-white">
+              ₹{{ parseFloat(rt.base_price_per_night || 0).toLocaleString('en-IN') }}
+            </span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block font-bold uppercase">Capacity</span>
+            <span class="font-bold text-slate-900 dark:text-white">{{ rt.capacity }} Guests</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination Bar with 5, 10, 20, 50 Options -->
+    <div
+      v-if="roomTypes.length > 0"
+      class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-4 text-xs font-sans"
+    >
+      <!-- Left Side: Per Page Selector & Showing Count -->
+      <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
+          <select
+            :value="perPage"
+            @change="changePerPage"
+            class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-black focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
+          >
+            <option :value="5">5</option>
+            <option :value="10">10</option>
+            <option :value="20">20</option>
+            <option :value="50">50</option>
+          </select>
+        </div>
+
+        <div class="text-xs font-medium">
+          Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
+          <span class="font-extrabold text-slate-900 dark:text-white">{{ showingTo }}</span> of
+          <span class="font-extrabold text-slate-900 dark:text-white">{{ total }}</span> room types
+        </div>
+      </div>
+
+      <!-- Right Side: Page Navigation Buttons -->
+      <div class="flex items-center gap-1.5">
+        <button
+          @click="prevPage"
+          :disabled="currentPage <= 1"
+          class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
+          title="Previous Page"
+        >
+          <ChevronLeft class="w-4 h-4" />
+          <span class="hidden sm:inline">Prev</span>
+        </button>
+
+        <div class="flex items-center gap-1">
+          <button
+            v-for="p in paginationPages"
+            :key="p"
+            @click="goToPage(p)"
+            :class="[
+              'w-8 h-8 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center border',
+              currentPage === p
+                ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+            ]"
+          >
+            {{ p }}
+          </button>
+        </div>
+
+        <button
+          @click="nextPage"
+          :disabled="currentPage >= lastPage"
+          class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
+          title="Next Page"
+        >
+          <span class="hidden sm:inline">Next</span>
+          <ChevronRight class="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  </div>
+</template>

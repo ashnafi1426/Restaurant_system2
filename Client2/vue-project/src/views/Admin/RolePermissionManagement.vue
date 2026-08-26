@@ -4,7 +4,36 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import { rbacService } from '@/services/rbacService'
 import type { Role, Permission } from '@/types/rbacTypes'
 import { useAuthStore } from '@/stores/auth'
-import { Shield, Users, Search, ChevronRight, Save, AlertCircle, Info, FileText } from 'lucide-vue-next'
+import {
+  Shield,
+  Users,
+  Search,
+  ChevronRight,
+  Save,
+  AlertCircle,
+  Info,
+  FileText,
+  Crown,
+  Briefcase,
+  Contact,
+  ChefHat,
+  Utensils,
+  Wallet,
+  User,
+  LayoutDashboard,
+  ShieldCheck,
+  Key,
+  Home,
+  BedDouble,
+  Calendar,
+  CheckSquare,
+  LogOut,
+  CreditCard,
+  BarChart3,
+  Box,
+  Zap,
+  X
+} from 'lucide-vue-next'
 
 const authStore = useAuthStore()
 const roles = ref<Role[]>([])
@@ -28,34 +57,36 @@ const filteredRoles = computed(() => {
 })
 
 const groupedPermissions = computed(() => {
-  const grouped: Record<string, Permission[]> = {}
-  permissions.value.forEach(permission => {
-    const mod = permission.module || 'General'
-    if (!grouped[mod]) grouped[mod] = []
-    grouped[mod].push(permission)
+  const map: Record<string, Permission[]> = {}
+  permissions.value.forEach(p => {
+    const mod = p.module || 'General'
+    if (!map[mod]) map[mod] = []
+    map[mod].push(p)
   })
-  return grouped
+  return map
 })
 
 const permissionMatrix = computed(() => {
-  const matrix: Array<{ module: string; icon: string; permissions: Record<string, Permission | null> }> = []
-  
-  Object.keys(groupedPermissions.value).forEach(module => {
-    const modulePerms = groupedPermissions.value[module]
-    const row: Record<string, Permission | null> = {}
+  const modules = Object.keys(groupedPermissions.value)
+  return modules.map(moduleName => {
+    const perms = groupedPermissions.value[moduleName]
+    const actionMap: Record<string, Permission | null> = {}
     
     permissionActions.forEach(action => {
-      const perm = modulePerms.find(p => 
+      const perm = perms.find(p => 
         p.name.toLowerCase().includes(action.toLowerCase()) ||
-        p.slug.includes(action.toLowerCase())
+        (p.action && p.action.toLowerCase().includes(action.toLowerCase())) ||
+        p.slug.toLowerCase().includes(action.toLowerCase())
       )
-      row[action] = perm || null
+      actionMap[action] = perm || null
     })
 
-    matrix.push({ module, icon: getModuleIcon(module), permissions: row })
+    return {
+      module: moduleName,
+      icon: getModuleIcon(moduleName),
+      permissions: actionMap
+    }
   })
-
-  return matrix
 })
 
 const totalRoles = computed(() => roles.value.length)
@@ -154,20 +185,23 @@ async function saveChanges() {
 }
 
 function getRoleIcon(roleName: string) {
-  const icons: Record<string, string> = {
-    'admin': '🛡️', 'manager': '👔', 'receptionist': '🧑‍💼',
-    'cashier': '💰', 'chef': '👨‍🍳', 'waiter': '🍽️', 'guest': '👤'
-  }
-  return icons[roleName.toLowerCase()] || '👤'
+  const s = (roleName || '').toLowerCase()
+  if (s.includes('admin')) return Crown
+  if (s.includes('manager')) return Briefcase
+  if (s.includes('reception')) return Contact
+  if (s.includes('chef') || s.includes('kitchen')) return ChefHat
+  if (s.includes('waiter')) return Utensils
+  if (s.includes('cashier')) return Wallet
+  return User
 }
 
 function getModuleIcon(module: string) {
-  const icons: Record<string, string> = {
-    'dashboard': '📊', 'users': '👥', 'roles': '🎭', 'permissions': '🔐',
-    'rooms': '🏠', 'room-types': '🏨', 'reservations': '📅',
-    'checkin': '✅', 'checkout': '🚪', 'payments': '💳', 'reports': '📈'
+  const icons: Record<string, any> = {
+    'dashboard': LayoutDashboard, 'users': Users, 'roles': ShieldCheck, 'permissions': Key,
+    'rooms': Home, 'room-types': BedDouble, 'reservations': Calendar,
+    'checkin': CheckSquare, 'checkout': LogOut, 'payments': CreditCard, 'reports': BarChart3
   }
-  return icons[module.toLowerCase()] || '📦'
+  return icons[module.toLowerCase()] || Box
 }
 
 function isPermissionChecked(permission: Permission | null): boolean {
@@ -180,7 +214,7 @@ onMounted(() => { loadData() })
 
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-white dark:bg-slate-900 py-4 px-6 space-y-6">
+    <div class="min-h-screen bg-white dark:bg-slate-900 py-4 px-6 space-y-6 font-sans">
       <div>
         <h1 class="text-2xl font-black text-slate-900 dark:text-slate-100">Role & Permission Matrix</h1>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Configure role permissions side-by-side across all system modules.</p>
@@ -204,36 +238,35 @@ onMounted(() => { loadData() })
         </div>
 
         <div class="bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex items-center gap-3">
-          <Users class="w-7 h-7 text-blue-500" />
+          <FileText class="w-7 h-7 text-blue-500" />
+          <div>
+            <p class="text-xl font-black text-slate-900 dark:text-slate-100">{{ totalModules }}</p>
+            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">System Modules</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex items-center gap-3">
+          <Users class="w-7 h-7 text-amber-500" />
           <div>
             <p class="text-xl font-black text-slate-900 dark:text-slate-100">{{ usersAssigned }}</p>
             <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Users Assigned</p>
           </div>
         </div>
-
-        <div class="bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex items-center gap-3">
-          <FileText class="w-7 h-7 text-amber-500" />
-          <div>
-            <p class="text-xl font-black text-slate-900 dark:text-slate-100">{{ totalModules }}</p>
-            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Modules</p>
-          </div>
-        </div>
       </div>
 
-      <div v-if="error" class="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-2xl p-4 flex items-center gap-2">
-        <AlertCircle class="w-5 h-5 text-rose-600 dark:text-rose-400 flex-shrink-0" />
-        <p class="text-xs font-bold text-rose-600 dark:text-rose-400">{{ error }}</p>
+      <div v-if="error" class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <AlertCircle class="w-4 h-4" />
+          <span>{{ error }}</span>
+        </div>
+        <button @click="error = null" class="text-rose-500 hover:text-rose-700 font-bold cursor-pointer">Dismiss</button>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-4">
-          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-            <div class="border-b border-slate-200 dark:border-slate-700 p-4">
-              <h3 class="font-bold text-slate-900 dark:text-slate-100 text-base">System Roles</h3>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Select a role to configure matrix permissions</p>
-            </div>
-
-            <div class="p-3 border-b border-slate-200 dark:border-slate-700">
+          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs overflow-hidden">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 space-y-3">
+              <h2 class="font-black text-sm text-slate-900 dark:text-slate-100">System Roles</h2>
               <div class="relative">
                 <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
@@ -256,13 +289,15 @@ onMounted(() => { loadData() })
                 :key="role.id"
                 @click="selectRole(role)"
                 :class="[
-                  'w-full px-4 py-3.5 flex items-center gap-3 text-left transition',
+                  'w-full px-4 py-3.5 flex items-center gap-3 text-left transition cursor-pointer',
                   selectedRole?.id === role.id 
                     ? 'bg-blue-50/80 dark:bg-blue-950/40 border-l-4 border-l-blue-600 text-blue-900 dark:text-blue-200 font-medium' 
                     : 'hover:bg-slate-50 dark:hover:bg-slate-700/40 text-slate-700 dark:text-slate-300'
                 ]"
               >
-                <span class="text-xl flex-shrink-0">{{ getRoleIcon(role.name) }}</span>
+                <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+                  <component :is="getRoleIcon(role.name)" class="w-4 h-4" />
+                </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
                     <p class="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">{{ role.display_name || role.name }}</p>
@@ -296,9 +331,15 @@ onMounted(() => { loadData() })
                 </div>
                 
                 <div v-if="selectedRole" class="flex items-center gap-2">
-                  <button @click="expandAll" class="px-3 py-1.5 text-xs font-bold border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition">⚡ Expand All</button>
-                  <button @click="collapseAll" class="px-3 py-1.5 text-xs font-bold border border-slate-300 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition">✕ Collapse All</button>
-                  <button v-if="hasChanges" @click="saveChanges" :disabled="saving" class="px-4 py-1.5 text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition disabled:opacity-50 flex items-center gap-1 shadow-md shadow-blue-500/20">
+                  <button @click="expandAll" class="px-3 py-1.5 text-xs font-bold border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition flex items-center gap-1 cursor-pointer">
+                    <Zap class="w-3.5 h-3.5 fill-blue-500" />
+                    <span>Expand All</span>
+                  </button>
+                  <button @click="collapseAll" class="px-3 py-1.5 text-xs font-bold border border-slate-300 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center gap-1 cursor-pointer">
+                    <X class="w-3.5 h-3.5" />
+                    <span>Collapse All</span>
+                  </button>
+                  <button v-if="hasChanges" @click="saveChanges" :disabled="saving" class="px-4 py-1.5 text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition disabled:opacity-50 flex items-center gap-1 shadow-md shadow-blue-500/20 cursor-pointer">
                     <Save class="w-3.5 h-3.5" />
                     {{ saving ? 'Saving...' : 'Save Changes' }}
                   </button>
@@ -322,8 +363,8 @@ onMounted(() => { loadData() })
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
                   <tr v-for="row in permissionMatrix" :key="row.module" class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
                     <td class="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">
-                      <div class="flex items-center gap-2">
-                        <span class="text-base">{{ row.icon }}</span>
+                      <div class="flex items-center gap-2.5">
+                        <component :is="row.icon" class="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                         <span class="capitalize">{{ row.module.replace('-', ' ') }}</span>
                       </div>
                     </td>

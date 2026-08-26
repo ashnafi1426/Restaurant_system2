@@ -1,291 +1,328 @@
 <template>
   <DashboardLayout>
-    <div class="py-8">
-      <!-- Header -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Profile Settings</h1>
-        <p class="mt-2 text-sm text-gray-600">Manage your personal information and account settings</p>
-      </div>
+    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans">
+      <!-- Profile Header Banner -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
+          <!-- Profile Avatar -->
+          <div class="relative flex-shrink-0">
+            <img
+              :src="profilePhotoUrl"
+              alt="Profile"
+              class="w-24 h-24 rounded-full object-cover border-4 border-amber-500/30 shadow-md"
+            />
+            <label
+              for="photo-upload"
+              class="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full cursor-pointer transition shadow-md"
+              title="Upload Profile Photo"
+            >
+              <Camera class="w-3.5 h-3.5" />
+            </label>
+            <input
+              id="photo-upload"
+              type="file"
+              accept="image/*"
+              class="hidden"
+              @change="handlePhotoUpload"
+            />
+          </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Sidebar -->
-        <div class="lg:col-span-1">
-          <div class="bg-white rounded-lg shadow">
-            <div class="p-6">
-              <!-- Profile Photo -->
-              <div class="flex flex-col items-center">
-                <div class="relative">
-                  <img
-                    :src="profilePhotoUrl"
-                    alt="Profile"
-                    class="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
-                  />
-                  <label
-                    for="photo-upload"
-                    class="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition"
-                  >
-                    <Camera class="w-4 h-4" />
-                  </label>
-                  <input
-                    id="photo-upload"
-                    type="file"
-                    accept="image/*"
-                    class="hidden"
-                    @change="handlePhotoUpload"
-                  />
-                </div>
-                <h2 class="mt-4 text-xl font-semibold text-gray-900">{{ profile?.full_name }}</h2>
-                <p class="text-sm text-gray-500">{{ profile?.administrator?.employee_code || 'No Employee Code' }}</p>
-                <span class="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  {{ profile?.administrator?.status || 'active' }}
-                </span>
-              </div>
-
-              <!-- Quick Stats -->
-              <div class="mt-6 space-y-3">
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600">Department</span>
-                  <span class="font-medium text-gray-900">{{ profile?.administrator?.department || 'N/A' }}</span>
-                </div>
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600">Hire Date</span>
-                  <span class="font-medium text-gray-900">{{ formatDate(profile?.administrator?.hire_date) }}</span>
-                </div>
-                <div class="flex items-center justify-between text-sm">
-                  <span class="text-gray-600">Email</span>
-                  <span class="font-medium text-gray-900 truncate">{{ profile?.email }}</span>
-                </div>
-              </div>
+          <!-- User Header Details -->
+          <div>
+            <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
+              <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                {{ profile?.full_name || 'System Admin' }}
+              </h1>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                {{ profile?.administrator?.status || 'Active' }}
+              </span>
             </div>
 
-            <!-- Navigation -->
-            <div class="border-t border-gray-200">
-              <nav class="flex flex-col">
-                <button
-                  v-for="tab in tabs"
-                  :key="tab.id"
-                  @click="activeTab = tab.id"
-                  :class="[
-                    'flex items-center px-6 py-3 text-sm font-medium transition',
-                    activeTab === tab.id
-                      ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  ]"
-                >
-                  <component :is="tab.icon" class="w-5 h-5 mr-3" />
-                  {{ tab.label }}
-                </button>
-              </nav>
+            <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <span class="font-mono font-bold text-amber-600 dark:text-amber-400">{{ profile?.administrator?.employee_code || 'ADM971' }}</span>
+              <span>•</span>
+              <span>{{ profile?.administrator?.department || 'Administration' }}</span>
+              <span>•</span>
+              <span>{{ profile?.email }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="lg:col-span-2">
-          <div class="bg-white rounded-lg shadow">
-            <!-- Personal Information Tab -->
-            <div v-if="activeTab === 'personal'" class="p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-6">Personal Information</h3>
-              <form @submit.prevent="updateProfile" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                      First Name *
-                    </label>
-                    <input
-                      v-model="formData.first_name"
-                      type="text"
-                      required
-                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                      Last Name *
-                    </label>
-                    <input
-                      v-model="formData.last_name"
-                      type="text"
-                      required
-                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
+        <button
+          @click="loadProfile"
+          :disabled="loading"
+          class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-extrabold transition flex items-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700 disabled:opacity-50"
+        >
+          <RefreshCw :class="['w-3.5 h-3.5', loading && 'animate-spin']" />
+          <span>Refresh Profile</span>
+        </button>
+      </div>
 
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Sidebar Navigation & Quick Info -->
+        <div class="lg:col-span-1 space-y-6">
+          <!-- Quick Info Card -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">Quick Info</h3>
+            <div class="space-y-3 text-xs">
+              <div class="flex items-start gap-3">
+                <Briefcase class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Email (Read Only)
-                  </label>
-                  <input
-                    :value="profile?.email"
-                    type="email"
-                    disabled
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-                  />
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Department</p>
+                  <p class="font-extrabold text-slate-900 dark:text-white">{{ profile?.administrator?.department || 'Administration' }}</p>
                 </div>
+              </div>
 
+              <div class="flex items-start gap-3">
+                <Calendar class="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    v-model="formData.phone"
-                    type="tel"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Hire Date</p>
+                  <p class="font-extrabold text-slate-900 dark:text-white">{{ formatDate(profile?.administrator?.hire_date) }}</p>
                 </div>
+              </div>
 
+              <div class="flex items-start gap-3">
+                <Mail class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                <div class="min-w-0 flex-1">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Email</p>
+                  <p class="font-extrabold text-slate-900 dark:text-white truncate">{{ profile?.email }}</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3">
+                <Phone class="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Department
-                  </label>
-                  <input
-                    v-model="formData.department"
-                    type="text"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Bio
-                  </label>
-                  <textarea
-                    v-model="formData.bio"
-                    rows="4"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Tell us about yourself..."
-                  ></textarea>
-                </div>
-
-                <div class="flex justify-end gap-3">
-                  <button
-                    type="button"
-                    @click="resetForm"
-                    class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    :disabled="loading"
-                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-                  >
-                    {{ loading ? 'Saving...' : 'Save Changes' }}
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <!-- Security Tab -->
-            <div v-if="activeTab === 'security'" class="p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-6">Change Password</h3>
-              <form @submit.prevent="changePassword" class="space-y-6">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Current Password *
-                  </label>
-                  <input
-                    v-model="passwordData.current_password"
-                    type="password"
-                    required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    New Password *
-                  </label>
-                  <input
-                    v-model="passwordData.new_password"
-                    type="password"
-                    required
-                    minlength="8"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p class="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Confirm New Password *
-                  </label>
-                  <input
-                    v-model="passwordData.new_password_confirmation"
-                    type="password"
-                    required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div class="flex justify-end">
-                  <button
-                    type="submit"
-                    :disabled="loading"
-                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-                  >
-                    {{ loading ? 'Updating...' : 'Update Password' }}
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <!-- Statistics Tab -->
-            <div v-if="activeTab === 'statistics'" class="p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-6">System Statistics</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-blue-50 rounded-lg p-4">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm text-gray-600">Total Users</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.total_users || 0 }}</p>
-                    </div>
-                    <Users class="w-10 h-10 text-blue-600" />
-                  </div>
-                </div>
-
-                <div class="bg-green-50 rounded-lg p-4">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm text-gray-600">Total Orders</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.total_orders || 0 }}</p>
-                    </div>
-                    <ShoppingBag class="w-10 h-10 text-green-600" />
-                  </div>
-                </div>
-
-                <div class="bg-purple-50 rounded-lg p-4">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm text-gray-600">Total Revenue</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">ETB {{ formatNumber(stats?.total_revenue) }}</p>
-                    </div>
-                    <DollarSign class="w-10 h-10 text-purple-600" />
-                  </div>
-                </div>
-
-                <div class="bg-yellow-50 rounded-lg p-4">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm text-gray-600">Active Reservations</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.active_reservations || 0 }}</p>
-                    </div>
-                    <Building class="w-10 h-10 text-yellow-600" />
-                  </div>
-                </div>
-
-                <div class="bg-indigo-50 rounded-lg p-4 md:col-span-2">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="text-sm text-gray-600">Total Rooms</p>
-                      <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats?.total_rooms || 0 }}</p>
-                    </div>
-                    <Home class="w-10 h-10 text-indigo-600" />
-                  </div>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Phone</p>
+                  <p class="font-extrabold text-slate-900 dark:text-white">{{ profile?.phone || 'Not provided' }}</p>
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Navigation Tabs Card -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-2 shadow-xs space-y-1">
+            <button
+              v-for="tab in tabs"
+              :key="tab.id"
+              @click="activeTab = tab.id"
+              :class="[
+                'w-full flex items-center gap-3 px-4 py-3 text-xs font-black rounded-2xl transition cursor-pointer',
+                activeTab === tab.id
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ]"
+            >
+              <component :is="tab.icon" class="w-4 h-4" />
+              <span>{{ tab.label }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Form Content Column -->
+        <div class="lg:col-span-3">
+          <!-- Personal Info Tab -->
+          <div v-if="activeTab === 'personal'" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+            <div>
+              <h3 class="text-lg font-black text-slate-900 dark:text-white">Personal Information</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Update your personal account details and contact information.</p>
+            </div>
+
+            <form @submit.prevent="updateProfile" class="space-y-4 text-xs font-sans">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">First Name *</label>
+                  <input
+                    v-model="formData.first_name"
+                    type="text"
+                    required
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 transition"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Last Name *</label>
+                  <input
+                    v-model="formData.last_name"
+                    type="text"
+                    required
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Email Address (Read Only)</label>
+                <input
+                  :value="profile?.email"
+                  type="email"
+                  disabled
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold cursor-not-allowed"
+                />
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Phone Number</label>
+                  <input
+                    v-model="formData.phone"
+                    type="tel"
+                    placeholder="+251 XXX XXX XXX"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 transition"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Department</label>
+                  <input
+                    v-model="formData.department"
+                    type="text"
+                    placeholder="Administration"
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Bio / Notes</label>
+                <textarea
+                  v-model="formData.bio"
+                  rows="3"
+                  placeholder="System administration notes..."
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-medium focus:outline-none focus:border-amber-500 transition"
+                ></textarea>
+              </div>
+
+              <div class="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  @click="resetForm"
+                  class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  :disabled="loading"
+                  class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs shadow-md shadow-blue-600/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <Save class="w-3.5 h-3.5" />
+                  <span>{{ loading ? 'Saving...' : 'Save Changes' }}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Professional Tab -->
+          <div v-if="activeTab === 'professional'" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+            <div>
+              <h3 class="text-lg font-black text-slate-900 dark:text-white">Professional Details</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Administrative role and system authorization status.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Employee Code</p>
+                <p class="font-mono font-black text-amber-600 dark:text-amber-400 text-sm">{{ profile?.administrator?.employee_code || 'ADM971' }}</p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Department</p>
+                <p class="font-black text-slate-900 dark:text-white text-sm">{{ profile?.administrator?.department || 'Administration' }}</p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">System Status</p>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  {{ profile?.administrator?.status || 'Active' }}
+                </span>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Hire Date</p>
+                <p class="font-black text-slate-900 dark:text-white text-sm">{{ formatDate(profile?.administrator?.hire_date) }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Statistics Tab -->
+          <div v-if="activeTab === 'statistics'" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+            <div>
+              <h3 class="text-lg font-black text-slate-900 dark:text-white">System Statistics</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Overview of system resources managed.</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+              <div class="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-center">
+                <p class="text-[10px] font-extrabold uppercase text-blue-600 dark:text-blue-400">Total Users</p>
+                <p class="text-2xl font-black text-blue-900 dark:text-blue-200 mt-1">{{ stats?.total_users || 0 }}</p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                <p class="text-[10px] font-extrabold uppercase text-emerald-600 dark:text-emerald-400">Total Rooms</p>
+                <p class="text-2xl font-black text-emerald-900 dark:text-emerald-200 mt-1">{{ stats?.total_rooms || 0 }}</p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-center">
+                <p class="text-[10px] font-extrabold uppercase text-purple-600 dark:text-purple-400">Total Orders</p>
+                <p class="text-2xl font-black text-purple-900 dark:text-purple-200 mt-1">{{ stats?.total_orders || 0 }}</p>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center">
+                <p class="text-[10px] font-extrabold uppercase text-amber-600 dark:text-amber-400">System Revenue</p>
+                <p class="text-xl font-black text-amber-900 dark:text-amber-200 mt-1">{{ formatNumber(stats?.total_revenue) }} ETB</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security Tab -->
+          <div v-if="activeTab === 'security'" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+            <div>
+              <h3 class="text-lg font-black text-slate-900 dark:text-white">Security & Password</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Change your account password securely.</p>
+            </div>
+
+            <form @submit.prevent="changePassword" class="space-y-4 text-xs max-w-md font-sans">
+              <div>
+                <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Current Password *</label>
+                <input
+                  v-model="passwordData.current_password"
+                  type="password"
+                  required
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 transition"
+                />
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">New Password *</label>
+                <input
+                  v-model="passwordData.new_password"
+                  type="password"
+                  required
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 transition"
+                />
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Confirm New Password *</label>
+                <input
+                  v-model="passwordData.new_password_confirmation"
+                  type="password"
+                  required
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 transition"
+                />
+              </div>
+
+              <div class="pt-2">
+                <button
+                  type="submit"
+                  :disabled="loading"
+                  class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-md shadow-rose-600/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <Lock class="w-3.5 h-3.5" />
+                  <span>{{ loading ? 'Updating...' : 'Update Password' }}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -297,7 +334,10 @@
 import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import { adminProfileService, type AdminProfile, type AdminStats } from '@/services/profile/adminProfileService'
-import { Camera, User, Lock, BarChart3, Users, ShoppingBag, DollarSign, Building, Home } from 'lucide-vue-next'
+import {
+  Camera, User, Lock, BarChart3, Users, ShoppingBag, DollarSign, Building, Home,
+  Briefcase, Mail, Phone, Save, Shield, Calendar, RefreshCw
+} from 'lucide-vue-next'
 
 // State
 const profile = ref<AdminProfile | null>(null)
@@ -323,8 +363,9 @@ const passwordData = ref({
 // Tabs Configuration
 const tabs = [
   { id: 'personal', label: 'Personal Info', icon: User },
-  { id: 'security', label: 'Security', icon: Lock },
-  { id: 'statistics', label: 'Statistics', icon: BarChart3 }
+  { id: 'professional', label: 'Professional', icon: Briefcase },
+  { id: 'statistics', label: 'Statistics', icon: BarChart3 },
+  { id: 'security', label: 'Security', icon: Lock }
 ]
 
 // Computed
@@ -350,7 +391,7 @@ async function loadProfile() {
       bio: profile.value.administrator?.bio || ''
     }
   } catch (error: any) {
-    alert(`Error: ${error.response?.data?.message || 'Failed to load profile'}`)
+    console.error('Failed to load admin profile:', error)
   } finally {
     loading.value = false
   }
@@ -383,13 +424,11 @@ async function handlePhotoUpload(event: Event) {
   
   if (!file) return
   
-  // Validate file size (2MB)
   if (file.size > 2 * 1024 * 1024) {
     alert('Error: Photo size must be less than 2MB')
     return
   }
   
-  // Validate file type
   if (!file.type.startsWith('image/')) {
     alert('Error: Please upload an image file')
     return
@@ -397,22 +436,14 @@ async function handlePhotoUpload(event: Event) {
   
   try {
     loading.value = true
-    const result = await adminProfileService.uploadPhoto(file)
-    console.log('Photo uploaded:', result)
-    
-    // Reload profile to get updated photo
+    await adminProfileService.uploadPhoto(file)
     await loadProfile()
-    
     alert('Photo uploaded successfully')
   } catch (error: any) {
-    console.error('Photo upload error:', error)
     alert(`Error: ${error.response?.data?.message || 'Failed to upload photo'}`)
   } finally {
     loading.value = false
-    // Reset file input
-    if (target) {
-      target.value = ''
-    }
+    if (target) target.value = ''
   }
 }
 
@@ -427,7 +458,6 @@ async function changePassword() {
     await adminProfileService.changePassword(passwordData.value)
     alert('Password changed successfully')
     
-    // Reset form
     passwordData.value = {
       current_password: '',
       new_password: '',
@@ -462,7 +492,7 @@ function formatDate(date: string | null | undefined): string {
 }
 
 function formatNumber(num: number | undefined): string {
-  if (!num) return '0'
+  if (!num) return '0.00'
   return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 

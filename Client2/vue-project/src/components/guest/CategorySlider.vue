@@ -155,8 +155,8 @@ onMounted(() => {
             'px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 rounded-full font-semibold whitespace-nowrap transition-all duration-300 text-xs sm:text-sm md:text-base',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             isActive('all')
-              ? 'bg-amber-700 text-white shadow-lg scale-105'
-              : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-amber-600 hover:shadow-md',
+              ? 'bg-amber-600 dark:bg-amber-500 text-white dark:text-slate-950 shadow-lg scale-105 font-bold'
+              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 hover:border-amber-500 dark:hover:border-amber-400 hover:shadow-md',
           ]"
           aria-label="Show all menu items"
         >
@@ -173,8 +173,8 @@ onMounted(() => {
             'px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 rounded-full font-semibold whitespace-nowrap transition-all duration-300 text-xs sm:text-sm md:text-base',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             isActive(category)
-              ? 'bg-amber-700 text-white shadow-lg scale-105'
-              : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-amber-600 hover:shadow-md',
+              ? 'bg-amber-600 dark:bg-amber-500 text-white dark:text-slate-950 shadow-lg scale-105 font-bold'
+              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 hover:border-amber-500 dark:hover:border-amber-400 hover:shadow-md',
           ]"
           :aria-label="`Filter by ${category.name}`"
           :aria-pressed="isActive(category)"

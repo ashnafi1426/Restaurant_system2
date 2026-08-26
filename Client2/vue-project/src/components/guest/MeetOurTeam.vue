@@ -12,81 +12,77 @@ const teamMembers: TeamMember[] = [
     id: 1,
     name: 'John Smith',
     position: 'General Manager',
-    image: '/images/team/manager.jpg',
-    bio: 'With 20+ years in luxury hospitality, John leads our team with vision and excellence.',
+    image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=800&fit=crop',
+    bio: 'With 20+ years in luxury hospitality, John leads our team with vision, passion, and operational excellence.',
   },
   {
     id: 2,
-    name: 'Chef Michael',
+    name: 'Chef Michael Vance',
     position: 'Executive Chef',
-    image: '/images/team/chef.jpg',
-    bio: 'Award-winning chef specializing in international cuisine and culinary innovation.',
+    image: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=600&h=800&fit=crop',
+    bio: 'Award-winning international chef specializing in gourmet fine dining and culinary innovation.',
   },
   {
     id: 3,
     name: 'Sarah Johnson',
     position: 'Front Desk Manager',
-    image: '/images/team/reception.jpg',
-    bio: 'Dedicated to providing exceptional guest service and personalized attention.',
+    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=800&fit=crop',
+    bio: 'Dedicated to providing 24/7 seamless check-ins, guest relations, and personalized concierge care.',
   },
   {
     id: 4,
     name: 'Emma Wilson',
-    position: 'Guest Relations Manager',
-    image: '/images/team/relations.jpg',
-    bio: 'Ensures every guest experience is memorable and exceeds expectations.',
+    position: 'Guest Relations Director',
+    image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&h=800&fit=crop',
+    bio: 'Ensures every guest stay is memorable, tailored to perfection, and exceeds international luxury standards.',
   },
 ]
 </script>
 
 <template>
-  <section class="bg-slate-50 py-12 sm:py-16 md:py-20 lg:py-24">
-    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10">
+  <section class="bg-white dark:bg-slate-900 py-12 sm:py-16 md:py-20 lg:py-24 border-t border-slate-200 dark:border-slate-800 transition-colors duration-300">
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10 space-y-12">
       <!-- Header -->
-      <div class="mx-auto mb-8 sm:mb-12 md:mb-16 max-w-3xl text-center">
-        <p
-          class="mb-2 sm:mb-4 text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-amber-600"
-        >
+      <div class="mx-auto max-w-3xl text-center space-y-3">
+        <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
           Our Team
-        </p>
-        <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-slate-900">
-          Meet Our Leadership
+        </span>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+          Meet Our Executive Leadership
         </h2>
-        <p
-          class="mt-3 sm:mt-4 md:mt-6 text-sm sm:text-base md:text-lg leading-6 sm:leading-7 md:leading-8 text-slate-500"
-        >
-          Our dedicated team of professionals is committed to delivering exceptional service and
-          creating unforgettable experiences for every guest.
+        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
+          Our dedicated team of hospitality experts is committed to delivering exceptional service and creating unforgettable stays.
         </p>
       </div>
 
       <!-- Team Grid -->
-      <div class="grid gap-6 sm:gap-8 md:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <div v-for="member in teamMembers" :key="member.id" class="text-center group">
-          <!-- Image -->
-          <div class="relative mb-4 sm:mb-6 overflow-hidden rounded-lg sm:rounded-2xl">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div
+          v-for="member in teamMembers"
+          :key="member.id"
+          class="group bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs hover:border-amber-500/40 transition duration-300 text-center"
+        >
+          <!-- Member Photo -->
+          <div class="relative h-72 overflow-hidden bg-slate-900">
             <img
               :src="member.image"
               :alt="member.name"
-              class="h-56 sm:h-64 md:h-72 lg:h-80 w-full object-cover transition duration-500 group-hover:scale-110"
+              class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
             />
-            <!-- Hover Overlay -->
-            <div
-              class="absolute inset-0 bg-black/40 opacity-0 transition duration-300 group-hover:opacity-100 flex items-center justify-center p-4"
-            >
-              <p class="text-white text-xs sm:text-sm leading-relaxed">
-                {{ member.bio }}
-              </p>
+            <div class="absolute inset-0 bg-slate-950/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-5 text-white text-xs leading-relaxed font-medium">
+              {{ member.bio }}
             </div>
           </div>
 
           <!-- Info -->
-          <h3 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900">
-            {{ member.name }}
-          </h3>
-          <p class="mt-1 sm:mt-2 text-xs sm:text-sm md:text-base text-amber-600 font-medium">
-            {{ member.position }}
-          </p>
+          <div class="p-5 space-y-1">
+            <h3 class="text-base font-black text-slate-900 dark:text-white">
+              {{ member.name }}
+            </h3>
+            <p class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+              {{ member.position }}
+            </p>
+          </div>
         </div>
       </div>
     </div>

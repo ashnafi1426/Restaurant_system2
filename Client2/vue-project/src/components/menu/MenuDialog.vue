@@ -214,8 +214,8 @@ function closeDialog() {
         <div class="space-y-3 sm:space-y-5">
           <!-- Item Name Field -->
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
-              🍽️ Item Name *
+            <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+              Item Name *
             </label>
             <v-text-field
               v-model="form.name"
@@ -234,8 +234,8 @@ function closeDialog() {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <!-- Price -->
             <div>
-              <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
-                💵 Price ($) *
+              <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+                Price ($) *
               </label>
               <v-text-field
                 v-model.number="form.price"
@@ -253,17 +253,17 @@ function closeDialog() {
 
             <!-- Category -->
             <div>
-              <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
-                🏷️ Category *
+              <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+                Category *
               </label>
               <v-select
                 v-model="form.category"
                 :items="[
-                  { title: '☀️ Breakfast', value: 'breakfast' },
-                  { title: '🍔 Lunch', value: 'lunch' },
-                  { title: '🍲 Dinner', value: 'dinner' },
-                  { title: '🍹 Drinks', value: 'drinks' },
-                  { title: '🍦 Dessert', value: 'dessert' },
+                  { title: 'Breakfast', value: 'breakfast' },
+                  { title: 'Lunch', value: 'lunch' },
+                  { title: 'Dinner', value: 'dinner' },
+                  { title: 'Drinks', value: 'drinks' },
+                  { title: 'Dessert', value: 'dessert' },
                 ]"
                 variant="outlined"
                 placeholder="Select..."
@@ -277,8 +277,8 @@ function closeDialog() {
 
           <!-- Description -->
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
-              📝 Description
+            <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+              Description
             </label>
             <v-textarea
               v-model="form.description"
@@ -295,8 +295,8 @@ function closeDialog() {
 
           <!-- Image URL -->
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
-              🖼️ Image URL
+            <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+              Image URL
             </label>
             <v-text-field
               v-model="form.image"

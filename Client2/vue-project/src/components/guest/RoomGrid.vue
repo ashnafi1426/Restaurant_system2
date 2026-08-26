@@ -119,16 +119,14 @@ function handleBookingSubmit(bookingData: any) {
 
 <template>
   <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
-    <!-- Section Header - Elegant Style -->
-    <div class="mb-8 md:mb-10 lg:mb-12 text-center">
-      <h2
-        class="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 leading-tight mb-2"
-      >
-        Available Rooms
-      </h2>
-      <p class="text-slate-600 text-sm md:text-base font-light">
-        {{ rooms.length }} rooms available for your perfect stay
-      </p>
+    <!-- Results count bar -->
+    <div class="results-bar">
+      <div class="results-left">
+        <span class="results-dot"></span>
+        <span class="results-count">{{ rooms.length }}</span>
+        <span class="results-label">{{ rooms.length === 1 ? 'room' : 'rooms' }} found</span>
+      </div>
+      <div class="results-line"></div>
     </div>
 
     <!-- Mobile-First Responsive Grid Layout with Proper Spacing -->
@@ -304,5 +302,46 @@ function handleBookingSubmit(bookingData: any) {
 </template>
 
 <style scoped>
-/* Responsive room grid */
+/* Results count bar */
+.results-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.results-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.results-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c2a44e, #d4af6e);
+  box-shadow: 0 0 0 3px rgba(194, 164, 78, 0.2);
+  display: block;
+}
+
+.results-count {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -0.02em;
+}
+
+.results-label {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.results-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, #e2e8f0 60%, transparent);
+}
 </style>

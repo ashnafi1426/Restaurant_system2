@@ -21,7 +21,6 @@ export interface UserState {
   permissions?: string[]
   temporary_roles?: any[]
 }
-
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: localStorage.getItem('token') || '',

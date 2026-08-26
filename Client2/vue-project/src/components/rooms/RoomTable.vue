@@ -1,9 +1,21 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import RoomStatusBadge from './RoomStatusBadge.vue'
 import type { Room } from '../../types/room'
+import {
+  BedDouble,
+  MoreVertical,
+  Eye,
+  Edit,
+  Trash2,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle2,
+  XCircle
+} from 'lucide-vue-next'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     rooms?: Room[]
     loading?: boolean
@@ -17,9 +29,67 @@ withDefaults(
 const emit = defineEmits(['view', 'edit', 'delete'])
 
 const openMenu = ref<string | null>(null)
+const currentPage = ref(1)
+const perPage = ref(10)
+
+const total = computed(() => props.rooms?.length || 0)
+const lastPage = computed(() => Math.ceil(total.value / perPage.value) || 1)
+
+const paginatedRooms = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value
+  const end = start + perPage.value
+  return (props.rooms || []).slice(start, end)
+})
+
+const showingFrom = computed(() => {
+  if (total.value === 0) return 0
+  return (currentPage.value - 1) * perPage.value + 1
+})
+
+const showingTo = computed(() => {
+  return Math.min(currentPage.value * perPage.value, total.value)
+})
+
+const paginationPages = computed(() => {
+  const pages: number[] = []
+  const max = lastPage.value
+  const cur = currentPage.value
+
+  for (let i = Math.max(1, cur - 2); i <= Math.min(max, cur + 2); i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+watch(() => props.rooms, () => {
+  currentPage.value = 1
+})
+
+const changePerPage = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  perPage.value = Number(target.value)
+  currentPage.value = 1
+}
+
+const goToPage = (p: number) => {
+  if (p >= 1 && p <= lastPage.value) {
+    currentPage.value = p
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < lastPage.value) {
+    currentPage.value++
+  }
+}
 
 const toggleMenu = (id: string, event: MouseEvent) => {
-  console.log('Toggle menu for room:', id)
   event.stopPropagation()
   openMenu.value = openMenu.value === id ? null : id
 }
@@ -29,19 +99,16 @@ const closeMenu = () => {
 }
 
 const handleView = (room: any) => {
-  console.log('View room:', room, 'ID:', room.id)
   emit('view', room)
   closeMenu()
 }
 
 const handleEdit = (room: any) => {
-  console.log('✏️ Edit room:', room, 'ID:', room.id)
   emit('edit', room)
   closeMenu()
 }
 
 const handleDelete = (room: any) => {
-  console.log('Delete room:', room, 'ID:', room.id)
   emit('delete', room)
   closeMenu()
 }
@@ -60,162 +127,139 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="rounded-lg sm:rounded-xl border border-slate-200 bg-white shadow overflow-hidden">
-    <!-- Desktop Table View (md and up) -->
-    <div class="hidden md:block overflow-x-auto">
-      <table class="w-full">
-        <thead class="bg-slate-50/80 border-b border-slate-200 sticky top-0 z-10">
-          <tr>
-            <th
-              class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600"
-            >
-              Room
-            </th>
-            <th
-              class="hidden sm:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600"
-            >
-              Type
-            </th>
-
-            <th
-              class="hidden md:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-600"
-            >
-              Floor
-            </th>
-
-            <th
-              class="hidden lg:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-600"
-            >
-              Capacity
-            </th>
-
-            <th
-              class="hidden lg:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-600"
-            >
-              Price
-            </th>
-
-            <th
-              class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-600"
-            >
-              Status
-            </th>
-            <th
-              class="hidden sm:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-600"
-            >
-              Active
-            </th>
-            <th
-              class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-600"
-            >
-              Action
-            </th>
+  <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+    <!-- Desktop & Tablet Table View -->
+    <div class="hidden md:block overflow-x-auto w-full">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-slate-50/90 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+          <tr class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider select-none">
+            <th class="px-4 py-3 whitespace-nowrap">Room</th>
+            <th class="px-4 py-3 whitespace-nowrap">Type</th>
+            <th class="px-4 py-3 text-center whitespace-nowrap">Floor</th>
+            <th class="px-4 py-3 text-center whitespace-nowrap">Capacity</th>
+            <th class="px-4 py-3 text-right whitespace-nowrap">Price</th>
+            <th class="px-4 py-3 text-center whitespace-nowrap">Status</th>
+            <th class="px-4 py-3 text-center whitespace-nowrap">Active</th>
+            <th class="px-4 py-3 text-right whitespace-nowrap pr-6">Action</th>
           </tr>
         </thead>
 
-        <tbody class="divide-y divide-slate-200">
-          <tr
-            v-for="room in rooms"
-            :key="room.id"
-            class="hover:bg-slate-50/60 transition duration-150"
-          >
-            <td
-              class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-semibold text-xs sm:text-sm md:text-base text-slate-900"
-            >
-              {{ room.room_number }}
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+          <!-- Loading State -->
+          <tr v-if="loading">
+            <td colspan="8" class="px-4 py-12 text-center text-slate-500 dark:text-slate-400">
+              <div class="flex items-center justify-center gap-2">
+                <Loader2 class="w-6 h-6 text-blue-600 dark:text-blue-400 animate-spin" />
+                <span class="font-bold text-xs">Loading rooms...</span>
+              </div>
             </td>
-            <td
-              class="hidden sm:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs sm:text-sm text-slate-600"
-            >
-              {{ room.room_type?.name }}
+          </tr>
+
+          <!-- Rooms Data Rows -->
+          <tr
+            v-else
+            v-for="room in paginatedRooms"
+            :key="room.id"
+            class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors duration-150 group"
+          >
+            <!-- Room Number -->
+            <td class="px-4 py-3 whitespace-nowrap font-black text-slate-900 dark:text-white text-xs sm:text-sm">
+              Room {{ room.room_number }}
             </td>
 
-            <td
-              class="hidden md:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-slate-600"
-            >
+            <!-- Type -->
+            <td class="px-4 py-3 whitespace-nowrap font-bold text-slate-700 dark:text-slate-300">
+              {{ room.room_type?.name || 'Standard' }}
+            </td>
+
+            <!-- Floor -->
+            <td class="px-4 py-3 text-center whitespace-nowrap font-bold text-slate-700 dark:text-slate-300">
               {{ room.floor }}
             </td>
 
-            <td
-              class="hidden lg:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center text-xs sm:text-sm text-slate-600"
-            >
-              {{ room.room_type?.capacity }}
+            <!-- Capacity -->
+            <td class="px-4 py-3 text-center whitespace-nowrap font-bold text-slate-700 dark:text-slate-300">
+              {{ room.room_type?.capacity || 1 }}
             </td>
 
-            <td
-              class="hidden lg:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-right text-xs sm:text-sm font-semibold text-slate-900"
-            >
+            <!-- Price -->
+            <td class="px-4 py-3 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white">
               ₹{{ parseFloat(room.room_type?.base_price_per_night || 0).toLocaleString('en-IN') }}
             </td>
 
-            <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center">
+            <!-- Status -->
+            <td class="px-4 py-3 text-center whitespace-nowrap">
               <RoomStatusBadge :status="room.status" />
             </td>
-            <td class="hidden sm:table-cell px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center">
+
+            <!-- Active -->
+            <td class="px-4 py-3 text-center whitespace-nowrap">
               <span
                 v-if="room.is_active"
-                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-xs font-medium bg-green-50 text-green-700 border border-green-200"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
               >
-                <span
-                  class="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-green-500 mr-1 sm:mr-1.5"
-                ></span>
-                Active
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>Active</span>
               </span>
               <span
                 v-else
-                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-xs font-medium bg-red-50 text-red-700 border border-red-200"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
               >
-                <span
-                  class="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-red-500 mr-1 sm:mr-1.5"
-                ></span>
-                Inactive
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                <span>Inactive</span>
               </span>
             </td>
 
-            <td
-              class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center relative overflow-visible"
-            >
+            <!-- Action -->
+            <td class="px-4 py-3 text-right whitespace-nowrap pr-6 relative">
               <div class="action-menu inline-block relative">
                 <button
                   @click.stop="toggleMenu(room.id, $event)"
-                  class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg hover:bg-slate-100 transition duration-150 text-slate-600 hover:text-slate-900"
-                  :aria-label="`Options for room ${room.room_number}`"
+                  class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                  :class="{ 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white': openMenu === room.id }"
+                  title="Actions"
                 >
-                  ⋮
+                  <MoreVertical class="w-4 h-4" />
                 </button>
 
+                <!-- Dropdown Popup Card -->
                 <transition
-                  enter-active-class="transition duration-150"
-                  leave-active-class="transition duration-100"
-                  enter-from-class="opacity-0 scale-95"
-                  enter-to-class="opacity-100 scale-100"
-                  leave-from-class="opacity-100 scale-100"
-                  leave-to-class="opacity-0 scale-95"
+                  enter-active-class="transition duration-100 ease-out"
+                  leave-active-class="transition duration-75 ease-in"
+                  enter-from-class="opacity-0 scale-95 -translate-y-2"
+                  enter-to-class="opacity-100 scale-100 translate-y-0"
+                  leave-from-class="opacity-100 scale-100 translate-y-0"
+                  leave-to-class="opacity-0 scale-95 -translate-y-2"
                 >
                   <div
                     v-if="openMenu === room.id"
                     @click.stop
-                    class="absolute right-0 mt-2 w-36 sm:w-40 md:w-44 bg-white border border-slate-200 rounded-lg shadow-lg z-50"
+                    class="absolute right-0 top-8 z-50 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 text-left"
                   >
                     <button
                       @click="handleView(room)"
-                      class="w-full text-left px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition duration-150 flex items-center gap-2"
+                      class="flex w-full items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                     >
-                      👁️ <span>View</span>
+                      <Eye class="w-3.5 h-3.5 text-blue-500" />
+                      <span>View Details</span>
                     </button>
 
                     <button
                       @click="handleEdit(room)"
-                      class="w-full text-left px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition duration-150 flex items-center gap-2 border-t border-slate-100"
+                      class="flex w-full items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition cursor-pointer"
                     >
-                      ✏️ <span>Edit</span>
+                      <Edit class="w-3.5 h-3.5 text-amber-500" />
+                      <span>Edit Room</span>
                     </button>
+
+                    <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
 
                     <button
                       @click="handleDelete(room)"
-                      class="w-full text-left px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition duration-150 flex items-center gap-2 border-t border-slate-100"
+                      class="flex w-full items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer"
                     >
-                      🗑️ <span>Delete</span>
+                      <Trash2 class="w-3.5 h-3.5 text-rose-500" />
+                      <span>Delete</span>
                     </button>
                   </div>
                 </transition>
@@ -223,90 +267,135 @@ onBeforeUnmount(() => {
             </td>
           </tr>
 
-          <tr v-if="rooms.length === 0">
-            <td colspan="8" class="px-4 py-12 text-center text-slate-500 text-sm">
-              No rooms found
+          <!-- Empty State -->
+          <tr v-if="!loading && rooms.length === 0">
+            <td colspan="8" class="px-4 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+              No rooms found matching your search.
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Mobile Card View (below md) -->
-    <div class="md:hidden">
-      <div v-if="rooms.length === 0" class="px-4 py-8 text-center text-slate-500 text-sm">
+    <!-- Mobile Card View (md and smaller) -->
+    <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+      <div v-if="!loading && rooms.length === 0" class="px-4 py-8 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
         No rooms found
       </div>
 
       <div
-        v-for="room in rooms"
+        v-for="room in paginatedRooms"
         :key="room.id"
-        class="border-b border-slate-200 last:border-b-0 p-4 sm:p-5 hover:bg-slate-50/50 transition duration-150"
+        class="p-4 space-y-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition duration-150"
       >
-        <!-- Room Number and Status -->
-        <div class="flex items-start justify-between gap-2 mb-3">
-          <div class="flex-1 min-w-0">
-            <h3 class="font-semibold text-sm text-slate-900">Room {{ room.room_number }}</h3>
-            <p class="text-xs text-slate-500 mt-1">{{ room.room_type?.name }}</p>
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Room {{ room.room_number }}</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">{{ room.room_type?.name }}</p>
           </div>
-          <div class="flex flex-col gap-1 items-end flex-shrink-0 ml-2">
+          <div class="flex flex-col gap-1 items-end">
             <RoomStatusBadge :status="room.status" />
             <span
               v-if="room.is_active"
-              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
             >
-              <span class="h-1.5 w-1.5 rounded-full bg-green-500 mr-1"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               Active
             </span>
             <span
               v-else
-              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
             >
-              <span class="h-1.5 w-1.5 rounded-full bg-red-500 mr-1"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
               Inactive
             </span>
           </div>
         </div>
 
-        <!-- Additional Info Grid -->
-        <div class="grid grid-cols-2 gap-2 mb-3 text-xs">
-          <div class="bg-slate-50 p-2 rounded-lg">
-            <p class="text-slate-500 mb-0.5">Floor</p>
-            <p class="font-semibold text-slate-900">{{ room.floor }}</p>
+        <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+          <div>
+            <span class="text-[10px] text-slate-400 block font-bold uppercase">Floor</span>
+            <span class="font-bold text-slate-900 dark:text-white">{{ room.floor }}</span>
           </div>
-          <div class="bg-slate-50 p-2 rounded-lg">
-            <p class="text-slate-500 mb-0.5">Capacity</p>
-            <p class="font-semibold text-slate-900">{{ room.room_type?.capacity }} Guests</p>
+          <div>
+            <span class="text-[10px] text-slate-400 block font-bold uppercase">Capacity</span>
+            <span class="font-bold text-slate-900 dark:text-white">{{ room.room_type?.capacity }} Guests</span>
           </div>
-          <div class="bg-slate-50 p-2 rounded-lg col-span-2">
-            <p class="text-slate-500 mb-0.5">Price/Night</p>
-            <p class="font-semibold text-slate-900">
+          <div class="col-span-2 pt-1 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">Price/Night</span>
+            <span class="font-black text-sm text-slate-900 dark:text-white">
               ₹{{ parseFloat(room.room_type?.base_price_per_night || 0).toLocaleString('en-IN') }}
-            </p>
+            </span>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination Bar with 5, 10, 20, 50 Per Page Options -->
+    <div
+      v-if="rooms.length > 0"
+      class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-4 text-xs font-sans"
+    >
+      <!-- Left Side: Per Page Selector & Showing Count -->
+      <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
+          <select
+            :value="perPage"
+            @change="changePerPage"
+            class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-black focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
+          >
+            <option :value="5">5</option>
+            <option :value="10">10</option>
+            <option :value="20">20</option>
+            <option :value="50">50</option>
+          </select>
         </div>
 
-        <!-- Actions -->
-        <div class="flex gap-2 pt-3 border-t border-slate-100">
+        <div class="text-xs font-medium">
+          Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
+          <span class="font-extrabold text-slate-900 dark:text-white">{{ showingTo }}</span> of
+          <span class="font-extrabold text-slate-900 dark:text-white">{{ total }}</span> rooms
+        </div>
+      </div>
+
+      <!-- Right Side: Page Controls -->
+      <div class="flex items-center gap-1.5">
+        <button
+          @click="prevPage"
+          :disabled="currentPage <= 1"
+          class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
+          title="Previous Page"
+        >
+          <ChevronLeft class="w-4 h-4" />
+          <span class="hidden sm:inline">Prev</span>
+        </button>
+
+        <div class="flex items-center gap-1">
           <button
-            @click="handleView(room)"
-            class="flex-1 px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition duration-150"
+            v-for="p in paginationPages"
+            :key="p"
+            @click="goToPage(p)"
+            :class="[
+              'w-8 h-8 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center border',
+              currentPage === p
+                ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+            ]"
           >
-            👁️ View
-          </button>
-          <button
-            @click="handleEdit(room)"
-            class="flex-1 px-3 py-2 text-xs font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-lg transition duration-150"
-          >
-            ✏️ Edit
-          </button>
-          <button
-            @click="handleDelete(room)"
-            class="flex-1 px-3 py-2 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition duration-150"
-          >
-            🗑️ Delete
+            {{ p }}
           </button>
         </div>
+
+        <button
+          @click="nextPage"
+          :disabled="currentPage >= lastPage"
+          class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
+          title="Next Page"
+        >
+          <span class="hidden sm:inline">Next</span>
+          <ChevronRight class="w-4 h-4" />
+        </button>
       </div>
     </div>
   </div>

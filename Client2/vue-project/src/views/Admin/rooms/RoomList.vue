@@ -36,10 +36,11 @@ onMounted(async () => {
 })
 
 const filteredRooms = computed(() => {
-  console.log('[ROOMLIST] Computing filtered rooms from:', roomStore.rooms.length, 'rooms')
+  const roomList = Array.isArray(roomStore.rooms) ? roomStore.rooms : []
+  console.log('[ROOMLIST] Computing filtered rooms from:', roomList.length, 'rooms')
 
   if (!search.value.trim()) {
-    return roomStore.rooms
+    return roomList
   }
 
   let searchQuery = search.value.toLowerCase()
@@ -52,7 +53,7 @@ const filteredRooms = computed(() => {
     searchQuery = searchQuery.replace('rm ', '').trim()
   }
 
-  return roomStore.rooms.filter((room) => {
+  return roomList.filter((room) => {
     if (!room) return false
 
     try {
@@ -111,15 +112,15 @@ const deleteRoom = async () => {
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6">
-      <div class="flex justify-between items-center">
+    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans">
+      <div class="flex justify-between items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-xs">
         <div>
-          <h1 class="text-3xl font-bold text-slate-800">Room Management</h1>
-          <p class="text-slate-500 mt-1">Manage hotel rooms.</p>
+          <h1 class="text-2xl font-black text-slate-900 dark:text-white">Room Management</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Manage, filter, and track all hotel rooms and availability.</p>
         </div>
         <button
           @click="createRoom"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md shadow-blue-600/20 transition cursor-pointer"
         >
           + Add Room
         </button>

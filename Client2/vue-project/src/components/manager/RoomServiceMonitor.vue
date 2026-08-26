@@ -15,81 +15,85 @@ const deliveryStats = computed(() => {
 </script>
 
 <template>
-  <section class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+  <section class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs p-6 flex flex-col justify-between space-y-6">
     <!-- HEADER -->
-    <div class="flex justify-between items-center mb-8">
+    <div class="flex justify-between items-center pb-2">
       <div>
-        <h2 class="text-xl font-bold">Room Service</h2>
-        <p class="text-sm text-slate-500">Active deliveries tracking</p>
+        <h2 class="text-lg font-black text-slate-900 dark:text-white">Room Service</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Active deliveries tracking</p>
       </div>
-      <div class="w-12 h-12 rounded-2xl bg-teal-100 flex items-center justify-center">
-        <Truck class="w-6 h-6 text-teal-600" />
-      </div>
-    </div>
-
-    <!-- STATISTICS -->
-    <div class="grid grid-cols-3 gap-4 mb-8">
-      <div class="bg-blue-50 rounded-2xl p-4">
-        <p class="text-sm text-slate-500">Total</p>
-        <h3 class="text-3xl font-bold text-blue-700 mt-2">{{ deliveryStats.total }}</h3>
-      </div>
-
-      <div class="bg-green-50 rounded-2xl p-4">
-        <p class="text-sm text-slate-500">Active</p>
-        <h3 class="text-3xl font-bold text-green-700 mt-2">{{ deliveryStats.active }}</h3>
-      </div>
-
-      <div class="bg-emerald-50 rounded-2xl p-4">
-        <p class="text-sm text-slate-500">Completed</p>
-        <h3 class="text-3xl font-bold text-emerald-700 mt-2">{{ deliveryStats.completed }}</h3>
+      <div class="w-10 h-10 rounded-2xl bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 flex items-center justify-center">
+        <Truck class="w-5 h-5" />
       </div>
     </div>
 
-    <!-- ACTIVE DELIVERIES -->
-    <div class="space-y-3">
-      <p class="text-sm font-medium text-slate-600">Active Deliveries</p>
+    <!-- STATISTICS GRID -->
+    <div class="grid grid-cols-3 gap-3">
+      <!-- Total -->
+      <div class="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4">
+        <p class="text-[10px] font-extrabold uppercase text-blue-700 dark:text-blue-300 tracking-wider">Total</p>
+        <h3 class="text-2xl font-black text-blue-900 dark:text-blue-200 mt-1">{{ deliveryStats.total }}</h3>
+      </div>
+
+      <!-- Active -->
+      <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4">
+        <p class="text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-300 tracking-wider">Active</p>
+        <h3 class="text-2xl font-black text-emerald-900 dark:text-emerald-200 mt-1">{{ deliveryStats.active }}</h3>
+      </div>
+
+      <!-- Completed -->
+      <div class="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-4">
+        <p class="text-[10px] font-extrabold uppercase text-purple-700 dark:text-purple-300 tracking-wider">Completed</p>
+        <h3 class="text-2xl font-black text-purple-900 dark:text-purple-200 mt-1">{{ deliveryStats.completed }}</h3>
+      </div>
+    </div>
+
+    <!-- ACTIVE DELIVERIES LIST -->
+    <div class="space-y-2.5">
+      <p class="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Active Deliveries</p>
 
       <div
         v-for="delivery in operationsStore.activeDeliveries.slice(0, 4)"
         :key="delivery.id"
-        class="p-4 rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition"
+        class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition space-y-3"
       >
-        <div class="flex items-start justify-between mb-3">
+        <div class="flex items-start justify-between">
           <div>
-            <p class="font-medium text-sm">Room {{ delivery.roomNumber }}</p>
-            <p class="text-xs text-slate-500">Guest: {{ delivery.guestName }}</p>
+            <p class="font-black text-xs text-slate-900 dark:text-white">Room {{ delivery.roomNumber }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Guest: {{ delivery.guestName }}</p>
           </div>
+
           <span
             :class="[
-              'px-3 py-1 rounded-full text-xs font-medium',
-              delivery.status === 'pending' && 'bg-yellow-100 text-yellow-700',
-              delivery.status === 'in_transit' && 'bg-blue-100 text-blue-700',
-              delivery.status === 'delivered' && 'bg-green-100 text-green-700',
+              'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border',
+              delivery.status === 'pending' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+              delivery.status === 'in_transit' && 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+              delivery.status === 'delivered' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
             ]"
           >
             {{ delivery.status.replace('_', ' ').toUpperCase() }}
           </span>
         </div>
 
-        <div class="space-y-2 text-xs text-slate-600">
-          <div class="flex items-center gap-2">
-            <Truck class="w-4 h-4" />
-            <span>{{ delivery.items }}</span>
+        <div class="grid grid-cols-3 gap-2 text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200/60 dark:border-slate-800">
+          <div class="flex items-center gap-1.5 truncate">
+            <Truck class="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span class="truncate">{{ delivery.items }}</span>
           </div>
 
-          <div class="flex items-center gap-2">
-            <User class="w-4 h-4" />
-            <span>Waiter: {{ delivery.waiterName || 'Unassigned' }}</span>
+          <div class="flex items-center gap-1.5 truncate">
+            <User class="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span class="truncate">{{ delivery.waiterName || 'Unassigned' }}</span>
           </div>
 
-          <div class="flex items-center gap-2">
-            <Clock class="w-4 h-4" />
-            <span>ETA: {{ delivery.estimatedTime || '--' }} min</span>
+          <div class="flex items-center gap-1.5 truncate">
+            <Clock class="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span class="truncate">ETA {{ delivery.estimatedTime || '--' }}m</span>
           </div>
         </div>
       </div>
 
-      <div v-if="operationsStore.activeDeliveries.length === 0" class="py-6 text-center text-slate-500">
+      <div v-if="operationsStore.activeDeliveries.length === 0" class="py-8 text-center text-slate-500 dark:text-slate-400 text-xs font-bold bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
         No active deliveries
       </div>
     </div>

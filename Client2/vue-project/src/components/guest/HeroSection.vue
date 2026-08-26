@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { Calendar, BedDouble } from 'lucide-vue-next'
 
 const router = useRouter()
 
 function bookNow() {
-  router.push('/reservation')
+  router.push('/rooms')
 }
 
 function exploreRooms() {
@@ -13,106 +14,74 @@ function exploreRooms() {
 </script>
 
 <template>
-  <section
-    class="relative flex h-screen min-h-[600px] sm:min-h-[700px] md:min-h-[750px] items-center overflow-hidden"
-  >
-    <!-- ===================================================== -->
-    <!-- Background Image -->
-    <!-- ===================================================== -->
-
-    <img
-      src="/images/hero/hero.jpg"
-      alt="Luxury Hotel"
-      class="absolute inset-0 h-full w-full object-cover"
-    />
-
-    <!-- Dark Overlay -->
-
-    <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-black/20" />
-
-    <!-- ===================================================== -->
-    <!-- Content -->
-    <!-- ===================================================== -->
-
-    <div
-      class="relative z-10 mx-auto flex w-full max-w-7xl items-center px-4 sm:px-6 md:px-8 lg:px-10"
-    >
-      <div class="max-w-2xl">
-        <!-- Small Label -->
-
-        <p
-          class="mb-3 sm:mb-4 text-xs sm:text-sm uppercase tracking-[4px] sm:tracking-[6px] text-amber-400"
-        >
-          Grand Horizon Hotel
-        </p>
-
-        <!-- Title -->
-
-        <h1
-          class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light leading-tight text-white"
-        >
-          Luxury
-          <br />
-
-          Hotel
-          <br />
-
-          Experience
-        </h1>
-
-        <!-- Description -->
-
-        <p
-          class="mt-5 sm:mt-6 md:mt-8 max-w-xl text-sm sm:text-base md:text-lg leading-6 sm:leading-7 md:leading-8 text-gray-200"
-        >
-          Experience exceptional hospitality, elegant rooms, world-class dining and unforgettable
-          moments in the heart of the city.
-        </p>
-
-        <!-- Buttons -->
-
-        <div
-          class="mt-8 sm:mt-10 md:mt-12 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 md:gap-5"
-        >
-          <button
-            class="rounded-full bg-amber-500 px-6 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm font-semibold uppercase tracking-wider text-white transition duration-300 hover:bg-amber-600 w-full sm:w-auto text-center"
-            @click="bookNow"
-          >
-            Book Your Stay
-          </button>
-
-          <button
-            class="rounded-full border border-white px-6 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm font-semibold uppercase tracking-wider text-white transition duration-300 hover:bg-white hover:text-black w-full sm:w-auto text-center"
-            @click="exploreRooms"
-          >
-            Explore Rooms
-          </button>
-        </div>
-      </div>
+  <section class="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-slate-950 font-sans pt-16">
+    <!-- Hero Background Image (Vibrant & Fully Visible) -->
+    <div class="absolute inset-0 z-0">
+      <img
+        src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&h=1080&fit=crop"
+        alt="Grand Horizon Luxury Resort"
+        class="h-full w-full object-cover scale-105 transition-all duration-700 opacity-90 dark:opacity-85 brightness-95 dark:brightness-80"
+      />
+      <!-- Soft Vignette Gradient Overlay for Crisp Text Readability -->
+      <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/55 to-slate-950/30"></div>
     </div>
 
-    <!-- ===================================================== -->
-    <!-- Bottom Information -->
-    <!-- ===================================================== -->
-
-    <div
-      class="absolute bottom-6 sm:bottom-8 md:bottom-10 left-0 right-0 z-20 mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 md:px-8 lg:px-10 text-white"
-    >
-      <div>
-        <p class="text-xs uppercase tracking-[3px] sm:tracking-[4px] text-gray-300">Since 2026</p>
-
-        <h3 class="mt-1 sm:mt-2 text-base sm:text-lg">Timeless Luxury</h3>
+    <!-- Hero Content -->
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center space-y-6">
+      <!-- Badge Pill -->
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-950/70 text-amber-400 border border-amber-500/40 text-xs font-black uppercase tracking-widest backdrop-blur-md shadow-md">
+        <span>Grand Horizon Hotel & Resort</span>
       </div>
 
-      <!-- Scroll -->
+      <!-- Main Title -->
+      <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight max-w-4xl mx-auto drop-shadow-md">
+        Timeless Luxury & <span class="text-amber-400 drop-shadow-sm">Unmatched Comfort</span>
+      </h1>
 
-      <div class="hidden items-center gap-3 sm:gap-4 md:flex">
-        <span class="text-xs uppercase tracking-[3px] sm:tracking-[5px] text-gray-300">
-          Scroll Down
-        </span>
+      <!-- Description -->
+      <p class="text-sm sm:text-base lg:text-lg text-slate-200 font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-xs">
+        Experience 5-star Ethiopian hospitality, elegant master suites, fine dining, and personalized concierge service in the heart of Addis Ababa.
+      </p>
 
-        <div class="flex h-12 sm:h-14 w-7 sm:w-8 justify-center rounded-full border border-white">
-          <div class="mt-2 h-2.5 sm:h-3 w-0.5 sm:w-1 animate-bounce rounded-full bg-white" />
+      <!-- CTA Action Buttons -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-3">
+        <button
+          @click="bookNow"
+          class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <Calendar class="w-4 h-4" />
+          <span>Book Your Stay</span>
+        </button>
+
+        <button
+          @click="exploreRooms"
+          class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-slate-900/80 hover:bg-slate-900 text-white font-black text-xs uppercase tracking-wider border border-slate-700 shadow-md backdrop-blur-md transition flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <BedDouble class="w-4 h-4 text-amber-400" />
+          <span>Explore Rooms & Suites</span>
+        </button>
+      </div>
+
+      <!-- Quick Highlights Bar -->
+      <div class="pt-10 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
+        <div class="p-4 rounded-2xl bg-slate-950/75 border border-slate-800/80 shadow-md backdrop-blur-md space-y-1">
+          <p class="text-[10px] font-extrabold uppercase text-amber-400 tracking-wider">Check-In</p>
+          <p class="text-xs font-black text-white">02:00 PM Daily</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-950/75 border border-slate-800/80 shadow-md backdrop-blur-md space-y-1">
+          <p class="text-[10px] font-extrabold uppercase text-amber-400 tracking-wider">Location</p>
+          <p class="text-xs font-black text-white">Bolé Road, Addis Ababa</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-950/75 border border-slate-800/80 shadow-md backdrop-blur-md space-y-1">
+          <p class="text-[10px] font-extrabold uppercase text-amber-400 tracking-wider">Guest Rating</p>
+          <p class="text-xs font-black text-white">★ 4.9 / 5.0 (2,400+ Reviews)</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-950/75 border border-slate-800/80 shadow-md backdrop-blur-md space-y-1">
+          <p class="text-[10px] font-extrabold uppercase text-amber-400 tracking-wider">Concierge</p>
+          <p class="text-xs font-black text-white">24/7 Personal Service</p>
         </div>
       </div>
     </div>

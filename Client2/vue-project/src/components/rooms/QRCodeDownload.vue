@@ -9,17 +9,28 @@
     <!-- QR Code Display -->
     <div v-if="room.qr_code_url" class="qr-display">
       <div class="qr-container">
-        <img :src="room.qr_code_url" :alt="`QR Code for Room ${room.room_number}`" />
+        <img 
+          :src="room.qr_code_url" 
+          :alt="`QR Code for Room ${room.room_number}`"
+          @error="handleImageError"
+          @load="handleImageLoad" />
         <p class="qr-token">Token: {{ room.qr_token }}</p>
       </div>
 
       <!-- Action Buttons -->
-      <div class="actions">
+      <div class="actions flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+          <label for="qrCopies" class="text-xs font-bold text-slate-700 dark:text-slate-300">Print Copies:</label>
+          <select id="qrCopies" v-model="printCopies" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-black text-slate-900 dark:text-white cursor-pointer">
+            <option v-for="n in 10" :key="n" :value="n">{{ n }} {{ n === 1 ? 'copy' : 'copies' }}</option>
+          </select>
+        </div>
+
         <button @click="downloadQRCode" class="btn btn-primary">
           <span>📥 Download PNG</span>
         </button>
         <button @click="printQRCode" class="btn btn-secondary">
-          <span>🖨️ Print</span>
+          <span>🖨️ Print ({{ printCopies }})</span>
         </button>
         <button @click="regenerateQRCode" class="btn btn-warning" :disabled="regenerating">
           <span v-if="!regenerating">🔄 Regenerate</span>
@@ -37,7 +48,6 @@
     <div v-else-if="loading" class="loading">
       <p>Loading QR code...</p>
     </div>
-
     <!-- Error State -->
     <div v-else-if="error" class="error">
       <p>❌ {{ error }}</p>
@@ -81,6 +91,32 @@ const error = ref('')
 const regenerating = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
+const imageLoading = ref(true)
+const imageError = ref(false)
+const printCopies = ref(1)
+
+/**
+ * Handle image load success
+ */
+const handleImageLoad = () => {
+  imageLoading.value = false
+  imageError.value = false
+  console.log('✅ QR code image loaded successfully')
+}
+
+/**
+ * Handle image load error
+ */
+const handleImageError = (event: Event) => {
+  imageLoading.value = false
+  imageError.value = true
+  console.error('❌ QR code image failed to load:', {
+    src: (event.target as HTMLImageElement)?.src,
+    room_id: props.room.id,
+    qr_url: props.room.qr_code_url,
+  })
+  errorMessage.value = 'Failed to load QR code image. Try regenerating.'
+}
 
 /**
  * Load QR code info
@@ -116,11 +152,6 @@ const loadQRCode = async () => {
     loading.value = false
   }
 }
-
-/**
- * Download QR code as PNG
- * Uses public API endpoint for more reliable downloads
- */
 const downloadQRCode = async () => {
   if (!props.room.id || !props.room.qr_code_url) return
 
@@ -220,7 +251,7 @@ const printQRCode = async () => {
     successMessage.value = ''
     errorMessage.value = ''
 
-    const response = await api.get(`/admin/qr-codes/${props.room.id}/print-template`, {
+    const response = await api.get(`/admin/qr-codes/${props.room.id}/print-template?copies=${printCopies.value}`, {
       responseType: 'text',
     })
 
@@ -365,7 +396,15 @@ watch(
   background: white;
   border-radius: 4px;
   display: block;
+  object-fit: contain;
 }
+
+.qr-container img[src=''],
+.qr-container img:not([src]) {
+  opacity: 0.3;
+  background: #f0f0f0;
+}
+
 .qr-token {
   margin: 10px 0 0 0;
   color: #666;

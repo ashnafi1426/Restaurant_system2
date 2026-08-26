@@ -82,10 +82,10 @@ const closeMobileSidebar = () => {
               <span class="whitespace-nowrap">All systems operational</span>
             </span>
           </div>
-          <div class="flex items-center gap-3 md:gap-4">
-            <a href="#" class="hover:text-slate-700 dark:hover:text-slate-200 hover:underline transition-colors whitespace-nowrap">Privacy</a>
-            <a href="#" class="hover:text-slate-700 dark:hover:text-slate-200 hover:underline transition-colors whitespace-nowrap">Terms</a>
-            <a href="#" class="hover:text-slate-700 dark:hover:text-slate-200 hover:underline transition-colors whitespace-nowrap hidden sm:inline">Support</a>
+          <div class="flex items-center gap-3 md:gap-4 font-bold">
+            <router-link to="/contact" class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap">Privacy</router-link>
+            <router-link to="/contact" class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap">Terms</router-link>
+            <router-link to="/contact" class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap hidden sm:inline">Support</router-link>
             <span class="text-slate-300 dark:text-slate-600 hidden sm:inline">|</span>
             <span class="text-slate-400 dark:text-slate-500 whitespace-nowrap">v2.0.0</span>
           </div>

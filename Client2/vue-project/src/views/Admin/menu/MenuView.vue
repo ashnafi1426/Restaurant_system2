@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <DashboardLayout>
     <div class="min-h-screen bg-slate-50">
       <!-- Header Area - Responsive -->
@@ -8,9 +8,9 @@
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div class="flex items-center gap-2 sm:gap-3">
             <div
-              class="w-8 sm:w-10 h-8 sm:h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-md flex-shrink-0"
+              class="w-8 sm:w-10 h-8 sm:h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-md flex-shrink-0 text-white"
             >
-              <span class="text-lg sm:text-xl text-white">🍴</span>
+              <UtensilsCrossed class="w-5 h-5 stroke-[2]" />
             </div>
             <h1 class="text-lg sm:text-xl md:text-2xl font-black text-slate-900">
               Menu Management
@@ -18,9 +18,10 @@
           </div>
           <router-link
             to="/admin/menu/add"
-            class="px-3 sm:px-4 md:px-5 py-2 md:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition text-xs sm:text-sm md:text-base whitespace-nowrap"
+            class="px-3 sm:px-4 md:px-5 py-2 md:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition text-xs sm:text-sm md:text-base whitespace-nowrap inline-flex items-center gap-1.5 cursor-pointer"
           >
-            ➕ Add Menu Item
+            <Plus class="w-4 h-4 stroke-[3]" />
+            <span>Add Menu Item</span>
           </router-link>
         </div>
       </div>
@@ -101,7 +102,9 @@
             v-else-if="store.menuItems.length === 0"
             class="text-center py-12 sm:py-16 md:py-20 bg-white rounded-lg sm:rounded-2xl border border-slate-200 shadow-sm px-4 sm:px-6"
           >
-            <span class="text-3xl sm:text-4xl md:text-5xl block mb-3 sm:mb-4">🍽️</span>
+            <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+              <Utensils class="w-8 h-8 stroke-[2]" />
+            </div>
             <p class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 mb-1">
               No Items Found
             </p>
@@ -110,9 +113,10 @@
             </p>
             <router-link
               to="/admin/menu/add"
-              class="inline-flex items-center gap-2 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm md:text-base rounded-lg sm:rounded-xl shadow transition"
+              class="inline-flex items-center gap-2 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm md:text-base rounded-lg sm:rounded-xl shadow transition cursor-pointer"
             >
-              ➕ Create Item
+              <Plus class="w-4 h-4 stroke-[3]" />
+              <span>Create Item</span>
             </router-link>
           </div>
 
@@ -247,6 +251,7 @@ import MenuCategoryTabs from '@/components/menu/MenuCategoryTabs.vue'
 import MenuCard from '@/components/menu/MenuCard.vue'
 import MenuTable from '@/components/menu/MenuTable.vue'
 import { useMenuStore } from '@/stores/menuStore'
+import { UtensilsCrossed, Utensils, Plus } from 'lucide-vue-next'
 import type { MenuItem } from '@/types/menu'
 
 const router = useRouter()

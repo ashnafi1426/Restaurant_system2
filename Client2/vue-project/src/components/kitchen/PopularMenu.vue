@@ -1,9 +1,9 @@
 <template>
-  <div class="rounded-lg bg-white shadow-md">
-    <div class="border-b border-slate-200 px-4 sm:px-5 py-3 sm:py-4 bg-slate-50">
+  <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
+    <div class="border-b border-slate-200 dark:border-slate-800 px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50 dark:bg-slate-800/80">
       <div class="flex items-center gap-2">
-        <span class="text-lg sm:text-2xl">📊</span>
-        <h2 class="text-base sm:text-lg font-bold text-slate-900">Popular Today</h2>
+        <TrendingUp class="w-5 h-5 text-amber-500" />
+        <h2 class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">Popular Today</h2>
       </div>
     </div>
 
@@ -12,40 +12,42 @@
         <div
           v-for="(item, index) in popularItems"
           :key="index"
-          class="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-2 sm:p-3 hover:shadow-md transition"
+          class="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-2.5 sm:p-3 hover:shadow-md transition"
         >
           <!-- Image -->
-          <div class="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+          <div class="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
             <img
               v-if="item.image"
               :src="item.image"
               :alt="item.name"
-              class="h-8 w-8 sm:h-10 sm:w-10 rounded object-cover flex-shrink-0"
+              class="h-8 w-8 sm:h-10 sm:w-10 rounded-lg object-cover flex-shrink-0 border border-slate-200 dark:border-slate-700"
               @error="handleImageError"
             />
             <div
               v-else
-              class="h-8 w-8 sm:h-10 sm:w-10 rounded bg-gradient-to-br from-slate-300 to-slate-400 flex-shrink-0"
-            ></div>
+              class="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white flex-shrink-0"
+            >
+              <Utensils class="w-4 h-4" />
+            </div>
 
             <!-- Item Info -->
             <div class="flex-1 min-w-0">
-              <p class="font-semibold text-slate-900 text-xs sm:text-sm truncate">
+              <p class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm truncate">
                 {{ item.name }}
               </p>
-              <p class="text-xs text-slate-500 truncate hidden sm:block">{{ item.category }}</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate font-medium hidden sm:block">{{ item.category }}</p>
             </div>
           </div>
 
           <!-- Count -->
           <div class="text-right flex-shrink-0 ml-2">
-            <p class="text-base sm:text-lg font-bold text-teal-600">{{ item.orders }}</p>
-            <p class="text-xs text-slate-500 hidden sm:block">Orders</p>
+            <p class="text-base sm:text-lg font-black text-amber-600 dark:text-amber-400">{{ item.orders }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold hidden sm:block uppercase">Orders</p>
           </div>
         </div>
       </div>
-      <div v-else class="text-center py-6 sm:py-8 text-slate-400">
-        <p class="text-xs sm:text-sm">No order data yet</p>
+      <div v-else class="text-center py-6 sm:py-8 text-slate-400 dark:text-slate-600">
+        <p class="text-xs sm:text-sm font-medium">No order data yet</p>
       </div>
     </div>
   </div>
@@ -55,6 +57,7 @@
 import { computed } from 'vue'
 import { useKitchenStore } from '@/stores/kitchenStore'
 import { storeToRefs } from 'pinia'
+import { TrendingUp, Utensils } from 'lucide-vue-next'
 
 const kitchenStore = useKitchenStore()
 const { orders } = storeToRefs(kitchenStore)

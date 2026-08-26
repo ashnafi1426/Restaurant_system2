@@ -268,35 +268,37 @@ const clearFilters = () => {
 /* Main Grid */
 .menu-grid {
   display: grid;
-  gap: 24px;
+  gap: 16px;
   grid-template-columns: repeat(4, 1fr);
   width: 100%;
 }
 
 /* Responsive Grid Layout */
-@media (max-width: 1440px) {
+@media (max-width: 1280px) {
   .menu-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
   }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
   .menu-grid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
   }
 }
 
 @media (max-width: 768px) {
   .menu-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 12px;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 480px) {
   .menu-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 }
 

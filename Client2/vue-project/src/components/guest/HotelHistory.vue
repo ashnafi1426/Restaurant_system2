@@ -2,80 +2,65 @@
 const milestones = [
   {
     year: '1995',
-    title: 'Founded',
-    description: 'Our journey began with a vision to create a luxury hospitality destination.',
+    title: 'Grand Foundation',
+    description: 'Our journey began with a vision to build a world-class luxury hotel in the heart of Africa.',
   },
   {
     year: '2005',
-    title: 'Expansion',
-    description: 'Added 50 new rooms and upgraded all facilities to international standards.',
+    title: 'International Expansion',
+    description: 'Added 50 executive suites and upgraded all fine dining, spa, and conference facilities.',
   },
   {
     year: '2015',
-    title: 'Recognition',
-    description: 'Awarded Best Luxury Hotel in Africa for exceptional service and innovation.',
+    title: 'Continental Recognition',
+    description: 'Awarded Best Luxury Hotel in East Africa for exceptional guest satisfaction and service innovation.',
   },
   {
     year: '2023',
-    title: 'Modern Era',
-    description: 'Renovated with state-of-the-art technology while maintaining classic elegance.',
+    title: 'The Modern Era',
+    description: 'Completely renovated with smart room technology while preserving classic architectural elegance.',
   },
 ]
 </script>
 
 <template>
-  <section class="bg-white py-12 sm:py-16 md:py-20 lg:py-24">
+  <section class="bg-white dark:bg-slate-900 py-12 sm:py-16 md:py-20 lg:py-24 border-y border-slate-200 dark:border-slate-800 transition-colors duration-300">
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10">
       <!-- Header -->
-      <div class="mx-auto mb-8 sm:mb-12 md:mb-16 max-w-3xl text-center">
-        <p
-          class="mb-2 sm:mb-4 text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-amber-600"
-        >
+      <div class="mx-auto mb-12 max-w-3xl text-center space-y-3">
+        <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
           Our Journey
-        </p>
-        <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-slate-900">
+        </span>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
           Hotel History & Milestones
         </h2>
-        <p
-          class="mt-3 sm:mt-4 md:mt-6 text-sm sm:text-base md:text-lg leading-6 sm:leading-7 md:leading-8 text-slate-500"
-        >
-          From our humble beginnings to becoming a leading luxury destination, discover the story of
-          our growth and commitment to excellence.
+        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
+          From our humble beginnings to becoming a leading luxury destination, discover the story of our growth and commitment to excellence.
         </p>
       </div>
 
       <!-- Timeline -->
       <div class="relative">
-        <!-- Timeline Line -->
-        <div
-          class="absolute left-4 sm:left-1/2 top-0 h-full w-0.5 sm:w-1 -translate-x-0.5 sm:-translate-x-1/2 bg-gradient-to-b from-amber-500 to-amber-200"
-        ></div>
+        <div class="absolute left-4 sm:left-1/2 top-0 h-full w-0.5 -translate-x-0.5 sm:-translate-x-1/2 bg-amber-500/40"></div>
 
-        <!-- Timeline Items -->
-        <div class="space-y-8 sm:space-y-12">
+        <div class="space-y-8">
           <div v-for="(milestone, index) in milestones" :key="index" class="relative">
             <!-- Timeline Dot -->
-            <div
-              class="absolute left-0 sm:left-1/2 top-6 h-3 sm:h-4 w-3 sm:w-4 -translate-x-1 sm:-translate-x-1/2 rounded-full border-4 border-white bg-amber-500 shadow-lg"
-            ></div>
+            <div class="absolute left-0 sm:left-1/2 top-6 h-4 w-4 -translate-x-1.5 sm:-translate-x-1/2 rounded-full border-2 border-white dark:border-slate-900 bg-amber-500 shadow-md"></div>
 
-            <!-- Content -->
+            <!-- Content Card -->
             <div
               :class="[
-                'pl-12 sm:pl-8',
-                index % 2 === 0 ? 'sm:ml-0 sm:mr-1/2 sm:pr-12' : 'sm:ml-1/2 sm:pl-12',
+                'pl-10 sm:pl-0',
+                index % 2 === 0 ? 'sm:mr-1/2 sm:pr-10' : 'sm:ml-1/2 sm:pl-10',
               ]"
             >
-              <div
-                class="rounded-lg sm:rounded-xl bg-slate-50 p-4 sm:p-6 md:p-8 shadow-md transition hover:shadow-lg"
-              >
-                <h3 class="text-2xl sm:text-3xl font-bold text-amber-600">
-                  {{ milestone.year }}
-                </h3>
-                <h4 class="mt-2 text-lg sm:text-xl font-semibold text-slate-900">
+              <div class="rounded-3xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-2">
+                <span class="text-xl font-black text-amber-600 dark:text-amber-400 font-mono">{{ milestone.year }}</span>
+                <h4 class="text-lg font-black text-slate-900 dark:text-white">
                   {{ milestone.title }}
                 </h4>
-                <p class="mt-2 sm:mt-3 text-sm sm:text-base text-slate-600">
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
                   {{ milestone.description }}
                 </p>
               </div>

@@ -5,39 +5,40 @@
       v-for="card in dynamicStatCards"
       :key="card.key"
       @click="$emit('select', selectedCategory === card.key ? null : card.key)"
-      class="bg-white rounded-xl p-4 border transition duration-200 hover:shadow-md cursor-pointer flex flex-col justify-between select-none relative group"
+      class="bg-white dark:bg-slate-900 rounded-2xl p-4 border transition duration-200 hover:shadow-md cursor-pointer flex flex-col justify-between select-none relative group shadow-xs"
       :class="
         selectedCategory === card.key
-          ? 'border-teal-600 ring-2 ring-teal-600/20'
-          : 'border-slate-200/80'
+          ? 'border-amber-500 ring-2 ring-amber-500/20'
+          : 'border-slate-200/80 dark:border-slate-800'
       "
     >
       <!-- Meta Card Label & Character Icon Container -->
       <div class="flex items-center justify-between">
-        <span class="text-[10px] font-black tracking-wider text-slate-400 uppercase">{{
+        <span class="text-[10px] font-black tracking-wider text-slate-400 dark:text-slate-500 uppercase">{{
           card.title
         }}</span>
-        <span
-          class="text-lg p-1.5 rounded-lg bg-slate-50 group-hover:bg-slate-100 transition-colors duration-150"
+        <div
+          class="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500/20 transition-colors"
         >
-          {{ card.icon }}
-        </span>
+          <component :is="card.iconComponent" class="w-5 h-5" />
+        </div>
       </div>
 
       <!-- Real Live Numeric Tracking Count Block -->
       <div class="mt-4">
-        <span class="text-2xl font-black text-slate-900 tracking-tight">
+        <span class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
           {{ card.count }}
         </span>
-        <span class="text-xs font-semibold text-slate-400 ml-1">Items</span>
+        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 ml-1">Items</span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import type { MenuItem } from '@/types/menu'
+import { Sun, Utensils, Soup, Wine, Cake } from 'lucide-vue-next'
 
 interface BackendStatistics {
   total_items?: number
@@ -59,19 +60,19 @@ const props = defineProps<{
 defineEmits(['select'])
 
 // Visual anchors configuration metadata mapping
-const baseStaticMetadata = ref([
-  { title: 'Breakfast', key: 'breakfast', icon: '☀️', field: 'breakfast_items' as const },
-  { title: 'Lunch', key: 'lunch', icon: '🍔', field: 'lunch_items' as const },
-  { title: 'Dinner', key: 'dinner', icon: '🍲', field: 'dinner_items' as const },
-  { title: 'Drinks', key: 'drinks', icon: '🍹', field: 'drink_items' as const },
-  { title: 'Dessert', key: 'dessert', icon: '🍦', field: 'dessert_items' as const },
-])
+const baseStaticMetadata = [
+  { title: 'Breakfast', key: 'breakfast', iconComponent: Sun, field: 'breakfast_items' as const },
+  { title: 'Lunch', key: 'lunch', iconComponent: Utensils, field: 'lunch_items' as const },
+  { title: 'Dinner', key: 'dinner', iconComponent: Soup, field: 'dinner_items' as const },
+  { title: 'Drinks', key: 'drinks', iconComponent: Wine, field: 'drink_items' as const },
+  { title: 'Dessert', key: 'dessert', iconComponent: Cake, field: 'dessert_items' as const },
+]
 
 /**
  * Reactively bind live counts cleanly from backend indices
  */
 const dynamicStatCards = computed(() => {
-  return baseStaticMetadata.value.map((meta) => {
+  return baseStaticMetadata.map((meta) => {
     let finalCount = 0
 
     // 1. Direct validation check against actual backend payload response numbers

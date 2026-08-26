@@ -2,6 +2,21 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import ReservationStatusBadge from './ReservationStatusBadge.vue'
 import type { Reservation } from '@/types/reservation'
+import {
+  Calendar,
+  BedDouble,
+  MoreVertical,
+  Eye,
+  Edit,
+  Trash2,
+  CheckCircle2,
+  LogIn,
+  LogOut,
+  XCircle,
+  Loader2,
+  Users,
+  CalendarOff
+} from 'lucide-vue-next'
 
 interface Props {
   reservations: Reservation[]
@@ -25,26 +40,18 @@ const loadingActionId = ref<string | null>(null)
 
 const toggleMenu = (id: string, event: Event) => {
   event.stopPropagation()
-  console.log('🔘 [MENU] Toggle clicked for reservation:', id)
-  console.log('🔘 [MENU] Current openedMenu:', openedMenu.value)
-  console.log('🔘 [MENU] Is same ID?', openedMenu.value === id)
-
   if (openedMenu.value === id) {
     openedMenu.value = null
-    console.log('🔘 [MENU] Menu closed')
   } else {
     openedMenu.value = id
-    console.log('🔘 [MENU] Menu opened for:', id)
   }
 }
 
 const closeMenu = () => {
-  console.log('🔘 [MENU] Force close menu')
   openedMenu.value = null
 }
 
 const handleAction = (action: string, reservation: Reservation) => {
-  console.log('⚙️ [ACTION] Triggered:', action, 'for reservation:', reservation.id)
   loadingActionId.value = reservation.id
 
   switch (action) {
@@ -58,19 +65,19 @@ const handleAction = (action: string, reservation: Reservation) => {
       break
     case 'confirm':
       emit('confirm', reservation)
-      setTimeout(() => closeMenu(), 500)
+      setTimeout(() => closeMenu(), 400)
       break
     case 'check-in':
       emit('check-in', reservation)
-      setTimeout(() => closeMenu(), 500)
+      setTimeout(() => closeMenu(), 400)
       break
     case 'check-out':
       emit('check-out', reservation)
-      setTimeout(() => closeMenu(), 500)
+      setTimeout(() => closeMenu(), 400)
       break
     case 'cancel':
       emit('cancel', reservation)
-      setTimeout(() => closeMenu(), 500)
+      setTimeout(() => closeMenu(), 400)
       break
     case 'delete':
       emit('delete', reservation)
@@ -80,7 +87,7 @@ const handleAction = (action: string, reservation: Reservation) => {
 
   setTimeout(() => {
     loadingActionId.value = null
-  }, 2000)
+  }, 1500)
 }
 
 const formatDate = (date: string) => {
@@ -98,7 +105,7 @@ const calculateNights = (checkIn: string, checkOut: string) => {
   const start = new Date(checkIn)
   const end = new Date(checkOut)
   const diff = end.getTime() - start.getTime()
-  return Math.ceil(diff / (1000 * 60 * 60 * 24))
+  return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)))
 }
 
 const canCheckIn = (reservation: Reservation) => {
@@ -134,178 +141,144 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-    <!-- Header -->
+  <div class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs font-sans w-full">
+    
+    <!-- Table Header Bar -->
     <div
-      class="flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white px-3 py-2"
+      class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 px-4 py-3 backdrop-blur-xs"
     >
-      <div class="flex items-center gap-2">
-        <div class="rounded-lg bg-purple-100 p-1">
-          <span class="material-symbols-rounded text-xs text-purple-600">event</span>
+      <div class="flex items-center gap-2.5">
+        <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+          <Calendar class="w-4 h-4" />
         </div>
         <div>
-          <h2 class="text-sm font-semibold text-slate-800">Reservations</h2>
+          <h2 class="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">Reservations Catalog</h2>
         </div>
       </div>
-      <div v-if="!loading && reservations.length > 0" class="text-xs text-slate-500">
-        {{ reservations.length }}
+      <div v-if="!loading && reservations.length > 0" class="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-black border border-slate-200 dark:border-slate-700">
+        {{ reservations.length }} total
       </div>
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="flex flex-col items-center justify-center p-6 text-slate-500">
-      <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-8 h-8) -->
-      <div class="relative w-8 h-8 mb-2">
-        <!-- Static background - BRIGHT CYAN -->
-        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
-        </svg>
-        
-        <!-- Animated spinner - BRIGHT YELLOW -->
-        <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
-          <svg viewBox="0 0 100 100" class="w-full h-full">
-            <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
-          </svg>
-        </div>
-      </div>
-      <p class="font-medium text-xs">Loading...</p>
+    <!-- Loading State -->
+    <div v-if="loading" class="flex flex-col items-center justify-center p-8 text-slate-500 dark:text-slate-400 space-y-2">
+      <Loader2 class="w-6 h-6 text-blue-600 dark:text-blue-400 animate-spin" />
+      <p class="font-bold text-xs">Loading...</p>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="reservations.length === 0" class="p-6 text-center">
-      <div
-        class="mx-auto w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-2"
-      >
-        <span class="material-symbols-rounded text-lg text-slate-400">event_busy</span>
+    <div v-else-if="reservations.length === 0" class="p-8 text-center space-y-2">
+      <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+        <CalendarOff class="w-5 h-5" />
       </div>
-      <h3 class="text-sm font-semibold text-slate-700">No Reservations</h3>
+      <h3 class="text-xs font-black text-slate-900 dark:text-white">No Reservations Found</h3>
     </div>
 
-    <!-- Table - Desktop View (hidden on mobile) -->
-    <div v-else class="hidden md:block overflow-x-auto">
-      <table class="w-full divide-y divide-slate-200">
-        <thead class="bg-slate-50">
-          <tr>
-            <th
-              class="px-2 py-1.5 text-left font-semibold text-slate-600 text-xs whitespace-nowrap"
-            >
-              Booking Ref
-            </th>
-            <th
-              class="px-2 py-1.5 text-left font-semibold text-slate-600 text-xs whitespace-nowrap"
-            >
-              Guest
-            </th>
-            <th
-              class="px-2 py-1.5 text-left font-semibold text-slate-600 text-xs whitespace-nowrap"
-            >
-              Room
-            </th>
-            <th
-              class="px-2 py-1.5 text-left font-semibold text-slate-600 text-xs whitespace-nowrap"
-            >
-              Check-In
-            </th>
-            <th
-              class="px-2 py-1.5 text-left font-semibold text-slate-600 text-xs whitespace-nowrap"
-            >
-              Check-Out
-            </th>
-            <th
-              class="px-2 py-1.5 text-center font-semibold text-slate-600 text-xs whitespace-nowrap"
-            >
-              Guests
-            </th>
-            <th
-              class="px-2 py-1.5 text-center font-semibold text-slate-600 text-xs whitespace-nowrap"
-            >
-              Status
-            </th>
-            <th
-              class="px-2 py-1.5 text-center font-semibold text-slate-600 text-xs whitespace-nowrap"
-            >
-              Actions
-            </th>
+    <!-- Compact Table View -->
+    <div v-else class="overflow-x-auto w-full">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-slate-50/90 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+          <tr class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider select-none">
+            <th class="px-3 py-2.5 whitespace-nowrap">Booking Ref</th>
+            <th class="px-3 py-2.5 whitespace-nowrap">Guest</th>
+            <th class="px-3 py-2.5 whitespace-nowrap">Room</th>
+            <th class="px-3 py-2.5 whitespace-nowrap">Check-In</th>
+            <th class="px-3 py-2.5 whitespace-nowrap">Check-Out</th>
+            <th class="px-2 py-2.5 text-center whitespace-nowrap">Guests</th>
+            <th class="px-3 py-2.5 text-center whitespace-nowrap">Status</th>
+            <th class="px-3 py-2.5 text-right whitespace-nowrap pr-4">Actions</th>
           </tr>
         </thead>
 
-        <tbody class="divide-y divide-slate-200">
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
           <tr
             v-for="reservation in reservations"
             :key="reservation.id"
-            class="hover:bg-slate-50 transition-colors"
+            class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors duration-150 group"
           >
             <!-- Booking Reference -->
-            <td class="px-2 py-1.5 text-xs">
-              <span class="font-mono font-semibold text-blue-600">
+            <td class="px-3 py-2.5 whitespace-nowrap">
+              <span class="font-mono font-extrabold text-blue-600 dark:text-blue-400 text-[11px]">
                 {{ reservation.booking_reference }}
               </span>
             </td>
 
             <!-- Guest -->
-            <td class="px-2 py-1.5 text-xs">
-              <div v-if="reservation.guest" class="truncate min-w-0">
-                <div class="font-semibold text-slate-900 truncate text-xs">
-                  {{ reservation.guest.first_name }} {{ reservation.guest.last_name }}
+            <td class="px-3 py-2.5">
+              <div v-if="reservation.guest" class="flex items-center gap-2 max-w-[160px]">
+                <div class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-black text-[10px] flex items-center justify-center flex-shrink-0">
+                  {{ (reservation.guest.first_name?.[0] || 'G').toUpperCase() }}
                 </div>
-                <div class="text-xs text-slate-500 truncate">
-                  {{ reservation.guest.email || reservation.guest.phone || '-' }}
+                <div class="min-w-0 flex-1">
+                  <div class="font-bold text-slate-900 dark:text-white truncate text-xs">
+                    {{ reservation.guest.first_name }} {{ reservation.guest.last_name }}
+                  </div>
+                  <div class="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">
+                    {{ reservation.guest.email || reservation.guest.phone || '-' }}
+                  </div>
                 </div>
               </div>
-              <span v-else class="text-slate-400 text-xs">No guest</span>
+              <span v-else class="text-slate-400 text-xs italic">No guest assigned</span>
             </td>
 
             <!-- Room -->
-            <td class="px-2 py-1.5 text-xs">
-              <div v-if="reservation.room" class="text-xs">
-                <div class="font-semibold">Room {{ reservation.room.room_number }}</div>
+            <td class="px-3 py-2.5 whitespace-nowrap">
+              <div v-if="reservation.room" class="flex items-center gap-1">
+                <BedDouble class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">Room {{ reservation.room.room_number }}</span>
               </div>
+              <span v-else-if="reservation.room_type" class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                {{ reservation.room_type }}
+              </span>
+              <span v-else class="text-slate-400 text-xs italic">Unassigned</span>
             </td>
 
             <!-- Check-In Date -->
-            <td class="px-2 py-1.5 text-xs">
-              <div class="text-slate-700 font-medium">
+            <td class="px-3 py-2.5 whitespace-nowrap">
+              <div class="font-semibold text-slate-900 dark:text-slate-100 text-xs">
                 {{ formatDate(reservation.check_in_date) }}
               </div>
             </td>
 
             <!-- Check-Out Date -->
-            <td class="px-2 py-1.5 text-xs">
-              <div class="text-slate-700 font-medium">
-                {{ formatDate(reservation.check_out_date) }}
-              </div>
-              <div class="text-xs text-slate-500">
-                {{ calculateNights(reservation.check_in_date, reservation.check_out_date) }}n
+            <td class="px-3 py-2.5 whitespace-nowrap">
+              <div>
+                <div class="font-semibold text-slate-900 dark:text-slate-100 text-xs">
+                  {{ formatDate(reservation.check_out_date) }}
+                </div>
+                <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                  {{ calculateNights(reservation.check_in_date, reservation.check_out_date) }} night(s)
+                </div>
               </div>
             </td>
 
             <!-- Number of Guests -->
-            <td class="px-2 py-1.5 text-center">
-              <div
-                class="inline-flex items-center gap-0.5 bg-slate-100 px-1.5 py-0.5 rounded text-xs font-semibold"
-              >
+            <td class="px-2 py-2.5 text-center whitespace-nowrap">
+              <span class="inline-flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md text-[11px] font-bold border border-slate-200 dark:border-slate-700">
+                <Users class="w-3 h-3 text-slate-400" />
                 {{ reservation.number_of_guests }}
-              </div>
+              </span>
             </td>
 
-            <!-- Status -->
-            <td class="px-2 py-1.5 text-center">
+            <!-- Status Badge -->
+            <td class="px-3 py-2.5 text-center whitespace-nowrap">
               <ReservationStatusBadge :status="reservation.status" />
             </td>
 
-            <!-- Actions -->
-            <td class="relative px-2 py-1.5 text-center">
+            <!-- Action Menu Dropdown -->
+            <td class="px-3 py-2.5 text-right whitespace-nowrap pr-4 relative">
               <div class="action-menu inline-block relative">
                 <button
                   @click="toggleMenu(reservation.id, $event)"
-                  class="flex h-7 w-7 items-center justify-center rounded hover:bg-slate-100 transition"
-                  :class="{ 'bg-slate-100': openedMenu === reservation.id }"
-                  title="Actions menu"
+                  class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                  :class="{ 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white': openedMenu === reservation.id }"
+                  title="Actions"
                 >
-                  <span class="material-symbols-rounded text-sm">more_vert</span>
+                  <MoreVertical class="w-3.5 h-3.5" />
                 </button>
 
-                <transition
+                <!-- Dropdown Card Popup -->
+                <Transition
                   enter-active-class="transition duration-100 ease-out"
                   leave-active-class="transition duration-75 ease-in"
                   enter-from-class="opacity-0 scale-95 -translate-y-2"
@@ -315,46 +288,37 @@ onBeforeUnmount(() => {
                 >
                   <div
                     v-if="openedMenu === reservation.id"
-                    class="absolute right-0 top-8 z-50 w-40 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg"
+                    class="absolute right-0 top-8 z-50 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl p-1 space-y-0.5 text-left"
                   >
                     <!-- View -->
                     <button
                       @click="handleAction('view', reservation)"
-                      class="flex w-full items-center gap-2 px-3 py-2 hover:bg-blue-50 text-left text-xs text-slate-700 transition"
+                      class="flex w-full items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                     >
-                      <span class="material-symbols-rounded text-blue-600 text-sm">visibility</span>
-                      <span class="font-medium">View</span>
+                      <Eye class="w-3.5 h-3.5 text-blue-500" />
+                      <span>View</span>
                     </button>
 
                     <!-- Edit -->
                     <button
                       @click="handleAction('edit', reservation)"
-                      class="flex w-full items-center gap-2 px-3 py-2 hover:bg-green-50 text-left text-xs text-slate-700 transition"
+                      class="flex w-full items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                     >
-                      <span class="material-symbols-rounded text-green-600 text-sm">edit</span>
-                      <span class="font-medium">Edit</span>
+                      <Edit class="w-3.5 h-3.5 text-amber-500" />
+                      <span>Edit</span>
                     </button>
 
-                    <div class="border-t border-slate-200"></div>
+                    <div class="border-t border-slate-100 dark:border-slate-800 my-0.5"></div>
 
                     <!-- Confirm -->
                     <button
                       v-if="canConfirm(reservation)"
                       @click="handleAction('confirm', reservation)"
                       :disabled="loadingActionId === reservation.id"
-                      class="flex w-full items-center gap-2 px-3 py-2 hover:bg-purple-50 text-left text-xs text-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      class="flex w-full items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition cursor-pointer disabled:opacity-50"
                     >
-                      <span
-                        v-if="loadingActionId === reservation.id"
-                        class="material-symbols-rounded text-purple-600 text-sm animate-spin"
-                        >hourglass_bottom</span
-                      >
-                      <span v-else class="material-symbols-rounded text-purple-600 text-sm"
-                        >verified_user</span
-                      >
-                      <span class="font-medium">{{
-                        loadingActionId === reservation.id ? 'Confirming...' : 'Confirm'
-                      }}</span>
+                      <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" />
+                      <span>{{ loadingActionId === reservation.id ? 'Confirming...' : 'Confirm' }}</span>
                     </button>
 
                     <!-- Check In -->
@@ -362,19 +326,10 @@ onBeforeUnmount(() => {
                       v-if="canCheckIn(reservation)"
                       @click="handleAction('check-in', reservation)"
                       :disabled="loadingActionId === reservation.id"
-                      class="flex w-full items-center gap-2 px-3 py-2 hover:bg-green-50 text-left text-xs text-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      class="flex w-full items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition cursor-pointer disabled:opacity-50"
                     >
-                      <span
-                        v-if="loadingActionId === reservation.id"
-                        class="material-symbols-rounded text-green-600 text-sm animate-spin"
-                        >hourglass_bottom</span
-                      >
-                      <span v-else class="material-symbols-rounded text-green-600 text-sm"
-                        >login</span
-                      >
-                      <span class="font-medium">{{
-                        loadingActionId === reservation.id ? 'Checking in...' : 'Check In'
-                      }}</span>
+                      <LogIn class="w-3.5 h-3.5 text-blue-500" />
+                      <span>{{ loadingActionId === reservation.id ? 'Checking In...' : 'Check In' }}</span>
                     </button>
 
                     <!-- Check Out -->
@@ -382,19 +337,10 @@ onBeforeUnmount(() => {
                       v-if="canCheckOut(reservation)"
                       @click="handleAction('check-out', reservation)"
                       :disabled="loadingActionId === reservation.id"
-                      class="flex w-full items-center gap-2 px-3 py-2 hover:bg-cyan-50 text-left text-xs text-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      class="flex w-full items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition cursor-pointer disabled:opacity-50"
                     >
-                      <span
-                        v-if="loadingActionId === reservation.id"
-                        class="material-symbols-rounded text-cyan-600 text-sm animate-spin"
-                        >hourglass_bottom</span
-                      >
-                      <span v-else class="material-symbols-rounded text-cyan-600 text-sm"
-                        >logout</span
-                      >
-                      <span class="font-medium">{{
-                        loadingActionId === reservation.id ? 'Checking out...' : 'Check Out'
-                      }}</span>
+                      <LogOut class="w-3.5 h-3.5 text-purple-500" />
+                      <span>{{ loadingActionId === reservation.id ? 'Checking Out...' : 'Check Out' }}</span>
                     </button>
 
                     <!-- Cancel -->
@@ -402,33 +348,24 @@ onBeforeUnmount(() => {
                       v-if="canCancel(reservation)"
                       @click="handleAction('cancel', reservation)"
                       :disabled="loadingActionId === reservation.id"
-                      class="flex w-full items-center gap-2 px-3 py-2 hover:bg-amber-50 text-left text-xs text-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      class="flex w-full items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer disabled:opacity-50"
                     >
-                      <span
-                        v-if="loadingActionId === reservation.id"
-                        class="material-symbols-rounded text-amber-600 text-sm animate-spin"
-                        >hourglass_bottom</span
-                      >
-                      <span v-else class="material-symbols-rounded text-amber-600 text-sm"
-                        >cancel</span
-                      >
-                      <span class="font-medium">{{
-                        loadingActionId === reservation.id ? 'Cancelling...' : 'Cancel'
-                      }}</span>
+                      <XCircle class="w-3.5 h-3.5 text-rose-500" />
+                      <span>{{ loadingActionId === reservation.id ? 'Cancelling...' : 'Cancel' }}</span>
                     </button>
 
-                    <div class="border-t border-slate-200"></div>
+                    <div class="border-t border-slate-100 dark:border-slate-800 my-0.5"></div>
 
                     <!-- Delete -->
                     <button
                       @click="handleAction('delete', reservation)"
-                      class="flex w-full items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 text-left text-xs transition"
+                      class="flex w-full items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer"
                     >
-                      <span class="material-symbols-rounded text-sm">delete</span>
-                      <span class="font-medium">Delete</span>
+                      <Trash2 class="w-3.5 h-3.5 text-rose-500" />
+                      <span>Delete</span>
                     </button>
                   </div>
-                </transition>
+                </Transition>
               </div>
             </td>
           </tr>

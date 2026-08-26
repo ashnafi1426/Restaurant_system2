@@ -102,32 +102,49 @@
 
           <!-- Pagination -->
           <div class="bg-slate-50 dark:bg-slate-950/60 px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="text-xs text-slate-500 dark:text-slate-400">
-              Showing {{ startIndex + 1 }} to {{ Math.min(endIndex, history.length) }} of {{ history.length }} entries
+            <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+              <div class="flex items-center gap-1.5">
+                <label class="font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">Per page:</label>
+                <select
+                  v-model="itemsPerPage"
+                  @change="currentPage = 1"
+                  class="px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs"
+                >
+                  <option :value="5">5</option>
+                  <option :value="10">10</option>
+                  <option :value="20">20</option>
+                  <option :value="50">50</option>
+                </select>
+              </div>
+              <span>
+                Showing {{ history.length > 0 ? startIndex + 1 : 0 }} to {{ Math.min(endIndex, history.length) }} of {{ history.length }} entries
+              </span>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 items-center">
               <button
                 @click="previousPage"
                 :disabled="currentPage === 1"
-                class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
+                class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs transition"
               >
                 ← Previous
               </button>
               <div class="flex items-center gap-1">
-                <button
-                  v-for="page in totalPages"
-                  :key="page"
-                  @click="goToPage(page)"
-                  :class="page === currentPage ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
-                  class="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
-                >
-                  {{ page }}
-                </button>
+                <template v-for="(page, index) in visiblePages" :key="index">
+                  <span v-if="page === '...'" class="px-2 py-1 text-xs text-slate-400 font-semibold">...</span>
+                  <button
+                    v-else
+                    @click="goToPage(Number(page))"
+                    :class="page === currentPage ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                  >
+                    {{ page }}
+                  </button>
+                </template>
               </div>
               <button
                 @click="nextPage"
                 :disabled="currentPage === totalPages || totalPages === 0"
-                class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
+                class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs transition"
               >
                 Next →
               </button>
@@ -154,6 +171,27 @@ const totalPages = computed(() => Math.ceil(history.value.length / itemsPerPage.
 const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value)
 const endIndex = computed(() => startIndex.value + itemsPerPage.value)
 const paginatedHistory = computed(() => history.value.slice(startIndex.value, endIndex.value))
+
+const visiblePages = computed(() => {
+  const pages: (number | string)[] = []
+  if (totalPages.value <= 7) {
+    for (let i = 1; i <= totalPages.value; i++) pages.push(i)
+  } else {
+    pages.push(1)
+    if (currentPage.value > 3) pages.push('...')
+    
+    const start = Math.max(2, currentPage.value - 1)
+    const end = Math.min(totalPages.value - 1, currentPage.value + 1)
+    
+    for (let i = start; i <= end; i++) {
+      if (!pages.includes(i)) pages.push(i)
+    }
+    
+    if (currentPage.value < totalPages.value - 2) pages.push('...')
+    if (!pages.includes(totalPages.value)) pages.push(totalPages.value)
+  }
+  return pages
+})
 
 const filters = ref({
   start_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -205,6 +243,7 @@ const fetchHistory = async () => {
     const result = await waiterService.getHistory({
       start_date: filters.value.start_date,
       end_date: filters.value.end_date,
+      per_page: 500,
     })
     
     console.log('[DeliveryHistory] History data:', result.data)

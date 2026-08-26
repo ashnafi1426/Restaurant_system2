@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { X, ZoomIn } from 'lucide-vue-next'
 
 interface GalleryImage {
   id: number
@@ -9,91 +10,25 @@ interface GalleryImage {
 }
 
 const galleryImages: GalleryImage[] = [
-  // === ROOMS CATEGORY ===
-  {
-    id: 1,
-    src: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1000&h=800&fit=crop',
-    title: 'Luxury Suite Room',
-    category: 'Rooms',
-  },
-  {
-    id: 2,
-    src: 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=1000&h=800&fit=crop',
-    title: 'Deluxe Double Room',
-    category: 'Rooms',
-  },
-  {
-    id: 3,
-    src: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1000&h=800&fit=crop',
-    title: 'Executive Master Suite',
-    category: 'Rooms',
-  },
-
-  // === FACILITIES CATEGORY ===
-  {
-    id: 4,
-    src: 'https://images.unsplash.com/photo-1576610616656-d3aa5d1f4fabc?w=1000&h=800&fit=crop',
-    title: 'Olympic Swimming Pool',
-    category: 'Facilities',
-  },
-  {
-    id: 5,
-    src: 'https://images.unsplash.com/photo-1568084308-94de50617011?w=1000&h=800&fit=crop',
-    title: 'Spa & Wellness Center',
-    category: 'Facilities',
-  },
-  {
-    id: 6,
-    src: 'https://images.unsplash.com/photo-1599073990936-e04d4b647a11?w=1000&h=800&fit=crop',
-    title: 'Elegant Lobby',
-    category: 'Facilities',
-  },
-  {
-    id: 7,
-    src: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1000&h=800&fit=crop',
-    title: 'Conference Hall',
-    category: 'Facilities',
-  },
-  {
-    id: 8,
-    src: 'https://images.unsplash.com/photo-1590080876/8a208e8d2e3c?w=1000&h=800&fit=crop',
-    title: 'Fitness Center',
-    category: 'Facilities',
-  },
-
-  // === RESTAURANT CATEGORY ===
-  {
-    id: 9,
-    src: 'https://images.unsplash.com/photo-1504674900769-8a8a3f3d7131?w=1000&h=800&fit=crop',
-    title: 'Fine Dining Restaurant',
-    category: 'Restaurant',
-  },
-  {
-    id: 10,
-    src: 'https://images.unsplash.com/photo-1517248135467-4d71bcdd2d59?w=1000&h=800&fit=crop',
-    title: 'Elegant Restaurant Interior',
-    category: 'Restaurant',
-  },
-
-  // === OUTDOOR CATEGORY ===
-  {
-    id: 11,
-    src: 'https://images.unsplash.com/photo-1552462881-23dde8faf51f?w=1000&h=800&fit=crop',
-    title: 'Beautiful Landscape Garden',
-    category: 'Outdoor',
-  },
-  {
-    id: 12,
-    src: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=1000&h=800&fit=crop',
-    title: 'Outdoor Terrace Seating',
-    category: 'Outdoor',
-  },
+  { id: 1, src: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1000&h=800&fit=crop', title: 'Luxury Master Suite', category: 'Rooms' },
+  { id: 2, src: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=1000&h=800&fit=crop', title: 'Executive Ocean View Room', category: 'Rooms' },
+  { id: 3, src: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1000&h=800&fit=crop', title: 'Presidential Penthouse', category: 'Rooms' },
+  { id: 4, src: 'https://images.unsplash.com/photo-1576610616656-d3aa5d1f4fab?w=1000&h=800&fit=crop', title: 'Infinity Swimming Pool', category: 'Facilities' },
+  { id: 5, src: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1000&h=800&fit=crop', title: 'Luxury Spa & Wellness', category: 'Facilities' },
+  { id: 6, src: 'https://images.unsplash.com/photo-1517248135467-4d71bcdd2d59?w=1000&h=800&fit=crop', title: 'Fine Dining Restaurant', category: 'Restaurant' },
 ]
 
+const categories = ['All', 'Rooms', 'Facilities', 'Restaurant']
+const selectedCategory = ref('All')
 const selectedImage = ref<GalleryImage | null>(null)
 
-function openImage(image: GalleryImage) {
-  selectedImage.value = image
+const filteredImages = computed(() => {
+  if (selectedCategory.value === 'All') return galleryImages
+  return galleryImages.filter((img) => img.category === selectedCategory.value)
+})
+
+function openImage(img: GalleryImage) {
+  selectedImage.value = img
 }
 
 function closeImage() {
@@ -102,116 +37,85 @@ function closeImage() {
 </script>
 
 <template>
-  <section class="bg-white py-12 sm:py-16 md:py-20 lg:py-24">
-    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10">
+  <section class="bg-slate-50 dark:bg-slate-950 py-12 sm:py-16 md:py-20 lg:py-24 transition-colors duration-300">
+    <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10 space-y-8">
       <!-- Header -->
-      <div class="mx-auto mb-8 sm:mb-12 md:mb-16 max-w-3xl text-center">
-        <p
-          class="mb-2 sm:mb-4 text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-amber-600"
-        >
-          Gallery
-        </p>
-        <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-slate-900">
-          Explore Our Facilities
+      <div class="mx-auto max-w-3xl text-center space-y-3">
+        <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+          Visual Tour
+        </span>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+          Hotel Gallery
         </h2>
-        <p
-          class="mt-3 sm:mt-4 md:mt-6 text-sm sm:text-base md:text-lg leading-6 sm:leading-7 md:leading-8 text-slate-500"
-        >
-          Discover the beauty and elegance of our hotel through our carefully curated gallery of
-          rooms, facilities, and dining experiences.
+        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
+          Take a glimpse into our luxurious rooms, world-class amenities, and exquisite dining spaces.
         </p>
       </div>
 
+      <!-- Filter Buttons -->
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        <button
+          v-for="cat in categories"
+          :key="cat"
+          @click="selectedCategory = cat"
+          :class="[
+            'px-4 py-2 rounded-2xl text-xs font-black transition cursor-pointer',
+            selectedCategory === cat
+              ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+          ]"
+        >
+          {{ cat }}
+        </button>
+      </div>
+
       <!-- Gallery Grid -->
-      <div class="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
-          v-for="image in galleryImages"
-          :key="image.id"
-          class="group relative overflow-hidden rounded-lg sm:rounded-2xl cursor-pointer"
-          @click="openImage(image)"
+          v-for="img in filteredImages"
+          :key="img.id"
+          @click="openImage(img)"
+          class="group relative overflow-hidden rounded-3xl bg-slate-900 cursor-pointer shadow-xs border border-slate-200 dark:border-slate-800 h-64"
         >
           <img
-            :src="image.src"
-            :alt="image.title"
-            class="h-48 sm:h-56 md:h-72 w-full object-cover transition duration-500 group-hover:scale-110"
+            :src="img.src"
+            :alt="img.title"
+            class="h-full w-full object-cover transition duration-500 group-hover:scale-110"
           />
-
-          <!-- Overlay -->
-          <div
-            class="absolute inset-0 bg-black/40 opacity-0 transition duration-300 group-hover:opacity-100 flex items-center justify-center"
-          >
-            <div class="text-center text-white px-4">
-              <h3 class="text-lg sm:text-xl md:text-2xl font-semibold">
-                {{ image.title }}
-              </h3>
-              <p class="mt-1 sm:mt-2 text-xs sm:text-sm md:text-base text-amber-400">
-                {{ image.category }}
-              </p>
-            </div>
+          <div class="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4 text-center space-y-2 text-white">
+            <ZoomIn class="w-8 h-8 text-amber-400" />
+            <h3 class="text-sm font-black">{{ img.title }}</h3>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase">
+              {{ img.category }}
+            </span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Lightbox Modal -->
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition duration-300"
-        leave-active-class="transition duration-200"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
-      >
-        <div
-          v-if="selectedImage"
-          class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-6"
-          @click.self="closeImage"
+    <!-- Modal Dialog -->
+    <div
+      v-if="selectedImage"
+      class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4"
+      @click.self="closeImage"
+    >
+      <div class="relative max-w-4xl w-full bg-slate-900 rounded-3xl overflow-hidden border border-slate-800 shadow-2xl">
+        <button
+          @click="closeImage"
+          class="absolute top-4 right-4 p-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-white transition cursor-pointer z-10"
         >
-          <!-- Close Button -->
-          <button
-            @click="closeImage"
-            class="absolute right-8 top-8 flex h-12 w-12 items-center justify-center rounded-full bg-white text-2xl font-bold text-slate-900 shadow-xl transition hover:rotate-90 hover:bg-red-500 hover:text-white"
-          >
-            ×
-          </button>
+          <X class="w-5 h-5" />
+        </button>
 
-          <!-- Image Container -->
-          <div class="mx-auto w-full max-w-4xl">
-            <img
-              :src="selectedImage.src"
-              :alt="selectedImage.title"
-              class="mx-auto max-h-[80vh] w-auto rounded-3xl shadow-2xl"
-            />
+        <img :src="selectedImage.src" :alt="selectedImage.title" class="max-h-[75vh] w-full object-cover" />
 
-            <!-- Information -->
-            <div class="mt-8 rounded-3xl bg-white p-8 shadow-2xl">
-              <div class="flex flex-wrap items-center justify-between gap-6">
-                <div>
-                  <span
-                    class="rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-white"
-                  >
-                    {{ selectedImage.category }}
-                  </span>
-
-                  <h2 class="mt-5 text-4xl font-bold text-slate-900">
-                    {{ selectedImage.title }}
-                  </h2>
-
-                  <p class="mt-3 text-slate-500">Grand Horizon Hotel Gallery Collection</p>
-                </div>
-
-                <button
-                  @click="closeImage"
-                  class="rounded-xl bg-amber-500 px-8 py-4 font-semibold text-white transition hover:bg-amber-600"
-                >
-                  Close Gallery
-                </button>
-              </div>
-            </div>
+        <div class="p-6 bg-slate-900 text-white flex items-center justify-between">
+          <div>
+            <h3 class="text-lg font-black">{{ selectedImage.title }}</h3>
+            <p class="text-xs text-amber-400 font-bold uppercase tracking-wider">{{ selectedImage.category }}</p>
           </div>
         </div>
-      </Transition>
-    </Teleport>
+      </div>
+    </div>
   </section>
 </template>

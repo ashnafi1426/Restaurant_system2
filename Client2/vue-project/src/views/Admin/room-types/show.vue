@@ -8,6 +8,7 @@ import { useRoomTypeStore } from '../../../stores/roomType'
 import RoomTypeTable from '../../../components/room-types/RoomTypeTable.vue'
 import RoomTypeSearch from '../../../components/room-types/RoomTypeSearch.vue'
 import ConfirmDeleteModal from '../../../components/room-types/DeleteRoomTypeModal.vue'
+import { Plus } from 'lucide-vue-next'
 
 import type { RoomType } from '../../../types/roomType'
 
@@ -57,10 +58,11 @@ const confirmDelete = async () => {
         <h1 class="text-3xl font-bold">Room Types</h1>
 
         <button
-          class="bg-blue-600 text-white px-4 py-2 rounded"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center gap-1.5 font-bold text-sm cursor-pointer"
           @click="router.push('/room-types/create')"
         >
-          + Add Room Type
+          <Plus class="w-4 h-4 stroke-[3]" />
+          <span>Add Room Type</span>
         </button>
       </div>
 

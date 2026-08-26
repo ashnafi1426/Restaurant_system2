@@ -1,19 +1,19 @@
 <template>
-  <div class="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-5">
+  <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5">
     <div
       v-for="stat in stats"
       :key="stat.key"
       :class="[
-        'rounded-lg border-l-4 px-3 sm:px-4 md:px-5 py-3 sm:py-4 bg-white shadow-sm hover:shadow-md transition',
+        'rounded-2xl border-l-4 border-y border-r px-4 py-3.5 shadow-sm hover:shadow-md transition duration-200',
         stat.color,
       ]"
     >
-      <p class="text-xs font-bold uppercase tracking-widest text-slate-600">{{ stat.label }}</p>
-      <div class="mt-1.5 sm:mt-2 flex items-end justify-between">
-        <p class="text-2xl sm:text-3xl font-bold text-slate-900">
+      <p class="text-[11px] font-black uppercase tracking-wider opacity-80">{{ stat.label }}</p>
+      <div class="mt-2 flex items-end justify-between">
+        <p class="text-2xl sm:text-3xl font-black">
           {{ getStatValue(stat.key) }}
         </p>
-        <component :is="stat.icon" :size="24" :stroke-width="2" :class="stat.iconColor" />
+        <component :is="stat.icon" :size="22" :stroke-width="2.5" :class="stat.iconColor" />
       </div>
     </div>
   </div>
@@ -31,37 +31,37 @@ const stats = [
   {
     label: 'PENDING',
     key: 'pending_orders',
-    color: 'border-amber-400 bg-amber-50',
+    color: 'border-amber-500 bg-amber-500/10 text-amber-900 dark:text-amber-300 border-amber-500/30',
     icon: Clock,
-    iconColor: 'text-amber-600',
+    iconColor: 'text-amber-500',
   },
   {
     label: 'PREPARING',
     key: 'preparing_orders',
-    color: 'border-blue-400 bg-blue-50',
+    color: 'border-blue-500 bg-blue-500/10 text-blue-900 dark:text-blue-300 border-blue-500/30',
     icon: ChefHat,
-    iconColor: 'text-blue-600',
+    iconColor: 'text-blue-500',
   },
   {
     label: 'READY',
     key: 'ready_orders',
-    color: 'border-green-400 bg-green-50',
+    color: 'border-emerald-500 bg-emerald-500/10 text-emerald-900 dark:text-emerald-300 border-emerald-500/30',
     icon: CheckCircle,
-    iconColor: 'text-green-600',
+    iconColor: 'text-emerald-500',
   },
   {
     label: 'SERVED',
     key: 'served_orders',
-    color: 'border-slate-400 bg-slate-50',
+    color: 'border-slate-400 bg-slate-500/10 text-slate-900 dark:text-slate-300 border-slate-500/30',
     icon: UtensilsCrossed,
-    iconColor: 'text-slate-600',
+    iconColor: 'text-slate-400',
   },
   {
     label: 'CANCELLED',
     key: 'cancelled_orders',
-    color: 'border-red-400 bg-red-50',
+    color: 'border-rose-500 bg-rose-500/10 text-rose-900 dark:text-rose-300 border-rose-500/30',
     icon: XCircle,
-    iconColor: 'text-red-600',
+    iconColor: 'text-rose-500',
   },
 ]
 

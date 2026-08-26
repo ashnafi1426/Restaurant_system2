@@ -3,6 +3,12 @@ import { onMounted, ref, computed } from 'vue'
 import { useKitchenStore } from '@/stores/kitchenStore'
 import { storeToRefs } from 'pinia'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
+import { 
+  Beef, Coffee, Cake, Fish, Pizza, Soup, 
+  Sandwich, Apple, Wine, IceCream, Cookie, 
+  Egg, Salad, UtensilsCrossed, ChefHat,
+  Clock, Check, CheckCheck, Inbox, ShoppingBag, Utensils, FileText, CookingPot
+} from 'lucide-vue-next'
 
 const kitchenStore = useKitchenStore()
 const { orders, statistics, loading } = storeToRefs(kitchenStore)
@@ -43,13 +49,13 @@ const filteredOrders = computed(() => {
 
 // Pagination computed properties
 const totalPages = computed(() => {
-  return Math.ceil((filteredOrders.value?.length || 0) / itemsPerPage.value)
+  return Math.ceil(filteredOrders.value.length / itemsPerPage.value) || 1
 })
 
 const paginatedOrders = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value
   const end = start + itemsPerPage.value
-  return (filteredOrders.value || []).slice(start, end)
+  return filteredOrders.value.slice(start, end)
 })
 
 const startItem = computed(() => {
@@ -135,18 +141,18 @@ const getStatusRowBg = (status: string) => {
   }
 }
 
-const getStatusIcon = (status: string) => {
+const getStatusIconComponent = (status: string) => {
   switch (status) {
     case 'pending':
-      return '⏳'
+      return Clock
     case 'preparing':
-      return '👨‍🍳'
+      return CookingPot
     case 'ready':
-      return '✓'
+      return Check
     case 'served':
-      return '✓✓'
+      return CheckCheck
     default:
-      return '📋'
+      return UtensilsCrossed
   }
 }
 
@@ -162,6 +168,45 @@ const formatTime = (dateTime: string) => {
 const getItemsPreview = (items: any[]) => {
   if (!items?.length) return 'No items'
   return items.map((i) => `${i.quantity}x ${i.name}`).join(', ')
+}
+
+// Map food items to appropriate Lucide icons
+const getFoodIcon = (itemName: string, category?: string) => {
+  const name = itemName?.toLowerCase() || ''
+  const cat = category?.toLowerCase() || ''
+
+  // Breakfast items
+  if (name.includes('egg') || name.includes('omelet')) return Egg
+  if (name.includes('bacon') || name.includes('pancake') || name.includes('waffle')) return ChefHat
+  
+  // Main dishes
+  if (name.includes('burger') || name.includes('sandwich')) return Sandwich
+  if (name.includes('pizza')) return Pizza
+  if (name.includes('steak') || name.includes('beef') || name.includes('mignon')) return Beef
+  if (name.includes('chicken') || name.includes('poultry')) return ChefHat
+  if (name.includes('fish') || name.includes('salmon') || name.includes('tuna')) return Fish
+  
+  // Soups & bowls
+  if (name.includes('soup') || name.includes('ramen') || name.includes('noodle') || name.includes('bowl')) return Soup
+  
+  // Salads
+  if (cat.includes('salad') || name.includes('salad')) return Salad
+  
+  // Desserts
+  if (cat.includes('dessert') || name.includes('cake') || name.includes('lava')) return Cake
+  if (name.includes('ice cream') || name.includes('gelato')) return IceCream
+  if (name.includes('cookie') || name.includes('chocolate')) return Cookie
+  
+  // Drinks
+  if (cat.includes('drink') || cat.includes('beverage')) return Coffee
+  if (name.includes('coffee') || name.includes('espresso') || name.includes('tea')) return Coffee
+  if (name.includes('wine') || name.includes('beer') || name.includes('cocktail')) return Wine
+  
+  // Fruits
+  if (name.includes('fruit') || name.includes('apple') || name.includes('banana') || name.includes('orange')) return Apple
+  
+  // Default
+  return UtensilsCrossed
 }
 
 const statusCounts = computed(() => {
@@ -189,10 +234,13 @@ const getStatusCount = (status: string): number => {
         <!-- Title -->
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-3xl font-bold text-slate-900">🍜 All Food Orders</h1>
-            <p class="mt-2 text-slate-600">Complete kitchen order history</p>
+            <h1 class="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+              <UtensilsCrossed class="w-8 h-8 text-amber-500" />
+              <span>All Food Orders</span>
+            </h1>
+            <p class="mt-2 text-slate-600 dark:text-slate-400">Complete kitchen order history</p>
           </div>
-          <div class="bg-teal-100 text-teal-700 px-6 py-3 rounded-lg font-bold text-2xl">
+          <div class="bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 px-6 py-3 rounded-2xl font-black text-2xl">
             {{ filteredOrders.length }}
           </div>
         </div>
@@ -205,7 +253,7 @@ const getStatusCount = (status: string): number => {
               v-model="searchQuery"
               type="text"
               placeholder="Search by room, order #, guest name, or item..."
-              class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              class="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent font-medium"
             />
           </div>
 
@@ -216,10 +264,10 @@ const getStatusCount = (status: string): number => {
               :key="status"
               @click="selectedStatus = status"
               :class="[
-                'px-3 py-2 rounded-lg font-semibold text-xs sm:text-sm transition whitespace-nowrap',
+                'px-3 py-2 rounded-xl font-bold text-xs sm:text-sm transition whitespace-nowrap cursor-pointer',
                 selectedStatus === status
-                  ? 'bg-teal-600 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
+                  ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20'
+                  : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-amber-500',
               ]"
             >
               {{ status.toUpperCase() }}
@@ -230,65 +278,74 @@ const getStatusCount = (status: string): number => {
       </div>
 
       <!-- Table Container -->
-      <div class="rounded-lg bg-white shadow-md overflow-hidden overflow-x-auto">
+      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden overflow-x-auto">
         <table class="w-full text-sm">
           <!-- Table Header -->
           <thead>
-            <tr class="bg-slate-100 border-b-2 border-slate-200">
-              <th class="px-4 py-3 text-left font-bold text-slate-700">Order ID</th>
-              <th class="px-4 py-3 text-left font-bold text-slate-700">Room</th>
-              <th class="px-4 py-3 text-left font-bold text-slate-700">Guest</th>
-              <th class="px-4 py-3 text-left font-bold text-slate-700">Items</th>
-              <th class="px-4 py-3 text-left font-bold text-slate-700">Time</th>
-              <th class="px-4 py-3 text-right font-bold text-slate-700">Total</th>
-              <th class="px-4 py-3 text-center font-bold text-slate-700">Status</th>
+            <tr class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider select-none">
+              <th class="px-4 py-3.5 text-left">Order ID</th>
+              <th class="px-4 py-3.5 text-left">Room</th>
+              <th class="px-4 py-3.5 text-left">Guest</th>
+              <th class="px-4 py-3.5 text-left">Items</th>
+              <th class="px-4 py-3.5 text-left">Time</th>
+              <th class="px-4 py-3.5 text-right">Total</th>
+              <th class="px-4 py-3.5 text-center">Status</th>
             </tr>
           </thead>
 
           <!-- Table Body -->
-          <tbody>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
             <tr
               v-for="order in paginatedOrders"
               :key="order.id"
               :class="[
-                'border-b border-slate-200 transition cursor-pointer',
+                'transition cursor-pointer',
                 getStatusRowBg(order.status),
               ]"
             >
               <!-- Order ID Column -->
               <td class="px-4 py-3">
-                <div class="font-mono text-xs font-semibold text-slate-900">
+                <div class="font-mono text-xs font-bold text-slate-900 dark:text-white">
                   {{ order.order_number }}
                 </div>
               </td>
 
               <!-- Room Column -->
               <td class="px-4 py-3">
-                <div class="font-semibold text-slate-900">
-                  {{ order.room?.room_number ? `ROOM ${order.room.room_number}` : '🍽️ TAKEOUT' }}
+                <div class="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 text-xs">
+                  <span v-if="order.room?.room_number" class="font-bold">ROOM {{ order.room.room_number }}</span>
+                  <span v-else class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold">
+                    <ShoppingBag class="w-3.5 h-3.5" />
+                    <span>TAKEOUT</span>
+                  </span>
                 </div>
               </td>
 
               <!-- Guest Column -->
               <td class="px-4 py-3">
-                <div class="text-slate-700">
+                <div class="text-slate-700 dark:text-slate-300 text-xs font-medium">
                   {{ order.guest?.full_name || 'Walk-in Guest' }}
                 </div>
               </td>
 
               <!-- Items Column -->
               <td class="px-4 py-3">
-                <div class="text-slate-700 max-w-sm">
+                <div class="text-slate-700 dark:text-slate-300 max-w-sm">
                   <div
                     v-for="(item, idx) in (order.items || []).slice(0, 2)"
                     :key="idx"
-                    class="text-sm"
+                    class="text-xs font-medium flex items-center gap-2 mb-1"
                   >
-                    {{ item.quantity }}x {{ item.name }}
+                    <component 
+                      :is="getFoodIcon(item.name, item.category)" 
+                      :size="14" 
+                      class="text-amber-500 flex-shrink-0"
+                    />
+                    <span>{{ item.quantity }}x {{ item.name }}</span>
                   </div>
                   <div
                     v-if="(order.items || []).length > 2"
-                    class="text-xs text-slate-500 font-semibold"
+                    class="text-[10px] text-slate-400 font-bold mt-1 ml-5"
                   >
                     +{{ (order.items || []).length - 2 }} more items
                   </div>
@@ -297,14 +354,14 @@ const getStatusCount = (status: string): number => {
 
               <!-- Time Column -->
               <td class="px-4 py-3">
-                <div class="font-semibold text-slate-900">
+                <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">
                   {{ formatTime(order.order_time) }}
                 </div>
               </td>
 
               <!-- Total Column -->
               <td class="px-4 py-3 text-right">
-                <div class="font-bold text-slate-900">
+                <div class="font-black text-slate-900 dark:text-white text-xs font-mono">
                   ${{ parseFloat(order.total).toFixed(2) }}
                 </div>
               </td>
@@ -313,12 +370,12 @@ const getStatusCount = (status: string): number => {
               <td class="px-4 py-3 text-center">
                 <span
                   :class="[
-                    'inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold',
+                    'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider',
                     getStatusBadgeColor(order.status),
                   ]"
                 >
-                  <span class="text-lg">{{ getStatusIcon(order.status) }}</span>
-                  {{ order.status.toUpperCase() }}
+                  <component :is="getStatusIconComponent(order.status)" class="w-3.5 h-3.5" />
+                  <span>{{ order.status }}</span>
                 </span>
               </td>
             </tr>
@@ -326,8 +383,8 @@ const getStatusCount = (status: string): number => {
         </table>
 
         <!-- Empty State -->
-        <div v-if="filteredOrders.length === 0" class="text-center py-12 bg-slate-50">
-          <p class="text-6xl mb-4">📭</p>
+        <div v-if="filteredOrders.length === 0" class="text-center py-12 bg-slate-50 dark:bg-slate-950">
+          <Inbox class="w-12 h-12 text-slate-400 dark:text-slate-600 mx-auto mb-3" />
           <p class="text-xl font-bold text-slate-900">
             No {{ selectedStatus === 'all' ? 'Orders' : selectedStatus + ' Orders' }}
           </p>

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import DashboardLayout from '../../layouts/DashboardLayout.vue'
+import DashboardLayout from '../../Layouts/DashboardLayout.vue'
 import { useCashierStore } from '@/stores/cashierStore'
 import {
   TrendingUp, DollarSign, Download, Calendar, CreditCard, RefreshCw,
   BarChart3, PieChart, ArrowUpRight, Filter, FileSpreadsheet, Printer,
-  Building, CheckCircle, Clock, XCircle
+  Building, CheckCircle, Clock, XCircle, ChevronLeft, ChevronRight
 } from 'lucide-vue-next'
 
 const cashierStore = useCashierStore()
@@ -19,10 +19,101 @@ const refundReport = ref<any>(null)
 const loading = ref(false)
 const showFilters = ref(false)
 
+// Revenue Daily Breakdown Pagination State
+const currentPage = ref(1)
+const perPage = ref(10)
+
 const quickDateFilters = [
-  { label: 'Today', value: 'today' }, { label: 'This Week', value: 'week' },
-  { label: 'This Month', value: 'month' }, { label: 'This Year', value: 'year' }
+  { label: 'Today', value: 'today' },
+  { label: 'This Week', value: 'week' },
+  { label: 'This Month', value: 'month' },
+  { label: 'This Year', value: 'year' }
 ]
+
+const paginatedDailyBreakdown = computed(() => {
+  if (!revenueReport.value?.daily_breakdown) return []
+  const start = (currentPage.value - 1) * perPage.value
+  const end = start + perPage.value
+  return revenueReport.value.daily_breakdown.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  if (!revenueReport.value?.daily_breakdown) return 0
+  return Math.ceil(revenueReport.value.daily_breakdown.length / perPage.value) || 1
+})
+
+const showingFrom = computed(() => {
+  const total = revenueReport.value?.daily_breakdown?.length || 0
+  if (total === 0) return 0
+  return (currentPage.value - 1) * perPage.value + 1
+})
+
+const showingTo = computed(() => {
+  const total = revenueReport.value?.daily_breakdown?.length || 0
+  return Math.min(currentPage.value * perPage.value, total)
+})
+
+const paginationPages = computed(() => {
+  const pages: number[] = []
+  const max = totalPages.value
+  const cur = currentPage.value
+
+  for (let i = Math.max(1, cur - 2); i <= Math.min(max, cur + 2); i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+const changePerPage = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  perPage.value = Number(target.value)
+  currentPage.value = 1
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const previousPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const goToPage = (p: number) => {
+  if (p >= 1 && p <= totalPages.value) {
+    currentPage.value = p
+  }
+}
+
+// Refund List Pagination State
+const refundCurrentPage = ref(1)
+const refundPerPage = ref(10)
+
+const paginatedRefundsList = computed(() => {
+  if (!refundReport.value?.refunds_list) return []
+  const start = (refundCurrentPage.value - 1) * refundPerPage.value
+  const end = start + refundPerPage.value
+  return refundReport.value.refunds_list.slice(start, end)
+})
+
+const totalRefundPages = computed(() => {
+  if (!refundReport.value?.refunds_list) return 0
+  return Math.ceil(refundReport.value.refunds_list.length / refundPerPage.value) || 1
+})
+
+const changeRefundPerPage = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  refundPerPage.value = Number(target.value)
+  refundCurrentPage.value = 1
+}
+
+const resetPagination = () => {
+  currentPage.value = 1
+  refundCurrentPage.value = 1
+}
 
 onMounted(() => { loadReports() })
 
@@ -32,6 +123,7 @@ const loadReports = async () => {
     await Promise.all([
       loadRevenueReport(), loadPaymentReport(), loadRefundReport()
     ])
+    resetPagination()
   } finally { loading.value = false }
 }
 
@@ -81,27 +173,28 @@ const setQuickDateFilter = (filter: string) => {
 
 const revenueAnalytics = computed(() => {
   if (!revenueReport.value) return null
-  const total = revenueReport.value.total_revenue
+  const total = revenueReport.value.total_revenue || 1
   return {
     reservation_percentage: revenueReport.value.reservation_revenue 
-      ? ((revenueReport.value.reservation_revenue / total) * 100).toFixed(1) : 0,
+      ? ((revenueReport.value.reservation_revenue / total) * 100).toFixed(1) : '0.0',
     order_percentage: revenueReport.value.order_revenue
-      ? ((revenueReport.value.order_revenue / total) * 100).toFixed(1) : 0,
+      ? ((revenueReport.value.order_revenue / total) * 100).toFixed(1) : '0.0',
   }
 })
 
 const formatCurrency = (amount: number | string) => {
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
-  return `${numAmount.toFixed(2)} ETB`
+  return `${(numAmount || 0).toFixed(2)} ETB`
 }
 
 const formatDate = (date: string) => {
+  if (!date) return '-'
   return new Date(date).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric'
   })
 }
 
-const downloadPDF = () => {
+const printPage = () => {
   window.print()
 }
 
@@ -133,69 +226,81 @@ const downloadExcel = () => {
   link.download = filename
   link.click()
 }
-
 </script>
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6">
-      <!-- Header -->
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans">
+      <!-- Header Banner -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Financial Reports</h1>
-          <p class="text-slate-500 dark:text-slate-400 mt-1">Comprehensive financial analytics and insights</p>
+          <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Financial Reports</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Comprehensive financial analytics, revenue breakdowns, and transaction insights.</p>
         </div>
-        <div class="flex gap-2">
-          <button @click="window.print()" class="flex items-center gap-2 px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg transition-colors">
-            <Printer :size="18" />
-            Print
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            @click="printPage"
+            class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700"
+          >
+            <Printer class="w-3.5 h-3.5" />
+            <span>Print</span>
           </button>
-          <button @click="loadReports" :disabled="loading" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50">
-            <RefreshCw :size="18" :class="{ 'animate-spin': loading }" />
-            Refresh
+
+          <button
+            @click="loadReports"
+            :disabled="loading"
+            class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-md shadow-blue-600/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw :class="['w-3.5 h-3.5', loading && 'animate-spin']" />
+            <span>Refresh</span>
           </button>
         </div>
       </div>
 
-      <!-- Quick Filters -->
-      <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-4">
-        <div class="flex items-center gap-2 mb-3">
-          <Calendar :size="18" class="text-blue-600" />
-          <h3 class="font-semibold text-slate-800 dark:text-white">Quick Date Filters</h3>
+      <!-- Quick Date Filter Pills -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 shadow-xs space-y-3">
+        <div class="flex items-center gap-2">
+          <Calendar class="w-4 h-4 text-blue-500" />
+          <h3 class="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Quick Date Filters</h3>
         </div>
-        <div class="flex flex-wrap gap-2">
-          <button v-for="filter in quickDateFilters" :key="filter.value" @click="setQuickDateFilter(filter.value)" 
-            class="px-4 py-2 text-sm bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-colors">
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            v-for="filter in quickDateFilters"
+            :key="filter.value"
+            @click="setQuickDateFilter(filter.value)"
+            class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-black transition cursor-pointer border border-slate-200 dark:border-slate-700"
+          >
             {{ filter.label }}
           </button>
         </div>
       </div>
 
-      <!-- Advanced Filters -->
-      <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm">
-        <div class="px-6 py-4 border-b dark:border-slate-700 flex justify-between items-center">
-          <h3 class="text-lg font-semibold text-slate-800 dark:text-white flex items-center gap-2">
-            <Filter :size="18" class="text-blue-600" />
-            Advanced Filters
+      <!-- Advanced Filter Options -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
+          <h3 class="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-wider">
+            <Filter class="w-4 h-4 text-blue-500" />
+            Advanced Date & Period Filters
           </h3>
-          <button @click="showFilters = !showFilters" class="text-sm text-blue-600 hover:text-blue-700">
+          <button @click="showFilters = !showFilters" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
             {{ showFilters ? 'Hide' : 'Show' }} Filters
           </button>
         </div>
-        
-        <div v-if="showFilters" class="p-6">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+        <div v-if="showFilters" class="p-5 border-t border-slate-100 dark:border-slate-800">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date From</label>
-              <input v-model="dateFrom" type="date" class="w-full px-4 py-2 border dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white" />
+              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Date From</label>
+              <input v-model="dateFrom" type="date" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date To</label>
-              <input v-model="dateTo" type="date" class="w-full px-4 py-2 border dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white" />
+              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Date To</label>
+              <input v-model="dateTo" type="date" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Period</label>
-              <select v-model="period" class="w-full px-4 py-2 border dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white">
+              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Period</label>
+              <select v-model="period" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none">
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
                 <option value="monthly">Monthly</option>
@@ -203,7 +308,7 @@ const downloadExcel = () => {
               </select>
             </div>
             <div class="flex items-end">
-              <button @click="applyFilters" :disabled="loading" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50">
+              <button @click="applyFilters" :disabled="loading" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-blue-600/20 transition cursor-pointer disabled:opacity-50">
                 Apply Filters
               </button>
             </div>
@@ -211,205 +316,202 @@ const downloadExcel = () => {
         </div>
       </div>
 
-      <!-- Tabs -->
-      <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm">
-        <div class="flex gap-1 p-2">
-          <button @click="activeTab = 'revenue'" :class="['flex-1 px-6 py-3 font-medium rounded-lg transition-all', activeTab === 'revenue' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700']">
-            <div class="flex items-center justify-center gap-2">
-              <TrendingUp :size="18" />
-              Revenue Report
-            </div>
+      <!-- Report Tabs Bar -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-1.5 shadow-xs">
+        <div class="grid grid-cols-3 gap-1">
+          <button
+            @click="activeTab = 'revenue'"
+            :class="[
+              'py-2.5 px-4 font-black text-xs rounded-2xl transition cursor-pointer flex items-center justify-center gap-2',
+              activeTab === 'revenue'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            ]"
+          >
+            <TrendingUp class="w-4 h-4" />
+            <span>Revenue Report</span>
           </button>
-          <button @click="activeTab = 'payment'" :class="['flex-1 px-6 py-3 font-medium rounded-lg transition-all', activeTab === 'payment' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700']">
-            <div class="flex items-center justify-center gap-2">
-              <CreditCard :size="18" />
-              Payment Report
-            </div>
+
+          <button
+            @click="activeTab = 'payment'"
+            :class="[
+              'py-2.5 px-4 font-black text-xs rounded-2xl transition cursor-pointer flex items-center justify-center gap-2',
+              activeTab === 'payment'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            ]"
+          >
+            <CreditCard class="w-4 h-4" />
+            <span>Payment Report</span>
           </button>
-          <button @click="activeTab = 'refund'" :class="['flex-1 px-6 py-3 font-medium rounded-lg transition-all', activeTab === 'refund' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700']">
-            <div class="flex items-center justify-center gap-2">
-              <RefreshCw :size="18" />
-              Refund Report
-            </div>
+
+          <button
+            @click="activeTab = 'refund'"
+            :class="[
+              'py-2.5 px-4 font-black text-xs rounded-2xl transition cursor-pointer flex items-center justify-center gap-2',
+              activeTab === 'refund'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            ]"
+          >
+            <RefreshCw class="w-4 h-4" />
+            <span>Refund Report</span>
           </button>
         </div>
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading && !revenueReport" class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-12 text-center">
-        <RefreshCw :size="48" class="mx-auto text-blue-600 animate-spin mb-4" />
-        <p class="text-slate-600 dark:text-slate-400">Loading reports...</p>
+      <div v-if="loading && !revenueReport" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-16 text-center space-y-3">
+        <RefreshCw class="w-8 h-8 text-amber-500 animate-spin mx-auto" />
+        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Loading financial reports...</p>
       </div>
 
-      <!-- Revenue Report -->
+      <!-- Revenue Report View -->
       <div v-else-if="activeTab === 'revenue' && revenueReport" class="space-y-6">
-        <!-- Export Actions -->
+        <!-- Export Actions Bar -->
         <div class="flex justify-end gap-2">
-          <button @click="downloadPDF" class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-            <Download :size="18" />
-            Export PDF
+          <button @click="printPage" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+            <Download class="w-3.5 h-3.5" />
+            <span>Export PDF</span>
           </button>
-          <button @click="downloadExcel" class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-            <FileSpreadsheet :size="18" />
-            Export Excel
+          <button @click="downloadExcel" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+            <FileSpreadsheet class="w-3.5 h-3.5" />
+            <span>Export Excel</span>
           </button>
         </div>
 
-        <!-- Key Metrics -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-          <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between mb-4">
-              <div class="p-3 bg-white/20 rounded-lg">
-                <DollarSign :size="24" />
+        <!-- Key Revenue Metrics Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Total Revenue -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+              <div class="p-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-2xl">
+                <DollarSign class="w-5 h-5" />
               </div>
-              <div class="flex items-center gap-1 text-green-100">
-                <ArrowUpRight :size="16" />
-                <span class="text-sm font-medium">+12.5%</span>
+              <div class="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs">
+                <ArrowUpRight class="w-3.5 h-3.5" />
+                <span>+12.5%</span>
               </div>
             </div>
-            <p class="text-green-100 text-sm mb-1">Total Revenue</p>
-            <p class="text-3xl font-bold">{{ formatCurrency(revenueReport.total_revenue) }}</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Revenue</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ formatCurrency(revenueReport.total_revenue) }}</p>
           </div>
 
-          <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between mb-4">
-              <div class="p-3 bg-white/20 rounded-lg">
-                <BarChart3 :size="24" />
+          <!-- Total Transactions -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+              <div class="p-2.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-2xl">
+                <BarChart3 class="w-5 h-5" />
               </div>
-              <div class="flex items-center gap-1 text-blue-100">
-                <ArrowUpRight :size="16" />
-                <span class="text-sm font-medium">+8.3%</span>
+              <div class="flex items-center gap-0.5 text-blue-600 dark:text-blue-400 font-extrabold text-xs">
+                <ArrowUpRight class="w-3.5 h-3.5" />
+                <span>+8.3%</span>
               </div>
             </div>
-            <p class="text-blue-100 text-sm mb-1">Total Transactions</p>
-            <p class="text-3xl font-bold">{{ revenueReport.total_transactions }}</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Transactions</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ revenueReport.total_transactions }}</p>
           </div>
 
-          <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between mb-4">
-              <div class="p-3 bg-white/20 rounded-lg">
-                <TrendingUp :size="24" />
+          <!-- Average Transaction -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+              <div class="p-2.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 rounded-2xl">
+                <TrendingUp class="w-5 h-5" />
               </div>
-              <div class="flex items-center gap-1 text-purple-100">
-                <ArrowUpRight :size="16" />
-                <span class="text-sm font-medium">+5.2%</span>
+              <div class="flex items-center gap-0.5 text-purple-600 dark:text-purple-400 font-extrabold text-xs">
+                <ArrowUpRight class="w-3.5 h-3.5" />
+                <span>+5.2%</span>
               </div>
             </div>
-            <p class="text-purple-100 text-sm mb-1">Average Transaction</p>
-            <p class="text-3xl font-bold">{{ formatCurrency(revenueReport.average_transaction) }}</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Avg. Transaction</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ formatCurrency(revenueReport.average_transaction) }}</p>
           </div>
 
-          <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between mb-4">
-              <div class="p-3 bg-white/20 rounded-lg">
-                <PieChart :size="24" />
+          <!-- Report Period -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs">
+            <div class="flex items-center justify-between mb-3">
+              <div class="p-2.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded-2xl">
+                <PieChart class="w-5 h-5" />
               </div>
             </div>
-            <p class="text-orange-100 text-sm mb-1">Report Period</p>
-            <p class="text-xl font-bold">{{ formatDate(dateFrom) }}</p>
-            <p class="text-sm text-orange-100">to {{ formatDate(dateTo) }}</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Report Period</p>
+            <p class="text-xs font-black text-slate-900 dark:text-white mt-1">{{ formatDate(dateFrom) }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">to {{ formatDate(dateTo) }}</p>
           </div>
         </div>
 
-        <!-- Revenue Distribution -->
+        <!-- Revenue Breakdown Cards -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Revenue by Type -->
-          <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-              <PieChart :size="20" class="text-blue-600" />
-              Revenue by Type
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
+            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <PieChart class="w-4 h-4 text-blue-500" />
+              <span>Revenue by Category</span>
             </h3>
+
             <div class="space-y-4">
-              <div class="relative">
-                <div class="flex justify-between items-center mb-2">
-                  <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span class="text-sm text-slate-600 dark:text-slate-400">Reservations</span>
-                  </div>
+              <!-- Reservations -->
+              <div>
+                <div class="flex justify-between items-center mb-1 text-xs">
+                  <span class="font-bold text-slate-700 dark:text-slate-300">Reservations</span>
                   <div class="text-right">
-                    <p class="font-semibold text-slate-800 dark:text-white">
-                      {{ formatCurrency(revenueReport.reservation_revenue) }}
-                    </p>
-                    <p class="text-xs text-slate-500" v-if="revenueAnalytics">
-                      {{ revenueAnalytics.reservation_percentage }}%
-                    </p>
+                    <span class="font-black text-slate-900 dark:text-white mr-1.5">{{ formatCurrency(revenueReport.reservation_revenue) }}</span>
+                    <span class="text-[10px] text-slate-400 font-bold" v-if="revenueAnalytics">({{ revenueAnalytics.reservation_percentage }}%)</span>
                   </div>
                 </div>
-                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
-                  <div class="bg-gradient-to-r from-green-500 to-green-600 h-full rounded-full transition-all duration-500"
-                    :style="{ width: revenueAnalytics ? `${revenueAnalytics.reservation_percentage}%` : '0%' }">
-                  </div>
+                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden p-0.5">
+                  <div
+                    class="bg-emerald-500 h-full rounded-full transition-all duration-300"
+                    :style="{ width: revenueAnalytics ? `${revenueAnalytics.reservation_percentage}%` : '0%' }"
+                  ></div>
                 </div>
               </div>
 
-              <div class="relative">
-                <div class="flex justify-between items-center mb-2">
-                  <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span class="text-sm text-slate-600 dark:text-slate-400">Restaurant Orders</span>
-                  </div>
+              <!-- Orders -->
+              <div>
+                <div class="flex justify-between items-center mb-1 text-xs">
+                  <span class="font-bold text-slate-700 dark:text-slate-300">Restaurant Orders</span>
                   <div class="text-right">
-                    <p class="font-semibold text-slate-800 dark:text-white">
-                      {{ formatCurrency(revenueReport.order_revenue) }}
-                    </p>
-                    <p class="text-xs text-slate-500" v-if="revenueAnalytics">
-                      {{ revenueAnalytics.order_percentage }}%
-                    </p>
+                    <span class="font-black text-slate-900 dark:text-white mr-1.5">{{ formatCurrency(revenueReport.order_revenue) }}</span>
+                    <span class="text-[10px] text-slate-400 font-bold" v-if="revenueAnalytics">({{ revenueAnalytics.order_percentage }}%)</span>
                   </div>
                 </div>
-                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
-                  <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-500"
-                    :style="{ width: revenueAnalytics ? `${revenueAnalytics.order_percentage}%` : '0%' }">
-                  </div>
+                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden p-0.5">
+                  <div
+                    class="bg-blue-500 h-full rounded-full transition-all duration-300"
+                    :style="{ width: revenueAnalytics ? `${revenueAnalytics.order_percentage}%` : '0%' }"
+                  ></div>
                 </div>
-              </div>
-            </div>
-
-            <div class="mt-6 pt-6 border-t dark:border-slate-700 grid grid-cols-2 gap-4">
-              <div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <p class="text-sm text-slate-600 dark:text-slate-400 mb-1">Reservation Rev.</p>
-                <p class="text-xl font-bold text-green-600">
-                  {{ formatCurrency(revenueReport.reservation_revenue) }}
-                </p>
-              </div>
-              <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <p class="text-sm text-slate-600 dark:text-slate-400 mb-1">Restaurant Rev.</p>
-                <p class="text-xl font-bold text-blue-600">
-                  {{ formatCurrency(revenueReport.order_revenue) }}
-                </p>
               </div>
             </div>
           </div>
 
           <!-- Revenue by Payment Method -->
-          <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-              <CreditCard :size="20" class="text-blue-600" />
-              Revenue by Payment Method
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-3">
+            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <CreditCard class="w-4 h-4 text-blue-500" />
+              <span>Revenue by Payment Method</span>
             </h3>
-            <div class="space-y-3">
-              <div v-for="(item, index) in revenueReport.revenue_by_method" :key="item.method"
-                class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:shadow-md transition-shadow">
-                <div class="flex items-center gap-3">
-                  <div :class="['w-10 h-10 rounded-lg flex items-center justify-center',
-                    index === 0 ? 'bg-purple-100 dark:bg-purple-900/30' :
-                    index === 1 ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-slate-100 dark:bg-slate-800']">
-                    <CreditCard :size="20" :class="[
-                      index === 0 ? 'text-purple-600' :
-                      index === 1 ? 'text-blue-600' : 'text-slate-600']" />
+
+            <div class="space-y-2">
+              <div
+                v-for="(item, index) in revenueReport.revenue_by_method"
+                :key="item.method"
+                class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs"
+              >
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold">
+                    <CreditCard class="w-4 h-4" />
                   </div>
                   <div>
-                    <p class="font-medium text-slate-800 dark:text-white capitalize">
-                      {{ item.method || 'Other' }}
-                    </p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Payment Gateway</p>
+                    <p class="font-extrabold text-slate-900 dark:text-white capitalize">{{ item.method || 'Other' }}</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Gateway</p>
                   </div>
                 </div>
+
                 <div class="text-right">
-                  <p class="text-lg font-bold text-slate-800 dark:text-white">
-                    {{ formatCurrency(item.total) }}
-                  </p>
-                  <p class="text-xs text-slate-500">
+                  <p class="font-black text-slate-900 dark:text-white">{{ formatCurrency(item.total) }}</p>
+                  <p class="text-[10px] text-slate-400 font-bold" v-if="revenueReport.total_revenue">
                     {{ ((item.total / revenueReport.total_revenue) * 100).toFixed(1) }}%
                   </p>
                 </div>
@@ -418,266 +520,268 @@ const downloadExcel = () => {
           </div>
         </div>
 
-        <!-- Daily Breakdown -->
-        <div v-if="revenueReport.daily_breakdown && revenueReport.daily_breakdown.length > 0"
-          class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm">
-          <div class="px-6 py-4 border-b dark:border-slate-700">
-            <h3 class="text-lg font-semibold text-slate-800 dark:text-white flex items-center gap-2">
-              <Calendar :size="20" class="text-blue-600" />
-              Daily Revenue Breakdown
+        <!-- Daily Revenue Breakdown Table -->
+        <div
+          v-if="revenueReport.daily_breakdown && revenueReport.daily_breakdown.length > 0"
+          class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs"
+        >
+          <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
+            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <Calendar class="w-4 h-4 text-blue-500" />
+              <span>Daily Revenue Breakdown</span>
             </h3>
+            <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
+              {{ revenueReport.daily_breakdown.length }} Days
+            </span>
           </div>
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="bg-slate-50 dark:bg-slate-900">
-                <tr>
-                  <th class="text-left p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Date</th>
-                  <th class="text-right p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Revenue</th>
-                  <th class="text-right p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Transactions</th>
-                  <th class="text-right p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Avg. Value</th>
+
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+                  <th class="px-3.5 py-3 whitespace-nowrap">Date</th>
+                  <th class="px-3.5 py-3 text-right whitespace-nowrap">Revenue</th>
+                  <th class="px-3.5 py-3 text-right whitespace-nowrap">Transactions</th>
+                  <th class="px-3.5 py-3 text-right whitespace-nowrap pr-6">Avg. Value</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr v-for="day in revenueReport.daily_breakdown" :key="day.date"
-                  class="border-t dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
-                  <td class="p-4 text-slate-800 dark:text-white font-medium">{{ formatDate(day.date) }}</td>
-                  <td class="p-4 text-right font-semibold text-slate-800 dark:text-white">
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+                <tr
+                  v-for="day in paginatedDailyBreakdown"
+                  :key="day.date"
+                  class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition"
+                >
+                  <td class="px-3.5 py-3 whitespace-nowrap font-extrabold text-slate-900 dark:text-white">
+                    {{ formatDate(day.date) }}
+                  </td>
+                  <td class="px-3.5 py-3 text-right whitespace-nowrap font-black text-emerald-600 dark:text-emerald-400">
                     {{ formatCurrency(day.revenue) }}
                   </td>
-                  <td class="p-4 text-right text-slate-600 dark:text-slate-400">{{ day.transactions }}</td>
-                  <td class="p-4 text-right text-slate-600 dark:text-slate-400">
-                    {{ formatCurrency(day.revenue / day.transactions) }}
+                  <td class="px-3.5 py-3 text-right whitespace-nowrap font-bold text-slate-700 dark:text-slate-300">
+                    {{ day.transactions }}
+                  </td>
+                  <td class="px-3.5 py-3 text-right whitespace-nowrap font-bold text-slate-600 dark:text-slate-400 pr-6">
+                    {{ formatCurrency(day.transactions ? day.revenue / day.transactions : 0) }}
                   </td>
                 </tr>
               </tbody>
-              <tfoot class="bg-slate-50 dark:bg-slate-900 font-semibold">
-                <tr>
-                  <td class="p-4 text-slate-800 dark:text-white">Total</td>
-                  <td class="p-4 text-right text-slate-800 dark:text-white">
-                    {{ formatCurrency(revenueReport.total_revenue) }}
-                  </td>
-                  <td class="p-4 text-right text-slate-800 dark:text-white">
-                    {{ revenueReport.total_transactions }}
-                  </td>
-                  <td class="p-4 text-right text-slate-800 dark:text-white">
-                    {{ formatCurrency(revenueReport.average_transaction) }}
-                  </td>
-                </tr>
-              </tfoot>
             </table>
           </div>
+
+          <!-- Pagination Bar for Revenue Breakdown Table -->
+          <div
+            v-if="revenueReport.daily_breakdown.length > 0"
+            class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-4 text-xs font-sans"
+          >
+            <!-- Left Side: Per Page Selector & Showing Count -->
+            <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
+                <select
+                  :value="perPage"
+                  @change="changePerPage"
+                  class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-black focus:outline-none focus:border-amber-500 cursor-pointer shadow-2xs"
+                >
+                  <option :value="5">5</option>
+                  <option :value="10">10</option>
+                  <option :value="20">20</option>
+                  <option :value="50">50</option>
+                </select>
+              </div>
+
+              <div class="text-xs font-medium">
+                Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
+                <span class="font-extrabold text-slate-900 dark:text-white">{{ showingTo }}</span> of
+                <span class="font-extrabold text-slate-900 dark:text-white">{{ revenueReport.daily_breakdown.length }}</span> entries
+              </div>
+            </div>
+
+            <!-- Right Side: Page Controls -->
+            <div class="flex items-center gap-1.5">
+              <button
+                @click="previousPage"
+                :disabled="currentPage <= 1"
+                class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
+                title="Previous Page"
+              >
+                <ChevronLeft class="w-4 h-4" />
+                <span class="hidden sm:inline">Prev</span>
+              </button>
+
+              <div class="flex items-center gap-1">
+                <button
+                  v-for="p in paginationPages"
+                  :key="p"
+                  @click="goToPage(p)"
+                  :class="[
+                    'w-8 h-8 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center border',
+                    currentPage === p
+                      ? 'bg-amber-500 border-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
+                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  ]"
+                >
+                  {{ p }}
+                </button>
+              </div>
+
+              <button
+                @click="nextPage"
+                :disabled="currentPage >= totalPages"
+                class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
+                title="Next Page"
+              >
+                <span class="hidden sm:inline">Next</span>
+                <ChevronRight class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Payment Report -->
+      <!-- Payment Report View -->
       <div v-else-if="activeTab === 'payment' && paymentReport" class="space-y-6">
-        <!-- Export Actions -->
-        <div class="flex justify-end gap-2">
-          <button @click="downloadPDF" class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-            <Download :size="18" />
-            Export PDF
-          </button>
-          <button @click="downloadExcel" class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-            <FileSpreadsheet :size="18" />
-            Export Excel
-          </button>
-        </div>
-
-        <!-- Status Breakdown -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
-          <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-            <BarChart3 :size="20" class="text-blue-600" />
-            Payment Status Breakdown
+        <!-- Status Breakdown Grid -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
+          <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <BarChart3 class="w-4 h-4 text-blue-500" />
+            <span>Payment Status Breakdown</span>
           </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div v-for="status in paymentReport.status_breakdown" :key="status.status"
-              class="relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 rounded-xl p-6 border-l-4"
-              :class="{
-                'border-green-500': status.status === 'paid' || status.status === 'verified',
-                'border-yellow-500': status.status === 'pending' || status.status === 'initialized',
-                'border-red-500': status.status === 'failed',
-                'border-purple-500': status.status === 'refunded'
-              }">
-              <div class="flex items-start justify-between mb-3">
-                <component :is="status.status === 'paid' || status.status === 'verified' ? CheckCircle :
-                            status.status === 'pending' || status.status === 'initialized' ? Clock :
-                            status.status === 'failed' ? XCircle : RefreshCw"
-                  :size="24" :class="{
-                    'text-green-600': status.status === 'paid' || status.status === 'verified',
-                    'text-yellow-600': status.status === 'pending' || status.status === 'initialized',
-                    'text-red-600': status.status === 'failed',
-                    'text-purple-600': status.status === 'refunded'
-                  }" />
-              </div>
-              <p class="text-sm text-slate-600 dark:text-slate-400 mb-1 capitalize">{{ status.status }}</p>
-              <p class="text-3xl font-bold text-slate-800 dark:text-white mb-2">{{ status.count }}</p>
-              <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                {{ formatCurrency(status.total) }}
-              </p>
-            </div>
-          </div>
-        </div>
 
-        <!-- Provider and Method Breakdown -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- Provider Breakdown -->
-          <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-              <Building :size="20" class="text-blue-600" />
-              By Payment Provider
-            </h3>
-            <div class="space-y-3">
-              <div v-for="provider in paymentReport.provider_breakdown" :key="provider.provider"
-                class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                <div>
-                  <p class="font-medium text-slate-800 dark:text-white capitalize">{{ provider.provider }}</p>
-                  <p class="text-sm text-slate-500 dark:text-slate-400">{{ provider.count }} transactions</p>
-                </div>
-                <p class="text-lg font-bold text-slate-800 dark:text-white">
-                  {{ formatCurrency(provider.total) }}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Method Breakdown -->
-          <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-              <CreditCard :size="20" class="text-blue-600" />
-              By Payment Method
-            </h3>
-            <div class="space-y-3">
-              <div v-for="method in paymentReport.method_breakdown" :key="method.method"
-                class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                <div>
-                  <p class="font-medium text-slate-800 dark:text-white capitalize">{{ method.method || 'Not Specified' }}</p>
-                  <p class="text-sm text-slate-500 dark:text-slate-400">{{ method.count }} transactions</p>
-                </div>
-                <p class="text-lg font-bold text-slate-800 dark:text-white">
-                  {{ formatCurrency(method.total) }}
-                </p>
-              </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div
+              v-for="status in paymentReport.status_breakdown"
+              :key="status.status"
+              class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2"
+            >
+              <span
+                :class="[
+                  'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border',
+                  (status.status === 'paid' || status.status === 'verified') && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+                  (status.status === 'pending' || status.status === 'initialized') && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+                  status.status === 'failed' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+                  status.status === 'refunded' && 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
+                ]"
+              >
+                {{ status.status }}
+              </span>
+              <p class="text-2xl font-black text-slate-900 dark:text-white">{{ status.count }}</p>
+              <p class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ formatCurrency(status.total) }}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Refund Report -->
+      <!-- Refund Report View -->
       <div v-else-if="activeTab === 'refund' && refundReport" class="space-y-6">
-        <!-- Export Actions -->
-        <div class="flex justify-end gap-2">
-          <button @click="downloadPDF" class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-            <Download :size="18" />
-            Export PDF
-          </button>
-          <button @click="downloadExcel" class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-            <FileSpreadsheet :size="18" />
-            Export Excel
-          </button>
-        </div>
-
         <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between mb-4">
-              <div class="p-3 bg-white/20 rounded-lg">
-                <RefreshCw :size="24" />
-              </div>
-            </div>
-            <p class="text-red-100 text-sm mb-1">Total Refunded</p>
-            <p class="text-3xl font-bold">{{ formatCurrency(refundReport.total_refunded) }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs">
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Refunded</p>
+            <p class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ formatCurrency(refundReport.total_refunded) }}</p>
           </div>
 
-          <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between mb-4">
-              <div class="p-3 bg-white/20 rounded-lg">
-                <BarChart3 :size="24" />
-              </div>
-            </div>
-            <p class="text-orange-100 text-sm mb-1">Total Refunds</p>
-            <p class="text-3xl font-bold">{{ refundReport.total_count }}</p>
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs">
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Refunds Count</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ refundReport.total_count }}</p>
           </div>
 
-          <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
-            <div class="flex items-center justify-between mb-4">
-              <div class="p-3 bg-white/20 rounded-lg">
-                <DollarSign :size="24" />
-              </div>
-            </div>
-            <p class="text-purple-100 text-sm mb-1">Average Refund</p>
-            <p class="text-3xl font-bold">
-              {{ formatCurrency(refundReport.total_refunded / refundReport.total_count) }}
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs">
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Average Refund</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">
+              {{ formatCurrency(refundReport.total_count ? refundReport.total_refunded / refundReport.total_count : 0) }}
             </p>
           </div>
         </div>
 
-        <!-- Refunds by Type -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
-          <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-            <PieChart :size="20" class="text-blue-600" />
-            Refunds by Transaction Type
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-xl p-8 border border-red-200 dark:border-red-800">
-              <div class="flex items-center gap-3 mb-4">
-                <div class="p-3 bg-red-500 rounded-lg">
-                  <RefreshCw :size="24" class="text-white" />
-                </div>
-                <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Reservation Refunds</p>
-              </div>
-              <p class="text-4xl font-bold text-red-600 dark:text-red-400">
-                {{ formatCurrency(refundReport.refunds_by_type.reservation || 0) }}
-              </p>
-            </div>
-
-            <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-8 border border-orange-200 dark:border-orange-800">
-              <div class="flex items-center gap-3 mb-4">
-                <div class="p-3 bg-orange-500 rounded-lg">
-                  <RefreshCw :size="24" class="text-white" />
-                </div>
-                <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Restaurant Refunds</p>
-              </div>
-              <p class="text-4xl font-bold text-orange-600 dark:text-orange-400">
-                {{ formatCurrency(refundReport.refunds_by_type.order || 0) }}
-              </p>
-            </div>
+        <!-- Refunds List Table -->
+        <div
+          v-if="refundReport.refunds_list && refundReport.refunds_list.length > 0"
+          class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs"
+        >
+          <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
+            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Recent Refunds Log</h3>
+            <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
+              {{ refundReport.refunds_list.length }} Records
+            </span>
           </div>
-        </div>
 
-        <!-- Refunds List -->
-        <div v-if="refundReport.refunds_list && refundReport.refunds_list.length > 0"
-          class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm">
-          <div class="px-6 py-4 border-b dark:border-slate-700">
-            <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Recent Refunds</h3>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="bg-slate-50 dark:bg-slate-900">
-                <tr>
-                  <th class="text-left p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Transaction Ref</th>
-                  <th class="text-left p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Customer</th>
-                  <th class="text-left p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Type</th>
-                  <th class="text-right p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Amount</th>
-                  <th class="text-left p-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Refunded At</th>
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+                  <th class="px-3.5 py-3 whitespace-nowrap">Transaction Ref</th>
+                  <th class="px-3.5 py-3 whitespace-nowrap">Customer</th>
+                  <th class="px-3.5 py-3 whitespace-nowrap">Type</th>
+                  <th class="px-3.5 py-3 text-right whitespace-nowrap">Amount</th>
+                  <th class="px-3.5 py-3 text-right whitespace-nowrap pr-6">Refunded At</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr v-for="refund in refundReport.refunds_list" :key="refund.id"
-                  class="border-t dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
-                  <td class="p-4 font-mono text-sm text-slate-700 dark:text-slate-300">{{ refund.tx_ref }}</td>
-                  <td class="p-4 text-slate-800 dark:text-white font-medium">{{ refund.customer_name }}</td>
-                  <td class="p-4">
-                    <span class="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full text-xs font-medium capitalize">
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+                <tr
+                  v-for="refund in paginatedRefundsList"
+                  :key="refund.id"
+                  class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition"
+                >
+                  <td class="px-3.5 py-3 whitespace-nowrap font-mono text-[11px] font-bold text-slate-900 dark:text-white">
+                    {{ refund.tx_ref }}
+                  </td>
+                  <td class="px-3.5 py-3 whitespace-nowrap font-bold text-slate-900 dark:text-white">
+                    {{ refund.customer_name }}
+                  </td>
+                  <td class="px-3.5 py-3 whitespace-nowrap">
+                    <span class="px-2.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-[10px] font-black uppercase border border-slate-200 dark:border-slate-700">
                       {{ refund.type }}
                     </span>
                   </td>
-                  <td class="p-4 text-right font-semibold text-red-600 dark:text-red-400">
+                  <td class="px-3.5 py-3 text-right whitespace-nowrap font-black text-rose-600 dark:text-rose-400">
                     {{ formatCurrency(refund.amount) }}
                   </td>
-                  <td class="p-4 text-slate-600 dark:text-slate-400">{{ formatDate(refund.refunded_at) }}</td>
+                  <td class="px-3.5 py-3 text-right whitespace-nowrap text-slate-500 dark:text-slate-400 text-[11px] pr-6">
+                    {{ formatDate(refund.refunded_at) }}
+                  </td>
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Pagination Bar for Refund List -->
+          <div
+            v-if="refundReport.refunds_list.length > 0"
+            class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-4 text-xs font-sans"
+          >
+            <div class="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+              <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
+              <select
+                :value="refundPerPage"
+                @change="changeRefundPerPage"
+                class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-black cursor-pointer shadow-2xs"
+              >
+                <option :value="5">5</option>
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button
+                @click="refundCurrentPage > 1 && refundCurrentPage--"
+                :disabled="refundCurrentPage <= 1"
+                class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold"
+              >
+                <ChevronLeft class="w-4 h-4" />
+              </button>
+              <span class="font-black text-slate-900 dark:text-white px-2">
+                Page {{ refundCurrentPage }} of {{ totalRefundPages }}
+              </span>
+              <button
+                @click="refundCurrentPage < totalRefundPages && refundCurrentPage++"
+                :disabled="refundCurrentPage >= totalRefundPages"
+                class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 disabled:opacity-40 font-bold"
+              >
+                <ChevronRight class="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

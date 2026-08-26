@@ -1,33 +1,61 @@
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue'
+
+const props = defineProps<{
   status: string
 }>()
 
-const statusClass = (status: string) => {
-  switch (status) {
+const statusConfig = computed(() => {
+  const s = (props.status || '').toLowerCase()
+  switch (s) {
     case 'available':
-      return 'bg-green-100 text-green-700'
-
+      return {
+        label: 'Available',
+        dot: 'bg-emerald-500',
+        styles: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+      }
     case 'occupied':
-      return 'bg-red-100 text-red-700'
-
+      return {
+        label: 'Occupied',
+        dot: 'bg-rose-500',
+        styles: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+      }
     case 'reserved':
-      return 'bg-yellow-100 text-yellow-700'
-
+      return {
+        label: 'Reserved',
+        dot: 'bg-amber-500',
+        styles: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+      }
+    case 'cleaning':
+      return {
+        label: 'Cleaning',
+        dot: 'bg-sky-500 animate-pulse',
+        styles: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20'
+      }
     case 'maintenance':
-      return 'bg-gray-200 text-gray-700'
-
+      return {
+        label: 'Maintenance',
+        dot: 'bg-slate-400',
+        styles: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+      }
     default:
-      return 'bg-slate-100 text-slate-700'
+      return {
+        label: props.status || 'Unknown',
+        dot: 'bg-slate-400',
+        styles: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+      }
   }
-}
+})
 </script>
 
 <template>
   <span
-    :class="statusClass(status)"
-    class="px-3 py-1 rounded-full text-xs font-semibold capitalize"
+    :class="[
+      'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border select-none transition-all whitespace-nowrap',
+      statusConfig.styles
+    ]"
   >
-    {{ status }}
+    <span :class="['w-1.5 h-1.5 rounded-full flex-shrink-0', statusConfig.dot]"></span>
+    <span>{{ statusConfig.label }}</span>
   </span>
 </template>
