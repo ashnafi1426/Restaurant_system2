@@ -47,6 +47,7 @@ import {
   Search,
   ChevronDown,
   X,
+  Star,
 } from 'lucide-vue-next'
 
 // Define emits
@@ -104,6 +105,7 @@ const menuIcons: Record<string, Component> = {
   Waiters: Users2,
   Grid: Grid,
   Key: Key,
+  Reviews: Star,
 }
 
 const sectionIcons: Record<string, Component> = {
@@ -172,7 +174,14 @@ const operationalMenuItems: MenuItem[] = [
   // Financials & Billing (Permission-Driven)
   { name: 'Payments & Billing', path: '/cashier/payments', icon: 'Payments', permission: 'payments.view', section: 'Billing' },
   { name: 'Financial Reports', path: '/cashier/reports', icon: 'Reports', permission: 'reports.sales', section: 'Billing' },
+
+  // Reports & Analytics (Permission-Driven)
   { name: 'Reports & Analytics', path: '/reports', icon: 'Reports', permission: 'reports.view', section: 'Reports & Analytics' },
+
+  // Reviews & Feedback (No permission for "My Reviews" - all authenticated users can see it)
+  // { name: 'My Reviews', path: '/reviews', icon: 'Reviews', section: 'Reports & Analytics' },
+  { name: 'Review Moderation', path: '/reviews/moderation', icon: 'Notifications', permission: 'reviews.moderate', section: 'Reports & Analytics' },
+  { name: 'Review Analytics', path: '/reviews/analytics', icon: 'Analytics', permission: 'reviews.analytics', section: 'Reports & Analytics' },
 ]
 
 const rolePermissionsMap = ref<Record<string, string[]>>({})

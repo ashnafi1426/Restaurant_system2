@@ -111,7 +111,7 @@ export async function getReservationReport(dateRange: DateRange = {}) {
     )
     return response.data
   } catch (error: any) {
-    console.error('❌ [REPORT SERVICE] Failed to fetch reservation report:', error)
+    console.error(' [REPORT SERVICE] Failed to fetch reservation report:', error)
     throw error
   }
 }
@@ -127,7 +127,7 @@ export async function getOccupancyReport(dateRange: DateRange = {}) {
     )
     return response.data
   } catch (error: any) {
-    console.error('❌ [REPORT SERVICE] Failed to fetch occupancy report:', error)
+    console.error(' [REPORT SERVICE] Failed to fetch occupancy report:', error)
     throw error
   }
 }
@@ -143,7 +143,7 @@ export async function getGuestReport(dateRange: DateRange = {}) {
     )
     return response.data
   } catch (error: any) {
-    console.error('❌ [REPORT SERVICE] Failed to fetch guest report:', error)
+    console.error(' [REPORT SERVICE] Failed to fetch guest report:', error)
     throw error
   }
 }
@@ -159,7 +159,7 @@ export async function getRevenueReport(dateRange: DateRange = {}) {
     )
     return response.data
   } catch (error: any) {
-    console.error('❌ [REPORT SERVICE] Failed to fetch revenue report:', error)
+    console.error(' [REPORT SERVICE] Failed to fetch revenue report:', error)
     throw error
   }
 }
@@ -175,7 +175,7 @@ export async function getCheckInOutReport(dateRange: DateRange = {}) {
     )
     return response.data
   } catch (error: any) {
-    console.error('❌ [REPORT SERVICE] Failed to fetch check-in/out report:', error)
+    console.error(' [REPORT SERVICE] Failed to fetch check-in/out report:', error)
     throw error
   }
 }

@@ -22,34 +22,28 @@ class QRResolutionService
     public static function resolveQRToken(string $qrToken): array
     {
         try {
-            // Normalize token: uppercase only if it's the new 8-char format (no dashes)
-            if (!str_contains($qrToken, '-')) {
-                $qrToken = strtoupper($qrToken);
-            }
-            
-            // Validate token format
-            // Accept two formats:
-            // 1. Exactly 8 uppercase alphanumeric (new format): ABCD1234
-            // 2. Table format (legacy): table-{number}-{token}
-            $isValid = preg_match('/^[A-Z0-9]{8}$/', $qrToken) || 
-                       preg_match('/^table-\d+-[A-Za-z0-9]+$/', $qrToken);
-            
-            if (!$isValid) {
-                Log::warning('Invalid QR token format', ['token' => $qrToken]);
+            $rawToken = trim($qrToken);
+            if (empty($rawToken)) {
                 return [
                     'success' => false,
                     'context' => null,
                     'data' => null,
-                    'message' => 'Invalid QR token format',
+                    'message' => 'QR token cannot be empty',
                 ];
             }
 
-            // Try to find a room with this QR token
-            $room = Room::where('qr_token', $qrToken)
-                        ->where('is_active', true)
-                        ->first();
+            $upperToken = strtoupper($rawToken);
+            $lowerToken = strtolower($rawToken);
 
-            if ($room) {
+            // 1. Try to find a room with this QR token (or room number / id)
+            $room = Room::where(function ($q) use ($rawToken, $upperToken, $lowerToken) {
+                $q->where('qr_token', $rawToken)
+                  ->orWhere('qr_token', $upperToken)
+                  ->orWhere('qr_token', $lowerToken)
+                  ->orWhere('id', $rawToken);
+            })->first();
+
+            if ($room && $room->is_active !== false) {
                 // Check if there's an active check-in for this room
                 $activeCheckIn = \App\Models\CheckIn::where('room_id', $room->id)
                     ->whereNull('checked_out_at')
@@ -70,7 +64,7 @@ class QRResolutionService
                 }
 
                 Log::info('QR Token resolved to Room', [
-                    'token' => $qrToken,
+                    'token' => $rawToken,
                     'room_id' => $room->id,
                     'room_number' => $room->room_number,
                     'has_guest' => $guestInfo !== null,
@@ -93,41 +87,55 @@ class QRResolutionService
                 ];
             }
 
-            // Try to find a restaurant table with this QR token
-            $table = RestaurantTable::where('qr_token', $qrToken)
-                                    ->where('is_active', true)
-                                    ->first();
+            // 2. Try to find a restaurant table with this QR token (or table number / id / slug)
+            $table = RestaurantTable::where(function ($q) use ($rawToken, $upperToken, $lowerToken) {
+                $q->where('qr_token', $rawToken)
+                  ->orWhere('qr_token', $upperToken)
+                  ->orWhere('qr_token', $lowerToken)
+                  ->orWhere('table_number', $rawToken)
+                  ->orWhere('table_number', $upperToken)
+                  ->orWhere('id', $rawToken);
 
-            if ($table) {
+                // Handle legacy table slugs like table-1-xxx
+                if (preg_match('/^table-(\d+)/i', $rawToken, $m)) {
+                    $q->orWhere('table_number', $m[1]);
+                }
+            })->first();
+
+            if ($table && $table->is_active !== false) {
                 // Get assigned waiter for this table at current time
                 $assignedWaiter = null;
                 $currentShift = \App\Models\HotelShift::getCurrentShift();
                 
-                if ($currentShift) {
-                    $assignment = \App\Models\WaiterTableAssignment::getAssignedWaiter(
-                        $table->id,
-                        $currentShift->id,
-                        today()
-                    );
+                if ($currentShift && \Illuminate\Support\Facades\Schema::hasTable('waiter_table_assignments')) {
+                    try {
+                        $assignment = \App\Models\WaiterTableAssignment::getAssignedWaiter(
+                            $table->id,
+                            $currentShift->id,
+                            today()
+                        );
 
-                    if ($assignment && $assignment->waiter) {
-                        $assignedWaiter = [
-                            'waiter_id' => $assignment->waiter_id,
-                            'waiter_name' => $assignment->waiter->user->name ?? 'Unknown',
-                            'waiter_email' => $assignment->waiter->user->email ?? null,
-                            'priority' => $assignment->priority,
-                            'shift' => [
-                                'id' => $currentShift->id,
-                                'name' => $currentShift->name,
-                                'start_time' => $currentShift->start_time,
-                                'end_time' => $currentShift->end_time,
-                            ],
-                        ];
+                        if ($assignment && $assignment->waiter) {
+                            $assignedWaiter = [
+                                'waiter_id' => $assignment->waiter_id,
+                                'waiter_name' => $assignment->waiter->user->name ?? 'Unknown',
+                                'waiter_email' => $assignment->waiter->user->email ?? null,
+                                'priority' => $assignment->priority,
+                                'shift' => [
+                                    'id' => $currentShift->id,
+                                    'name' => $currentShift->name,
+                                    'start_time' => $currentShift->start_time,
+                                    'end_time' => $currentShift->end_time,
+                                ],
+                            ];
+                        }
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning('QRResolution assigned waiter lookup skipped: ' . $e->getMessage());
                     }
                 }
 
                 Log::info('QR Token resolved to Restaurant Table', [
-                    'token' => $qrToken,
+                    'token' => $rawToken,
                     'table_id' => $table->id,
                     'table_number' => $table->table_number,
                     'has_assigned_waiter' => $assignedWaiter !== null,
@@ -140,7 +148,7 @@ class QRResolutionService
                     'data' => [
                         'table_id' => $table->id,
                         'table_number' => $table->table_number,
-                        'table_name' => $table->table_name,
+                        'table_name' => $table->table_name ?? ('Table ' . $table->table_number),
                         'capacity' => $table->capacity,
                         'location' => $table->location,
                         'status' => $table->status,
@@ -151,7 +159,7 @@ class QRResolutionService
             }
 
             // QR token not found in either rooms or tables
-            Log::warning('QR Token not found', ['token' => $qrToken]);
+            Log::warning('QR Token not found', ['token' => $rawToken]);
             return [
                 'success' => false,
                 'context' => null,

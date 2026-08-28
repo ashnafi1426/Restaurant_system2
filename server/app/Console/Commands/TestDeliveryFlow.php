@@ -25,7 +25,7 @@ class TestDeliveryFlow extends Command
         $user = User::whereHas('waiter')->first();
         
         if (!$user) {
-            $this->error('❌ No user with waiter profile found');
+            $this->error(' No user with waiter profile found');
             return;
         }
 
@@ -45,11 +45,11 @@ class TestDeliveryFlow extends Command
         $waiterId = $resolver->resolveWaiterId($user);
         
         if (!$waiterId) {
-            $this->error('❌ Could not resolve waiter ID');
+            $this->error(' Could not resolve waiter ID');
             return;
         }
         
-        $this->info("✅ Waiter ID resolved: {$waiterId}");
+        $this->info(" Waiter ID resolved: {$waiterId}");
         
         $waiter = Waiter::find($waiterId);
         if ($waiter) {
@@ -66,7 +66,7 @@ class TestDeliveryFlow extends Command
             ->where('status', 'on_delivery')
             ->get();
         
-        $this->info("✅ Found " . $onDeliveryTasks->count() . " on_delivery tasks");
+        $this->info(" Found " . $onDeliveryTasks->count() . " on_delivery tasks");
         
         foreach ($onDeliveryTasks as $task) {
             $this->line("  - Task #{$task->id}: Order {$task->order_id}");
@@ -80,10 +80,10 @@ class TestDeliveryFlow extends Command
         $dashboardService = app(WaiterDashboardService::class);
         $serviceResult = $dashboardService->getOnDelivery($waiterId);
         
-        $this->info("✅ Service returned " . count($serviceResult) . " tasks");
+        $this->info(" Service returned " . count($serviceResult) . " tasks");
         
         if (empty($serviceResult)) {
-            $this->error('❌ Service returned empty array even though database has tasks!');
+            $this->error(' Service returned empty array even though database has tasks!');
             $this->line('This indicates a bug in getOnDelivery method');
         } else {
             foreach ($serviceResult as $task) {
@@ -105,9 +105,9 @@ class TestDeliveryFlow extends Command
         $this->line("Response data count: " . count($apiResponse['data']));
         
         if (empty($apiResponse['data'])) {
-            $this->error('❌ API would return empty array');
+            $this->error(' API would return empty array');
         } else {
-            $this->info("✅ API would return " . count($apiResponse['data']) . " tasks");
+            $this->info(" API would return " . count($apiResponse['data']) . " tasks");
         }
 
         // Test 5: Check for waiter_id type mismatches
@@ -127,7 +127,7 @@ class TestDeliveryFlow extends Command
 
         $this->line('');
         $this->line('═══════════════════════════════════════');
-        $this->info('✅ Test complete.');
+        $this->info(' Test complete.');
         $this->line('');
     }
 }

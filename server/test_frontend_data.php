@@ -20,11 +20,11 @@ $admin = DB::table('users')
     ->first();
 
 if (!$admin) {
-    echo "❌ No active admin user found!\n";
+    echo " No active admin user found!\n";
     exit(1);
 }
 
-echo "✅ Testing with admin user: {$admin->email}\n";
+echo " Testing with admin user: {$admin->email}\n";
 echo "   User ID: {$admin->id}\n";
 echo "   Role column: {$admin->role}\n\n";
 
@@ -45,10 +45,10 @@ echo "Is Active: " . ($data['is_active'] ? 'true' : 'false') . "\n\n";
 echo "CHECK 2: Roles Array (for isAdmin getter)\n";
 echo "─────────────────────────────────────────────────────────────────\n";
 if (empty($data['roles'])) {
-    echo "⚠️  Roles array is EMPTY\n";
+    echo "  Roles array is EMPTY\n";
     echo "   This means frontend isAdmin getter may fail!\n\n";
 } else {
-    echo "✅ Roles array has " . count($data['roles']) . " role(s):\n";
+    echo " Roles array has " . count($data['roles']) . " role(s):\n";
     foreach ($data['roles'] as $role) {
         echo "   - {$role['name']} (slug: {$role['slug']}, is_system: " . ($role['is_system'] ? 'true' : 'false') . ")\n";
     }
@@ -58,10 +58,10 @@ if (empty($data['roles'])) {
 echo "CHECK 3: Permissions Array (for can() method)\n";
 echo "─────────────────────────────────────────────────────────────────\n";
 if (empty($data['permissions'])) {
-    echo "⚠️  Permissions array is EMPTY\n";
+    echo "  Permissions array is EMPTY\n";
     echo "   This is OK if admin super-override works, but may cause issues.\n\n";
 } else {
-    echo "✅ Permissions array has " . count($data['permissions']) . " permission(s)\n";
+    echo " Permissions array has " . count($data['permissions']) . " permission(s)\n";
     echo "   Sample permissions:\n";
     $sample = array_slice($data['permissions'], 0, 10);
     foreach ($sample as $perm) {
@@ -79,9 +79,9 @@ $mainRole = strtolower($data['role'] ?? '');
 echo "Main role (user.role): '{$mainRole}'\n";
 
 if ($mainRole === 'admin') {
-    echo "✅ isAdmin will return TRUE (via main role check)\n\n";
+    echo " isAdmin will return TRUE (via main role check)\n\n";
 } else {
-    echo "⚠️  Main role is NOT 'admin'\n";
+    echo "  Main role is NOT 'admin'\n";
     $hasAdminInRoles = false;
     if (!empty($data['roles'])) {
         foreach ($data['roles'] as $role) {
@@ -93,9 +93,9 @@ if ($mainRole === 'admin') {
         }
     }
     if ($hasAdminInRoles) {
-        echo "✅ isAdmin will return TRUE (via roles array check)\n\n";
+        echo " isAdmin will return TRUE (via roles array check)\n\n";
     } else {
-        echo "❌ isAdmin will return FALSE - Admin super-override WON'T WORK!\n\n";
+        echo " isAdmin will return FALSE - Admin super-override WON'T WORK!\n\n";
     }
 }
 
@@ -118,14 +118,14 @@ if ($mainRole === 'admin') {
 }
 
 if ($isAdminFrontend) {
-    echo "   ✅ Result: TRUE (admin super-override)\n";
+    echo "    Result: TRUE (admin super-override)\n";
     echo "   Admin bypasses permission check!\n\n";
 } else {
     $permissions = array_map('strtolower', $data['permissions'] ?? []);
     $hasPermission = in_array('users.view', $permissions);
     echo "   Result: " . ($hasPermission ? "TRUE" : "FALSE") . " (permission check)\n";
     if (!$hasPermission) {
-        echo "   ⚠️  Admin does not have 'users.view' permission!\n\n";
+        echo "     Admin does not have 'users.view' permission!\n\n";
     } else {
         echo "\n";
     }
@@ -137,11 +137,11 @@ $testPermissions = ['users.view', 'roles.view', 'permissions.view', 'menu.view',
 echo "Testing if these menu items would show:\n";
 foreach ($testPermissions as $perm) {
     if ($isAdminFrontend) {
-        echo "   ✅ {$perm} → VISIBLE (admin super-override)\n";
+        echo "    {$perm} → VISIBLE (admin super-override)\n";
     } else {
         $permissions = array_map('strtolower', $data['permissions'] ?? []);
         $has = in_array(strtolower($perm), $permissions);
-        echo "   " . ($has ? "✅" : "❌") . " {$perm} → " . ($has ? "VISIBLE" : "HIDDEN") . "\n";
+        echo "   " . ($has ? "" : "") . " {$perm} → " . ($has ? "VISIBLE" : "HIDDEN") . "\n";
     }
 }
 echo "\n";
@@ -172,9 +172,9 @@ if (empty($data['permissions'])) {
 }
 
 if (empty($issues)) {
-    echo "✅ SUCCESS: No issues found! Admin system should work correctly.\n\n";
+    echo " SUCCESS: No issues found! Admin system should work correctly.\n\n";
 } else {
-    echo "⚠️  ISSUES FOUND:\n";
+    echo "  ISSUES FOUND:\n";
     foreach ($issues as $i => $issue) {
         echo "   " . ($i + 1) . ". {$issue}\n";
     }

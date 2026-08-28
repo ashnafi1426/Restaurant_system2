@@ -40,7 +40,7 @@ class ManagerService {
       console.log('[managerService] 🚀 Starting fetch from /manager/dashboard/statistics')
       const response = await api.get('/manager/dashboard/statistics')
 
-      console.log('[managerService] ✅ Raw response received from API')
+      console.log('[managerService]  Raw response received from API')
       console.log('[managerService] Response status:', response.status)
       console.log('[managerService] Response config URL:', response.config.url)
       console.log('[managerService] Response data type:', typeof response.data)
@@ -49,11 +49,11 @@ class ManagerService {
 
       const data = response.data?.data
       if (!data) {
-        console.error('[managerService] ❌ No data in response:', response.data)
+        console.error('[managerService]  No data in response:', response.data)
         throw new Error('Invalid response structure - no data field')
       }
 
-      console.log('[managerService] ✅ Data extracted from response')
+      console.log('[managerService]  Data extracted from response')
       console.log('[managerService] Data structure:', {
         hasReception: !!data.reception,
         hasOccupancy: !!data.occupancy,
@@ -99,13 +99,13 @@ class ManagerService {
         monthlyRevenue: data.revenue?.monthly_revenue ?? 0,
       }
 
-      console.log('[managerService] ✅ Mapped result:')
+      console.log('[managerService]  Mapped result:')
       console.log('[managerService] result =', result)
       console.log('>>> [managerService.getStatistics] COMPLETE\n')
       return result
     } catch (err: any) {
       console.error('\n>>> [managerService.getStatistics] ERROR')
-      console.error('[managerService] ❌ Error occurred:', err)
+      console.error('[managerService]  Error occurred:', err)
       console.error('[managerService] Error type:', err.constructor.name)
       console.error('[managerService] Error message:', err.message)
       console.error('[managerService] Error stack:', err.stack)
@@ -247,17 +247,17 @@ class ManagerService {
       console.log('\n>>> [managerService.getRecentActivities] START')
       console.log('[managerService] 🚀 Fetching activities from /manager/activities...')
       const response = await api.get('/manager/activities')
-      console.log('[managerService] ✅ Response received')
+      console.log('[managerService]  Response received')
       console.log('[managerService] Response status:', response.status)
       console.log('[managerService] Response data:', response.data)
       const activities = response.data.data || []
-      console.log('[managerService] ✅ Activities extracted:', activities.length, 'items')
+      console.log('[managerService]  Activities extracted:', activities.length, 'items')
       console.log('[managerService] Activities:', activities)
       console.log('>>> [managerService.getRecentActivities] COMPLETE\n')
       return activities
     } catch (err: any) {
       console.error('\n>>> [managerService.getRecentActivities] ERROR')
-      console.error('[managerService] ❌ Error:', err)
+      console.error('[managerService]  Error:', err)
       console.error('[managerService] Error message:', err.message)
       if (err.response) {
         console.error('[managerService] Response status:', err.response.status)

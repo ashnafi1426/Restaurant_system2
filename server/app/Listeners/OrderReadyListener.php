@@ -39,7 +39,7 @@ class OrderReadyListener implements ShouldQueue
      */
     public function handle(OrderReadyEvent $event): void
     {
-        Log::info('🔵 [LISTENER] OrderReadyListener.handle() STARTED', [
+        Log::info(' [LISTENER] OrderReadyListener.handle() STARTED', [
             'order_id' => $event->order->id,
             'order_number' => $event->order->order_number,
             'timestamp' => now(),
@@ -90,7 +90,7 @@ class OrderReadyListener implements ShouldQueue
                     );
 
                     if ($assignment && $assignment->waiter) {
-                        Log::info('✅ [LISTENER] Found waiter assigned to table', [
+                        Log::info(' [LISTENER] Found waiter assigned to table', [
                             'assignment_id' => $assignment->id,
                             'waiter_id' => $assignment->waiter_id,
                             'waiter_name' => $assignment->waiter->user->name ?? 'Unknown',
@@ -106,7 +106,7 @@ class OrderReadyListener implements ShouldQueue
                             'assigned_at' => now(),
                         ]);
 
-                        Log::info('✅ [LISTENER] Delivery task created for walk-in order', [
+                        Log::info(' [LISTENER] Delivery task created for walk-in order', [
                             'delivery_task_id' => $deliveryTask->id,
                             'waiter_id' => $assignment->waiter_id,
                             'table_id' => $order->table_id,
@@ -117,7 +117,7 @@ class OrderReadyListener implements ShouldQueue
 
                         return; // Success - waiter assigned based on table assignment
                     } else {
-                        Log::warning('⚠️ [LISTENER] No waiter assigned to this table', [
+                        Log::warning(' [LISTENER] No waiter assigned to this table', [
                             'table_id' => $order->table_id,
                             'shift_id' => $currentShift->id,
                             'date' => today()->toDateString(),
@@ -125,7 +125,7 @@ class OrderReadyListener implements ShouldQueue
                         // Fall through to automatic assignment
                     }
                 } else {
-                    Log::warning('⚠️ [LISTENER] No active shift found at current time');
+                    Log::warning(' [LISTENER] No active shift found at current time');
                     // Fall through to automatic assignment
                 }
             }
@@ -156,7 +156,7 @@ class OrderReadyListener implements ShouldQueue
             }
 
         } catch (\Throwable $e) {
-            Log::error('❌ [LISTENER] Error in OrderReadyListener', [
+            Log::error(' [LISTENER] Error in OrderReadyListener', [
                 'order_id' => $event->order->id,
                 'error_message' => $e->getMessage(),
                 'error_code' => $e->getCode(),
@@ -182,7 +182,7 @@ class OrderReadyListener implements ShouldQueue
      */
     public function failed(OrderReadyEvent $event, \Throwable $exception): void
     {
-        Log::error('❌ [LISTENER] OrderReadyListener Job Failed (Max Retries Exceeded)', [
+        Log::error(' [LISTENER] OrderReadyListener Job Failed (Max Retries Exceeded)', [
             'order_id'     => $event->order->id,
             'order_number' => $event->order->order_number,
             'error_message'=> $exception->getMessage(),

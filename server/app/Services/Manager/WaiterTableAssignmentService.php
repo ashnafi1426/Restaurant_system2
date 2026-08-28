@@ -8,6 +8,8 @@ use App\Models\RestaurantTable;
 use App\Models\HotelShift;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 use Carbon\Carbon;
 
 /**
@@ -17,34 +19,83 @@ use Carbon\Carbon;
 class WaiterTableAssignmentService
 {
     /**
+     * Ensure database table exists dynamically if missing
+     */
+    public function ensureTableExists()
+    {
+        try {
+            if (!Schema::hasTable('waiter_table_assignments')) {
+                Schema::create('waiter_table_assignments', function (Blueprint $table) {
+                    $table->uuid('id')->primary();
+                    $table->unsignedBigInteger('waiter_id');
+                    $table->foreignUuid('table_id')->constrained('restaurant_tables')->onDelete('cascade');
+                    $table->foreignUuid('shift_id')->nullable()->constrained('hotel_shifts')->onDelete('set null');
+                    $table->date('assignment_date');
+                    $table->string('priority', 50)->default('primary');
+                    $table->string('status', 50)->default('active');
+                    $table->foreignUuid('assigned_by')->nullable()->constrained('users')->onDelete('set null');
+                    $table->timestamps();
+                    $table->index('waiter_id');
+                    $table->index('table_id');
+                    $table->index('shift_id');
+                    $table->index('assignment_date');
+                    $table->index('status');
+                });
+            }
+        } catch (\Throwable $e) {
+            Log::warning('ensureTableExists error: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Auto-seed table assignments if DB table is empty or missing assignments for today
      */
     public function autoSeedAssignmentsIfEmpty()
     {
-        $tables = RestaurantTable::get();
-        $waiters = Waiter::with('user')->get();
-        $shift = HotelShift::first();
+        $this->ensureTableExists();
 
-        if ($tables->isEmpty() || $waiters->isEmpty()) {
-            return;
-        }
-
-        $today = Carbon::today()->format('Y-m-d');
-        $existingTableIds = WaiterTableAssignment::where('assignment_date', $today)->pluck('table_id')->toArray();
-
-        foreach ($tables as $index => $table) {
-            if (in_array($table->id, $existingTableIds)) {
-                continue;
+        try {
+            if (!Schema::hasTable('waiter_table_assignments')) {
+                return;
             }
-            $waiter = $waiters[$index % $waiters->count()];
-            WaiterTableAssignment::create([
-                'waiter_id' => $waiter->id,
-                'table_id' => $table->id,
-                'shift_id' => $shift ? $shift->id : null,
-                'assignment_date' => $today,
-                'priority' => ($index % 3 === 0) ? 'primary' : (($index % 3 === 1) ? 'secondary' : 'backup'),
-                'status' => 'active',
-            ]);
+
+            $shift = HotelShift::first();
+            if (!$shift) {
+                $shift = HotelShift::create([
+                    'name' => 'Morning',
+                    'start_time' => '06:00',
+                    'end_time' => '14:00',
+                    'status' => 'active',
+                    'description' => 'Morning shift',
+                ]);
+            }
+
+            $tables = RestaurantTable::get();
+            $waiters = Waiter::with('user')->get();
+
+            if ($tables->isEmpty() || $waiters->isEmpty()) {
+                return;
+            }
+
+            $today = Carbon::today()->format('Y-m-d');
+            $existingTableIds = WaiterTableAssignment::where('assignment_date', $today)->pluck('table_id')->toArray();
+
+            foreach ($tables as $index => $table) {
+                if (in_array($table->id, $existingTableIds)) {
+                    continue;
+                }
+                $waiter = $waiters[$index % $waiters->count()];
+                WaiterTableAssignment::create([
+                    'waiter_id' => $waiter->id,
+                    'table_id' => $table->id,
+                    'shift_id' => $shift->id,
+                    'assignment_date' => $today,
+                    'priority' => ($index % 3 === 0) ? 'primary' : (($index % 3 === 1) ? 'secondary' : 'backup'),
+                    'status' => 'active',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('autoSeedAssignmentsIfEmpty error: ' . $e->getMessage());
         }
     }
 
@@ -58,6 +109,12 @@ class WaiterTableAssignmentService
     {
         $this->autoSeedAssignmentsIfEmpty();
 
+        $perPage = $filters['per_page'] ?? 100;
+
+        if (!Schema::hasTable('waiter_table_assignments')) {
+            return new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage, 1);
+        }
+
         $query = WaiterTableAssignment::query()
             ->with([
                 'waiter.user',
@@ -68,10 +125,7 @@ class WaiterTableAssignmentService
 
         // Filter by date if provided (and not empty/'all')
         if (!empty($filters['date']) && $filters['date'] !== 'all') {
-            $filteredQuery = (clone $query)->forDate($filters['date']);
-            if ($filteredQuery->count() > 0) {
-                $query = $filteredQuery;
-            }
+            $query->whereDate('assignment_date', $filters['date']);
         }
 
         // Filter by waiter
@@ -121,6 +175,12 @@ class WaiterTableAssignmentService
      */
     public function getTodayAssignments()
     {
+        $this->ensureTableExists();
+
+        if (!Schema::hasTable('waiter_table_assignments')) {
+            return collect();
+        }
+
         return WaiterTableAssignment::with([
             'waiter.user',
             'table',
@@ -291,6 +351,21 @@ class WaiterTableAssignmentService
     {
         $this->autoSeedAssignmentsIfEmpty();
 
+        $totalTablesCount = RestaurantTable::count();
+        $totalWaitersCount = Waiter::count();
+
+        if (!Schema::hasTable('waiter_table_assignments')) {
+            return [
+                'total_assignments' => 0,
+                'total_tables' => $totalTablesCount,
+                'total_waiters' => $totalWaitersCount,
+                'primary_assignments' => 0,
+                'secondary_assignments' => 0,
+                'backup_assignments' => 0,
+                'by_shift' => [],
+            ];
+        }
+
         $query = WaiterTableAssignment::query();
 
         if ($date && $date !== 'all') {
@@ -301,9 +376,6 @@ class WaiterTableAssignmentService
         }
 
         $assignments = $query->get();
-
-        $totalTablesCount = RestaurantTable::count();
-        $totalWaitersCount = Waiter::count();
 
         return [
             'total_assignments' => $assignments->count(),

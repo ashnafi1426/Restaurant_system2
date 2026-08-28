@@ -105,7 +105,7 @@ const save = () => {
           v-if="form.room_number && isRoomNumberTaken(form.room_number)"
           class="text-red-500 text-xs mt-1 flex items-center gap-1"
         >
-          <span>❌</span> This room number is already taken
+          <span></span> This room number is already taken
         </p>
         <p v-else-if="form.room_number" class="text-green-500 text-xs mt-1 flex items-center gap-1">
           <span>✓</span> This room number is available
@@ -148,7 +148,7 @@ const save = () => {
           </option>
         </select>
         <p v-if="!form.room_type_id" class="text-orange-500 text-xs mt-1 flex items-center gap-1">
-          <span>⚠️</span> Please select a room type
+          <span></span> Please select a room type
         </p>
       </div>
 
@@ -220,7 +220,7 @@ const save = () => {
         class="px-4 sm:px-6 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200"
       >
         <span v-if="!isRoomNumberTaken(form.room_number)">💾 Save Room</span>
-        <span v-else>❌ Invalid Room</span>
+        <span v-else> Invalid Room</span>
       </button>
     </div>
 

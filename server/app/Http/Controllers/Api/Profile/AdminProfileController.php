@@ -12,12 +12,56 @@ use Illuminate\Support\Facades\Storage;
 class AdminProfileController extends Controller
 {
     /**
+     * Ensure all profile columns exist in administrators table
+     */
+    private function ensureAdminColumns()
+    {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('administrators')) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('administrators', 'profile_photo')) {
+                    \Illuminate\Support\Facades\Schema::table('administrators', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->string('profile_photo')->nullable();
+                    });
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('administrators', 'department')) {
+                    \Illuminate\Support\Facades\Schema::table('administrators', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->string('department')->nullable();
+                    });
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('administrators', 'bio')) {
+                    \Illuminate\Support\Facades\Schema::table('administrators', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->text('bio')->nullable();
+                    });
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('administrators', 'employee_code')) {
+                    \Illuminate\Support\Facades\Schema::table('administrators', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->string('employee_code')->nullable();
+                    });
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('administrators', 'hire_date')) {
+                    \Illuminate\Support\Facades\Schema::table('administrators', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->date('hire_date')->nullable();
+                    });
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('administrators', 'status')) {
+                    \Illuminate\Support\Facades\Schema::table('administrators', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->string('status', 50)->default('active');
+                    });
+                }
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('ensureAdminColumns warning: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Get admin profile
      * GET /api/admin/profile
      */
     public function getProfile(): JsonResponse
     {
         try {
+            $this->ensureAdminColumns();
             $user = auth()->user();
             
             if (!$user) {
@@ -42,14 +86,14 @@ class AdminProfileController extends Controller
                     'is_active' => $user->is_active,
                     'administrator' => $user->administrator ? [
                         'id' => $user->administrator->id,
-                        'employee_code' => $user->administrator->employee_code,
-                        'department' => $user->administrator->department,
-                        'bio' => $user->administrator->bio,
-                        'profile_photo' => $user->administrator->profile_photo,
-                        'hire_date' => $user->administrator->hire_date,
-                        'status' => $user->administrator->status,
-                        'created_at' => $user->administrator->created_at,
-                        'updated_at' => $user->administrator->updated_at,
+                        'employee_code' => $user->administrator->employee_code ?? null,
+                        'department' => $user->administrator->department ?? null,
+                        'bio' => $user->administrator->bio ?? null,
+                        'profile_photo' => $user->administrator->profile_photo ?? null,
+                        'hire_date' => $user->administrator->hire_date ?? null,
+                        'status' => $user->administrator->status ?? 'active',
+                        'created_at' => $user->administrator->created_at ?? null,
+                        'updated_at' => $user->administrator->updated_at ?? null,
                     ] : null,
                     'created_at' => $user->created_at,
                     'updated_at' => $user->updated_at,
@@ -136,25 +180,36 @@ class AdminProfileController extends Controller
     {
         try {
             $validated = $request->validate([
-                'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'photo' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             ]);
 
             $user = auth()->user();
-
-            if (!$user->administrator) {
+            if (!$user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Administrator profile not found',
-                ], 404);
+                    'message' => 'User not authenticated',
+                ], 401);
             }
 
-            if ($user->administrator->profile_photo) {
-                Storage::disk('public')->delete($user->administrator->profile_photo);
+            if (!$user->administrator) {
+                \App\Models\Administrator::create([
+                    'id' => $user->id,
+                    'status' => 'active',
+                ]);
+                $user->load('administrator');
+            }
+
+            if ($user->administrator && $user->administrator->profile_photo) {
+                try {
+                    Storage::disk('public')->delete($user->administrator->profile_photo);
+                } catch (\Throwable $e) {}
             }
 
             $path = $request->file('photo')->store('profile_photos/admins', 'public');
 
-            $user->administrator->update(['profile_photo' => $path]);
+            if ($user->administrator) {
+                $user->administrator->update(['profile_photo' => $path]);
+            }
 
             return response()->json([
                 'success' => true,
@@ -165,6 +220,7 @@ class AdminProfileController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
+            \Log::error('Admin photo upload error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to upload photo',
@@ -218,12 +274,23 @@ class AdminProfileController extends Controller
     public function getStats(): JsonResponse
     {
         try {
+            $totalRevenue = 0;
+            if (\Illuminate\Support\Facades\Schema::hasTable('orders')) {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'total')) {
+                    $totalRevenue = DB::table('orders')->sum('total') ?? 0;
+                } elseif (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'total_amount')) {
+                    $totalRevenue = DB::table('orders')->sum('total_amount') ?? 0;
+                } elseif (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'total_price')) {
+                    $totalRevenue = DB::table('orders')->sum('total_price') ?? 0;
+                }
+            }
+
             $stats = [
-                'total_users' => DB::table('users')->count(),
-                'total_orders' => DB::table('orders')->count(),
-                'total_revenue' => DB::table('orders')->where('payment_status', 'paid')->sum('total_price'),
-                'active_reservations' => DB::table('reservations')->where('status', 'confirmed')->count(),
-                'total_rooms' => DB::table('rooms')->count(),
+                'total_users' => \Illuminate\Support\Facades\Schema::hasTable('users') ? DB::table('users')->count() : 0,
+                'total_orders' => \Illuminate\Support\Facades\Schema::hasTable('orders') ? DB::table('orders')->count() : 0,
+                'total_revenue' => (float) $totalRevenue,
+                'active_reservations' => \Illuminate\Support\Facades\Schema::hasTable('reservations') ? DB::table('reservations')->where('status', 'confirmed')->count() : 0,
+                'total_rooms' => \Illuminate\Support\Facades\Schema::hasTable('rooms') ? DB::table('rooms')->count() : 0,
             ];
 
             return response()->json([
@@ -231,6 +298,7 @@ class AdminProfileController extends Controller
                 'data' => $stats,
             ]);
         } catch (\Exception $e) {
+            \Log::error('Admin getStats error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch statistics',

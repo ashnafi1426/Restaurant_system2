@@ -28,8 +28,11 @@ class OrderController extends Controller
         $perPage = $request->integer('per_page', 15);
 
         $orders = $this->orderService->index($filters, $perPage);
+        $statistics = $this->orderService->getStatistics();
 
-        return new OrderCollection($orders);
+        return (new OrderCollection($orders))->additional([
+            'statistics' => $statistics,
+        ]);
     }
 
     /**

@@ -46,7 +46,7 @@ class AssignChefsToExistingOrders extends Command
         $chefs = User::where('role', 'chef')->pluck('id')->toArray();
 
         if (empty($chefs)) {
-            $this->error('❌ No chefs found in the system!');
+            $this->error(' No chefs found in the system!');
             return 1;
         }
 

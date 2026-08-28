@@ -46,7 +46,7 @@ export const useNotificationStore = defineStore('notification', () => {
   const getNotificationService = () => {
     const authStore = useAuthStore()
     const userRole = authStore.user?.role
-    
+
     if (userRole === 'waiter') {
       console.log('📬 [NOTIFICATION STORE] Using waiter notification service')
       return waiterNotificationService
@@ -82,7 +82,7 @@ export const useNotificationStore = defineStore('notification', () => {
         notifications.value = []
         return
       }
-      console.error('❌ [NOTIFICATION STORE] Error fetching notifications:', error)
+      console.error(' [NOTIFICATION STORE] Error fetching notifications:', error)
       notifications.value = []
     } finally {
       loading.value = false
@@ -104,7 +104,7 @@ export const useNotificationStore = defineStore('notification', () => {
         console.warn('[NOTIFICATION STORE] Notifications not available for this role')
         return
       }
-      console.error('❌ [NOTIFICATION STORE] Error fetching unread count:', error)
+      console.error(' [NOTIFICATION STORE] Error fetching unread count:', error)
       unreadCount.value = unreadNotifications.value.length
     }
   }
@@ -143,7 +143,7 @@ export const useNotificationStore = defineStore('notification', () => {
         )
       }
     } catch (error) {
-      console.error('❌ [NOTIFICATION STORE] Error marking as read:', error)
+      console.error(' [NOTIFICATION STORE] Error marking as read:', error)
       throw error
     }
   }
@@ -164,7 +164,7 @@ export const useNotificationStore = defineStore('notification', () => {
       unreadCount.value = 0
       console.log('✓ [NOTIFICATION STORE] Mark all as read successful')
     } catch (error) {
-      console.error('❌ [NOTIFICATION STORE] Error marking all as read:', error)
+      console.error(' [NOTIFICATION STORE] Error marking all as read:', error)
       throw error
     }
   }
@@ -189,7 +189,7 @@ export const useNotificationStore = defineStore('notification', () => {
       }
       console.log('✓ [NOTIFICATION STORE] Delete successful')
     } catch (error) {
-      console.error('❌ [NOTIFICATION STORE] Error deleting notification:', error)
+      console.error(' [NOTIFICATION STORE] Error deleting notification:', error)
       throw error
     }
   }
@@ -206,7 +206,7 @@ export const useNotificationStore = defineStore('notification', () => {
       unreadCount.value = 0
       console.log('✓ [NOTIFICATION STORE] Clear all successful')
     } catch (error) {
-      console.error('❌ [NOTIFICATION STORE] Error clearing all:', error)
+      console.error(' [NOTIFICATION STORE] Error clearing all:', error)
       throw error
     }
   }
@@ -217,7 +217,7 @@ export const useNotificationStore = defineStore('notification', () => {
   const startPolling = (interval: number = 5000) => {
     const token = localStorage.getItem('token')
     if (!token) {
-      console.warn('⚠️ [NOTIFICATION STORE] No auth token found - skipping notification polling')
+      console.warn(' [NOTIFICATION STORE] No auth token found - skipping notification polling')
       return
     }
 

@@ -1,21 +1,22 @@
 import api from '../api/auth'
+import { publicAxios } from './axios'
 import type { Room } from '../types/room'
 
 export const roomService = {
   getRooms(params: any = {}) {
-    return api.get('/rooms', { params })
+    return publicAxios.get('/rooms', { params })
   },
 
   getAllRooms() {
-    return api.get('/rooms', { params: { per_page: 1000 } })
+    return publicAxios.get('/rooms', { params: { per_page: 1000 } })
   },
 
   searchRooms(searchTerm: string, params: any = {}) {
-    return api.get('/rooms', { params: { ...params, search: searchTerm } })
+    return publicAxios.get('/rooms', { params: { ...params, search: searchTerm } })
   },
 
   getRoom(id: string) {
-    return api.get(`/rooms/${String(id)}`)
+    return publicAxios.get(`/rooms/${String(id)}`)
   },
 
   createRoom(room: Room) {

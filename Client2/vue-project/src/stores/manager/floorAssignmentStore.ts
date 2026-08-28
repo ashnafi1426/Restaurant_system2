@@ -186,6 +186,7 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
 
     // Methods
     fetchTodayAssignments,
+    fetchAssignments: fetchTodayAssignments,
     fetchStats,
     saveAssignments,
     updateAssignment,

@@ -232,7 +232,7 @@ async function fetchRoomStatusFromBackend() {
     }
 
     console.log('🏠 [BOOKING] Room data received:', roomData)
-    console.log('📊 [BOOKING] Room status field:', roomData.status)
+    console.log(' [BOOKING] Room status field:', roomData.status)
     console.log('🔑 [BOOKING] Room is_active field:', roomData.is_active)
 
     // Check the room status from backend
@@ -247,7 +247,7 @@ async function fetchRoomStatusFromBackend() {
       roomStatus.value = 'available'
       roomStatusMessage.value = 'Available'
     } else if (status === 'occupied' || !isActive) {
-      console.log('🔴 [BOOKING] Room is OCCUPIED')
+      console.log(' [BOOKING] Room is OCCUPIED')
       roomStatus.value = 'booked'
       roomStatusMessage.value = 'Occupied'
     } else if (status === 'reserved') {
@@ -264,7 +264,7 @@ async function fetchRoomStatusFromBackend() {
       roomStatusMessage.value = 'Available'
     }
   } catch (error) {
-    console.error('❌ [BOOKING] Error fetching room status:', error)
+    console.error(' [BOOKING] Error fetching room status:', error)
     statusFetchError.value = error instanceof Error ? error.message : 'Failed to fetch status'
     // Default to available on error
     roomStatus.value = 'available'
@@ -446,13 +446,13 @@ async function submitBooking() {
 
     if (guestData.data?.id) {
       guestId = guestData.data.id
-      console.log('✅ [BOOKING] Guest processed with ID:', guestId)
+      console.log(' [BOOKING] Guest processed with ID:', guestId)
     } else if (guestData.id) {
       // Handle case where response structure is different
       guestId = guestData.id
-      console.log('✅ [BOOKING] Guest processed with ID:', guestId)
+      console.log(' [BOOKING] Guest processed with ID:', guestId)
     } else {
-      console.error('❌ [BOOKING] Failed to process guest:', guestData)
+      console.error(' [BOOKING] Failed to process guest:', guestData)
       throw new Error(guestData.message || 'Failed to process guest information')
     }
 
@@ -497,9 +497,9 @@ async function submitBooking() {
       const errorMsg = paymentData.error || paymentData.message || 'Failed to initialize payment'
       const errorDetails = paymentData.details || paymentData.errors || null
       
-      console.error('❌ [BOOKING] Payment initialization failed:', paymentData)
-      console.error('❌ [BOOKING] Error message:', errorMsg)
-      console.error('❌ [BOOKING] Error details:', errorDetails)
+      console.error(' [BOOKING] Payment initialization failed:', paymentData)
+      console.error(' [BOOKING] Error message:', errorMsg)
+      console.error(' [BOOKING] Error details:', errorDetails)
       
       // Create detailed error message
       let detailedError = errorMsg
@@ -519,16 +519,16 @@ async function submitBooking() {
       throw new Error(detailedError)
     }
 
-    console.log('✅ [BOOKING] Payment initialized successfully:', paymentData)
+    console.log(' [BOOKING] Payment initialized successfully:', paymentData)
     
     // Validate critical data before proceeding
     if (!paymentData.checkout_url) {
-      console.error('❌ [BOOKING] Missing checkout_url in payment response')
+      console.error(' [BOOKING] Missing checkout_url in payment response')
       throw new Error('Payment system did not return a checkout URL. Please try again.')
     }
     
     if (!paymentData.price_breakdown || !paymentData.price_breakdown.total) {
-      console.error('❌ [BOOKING] Missing price_breakdown in payment response')
+      console.error(' [BOOKING] Missing price_breakdown in payment response')
       throw new Error('Payment system did not return price information. Please try again.')
     }
 
@@ -575,11 +575,11 @@ async function submitBooking() {
       })
     }, 300)
 
-    console.log('✅ [BOOKING] Payment flow initiated successfully')
+    console.log(' [BOOKING] Payment flow initiated successfully')
 
   } catch (error: any) {
-    console.error('❌ [BOOKING] Booking error:', error)
-    console.error('❌ [BOOKING] Error details:', error.response?.data || error.message)
+    console.error(' [BOOKING] Booking error:', error)
+    console.error(' [BOOKING] Error details:', error.response?.data || error.message)
 
     let errorMessage = 'Something went wrong'
 
@@ -594,7 +594,7 @@ async function submitBooking() {
       errorMessage = error.message
     }
 
-    alert(`❌ Error: ${errorMessage}`)
+    alert(` Error: ${errorMessage}`)
   } finally {
     isBooking.value = false
   }

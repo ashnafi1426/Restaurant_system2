@@ -68,14 +68,14 @@ async function initializePayment(
     const data: PaymentResponse = await response.json()
 
     if (!response.ok) {
-      console.error('❌ [PAYMENT SERVICE] Initialize failed:', data)
+      console.error(' [PAYMENT SERVICE] Initialize failed:', data)
       throw new Error(data.message || data.error || 'Failed to initialize payment')
     }
 
-    console.log('✅ [PAYMENT SERVICE] Payment initialized:', data)
+    console.log(' [PAYMENT SERVICE] Payment initialized:', data)
     return data
   } catch (error: any) {
-    console.error('❌ [PAYMENT SERVICE] Initialize error:', error)
+    console.error(' [PAYMENT SERVICE] Initialize error:', error)
     throw error
   }
 }
@@ -103,14 +103,14 @@ async function initializeReservationPayment(
     const data: PaymentResponse = await response.json()
 
     if (!response.ok) {
-      console.error('❌ [PAYMENT SERVICE] Reservation initialize failed:', data)
+      console.error(' [PAYMENT SERVICE] Reservation initialize failed:', data)
       throw new Error(data.message || data.error || 'Failed to initialize reservation payment')
     }
 
-    console.log('✅ [PAYMENT SERVICE] Reservation payment initialized:', data)
+    console.log(' [PAYMENT SERVICE] Reservation payment initialized:', data)
     return data
   } catch (error: any) {
-    console.error('❌ [PAYMENT SERVICE] Reservation initialize error:', error)
+    console.error(' [PAYMENT SERVICE] Reservation initialize error:', error)
     throw error
   }
 }
@@ -132,14 +132,14 @@ async function verifyPayment(txRef: string): Promise<PaymentStatusResponse> {
     const data: PaymentStatusResponse = await response.json()
 
     if (!response.ok) {
-      console.error('❌ [PAYMENT SERVICE] Verification failed:', data)
+      console.error(' [PAYMENT SERVICE] Verification failed:', data)
       throw new Error('Payment verification failed')
     }
 
-    console.log('✅ [PAYMENT SERVICE] Payment verified:', data)
+    console.log(' [PAYMENT SERVICE] Payment verified:', data)
     return data
   } catch (error: any) {
-    console.error('❌ [PAYMENT SERVICE] Verify error:', error)
+    console.error(' [PAYMENT SERVICE] Verify error:', error)
     throw error
   }
 }
@@ -162,11 +162,11 @@ async function getPaymentByTxRef(txRef: string): Promise<any> {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('❌ [PAYMENT SERVICE] Fetch failed:', data)
+      console.error(' [PAYMENT SERVICE] Fetch failed:', data)
       throw new Error(data.message || 'Failed to fetch payment')
     }
 
-    console.log('✅ [PAYMENT SERVICE] Payment fetched:', data)
+    console.log(' [PAYMENT SERVICE] Payment fetched:', data)
 
     // Return the payment object from the response
     if (data.payment) {
@@ -177,7 +177,7 @@ async function getPaymentByTxRef(txRef: string): Promise<any> {
     }
     return data
   } catch (error: any) {
-    console.error('❌ [PAYMENT SERVICE] Fetch error:', error)
+    console.error(' [PAYMENT SERVICE] Fetch error:', error)
     throw error
   }
 }
@@ -200,11 +200,11 @@ async function getReservationPaymentByTxRef(txRef: string): Promise<any> {
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('❌ [PAYMENT SERVICE] Fetch failed:', data)
+      console.error(' [PAYMENT SERVICE] Fetch failed:', data)
       throw new Error(data.message || 'Failed to fetch reservation payment')
     }
 
-    console.log('✅ [PAYMENT SERVICE] Reservation payment fetched:', data)
+    console.log(' [PAYMENT SERVICE] Reservation payment fetched:', data)
 
     // Return the payment/reservation object from the response
     if (data.reservation) {
@@ -218,7 +218,7 @@ async function getReservationPaymentByTxRef(txRef: string): Promise<any> {
     }
     return data
   } catch (error: any) {
-    console.error('❌ [PAYMENT SERVICE] Fetch error:', error)
+    console.error(' [PAYMENT SERVICE] Fetch error:', error)
     throw error
   }
 }
@@ -240,14 +240,14 @@ async function getPaymentStatus(paymentId: string): Promise<PaymentStatusRespons
     const data: PaymentStatusResponse = await response.json()
 
     if (!response.ok) {
-      console.error('❌ [PAYMENT SERVICE] Status fetch failed:', data)
+      console.error(' [PAYMENT SERVICE] Status fetch failed:', data)
       throw new Error('Failed to fetch payment status')
     }
 
-    console.log('✅ [PAYMENT SERVICE] Payment status fetched:', data)
+    console.log(' [PAYMENT SERVICE] Payment status fetched:', data)
     return data
   } catch (error: any) {
-    console.error('❌ [PAYMENT SERVICE] Status fetch error:', error)
+    console.error(' [PAYMENT SERVICE] Status fetch error:', error)
     throw error
   }
 }

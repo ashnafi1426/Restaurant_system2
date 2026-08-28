@@ -20,12 +20,13 @@ class OrderService{
                 'reservation',
                 'guest',
                 'room',
+                'table',
                 'orderItems',
                 'orderItems.menuItem',
             ]);
 
         if (!empty($filters['search'])) {
-            $search = $filters['search'];
+            $search = trim($filters['search']);
             $query->where(function ($q) use ($search) {
                 $q->where('order_number', 'like', "%{$search}%")
                   ->orWhere('id', 'like', "%{$search}%")
@@ -33,31 +34,82 @@ class OrderService{
                       $gq->where('first_name', 'like', "%{$search}%")
                          ->orWhere('last_name', 'like', "%{$search}%")
                          ->orWhere('phone', 'like', "%{$search}%")
-                         ->orWhere('email', 'like', "%{$search}%");
+                         ->orWhere('email', 'like', "%{$search}%")
+                         ->orWhereRaw("CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) LIKE ?", ["%{$search}%"]);
                   })
                   ->orWhereHas('room', function ($rq) use ($search) {
                       $rq->where('room_number', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('table', function ($tq) use ($search) {
+                      $tq->where('table_number', 'like', "%{$search}%");
                   });
             });
         }
 
         if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
+            $query->where('status', strtolower($filters['status']));
         }
 
         if (!empty($filters['payment_type'])) {
-            $query->where('payment_type', $filters['payment_type']);
+            $paymentType = strtolower($filters['payment_type']);
+            if ($paymentType === 'card') {
+                $query->whereIn('payment_type', ['card', 'chapa', 'online']);
+            } else {
+                $query->where('payment_type', $paymentType);
+            }
+        }
+
+        if (!empty($filters['order_type'])) {
+            $orderType = strtolower($filters['order_type']);
+            if ($orderType === 'room_service') {
+                $query->where(function ($q) {
+                    $q->whereNotNull('room_id')
+                      ->orWhere('order_type', 'room_service');
+                });
+            } elseif ($orderType === 'walk_in') {
+                $query->where(function ($q) {
+                    $q->whereNotNull('table_id')
+                      ->orWhere('order_type', 'walk_in');
+                });
+            }
         }
 
         if (!empty($filters['date_from'])) {
-            $query->whereDate('order_time', '>=', $filters['date_from']);
+            $dateFrom = $filters['date_from'];
+            $query->where(function ($q) use ($dateFrom) {
+                $q->whereDate('order_time', '>=', $dateFrom)
+                  ->orWhere(function ($sq) use ($dateFrom) {
+                      $sq->whereNull('order_time')
+                         ->whereDate('created_at', '>=', $dateFrom);
+                  });
+            });
         }
 
         if (!empty($filters['date_to'])) {
-            $query->whereDate('order_time', '<=', $filters['date_to']);
+            $dateTo = $filters['date_to'];
+            $query->where(function ($q) use ($dateTo) {
+                $q->whereDate('order_time', '<=', $dateTo)
+                  ->orWhere(function ($sq) use ($dateTo) {
+                      $sq->whereNull('order_time')
+                         ->whereDate('created_at', '<=', $dateTo);
+                  });
+            });
         }
 
-        return $query->latest('order_time')->paginate($perPage);
+        return $query->latest('created_at')->paginate($perPage);
+    }
+
+    public function getStatistics(): array
+    {
+        return [
+            'total_orders' => Order::count(),
+            'pending_orders' => Order::where('status', Order::STATUS_PENDING)->count(),
+            'preparing_orders' => Order::where('status', Order::STATUS_PREPARING)->count(),
+            'ready_orders' => Order::where('status', Order::STATUS_READY)->count(),
+            'served_orders' => Order::where('status', Order::STATUS_SERVED)->count(),
+            'cancelled_orders' => Order::where('status', Order::STATUS_CANCELLED)->count(),
+            'total_revenue' => (float) Order::where('status', '!=', Order::STATUS_CANCELLED)->sum('total'),
+        ];
     }
     public function show(string $id): Order
     {

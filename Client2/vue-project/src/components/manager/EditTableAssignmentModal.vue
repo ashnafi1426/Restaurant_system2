@@ -1,20 +1,35 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import { X, Loader2, CheckCircle2, User, Clock, Award, MapPin, Users, Activity, Edit3 } from 'lucide-vue-next'
+import { ref, watch, computed, onMounted } from 'vue'
+import {
+  X,
+  Loader2,
+  CheckCircle2,
+  User,
+  Clock,
+  Award,
+  Users,
+  UtensilsCrossed,
+  AlertCircle,
+  Edit3,
+} from 'lucide-vue-next'
 import api from '@/api/auth'
 import { useTableAssignmentStore } from '@/stores/manager/tableAssignmentStore'
 
 interface Props {
-  isOpen: boolean
+  isOpen?: boolean
   assignment: any
 }
 
 interface Emits {
   (e: 'close'): void
   (e: 'updated'): void
+  (e: 'success'): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  isOpen: true,
+})
+
 const emit = defineEmits<Emits>()
 
 const tableAssignmentStore = useTableAssignmentStore()
@@ -34,143 +49,24 @@ const isSubmitting = ref(false)
 const error = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
 
-const priorities = ['primary', 'secondary', 'backup'] as const
+const priorities = [
+  { value: 'primary', label: 'Primary', desc: 'Main responsible waiter' },
+  { value: 'secondary', label: 'Secondary', desc: 'Backup support waiter' },
+  { value: 'backup', label: 'Backup', desc: 'On-demand coverage' },
+]
+
 const statuses = [
-  { value: 'active', label: 'Active', color: 'emerald' },
-  { value: 'inactive', label: 'Inactive', color: 'slate' },
-  { value: 'completed', label: 'Completed', color: 'purple' },
-] as const
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+  { value: 'completed', label: 'Completed' },
+]
 
 const isFormValid = computed(() => {
   return selectedTable.value && selectedWaiter.value && selectedShift.value
 })
 
-const selectedTableData = computed(() => {
-  return tables.value.find(t => t.id === selectedTable.value) || null
-})
-
-const selectedWaiterData = computed(() => {
-  return waiters.value.find(w => w.id === Number(selectedWaiter.value) || String(w.id) === String(selectedWaiter.value)) || null
-})
-
-// Load Tables from Backend
-const loadTables = async () => {
-  try {
-    const response = await api.get('/manager/restaurant-tables')
-    let tableData = []
-    if (response.data?.data) {
-      if (response.data.data.data && Array.isArray(response.data.data.data)) {
-        tableData = response.data.data.data
-      } else if (Array.isArray(response.data.data)) {
-        tableData = response.data.data
-      } else if (response.data.data.items && Array.isArray(response.data.data.items)) {
-        tableData = response.data.data.items
-      }
-    } else if (Array.isArray(response.data)) {
-      tableData = response.data
-    }
-    tables.value = tableData
-  } catch (err: any) {
-    console.error('Failed to load tables:', err)
-  }
-}
-
-// Load Waiters from Backend
-const loadWaiters = async () => {
-  try {
-    const response = await api.get('/manager/waiters')
-    const data = response.data.data || response.data
-    if (Array.isArray(data)) {
-      waiters.value = data
-    }
-  } catch (err: any) {
-    console.error('Failed to load waiters:', err)
-  }
-}
-
-// Load Shifts from Backend
-const loadShifts = async () => {
-  try {
-    const response = await api.get('/manager/shifts', { params: { status: 'active' } })
-    const data = response.data.data || response.data
-    if (Array.isArray(data)) {
-      shifts.value = data
-    }
-  } catch (err: any) {
-    console.error('Failed to load shifts:', err)
-  }
-}
-
-const populateForm = () => {
-  if (!props.assignment) return
-  selectedTable.value = props.assignment.table_id || props.assignment.table?.id || ''
-  selectedWaiter.value = props.assignment.waiter_id || props.assignment.waiter?.id || ''
-  selectedShift.value = props.assignment.shift_id || props.assignment.shift?.id || ''
-  selectedPriority.value = props.assignment.priority || 'primary'
-  selectedStatus.value = props.assignment.status || 'active'
-}
-
-watch(
-  () => props.isOpen,
-  async (newVal) => {
-    if (newVal) {
-      error.value = null
-      successMessage.value = null
-      isLoading.value = true
-      await Promise.all([loadTables(), loadWaiters(), loadShifts()])
-      populateForm()
-      isLoading.value = false
-    }
-  },
-  { immediate: true }
-)
-
-watch(
-  () => props.assignment,
-  () => {
-    if (props.isOpen) {
-      populateForm()
-    }
-  }
-)
-
-const handleUpdate = async () => {
-  if (!props.assignment || !isFormValid.value) return
-
-  isSubmitting.value = true
-  error.value = null
-
-  try {
-    const payload = {
-      waiter_id: Number(selectedWaiter.value),
-      table_id: selectedTable.value,
-      shift_id: selectedShift.value,
-      priority: selectedPriority.value,
-      status: selectedStatus.value,
-    }
-
-    await tableAssignmentStore.updateAssignment(props.assignment.id, payload)
-    
-    successMessage.value = 'Table assignment updated successfully!'
-    emit('updated')
-
-    setTimeout(() => {
-      handleClose()
-    }, 1000)
-  } catch (err: any) {
-    error.value = err.response?.data?.message || err.message || 'Failed to update table assignment'
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-const handleClose = () => {
-  error.value = null
-  successMessage.value = null
-  emit('close')
-}
-
-const formatTime = (timeString: string): string => {
+// Format time from ISO string or HH:MM:SS to readable format
+const formatTime = (timeString?: string): string => {
   if (!timeString) return ''
   try {
     if (timeString.includes('T')) {
@@ -190,249 +86,313 @@ const formatTime = (timeString: string): string => {
     }
     return timeString
   } catch {
-    return timeString
+    return timeString || ''
   }
+}
+
+// Load Tables from Backend
+const loadTables = async () => {
+  try {
+    const response = await api.get('/manager/restaurant-tables', { params: { per_page: 100 } })
+    let list: any[] = []
+    if (Array.isArray(response.data?.data)) {
+      list = response.data.data
+    } else if (Array.isArray(response.data?.data?.data)) {
+      list = response.data.data.data
+    } else if (Array.isArray(response.data)) {
+      list = response.data
+    }
+    tables.value = list
+  } catch (err: any) {
+    console.error('Failed to load tables:', err)
+  }
+}
+
+// Load Waiters from Backend
+const loadWaiters = async () => {
+  try {
+    const response = await api.get('/manager/waiters')
+    let list: any[] = []
+    if (Array.isArray(response.data?.data)) {
+      list = response.data.data
+    } else if (Array.isArray(response.data)) {
+      list = response.data
+    }
+    waiters.value = list
+  } catch (err: any) {
+    console.error('Failed to load waiters:', err)
+  }
+}
+
+// Load Shifts from Backend
+const loadShifts = async () => {
+  try {
+    const response = await api.get('/manager/shifts')
+    let list: any[] = []
+    if (Array.isArray(response.data?.data)) {
+      list = response.data.data
+    } else if (Array.isArray(response.data)) {
+      list = response.data
+    }
+    if (list.length > 0) {
+      shifts.value = list
+    } else {
+      shifts.value = [
+        { id: 'morning-shift', name: 'Morning', start_time: '06:00', end_time: '14:00' },
+        { id: 'afternoon-shift', name: 'Afternoon', start_time: '14:00', end_time: '22:00' },
+        { id: 'evening-shift', name: 'Evening', start_time: '17:00', end_time: '23:00' },
+        { id: 'night-shift', name: 'Night', start_time: '22:00', end_time: '06:00' },
+      ]
+    }
+  } catch {
+    shifts.value = [
+      { id: 'morning-shift', name: 'Morning', start_time: '06:00', end_time: '14:00' },
+      { id: 'afternoon-shift', name: 'Afternoon', start_time: '14:00', end_time: '22:00' },
+      { id: 'evening-shift', name: 'Evening', start_time: '17:00', end_time: '23:00' },
+      { id: 'night-shift', name: 'Night', start_time: '22:00', end_time: '06:00' },
+    ]
+  }
+}
+
+const populateForm = () => {
+  if (!props.assignment) return
+  selectedTable.value = props.assignment.table_id || props.assignment.table?.id || ''
+  selectedWaiter.value = props.assignment.waiter_id || props.assignment.waiter?.id || ''
+  selectedShift.value = props.assignment.shift_id || props.assignment.shift?.id || ''
+  selectedPriority.value = props.assignment.priority || 'primary'
+  selectedStatus.value = props.assignment.status || 'active'
+}
+
+const loadData = async () => {
+  isLoading.value = true
+  error.value = null
+  try {
+    await Promise.all([loadTables(), loadWaiters(), loadShifts()])
+    populateForm()
+  } finally {
+    isLoading.value = false
+  }
+}
+
+watch(
+  () => props.assignment,
+  () => {
+    populateForm()
+  },
+  { immediate: true }
+)
+
+onMounted(() => {
+  loadData()
+})
+
+const handleUpdate = async () => {
+  if (!props.assignment || !isFormValid.value) return
+
+  isSubmitting.value = true
+  error.value = null
+
+  try {
+    const payload = {
+      waiter_id: Number(selectedWaiter.value),
+      table_id: selectedTable.value,
+      shift_id: selectedShift.value,
+      priority: selectedPriority.value,
+      status: selectedStatus.value,
+    }
+
+    await tableAssignmentStore.updateAssignment(props.assignment.id, payload)
+
+    successMessage.value = 'Table assignment updated successfully!'
+    emit('updated')
+    emit('success')
+
+    setTimeout(() => {
+      handleClose()
+    }, 1000)
+  } catch (err: any) {
+    error.value = err.response?.data?.message || err.message || 'Failed to update table assignment'
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const handleClose = () => {
+  error.value = null
+  successMessage.value = null
+  emit('close')
 }
 </script>
 
 <template>
   <Teleport to="body">
-    <transition name="modal">
-      <div v-if="isOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-        <!-- Backdrop -->
-        <div 
-          class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
-          @click="handleClose"
-        ></div>
-
-        <!-- Modal Content -->
-        <div class="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-100 animate-scale-in">
-          <!-- Header -->
-          <div class="flex items-center justify-between p-6 border-b border-slate-100 sticky top-0 bg-white/95 backdrop-blur-md rounded-t-2xl z-10">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-semibold">
-                <Edit3 class="w-5 h-5" />
-              </div>
-              <div>
-                <h2 class="text-xl font-bold text-slate-900">Edit Table Assignment</h2>
-                <p class="text-xs text-slate-500 mt-0.5">Update waiter, table, shift, priority, or status</p>
-              </div>
+    <div
+      v-if="isOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-sans"
+      @click.self="handleClose"
+    >
+      <div
+        class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col transition-all"
+      >
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-500/20">
+              <Edit3 class="w-5 h-5" />
             </div>
-            <button
-              type="button"
-              @click="handleClose"
-              class="text-slate-400 hover:text-slate-600 transition p-1.5 hover:bg-slate-100 rounded-lg"
-            >
-              <X class="w-5 h-5" />
-            </button>
+            <div>
+              <h2 class="text-lg font-black text-slate-900 dark:text-white">Edit Table Assignment</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Update waiter, shift, priority, or status</p>
+            </div>
           </div>
 
-          <!-- Body -->
-          <div class="p-6 space-y-5">
-            <!-- Success Alert -->
-            <transition name="fade">
-              <div v-if="successMessage" class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3">
-                <CheckCircle2 class="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                <p class="text-sm font-medium text-emerald-800">{{ successMessage }}</p>
-              </div>
-            </transition>
+          <button
+            type="button"
+            @click="handleClose"
+            class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
+          >
+            <X class="w-5 h-5" />
+          </button>
+        </div>
 
+        <!-- Modal Body / Content -->
+        <div class="p-6 overflow-y-auto space-y-5 flex-1">
+          <!-- Loading State -->
+          <div v-if="isLoading" class="py-12 text-center space-y-3">
+            <Loader2 class="w-8 h-8 text-blue-600 animate-spin mx-auto" />
+            <p class="text-xs font-bold text-slate-500">Loading assignment details...</p>
+          </div>
+
+          <template v-else>
             <!-- Error Alert -->
-            <div v-if="error" class="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
-              <span class="text-lg">⚠️</span>
-              <p class="text-sm text-red-700 font-medium">{{ error }}</p>
+            <div
+              v-if="error"
+              class="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-2xl text-xs font-bold flex items-center gap-2.5"
+            >
+              <AlertCircle class="w-4 h-4 flex-shrink-0" />
+              <span>{{ error }}</span>
             </div>
 
-            <!-- Loading State -->
-            <div v-if="isLoading" class="flex justify-center py-12">
-              <div class="text-center">
-                <Loader2 class="w-8 h-8 text-blue-600 animate-spin mx-auto mb-2" />
-                <p class="text-xs text-slate-500 font-medium">Loading assignment details...</p>
-              </div>
+            <!-- Success Alert -->
+            <div
+              v-if="successMessage"
+              class="p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl text-xs font-bold flex items-center gap-2.5"
+            >
+              <CheckCircle2 class="w-4 h-4 flex-shrink-0" />
+              <span>{{ successMessage }}</span>
             </div>
 
-            <!-- Form -->
-            <div v-else class="space-y-5">
-              <!-- Select Table -->
-              <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  <span class="flex items-center gap-1.5">
-                    <MapPin class="w-3.5 h-3.5 text-blue-600" />
-                    Restaurant Table
-                  </span>
-                </label>
-                <select
-                  v-model="selectedTable"
-                  class="w-full px-4 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-semibold text-slate-800 transition"
-                >
-                  <option value="" disabled>-- Select Table --</option>
-                  <option v-for="t in tables" :key="t.id" :value="t.id">
-                    Table {{ t.table_number }} {{ t.table_name ? `(${t.table_name})` : '' }} - {{ t.location || 'Main Floor' }}
-                  </option>
-                </select>
-              </div>
+            <!-- Select Table -->
+            <div>
+              <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                Select Restaurant Table *
+              </label>
+              <select
+                v-model="selectedTable"
+                class="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white px-3.5 py-2.5 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition cursor-pointer"
+              >
+                <option value="" disabled>Choose a table...</option>
+                <option v-for="table in tables" :key="table.id" :value="table.id">
+                  Table {{ table.table_number }} {{ table.table_name ? `(${table.table_name})` : '' }} — {{ table.capacity }} Seats
+                </option>
+              </select>
+            </div>
 
-              <!-- Selected Table Card -->
-              <div v-if="selectedTableData" class="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 rounded-xl flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 bg-purple-600 text-white rounded-lg flex items-center justify-center font-bold text-sm shadow">
-                    {{ selectedTableData.table_number }}
-                  </div>
-                  <div>
-                    <p class="font-bold text-slate-900 text-sm">{{ selectedTableData.table_name || 'Table ' + selectedTableData.table_number }}</p>
-                    <p class="text-xs text-slate-500">Capacity: {{ selectedTableData.capacity || '4' }} Seats • Section: {{ selectedTableData.section || 'General' }}</p>
-                  </div>
-                </div>
-                <span class="px-2.5 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-lg uppercase">Table Selected</span>
-              </div>
+            <!-- Select Waiter -->
+            <div>
+              <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                Assigned Waitstaff *
+              </label>
+              <select
+                v-model="selectedWaiter"
+                class="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white px-3.5 py-2.5 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition cursor-pointer"
+              >
+                <option value="" disabled>Choose a waiter...</option>
+                <option v-for="waiter in waiters" :key="waiter.id" :value="waiter.id">
+                  {{ waiter.name || waiter.user?.name || waiter.user?.first_name || `Waiter #${waiter.id}` }} {{ waiter.section ? `(${waiter.section})` : '' }}
+                </option>
+              </select>
+            </div>
 
-              <!-- Select Waiter -->
+            <!-- Shift & Status -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Shift -->
               <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  <span class="flex items-center gap-1.5">
-                    <User class="w-3.5 h-3.5 text-blue-600" />
-                    Assigned Waiter
-                  </span>
-                </label>
-                <select
-                  v-model="selectedWaiter"
-                  class="w-full px-4 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-semibold text-slate-800 transition"
-                >
-                  <option value="" disabled>-- Select Waiter --</option>
-                  <option v-for="w in waiters" :key="w.id" :value="w.id">
-                    {{ w.user?.name || `Waiter #${w.id}` }} ({{ w.experience_level || 'Junior' }})
-                  </option>
-                </select>
-              </div>
-
-              <!-- Select Shift -->
-              <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  <span class="flex items-center gap-1.5">
-                    <Clock class="w-3.5 h-3.5 text-blue-600" />
-                    Shift
-                  </span>
+                <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                  Shift Schedule *
                 </label>
                 <select
                   v-model="selectedShift"
-                  class="w-full px-4 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-semibold text-slate-800 transition"
+                  class="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white px-3.5 py-2.5 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition cursor-pointer"
                 >
-                  <option value="" disabled>-- Select Shift --</option>
-                  <option v-for="s in shifts" :key="s.id" :value="s.id">
-                    {{ s.name }} ({{ formatTime(s.start_time) }} - {{ formatTime(s.end_time) }})
+                  <option v-for="shift in shifts" :key="shift.id" :value="shift.id">
+                    {{ shift.name }} ({{ formatTime(shift.start_time) }} - {{ formatTime(shift.end_time) }})
                   </option>
                 </select>
               </div>
 
-              <!-- Priority & Status Grid -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Priority Level -->
-                <div>
-                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                    <span class="flex items-center gap-1.5">
-                      <Award class="w-3.5 h-3.5 text-blue-600" />
-                      Priority Level
-                    </span>
-                  </label>
-                  <div class="grid grid-cols-3 gap-2">
-                    <button
-                      v-for="p in priorities"
-                      :key="p"
-                      type="button"
-                      @click="selectedPriority = p"
-                      :class="[
-                        'py-2 px-1 text-xs font-bold rounded-xl border text-center transition capitalize',
-                        selectedPriority === p
-                          ? p === 'primary'
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                            : p === 'secondary'
-                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
-                            : 'bg-amber-600 text-white border-amber-600 shadow-md'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                      ]"
-                    >
-                      {{ p }}
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Assignment Status -->
-                <div>
-                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                    <span class="flex items-center gap-1.5">
-                      <Activity class="w-3.5 h-3.5 text-blue-600" />
-                      Status
-                    </span>
-                  </label>
-                  <div class="grid grid-cols-3 gap-2">
-                    <button
-                      v-for="st in statuses"
-                      :key="st.value"
-                      type="button"
-                      @click="selectedStatus = st.value"
-                      :class="[
-                        'py-2 px-1 text-xs font-bold rounded-xl border text-center transition capitalize',
-                        selectedStatus === st.value
-                          ? st.value === 'active'
-                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
-                            : st.value === 'completed'
-                            ? 'bg-purple-600 text-white border-purple-600 shadow-md'
-                            : 'bg-slate-700 text-white border-slate-700 shadow-md'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                      ]"
-                    >
-                      {{ st.label }}
-                    </button>
-                  </div>
-                </div>
+              <!-- Status -->
+              <div>
+                <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                  Status
+                </label>
+                <select
+                  v-model="selectedStatus"
+                  class="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white px-3.5 py-2.5 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition cursor-pointer capitalize"
+                >
+                  <option v-for="s in statuses" :key="s.value" :value="s.value">
+                    {{ s.label }}
+                  </option>
+                </select>
               </div>
             </div>
-          </div>
 
-          <!-- Footer -->
-          <div class="flex items-center justify-end gap-3 p-6 border-t border-slate-100 bg-slate-50/80 rounded-b-2xl">
-            <button
-              type="button"
-              @click="handleClose"
-              class="px-5 py-2.5 border-2 border-slate-200 rounded-xl text-slate-700 text-sm font-semibold hover:bg-white transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              @click="handleUpdate"
-              :disabled="!isFormValid || isSubmitting"
-              class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-semibold rounded-xl transition flex items-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50"
-            >
-              <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
-              <CheckCircle2 v-else class="w-4 h-4" />
-              <span>{{ isSubmitting ? 'Saving Changes...' : 'Save Changes' }}</span>
-            </button>
-          </div>
+            <!-- Priority -->
+            <div>
+              <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                Coverage Priority
+              </label>
+              <div class="grid grid-cols-3 gap-2.5">
+                <button
+                  v-for="p in priorities"
+                  :key="p.value"
+                  type="button"
+                  @click="selectedPriority = p.value as any"
+                  class="p-3 rounded-2xl border text-center transition cursor-pointer"
+                  :class="[
+                    selectedPriority === p.value
+                      ? 'border-blue-600 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-black'
+                      : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 font-semibold'
+                  ]"
+                >
+                  <div class="text-xs capitalize font-bold">{{ p.label }}</div>
+                  <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">{{ p.desc }}</div>
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex-shrink-0">
+          <button
+            type="button"
+            @click="handleClose"
+            class="px-4 py-2.5 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            @click="handleUpdate"
+            :disabled="!isFormValid || isSubmitting"
+            class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] text-white rounded-xl font-bold text-xs shadow-md shadow-blue-600/20 transition cursor-pointer flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
+            <span>{{ isSubmitting ? 'Saving...' : 'Save Changes' }}</span>
+          </button>
         </div>
       </div>
-    </transition>
+    </div>
   </Teleport>
 </template>
-
-<style scoped>
-.modal-enter-active, .modal-leave-active {
-  transition: opacity 0.25s ease;
-}
-.modal-enter-from, .modal-leave-to {
-  opacity: 0;
-}
-.animate-scale-in {
-  animation: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@keyframes scale-in {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-</style>

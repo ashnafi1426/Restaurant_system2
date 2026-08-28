@@ -221,9 +221,9 @@ class CheckInController extends Controller
                 \Mail::to($reservation->guest->email)
                     ->send(new \App\Mail\CheckInConfirmationMail($checkIn));
 
-                \Log::info('✅ [CHECK-IN] Check-in confirmation email sent successfully');
+                \Log::info(' [CHECK-IN] Check-in confirmation email sent successfully');
             } catch (\Exception $e) {
-                \Log::error('❌ [CHECK-IN] Failed to send check-in confirmation email', [
+                \Log::error(' [CHECK-IN] Failed to send check-in confirmation email', [
                     'error' => $e->getMessage(),
                     'guest_email' => $reservation->guest->email,
                 ]);
@@ -299,7 +299,7 @@ class CheckInController extends Controller
                     $checkIn->room->update([
                         'status' => 'available',
                     ]);
-                    Log::info('✅ [CHECK-IN DELETE] Room status updated', [
+                    Log::info(' [CHECK-IN DELETE] Room status updated', [
                         'room_id' => $checkIn->room->id,
                         'room_number' => $checkIn->room->room_number,
                         'old_status' => $oldStatus,
@@ -317,7 +317,7 @@ class CheckInController extends Controller
                         'status' => $newReservationStatus,
                     ]);
                     
-                    Log::info('✅ [CHECK-IN DELETE] Reservation status updated', [
+                    Log::info(' [CHECK-IN DELETE] Reservation status updated', [
                         'reservation_id' => $checkIn->reservation->id,
                         'booking_reference' => $checkIn->reservation->booking_reference,
                         'new_status' => $newReservationStatus,
@@ -326,7 +326,7 @@ class CheckInController extends Controller
 
                 // Delete the check-in record
                 $checkIn->delete();
-                Log::info('✅ [CHECK-IN DELETE] Check-in deleted successfully', [
+                Log::info(' [CHECK-IN DELETE] Check-in deleted successfully', [
                     'checkin_id' => $checkIn->id,
                 ]);
 
@@ -341,7 +341,7 @@ class CheckInController extends Controller
                 throw $e;
             }
         } catch (\Exception $e) {
-            Log::error('❌ [CHECK-IN DELETE] Failed to delete check-in', [
+            Log::error(' [CHECK-IN DELETE] Failed to delete check-in', [
                 'checkin_id' => $checkIn->id ?? 'unknown',
                 'error' => $e->getMessage(),
                 'error_code' => $e->getCode(),
@@ -395,7 +395,7 @@ class CheckInController extends Controller
             // Refresh room to verify update
             $room->refresh();
             
-            \Log::info('✅ [CHECKOUT] Room status updated', [
+            \Log::info(' [CHECKOUT] Room status updated', [
                 'room_id' => $room->id,
                 'room_number' => $room->room_number,
                 'room_status_after' => $room->status,
@@ -423,7 +423,7 @@ class CheckInController extends Controller
         } catch (Exception $exception) {
             DB::rollBack();
 
-            \Log::error('❌ [CHECKOUT] Checkout failed', [
+            \Log::error(' [CHECKOUT] Checkout failed', [
                 'check_in_id' => $checkIn->id,
                 'error_message' => $exception->getMessage(),
                 'error_file' => $exception->getFile(),

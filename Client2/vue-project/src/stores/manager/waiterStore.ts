@@ -202,6 +202,12 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
     error.value = null
   }
 
+  const fetchWaiters = load
+  const createWaiter = create
+  const updateWaiter = update
+  const deleteWaiter = delete_
+  const fetchStats = async () => {}
+
   return {
     waiters,
     loading,
@@ -209,12 +215,17 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
     waiterStats,
     normalizedWaiters,
     load,
+    fetchWaiters,
     create,
+    createWaiter,
     updateStatus,
     update,
+    updateWaiter,
     getPerformance,
     getAssignments,
     delete_,
+    deleteWaiter,
+    fetchStats,
     reset,
   }
 })

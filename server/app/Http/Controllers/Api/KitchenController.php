@@ -34,7 +34,7 @@ class KitchenController extends Controller
                 ->kitchenService
                 ->getKitchenOrders(auth()->user());
 
-            \Log::info('📊 [KITCHEN] Orders Retrieved', [
+            \Log::info(' [KITCHEN] Orders Retrieved', [
                 'pending_count' => count($orders['pending']),
                 'preparing_count' => count($orders['preparing']),
                 'ready_count' => count($orders['ready']),
@@ -79,7 +79,7 @@ class KitchenController extends Controller
 
         } catch(Throwable $e){
 
-            \Log::error('❌ [KITCHEN] Orders Error', [
+            \Log::error(' [KITCHEN] Orders Error', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -139,7 +139,7 @@ class KitchenController extends Controller
 
         }catch(Throwable $e){
 
-            \Log::error('❌ [KITCHEN] START Action Failed', [
+            \Log::error(' [KITCHEN] START Action Failed', [
                 'order_id' => $order->id ?? 'unknown',
                 'error_message' => $e->getMessage(),
                 'error_code' => $e->getCode(),
@@ -199,7 +199,7 @@ class KitchenController extends Controller
 
         }catch(Throwable $e){
 
-            \Log::error('❌ [KITCHEN] READY Action Failed', [
+            \Log::error(' [KITCHEN] READY Action Failed', [
                 'order_id' => $order->id ?? 'unknown',
                 'error_message' => $e->getMessage(),
             ]);
@@ -255,7 +255,7 @@ class KitchenController extends Controller
             ]);
         }catch(Throwable $e){
 
-            \Log::error('❌ [KITCHEN] COMPLETE Action Failed', [
+            \Log::error(' [KITCHEN] COMPLETE Action Failed', [
                 'order_id' => $order->id ?? 'unknown',
                 'error_message' => $e->getMessage(),
             ]);

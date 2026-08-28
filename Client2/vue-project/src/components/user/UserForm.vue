@@ -99,7 +99,7 @@ const getFieldError = (fieldName: string): string | null => {
           v-if="getFieldError('first_name')"
           class="mt-1 text-xs text-red-600 flex items-center gap-1"
         >
-          <span>❌</span> {{ getFieldError('first_name') }}
+          <span></span> {{ getFieldError('first_name') }}
         </p>
       </div>
 
@@ -122,7 +122,7 @@ const getFieldError = (fieldName: string): string | null => {
           v-if="getFieldError('last_name')"
           class="mt-1 text-xs text-red-600 flex items-center gap-1"
         >
-          <span>❌</span> {{ getFieldError('last_name') }}
+          <span></span> {{ getFieldError('last_name') }}
         </p>
       </div>
     </div>
@@ -144,7 +144,7 @@ const getFieldError = (fieldName: string): string | null => {
         :disabled="loading"
       />
       <p v-if="getFieldError('email')" class="mt-1 text-xs text-red-600 flex items-center gap-1">
-        <span>❌</span> {{ getFieldError('email') }}
+        <span></span> {{ getFieldError('email') }}
       </p>
     </div>
 
@@ -164,7 +164,7 @@ const getFieldError = (fieldName: string): string | null => {
         :disabled="loading"
       />
       <p v-if="getFieldError('phone')" class="mt-1 text-xs text-red-600 flex items-center gap-1">
-        <span>❌</span> {{ getFieldError('phone') }}
+        <span></span> {{ getFieldError('phone') }}
       </p>
     </div>
 
@@ -202,7 +202,7 @@ const getFieldError = (fieldName: string): string | null => {
         </template>
       </select>
       <p v-if="getFieldError('role')" class="mt-1 text-xs text-red-600 flex items-center gap-1">
-        <span>❌</span> {{ getFieldError('role') }}
+        <span></span> {{ getFieldError('role') }}
       </p>
     </div>
 

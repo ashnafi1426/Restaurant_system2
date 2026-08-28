@@ -457,6 +457,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -599,12 +600,14 @@ const openPaymentDialog = () => {
     alert('Your cart is empty')
     return
   }
+  showCartModal.value = false
   showPaymentDialog.value = true
 }
 
 // Close payment confirmation dialog
 const closePaymentDialog = () => {
   showPaymentDialog.value = false
+  showCartModal.value = true
 }
 
 // Proceed to payment (called from confirmation dialog)
@@ -680,7 +683,7 @@ const handlePlaceOrder = async () => {
       })
 
       if (paymentResponse.success && paymentResponse.checkout_url) {
-        console.log('✅ [WALK-IN] Payment initialized, redirecting to Chapa...')
+        console.log(' [WALK-IN] Payment initialized, redirecting to Chapa...')
         console.log('💳 [WALK-IN] Checkout URL:', paymentResponse.checkout_url)
         console.log('📋 [WALK-IN] TX Ref:', paymentResponse.tx_ref)
         
@@ -746,7 +749,7 @@ const handlePlaceOrder = async () => {
       const paymentData = await paymentResponse.json()
       
       if (paymentData.success && paymentData.checkout_url) {
-          console.log('✅ [ROOM] Payment initialized, redirecting to Chapa...')
+          console.log(' [ROOM] Payment initialized, redirecting to Chapa...')
           console.log('💳 [ROOM] Checkout URL:', paymentData.checkout_url)
           
           sessionStorage.setItem('order_payment_data', JSON.stringify({
@@ -765,7 +768,7 @@ const handlePlaceOrder = async () => {
             calculation: paymentData.calculation,
           }))
           
-          console.log('✅ [ROOM] Payment initialized, redirecting to Chapa...')
+          console.log(' [ROOM] Payment initialized, redirecting to Chapa...')
           window.location.href = paymentData.checkout_url
           return
       } else {
@@ -776,18 +779,18 @@ const handlePlaceOrder = async () => {
     // ============================================================================
     // FALLBACK - Should not reach here
     // ============================================================================
-    console.error('❌ [ORDER] Unknown order context type:', orderContext.value?.type)
+    console.error(' [ORDER] Unknown order context type:', orderContext.value?.type)
     throw new Error('Invalid order context')
   } catch (error: any) {
-    console.error('❌ [PAYMENT] Error:', error)
-    console.error('❌ [PAYMENT] Error details:', error.message)
+    console.error(' [PAYMENT] Error:', error)
+    console.error(' [PAYMENT] Error details:', error.message)
 
     let errorMessage = 'Something went wrong. Please try again.'
 
     if (error.message) {
       errorMessage = error.message
     }
-    alert(`❌ Payment Error: ${errorMessage}`)
+    alert(` Payment Error: ${errorMessage}`)
   } finally {
     isPlacingOrder.value = false
   }
@@ -836,15 +839,15 @@ const detectOrderContext = async () => {
       if (result.data.guest) {
         guestName.value = result.data.guest.guest_name
         guestEmail.value = result.data.guest.guest_email || 'guest@hotel.com'
-        console.log('✅ [QR] Room context with checked-in guest:', result.data.guest.guest_name)
+        console.log(' [QR] Room context with checked-in guest:', result.data.guest.guest_name)
       } else {
         // Room has no active check-in
         guestName.value = 'Hotel Guest'
         guestEmail.value = 'guest@hotel.com'
-        console.log('⚠️ [QR] Room has no active check-in')
+        console.log(' [QR] Room has no active check-in')
       }
       
-      console.log('✅ [QR] Room context detected:', orderContext.value)
+      console.log(' [QR] Room context detected:', orderContext.value)
     } else if (result.context === 'table') {
       console.log('🍽️ [QR] TABLE CONTEXT DETECTED')
       orderContext.value = {
@@ -861,11 +864,29 @@ const detectOrderContext = async () => {
       heroSubheading.value = result.data.table_name || `Table ${result.data.table_number}`
       guestName.value = 'Walk-in Guest'
       guestEmail.value = 'walkin@restaurant.com'
-      console.log('✅ [QR] Table context detected:', orderContext.value)
+      console.log(' [QR] Table context detected:', orderContext.value)
     }
   } catch (error: any) {
-    console.error('❌ [QR] Context detection failed:', error)
+    console.error(' [QR] Context detection failed:', error)
     contextError.value = error.message || 'Failed to load menu'
+    
+    // Fallback to walk-in restaurant table mode so the menu still renders properly
+    if (!orderContext.value || !orderContext.value.type) {
+      orderContext.value = {
+        type: 'table',
+        id: '',
+        displayName: 'Restaurant Dining',
+        paymentOptions: [
+          { value: 'cash', label: 'Pay with Cash' },
+          { value: 'card', label: 'Pay with Card' },
+        ],
+      }
+      roomNumber.value = 'Restaurant Dining'
+      heroHeading.value = 'Restaurant Menu'
+      heroSubheading.value = 'Dining & Takeout'
+      guestName.value = 'Walk-in Guest'
+      guestEmail.value = 'walkin@restaurant.com'
+    }
   } finally {
     isLoadingContext.value = false
   }

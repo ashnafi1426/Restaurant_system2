@@ -54,12 +54,12 @@ export const useWaiterStore = defineStore('waiter', () => {
     isLoading.value = true
     error.value = null
     try {
-      console.log('🔵 [STORE] fetchDashboard called')
+      console.log(' [STORE] fetchDashboard called')
       dashboard.value = await waiterService.getDashboard()
       console.log(' [STORE] Dashboard received:', dashboard.value)
     } catch (err: any) {
       error.value = err.message || 'Failed to fetch dashboard'
-      console.error('❌ [STORE] Dashboard fetch error:', err)
+      console.error(' [STORE] Dashboard fetch error:', err)
       // Set default data to prevent blank screens
       dashboard.value = {
         today_stats: {
@@ -84,32 +84,32 @@ export const useWaiterStore = defineStore('waiter', () => {
 
   const fetchQuickStats = async () => {
     try {
-      console.log('🔵 [STORE] fetchQuickStats called')
+      console.log(' [STORE] fetchQuickStats called')
       console.log('📋 [STORE] Current user from auth:', {
         id: useAuthStore().user?.id,
         email: useAuthStore().user?.email,
         role: useAuthStore().user?.role,
       })
-      
+
       quickStats.value = await waiterService.getQuickStats()
       console.log(' [STORE] Quick stats received:', quickStats.value)
     } catch (err: any) {
-      console.error('❌ [STORE] Quick stats fetch error:', err)
+      console.error(' [STORE] Quick stats fetch error:', err)
     }
   }
 
   const fetchAssignments = async (params: any = {}) => {
-    console.log('🔵 [STORE] fetchAssignments called with params:', params)
+    console.log(' [STORE] fetchAssignments called with params:', params)
     isLoading.value = true
     error.value = null
     try {
       const result = await waiterService.getAssignments(params)
       console.log(' [STORE] Assignments received:', result)
       assignments.value = result.data
-      console.log('📊 [STORE] Total assignments in store:', assignments.value.length)
+      console.log(' [STORE] Total assignments in store:', assignments.value.length)
     } catch (err: any) {
       error.value = err.message || 'Failed to fetch assignments'
-      console.error('❌ [STORE] Assignments fetch error:', err)
+      console.error(' [STORE] Assignments fetch error:', err)
     } finally {
       isLoading.value = false
     }
@@ -132,14 +132,14 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const fetchReadyForPickup = async () => {
-    console.log('🔵 [STORE] fetchReadyForPickup called')
+    console.log(' [STORE] fetchReadyForPickup called')
     isLoading.value = true
     error.value = null
     try {
       assignments.value = await waiterService.getReadyForPickup()
       console.log(' [STORE] Ready for pickup received:', assignments.value.length, 'items')
     } catch (err: any) {
-      console.error('❌ [STORE] Ready for pickup fetch error:', err)
+      console.error(' [STORE] Ready for pickup fetch error:', err)
       error.value = err.message || 'Failed to fetch ready orders'
       assignments.value = []
     } finally {
@@ -148,14 +148,14 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const fetchPendingPickupOrders = async () => {
-    console.log('🔵 [STORE] fetchPendingPickupOrders called')
+    console.log(' [STORE] fetchPendingPickupOrders called')
     isLoading.value = true
     error.value = null
     try {
       assignments.value = await waiterService.getPendingPickupOrders()
       console.log(' [STORE] Pending pickup orders received:', assignments.value.length, 'items')
     } catch (err: any) {
-      console.error('❌ [STORE] Pending pickup orders fetch error:', err)
+      console.error(' [STORE] Pending pickup orders fetch error:', err)
       error.value = err.message || 'Failed to fetch pending pickup orders'
       assignments.value = []
     } finally {
@@ -165,23 +165,23 @@ export const useWaiterStore = defineStore('waiter', () => {
 
   // Merged method for ReadyPickup page that loads both ready and pending
   const fetchKitchenOrders = async () => {
-    console.log('🔵 [STORE] fetchKitchenOrders called (merged ready + pending)')
+    console.log(' [STORE] fetchKitchenOrders called (merged ready + pending)')
     isLoading.value = true
     error.value = null
     try {
       console.log('📋 [STORE] Fetching ready orders...')
       const readyOrders = await waiterService.getReadyForPickup()
       console.log(' [STORE] Ready orders received:', readyOrders.length, 'items')
-      
+
       console.log('📋 [STORE] Fetching pending orders...')
       const pendingOrders = await waiterService.getPendingPickupOrders()
       console.log(' [STORE] Pending orders received:', pendingOrders.length, 'items')
-      
+
       // Merge results into assignments array
       assignments.value = [...readyOrders, ...pendingOrders]
       console.log(' [STORE] Total kitchen orders:', assignments.value.length)
     } catch (err: any) {
-      console.error('❌ [STORE] Kitchen orders fetch error:', err)
+      console.error(' [STORE] Kitchen orders fetch error:', err)
       error.value = err.message || 'Failed to fetch kitchen orders'
       assignments.value = []
     } finally {
@@ -190,14 +190,14 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const fetchOnDelivery = async () => {
-    console.log('🔵 [STORE] fetchOnDelivery called')
+    console.log(' [STORE] fetchOnDelivery called')
     isLoading.value = true
     error.value = null
     try {
       assignments.value = await waiterService.getOnDelivery()
       console.log(' [STORE] On delivery assignments received:', assignments.value.length, 'items')
     } catch (err: any) {
-      console.error('❌ [STORE] On delivery fetch error:', err)
+      console.error(' [STORE] On delivery fetch error:', err)
       error.value = err.message || 'Failed to fetch on-delivery orders'
       assignments.value = []
     } finally {
@@ -206,14 +206,14 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const fetchCompletedDeliveries = async () => {
-    console.log('🔵 [STORE] fetchCompletedDeliveries called')
+    console.log(' [STORE] fetchCompletedDeliveries called')
     isLoading.value = true
     error.value = null
     try {
       assignments.value = await waiterService.getCompletedDeliveries()
       console.log(' [STORE] Completed deliveries received:', assignments.value.length, 'items')
     } catch (err: any) {
-      console.error('❌ [STORE] Completed deliveries fetch error:', err)
+      console.error(' [STORE] Completed deliveries fetch error:', err)
       error.value = err.message || 'Failed to fetch completed deliveries'
       assignments.value = []
     } finally {
@@ -222,14 +222,14 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const fetchFailedDeliveries = async () => {
-    console.log('🔵 [STORE] fetchFailedDeliveries called')
+    console.log(' [STORE] fetchFailedDeliveries called')
     isLoading.value = true
     error.value = null
     try {
       assignments.value = await waiterService.getFailedDeliveries()
       console.log(' [STORE] Failed deliveries received:', assignments.value.length, 'items')
     } catch (err: any) {
-      console.error('❌ [STORE] Failed deliveries fetch error:', err)
+      console.error(' [STORE] Failed deliveries fetch error:', err)
       error.value = err.message || 'Failed to fetch failed deliveries'
       assignments.value = []
     } finally {
@@ -254,7 +254,7 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const fetchHistory = async (params: any = {}) => {
-    console.log('🔵 [STORE] fetchHistory called with params:', params)
+    console.log(' [STORE] fetchHistory called with params:', params)
     isLoading.value = true
     error.value = null
     try {
@@ -262,7 +262,7 @@ export const useWaiterStore = defineStore('waiter', () => {
       deliveryHistory.value = result.data
       console.log(' [STORE] Delivery history received:', deliveryHistory.value.length, 'items')
     } catch (err: any) {
-      console.error('❌ [STORE] History fetch error:', err)
+      console.error(' [STORE] History fetch error:', err)
       error.value = err.message || 'Failed to fetch delivery history'
       deliveryHistory.value = []
     } finally {

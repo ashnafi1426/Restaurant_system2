@@ -82,7 +82,7 @@ class WalkInOrderPaymentController extends Controller
         try {
             // Validate request
             $validated = $request->validate([
-                'table_id'     => 'required|uuid|exists:restaurant_tables,id',
+                'table_id'     => 'nullable|string',
                 'qr_token'     => 'required|string',
                 'items'        => 'required|array|min:1',
                 'items.*.menu_item_id' => 'required|uuid|exists:menu_items,id',
@@ -94,8 +94,28 @@ class WalkInOrderPaymentController extends Controller
                 'phone'        => 'required|string|max:20',
             ]);
 
-            // Get table
-            $table = RestaurantTable::findOrFail($validated['table_id']);
+            // Get table by table_id, qr_token, or table_number
+            $table = null;
+            if (!empty($validated['table_id'])) {
+                $table = RestaurantTable::where('id', $validated['table_id'])
+                    ->orWhere('table_number', $validated['table_id'])
+                    ->first();
+            }
+            if (!$table && !empty($validated['qr_token'])) {
+                $table = RestaurantTable::where('qr_token', $validated['qr_token'])
+                    ->orWhere('table_number', $validated['qr_token'])
+                    ->first();
+            }
+            if (!$table) {
+                $table = RestaurantTable::where('is_active', true)->first();
+            }
+
+            if (!$table) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Table not found for this order.',
+                ], 404);
+            }
 
             // Calculate order total
             $orderCalculation = $this->calculateOrderTotal($validated['items']);

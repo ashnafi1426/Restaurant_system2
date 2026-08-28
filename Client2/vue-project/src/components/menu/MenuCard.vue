@@ -1,8 +1,10 @@
 ﻿<script setup lang="ts">
-// MenuCard - Pure Presentation Component
-// No mock data - all properties from MenuItem props
-// MenuItem comes from store.menuItems array
+// MenuCard - Pure Presentation Component with Review Ratings
+// Displays menu item with review statistics
 import type { MenuItem } from '@/types/menu'
+import { ref, onMounted } from 'vue'
+import reviewService from '@/services/reviewService'
+import type { ReviewStats } from '@/types/review'
 
 defineProps<{
   item: MenuItem // ← Always from store.menuItems
@@ -12,7 +14,34 @@ const emit = defineEmits<{
   (e: 'edit', item: MenuItem): void
   (e: 'delete', item: MenuItem): void
   (e: 'toggle', item: MenuItem): void
+  (e: 'view-reviews', item: MenuItem): void
 }>()
+
+// Review stats
+const reviewStats = ref<ReviewStats | null>(null)
+const loadingReviews = ref(false)
+
+onMounted(async () => {
+  await loadReviewStats()
+})
+
+const loadReviewStats = async () => {
+  loadingReviews.value = true
+  try {
+    reviewStats.value = await reviewService.getMenuItemStats(props.item.id)
+  } catch (error) {
+    console.error('Failed to load review stats:', error)
+  } finally {
+    loadingReviews.value = false
+  }
+}
+
+const renderStars = (rating: number | null) => {
+  if (!rating) return '☆☆☆☆☆'
+  const filled = Math.round(rating)
+  const empty = 5 - filled
+  return '★'.repeat(filled) + '☆'.repeat(empty)
+}
 </script>
 
 <template>
@@ -81,6 +110,24 @@ const emit = defineEmits<{
       <p class="text-xs text-slate-600 line-clamp-2 mb-2 sm:mb-3 flex-1">
         {{ item.description || 'No description provided' }}
       </p>
+
+      <!-- Review Rating Badge -->
+      <div v-if="reviewStats" class="mb-2 sm:mb-3 p-2 bg-yellow-50 rounded-lg">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1">
+            <span class="text-sm font-bold text-yellow-600">{{ reviewStats.average_rating?.toFixed(1) || 'N/A' }}</span>
+            <span class="text-xs text-yellow-600">{{ renderStars(reviewStats.average_rating) }}</span>
+          </div>
+          <span class="text-xs text-gray-600">({{ reviewStats.total_reviews }})</span>
+        </div>
+        <button
+          v-if="reviewStats.total_reviews > 0"
+          @click="emit('view-reviews', item)"
+          class="w-full mt-1 text-xs text-blue-600 hover:text-blue-700 hover:underline font-semibold"
+        >
+          View Reviews
+        </button>
+      </div>
 
       <!-- Footer: Price & Actions -->
       <div class="pt-2 sm:pt-3 border-t border-slate-200 flex items-center justify-between gap-2">

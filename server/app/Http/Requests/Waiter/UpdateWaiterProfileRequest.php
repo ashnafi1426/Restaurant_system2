@@ -23,14 +23,11 @@ class UpdateWaiterProfileRequest extends FormRequest
         $waiterId = auth()->id();
 
         return [
-            'name' => 'sometimes|string|max:255',
-            'email' => [
-                'sometimes',
-                'email',
-                Rule::unique('users', 'email')->ignore($waiterId),
-            ],
-            'phone' => 'sometimes|string|max:20',
-            'shift' => 'sometimes|in:morning,afternoon,night,flexible',
+            'first_name' => 'sometimes|string|max:255',
+            'last_name' => 'sometimes|string|max:255',
+            'phone' => 'sometimes|nullable|string|max:20',
+            'shift' => 'sometimes|nullable|in:morning,afternoon,evening,night,flexible',
+            'bio' => 'sometimes|nullable|string|max:500',
         ];
     }
 
@@ -40,11 +37,11 @@ class UpdateWaiterProfileRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.max' => 'Name must not exceed 255 characters',
-            'email.email' => 'Email must be a valid email address',
-            'email.unique' => 'Email is already taken',
+            'first_name.max' => 'First name must not exceed 255 characters',
+            'last_name.max' => 'Last name must not exceed 255 characters',
             'phone.max' => 'Phone must not exceed 20 characters',
             'shift.in' => 'Selected shift is invalid',
+            'bio.max' => 'Bio must not exceed 500 characters',
         ];
     }
 }

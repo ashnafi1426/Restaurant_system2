@@ -44,7 +44,7 @@ return new class extends Migration
                     ->where('id', $room->id)
                     ->update(['floor_id' => $floors[$room->floor]->id]);
                 
-                echo "  ✅ Room {$room->room_number}: floor {$room->floor} → floor_id {$floors[$room->floor]->id}\n";
+                echo "   Room {$room->room_number}: floor {$room->floor} → floor_id {$floors[$room->floor]->id}\n";
             } else {
                 // Assign to Ground Floor (floor 1) as default
                 $groundFloor = $floors[1] ?? $floors->first();
@@ -53,7 +53,7 @@ return new class extends Migration
                         ->where('id', $room->id)
                         ->update(['floor_id' => $groundFloor->id]);
                     
-                    echo "  ⚠️ Room {$room->room_number}: No floor match, assigned to {$groundFloor->name}\n";
+                    echo "   Room {$room->room_number}: No floor match, assigned to {$groundFloor->name}\n";
                 }
             }
         }

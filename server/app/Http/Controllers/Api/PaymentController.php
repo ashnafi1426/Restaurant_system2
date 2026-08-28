@@ -304,12 +304,12 @@ class PaymentController extends Controller
                             // Create order record
                             $order = Order::create([
                                 'order_number'     => Order::generateOrderNumber(),
-                                'reservation_id'   => null, // ✅ QR orders have no reservation initially  
+                                'reservation_id'   => null, //  QR orders have no reservation initially  
                                 'guest_id'         => $payment->guest_id,
                                 'room_id'          => $roomId,
                                 'order_time'       => now(),
-                                'status'           => Order::STATUS_PENDING, // ✅ Now visible to chef!
-                                'payment_type'     => 'card', // ✅ Match enum: 'room_charge', 'cash', 'card'
+                                'status'           => Order::STATUS_PENDING, //  Now visible to chef!
+                                'payment_type'     => 'card', //  Match enum: 'room_charge', 'cash', 'card'
                                 'subtotal'         => $calculation['subtotal'] ?? $payment->amount,
                                 'tax'              => $calculation['tax'] ?? 0,
                                 'discount'         => $calculation['discount'] ?? 0,
@@ -337,8 +337,8 @@ class PaymentController extends Controller
                                 $order->orderItems()->create([
                                     'menu_item_id'        => $item['menu_item_id'],
                                     'quantity'            => $quantity,
-                                    'item_price_at_order' => $itemPrice, // ✅ Correct column name
-                                    'line_total'          => $lineTotal,  // ✅ Required column
+                                    'item_price_at_order' => $itemPrice, //  Correct column name
+                                    'line_total'          => $lineTotal,  //  Required column
                                     'notes'               => $item['special_instructions'] ?? null,
                                 ]);
                             }
@@ -348,7 +348,7 @@ class PaymentController extends Controller
                             // Link payment to order
                             $payment->update(['order_id' => $order->id]);
 
-                            Log::info('✅ [ORDER] Order created successfully after payment - NOW VISIBLE TO CHEF!', [
+                            Log::info(' [ORDER] Order created successfully after payment - NOW VISIBLE TO CHEF!', [
                                 'payment_id'   => $payment->id,
                                 'order_id'     => $order->id,
                                 'order_number' => $order->order_number,
@@ -359,7 +359,7 @@ class PaymentController extends Controller
                             ]);
 
                         } catch (\Exception $e) {
-                            Log::error('❌ [ORDER] Failed to create order after payment verification', [
+                            Log::error(' [ORDER] Failed to create order after payment verification', [
                                 'payment_id' => $payment->id,
                                 'tx_ref'     => $txRef,
                                 'error'      => $e->getMessage(),

@@ -12,7 +12,7 @@ class WaiterDashboardService
     {
         try {
             if (!$waiterId) {
-                \Log::warning('❌ getDashboardStats called with empty waiterId');
+                \Log::warning(' getDashboardStats called with empty waiterId');
                 return [
                     'today_stats' => $this->getDefaultTodayStats(),
                     'performance' => $this->getDefaultPerformanceMetrics(),
@@ -22,7 +22,7 @@ class WaiterDashboardService
                 ];
             }
 
-            \Log::info('🔵 [SERVICE] getDashboardStats called:', [
+            \Log::info(' [SERVICE] getDashboardStats called:', [
                 'waiter_id' => $waiterId,
             ]);
 
@@ -35,14 +35,14 @@ class WaiterDashboardService
                 'active_count' => $this->getActiveCount($waiterId),
             ];
 
-            \Log::info('✅ [SERVICE] getDashboardStats result:', [
+            \Log::info(' [SERVICE] getDashboardStats result:', [
                 'waiter_id' => $waiterId,
                 'result_keys' => array_keys($result),
             ]);
 
             return $result;
         } catch (\Throwable $e) {
-            \Log::error('❌ Dashboard stats error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            \Log::error(' Dashboard stats error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
             return [
                 'today_stats' => $this->getDefaultTodayStats(),
                 'performance' => $this->getDefaultPerformanceMetrics(),
@@ -61,7 +61,7 @@ class WaiterDashboardService
             }
 
             $today = Carbon::today();
-            \Log::info('🔵 [SERVICE] getTodayStats querying:', [
+            \Log::info(' [SERVICE] getTodayStats querying:', [
                 'waiter_id' => $waiterId,
                 'date' => $today->toDateString(),
             ]);
@@ -96,14 +96,14 @@ class WaiterDashboardService
                 ')
                 ->first();
 
-            \Log::info('✅ [SERVICE] getTodayStats results:', [
+            \Log::info(' [SERVICE] getTodayStats results:', [
                 'waiter_id' => $waiterId,
                 'today_stats' => $todayStats ? $todayStats->toArray() : null,
                 'current_active_stats' => $currentStats ? $currentStats->toArray() : null,
             ]);
 
             if (!$todayStats && !$currentStats) {
-                \Log::warning('❌ getTodayStats: No data found for waiter', [
+                \Log::warning(' getTodayStats: No data found for waiter', [
                     'waiter_id' => $waiterId,
                     'date' => $today->toDateString(),
                 ]);
@@ -141,7 +141,7 @@ class WaiterDashboardService
                 'completion_rate' => $completionRate,
             ];
         } catch (\Throwable $e) {
-            \Log::error('❌ Today stats error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            \Log::error(' Today stats error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
             return $this->getDefaultTodayStats();
         }
     }
@@ -333,7 +333,7 @@ class WaiterDashboardService
                 return [];
             }
 
-            \Log::info('🔵 [SERVICE] getRecentAssignments querying:', [
+            \Log::info(' [SERVICE] getRecentAssignments querying:', [
                 'waiter_id' => $waiterId,
                 'limit' => $limit,
             ]);
@@ -403,14 +403,14 @@ class WaiterDashboardService
                 })
                 ->toArray();
 
-            \Log::info('✅ [SERVICE] getRecentAssignments result:', [
+            \Log::info(' [SERVICE] getRecentAssignments result:', [
                 'waiter_id' => $waiterId,
                 'count' => count($deliveryTasks),
             ]);
 
             return $deliveryTasks;
         } catch (\Throwable $e) {
-            \Log::error('❌ Recent assignments error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            \Log::error(' Recent assignments error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
             return [];
         }
     }
@@ -548,7 +548,7 @@ class WaiterDashboardService
     public function getReadyForPickup($waiterId): array
     {
         try {
-            \Log::info('🔵 [SERVICE] getReadyForPickup called', ['waiter_id' => $waiterId]);
+            \Log::info(' [SERVICE] getReadyForPickup called', ['waiter_id' => $waiterId]);
             
             $baseQuery = \App\Models\DeliveryTask::whereIn('status', ['assigned', 'accepted', 'waiting_assignment']);
             $waiterTasks = (clone $baseQuery)->where('waiter_id', $waiterId);
@@ -633,7 +633,7 @@ class WaiterDashboardService
                 }
             }
             
-            \Log::info('✅ [SERVICE] getReadyForPickup results', ['count' => count($results)]);
+            \Log::info(' [SERVICE] getReadyForPickup results', ['count' => count($results)]);
             
             return $results;
         } catch (\Throwable $e) {
@@ -646,7 +646,7 @@ class WaiterDashboardService
     public function getPendingPickupOrders($waiterId): array
     {
         try {
-            \Log::info('🔵 [SERVICE] getPendingPickupOrders called', [
+            \Log::info(' [SERVICE] getPendingPickupOrders called', [
                 'waiter_id' => $waiterId,
             ]);
             
@@ -672,7 +672,7 @@ class WaiterDashboardService
                 ->orderBy('assigned_at', 'asc')
                 ->get();
 
-            \Log::info('✅ [SERVICE] Found and filtered pending assignments', [
+            \Log::info(' [SERVICE] Found and filtered pending assignments', [
                 'waiter_id' => $waiterId,
                 'count' => $assignments->count(),
             ]);
@@ -697,7 +697,7 @@ class WaiterDashboardService
                 'special_requests' => $assignment->order?->special_requests ?? 'None',
             ])->toArray();
         } catch (\Throwable $e) {
-            \Log::error('❌ Pending pickup orders error', [
+            \Log::error(' Pending pickup orders error', [
                 'error' => $e->getMessage(),
                 'waiter_id' => $waiterId,
                 'file' => $e->getFile(),
@@ -709,18 +709,18 @@ class WaiterDashboardService
     public function getOnDelivery($waiterId): array
     {
         try {
-            \Log::info('🔵 [DASHBOARD] getOnDelivery called', ['waiter_id' => $waiterId]);
+            \Log::info(' [DASHBOARD] getOnDelivery called', ['waiter_id' => $waiterId]);
             
             // First, check if waiter_id is valid
             if (!$waiterId) {
-                \Log::error('❌ [DASHBOARD] Invalid waiter_id passed to getOnDelivery', ['waiter_id' => $waiterId]);
+                \Log::error(' [DASHBOARD] Invalid waiter_id passed to getOnDelivery', ['waiter_id' => $waiterId]);
                 return [];
             }
             
             // Check if waiter exists
             $waiterExists = \App\Models\Waiter::find($waiterId);
             if (!$waiterExists) {
-                \Log::error('❌ [DASHBOARD] Waiter not found in database', ['waiter_id' => $waiterId]);
+                \Log::error(' [DASHBOARD] Waiter not found in database', ['waiter_id' => $waiterId]);
                 return [];
             }
             
@@ -729,7 +729,7 @@ class WaiterDashboardService
                 ->select('id', 'order_id', 'status', 'created_at')
                 ->get();
             
-            \Log::debug('📊 [DASHBOARD] All tasks for waiter', [
+            \Log::debug(' [DASHBOARD] All tasks for waiter', [
                 'waiter_id' => $waiterId,
                 'total_tasks' => $allWaiterTasks->count(),
                 'tasks_by_status' => $allWaiterTasks->groupBy('status')->map->count(),
@@ -749,7 +749,7 @@ class WaiterDashboardService
                 ->orderBy('picked_up_at', 'asc')
                 ->get();
             
-            \Log::info('✅ [DASHBOARD] Query executed, tasks found', [
+            \Log::info(' [DASHBOARD] Query executed, tasks found', [
                 'waiter_id' => $waiterId,
                 'count' => $tasks->count(),
                 'task_ids' => $tasks->pluck('id')->toArray(),
@@ -780,13 +780,13 @@ class WaiterDashboardService
                 }
             })->toArray();
             
-            \Log::info('✅ [DASHBOARD] Mapped results', [
+            \Log::info(' [DASHBOARD] Mapped results', [
                 'count' => count($result),
             ]);
             
             return $result;
         } catch (\Throwable $e) {
-            \Log::error('❌ On delivery error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine(), [
+            \Log::error(' On delivery error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine(), [
                 'trace' => $e->getTraceAsString(),
             ]);
             return [];
@@ -861,7 +861,7 @@ class WaiterDashboardService
                 })
                 ->toArray();
             
-            \Log::info('✅ [SERVICE] getCompletedDeliveries results', ['count' => count($results)]);
+            \Log::info(' [SERVICE] getCompletedDeliveries results', ['count' => count($results)]);
             return $results;
         } catch (\Throwable $e) {
             \Log::error('Completed deliveries error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
@@ -903,7 +903,7 @@ class WaiterDashboardService
                 })
                 ->toArray();
             
-            \Log::info('✅ [SERVICE] getFailedDeliveries results', ['count' => count($results)]);
+            \Log::info(' [SERVICE] getFailedDeliveries results', ['count' => count($results)]);
             return $results;
         } catch (\Throwable $e) {
             \Log::error('Failed deliveries error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine(), [
@@ -1050,7 +1050,7 @@ class WaiterDashboardService
     public function getQuickStats($waiterId): array
     {
         try {
-            \Log::info('🔵 [SERVICE] getQuickStats called', [
+            \Log::info(' [SERVICE] getQuickStats called', [
                 'waiter_id' => $waiterId,
             ]);
             
@@ -1081,7 +1081,7 @@ class WaiterDashboardService
 
             return $result;
         } catch (\Throwable $e) {
-            \Log::error('❌ Quick stats error', [
+            \Log::error(' Quick stats error', [
                 'error' => $e->getMessage(),
                 'waiter_id' => $waiterId,
                 'file' => $e->getFile(),

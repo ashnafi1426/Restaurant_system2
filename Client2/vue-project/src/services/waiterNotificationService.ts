@@ -9,7 +9,7 @@ export const waiterNotificationService = {
       const response = await api.get(`${NOTIFICATIONS_BASE}?page=${page}`)
       return response.data
     } catch (error) {
-      console.error('❌ Error fetching notifications:', error)
+      console.error(' Error fetching notifications:', error)
       throw error
     }
   },
@@ -20,7 +20,7 @@ export const waiterNotificationService = {
       const response = await api.get(`${NOTIFICATIONS_BASE}/unread-count`)
       return response.data
     } catch (error) {
-      console.error('❌ Error fetching unread count:', error)
+      console.error(' Error fetching unread count:', error)
       throw error
     }
   },
@@ -31,7 +31,7 @@ export const waiterNotificationService = {
       const response = await api.get(`${NOTIFICATIONS_BASE}/unread`)
       return response.data
     } catch (error) {
-      console.error('❌ Error fetching unread notifications:', error)
+      console.error(' Error fetching unread notifications:', error)
       throw error
     }
   },
@@ -42,7 +42,7 @@ export const waiterNotificationService = {
       const response = await api.get(`${NOTIFICATIONS_BASE}/stats`)
       return response.data
     } catch (error) {
-      console.error('❌ Error fetching notification stats:', error)
+      console.error(' Error fetching notification stats:', error)
       throw error
     }
   },
@@ -53,7 +53,7 @@ export const waiterNotificationService = {
       const response = await api.patch(`${NOTIFICATIONS_BASE}/${notificationId}/read`)
       return response.data
     } catch (error) {
-      console.error('❌ Error marking notification as read:', error)
+      console.error(' Error marking notification as read:', error)
       throw error
     }
   },
@@ -64,7 +64,7 @@ export const waiterNotificationService = {
       const response = await api.patch(`${NOTIFICATIONS_BASE}/read-all`)
       return response.data
     } catch (error) {
-      console.error('❌ Error marking all as read:', error)
+      console.error(' Error marking all as read:', error)
       throw error
     }
   },
@@ -75,7 +75,7 @@ export const waiterNotificationService = {
       const response = await api.delete(`${NOTIFICATIONS_BASE}/${notificationId}`)
       return response.data
     } catch (error) {
-      console.error('❌ Error deleting notification:', error)
+      console.error(' Error deleting notification:', error)
       throw error
     }
   },
@@ -86,7 +86,7 @@ export const waiterNotificationService = {
       const response = await api.delete(NOTIFICATIONS_BASE)
       return response.data
     } catch (error) {
-      console.error('❌ Error deleting all notifications:', error)
+      console.error(' Error deleting all notifications:', error)
       throw error
     }
   },

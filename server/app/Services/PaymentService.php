@@ -111,7 +111,7 @@ class PaymentService
     public function createOrderPayment(array $data): Payment
     {
         try {
-            // ✅ PRESERVE ALL METADATA - especially items and calculation arrays
+            //  PRESERVE ALL METADATA - especially items and calculation arrays
             $metadata = $data['metadata'] ?? [];
             
             // Only add/override specific fields without destroying existing data
@@ -119,7 +119,7 @@ class PaymentService
             $metadata['room_id'] = $data['room_id'] ?? ($metadata['room_id'] ?? null);
             $metadata['created_at'] = now()->toIso8601String();
             
-            // ✅ Log to verify items are being saved
+            //  Log to verify items are being saved
             Log::info('💾 [PAYMENT] Creating order payment with metadata', [
                 'has_items' => isset($metadata['items']),
                 'items_count' => isset($metadata['items']) ? count($metadata['items']) : 0,
@@ -141,9 +141,9 @@ class PaymentService
                 'metadata'         => $metadata,
             ]);
 
-            // ✅ Verify metadata was saved correctly
+            //  Verify metadata was saved correctly
             $savedMetadata = $payment->fresh()->metadata;
-            Log::info('✅ [PAYMENT] Order Payment Created', [
+            Log::info(' [PAYMENT] Order Payment Created', [
                 'payment_id' => $payment->id,
                 'amount'     => $payment->amount,
                 'guest_id'   => $data['guest_id'],
@@ -231,21 +231,7 @@ class PaymentService
         }
     }
 
-    /**
-     * Handle Successful Order Payment
-     * 
-     * Called after payment is verified as successful.
-     * Creates the actual Order record in database.
-     * 
-     * Transaction ensures atomicity - if order creation fails,
-     * payment status is NOT marked as verified.
-     * 
-     * @param Payment $payment
-     * @param array $orderData
-     * @param array $orderItems - Array of order items
-     * 
-     * @return array - ['success' => bool, 'order' => Order, 'message' => string]
-     */
+
     public function handleOrderPaymentSuccess(Payment $payment, array $orderData, array $orderItems): array
     {
         try {
@@ -267,8 +253,6 @@ class PaymentService
                     'notes'           => $orderData['notes'] ?? null,
                     'special_requests' => $orderData['special_requests'] ?? null,
                 ]);
-
-                // Create order items
                 foreach ($orderItems as $item) {
                     $order->orderItems()->create([
                         'menu_item_id' => $item['menu_item_id'],

@@ -3,15 +3,15 @@ import api from '../api/auth'
 export interface NotificationData {
   id?: string
   type:
-    | 'booking'
-    | 'check_in'
-    | 'check_out'
-    | 'cancellation'
-    | 'system'
-    | 'order_created'
-    | 'order_preparing'
-    | 'order_ready'
-    | 'order_served'
+  | 'booking'
+  | 'check_in'
+  | 'check_out'
+  | 'cancellation'
+  | 'system'
+  | 'order_created'
+  | 'order_preparing'
+  | 'order_ready'
+  | 'order_served'
   title: string
   message: string
   reservation_id?: string
@@ -111,7 +111,7 @@ export const notificationService = {
 
         // Stop polling after too many failures
         if (failureCount >= maxFailures) {
-          console.error('❌ Too many notification polling failures. Stopping.')
+          console.error(' Too many notification polling failures. Stopping.')
           clearInterval(intervalId)
           return
         }

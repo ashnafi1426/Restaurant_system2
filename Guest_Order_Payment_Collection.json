@@ -1,0 +1,123 @@
+{
+	"info": {
+		"name": "Guest Order - Pay Before Order",
+		"description": "Simple collection for guest ordering with payment first",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api"
+		},
+		{
+			"key": "qr_token",
+			"value": ""
+		},
+		{
+			"key": "room_id",
+			"value": ""
+		},
+		{
+			"key": "guest_id",
+			"value": ""
+		},
+		{
+			"key": "menu_item_id",
+			"value": ""
+		},
+		{
+			"key": "tx_ref",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "1. Get Menu Items",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/guest/menu/items",
+					"host": ["{{base_url}}"],
+					"path": ["guest", "menu", "items"]
+				},
+				"description": "Get all menu items. Copy menu item ID for order."
+			}
+		},
+		{
+			"name": "2. Initialize Payment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    var json = pm.response.json();",
+							"    pm.collectionVariables.set('tx_ref', json.tx_ref);",
+							"    console.log('Checkout URL: ' + json.checkout_url);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"guest_id\": \"{{guest_id}}\",\n    \"room_id\": \"{{room_id}}\",\n    \"items\": [\n        {\n            \"menu_item_id\": \"{{menu_item_id}}\",\n            \"quantity\": 2\n        }\n    ],\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"email\": \"john@example.com\",\n    \"phone\": \"+251912345678\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/order-payments/initialize",
+					"host": ["{{base_url}}"],
+					"path": ["order-payments", "initialize"]
+				},
+				"description": "Initialize payment. Response will include checkout_url - customer must pay there first."
+			}
+		},
+		{
+			"name": "3. Verify Payment",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/payments/verify/{{tx_ref}}",
+					"host": ["{{base_url}}"],
+					"path": ["payments", "verify", "{{tx_ref}}"]
+				},
+				"description": "Verify payment status. Status must be 'paid' or 'verified' before creating order."
+			}
+		},
+		{
+			"name": "4. Complete Order",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/order-payments/complete/{{tx_ref}}",
+					"host": ["{{base_url}}"],
+					"path": ["order-payments", "complete", "{{tx_ref}}"]
+				},
+				"description": "Complete order AFTER payment is verified. This creates the order and sends it to kitchen."
+			}
+		},
+		{
+			"name": "5. Get Order Status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/guest/orders/{{qr_token}}/status",
+					"host": ["{{base_url}}"],
+					"path": ["guest", "orders", "{{qr_token}}", "status"]
+				},
+				"description": "Check order status: pending, preparing, ready, served"
+			}
+		}
+	]
+}

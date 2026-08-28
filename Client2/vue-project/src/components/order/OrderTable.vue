@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { Order } from '@/types/order'
 import {
   BedDouble,
@@ -14,7 +14,7 @@ import {
   ChevronRight
 } from 'lucide-vue-next'
 
-defineProps<{
+const props = defineProps<{
   orders: Order[]
   loading: boolean
   currentPage: number
@@ -143,6 +143,8 @@ function paymentClass(payment: Order['payment_type']): string {
     room_charge: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
     cash: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
     card: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+    chapa: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+    online: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
   }
   return classes[payment] || 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
 }
@@ -152,8 +154,10 @@ function paymentLabel(payment: Order['payment_type']): string {
     room_charge: 'Room Charge',
     cash: 'Cash',
     card: 'Card',
+    chapa: 'Chapa',
+    online: 'Online',
   }
-  return labels[payment] || payment
+  return labels[payment] || payment || 'N/A'
 }
 
 function handleClickOutside() {
@@ -209,9 +213,9 @@ function handleClickOutside() {
               </span>
             </div>
             <div>
-              <span class="text-[9px] text-slate-400 block font-bold uppercase">Room</span>
+              <span class="text-[9px] text-slate-400 block font-bold uppercase">Room / Table</span>
               <span class="font-bold text-slate-900 dark:text-white block text-xs">
-                {{ order.room?.room_number ? 'Room ' + order.room.room_number : 'N/A' }}
+                {{ order.room?.room_number ? 'Room ' + order.room.room_number : (order.table?.table_number ? 'Table ' + order.table.table_number : 'N/A') }}
               </span>
             </div>
           </div>
@@ -227,38 +231,38 @@ function handleClickOutside() {
         </div>
       </div>
 
-      <!-- Desktop Ultra-Compact Table View -->
+      <!-- Desktop Table View -->
       <div class="hidden sm:block overflow-x-auto w-full">
         <table class="w-full text-left border-collapse">
-          <thead class="bg-slate-50/90 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
-            <tr class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider select-none">
-              <th class="px-2.5 py-2.5 whitespace-nowrap">Order Ref</th>
-              <th class="px-2.5 py-2.5 whitespace-nowrap">Guest</th>
-              <th class="px-2.5 py-2.5 whitespace-nowrap">Room</th>
-              <th class="px-2.5 py-2.5 whitespace-nowrap">Payment</th>
-              <th class="px-2.5 py-2.5 text-center whitespace-nowrap">Status</th>
-              <th class="px-2.5 py-2.5 text-right whitespace-nowrap">Total</th>
-              <th class="px-2.5 py-2.5 whitespace-nowrap">Date</th>
-              <th class="px-2.5 py-2.5 text-right whitespace-nowrap pr-3">Actions</th>
+          <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+            <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
+              <th class="px-3 py-3 whitespace-nowrap pl-4">Order Ref</th>
+              <th class="px-3 py-3 whitespace-nowrap">Guest</th>
+              <th class="px-3 py-3 whitespace-nowrap">Room / Table</th>
+              <th class="px-3 py-3 whitespace-nowrap">Payment</th>
+              <th class="px-3 py-3 text-center whitespace-nowrap">Status</th>
+              <th class="px-3 py-3 text-right whitespace-nowrap">Total</th>
+              <th class="px-3 py-3 whitespace-nowrap">Date</th>
+              <th class="px-3 py-3 text-right whitespace-nowrap pr-4">Actions</th>
             </tr>
           </thead>
 
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+          <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
             <tr
               v-for="order in orders"
               :key="order.id"
-              class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors duration-150 group"
+              class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
             >
               <!-- Order Ref -->
-              <td class="px-2.5 py-2.5 whitespace-nowrap">
+              <td class="px-3 py-3 whitespace-nowrap pl-4">
                 <span class="font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
                   {{ order.order_number || `ORD-${String(order.id).padStart(6, '0')}` }}
                 </span>
               </td>
 
               <!-- Guest -->
-              <td class="px-2.5 py-2.5">
-                <div class="flex items-center gap-1.5 max-w-[140px]">
+              <td class="px-3 py-3">
+                <div class="flex items-center gap-2 max-w-[160px]">
                   <div class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-black text-[9px] flex items-center justify-center flex-shrink-0">
                     {{ (getGuestDisplayName(order.guest)?.[0] || 'G').toUpperCase() }}
                   </div>
@@ -273,11 +277,14 @@ function handleClickOutside() {
                 </div>
               </td>
 
-              <!-- Room -->
+              <!-- Room / Table -->
               <td class="px-2.5 py-2.5 whitespace-nowrap">
                 <span v-if="order.room?.room_number" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700">
                   <BedDouble class="w-3 h-3 text-slate-400" />
                   Room {{ order.room.room_number }}
+                </span>
+                <span v-else-if="order.table?.table_number" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800">
+                  Table {{ order.table.table_number }}
                 </span>
                 <span v-else class="text-slate-400 text-xs italic">N/A</span>
               </td>

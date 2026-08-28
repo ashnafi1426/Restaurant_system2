@@ -10,11 +10,11 @@ class WaiterContextResolver
     public function resolveWaiterId(?User $user): ?int
     {
         if (!$user) {
-            \Log::warning('🔴 [RESOLVER] No user provided');
+            \Log::warning(' [RESOLVER] No user provided');
             return null;
         }
         
-        \Log::debug('🔵 [RESOLVER] Resolving waiter ID for user', [
+        \Log::debug(' [RESOLVER] Resolving waiter ID for user', [
             'user_id' => $user->id,
             'user_email' => $user->email,
             'user_role' => $user->role ?? 'N/A',
@@ -24,7 +24,7 @@ class WaiterContextResolver
         // Try loaded relationship first
         if ($user->relationLoaded('waiter') && $user->waiter) {
             $waiterId = (int) $user->waiter->id;
-            \Log::info('✅ [RESOLVER] Waiter ID resolved from loaded relation', [
+            \Log::info(' [RESOLVER] Waiter ID resolved from loaded relation', [
                 'user_id' => $user->id,
                 'waiter_id' => $waiterId,
             ]);
@@ -36,13 +36,13 @@ class WaiterContextResolver
 
         if ($user->waiter) {
             $waiterId = (int) $user->waiter->id;
-            \Log::info('✅ [RESOLVER] Waiter ID resolved from loadMissing', [
+            \Log::info(' [RESOLVER] Waiter ID resolved from loadMissing', [
                 'user_id' => $user->id,
                 'waiter_id' => $waiterId,
             ]);
             return $waiterId;
         }
-        \Log::warning('⚠️ [RESOLVER] No waiter relation found, trying fallback lookup', [
+        \Log::warning(' [RESOLVER] No waiter relation found, trying fallback lookup', [
             'user_id' => $user->id,
         ]);
 
@@ -54,7 +54,7 @@ class WaiterContextResolver
 
         if ($fallbackWaiter?->id) {
             $waiterId = (int) $fallbackWaiter->id;
-            \Log::warning('⚠️ [RESOLVER] Waiter ID resolved from fallback lookup', [
+            \Log::warning(' [RESOLVER] Waiter ID resolved from fallback lookup', [
                 'user_id' => $user->id,
                 'waiter_id' => $waiterId,
             ]);
@@ -77,7 +77,7 @@ class WaiterContextResolver
                 'status' => 'active',
             ]);
 
-            \Log::info('✅ [RESOLVER] Auto-linked Waiter profile for user', [
+            \Log::info(' [RESOLVER] Auto-linked Waiter profile for user', [
                 'user_id' => $user->id,
                 'waiter_id' => $createdWaiter->id,
                 'primary_role' => $user->role,
@@ -85,10 +85,10 @@ class WaiterContextResolver
 
             return (int) $createdWaiter->id;
         } catch (\Throwable $e) {
-            \Log::error('❌ [RESOLVER] Error auto-creating waiter profile: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            \Log::error(' [RESOLVER] Error auto-creating waiter profile: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
         }
         
-        \Log::error('❌ [RESOLVER] Could not resolve waiter ID for user', [
+        \Log::error(' [RESOLVER] Could not resolve waiter ID for user', [
             'user_id' => $user->id,
             'user_email' => $user->email,
             'all_waiters_count' => Waiter::count(),

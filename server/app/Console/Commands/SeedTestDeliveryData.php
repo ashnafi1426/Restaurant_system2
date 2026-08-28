@@ -27,28 +27,28 @@ class SeedTestDeliveryData extends Command
         // Find or get first waiter
         $user = User::where('email', $email)->first();
         if (!$user) {
-            $this->error('❌ User not found: ' . $email);
+            $this->error(' User not found: ' . $email);
             return 1;
         }
 
-        $this->info('✅ Found user: ' . $user->email);
+        $this->info(' Found user: ' . $user->email);
 
         // Load waiter relationship
         $user->load('waiter');
         $waiter = $user->waiter;
 
         if (!$waiter) {
-            $this->error('❌ No waiter profile for user: ' . $email);
+            $this->error(' No waiter profile for user: ' . $email);
             return 1;
         }
 
-        $this->info('✅ Waiter ID: ' . $waiter->id);
+        $this->info(' Waiter ID: ' . $waiter->id);
 
         // Option to delete existing
         if ($this->option('fresh')) {
             $this->info('🗑️ Deleting existing delivery tasks for this waiter...');
             DeliveryTask::where('waiter_id', $waiter->id)->delete();
-            $this->info('✅ Deleted');
+            $this->info(' Deleted');
         }
 
         // Get manager
@@ -58,7 +58,7 @@ class SeedTestDeliveryData extends Command
         }
 
         if (!$manager) {
-            $this->error('❌ No manager/admin found!');
+            $this->error(' No manager/admin found!');
             return 1;
         }
 
@@ -71,7 +71,7 @@ class SeedTestDeliveryData extends Command
                 'name' => 'Ground Floor',
                 'description' => 'Main dining floor',
             ]);
-            $this->info('✅ Created floor: ' . $floor->name);
+            $this->info(' Created floor: ' . $floor->name);
         }
 
         // Create guest and order
@@ -90,7 +90,7 @@ class SeedTestDeliveryData extends Command
         if (!$room) {
             $room = Room::first();
             if (!$room) {
-                $this->error('❌ No rooms found in database');
+                $this->error(' No rooms found in database');
                 return 1;
             }
         }
@@ -154,7 +154,7 @@ class SeedTestDeliveryData extends Command
                 'remarks' => "Test delivery - Status: {$status}",
             ]);
 
-            $this->info("✅ Created delivery task: {$task->id} - Status: {$status}");
+            $this->info(" Created delivery task: {$task->id} - Status: {$status}");
         }
 
         // Update waiter's current orders count
@@ -171,8 +171,8 @@ class SeedTestDeliveryData extends Command
             ->count();
 
         $this->info('');
-        $this->info('✅ Seeding completed successfully!');
-        $this->info('📊 Summary:');
+        $this->info(' Seeding completed successfully!');
+        $this->info(' Summary:');
         $this->info("  - User Email: {$user->email}");
         $this->info("  - Waiter ID: {$waiter->id}");
         $this->info("  - Created 5 delivery tasks with different statuses");

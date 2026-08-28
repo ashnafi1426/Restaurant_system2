@@ -57,8 +57,9 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $observers = [
-        // Add model observers here as needed
-        // E.g., \App\Models\Order::class => [\App\Observers\OrderObserver::class],
+        \App\Models\Guest::class => [\App\Observers\GuestObserver::class],
+        \App\Models\Order::class => [\App\Observers\OrderObserver::class],
+        \App\Models\MenuItemReview::class => [\App\Observers\MenuItemReviewObserver::class],
     ];
 
     /**

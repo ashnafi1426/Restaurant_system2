@@ -99,27 +99,27 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
     // --- BOOKING DETAILS ---
     addSection('BOOKING DETAILS')
     addText(`Reference: ${data.booking_reference || 'REF-' + (data.tx_ref?.substring(0, 8) || 'N/A').toUpperCase()}`, 9)
-    
+
     const checkInDate = data.check_in_date
       ? new Date(data.check_in_date).toLocaleDateString('en-ET', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
       : 'N/A'
-    
+
     const checkOutDate = data.check_out_date
       ? new Date(data.check_out_date).toLocaleDateString('en-ET', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
       : 'N/A'
 
     addText(`Check-in: ${checkInDate}`, 9)
     addText(`Check-out: ${checkOutDate}`, 9)
     addText(`Room: ${data.room_number || 'Pending'}`, 9)
-    
+
     if (data.special_requests) {
       addText(`Special Requests: ${data.special_requests}`, 9)
     }
@@ -129,7 +129,7 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
     addSection('PAYMENT SUMMARY')
     addText(`Transaction Reference: ${data.tx_ref || 'N/A'}`, 9)
     yPosition += 3
-    
+
     pdf.setFontSize(16)
     pdf.setFont('helvetica', 'bold')
     pdf.setTextColor(217, 119, 6) // Orange
@@ -142,7 +142,7 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
     pdf.setFontSize(8)
     pdf.setFont('helvetica', 'normal')
     pdf.setTextColor(0, 0, 0)
-    
+
     const terms = [
       '• Cancellation must be done 48 hours before check-in for refund',
       '• No-show charges will apply 24 hours before check-in',
@@ -150,7 +150,7 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
       '• Keep this receipt for your records',
       '• For inquiries or modifications, contact us immediately',
     ]
-    
+
     terms.forEach(term => {
       const lines = pdf.splitTextToSize(term, contentWidth)
       pdf.text(lines, margin + 2, yPosition)
@@ -186,10 +186,10 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
     console.log(`💾 [RECEIPT] Downloading receipt as ${fileName}...`)
     pdf.save(fileName)
 
-    console.log('✅ [RECEIPT] Receipt downloaded successfully!')
+    console.log(' [RECEIPT] Receipt downloaded successfully!')
   } catch (error: any) {
-    console.error('❌ [RECEIPT] Error generating receipt:', error)
-    console.error('❌ [RECEIPT] Error details:', {
+    console.error(' [RECEIPT] Error generating receipt:', error)
+    console.error(' [RECEIPT] Error details:', {
       message: error.message,
       stack: error.stack,
     })

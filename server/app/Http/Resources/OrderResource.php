@@ -74,6 +74,21 @@ class OrderResource extends JsonResource
 
             /*
             |--------------------------------------------------------------------------
+            | Table (Walk-in Orders)
+            |--------------------------------------------------------------------------
+            */
+
+            'table' => $this->whenLoaded('table', function () {
+                return [
+                    'id' => $this->table->id,
+                    'table_number' => $this->table->table_number,
+                ];
+            }),
+
+            'order_type' => $this->order_type ?? 'room_service',
+
+            /*
+            |--------------------------------------------------------------------------
             | Financial Summary
             |--------------------------------------------------------------------------
             */

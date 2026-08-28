@@ -3,117 +3,138 @@ import { onMounted, computed, ref } from 'vue'
 import { useKitchenStore } from '@/stores/kitchenStore'
 import { storeToRefs } from 'pinia'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
-import { Clock, CookingPot, ShoppingBag, FileText, Loader2, Inbox } from 'lucide-vue-next'
+import {
+  Search,
+  Filter,
+  X,
+  RefreshCw,
+  Maximize2,
+  Minimize2,
+  RotateCcw,
+  Clock,
+  CookingPot,
+  ShoppingBag,
+  BedDouble,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+} from 'lucide-vue-next'
 
 const kitchenStore = useKitchenStore()
 const { pendingOrders, statistics, actionLoading, error } = storeToRefs(kitchenStore)
 
-// Notification state
-const notification = ref<{ show: boolean; type: string; message: string }>({
-  show: false,
-  type: 'error',
-  message: '',
-})
+const isFilterOpen = ref(false)
+const isFullscreen = ref(false)
 
-// Pagination state
+const searchQuery = ref('')
+const selectedType = ref('all')
+
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
-
-// Computed properties for pagination
-const totalPages = computed(() => {
-  return Math.ceil((pendingOrders.value?.length || 0) / itemsPerPage.value) || 1
-})
-
-const paginatedOrders = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return (pendingOrders.value || []).slice(start, end)
-})
-
-const startItem = computed(() => {
-  return (currentPage.value - 1) * itemsPerPage.value + 1
-})
-
-const endItem = computed(() => {
-  return Math.min(currentPage.value * itemsPerPage.value, pendingOrders.value?.length || 0)
-})
-
-const hasNextPage = computed(() => currentPage.value < totalPages.value)
-const hasPrevPage = computed(() => currentPage.value > 1)
-
-const goToNextPage = () => {
-  if (hasNextPage.value) {
-    currentPage.value++
-  }
-}
-
-const goToPrevPage = () => {
-  if (hasPrevPage.value) {
-    currentPage.value--
-  }
-}
-
-const goToPage = (page: number) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-  }
-}
-
-const changeItemsPerPage = (newAmount: number) => {
-  itemsPerPage.value = newAmount
-  currentPage.value = 1 // Reset to first page
-}
-
-// Helper function to get page numbers to display
-const getPaginationRange = (): number[] => {
-  const range: number[] = []
-  const start = Math.max(2, currentPage.value - 1)
-  const end = Math.min(totalPages.value - 1, currentPage.value + 1)
-
-  for (let i = start; i <= end; i++) {
-    range.push(i)
-  }
-
-  return range
-}
 
 onMounted(async () => {
   await kitchenStore.fetchDashboard()
 })
 
-async function startPreparing(orderId: string) {
-  // Clear previous notification
-  notification.value.show = false
+const filteredOrders = computed(() => {
+  let list = pendingOrders.value || []
 
-  try {
-    console.log(`🔵 [UI] START button clicked for order: ${orderId}`)
-    await kitchenStore.startPreparing(orderId)
-
-    // Check if error occurred during the action
-    if (error.value) {
-      console.error(`❌ [UI] Error from store:`, error.value)
-      notification.value = {
-        show: true,
-        type: 'error',
-        message: error.value,
-      }
-    } else {
-      console.log(` [UI] Order started successfully`)
-      notification.value = {
-        show: true,
-        type: 'success',
-        message: `Order #${orderId} started preparing`,
-      }
-    }
-  } catch (err: any) {
-    console.error(`❌ [UI] Exception caught:`, err)
-    const errorMessage = err?.response?.data?.message ?? err.message ?? 'Failed to start order'
-    notification.value = {
-      show: true,
-      type: 'error',
-      message: errorMessage,
+  if (selectedType.value !== 'all') {
+    if (selectedType.value === 'room') {
+      list = list.filter((order) => Boolean(order.room?.room_number))
+    } else if (selectedType.value === 'walk_in') {
+      list = list.filter((order) => !order.room?.room_number)
     }
   }
+
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase().trim()
+    list = list.filter((order) => {
+      const roomNum = order.room?.room_number ? String(order.room.room_number).toLowerCase() : ''
+      const ordNum = (order.order_number || '').toLowerCase()
+      const guestName = (order.guest?.full_name || '').toLowerCase()
+      const itemsMatch = (order.items || []).some((item) => (item.name || '').toLowerCase().includes(q))
+      return roomNum.includes(q) || ordNum.includes(q) || guestName.includes(q) || itemsMatch
+    })
+  }
+
+  return list
+})
+
+const total = computed(() => filteredOrders.value.length)
+const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value) || 1)
+
+const paginatedOrders = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredOrders.value.slice(start, end)
+})
+
+const showingFrom = computed(() => {
+  if (total.value === 0) return 0
+  return (currentPage.value - 1) * itemsPerPage.value + 1
+})
+
+const showingTo = computed(() => {
+  return Math.min(currentPage.value * itemsPerPage.value, total.value)
+})
+
+const paginationPages = computed(() => {
+  const pages: number[] = []
+  const max = totalPages.value
+  const cur = currentPage.value
+
+  for (let i = Math.max(1, cur - 2); i <= Math.min(max, cur + 2); i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+const changeItemsPerPage = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  itemsPerPage.value = Number(target.value)
+  currentPage.value = 1
+}
+
+const goToPage = (p: number) => {
+  if (p >= 1 && p <= totalPages.value) {
+    currentPage.value = p
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  selectedType.value = 'all'
+  currentPage.value = 1
+}
+
+const toggleFilter = () => {
+  isFilterOpen.value = !isFilterOpen.value
+}
+
+const toggleFullscreen = () => {
+  isFullscreen.value = !isFullscreen.value
+}
+
+const refresh = async () => {
+  await kitchenStore.fetchDashboard()
+}
+
+async function startPreparing(orderId: string) {
+  await kitchenStore.startPreparing(orderId)
 }
 
 const formatTime = (dateTime: string) => {
@@ -128,283 +149,313 @@ const formatTime = (dateTime: string) => {
 
 <template>
   <DashboardLayout>
-    <!--  Error Notification Toast -->
-    <Teleport to="body" v-if="notification.show">
-      <div class="fixed top-4 right-4 z-50 animate-fade-in">
-        <div
-          :class="[
-            'px-6 py-4 rounded-lg shadow-xl font-semibold flex items-center gap-3 max-w-md border-l-4',
-            notification.type === 'error'
-              ? 'bg-red-50 text-red-900 border-red-500'
-              : 'bg-green-50 text-green-900 border-green-500',
-          ]"
-        >
-          <span class="text-xl flex-shrink-0">{{
-            notification.type === 'error' ? '❌' : ''
-          }}</span>
-          <span class="flex-1">{{ notification.message }}</span>
-          <button
-            @click="notification.show = false"
-            class="text-xl leading-none hover:opacity-70 flex-shrink-0"
-          >
-            ×
-          </button>
-        </div>
-      </div>
-    </Teleport>
-
-    <div class="space-y-6">
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
+      :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
+    >
       <!-- Header -->
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-3xl font-bold text-slate-900">⏳ Pending Orders</h1>
-          <p class="mt-2 text-slate-600">Orders waiting to be prepared</p>
-        </div>
-        <div class="bg-amber-100 text-amber-700 px-6 py-3 rounded-lg font-bold text-2xl">
-          {{ statistics?.pending_orders ?? 0 }}
-        </div>
-      </div>
-
-      <!-- Table Container -->
-      <div class="rounded-lg bg-white shadow-md overflow-hidden overflow-x-auto">
-        <table v-if="pendingOrders?.length" class="w-full text-sm">
-          <!-- Table Header -->
-          <thead>
-            <tr class="bg-slate-100 border-b-2 border-slate-200">
-              <th class="px-4 py-3 text-left font-bold text-slate-700">Order ID</th>
-              <th class="px-4 py-3 text-left font-bold text-slate-700">Room</th>
-              <th class="px-4 py-3 text-left font-bold text-slate-700">Guest</th>
-              <th class="px-4 py-3 text-left font-bold text-slate-700">Items</th>
-              <th class="px-4 py-3 text-left font-bold text-slate-700">Notes</th>
-              <th class="px-4 py-3 text-left font-bold text-slate-700">Time</th>
-              <th class="px-4 py-3.5 text-right">Total</th>
-              <th class="px-4 py-3.5 text-center">Action</th>
-            </tr>
-          </thead>
-
-          <!-- Table Body -->
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
-            <tr
-              v-for="order in paginatedOrders"
-              :key="order.id"
-              class="transition hover:bg-slate-50/50 dark:hover:bg-slate-800/30"
-            >
-              <!-- Order ID -->
-              <td class="px-4 py-3">
-                <div class="font-mono text-xs font-bold text-slate-900 dark:text-white">
-                  {{ order.order_number }}
-                </div>
-              </td>
-
-              <!-- Room -->
-              <td class="px-4 py-3">
-                <div class="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5">
-                  <span v-if="order.room?.room_number">ROOM {{ order.room.room_number }}</span>
-                  <span v-else class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold">
-                    <ShoppingBag class="w-3.5 h-3.5" />
-                    <span>TAKEOUT</span>
-                  </span>
-                </div>
-              </td>
-
-              <!-- Guest -->
-              <td class="px-4 py-3">
-                <div class="text-slate-700 dark:text-slate-300 text-xs font-medium">
-                  {{ order.guest?.full_name || 'Walk-in Guest' }}
-                </div>
-              </td>
-
-              <!-- Items -->
-              <td class="px-4 py-3">
-                <div class="text-slate-700 dark:text-slate-300 space-y-1">
-                  <div
-                    v-for="(item, idx) in (order.items || []).slice(0, 2)"
-                    :key="idx"
-                    class="text-xs font-medium"
-                  >
-                    <span class="font-bold text-amber-600 dark:text-amber-400">{{ item.quantity }}x</span> {{ item.name }}
-                    <span v-if="item.notes" class="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 font-semibold mt-0.5">
-                      <FileText class="w-3 h-3" />
-                      <span>{{ item.notes }}</span>
-                    </span>
-                  </div>
-                  <div
-                    v-if="(order.items || []).length > 2"
-                    class="text-[10px] text-slate-400 font-bold"
-                  >
-                    +{{ (order.items || []).length - 2 }} more items
-                  </div>
-                </div>
-              </td>
-
-              <!-- Notes -->
-              <td class="px-4 py-3">
-                <div v-if="order.notes" class="text-xs text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1">
-                  <FileText class="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>{{ order.notes }}</span>
-                </div>
-                <div v-else class="text-xs text-slate-400">—</div>
-              </td>
-
-              <!-- Time -->
-              <td class="px-4 py-3">
-                <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">
-                  {{ formatTime(order.order_time) }}
-                </div>
-              </td>
-
-              <!-- Total -->
-              <td class="px-4 py-3 text-right">
-                <div class="font-black text-slate-900 dark:text-white text-xs font-mono">
-                  ${{ parseFloat(order.total).toFixed(2) }}
-                </div>
-              </td>
-
-              <!-- Action -->
-              <td class="px-4 py-3 text-center">
-                <button
-                  @click="startPreparing(order.id)"
-                  :disabled="actionLoading !== null"
-                  class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs transition inline-flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
-                >
-                  <Loader2 v-if="actionLoading === order.id" class="w-3.5 h-3.5 animate-spin" />
-                  <CookingPot v-else class="w-3.5 h-3.5" />
-                  <span class="hidden sm:inline">{{
-                    actionLoading === order.id ? 'STARTING...' : 'START'
-                  }}</span>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- Empty State -->
-        <div v-else class="text-center py-16 bg-slate-50 dark:bg-slate-950">
-          <Clock class="w-12 h-12 text-slate-400 dark:text-slate-600 mx-auto mb-3" />
-          <p class="text-2xl font-bold text-slate-900 dark:text-white">No Pending Orders</p>
-          <p class="text-slate-500 dark:text-slate-400 mt-1 text-xs">All orders have been started!</p>
-        </div>
-      </div>
-
-      <!-- Pagination Section -->
-      <div
-        v-if="pendingOrders?.length"
-        class="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-4 bg-white rounded-lg shadow-md"
-      >
-        <!-- Left: Items per page selector -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs">
         <div class="flex items-center gap-3">
-          <label for="itemsPerPage" class="text-sm font-semibold text-slate-700"
-            >Items per page:</label
-          >
-          <select
-            id="itemsPerPage"
-            :value="itemsPerPage"
-            @change="changeItemsPerPage(Number(($event.target as HTMLSelectElement).value))"
-            class="px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
-          >
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="15">15</option>
-            <option value="20">20</option>
-            <option value="25">25</option>
-          </select>
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+            <Clock class="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Pending Orders</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">New incoming orders awaiting kitchen acceptance and preparation.</p>
+          </div>
         </div>
 
-        <!-- Center: Page info and pagination buttons -->
         <div class="flex items-center gap-2">
-          <!-- Previous Button -->
-          <button
-            @click="goToPrevPage"
-            :disabled="!hasPrevPage"
-            class="px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-          >
-            ← Previous
-          </button>
+          <div class="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm">
+            Pending: {{ pendingOrders?.length || 0 }} Orders
+          </div>
+        </div>
+      </div>
 
-          <!-- Page Numbers -->
-          <div class="flex items-center gap-1">
-            <!-- First page -->
-            <button
-              @click="goToPage(1)"
-              :class="[
-                'px-3 py-2 rounded-lg text-sm font-semibold transition',
-                currentPage === 1
-                  ? 'bg-teal-600 text-white'
-                  : 'border border-slate-300 text-slate-700 hover:bg-slate-50',
-              ]"
-            >
-              1
-            </button>
-
-            <!-- Ellipsis if needed -->
-            <span v-if="currentPage > 3" class="px-2 text-slate-500">...</span>
-
-            <!-- Pages around current -->
-            <button
-              v-for="page in getPaginationRange()"
-              :key="page"
-              @click="goToPage(page)"
-              :class="[
-                'px-3 py-2 rounded-lg text-sm font-semibold transition',
-                currentPage === page
-                  ? 'bg-teal-600 text-white'
-                  : 'border border-slate-300 text-slate-700 hover:bg-slate-50',
-              ]"
-            >
-              {{ page }}
-            </button>
-
-            <!-- Ellipsis if needed -->
-            <span v-if="currentPage < totalPages - 2" class="px-2 text-slate-500">...</span>
-
-            <!-- Last page -->
-            <button
-              v-if="totalPages > 1"
-              @click="goToPage(totalPages)"
-              :class="[
-                'px-3 py-2 rounded-lg text-sm font-semibold transition',
-                currentPage === totalPages
-                  ? 'bg-teal-600 text-white'
-                  : 'border border-slate-300 text-slate-700 hover:bg-slate-50',
-              ]"
-            >
-              {{ totalPages }}
-            </button>
+      <!-- Top Bar Toolbar -->
+      <div
+        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+      >
+        <!-- Left: Search & Filter Toggle -->
+        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
+          <!-- Search Input -->
+          <div class="relative flex-1">
+            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search pending orders by #, room, guest, or food..."
+              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition outline-none"
+            />
           </div>
 
-          <!-- Next Button -->
+          <!-- Filter Toggle Button -->
           <button
-            @click="goToNextPage"
-            :disabled="!hasNextPage"
-            class="px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            type="button"
+            @click="toggleFilter"
+            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            :class="[
+              isFilterOpen
+                ? 'bg-amber-600/10 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-500/40'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+            ]"
           >
-            Next →
+            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
+            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
           </button>
         </div>
 
-        <!-- Right: Results info -->
-        <div class="text-sm font-semibold text-slate-600">
-          Showing <span class="text-teal-600">{{ startItem }}-{{ endItem }}</span> of
-          <span class="text-teal-600">{{ pendingOrders?.length }}</span>
+        <!-- Right: Action Buttons -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <!-- Refresh Button -->
+          <button
+            type="button"
+            @click="refresh"
+            title="Refresh"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+          >
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': actionLoading }" />
+          </button>
+
+          <!-- Fullscreen Toggle -->
+          <button
+            type="button"
+            @click="toggleFullscreen"
+            title="Toggle Fullscreen"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+          >
+            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Expandable Filter Panel -->
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="transform -translate-y-2 opacity-0 scale-98"
+        enter-to-class="transform translate-y-0 opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="transform translate-y-0 opacity-100 scale-100"
+        leave-to-class="transform -translate-y-2 opacity-0 scale-98"
+      >
+        <div
+          v-if="isFilterOpen"
+          class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
+        >
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+            <!-- Order Type Filter -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Order Type
+              </label>
+              <select
+                v-model="selectedType"
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition cursor-pointer font-medium outline-none"
+              >
+                <option value="all">All Pending Orders</option>
+                <option value="room">Room Service</option>
+                <option value="walk_in">Takeout / Walk-in</option>
+              </select>
+            </div>
+
+            <!-- Reset Filters -->
+            <div class="flex items-end">
+              <button
+                type="button"
+                @click="resetFilters"
+                class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
+              >
+                <RotateCcw class="w-3.5 h-3.5" />
+                <span>Reset Filters</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Table Container -->
+      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+        <!-- Desktop Table View -->
+        <div class="hidden md:block overflow-x-auto w-full">
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+              <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">Order Ref</th>
+                <th class="py-3 px-4 whitespace-nowrap">Room / Service</th>
+                <th class="py-3 px-4 whitespace-nowrap">Guest</th>
+                <th class="py-3 px-4 whitespace-nowrap">Dishes</th>
+                <th class="py-3 px-4 whitespace-nowrap">Order Time</th>
+                <th class="py-3 px-4 text-right whitespace-nowrap">Total</th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
+              <tr
+                v-for="order in paginatedOrders"
+                :key="order.id"
+                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+              >
+                <!-- Order Ref -->
+                <td class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
+                  {{ order.order_number || `ORD-${String(order.id).padStart(6, '0')}` }}
+                </td>
+
+                <!-- Room / Service -->
+                <td class="py-3 px-4 whitespace-nowrap">
+                  <span
+                    v-if="order.room?.room_number"
+                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
+                  >
+                    <BedDouble class="w-3 h-3 text-slate-400" />
+                    Room {{ order.room.room_number }}
+                  </span>
+                  <span
+                    v-else
+                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
+                  >
+                    <ShoppingBag class="w-3 h-3" />
+                    Takeout
+                  </span>
+                </td>
+
+                <!-- Guest -->
+                <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white">
+                  {{ order.guest?.full_name || 'Walk-in Guest' }}
+                </td>
+
+                <!-- Items -->
+                <td class="py-3 px-4">
+                  <div class="space-y-0.5 max-w-xs">
+                    <div
+                      v-for="(item, idx) in (order.items || []).slice(0, 2)"
+                      :key="idx"
+                      class="text-xs text-slate-700 dark:text-slate-300 font-medium"
+                    >
+                      <span class="font-bold text-amber-600 dark:text-amber-400">{{ item.quantity }}x</span> {{ item.name }}
+                    </div>
+                    <div v-if="(order.items || []).length > 2" class="text-[10px] text-slate-400 font-bold">
+                      +{{ (order.items || []).length - 2 }} more
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Time -->
+                <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-medium">
+                  {{ formatTime(order.order_time) }}
+                </td>
+
+                <!-- Total -->
+                <td class="py-3 px-4 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white font-mono text-xs sm:text-sm">
+                  ${{ parseFloat(String(order.total || 0)).toFixed(2) }}
+                </td>
+
+                <!-- Action -->
+                <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
+                  <button
+                    @click="startPreparing(String(order.id))"
+                    :disabled="actionLoading"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50"
+                  >
+                    <Play class="w-3 h-3 fill-current" />
+                    <span>Prepare</span>
+                  </button>
+                </td>
+              </tr>
+
+              <!-- Empty State -->
+              <tr v-if="paginatedOrders.length === 0">
+                <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                  No pending orders at this moment.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+          <div
+            v-for="order in paginatedOrders"
+            :key="order.id"
+            class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+          >
+            <div class="flex items-center justify-between">
+              <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">
+                {{ order.order_number }}
+              </span>
+              <button
+                @click="startPreparing(String(order.id))"
+                class="px-3 py-1 bg-blue-600 text-white font-bold text-xs rounded-lg"
+              >
+                Prepare
+              </button>
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+              <span>{{ order.guest?.full_name || 'Walk-in' }}</span>
+              <span class="font-extrabold text-slate-900 dark:text-white">${{ parseFloat(String(order.total || 0)).toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Footer -->
+        <div
+          v-if="total > 0"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+        >
+          <div class="text-slate-500 dark:text-slate-400 font-medium">
+            Showing <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
+            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> orders
+          </div>
+
+          <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-1.5">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
+              <select
+                :value="itemsPerPage"
+                @change="changeItemsPerPage"
+                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
+              >
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-1">
+              <button
+                @click="prevPage"
+                :disabled="currentPage === 1"
+                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              >
+                <ChevronLeft class="w-4 h-4" />
+              </button>
+
+              <button
+                v-for="page in paginationPages"
+                :key="page"
+                @click="goToPage(page)"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                :class="[
+                  currentPage === page
+                    ? 'bg-amber-600 text-white'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ]"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                @click="nextPage"
+                :disabled="currentPage === totalPages"
+                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              >
+                <ChevronRight class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </DashboardLayout>
 </template>
-
-<style scoped>
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-</style>

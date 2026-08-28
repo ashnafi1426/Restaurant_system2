@@ -161,7 +161,7 @@ async function submit() {
       fieldErrors.value = error.response.data.errors
       showNotification('Please fix the validation errors', 'error')
     } else {
-      showNotification(`❌ ${errorMessage}`, 'error')
+      showNotification(` ${errorMessage}`, 'error')
     }
   } finally {
     saving.value = false

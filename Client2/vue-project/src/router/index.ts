@@ -51,6 +51,7 @@ import OrderPaymentSuccessPage from '../views/payment/OrderPaymentSuccessPage.vu
 import managerRoutes from './managerRouter.ts'
 import waiterRoutes from './waiterRouter'
 import cashierRoutes from './cashierRouter'
+import reviewRoutes from './reviewRouter'
 import RoleManagementView from '@/views/Admin/rbac/RoleManagementView.vue'
 import PermissionManagementView from '@/views/Admin/rbac/PermissionManagementView.vue'
 import RolePermissionMatrixView from '@/views/Admin/RolePermissionManagement.vue'
@@ -637,6 +638,7 @@ const router = createRouter({
     },
 
     ...managerRoutes,
+    ...reviewRoutes,
     ...waiterRoutes,
     ...cashierRoutes,
     {

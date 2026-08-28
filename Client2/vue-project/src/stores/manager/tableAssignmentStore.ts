@@ -281,11 +281,17 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
     
     // Actions
     loadAssignments,
+    fetchAssignments: loadAssignments,
     loadTodayAssignments,
+    fetchTodayAssignments: loadTodayAssignments,
     assignWaitersToTables,
+    assignWaiters: assignWaitersToTables,
+    createAssignment: assignWaitersToTables,
     updateAssignment,
     deleteAssignment,
+    removeAssignment: deleteAssignment,
     loadStats,
+    fetchStats: loadStats,
     getAssignedWaiterForTable,
     getWaiterTables,
     clearError,

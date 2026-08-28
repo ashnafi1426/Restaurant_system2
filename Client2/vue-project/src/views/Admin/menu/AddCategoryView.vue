@@ -236,7 +236,7 @@ const submitForm = async () => {
     // Redirect back to menu
     router.push({ name: 'admin-menu' })
   } catch (error: any) {
-    console.error('❌ Error creating category:', error)
+    console.error(' Error creating category:', error)
 
     if (error.response?.data?.message) {
       errors.value.general = error.response.data.message

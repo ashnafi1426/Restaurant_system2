@@ -116,13 +116,13 @@ Route::middleware('auth:sanctum')->prefix('debug')->group(function () {
         
         $waiterId = $waiter->id;
         
-        \Log::info('🔵 [DEBUG] Calling getOnDelivery manually', ['waiter_id' => $waiterId]);
+        \Log::info(' [DEBUG] Calling getOnDelivery manually', ['waiter_id' => $waiterId]);
         
         // Call the service directly
         $dashboardService = app(\App\Services\Waiter\WaiterDashboardService::class);
         $result = $dashboardService->getOnDelivery($waiterId);
         
-        \Log::info('✅ [DEBUG] Result:', ['count' => count($result)]);
+        \Log::info(' [DEBUG] Result:', ['count' => count($result)]);
         
         return response()->json([
             'waiter_id' => $waiterId,

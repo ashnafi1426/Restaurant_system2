@@ -16,23 +16,23 @@ export const restaurantTableService = {
    * Get list of restaurant tables with pagination and filtering
    */
   async getTables(filters?: TableFilters): Promise<{ success: boolean; data: PaginatedTablesResponse }> {
-    console.log('🔴 [SERVICE] getTables START')
-    console.log('🔴 [SERVICE] axios imported:', typeof axios, axios.name)
-    console.log('🔴 [SERVICE] axios.get:', typeof axios.get)
-    
+    console.log(' [SERVICE] getTables START')
+    console.log(' [SERVICE] axios imported:', typeof axios, axios.name)
+    console.log(' [SERVICE] axios.get:', typeof axios.get)
+
     try {
-      console.log('🔴 [SERVICE] Calling axios.get with URL: /manager/restaurant-tables')
-      console.log('🔴 [SERVICE] With filters:', filters)
-      
+      console.log(' [SERVICE] Calling axios.get with URL: /manager/restaurant-tables')
+      console.log(' [SERVICE] With filters:', filters)
+
       const response = await axios.get('/manager/restaurant-tables', { params: filters })
-      
-      console.log('🔴 [SERVICE] Response received!')
-      console.log('🔴 [SERVICE] Response status:', response.status)
-      console.log('🔴 [SERVICE] Response data:', response.data)
-      
+
+      console.log(' [SERVICE] Response received!')
+      console.log(' [SERVICE] Response status:', response.status)
+      console.log(' [SERVICE] Response data:', response.data)
+
       return response.data
     } catch (error) {
-      console.error('🔴 [SERVICE] Error caught:', error)
+      console.error(' [SERVICE] Error caught:', error)
       throw error
     }
   },
@@ -41,42 +41,42 @@ export const restaurantTableService = {
    * Get all restaurant tables without pagination (for dropdowns)
    */
   async getAllTables(): Promise<RestaurantTable[]> {
-    console.log('🔴 [SERVICE] getAllTables START')
-    
+    console.log(' [SERVICE] getAllTables START')
+
     try {
       // Request with high per_page to get all tables
-      const response = await axios.get('/manager/restaurant-tables', { 
-        params: { 
+      const response = await axios.get('/manager/restaurant-tables', {
+        params: {
           per_page: 1000,
-          is_active: true 
-        } 
+          is_active: true
+        }
       })
-      
-      console.log('🔴 [SERVICE] Full Response:', JSON.stringify(response, null, 2))
-      console.log('🔴 [SERVICE] Response data:', response.data)
-      console.log('🔴 [SERVICE] Response data.data:', response.data?.data)
-      console.log('🔴 [SERVICE] Response data.data.data:', response.data?.data?.data)
-      
+
+      console.log(' [SERVICE] Full Response:', JSON.stringify(response, null, 2))
+      console.log(' [SERVICE] Response data:', response.data)
+      console.log(' [SERVICE] Response data.data:', response.data?.data)
+      console.log(' [SERVICE] Response data.data.data:', response.data?.data?.data)
+
       // Extract tables array from paginated response
       if (response.data?.success && response.data?.data) {
         // Paginated response: data.data is pagination object with data.data.data being array
         if (response.data.data.data && Array.isArray(response.data.data.data)) {
-          console.log('🔴 [SERVICE] ✅ Found tables in data.data.data:', response.data.data.data.length)
+          console.log(' [SERVICE]  Found tables in data.data.data:', response.data.data.data.length)
           return response.data.data.data
         }
         // Direct array
         else if (Array.isArray(response.data.data)) {
-          console.log('🔴 [SERVICE] ✅ Found tables in data.data (array):', response.data.data.length)
+          console.log(' [SERVICE]  Found tables in data.data (array):', response.data.data.length)
           return response.data.data
         }
       }
-      
-      console.warn('🔴 [SERVICE] ⚠️ Unexpected response structure - returning empty array')
+
+      console.warn(' [SERVICE]  Unexpected response structure - returning empty array')
       return []
     } catch (error: any) {
-      console.error('🔴 [SERVICE] ❌ Error caught:', error)
-      console.error('🔴 [SERVICE] Error response:', error.response)
-      console.error('🔴 [SERVICE] Error response data:', error.response?.data)
+      console.error(' [SERVICE]  Error caught:', error)
+      console.error(' [SERVICE] Error response:', error.response)
+      console.error(' [SERVICE] Error response data:', error.response?.data)
       throw error
     }
   },

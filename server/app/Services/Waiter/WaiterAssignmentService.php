@@ -303,7 +303,7 @@ class WaiterAssignmentService
 
     public function acceptAssignment(string $id, int|string $waiterId): DeliveryTask
     {
-        \Log::info('🔵 [SERVICE] acceptAssignment called', [
+        \Log::info(' [SERVICE] acceptAssignment called', [
             'task_id' => $id,
             'waiter_id' => $waiterId,
         ]);
@@ -341,7 +341,7 @@ class WaiterAssignmentService
 
     public function pickupOrder(string $id, int|string $waiterId): DeliveryTask
     {
-        \Log::info('🔵 [SERVICE] pickupOrder called', [
+        \Log::info(' [SERVICE] pickupOrder called', [
             'task_id' => $id,
             'waiter_id' => $waiterId,
         ]);
@@ -361,7 +361,7 @@ class WaiterAssignmentService
             $task->markPickedUp();
             return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
         } catch (\Exception $e) {
-            \Log::error('❌ [SERVICE] Error in pickup workflow', [
+            \Log::error(' [SERVICE] Error in pickup workflow', [
                 'task_id' => $task->id,
                 'status' => $task->status,
                 'error' => $e->getMessage(),
@@ -372,7 +372,7 @@ class WaiterAssignmentService
 
     public function startDelivery(string $id, int|string $waiterId): DeliveryTask
     {
-        \Log::info('🔵 [SERVICE] startDelivery called', [
+        \Log::info(' [SERVICE] startDelivery called', [
             'task_id' => $id,
             'waiter_id' => $waiterId,
         ]);

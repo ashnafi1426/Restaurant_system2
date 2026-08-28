@@ -56,6 +56,7 @@ use App\Http\Controllers\Api\Profile\ManagerProfileController;
 use App\Http\Controllers\Api\Profile\AdminProfileController;
 use App\Http\Controllers\Api\Profile\CashierProfileController;
 use App\Http\Controllers\Api\Profile\ReceptionistProfileController;
+use App\Http\Controllers\Api\Profile\ChefProfileController;
 use App\Http\Controllers\Api\Rbac\RoleController;
 use App\Http\Controllers\Api\Rbac\PermissionController;
 use App\Http\Controllers\Api\Rbac\UserRoleController;
@@ -78,6 +79,8 @@ Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']
 Route::post('/verify-reset-token', [PasswordResetController::class, 'verifyToken']);
 Route::get('/rooms', [RoomController::class, 'index']);
 Route::get('/rooms/{room}', [RoomController::class, 'show']);
+Route::get('/room-types', [RoomTypeController::class, 'index']);
+Route::get('/room-types/{roomType}', [RoomTypeController::class, 'show']);
 Route::post('/guests', [GuestController::class, 'store']);
 Route::get('/guests', [GuestController::class, 'index']);
 Route::get('/qr-codes/download/{roomId}', [QRCodePrintController::class, 'downloadQRCode']);
@@ -236,10 +239,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/{checkIn}/checkout', [CheckInController::class, 'checkout']);
             Route::delete('/{checkIn}', [CheckInController::class, 'destroy']);
         });
-
-        Route::get('/rooms/{room}', [RoomController::class, 'show']);
-        Route::get('/room-types', [RoomTypeController::class, 'index']);
-        Route::get('/room-types/{roomType}', [RoomTypeController::class, 'show']);
     });
 
     // Room, Room-Type & QR-Code Management Access (Permission & Role Driven)
@@ -634,4 +633,71 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/refund', [CashierReportController::class, 'refundReport']);
         });
     });
+});
+// ============================================================================
+// MENU ITEM REVIEW SYSTEM ROUTES
+// ============================================================================
+
+// Public Review Routes (No authentication required)
+Route::prefix('menu-items/{menuItemId}/reviews')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\PublicReviewController::class, 'index']); // Get public reviews
+});
+
+// Public Review Stats Route (No authentication required - for QR menu display)
+Route::get('/menu-items/{menuItemId}/review-stats', [App\Http\Controllers\Api\PublicReviewController::class, 'stats']); // Get review statistics
+
+// Public Voting Routes (No authentication required - anonymous voting supported)
+Route::prefix('reviews/{reviewId}')->group(function () {
+    Route::post('/vote', [App\Http\Controllers\Api\VotingController::class, 'vote']); // Vote helpful/not_helpful
+    Route::get('/votes', [App\Http\Controllers\Api\VotingController::class, 'getCounts']); // Get vote counts
+});
+
+// Guest Review Routes (Authentication required for guests)
+Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
+    Route::post('/', [App\Http\Controllers\Api\ReviewController::class, 'store']); // Create review
+    Route::get('/{id}', [App\Http\Controllers\Api\ReviewController::class, 'show']); // Get review details
+    Route::put('/{id}', [App\Http\Controllers\Api\ReviewController::class, 'update']); // Update pending review
+    Route::delete('/{id}', [App\Http\Controllers\Api\ReviewController::class, 'destroy']); // Delete pending review
+});
+
+// QR Guest Review Route (No authentication required - for QR menu guests)
+Route::post('/guest-reviews', [App\Http\Controllers\Api\ReviewController::class, 'storeGuest']); // Create guest review via QR
+
+// Guest Eligible Items Route
+Route::middleware('auth:sanctum')->get('/guests/{guestId}/eligible-reviews', [App\Http\Controllers\Api\ReviewController::class, 'eligibleItems']);
+
+// Review Moderation Routes (Manager/Admin only)
+Route::middleware(['auth:sanctum', 'role:manager,admin'])->prefix('admin/reviews')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\ModerationController::class, 'index']); // List reviews with filters
+    Route::post('/{id}/approve', [App\Http\Controllers\Api\ModerationController::class, 'approve']); // Approve review
+    Route::post('/{id}/reject', [App\Http\Controllers\Api\ModerationController::class, 'reject']); // Reject review
+    Route::delete('/{id}', [App\Http\Controllers\Api\ModerationController::class, 'destroy']); // Delete review
+    Route::get('/stats', [App\Http\Controllers\Api\ModerationController::class, 'stats']); // Moderation stats
+});
+
+// Management Response Routes (Manager/Admin only)
+Route::middleware(['auth:sanctum', 'role:manager,admin'])->prefix('admin/reviews/{reviewId}/response')->group(function () {
+    Route::post('/', [App\Http\Controllers\Api\ResponseController::class, 'store']); // Create response
+});
+
+Route::middleware(['auth:sanctum', 'role:manager,admin'])->prefix('admin/responses/{id}')->group(function () {
+    Route::put('/', [App\Http\Controllers\Api\ResponseController::class, 'update']); // Update response
+    Route::delete('/', [App\Http\Controllers\Api\ResponseController::class, 'destroy']); // Delete response
+});
+
+// Review Analytics Routes (Manager/Admin only)
+Route::middleware(['auth:sanctum', 'role:manager,admin'])->prefix('admin/analytics')->group(function () {
+    Route::get('/menu-items/{id}/review-stats', [App\Http\Controllers\Api\AnalyticsController::class, 'itemStats']); // Item statistics
+    Route::get('/reviews/top-rated', [App\Http\Controllers\Api\AnalyticsController::class, 'topRated']); // Top-rated items
+    Route::get('/reviews/lowest-rated', [App\Http\Controllers\Api\AnalyticsController::class, 'lowestRated']); // Lowest-rated items
+    Route::get('/reviews/pending-count', [App\Http\Controllers\Api\AnalyticsController::class, 'pendingCount']); // Pending count
+    Route::get('/reviews/trends', [App\Http\Controllers\Api\AnalyticsController::class, 'trends']); // Review trends
+    Route::get('/reviews/overall', [App\Http\Controllers\Api\AnalyticsController::class, 'overall']); // Overall stats
+});
+
+// Review Notification Routes (Authenticated users)
+Route::middleware('auth:sanctum')->prefix('notifications/reviews')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\ReviewNotificationController::class, 'index']); // Get notifications
+    Route::get('/unread-count', [App\Http\Controllers\Api\ReviewNotificationController::class, 'unreadCount']); // Unread count
+    Route::post('/{id}/read', [App\Http\Controllers\Api\ReviewNotificationController::class, 'markAsRead']); // Mark as read
 });

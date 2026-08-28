@@ -1,4 +1,4 @@
-import { axiosInstance as axios } from './axios'
+import { publicAxios as axios } from './axios'
 
 export interface QRResolutionResult {
   success: boolean

@@ -50,12 +50,15 @@
 
     <!-- Menu Grid -->
     <div v-else class="menu-grid">
-      <MenuCard
+      <QRMenuItemCard
         v-for="item in displayedItems"
         :key="item.id"
         :item="item"
-        @add-to-cart="handleAddToCart"
-        @toggle-favorite="handleToggleFavorite"
+        :guest-name="guestName"
+        :guest-email="guestEmail"
+        :order-id="orderId"
+        @add-to-cart="(qty) => handleAddToCart(item, qty)"
+        @write-review="handleWriteReview(item)"
       />
     </div>
 
@@ -120,7 +123,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import MenuCard from './MenuCard.vue'
+import QRMenuItemCard from './QRMenuItemCard.vue'
 
 interface MenuItem {
   id: string | number
@@ -128,6 +131,7 @@ interface MenuItem {
   description: string
   price: number
   image: string
+  image_url?: string
   category: string
   rating?: number
   badge?: string
@@ -143,6 +147,9 @@ interface Props {
   isLoading?: boolean
   itemsPerPage?: number
   gridId?: string
+  guestName?: string
+  guestEmail?: string
+  orderId?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -150,12 +157,16 @@ const props = withDefaults(defineProps<Props>(), {
   isLoading: false,
   itemsPerPage: 12,
   gridId: 'menu-grid',
+  guestName: 'Guest',
+  guestEmail: '',
+  orderId: '',
 })
 
 const emit = defineEmits<{
   'add-to-cart': [item: MenuItem, quantity: number]
   'toggle-favorite': [itemId: string | number, isFavorite: boolean]
   'clear-filters': []
+  'write-review': [item: MenuItem]
 }>()
 
 // State
@@ -218,6 +229,10 @@ const pageNumbers = computed(() => {
 // Methods
 const handleAddToCart = (item: MenuItem, quantity: number) => {
   emit('add-to-cart', item, quantity)
+}
+
+const handleWriteReview = (item: MenuItem) => {
+  emit('write-review', item)
 }
 
 const handleToggleFavorite = (itemId: string | number, isFavorite: boolean) => {

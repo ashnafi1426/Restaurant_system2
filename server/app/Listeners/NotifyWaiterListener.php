@@ -61,7 +61,7 @@ class NotifyWaiterListener implements ShouldQueue
                 'created_at' => now(),
             ]);
 
-            Log::info('✅ [NOTIFY LISTENER] Waiter notification created', [
+            Log::info(' [NOTIFY LISTENER] Waiter notification created', [
                 'notification_id' => $notification->id,
                 'waiter_id' => $event->waiterId,
                 'delivery_id' => $event->deliveryId,
@@ -69,7 +69,7 @@ class NotifyWaiterListener implements ShouldQueue
             ]);
 
         } catch (Exception $e) {
-            Log::error('❌ [NOTIFY LISTENER] Error creating waiter notification', [
+            Log::error(' [NOTIFY LISTENER] Error creating waiter notification', [
                 'waiter_id' => $event->waiterId,
                 'delivery_id' => $event->deliveryId,
                 'error' => $e->getMessage(),

@@ -24,7 +24,7 @@ class TestDashboardResponse extends Command
         $service = app(\App\Services\Waiter\WaiterDashboardService::class);
         $result = $service->getDashboardStats($waiter->id);
         
-        $this->info('📊 Full Response:');
+        $this->info(' Full Response:');
         $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         
         $this->info('📈 Today Stats Only:');

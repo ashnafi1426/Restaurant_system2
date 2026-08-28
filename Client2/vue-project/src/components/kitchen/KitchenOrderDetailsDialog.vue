@@ -125,7 +125,7 @@
               class="p-2 sm:p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/30 rounded-lg mb-4 sm:mb-6"
             >
               <div class="flex items-start gap-2">
-                <span class="text-orange-500 mt-0.5 flex-shrink-0">⚠️</span>
+                <span class="text-orange-500 mt-0.5 flex-shrink-0"></span>
                 <div class="min-w-0">
                   <p class="text-xs font-medium text-orange-700 dark:text-orange-300">
                     Special Instructions

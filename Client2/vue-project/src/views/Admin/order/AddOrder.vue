@@ -151,7 +151,7 @@ const filteredRooms = computed(() => {
       }
       return matches
     } catch (e) {
-      console.error('❌ [FILTER] Error filtering room:', room, e)
+      console.error(' [FILTER] Error filtering room:', room, e)
       return false
     }
   })

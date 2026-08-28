@@ -45,7 +45,7 @@ foreach ($testCases as $roomNumber => $expectedWaiterEmail) {
     $room = Room::where('room_number', $roomNumber)->first();
     
     if (!$room) {
-        echo "❌ SKIP: Room {$roomNumber} not found\n\n";
+        echo " SKIP: Room {$roomNumber} not found\n\n";
         $failed++;
         $results[$roomNumber] = ['status' => 'SKIPPED', 'reason' => 'Room not found'];
         continue;
@@ -75,7 +75,7 @@ foreach ($testCases as $roomNumber => $expectedWaiterEmail) {
     
     $menuItem = MenuItem::first();
     if (!$menuItem) {
-        echo "❌ ERROR: No menu items found\n\n";
+        echo " ERROR: No menu items found\n\n";
         $failed++;
         $results[$roomNumber] = ['status' => 'ERROR', 'reason' => 'No menu items'];
         continue;
@@ -104,7 +104,7 @@ foreach ($testCases as $roomNumber => $expectedWaiterEmail) {
             'subtotal' => 50.00,
         ]);
         
-        echo "✅ Order Created: {$orderNumber}\n\n";
+        echo " Order Created: {$orderNumber}\n\n";
         
         // Mark as ready (trigger assignment)
         $order->update(['status' => 'ready']);
@@ -117,7 +117,7 @@ foreach ($testCases as $roomNumber => $expectedWaiterEmail) {
         $deliveryTask = DeliveryTask::where('order_id', $order->id)->first();
         
         if (!$deliveryTask) {
-            echo "❌ FAILED: No DeliveryTask created\n";
+            echo " FAILED: No DeliveryTask created\n";
             $failed++;
             $results[$roomNumber] = [
                 'status' => 'FAILED',
@@ -130,7 +130,7 @@ foreach ($testCases as $roomNumber => $expectedWaiterEmail) {
             $actualWaiterEmail = $assignedWaiter ? $assignedWaiter->user->email : null;
             
             if ($actualWaiterEmail === $expectedWaiterEmail) {
-                echo "✅ PASSED: Assigned to correct waiter\n";
+                echo " PASSED: Assigned to correct waiter\n";
                 echo "  - Expected: {$expectedWaiterEmail}\n";
                 echo "  - Actual: {$actualWaiterEmail}\n";
                 echo "  - Task Status: {$deliveryTask->status}\n";
@@ -141,7 +141,7 @@ foreach ($testCases as $roomNumber => $expectedWaiterEmail) {
                     'actual' => $actualWaiterEmail,
                 ];
             } else {
-                echo "❌ FAILED: Wrong waiter assigned\n";
+                echo " FAILED: Wrong waiter assigned\n";
                 echo "  - Expected: {$expectedWaiterEmail}\n";
                 echo "  - Actual: " . ($actualWaiterEmail ?? 'NULL') . "\n";
                 $failed++;
@@ -160,7 +160,7 @@ foreach ($testCases as $roomNumber => $expectedWaiterEmail) {
         $order->delete();
         
     } catch (\Exception $e) {
-        echo "❌ ERROR: {$e->getMessage()}\n";
+        echo " ERROR: {$e->getMessage()}\n";
         $failed++;
         $results[$roomNumber] = [
             'status' => 'ERROR',
@@ -183,7 +183,7 @@ echo "Failed: {$failed}\n\n";
 echo "Results:\n";
 foreach ($results as $roomNumber => $result) {
     $status = $result['status'];
-    $icon = $status === 'PASSED' ? '✅' : '❌';
+    $icon = $status === 'PASSED' ? '' : '';
     
     echo "  {$icon} Room {$roomNumber}: {$status}\n";
     
@@ -202,12 +202,12 @@ echo "\n";
 
 if ($failed === 0) {
     echo str_repeat("=", 100) . "\n";
-    echo "✅ ALL TESTS PASSED! Waiter assignment system is working correctly!\n";
+    echo " ALL TESTS PASSED! Waiter assignment system is working correctly!\n";
     echo str_repeat("=", 100) . "\n\n";
     exit(0);
 } else {
     echo str_repeat("=", 100) . "\n";
-    echo "❌ SOME TESTS FAILED! Review the results above.\n";
+    echo " SOME TESTS FAILED! Review the results above.\n";
     echo str_repeat("=", 100) . "\n\n";
     exit(1);
 }

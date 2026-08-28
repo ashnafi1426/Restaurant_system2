@@ -21,7 +21,6 @@ class WaiterProfileController extends Controller
         $this->performanceService = $performanceService;
         $this->waiterContextResolver = app(WaiterContextResolver::class);
     }
-
     /**
      * Get waiter profile
      * GET /api/waiter/profile
@@ -47,7 +46,9 @@ class WaiterProfileController extends Controller
                 'success' => true,
                 'data' => [
                     'id' => $user->id,
-                    'name' => $user->name,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'full_name' => $user->full_name,
                     'email' => $user->email,
                     'phone' => $user->phone ?? null,
                     'avatar' => $user->avatar ?? null,
@@ -90,16 +91,27 @@ class WaiterProfileController extends Controller
     public function updateProfile(UpdateWaiterProfileRequest $request): JsonResponse
     {
         try {
-            $waiter = auth()->user();
+            $user = auth()->user();
             $validated = $request->validated();
 
-            $waiter->update([
-                'name' => $validated['name'] ?? $waiter->name,
-                'email' => $validated['email'] ?? $waiter->email,
-                'phone' => $validated['phone'] ?? $waiter->phone,
-            ]);
+            // Update user fields
+            $userUpdates = [];
+            if (isset($validated['first_name'])) {
+                $userUpdates['first_name'] = $validated['first_name'];
+            }
+            if (isset($validated['last_name'])) {
+                $userUpdates['last_name'] = $validated['last_name'];
+            }
+            if (isset($validated['phone'])) {
+                $userUpdates['phone'] = $validated['phone'];
+            }
 
-            if ($waiter->waiter) {
+            if (!empty($userUpdates)) {
+                $user->update($userUpdates);
+            }
+
+            // Update waiter fields
+            if ($user->waiter) {
                 $waiterData = [];
                 
                 if (isset($validated['shift'])) {
@@ -111,24 +123,29 @@ class WaiterProfileController extends Controller
                 }
                 
                 if (!empty($waiterData)) {
-                    $waiter->waiter->update($waiterData);
+                    $user->waiter->update($waiterData);
                 }
             }
+
+            // Reload relationships
+            $user->load('waiter');
 
             return response()->json([
                 'success' => true,
                 'message' => 'Profile updated successfully',
                 'data' => [
-                    'id' => $waiter->id,
-                    'name' => $waiter->name,
-                    'email' => $waiter->email,
-                    'phone' => $waiter->phone,
-                    'waiter' => $waiter->waiter ? [
-                        'employee_code' => $waiter->waiter->employee_code,
-                        'shift' => $waiter->waiter->shift,
-                        'status' => $waiter->waiter->status,
-                        'bio' => $waiter->waiter->bio,
-                        'profile_photo' => $waiter->waiter->profile_photo,
+                    'id' => $user->id,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'full_name' => $user->full_name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'waiter' => $user->waiter ? [
+                        'employee_code' => $user->waiter->employee_code,
+                        'shift' => $user->waiter->shift,
+                        'status' => $user->waiter->status,
+                        'bio' => $user->waiter->bio,
+                        'profile_photo' => $user->waiter->profile_photo,
                     ] : null,
                 ],
             ]);
@@ -219,7 +236,8 @@ class WaiterProfileController extends Controller
         try {
             $validated = $request->validate([
                 'current_password' => 'required|string',
-                'new_password' => 'required|string|min:8|confirmed',
+                'new_password' => 'required|string|min:8',
+                'new_password_confirmation' => 'required|string|same:new_password',
             ]);
 
             $user = auth()->user();

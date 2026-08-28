@@ -17,7 +17,7 @@ class RestaurantTableController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            Log::info('🔵 RestaurantTable::index called', [
+            Log::info(' RestaurantTable::index called', [
                 'all_params' => $request->all(),
                 'query_params' => $request->query(),
                 'user_id' => auth()->id(),
@@ -55,7 +55,7 @@ class RestaurantTableController extends Controller
             $perPage = $request->get('per_page', 15);
             $tables = $query->paginate($perPage);
             
-            Log::info('🔵 Query executed', [
+            Log::info(' Query executed', [
                 'total' => $tables->total(),
                 'count' => $tables->count(),
                 'per_page' => $tables->perPage(),
@@ -68,7 +68,7 @@ class RestaurantTableController extends Controller
                 return $table;
             });
             
-            Log::info('🔵 Returning response', [
+            Log::info(' Returning response', [
                 'success' => true,
                 'total' => $tables->total(),
                 'data_count' => count($tables->items()),

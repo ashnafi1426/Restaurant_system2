@@ -230,8 +230,8 @@ const handleSubmit = async () => {
       emit('success')
     }, 1000)
   } catch (error: any) {
-    console.error('❌ Form submission error:', error)
-    console.error('❌ Error details:', {
+    console.error(' Form submission error:', error)
+    console.error(' Error details:', {
       message: error.message,
       errors: error.errors,
       response: error.response
@@ -241,7 +241,7 @@ const handleSubmit = async () => {
 
     // Handle validation errors
     if (error.errors) {
-      console.error('❌ Validation errors:', error.errors)
+      console.error(' Validation errors:', error.errors)
       errors.value = error.errors
       
       // Build detailed error message from validation errors

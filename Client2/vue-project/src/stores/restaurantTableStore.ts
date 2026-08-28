@@ -33,7 +33,7 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
   const fetchTables = async () => {
     console.log('🚀 [STORE] fetchTables called!')
     console.log('🚀 [STORE] Current filters:', filters.value)
-    
+
     loading.value = true
     error.value = null
 
@@ -47,22 +47,22 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
         hasData: 'data' in serviceResponse,
         dataType: typeof serviceResponse.data
       })
-      
+
       //Backend returns: {success: true, data: {data: [...], current_page: 1, ...}}
       const paginatedData = serviceResponse.data
       console.log('🔧 [STORE] paginatedData:', JSON.stringify(paginatedData, null, 2))
       console.log('🔧 [STORE] paginatedData.data type:', typeof paginatedData?.data)
       console.log('🔧 [STORE] paginatedData.data isArray:', Array.isArray(paginatedData?.data))
       console.log('🔧 [STORE] paginatedData.data length:', paginatedData?.data?.length)
-      
+
       if (paginatedData && typeof paginatedData === 'object') {
         // Extract the tables array from paginatedData.data
         const tablesArray = Array.isArray(paginatedData.data) ? paginatedData.data : []
         console.log('🔧 [STORE] tablesArray extracted, length:', tablesArray.length)
         tables.value = tablesArray.filter((t: any) => t != null)
-        
-        console.log(`✅ [STORE] Loaded ${tables.value.length} tables`)
-        
+
+        console.log(` [STORE] Loaded ${tables.value.length} tables`)
+
         // Set pagination
         if (paginatedData.current_page) {
           pagination.value = {
@@ -81,12 +81,12 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
           }
         }
       } else {
-        console.error('❌ [STORE] Invalid response structure', serviceResponse)
+        console.error(' [STORE] Invalid response structure', serviceResponse)
         tables.value = []
       }
     } catch (err: any) {
       error.value = err.message || 'Failed to fetch tables'
-      console.error('❌ [STORE] Error:', err)
+      console.error(' [STORE] Error:', err)
       tables.value = []
     } finally {
       loading.value = false
@@ -115,28 +115,28 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
     error.value = null
 
     try {
-      console.log('🔵 Creating table with data:', data)
+      console.log(' Creating table with data:', data)
       const newTable = await restaurantTableService.createTable(data)
-      console.log('✅ Table created successfully:', newTable)
+      console.log(' Table created successfully:', newTable)
       await fetchTables() // Refresh list
       await fetchStatistics() // Refresh stats
       return newTable
     } catch (err: any) {
-      console.error('❌ Error creating table:', err)
-      console.error('❌ Error response data:', err.response?.data)
-      console.error('❌ Error response status:', err.response?.status)
-      console.error('❌ Request data that was sent:', data)
-      console.error('❌ Validation errors:', err.response?.data?.errors)
-      
+      console.error(' Error creating table:', err)
+      console.error(' Error response data:', err.response?.data)
+      console.error(' Error response status:', err.response?.status)
+      console.error(' Request data that was sent:', data)
+      console.error(' Validation errors:', err.response?.data?.errors)
+
       error.value = err.response?.data?.message || err.message || 'Failed to create table'
-      
+
       // Re-throw with more details
       if (err.response?.data?.errors) {
         const validationError: any = new Error(err.response.data.message || 'Validation failed')
         validationError.errors = err.response.data.errors
         throw validationError
       }
-      
+
       throw err
     } finally {
       loading.value = false
@@ -197,19 +197,19 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
 
   const fetchStatistics = async () => {
     try {
-      console.log('📊 [STORE] Fetching statistics...')
+      console.log(' [STORE] Fetching statistics...')
       const response = await restaurantTableService.getStatistics()
-      console.log('📊 [STORE] Statistics response:', response)
-      
+      console.log(' [STORE] Statistics response:', response)
+
       // Extract data from response wrapper
       if (response && response.data) {
         statistics.value = response.data
-        console.log('📊 [STORE] Statistics loaded:', statistics.value)
+        console.log(' [STORE] Statistics loaded:', statistics.value)
       } else {
-        console.warn('📊 [STORE] Invalid statistics response structure')
+        console.warn(' [STORE] Invalid statistics response structure')
       }
     } catch (err: any) {
-      console.error('📊 [STORE] Error fetching statistics:', err)
+      console.error(' [STORE] Error fetching statistics:', err)
     }
   }
 

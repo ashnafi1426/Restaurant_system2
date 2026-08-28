@@ -55,7 +55,7 @@ class RestaurantTableSeeder extends Seeder
             $this->command->info("Created table: {$tableData['table_number']} - {$tableData['table_name']}");
         }
 
-        $this->command->info('✅ Restaurant tables seeded successfully!');
+        $this->command->info(' Restaurant tables seeded successfully!');
         $this->command->info('Total tables created: ' . count($tables));
     }
 }

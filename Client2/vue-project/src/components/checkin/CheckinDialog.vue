@@ -55,7 +55,7 @@ const checkableReservations = computed(() => {
     const statusCheck = r.status === 'confirmed'
 
     if (!statusCheck) {
-      console.log(`  ❌ ${r.id}: FAILS status check (${r.status} !== 'confirmed')`)
+      console.log(`   ${r.id}: FAILS status check (${r.status} !== 'confirmed')`)
     }
     if (statusCheck) {
       console.log(`   ${r.id}: PASSES status check - will be shown`)
@@ -70,7 +70,7 @@ const checkableReservations = computed(() => {
 
   if (result.length === 0 && props.reservations.length > 0) {
     console.warn(' [CHECKIN DIALOG] NO CONFIRMED RESERVATIONS FOUND!')
-    console.log('📊 [CHECKIN DIALOG] Reservation status breakdown:')
+    console.log(' [CHECKIN DIALOG] Reservation status breakdown:')
     const statuses = new Map()
     props.reservations.forEach((r: any) => {
       const key = `${r.status}`

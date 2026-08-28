@@ -9,7 +9,6 @@ use Illuminate\Http\JsonResponse;
 class WaiterDashboardController extends Controller
 {
     protected WaiterDashboardService $dashboardService;
-
     public function __construct(WaiterDashboardService $dashboardService)
     {
         $this->dashboardService = $dashboardService;
@@ -21,7 +20,7 @@ class WaiterDashboardController extends Controller
             if (!$user) return null;
             return app(\App\Services\Waiter\WaiterContextResolver::class)->resolveWaiterId($user);
         } catch (\Throwable $e) {
-            \Log::error('❌ Auth error in getWaiterId: ' . $e->getMessage());
+            \Log::error(' Auth error in getWaiterId: ' . $e->getMessage());
             return null;
         }
     }
@@ -78,7 +77,7 @@ class WaiterDashboardController extends Controller
             ]);
             
             if (!$waiterId) {
-                \Log::warning('⚠️ Waiter dashboard requested without a linked waiter profile', [
+                \Log::warning(' Waiter dashboard requested without a linked waiter profile', [
                     'user_id' => auth()->id(),
                 ]);
 
@@ -96,7 +95,7 @@ class WaiterDashboardController extends Controller
 
             $result = $this->dashboardService->getDashboardStats($waiterId);
             
-            \Log::info('✅ [CONTROLLER] getDashboard returning:', [
+            \Log::info(' [CONTROLLER] getDashboard returning:', [
                 'waiter_id' => $waiterId,
                 'today_stats' => $result['today_stats'] ?? null,
             ]);
@@ -106,7 +105,7 @@ class WaiterDashboardController extends Controller
                 'data' => $result,
             ], 200);
         } catch (\Throwable $e) {
-            \Log::error('❌ Dashboard action error:', [
+            \Log::error(' Dashboard action error:', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -307,7 +306,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             function($userId) {
-                \Log::info('🔵 [CONTROLLER] getQuickStats called', [
+                \Log::info(' [CONTROLLER] getQuickStats called', [
                     'user_id' => $userId,
                     'user_type' => class_basename(auth()->user()),
                 ]);

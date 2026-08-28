@@ -1,0 +1,151 @@
+{
+  "description": "Simple JSON examples to test guest order payment flow",
+  "base_url": "http://localhost:8000/api",
+  
+  "step_1_get_menu": {
+    "method": "GET",
+    "url": "http://localhost:8000/api/guest/menu/items",
+    "description": "Get all menu items. Copy a menu item ID from response."
+  },
+  
+  "step_2_initialize_payment": {
+    "method": "POST",
+    "url": "http://localhost:8000/api/order-payments/initialize",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "body": {
+      "guest_id": "YOUR_GUEST_UUID_HERE",
+      "room_id": "YOUR_ROOM_UUID_HERE",
+      "items": [
+        {
+          "menu_item_id": "YOUR_MENU_ITEM_UUID_HERE",
+          "quantity": 2,
+          "special_instructions": "Extra spicy"
+        }
+      ],
+      "notes": "Room service order",
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john.doe@example.com",
+      "phone": "+251912345678"
+    },
+    "description": "Initialize payment. Response will have checkout_url and tx_ref. Customer must pay at checkout_url."
+  },
+  
+  "step_2_example_multiple_items": {
+    "method": "POST",
+    "url": "http://localhost:8000/api/order-payments/initialize",
+    "body": {
+      "guest_id": "YOUR_GUEST_UUID_HERE",
+      "room_id": "YOUR_ROOM_UUID_HERE",
+      "items": [
+        {
+          "menu_item_id": "MENU_ITEM_1_UUID",
+          "quantity": 2,
+          "special_instructions": "No onions"
+        },
+        {
+          "menu_item_id": "MENU_ITEM_2_UUID",
+          "quantity": 1,
+          "special_instructions": "Well done"
+        }
+      ],
+      "first_name": "Jane",
+      "last_name": "Smith",
+      "email": "jane@example.com",
+      "phone": "+251923456789"
+    },
+    "description": "Example with multiple items"
+  },
+  
+  "step_3_verify_payment": {
+    "method": "GET",
+    "url": "http://localhost:8000/api/payments/verify/{tx_ref}",
+    "description": "Replace {tx_ref} with transaction reference from step 2. Check if payment status is 'paid' or 'verified'."
+  },
+  
+  "step_4_complete_order": {
+    "method": "POST",
+    "url": "http://localhost:8000/api/order-payments/complete/{tx_ref}",
+    "description": "Replace {tx_ref} with transaction reference. This creates the order and sends it to kitchen. Only works after payment is verified."
+  },
+  
+  "step_5_check_order_status": {
+    "method": "GET",
+    "url": "http://localhost:8000/api/guest/orders/{qr_token}/status",
+    "description": "Replace {qr_token} with room QR token. Shows order status: pending, preparing, ready, served."
+  },
+  
+  "additional_get_order_by_payment": {
+    "method": "GET",
+    "url": "http://localhost:8000/api/order-payments/{tx_ref}",
+    "description": "Get order details by payment transaction reference."
+  },
+  
+  "example_response_step_2": {
+    "success": true,
+    "message": "Payment initialized successfully",
+    "payment_id": "uuid-here",
+    "checkout_url": "https://checkout.chapa.co/checkout/payment/xyz",
+    "tx_ref": "TXN-20240101-ABC123",
+    "amount": 575.00,
+    "calculation": {
+      "subtotal": 400.00,
+      "tax": 60.00,
+      "service_charge": 40.00,
+      "discount": 0.00,
+      "total": 500.00
+    }
+  },
+  
+  "example_response_step_3_success": {
+    "success": true,
+    "status": "verified",
+    "payment": {
+      "id": "uuid",
+      "tx_ref": "TXN-20240101-ABC123",
+      "amount": 500.00,
+      "status": "verified"
+    }
+  },
+  
+  "example_response_step_4_success": {
+    "success": true,
+    "message": "Order created successfully and sent to kitchen",
+    "order": {
+      "id": "order-uuid",
+      "order_number": "ORD-20240101123456-001",
+      "status": "pending",
+      "total": 500.00,
+      "items": []
+    }
+  },
+  
+  "notes": {
+    "workflow": [
+      "1. Get menu items to find menu_item_id",
+      "2. Initialize payment with guest and room info",
+      "3. Customer pays at checkout_url",
+      "4. Verify payment is successful",
+      "5. Complete order (creates order in database)",
+      "6. Track order status"
+    ],
+    "important": "Order is created ONLY after payment is verified. Chef cannot see order until payment is complete.",
+    "required_fields": [
+      "guest_id (UUID)",
+      "room_id (UUID)",
+      "menu_item_id (UUID)",
+      "quantity (1-100)",
+      "first_name",
+      "last_name",
+      "email",
+      "phone (+251...)"
+    ],
+    "optional_fields": [
+      "special_instructions (per item)",
+      "notes (general order notes)"
+    ]
+  }
+}

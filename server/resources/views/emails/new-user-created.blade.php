@@ -130,7 +130,7 @@
         </div>
 
         <div class="password-highlight">
-            <strong>⚠️ Important Security Notice:</strong>
+            <strong> Important Security Notice:</strong>
             <p style="margin: 10px 0;">This is a <strong>temporary password</strong>. For security reasons, please change it immediately after your first login.</p>
             <p class="warning">Do not share this password with anyone!</p>
         </div>

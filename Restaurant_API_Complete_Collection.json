@@ -1,0 +1,274 @@
+{
+	"info": {
+		"_postman_id": "restaurant-complete-2024",
+		"name": "Restaurant Management System - COMPLETE API Collection",
+		"description": "Complete comprehensive Postman collection with ALL 200+ endpoints for testing the Restaurant Management System API across all roles.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [{"listen": "test", "script": {"exec": ["if (pm.response.code === 200) { var jsonData = pm.response.json(); pm.collectionVariables.set('auth_token', jsonData.token); }"], "type": "text/javascript"}}],
+					"request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"email\": \"admin@restaurant.com\", \"password\": \"password123\"}"}, "url": {"raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"]}}
+				},
+				{"name": "Logout", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/logout", "host": ["{{base_url}}"], "path": ["logout"]}}},
+				{"name": "Get Current User", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/me", "host": ["{{base_url}}"], "path": ["me"]}}}
+			]
+		},
+		{
+			"name": "Menu & Categories",
+			"item": [
+				{"name": "List Menu Items", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/menu-items", "host": ["{{base_url}}"], "path": ["menu-items"]}}},
+				{"name": "Get Menu Statistics", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/menu-items/statistics", "host": ["{{base_url}}"], "path": ["menu-items", "statistics"]}}},
+				{"name": "Create Menu Item", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"name\": \"Pasta Carbonara\", \"description\": \"Creamy pasta dish\", \"price\": 15.99, \"category_id\": 1, \"is_available\": true}"}, "url": {"raw": "{{base_url}}/menu-items", "host": ["{{base_url}}"], "path": ["menu-items"]}}},
+				{"name": "Update Menu Item", "request": {"method": "PUT", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"name\": \"Updated Pasta\", \"price\": 17.99}"}, "url": {"raw": "{{base_url}}/menu-items/:menuItem_id", "host": ["{{base_url}}"], "path": ["menu-items", ":menuItem_id"]}}},
+				{"name": "Toggle Menu Availability", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/menu-items/:menuItem_id/toggle-availability", "host": ["{{base_url}}"], "path": ["menu-items", ":menuItem_id", "toggle-availability"]}}},
+				{"name": "Delete Menu Item", "request": {"method": "DELETE", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/menu-items/:menuItem_id", "host": ["{{base_url}}"], "path": ["menu-items", ":menuItem_id"]}}},
+				{"name": "List Categories", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/categories", "host": ["{{base_url}}"], "path": ["categories"]}}},
+				{"name": "Create Category", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"name\": \"Desserts\", \"description\": \"Sweet treats\", \"display_order\": 5}"}, "url": {"raw": "{{base_url}}/categories", "host": ["{{base_url}}"], "path": ["categories"]}}}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{"name": "List Orders", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/orders", "host": ["{{base_url}}"], "path": ["orders"]}}},
+				{"name": "Create Order", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"room_id\": 1, \"items\": [{\"menu_item_id\": 1, \"quantity\": 2}], \"special_instructions\": \"No onions\"}"}, "url": {"raw": "{{base_url}}/orders", "host": ["{{base_url}}"], "path": ["orders"]}}},
+				{"name": "Get Order by ID", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/orders/:order_id", "host": ["{{base_url}}"], "path": ["orders", ":order_id"]}}},
+				{"name": "Update Order", "request": {"method": "PUT", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"status\": \"preparing\"}"}, "url": {"raw": "{{base_url}}/orders/:order_id", "host": ["{{base_url}}"], "path": ["orders", ":order_id"]}}},
+				{"name": "Change Order Status", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"status\": \"ready\"}"}, "url": {"raw": "{{base_url}}/orders/:order_id/status", "host": ["{{base_url}}"], "path": ["orders", ":order_id", "status"]}}},
+				{"name": "Delete Order", "request": {"method": "DELETE", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/orders/:order_id", "host": ["{{base_url}}"], "path": ["orders", ":order_id"]}}}
+			]
+		},
+		{
+			"name": "Kitchen Operations",
+			"item": [
+				{"name": "Get Kitchen Orders", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/kitchen/orders", "host": ["{{base_url}}"], "path": ["kitchen", "orders"]}}},
+				{"name": "Get Kitchen Statistics", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/kitchen/statistics", "host": ["{{base_url}}"], "path": ["kitchen", "statistics"]}}},
+				{"name": "Start Order Preparation", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/kitchen/orders/:order_id/start", "host": ["{{base_url}}"], "path": ["kitchen", "orders", ":order_id", "start"]}}},
+				{"name": "Mark Order Ready", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/kitchen/orders/:order_id/ready", "host": ["{{base_url}}"], "path": ["kitchen", "orders", ":order_id", "ready"]}}},
+				{"name": "Complete Order", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/kitchen/orders/:order_id/complete", "host": ["{{base_url}}"], "path": ["kitchen", "orders", ":order_id", "complete"]}}}
+			]
+		},
+		{
+			"name": "Manager - Dashboard",
+			"item": [
+				{"name": "Get Manager Dashboard", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/dashboard", "host": ["{{base_url}}"], "path": ["manager", "dashboard"]}}},
+				{"name": "Get Statistics", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/dashboard/statistics", "host": ["{{base_url}}"], "path": ["manager", "dashboard", "statistics"]}}},
+				{"name": "Get Daily Trends", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/dashboard/daily-trends", "host": ["{{base_url}}"], "path": ["manager", "dashboard", "daily-trends"]}}},
+				{"name": "Get Performance Summary", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/dashboard/performance", "host": ["{{base_url}}"], "path": ["manager", "dashboard", "performance"]}}},
+				{"name": "Get Top Selling Items", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/dashboard/top-items", "host": ["{{base_url}}"], "path": ["manager", "dashboard", "top-items"]}}}
+			]
+		},
+		{
+			"name": "Manager - Kitchen Monitor",
+			"item": [
+				{"name": "Get Kitchen Orders", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/kitchen/orders", "host": ["{{base_url}}"], "path": ["manager", "kitchen", "orders"]}}},
+				{"name": "Get Kitchen Metrics", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/kitchen/metrics", "host": ["{{base_url}}"], "path": ["manager", "kitchen", "metrics"]}}},
+				{"name": "Get Delayed Orders", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/kitchen/delayed-orders", "host": ["{{base_url}}"], "path": ["manager", "kitchen", "delayed-orders"]}}},
+				{"name": "Get Chef Workload", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/kitchen/chef-workload", "host": ["{{base_url}}"], "path": ["manager", "kitchen", "chef-workload"]}}},
+				{"name": "Get Queue Status", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/kitchen/queue-status", "host": ["{{base_url}}"], "path": ["manager", "kitchen", "queue-status"]}}}
+			]
+		},
+		{
+			"name": "Manager - Complaints",
+			"item": [
+				{"name": "List Complaints", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/complaints", "host": ["{{base_url}}"], "path": ["manager", "complaints"]}}},
+				{"name": "Get Complaint Statistics", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/complaints/statistics", "host": ["{{base_url}}"], "path": ["manager", "complaints", "statistics"]}}},
+				{"name": "Create Complaint", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"type\": \"service\", \"description\": \"Slow response\", \"severity\": \"medium\", \"room_id\": 101}"}, "url": {"raw": "{{base_url}}/manager/complaints", "host": ["{{base_url}}"], "path": ["manager", "complaints"]}}},
+				{"name": "Get Complaint by ID", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/complaints/:complaint_id", "host": ["{{base_url}}"], "path": ["manager", "complaints", ":complaint_id"]}}},
+				{"name": "Assign Complaint", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"assigned_to\": 5}"}, "url": {"raw": "{{base_url}}/manager/complaints/:complaint_id/assign", "host": ["{{base_url}}"], "path": ["manager", "complaints", ":complaint_id", "assign"]}}},
+				{"name": "Escalate Complaint", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/complaints/:complaint_id/escalate", "host": ["{{base_url}}"], "path": ["manager", "complaints", ":complaint_id", "escalate"]}}},
+				{"name": "Resolve Complaint", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"resolution_notes\": \"Issue resolved\"}"}, "url": {"raw": "{{base_url}}/manager/complaints/:complaint_id/resolve", "host": ["{{base_url}}"], "path": ["manager", "complaints", ":complaint_id", "resolve"]}}}
+			]
+		},
+		{
+			"name": "Manager - Revenue & Occupancy",
+			"item": [
+				{"name": "Get Revenue Summary", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/revenue/summary", "host": ["{{base_url}}"], "path": ["manager", "revenue", "summary"]}}},
+				{"name": "Get Revenue Chart", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/revenue/chart", "host": ["{{base_url}}"], "path": ["manager", "revenue", "chart"]}}},
+				{"name": "Get Occupancy Summary", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/occupancy/summary", "host": ["{{base_url}}"], "path": ["manager", "occupancy", "summary"]}}},
+				{"name": "Get Occupancy Chart", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/occupancy/chart", "host": ["{{base_url}}"], "path": ["manager", "occupancy", "chart"]}}},
+				{"name": "Get Staff List", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/staff", "host": ["{{base_url}}"], "path": ["manager", "staff"]}}}
+			]
+		},
+		{
+			"name": "Manager - Waiter Management",
+			"item": [
+				{"name": "List Waiters", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/waiters", "host": ["{{base_url}}"], "path": ["manager", "waiters"]}}},
+				{"name": "Create Waiter", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"user_id\": 10, \"shift\": \"morning\", \"experience_level\": \"senior\", \"phone\": \"+251911234567\"}"}, "url": {"raw": "{{base_url}}/manager/waiters", "host": ["{{base_url}}"], "path": ["manager", "waiters"]}}},
+				{"name": "Get Waiter by ID", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/waiters/:waiter_id", "host": ["{{base_url}}"], "path": ["manager", "waiters", ":waiter_id"]}}},
+				{"name": "Update Waiter", "request": {"method": "PUT", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"shift\": \"evening\", \"status\": \"active\"}"}, "url": {"raw": "{{base_url}}/manager/waiters/:waiter_id", "host": ["{{base_url}}"], "path": ["manager", "waiters", ":waiter_id"]}}},
+				{"name": "Deactivate Waiter", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/waiters/:waiter_id/deactivate", "host": ["{{base_url}}"], "path": ["manager", "waiters", ":waiter_id", "deactivate"]}}},
+				{"name": "Get Waiter Stats", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/waiters/:waiter_id/stats", "host": ["{{base_url}}"], "path": ["manager", "waiters", ":waiter_id", "stats"]}}}
+			]
+		},
+		{
+			"name": "Manager - Floor & Shift Management",
+			"item": [
+				{"name": "List Floors", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/floors", "host": ["{{base_url}}"], "path": ["manager", "floors"]}}},
+				{"name": "Create Floor", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"name\": \"Ground Floor\", \"floor_number\": 0, \"description\": \"Main floor\"}"}, "url": {"raw": "{{base_url}}/manager/floors", "host": ["{{base_url}}"], "path": ["manager", "floors"]}}},
+				{"name": "Update Floor", "request": {"method": "PUT", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"name\": \"Updated Floor\", \"status\": \"active\"}"}, "url": {"raw": "{{base_url}}/manager/floors/:floor_id", "host": ["{{base_url}}"], "path": ["manager", "floors", ":floor_id"]}}},
+				{"name": "List Floor Assignments", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/floors/assignments", "host": ["{{base_url}}"], "path": ["manager", "floors", "assignments"]}}},
+				{"name": "Get Today's Assignments", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/floors/assignments/today", "host": ["{{base_url}}"], "path": ["manager", "floors", "assignments", "today"]}}},
+				{"name": "Create Floor Assignment", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"waiter_id\": 1, \"floor_id\": 1, \"shift_id\": 1, \"priority\": \"primary\"}"}, "url": {"raw": "{{base_url}}/manager/floors/assignments", "host": ["{{base_url}}"], "path": ["manager", "floors", "assignments"]}}},
+				{"name": "List Shifts", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/shifts", "host": ["{{base_url}}"], "path": ["manager", "shifts"]}}},
+				{"name": "Create Shift", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"name\": \"Morning Shift\", \"start_time\": \"06:00\", \"end_time\": \"14:00\"}"}, "url": {"raw": "{{base_url}}/manager/shifts", "host": ["{{base_url}}"], "path": ["manager", "shifts"]}}},
+				{"name": "Get Current Shift", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/shifts/current", "host": ["{{base_url}}"], "path": ["manager", "shifts", "current"]}}}
+			]
+		},
+		{
+			"name": "Manager - Restaurant Tables",
+			"item": [
+				{"name": "List Restaurant Tables", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/restaurant-tables", "host": ["{{base_url}}"], "path": ["manager", "restaurant-tables"]}}},
+				{"name": "Get Table Statistics", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/restaurant-tables/statistics", "host": ["{{base_url}}"], "path": ["manager", "restaurant-tables", "statistics"]}}},
+				{"name": "Create Restaurant Table", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"table_number\": \"T1\", \"capacity\": 4, \"section\": \"main\", \"status\": \"available\"}"}, "url": {"raw": "{{base_url}}/manager/restaurant-tables", "host": ["{{base_url}}"], "path": ["manager", "restaurant-tables"]}}},
+				{"name": "Update Restaurant Table", "request": {"method": "PUT", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"status\": \"occupied\", \"capacity\": 6}"}, "url": {"raw": "{{base_url}}/manager/restaurant-tables/:table_id", "host": ["{{base_url}}"], "path": ["manager", "restaurant-tables", ":table_id"]}}},
+				{"name": "Regenerate Table QR", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/restaurant-tables/:table_id/regenerate-qr", "host": ["{{base_url}}"], "path": ["manager", "restaurant-tables", ":table_id", "regenerate-qr"]}}},
+				{"name": "List Table Assignments", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/table-assignments", "host": ["{{base_url}}"], "path": ["manager", "table-assignments"]}}},
+				{"name": "Get Today's Table Assignments", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/table-assignments/today", "host": ["{{base_url}}"], "path": ["manager", "table-assignments", "today"]}}},
+				{"name": "Create Table Assignment", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"waiter_id\": 1, \"table_id\": 1, \"shift_id\": 1}"}, "url": {"raw": "{{base_url}}/manager/table-assignments", "host": ["{{base_url}}"], "path": ["manager", "table-assignments"]}}}
+			]
+		},
+		{
+			"name": "Manager - Delivery Management",
+			"item": [
+				{"name": "List Deliveries", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/deliveries", "host": ["{{base_url}}"], "path": ["manager", "deliveries"]}}},
+				{"name": "Get Today Summary", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/deliveries/summary/today", "host": ["{{base_url}}"], "path": ["manager", "deliveries", "summary", "today"]}}},
+				{"name": "Get Waiting Assignment", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/deliveries/waiting/assignment", "host": ["{{base_url}}"], "path": ["manager", "deliveries", "waiting", "assignment"]}}},
+				{"name": "Get Delivery by ID", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/manager/deliveries/:delivery_id", "host": ["{{base_url}}"], "path": ["manager", "deliveries", ":delivery_id"]}}},
+				{"name": "Reassign Delivery", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"waiter_id\": 2}"}, "url": {"raw": "{{base_url}}/manager/deliveries/:delivery_id/reassign", "host": ["{{base_url}}"], "path": ["manager", "deliveries", ":delivery_id", "reassign"]}}},
+				{"name": "Manually Assign Delivery", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"waiter_id\": 3}"}, "url": {"raw": "{{base_url}}/manager/deliveries/:delivery_id/assign", "host": ["{{base_url}}"], "path": ["manager", "deliveries", ":delivery_id", "assign"]}}}
+			]
+		},
+		{
+			"name": "Waiter - Dashboard",
+			"item": [
+				{"name": "Get Waiter Dashboard", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/dashboard", "host": ["{{base_url}}"], "path": ["waiter", "dashboard"]}}},
+				{"name": "Get Today Stats", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/dashboard/today", "host": ["{{base_url}}"], "path": ["waiter", "dashboard", "today"]}}},
+				{"name": "Get Performance", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/dashboard/performance", "host": ["{{base_url}}"], "path": ["waiter", "dashboard", "performance"]}}},
+				{"name": "Get Kitchen Ready Orders", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/dashboard/kitchen-ready-orders", "host": ["{{base_url}}"], "path": ["waiter", "dashboard", "kitchen-ready-orders"]}}},
+				{"name": "Get Ready for Pickup", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/dashboard/ready-pickup", "host": ["{{base_url}}"], "path": ["waiter", "dashboard", "ready-pickup"]}}},
+				{"name": "Get On Delivery", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/dashboard/on-delivery", "host": ["{{base_url}}"], "path": ["waiter", "dashboard", "on-delivery"]}}},
+				{"name": "Get Completed Deliveries", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/dashboard/completed", "host": ["{{base_url}}"], "path": ["waiter", "dashboard", "completed"]}}},
+				{"name": "Get Quick Stats", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/dashboard/quick-stats", "host": ["{{base_url}}"], "path": ["waiter", "dashboard", "quick-stats"]}}}
+			]
+		},
+		{
+			"name": "Waiter - Assignments",
+			"item": [
+				{"name": "List Assignments", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/assignments", "host": ["{{base_url}}"], "path": ["waiter", "assignments"]}}},
+				{"name": "Get Assignment by ID", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/assignments/:assignment_id", "host": ["{{base_url}}"], "path": ["waiter", "assignments", ":assignment_id"]}}},
+				{"name": "Get Pending Assignments", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/assignments/pending/list", "host": ["{{base_url}}"], "path": ["waiter", "assignments", "pending", "list"]}}},
+				{"name": "Get Active Assignments", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/assignments/active/list", "host": ["{{base_url}}"], "path": ["waiter", "assignments", "active", "list"]}}},
+				{"name": "Accept Assignment", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/assignments/:assignment_id/accept", "host": ["{{base_url}}"], "path": ["waiter", "assignments", ":assignment_id", "accept"]}}},
+				{"name": "Reject Assignment", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"reason\": \"Already at capacity\"}"}, "url": {"raw": "{{base_url}}/waiter/assignments/:assignment_id/reject", "host": ["{{base_url}}"], "path": ["waiter", "assignments", ":assignment_id", "reject"]}}},
+				{"name": "Pickup Order", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/assignments/:assignment_id/pickup", "host": ["{{base_url}}"], "path": ["waiter", "assignments", ":assignment_id", "pickup"]}}},
+				{"name": "Start Delivery", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/assignments/:assignment_id/start-delivery", "host": ["{{base_url}}"], "path": ["waiter", "assignments", ":assignment_id", "start-delivery"]}}},
+				{"name": "Deliver Order", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/assignments/:assignment_id/deliver", "host": ["{{base_url}}"], "path": ["waiter", "assignments", ":assignment_id", "deliver"]}}},
+				{"name": "Mark Failed", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"reason\": \"Customer not available\"}"}, "url": {"raw": "{{base_url}}/waiter/assignments/:assignment_id/failed", "host": ["{{base_url}}"], "path": ["waiter", "assignments", ":assignment_id", "failed"]}}}
+			]
+		},
+		{
+			"name": "Waiter - History & Performance",
+			"item": [
+				{"name": "Get History", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/history", "host": ["{{base_url}}"], "path": ["waiter", "history"]}}},
+				{"name": "Get Performance History", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/performance-history", "host": ["{{base_url}}"], "path": ["waiter", "performance-history"]}}},
+				{"name": "Get Performance Report", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/report/performance", "host": ["{{base_url}}"], "path": ["waiter", "report", "performance"]}}},
+				{"name": "Get Performance Trend", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/report/trend", "host": ["{{base_url}}"], "path": ["waiter", "report", "trend"]}}},
+				{"name": "Get Statistics", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/stats", "host": ["{{base_url}}"], "path": ["waiter", "stats"]}}}
+			]
+		},
+		{
+			"name": "Waiter - Notifications",
+			"item": [
+				{"name": "Get Notifications", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/notifications", "host": ["{{base_url}}"], "path": ["waiter", "notifications"]}}},
+				{"name": "Get Unread Count", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/notifications/unread-count", "host": ["{{base_url}}"], "path": ["waiter", "notifications", "unread-count"]}}},
+				{"name": "Get Unread", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/notifications/unread", "host": ["{{base_url}}"], "path": ["waiter", "notifications", "unread"]}}},
+				{"name": "Mark as Read", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/notifications/:notification_id/read", "host": ["{{base_url}}"], "path": ["waiter", "notifications", ":notification_id", "read"]}}},
+				{"name": "Mark All as Read", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/waiter/notifications/read-all", "host": ["{{base_url}}"], "path": ["waiter", "notifications", "read-all"]}}}
+			]
+		},
+		{
+			"name": "Cashier Operations",
+			"item": [
+				{"name": "Get Cashier Dashboard", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/cashier/dashboard", "host": ["{{base_url}}"], "path": ["cashier", "dashboard"]}}},
+				{"name": "Get Recent Payments", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/cashier/dashboard/recent-payments", "host": ["{{base_url}}"], "path": ["cashier", "dashboard", "recent-payments"]}}},
+				{"name": "Get Pending Payments", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/cashier/dashboard/pending-payments", "host": ["{{base_url}}"], "path": ["cashier", "dashboard", "pending-payments"]}}},
+				{"name": "List Payments", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/cashier/payments", "host": ["{{base_url}}"], "path": ["cashier", "payments"]}}},
+				{"name": "Get Payment by ID", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/cashier/payments/:payment_id", "host": ["{{base_url}}"], "path": ["cashier", "payments", ":payment_id"]}}},
+				{"name": "Process Refund", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}, {"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"reason\": \"Customer request\", \"amount\": 50.00}"}, "url": {"raw": "{{base_url}}/cashier/payments/:payment_id/refund", "host": ["{{base_url}}"], "path": ["cashier", "payments", ":payment_id", "refund"]}}},
+				{"name": "Get Revenue Report", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/cashier/reports/revenue", "host": ["{{base_url}}"], "path": ["cashier", "reports", "revenue"]}}},
+				{"name": "Get Payment Report", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/cashier/reports/payment", "host": ["{{base_url}}"], "path": ["cashier", "reports", "payment"]}}}
+			]
+		},
+		{
+			"name": "Receptionist",
+			"item": [
+				{"name": "Get Reception Dashboard", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/reception/dashboard", "host": ["{{base_url}}"], "path": ["reception", "dashboard"]}}},
+				{"name": "Get Reservation Report", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/reception/reports/reservations", "host": ["{{base_url}}"], "path": ["reception", "reports", "reservations"]}}},
+				{"name": "Get Occupancy Report", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/reception/reports/occupancy", "host": ["{{base_url}}"], "path": ["reception", "reports", "occupancy"]}}},
+				{"name": "Get Guest Report", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/reception/reports/guests", "host": ["{{base_url}}"], "path": ["reception", "reports", "guests"]}}}
+			]
+		},
+		{
+			"name": "Payments (Public & Auth)",
+			"item": [
+				{"name": "Initialize Payment", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"amount\": 100.00, \"email\": \"customer@email.com\", \"first_name\": \"John\", \"last_name\": \"Doe\"}"}, "url": {"raw": "{{base_url}}/payments/initialize", "host": ["{{base_url}}"], "path": ["payments", "initialize"]}}},
+				{"name": "Verify Payment", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/payments/verify/:tx_ref", "host": ["{{base_url}}"], "path": ["payments", "verify", ":tx_ref"]}}},
+				{"name": "Get Payment Status", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/payments/status/:tx_ref", "host": ["{{base_url}}"], "path": ["payments", "status", ":tx_ref"]}}},
+				{"name": "List Payments (Auth)", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/payments", "host": ["{{base_url}}"], "path": ["payments"]}}},
+				{"name": "Initialize Reservation Payment", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"reservation_id\": 1, \"amount\": 150.00, \"email\": \"guest@email.com\"}"}, "url": {"raw": "{{base_url}}/reservation-payments/initialize", "host": ["{{base_url}}"], "path": ["reservation-payments", "initialize"]}}},
+				{"name": "Complete Reservation", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"payment_verified\": true}"}, "url": {"raw": "{{base_url}}/reservation-payments/complete/:tx_ref", "host": ["{{base_url}}"], "path": ["reservation-payments", "complete", ":tx_ref"]}}},
+				{"name": "Initialize Order Payment", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"order_id\": 1, \"amount\": 75.00, \"email\": \"customer@email.com\"}"}, "url": {"raw": "{{base_url}}/order-payments/initialize", "host": ["{{base_url}}"], "path": ["order-payments", "initialize"]}}},
+				{"name": "Complete Order Payment", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"payment_verified\": true}"}, "url": {"raw": "{{base_url}}/order-payments/complete/:tx_ref", "host": ["{{base_url}}"], "path": ["order-payments", "complete", ":tx_ref"]}}},
+				{"name": "Initialize Walk-In Payment", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"table_id\": 5, \"amount\": 45.00, \"email\": \"walkin@email.com\"}"}, "url": {"raw": "{{base_url}}/walk-in-payments/initialize", "host": ["{{base_url}}"], "path": ["walk-in-payments", "initialize"]}}}
+			]
+		},
+		{
+			"name": "QR Codes & Guest Orders",
+			"item": [
+				{"name": "Resolve QR Token", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"qr_token\": \"sample_qr_token_here\"}"}, "url": {"raw": "{{base_url}}/qr/resolve", "host": ["{{base_url}}"], "path": ["qr", "resolve"]}}},
+				{"name": "Validate QR Token", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"qr_token\": \"sample_qr_token_here\"}"}, "url": {"raw": "{{base_url}}/qr/validate", "host": ["{{base_url}}"], "path": ["qr", "validate"]}}},
+				{"name": "Get All Menu Items (Guest)", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/guest/menu/items", "host": ["{{base_url}}"], "path": ["guest", "menu", "items"]}}},
+				{"name": "Get Room by QR Token", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/guest/menu/:qr_token", "host": ["{{base_url}}"], "path": ["guest", "menu", ":qr_token"]}}},
+				{"name": "Get Menu Items by QR", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/guest/menu/:qr_token/items", "host": ["{{base_url}}"], "path": ["guest", "menu", ":qr_token", "items"]}}},
+				{"name": "Create Guest Order", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"qr_token\": \"sample_token\", \"items\": [{\"menu_item_id\": 1, \"quantity\": 2}]}"}, "url": {"raw": "{{base_url}}/guest/orders", "host": ["{{base_url}}"], "path": ["guest", "orders"]}}},
+				{"name": "Get Order Status", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/guest/orders/:qr_token/status", "host": ["{{base_url}}"], "path": ["guest", "orders", ":qr_token", "status"]}}},
+				{"name": "Create Unified Order", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"qr_token\": \"sample_token\", \"items\": [{\"menu_item_id\": 1, \"quantity\": 1}], \"order_type\": \"room_service\"}"}, "url": {"raw": "{{base_url}}/guest/unified-orders", "host": ["{{base_url}}"], "path": ["guest", "unified-orders"]}}},
+				{"name": "Generate QR for Room", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/qr-code/generate/:room_id", "host": ["{{base_url}}"], "path": ["qr-code", "generate", ":room_id"]}}},
+				{"name": "Get QR Code Data", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/qr-code/data/:room_id", "host": ["{{base_url}}"], "path": ["qr-code", "data", ":room_id"]}}},
+				{"name": "Download QR Code", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/qr-codes/download/:room_id", "host": ["{{base_url}}"], "path": ["qr-codes", "download", ":room_id"]}}},
+				{"name": "Get QR Print Template", "request": {"method": "GET", "header": [], "url": {"raw": "{{base_url}}/qr-codes/print/:room_id", "host": ["{{base_url}}"], "path": ["qr-codes", "print", ":room_id"]}}},
+				{"name": "Get All QR Codes (Admin)", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/admin/qr-codes/all", "host": ["{{base_url}}"], "path": ["admin", "qr-codes", "all"]}}},
+				{"name": "Regenerate QR Code (Admin)", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/admin/qr-codes/:room_id/regenerate", "host": ["{{base_url}}"], "path": ["admin", "qr-codes", ":room_id", "regenerate"]}}}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{"name": "Get Latest Notifications", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/notifications/latest", "host": ["{{base_url}}"], "path": ["notifications", "latest"]}}},
+				{"name": "Get Unread Count", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/notifications/unread-count", "host": ["{{base_url}}"], "path": ["notifications", "unread-count"]}}},
+				{"name": "List All Notifications", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/notifications", "host": ["{{base_url}}"], "path": ["notifications"]}}},
+				{"name": "Mark as Read", "request": {"method": "PUT", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/notifications/:notification_id/read", "host": ["{{base_url}}"], "path": ["notifications", ":notification_id", "read"]}}},
+				{"name": "Mark All as Read", "request": {"method": "PUT", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/notifications/read-all", "host": ["{{base_url}}"], "path": ["notifications", "read-all"]}}},
+				{"name": "Delete Notification", "request": {"method": "DELETE", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/notifications/:notification_id", "host": ["{{base_url}}"], "path": ["notifications", ":notification_id"]}}},
+				{"name": "Clear All Notifications", "request": {"method": "DELETE", "header": [{"key": "Authorization", "value": "Bearer {{auth_token}}"}], "url": {"raw": "{{base_url}}/notifications/clear-all", "host": ["{{base_url}}"], "path": ["notifications", "clear-all"]}}}
+			]
+		}
+	]
+}

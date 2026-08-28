@@ -273,7 +273,7 @@ class ReservationPaymentController extends Controller
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unable to initialize payment',
+                    'message' => 'Unable to initialize payment: ' . $errorMessage,
                     'error'   => $errorMessage,
                     'details' => is_array($errorDetails) && config('app.debug') ? $errorDetails : null,
                     'debug_info' => config('app.debug') ? $chapaResponse : null,
@@ -388,7 +388,7 @@ class ReservationPaymentController extends Controller
             // Find payment
             $payment = Payment::where('tx_ref', $txRef)->firstOrFail();
 
-            Log::info('✅ [COMPLETE] Payment found', [
+            Log::info(' [COMPLETE] Payment found', [
                 'payment_id' => $payment->id,
                 'is_verified' => $payment->isVerified(),
                 'amount' => $payment->amount,
@@ -396,7 +396,7 @@ class ReservationPaymentController extends Controller
 
             // Verify payment is verified
             if (!$payment->isVerified()) {
-                Log::warning('⚠️ [COMPLETE] Payment not verified', [
+                Log::warning(' [COMPLETE] Payment not verified', [
                     'payment_id' => $payment->id,
                     'status' => $payment->status,
                 ]);
@@ -411,7 +411,7 @@ class ReservationPaymentController extends Controller
             $metadata = $payment->metadata;
 
             if (!$metadata || !isset($metadata['room_id'])) {
-                Log::error('❌ [COMPLETE] Invalid metadata', [
+                Log::error(' [COMPLETE] Invalid metadata', [
                     'payment_id' => $payment->id,
                     'has_metadata' => !is_null($metadata),
                     'has_room_id' => isset($metadata['room_id']),
@@ -444,7 +444,7 @@ class ReservationPaymentController extends Controller
             );
 
             if (!$result['success']) {
-                Log::error('❌ [COMPLETE] Reservation creation failed', [
+                Log::error(' [COMPLETE] Reservation creation failed', [
                     'message' => $result['message'],
                 ]);
                 
@@ -459,7 +459,7 @@ class ReservationPaymentController extends Controller
             // Load relationships
             $reservation->load(['guest', 'room']);
             
-            Log::info('✅ [COMPLETE] Reservation Created Successfully', [
+            Log::info(' [COMPLETE] Reservation Created Successfully', [
                 'payment_id'       => $payment->id,
                 'reservation_id'   => $reservation->id,
                 'booking_reference' => $reservation->booking_reference,
@@ -514,7 +514,7 @@ class ReservationPaymentController extends Controller
             ]);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            Log::error('❌ [COMPLETE] Payment not found', ['tx_ref' => $txRef]);
+            Log::error(' [COMPLETE] Payment not found', ['tx_ref' => $txRef]);
             
             return response()->json([
                 'success' => false,
@@ -522,7 +522,7 @@ class ReservationPaymentController extends Controller
             ], 404);
 
         } catch (\Exception $e) {
-            Log::error('❌ [COMPLETE] Complete Reservation Exception', [
+            Log::error(' [COMPLETE] Complete Reservation Exception', [
                 'message' => $e->getMessage(),
                 'tx_ref'  => $txRef,
                 'file' => $e->getFile(),
@@ -652,14 +652,14 @@ class ReservationPaymentController extends Controller
                 ->with(['reservation.guest', 'reservation.room'])
                 ->firstOrFail();
 
-            Log::info('✅ [RECEIPT API] Payment found', [
+            Log::info(' [RECEIPT API] Payment found', [
                 'payment_id' => $payment->id,
                 'has_reservation' => !is_null($payment->reservation),
                 'amount' => $payment->amount,
             ]);
 
             if (!$payment->reservation) {
-                Log::warning('⚠️ [RECEIPT API] No reservation linked to payment', [
+                Log::warning(' [RECEIPT API] No reservation linked to payment', [
                     'payment_id' => $payment->id,
                     'tx_ref' => $txRef,
                 ]);
@@ -716,7 +716,7 @@ class ReservationPaymentController extends Controller
                 'updated_at' => $reservation->updated_at?->toIso8601String(),
             ];
 
-            Log::info('✅ [RECEIPT API] Response prepared', [
+            Log::info(' [RECEIPT API] Response prepared', [
                 'booking_reference' => $reservationData['booking_reference'],
                 'total_amount' => $reservationData['total_amount'],
                 'has_all_fields' => isset($reservationData['first_name'], $reservationData['email'], $reservationData['total_amount']),
@@ -729,7 +729,7 @@ class ReservationPaymentController extends Controller
             ]);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            Log::error('❌ [RECEIPT API] Payment not found', ['tx_ref' => $txRef]);
+            Log::error(' [RECEIPT API] Payment not found', ['tx_ref' => $txRef]);
             
             return response()->json([
                 'success' => false,
@@ -737,7 +737,7 @@ class ReservationPaymentController extends Controller
             ], 404);
 
         } catch (\Exception $e) {
-            Log::error('❌ [RECEIPT API] Get Reservation By Payment Exception', [
+            Log::error(' [RECEIPT API] Get Reservation By Payment Exception', [
                 'message' => $e->getMessage(),
                 'tx_ref'  => $txRef,
                 'file' => $e->getFile(),

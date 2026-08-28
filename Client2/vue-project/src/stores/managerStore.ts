@@ -196,10 +196,10 @@ export const useManagerStore = defineStore('manager', () => {
     try {
       console.log('\n>>> [managerStore.loadStatistics] START')
       console.log('[managerStore] 🚀 Loading statistics from service...')
-      
+
       const response = await managerService.getStatistics()
 
-      console.log('[managerStore] ✅ Response received from service')
+      console.log('[managerStore]  Response received from service')
       console.log('[managerStore] Response type:', typeof response)
       console.log('[managerStore] Response keys:', Object.keys(response))
       console.log('[managerStore] Full response:', response)
@@ -221,12 +221,12 @@ export const useManagerStore = defineStore('manager', () => {
       // Also update statistics ref for backward compatibility
       statistics.value = response
 
-      console.log('[managerStore] ✅ Dashboard stats updated:')
+      console.log('[managerStore]  Dashboard stats updated:')
       console.log('[managerStore] dashboardStats.value =', dashboardStats.value)
       console.log('[managerStore] statistics.value =', statistics.value)
       console.log('>>> [managerStore.loadStatistics] COMPLETE\n')
     } catch (err: any) {
-      console.error('[managerStore] ❌ Error loading statistics:', err)
+      console.error('[managerStore]  Error loading statistics:', err)
       console.error('[managerStore] Error message:', err.message)
       console.error('[managerStore] Error stack:', err.stack)
       dashboardError.value = err.message
@@ -369,11 +369,11 @@ export const useManagerStore = defineStore('manager', () => {
       dashboardActivityLoading.value = true
       dashboardActivities.value = await managerService.getRecentActivities()
       activities.value = dashboardActivities.value
-      console.log('[managerStore] ✅ Activities loaded:', dashboardActivities.value.length, 'items')
+      console.log('[managerStore]  Activities loaded:', dashboardActivities.value.length, 'items')
       console.log('[managerStore] Activities:', dashboardActivities.value)
       console.log('>>> [managerStore.loadActivities] COMPLETE\n')
     } catch (err: any) {
-      console.error('[managerStore] ❌ Error loading activities:', err)
+      console.error('[managerStore]  Error loading activities:', err)
       dashboardError.value = err.message
     } finally {
       dashboardActivityLoading.value = false
@@ -450,17 +450,17 @@ export const useManagerStore = defineStore('manager', () => {
 
       console.log('[managerStore] Step 1/2: Loading statistics...')
       await loadStatistics()
-      console.log('[managerStore] ✅ Statistics loaded')
+      console.log('[managerStore]  Statistics loaded')
 
       console.log('[managerStore] Step 2/2: Loading activities...')
       await loadActivities()
-      console.log('[managerStore] ✅ Activities loaded')
+      console.log('[managerStore]  Activities loaded')
 
-      console.log('[managerStore] ✅ Dashboard initialized successfully')
+      console.log('[managerStore]  Dashboard initialized successfully')
       console.log('========== [managerStore.initializeManagerDashboard] COMPLETE ==========\n')
     } catch (err: any) {
       console.error('\n========== [managerStore.initializeManagerDashboard] ERROR ==========')
-      console.error('[managerStore] ❌ Error initializing dashboard:', err)
+      console.error('[managerStore]  Error initializing dashboard:', err)
       console.error('[managerStore] Error message:', err.message)
       dashboardError.value = err.message
       console.log('========== [managerStore.initializeManagerDashboard] ERROR END ==========\n')

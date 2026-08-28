@@ -11,10 +11,6 @@ use Illuminate\Support\Facades\Storage;
 
 class CashierProfileController extends Controller
 {
-    /**
-     * Get cashier profile
-     * GET /api/cashier/profile
-     */
     public function getProfile(): JsonResponse
     {
         try {

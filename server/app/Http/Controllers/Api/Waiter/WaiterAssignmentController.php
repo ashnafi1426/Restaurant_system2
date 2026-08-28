@@ -43,7 +43,7 @@ class WaiterAssignmentController extends Controller
                 ], 403);
             }
 
-            \Log::info('🔵 [API] WaiterAssignmentController::index called', [
+            \Log::info(' [API] WaiterAssignmentController::index called', [
                 'waiter_id' => $waiterId,
                 'query_params' => $request->all(),
             ]);
@@ -78,7 +78,7 @@ class WaiterAssignmentController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
-            \Log::error('❌ [API] Assignment fetch error', [
+            \Log::error(' [API] Assignment fetch error', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -222,7 +222,7 @@ class WaiterAssignmentController extends Controller
     public function accept(AcceptAssignmentRequest $request, $id): JsonResponse
     {
         try {
-            \Log::info('🔵 [ENDPOINT] accept called', ['task_id' => $id]);
+            \Log::info(' [ENDPOINT] accept called', ['task_id' => $id]);
             
             $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
             
@@ -232,7 +232,7 @@ class WaiterAssignmentController extends Controller
             ]);
             
             if (!$waiterId) {
-                \Log::error('❌ [ENDPOINT] Waiter profile not linked for accept');
+                \Log::error(' [ENDPOINT] Waiter profile not linked for accept');
                 return response()->json([
                     'success' => false,
                     'message' => 'Waiter profile not linked to this account',
@@ -241,7 +241,7 @@ class WaiterAssignmentController extends Controller
             
             $assignment = $this->assignmentService->acceptAssignment($id, $waiterId);
 
-            \Log::info('✅ [ENDPOINT] accept succeeded', [
+            \Log::info(' [ENDPOINT] accept succeeded', [
                 'task_id' => $assignment->id,
                 'status' => $assignment->status,
             ]);
@@ -252,13 +252,13 @@ class WaiterAssignmentController extends Controller
                 'data' => $assignment,
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            \Log::warning('⚠️ [ENDPOINT] Assignment not found for accept', ['task_id' => $id]);
+            \Log::warning(' [ENDPOINT] Assignment not found for accept', ['task_id' => $id]);
             return response()->json([
                 'success' => false,
                 'message' => 'Assignment not found',
             ], 404);
         } catch (\Exception $e) {
-            \Log::error('❌ [ENDPOINT] Failed to accept assignment', [
+            \Log::error(' [ENDPOINT] Failed to accept assignment', [
                 'task_id' => $id,
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -315,22 +315,22 @@ class WaiterAssignmentController extends Controller
     public function pickup($id): JsonResponse
     {
         try {
-            \Log::info('🔵 [CONTROLLER] Pickup endpoint called', ['id' => $id]);
+            \Log::info(' [CONTROLLER] Pickup endpoint called', ['id' => $id]);
             
             $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
             if (!$waiterId) {
-                \Log::error('❌ [CONTROLLER] Waiter profile not linked');
+                \Log::error(' [CONTROLLER] Waiter profile not linked');
                 return response()->json([
                     'success' => false,
                     'message' => 'Waiter profile not linked to this account',
                 ], 403);
             }
             
-            \Log::info('✅ [CONTROLLER] Waiter ID resolved', ['waiter_id' => $waiterId]);
+            \Log::info(' [CONTROLLER] Waiter ID resolved', ['waiter_id' => $waiterId]);
             
             $assignment = $this->assignmentService->pickupOrder($id, $waiterId);
             
-            \Log::info('✅ [CONTROLLER] Order picked up successfully', ['id' => $id, 'assignment' => $assignment]);
+            \Log::info(' [CONTROLLER] Order picked up successfully', ['id' => $id, 'assignment' => $assignment]);
 
             return response()->json([
                 'success' => true,
@@ -338,13 +338,13 @@ class WaiterAssignmentController extends Controller
                 'data' => $assignment,
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            \Log::error('❌ [CONTROLLER] Assignment not found', ['id' => $id, 'error' => $e->getMessage()]);
+            \Log::error(' [CONTROLLER] Assignment not found', ['id' => $id, 'error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Assignment not found',
             ], 404);
         } catch (\Exception $e) {
-            \Log::error('❌ [CONTROLLER] Pickup error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine(), [
+            \Log::error(' [CONTROLLER] Pickup error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine(), [
                 'id' => $id,
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -363,7 +363,7 @@ class WaiterAssignmentController extends Controller
     public function startDelivery($id): JsonResponse
     {
         try {
-            \Log::info('🔵 [ENDPOINT] startDelivery called', ['task_id' => $id]);
+            \Log::info(' [ENDPOINT] startDelivery called', ['task_id' => $id]);
             
             $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
             
@@ -373,7 +373,7 @@ class WaiterAssignmentController extends Controller
             ]);
             
             if (!$waiterId) {
-                \Log::error('❌ [ENDPOINT] Waiter profile not linked');
+                \Log::error(' [ENDPOINT] Waiter profile not linked');
                 return response()->json([
                     'success' => false,
                     'message' => 'Waiter profile not linked to this account',
@@ -382,7 +382,7 @@ class WaiterAssignmentController extends Controller
             
             $assignment = $this->assignmentService->startDelivery($id, $waiterId);
 
-            \Log::info('✅ [ENDPOINT] startDelivery succeeded', [
+            \Log::info(' [ENDPOINT] startDelivery succeeded', [
                 'task_id' => $assignment->id,
                 'status' => $assignment->status,
             ]);
@@ -393,13 +393,13 @@ class WaiterAssignmentController extends Controller
                 'data' => $assignment,
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            \Log::warning('⚠️ [ENDPOINT] Assignment not found', ['task_id' => $id]);
+            \Log::warning(' [ENDPOINT] Assignment not found', ['task_id' => $id]);
             return response()->json([
                 'success' => false,
                 'message' => 'Assignment not found',
             ], 404);
         } catch (\Exception $e) {
-            \Log::error('❌ [ENDPOINT] Failed to start delivery', [
+            \Log::error(' [ENDPOINT] Failed to start delivery', [
                 'task_id' => $id,
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),

@@ -51,7 +51,7 @@ class DeliveryWorkloadService
             $waiter->incrementOrders();
             $waiter->update(['last_assigned_at' => now()]);
 
-            Log::info('✅ Delivery Task Assigned with tie-breaker update', [
+            Log::info(' Delivery Task Assigned with tie-breaker update', [
                 'delivery_id' => $delivery->id,
                 'order_id' => $order->id,
                 'waiter_id' => $waiter->id,
@@ -94,7 +94,7 @@ class DeliveryWorkloadService
             $waiter->incrementOrders();
             $waiter->update(['last_assigned_at' => now()]);
 
-            Log::info('✅ Table Delivery Task Assigned', [
+            Log::info(' Table Delivery Task Assigned', [
                 'delivery_id' => $delivery->id,
                 'order_id' => $order->id,
                 'order_type' => 'walk_in',

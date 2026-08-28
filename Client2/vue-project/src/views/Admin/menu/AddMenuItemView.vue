@@ -607,7 +607,7 @@ const submitForm = async () => {
     } else {
       // No image provided - use placeholder image
       console.error(
-        '❌ Validation Error: No image provided. Please upload an image file or provide an image URL.',
+        ' Validation Error: No image provided. Please upload an image file or provide an image URL.',
       )
       errors.value.image = 'Please upload an image file or provide an image URL'
       submitting.value = false
@@ -628,7 +628,7 @@ const submitForm = async () => {
     // Redirect to menu view
     router.push({ name: 'admin-menu' })
   } catch (error: any) {
-    console.error('❌ Error submitting form:', error)
+    console.error(' Error submitting form:', error)
 
     // Log ALL error response data
     console.error(' Full error response:', error.response?.data)

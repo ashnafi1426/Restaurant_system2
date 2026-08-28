@@ -21,14 +21,14 @@ class DiagnoseDeliveryIssues extends Command
 
         // 1. Check if there are any waiters
         $this->line('');
-        $this->line('📊 WAITER PROFILES:');
+        $this->line(' WAITER PROFILES:');
         $this->line('═══════════════════════════════════════');
         
         $waiters = Waiter::with('user')->get();
         $this->line("Total waiters: " . $waiters->count());
         
         if ($waiters->count() === 0) {
-            $this->error('❌ NO WAITERS FOUND IN SYSTEM!');
+            $this->error(' NO WAITERS FOUND IN SYSTEM!');
         } else {
             foreach ($waiters as $waiter) {
                 $userInfo = $waiter->user ? "User #{$waiter->user->id} ({$waiter->user->email})" : 'NO USER';
@@ -74,7 +74,7 @@ class DiagnoseDeliveryIssues extends Command
                 if ($waiter) {
                     $this->line("      - Waiter exists: YES (#{$waiter->id}, Section: {$waiter->section})");
                 } else {
-                    $this->error("      - Waiter exists: NO ❌");
+                    $this->error("      - Waiter exists: NO ");
                 }
             }
         } else {
@@ -100,7 +100,7 @@ class DiagnoseDeliveryIssues extends Command
 
         // 5. Check if there are any orphaned tasks
         $this->line('');
-        $this->line('⚠️  ORPHANED TASKS (waiter_id not in waiters table):');
+        $this->line('  ORPHANED TASKS (waiter_id not in waiters table):');
         $this->line('═══════════════════════════════════════');
         
         $orphanedTasks = DeliveryTask::whereNotIn('waiter_id', Waiter::pluck('id'))->get();
@@ -132,7 +132,7 @@ class DiagnoseDeliveryIssues extends Command
 
         $this->line('');
         $this->line('═══════════════════════════════════════');
-        $this->info('✅ Diagnosis complete. Check logs for detailed information.');
+        $this->info(' Diagnosis complete. Check logs for detailed information.');
         $this->line('');
     }
 }

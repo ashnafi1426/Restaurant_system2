@@ -96,7 +96,7 @@ class AutomaticWaiterAssignmentService
         // STEP 15-16: Notify waiter
         $this->notificationService->notifyAssignment($task, $waiter);
 
-        Log::info('✅ [ASSIGNMENT SERVICE] Room service order assigned successfully', [
+        Log::info(' [ASSIGNMENT SERVICE] Room service order assigned successfully', [
             'order_id' => $order->id,
             'order_number' => $order->order_number,
             'order_type' => 'room_service',
@@ -146,7 +146,7 @@ class AutomaticWaiterAssignmentService
         // Notify waiter
         $this->notificationService->notifyAssignment($task, $waiter);
 
-        Log::info('✅ [ASSIGNMENT SERVICE] Walk-in order assigned successfully', [
+        Log::info(' [ASSIGNMENT SERVICE] Walk-in order assigned successfully', [
             'order_id' => $order->id,
             'order_number' => $order->order_number,
             'order_type' => 'walk_in',

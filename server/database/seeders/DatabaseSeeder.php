@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             // // WaiterSeeder::class,                 // ← Create additional waiter test data (commented - using WaiterManagementSeeder)
             DeliveryTaskSeeder::class,           // ← Create delivery tasks for testing
             RestaurantTableSeeder::class,        // ← Create restaurant tables for walk-in customers
+            ReviewPermissionsSeeder::class,      // ← Create review system permissions and assign to roles
         ]);
     }
 }

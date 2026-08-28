@@ -5,6 +5,7 @@ import { useAuthStore } from '../../stores/auth'
 import { useThemeStore } from '../../stores/theme'
 import { useSidebarStore } from '../../stores/sidebarStore'
 import NotificationCenter from '@/components/reception/NotificationCenter.vue'
+import ReviewNotificationBell from '@/components/dashboard/ReviewNotificationBell.vue'
 import { Sun, Moon, PanelLeft, Maximize, Minimize } from 'lucide-vue-next'
 
 const auth = useAuthStore()
@@ -41,7 +42,7 @@ const toggleFullscreen = async () => {
       }
     }
   } catch (error) {
-    console.error('❌ Fullscreen toggle error:', error)
+    console.error(' Fullscreen toggle error:', error)
   }
 }
 
@@ -75,12 +76,12 @@ const handleHamburgerClick = () => {
     // Desktop: toggle collapse
     console.log('💻 Desktop mode - toggling collapse')
     sidebarStore.toggleCollapse()
-    console.log('📊 New collapsed state:', sidebarStore.isCollapsed)
+    console.log(' New collapsed state:', sidebarStore.isCollapsed)
   } else {
     // Mobile: toggle overlay
     console.log('📱 Mobile mode - toggling overlay')
     sidebarStore.toggleMobile()
-    console.log('📊 Mobile open state:', sidebarStore.isMobileOpen)
+    console.log(' Mobile open state:', sidebarStore.isMobileOpen)
   }
 }
 </script>
@@ -126,6 +127,9 @@ const handleHamburgerClick = () => {
 
       <!-- Notifications -->
       <NotificationCenter />
+
+      <!-- Review Notifications -->
+      <ReviewNotificationBell />
 
       <!-- Fullscreen Toggle Button -->
       <button

@@ -186,8 +186,12 @@
             :view-mode="viewMode"
             :is-loading="isLoadingMenu"
             :items-per-page="itemsPerPage"
+            :guest-name="guestName"
+            :guest-email="guestEmail"
+            :order-id="qrToken"
             @add-to-cart="handleAddToCart"
             @toggle-favorite="handleToggleFavorite"
+            @write-review="handleWriteReview"
           />
         </div>
 
@@ -257,10 +261,8 @@
           <div
             class="flex items-center gap-3 sm:gap-4 md:gap-5 text-white w-full sm:w-auto justify-between sm:justify-start"
           >
-            <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="white" viewBox="0 0 24 24">
-              <path
-                d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-. 9-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zM7.17 14.75l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.86-7.01H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25z"
-              />
+            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             <div>
               <p class="text-white/70 text-xs sm:text-sm">{{ cartItems.length }} Items in Cart</p>
@@ -297,6 +299,18 @@
         <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">Loading menu...</p>
       </div>
     </div>
+
+    <!-- Review Modal -->
+    <GuestReviewModal
+      :is-open="showReviewModal"
+      :menu-item="selectedMenuItemForReview"
+      :guest-name="guestName"
+      :guest-email="guestEmail"
+      :order-id="qrToken"
+      @close="showReviewModal = false"
+      @success="handleReviewSuccess"
+      @error="handleReviewError"
+    />
   </div>
 </template>
 
@@ -306,6 +320,7 @@ import { Utensils, Truck, ShieldCheck, Clock, ChevronRight } from 'lucide-vue-ne
 import GuestNavbar from './GuestNavbar.vue'
 import CategorySidebar from './CategorySidebar.vue'
 import MenuSearch from './MenuSearch.vue'
+import GuestReviewModal from '../GuestReviewModal.vue'
 // import MenuFilter from './MenuFilter.vue'
 import MenuGrid from './MenuGrid.vue'
 import api from '@/api/auth'
@@ -377,6 +392,10 @@ const favorites = ref<Set<string>>(new Set())
 const allMenuItems = ref<MenuItem[]>([])
 const errorMessage = ref('')
 const sidebarOpen = ref(false)
+
+// Review modal state
+const showReviewModal = ref(false)
+const selectedMenuItemForReview = ref<MenuItem | null>(null)
 
 // Categories - Fetch from backend
 const categories = ref<Category[]>([])
@@ -714,6 +733,23 @@ const handleToggleFavorite = (itemId: string | number, isFavorite: boolean) => {
 
 const handleViewCart = () => {
   emit('view-cart', cartItems.value)
+}
+
+const handleWriteReview = (item: MenuItem) => {
+  selectedMenuItemForReview.value = item
+  showReviewModal.value = true
+}
+
+const handleReviewSuccess = (message: string) => {
+  console.log(' Review submitted:', message)
+  showReviewModal.value = false
+  // Trigger event to reload all review stats
+  window.dispatchEvent(new Event('review-stats-updated'))
+}
+
+const handleReviewError = (message: string) => {
+  console.error(' Review error:', message)
+  // Optional: show error toast
 }
 
 const handleExplore = () => {

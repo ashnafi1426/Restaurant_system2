@@ -35,11 +35,11 @@ foreach ($waiters as $waiter) {
     echo "  - Actual Active Deliveries: {$activeCount}\n";
     
     if ($waiter->current_orders !== $activeCount) {
-        echo "  - ⚠️ Mismatch detected! Correcting...\n";
+        echo "  -  Mismatch detected! Correcting...\n";
         $waiter->update(['current_orders' => $activeCount]);
-        echo "  - ✅ Current Orders updated to: {$activeCount}\n";
+        echo "  -  Current Orders updated to: {$activeCount}\n";
     } else {
-        echo "  - ✅ Already correct\n";
+        echo "  -  Already correct\n";
     }
     
     // Also ensure they have capacity
@@ -52,5 +52,5 @@ foreach ($waiters as $waiter) {
 }
 
 echo str_repeat("=", 100) . "\n";
-echo "✅ Waiter workload counters have been reset\n";
+echo " Waiter workload counters have been reset\n";
 echo str_repeat("=", 100) . "\n\n";

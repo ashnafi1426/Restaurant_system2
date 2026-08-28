@@ -60,7 +60,7 @@ class WaiterManagementSeeder extends Seeder
 
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->command->error('❌ Seeding failed: ' . $e->getMessage());
+            $this->command->error(' Seeding failed: ' . $e->getMessage());
             $this->command->line('Stack trace: ' . $e->getTraceAsString());
             throw $e;
         }

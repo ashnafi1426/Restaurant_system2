@@ -50,7 +50,7 @@
     </div>
     <!-- Error State -->
     <div v-else-if="error" class="error">
-      <p>❌ {{ error }}</p>
+      <p> {{ error }}</p>
       <button @click="loadQRCode" class="btn btn-small">Retry</button>
     </div>
 
@@ -65,7 +65,7 @@
 
     <!-- Success/Error Messages -->
     <div v-if="successMessage" class="message success"> {{ successMessage }}</div>
-    <div v-if="errorMessage" class="message error">❌ {{ errorMessage }}</div>
+    <div v-if="errorMessage" class="message error"> {{ errorMessage }}</div>
   </div>
 </template>
 
@@ -101,7 +101,7 @@ const printCopies = ref(1)
 const handleImageLoad = () => {
   imageLoading.value = false
   imageError.value = false
-  console.log('✅ QR code image loaded successfully')
+  console.log(' QR code image loaded successfully')
 }
 
 /**
@@ -110,7 +110,7 @@ const handleImageLoad = () => {
 const handleImageError = (event: Event) => {
   imageLoading.value = false
   imageError.value = true
-  console.error('❌ QR code image failed to load:', {
+  console.error(' QR code image failed to load:', {
     src: (event.target as HTMLImageElement)?.src,
     room_id: props.room.id,
     qr_url: props.room.qr_code_url,
@@ -147,7 +147,7 @@ const loadQRCode = async () => {
     }
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Failed to load QR code'
-    console.error('❌ Load QR Code Error:', err)
+    console.error(' Load QR Code Error:', err)
   } finally {
     loading.value = false
   }
@@ -204,7 +204,7 @@ const downloadQRCode = async () => {
   } catch (err: any) {
     const message = err.message || 'Failed to download QR code'
     errorMessage.value = message
-    console.error('❌ Download Error:', err)
+    console.error(' Download Error:', err)
 
     // Fallback: Try direct URL access via storage symlink
     console.log('Fallback: Trying direct storage URL access...')
@@ -235,7 +235,7 @@ const downloadQRCode = async () => {
       successMessage.value = ` QR code downloaded: Room_${props.room.room_number}_QR.png (direct)`
       console.log(' Fallback download successful')
     } catch (fallbackErr: any) {
-      console.error('❌ Both methods failed:', fallbackErr)
+      console.error(' Both methods failed:', fallbackErr)
       errorMessage.value = `Download failed: ${fallbackErr.message}`
     }
   }

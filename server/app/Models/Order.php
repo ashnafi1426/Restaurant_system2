@@ -97,6 +97,14 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    /**
+     * Order has many reviews
+     */
+    public function reviews()
+    {
+        return $this->hasMany(MenuItemReview::class, 'order_id');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Status Helper Methods
@@ -126,6 +134,14 @@ class Order extends Model
     public function isCancelled(): bool
     {
         return $this->status === self::STATUS_CANCELLED;
+    }
+
+    /**
+     * Check if order is completed
+     */
+    public function isCompleted(): bool
+    {
+        return in_array($this->status, [self::STATUS_SERVED, 'completed']);
     }
 
     /*
@@ -158,5 +174,24 @@ class Order extends Model
     public function getTotalItemsAttribute()
     {
         return $this->orderItems->sum('quantity');
+    }
+
+    /**
+     * Get reviewable items from this order
+     */
+    public function getReviewableItemsAttribute()
+    {
+        if (!$this->isCompleted()) {
+            return collect([]);
+        }
+        
+        return $this->orderItems()
+            ->with('menuItem')
+            ->whereDoesntHave('menuItem.reviews', function ($query) {
+                $query->where('guest_id', $this->guest_id)
+                      ->where('order_id', $this->id);
+            })
+            ->get()
+            ->pluck('menuItem');
     }
 }

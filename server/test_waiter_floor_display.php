@@ -51,7 +51,7 @@ foreach ($waiters as $waiter) {
             echo "  └─ Status: {$assignment->status}\n\n";
         }
     } else {
-        echo "  ⚠️  NO FLOOR ASSIGNMENTS\n\n";
+        echo "    NO FLOOR ASSIGNMENTS\n\n";
     }
 }
 
@@ -97,4 +97,4 @@ foreach ($waiters as $waiter) {
     }
 }
 
-echo "\n✅ Test Complete\n";
+echo "\n Test Complete\n";

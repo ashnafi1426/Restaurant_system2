@@ -53,11 +53,11 @@ const loadWaiters = async () => {
       console.log('[Modal] PART 1: Sample waiter:', data[0])
     } else {
       waiters.value = []
-      console.warn('[Modal] PART 1: ❌ Data not array:', data)
+      console.warn('[Modal] PART 1:  Data not array:', data)
     }
   } catch (err: any) {
     error.value = 'Failed to load waiters: ' + err.message
-    console.error('[Modal] PART 1: ❌ Error:', err)
+    console.error('[Modal] PART 1:  Error:', err)
     waiters.value = []
   }
 }
@@ -79,7 +79,7 @@ const loadShifts = async () => {
       console.log('[Modal] PART 2: Sample shift:', data[0])
     } else {
       shifts.value = []
-      console.warn('[Modal] PART 2: ❌ Data not array:', data)
+      console.warn('[Modal] PART 2:  Data not array:', data)
     }
   } catch (err: any) {
     console.warn('[Modal] PART 2: Warning:', err.message)
@@ -103,7 +103,7 @@ const handleAssign = async () => {
     
     if (!waiterObj) {
       error.value = `Waiter not found (looking for ID: ${selectedWaiter.value})`
-      console.error('[Modal] PART 3: ❌ Waiter lookup failed', {
+      console.error('[Modal] PART 3:  Waiter lookup failed', {
         selectedId: selectedWaiter.value,
         availableWaiters: waiters.value.map(w => ({ id: w.id, idType: typeof w.id, name: w.user?.name }))
       })
@@ -112,7 +112,7 @@ const handleAssign = async () => {
     }
     if (!shiftObj) {
       error.value = 'Shift not found'
-      console.error('[Modal] PART 3: ❌ Shift lookup failed', {
+      console.error('[Modal] PART 3:  Shift lookup failed', {
         selectedId: selectedShift.value,
         availableShifts: shifts.value.map(s => ({ id: s.id, idType: typeof s.id, name: s.name }))
       })
@@ -131,7 +131,7 @@ const handleAssign = async () => {
     
     if (!Number.isInteger(waiter_id) || waiter_id <= 0) {
       error.value = `Invalid waiter ID format: ${waiter_id} (must be positive integer)`
-      console.error('[Modal] PART 3: ❌ Invalid waiter_id type', { waiter_id, type: typeof waiter_id, isInteger: Number.isInteger(waiter_id) })
+      console.error('[Modal] PART 3:  Invalid waiter_id type', { waiter_id, type: typeof waiter_id, isInteger: Number.isInteger(waiter_id) })
       isSubmitting.value = false
       return
     }
@@ -142,7 +142,7 @@ const handleAssign = async () => {
     
     if (!floorId || !shiftId) {
       error.value = 'Floor or shift selection is missing'
-      console.error('[Modal] PART 3: ❌ Missing assignment targets', {
+      console.error('[Modal] PART 3:  Missing assignment targets', {
         floorName: props.floorName,
         floorId,
         shiftId,
@@ -203,7 +203,7 @@ const handleAssign = async () => {
       }, 3000)
     }
   } catch (err: any) {
-    console.error('[Modal] PART 3: ❌ API Error:', err)
+    console.error('[Modal] PART 3:  API Error:', err)
     
     // Check for errors in response
     const errorData = err.response?.data
@@ -297,7 +297,7 @@ onMounted(() => {
       isLoading.value = false
       console.log('[Modal] PART 0:  All data loaded')
     }).catch(err => {
-      console.error('[Modal] PART 0: ❌ Error:', err)
+      console.error('[Modal] PART 0:  Error:', err)
       isLoading.value = false
     })
   }
@@ -348,7 +348,7 @@ watch(() => props.isOpen, (newVal) => {
 
         <!-- Error Alert -->
         <div v-if="error" class="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-          <span class="text-lg">⚠️</span>
+          <span class="text-lg"></span>
           <p class="text-sm text-red-700">{{ error }}</p>
         </div>
 

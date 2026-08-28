@@ -167,7 +167,7 @@ class ManagerDeliveryManagementController extends Controller
 
             DB::beginTransaction();
 
-            // ✅ STRICT VALIDATION: Re-validate waiter eligibility before manual assignment
+            //  STRICT VALIDATION: Re-validate waiter eligibility before manual assignment
             if ($newWaiter->status !== 'active') {
                 DB::rollBack();
                 return response()->json([
@@ -186,7 +186,7 @@ class ManagerDeliveryManagementController extends Controller
                 ], 422);
             }
 
-            // ✅ STRICT CAPACITY CHECK: current_orders < maximum_orders (NOT <=)
+            //  STRICT CAPACITY CHECK: current_orders < maximum_orders (NOT <=)
             if ($newWaiter->current_orders >= $newWaiter->maximum_orders) {
                 DB::rollBack();
                 return response()->json([
@@ -208,7 +208,7 @@ class ManagerDeliveryManagementController extends Controller
                 'remarks' => $reason,
             ]);
 
-            // ✅ UPDATE WORKLOAD: Decrement old waiter, increment new waiter
+            //  UPDATE WORKLOAD: Decrement old waiter, increment new waiter
             if ($oldWaiter) {
                 $oldWaiter->decrementOrders();
                 Log::info('📉 Old waiter workload decremented', [
@@ -219,7 +219,7 @@ class ManagerDeliveryManagementController extends Controller
             }
             
             $newWaiter->incrementOrders();
-            // ✅ UPDATE last_assigned_at for new waiter
+            //  UPDATE last_assigned_at for new waiter
             $newWaiter->update(['last_assigned_at' => now()]);
 
             Log::info('📈 New waiter workload incremented', [
@@ -233,7 +233,7 @@ class ManagerDeliveryManagementController extends Controller
 
             DeliveryReassignedEvent::dispatch($delivery, $oldWaiter, $newWaiter, $reason);
 
-            Log::info('✅ Delivery reassignment completed', [
+            Log::info(' Delivery reassignment completed', [
                 'delivery_id' => $deliveryId,
                 'old_waiter' => $oldWaiter ? $oldWaiter->user->name : 'none',
                 'new_waiter' => $newWaiter->user->name,
@@ -346,7 +346,7 @@ class ManagerDeliveryManagementController extends Controller
 
             DB::beginTransaction();
 
-            // ✅ STRICT VALIDATION: Re-validate waiter eligibility before manual assignment
+            //  STRICT VALIDATION: Re-validate waiter eligibility before manual assignment
             if ($waiter->status !== 'active') {
                 DB::rollBack();
                 return response()->json([
@@ -365,7 +365,7 @@ class ManagerDeliveryManagementController extends Controller
                 ], 422);
             }
 
-            // ✅ STRICT CAPACITY CHECK: current_orders < maximum_orders (NOT <=)
+            //  STRICT CAPACITY CHECK: current_orders < maximum_orders (NOT <=)
             if ($waiter->current_orders >= $waiter->maximum_orders) {
                 DB::rollBack();
                 return response()->json([
@@ -385,11 +385,11 @@ class ManagerDeliveryManagementController extends Controller
                 'assigned_at' => now(),
             ]);
 
-            // ✅ UPDATE WORKLOAD AND last_assigned_at
+            //  UPDATE WORKLOAD AND last_assigned_at
             $waiter->incrementOrders();
             $waiter->update(['last_assigned_at' => now()]);
 
-            Log::info('✅ Manual assignment completed', [
+            Log::info(' Manual assignment completed', [
                 'delivery_id' => $deliveryId,
                 'waiter_id' => $waiter->id,
                 'waiter_name' => $waiter->user->name,

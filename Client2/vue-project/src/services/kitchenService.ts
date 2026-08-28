@@ -56,7 +56,7 @@ class KitchenService {
       console.log(` [SERVICE] Order data extracted, status: ${response.data.data.status}`)
       return response.data.data
     } catch (err: any) {
-      console.error(`❌ [SERVICE] API Error:`, {
+      console.error(` [SERVICE] API Error:`, {
         endpoint,
         orderId,
         status: err?.response?.status,
@@ -88,7 +88,7 @@ class KitchenService {
       console.log(` [SERVICE] Order data extracted, status: ${response.data.data.status}`)
       return response.data.data
     } catch (err: any) {
-      console.error(`❌ [SERVICE] API Error:`, {
+      console.error(` [SERVICE] API Error:`, {
         endpoint,
         orderId,
         status: err?.response?.status,
@@ -118,7 +118,7 @@ class KitchenService {
       console.log(` [SERVICE] Order data extracted, status: ${response.data.data.status}`)
       return response.data.data
     } catch (err: any) {
-      console.error(`❌ [SERVICE] API Error:`, {
+      console.error(` [SERVICE] API Error:`, {
         endpoint,
         orderId,
         status: err?.response?.status,

@@ -1,152 +1,491 @@
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import waiterService from '@/services/waiterService'
+import {
+  Search,
+  Filter,
+  X,
+  RefreshCw,
+  Maximize2,
+  Minimize2,
+  RotateCcw,
+  Truck,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  BedDouble,
+  ShoppingBag,
+} from 'lucide-vue-next'
+
+const loading = ref(true)
+const deliveries = ref<any[]>([])
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const completingId = ref<string | null>(null)
+
+const isFilterOpen = ref(false)
+const isFullscreen = ref(false)
+const searchQuery = ref('')
+const selectedPriority = ref('all')
+const selectedType = ref('all')
+
+const filteredDeliveries = computed(() => {
+  let list = deliveries.value || []
+
+  if (selectedPriority.value !== 'all') {
+    list = list.filter((d) => (d.priority || 'normal').toLowerCase() === selectedPriority.value.toLowerCase())
+  }
+
+  if (selectedType.value !== 'all') {
+    if (selectedType.value === 'room') {
+      list = list.filter((d) => Boolean(d.room_number || d.room?.room_number))
+    } else if (selectedType.value === 'walk_in') {
+      list = list.filter((d) => !d.room_number && !d.room?.room_number)
+    }
+  }
+
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase().trim()
+    list = list.filter((d) => {
+      const ordNum = String(d.order_number || d.order_id || d.id || '').toLowerCase()
+      const roomNum = String(d.room_number || d.room?.room_number || '').toLowerCase()
+      const guest = String(d.guest_name || d.guest?.full_name || '').toLowerCase()
+      return ordNum.includes(q) || roomNum.includes(q) || guest.includes(q)
+    })
+  }
+
+  return list
+})
+
+const total = computed(() => filteredDeliveries.value.length)
+const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value) || 1)
+
+const paginatedDeliveries = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredDeliveries.value.slice(start, end)
+})
+
+const showingFrom = computed(() => {
+  if (total.value === 0) return 0
+  return (currentPage.value - 1) * itemsPerPage.value + 1
+})
+
+const showingTo = computed(() => {
+  return Math.min(currentPage.value * itemsPerPage.value, total.value)
+})
+
+const paginationPages = computed(() => {
+  const pages: number[] = []
+  const max = totalPages.value
+  const cur = currentPage.value
+
+  for (let i = Math.max(1, cur - 2); i <= Math.min(max, cur + 2); i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+const changeItemsPerPage = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  itemsPerPage.value = Number(target.value)
+  currentPage.value = 1
+}
+
+const goToPage = (p: number) => {
+  if (p >= 1 && p <= totalPages.value) {
+    currentPage.value = p
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  selectedPriority.value = 'all'
+  selectedType.value = 'all'
+  currentPage.value = 1
+}
+
+const toggleFilter = () => {
+  isFilterOpen.value = !isFilterOpen.value
+}
+
+const toggleFullscreen = () => {
+  isFullscreen.value = !isFullscreen.value
+}
+
+const loadDeliveries = async () => {
+  try {
+    loading.value = true
+    const data = await waiterService.getActiveDeliveries()
+    if (Array.isArray(data)) {
+      deliveries.value = data
+    } else if (data && Array.isArray((data as any).data)) {
+      deliveries.value = (data as any).data
+    } else {
+      deliveries.value = []
+    }
+    currentPage.value = 1
+  } catch (err: any) {
+    console.error('[OnDelivery] Error loading deliveries:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const completeDelivery = async (deliveryId: string) => {
+  try {
+    completingId.value = deliveryId
+    await waiterService.completeDelivery(deliveryId)
+    await loadDeliveries()
+  } catch (err: any) {
+    console.error('[OnDelivery] Error completing delivery:', err)
+    alert(err.message || 'Failed to complete delivery')
+  } finally {
+    completingId.value = null
+  }
+}
+
+const formatDateTime = (dateStr: string) => {
+  if (!dateStr) return '-'
+  try {
+    const d = new Date(dateStr)
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return dateStr
+  }
+}
+
+onMounted(() => {
+  loadDeliveries()
+})
+</script>
+
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-3 sm:p-6 lg:p-8 transition-colors duration-200">
-      <div class="max-w-7xl mx-auto space-y-6">
-        <!-- Header -->
-        <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-sm dark:shadow-2xl">
-          <div class="flex items-center gap-3">
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
+      :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
+    >
+      <!-- Header -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+            <Truck class="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">On Delivery</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Track your active room deliveries and mark completed once delivered.</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <div class="px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 font-extrabold text-xs sm:text-sm">
+            In Transit: {{ deliveries.length }} Deliveries
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Bar Toolbar -->
+      <div
+        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+      >
+        <!-- Left: Search & Filter Toggle -->
+        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
+          <!-- Search Input -->
+          <div class="relative flex-1">
+            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search active deliveries by #, room, or guest..."
+              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 dark:focus:border-purple-400 transition outline-none"
+            />
+          </div>
+
+          <!-- Filter Toggle Button -->
+          <button
+            type="button"
+            @click="toggleFilter"
+            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            :class="[
+              isFilterOpen
+                ? 'bg-purple-600/10 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border border-purple-500/40'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+            ]"
+          >
+            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
+            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+          </button>
+        </div>
+
+        <!-- Right: Action Buttons -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <!-- Refresh Button -->
+          <button
+            type="button"
+            @click="loadDeliveries"
+            :disabled="loading"
+            title="Refresh"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+          >
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+          </button>
+
+          <!-- Fullscreen Toggle -->
+          <button
+            type="button"
+            @click="toggleFullscreen"
+            title="Toggle Fullscreen"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+          >
+            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Expandable Filter Panel -->
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="transform -translate-y-2 opacity-0 scale-98"
+        enter-to-class="transform translate-y-0 opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="transform translate-y-0 opacity-100 scale-100"
+        leave-to-class="transform -translate-y-2 opacity-0 scale-98"
+      >
+        <div
+          v-if="isFilterOpen"
+          class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
+        >
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+            <!-- Priority Filter -->
             <div>
-              <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">On Delivery</h1>
-              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Track your active room deliveries and mark completed</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Loading State -->
-        <div v-if="loading" class="flex items-center justify-center py-20 bg-white dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-800">
-          <div class="text-center">
-            <div class="inline-block relative w-12 h-12 mb-3">
-              <div class="absolute inset-0 rounded-full border-4 border-emerald-500/20 border-t-emerald-600 dark:border-t-emerald-400 animate-spin"></div>
-            </div>
-            <p class="text-slate-600 dark:text-slate-400 text-sm font-medium">Loading active deliveries...</p>
-          </div>
-        </div>
-
-        <!-- Empty State -->
-        <div v-else-if="paginatedDeliveries.length === 0" class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center">
-          <span class="material-symbols-rounded text-5xl block mb-2 text-slate-400 dark:text-slate-600">done_all</span>
-          <p class="text-slate-700 dark:text-slate-300 text-lg font-bold">No active deliveries right now</p>
-          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">You're all caught up!</p>
-        </div>
-
-        <!-- Deliveries Table -->
-        <div v-else class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
-          <div class="w-full overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-              <thead class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] sm:text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                <tr>
-                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Order ID</th>
-                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Room</th>
-                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Guest Name</th>
-                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Started At</th>
-                  <th class="px-3 sm:px-4 py-3.5 whitespace-nowrap">Priority</th>
-                  <th class="px-3 sm:px-4 py-3.5 text-right whitespace-nowrap">Action</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-xs sm:text-sm">
-                <tr v-for="delivery in paginatedDeliveries" :key="delivery.id" class="hover:bg-slate-50/80 dark:hover:bg-slate-950/50 transition">
-                  <td class="px-3 sm:px-4 py-3 font-bold text-slate-900 dark:text-white max-w-[130px] sm:max-w-[160px]">
-                    <div class="truncate" :title="delivery.order_number || delivery.order_id">
-                      #{{ delivery.order_number || delivery.order_id || delivery.id.substring(0,8) }}
-                    </div>
-                  </td>
-                  <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
-                    <span class="px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded text-xs font-bold">
-                      {{ delivery.room_number || 'N/A' }}
-                    </span>
-                  </td>
-                  <td class="px-3 sm:px-4 py-3 font-medium text-slate-700 dark:text-slate-300 max-w-[120px] sm:max-w-[150px] truncate" :title="delivery.guest_name">
-                    {{ delivery.guest_name || 'Guest' }}
-                  </td>
-                  <td class="px-3 sm:px-4 py-3 text-slate-600 dark:text-slate-400 whitespace-nowrap text-xs">
-                    {{ formatDateTime(delivery.on_delivery_at || delivery.picked_up_at || delivery.created_at) }}
-                  </td>
-                  <td class="px-3 sm:px-4 py-3 whitespace-nowrap">
-                    <span :class="[
-                      'px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider border',
-                      delivery.priority?.toLowerCase() === 'high' ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20' : 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20'
-                    ]">
-                      {{ delivery.priority?.toUpperCase() || 'NORMAL' }}
-                    </span>
-                  </td>
-                  <td class="px-3 sm:px-4 py-3 text-right whitespace-nowrap">
-                    <div class="relative inline-block text-left">
-                      <button
-                        @click.stop="toggleMenu(delivery.id)"
-                        class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center justify-center transition shadow-xs border border-slate-200 dark:border-slate-700"
-                        title="Actions"
-                      >
-                        <span class="material-symbols-rounded text-lg">more_vert</span>
-                      </button>
-
-                      <div
-                        v-if="activeMenuId === delivery.id"
-                        @click.stop
-                        class="absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1 text-left overflow-hidden transition-all duration-150"
-                      >
-                        <button
-                          @click="completeDelivery(delivery.id); activeMenuId = null"
-                          :disabled="completingId === delivery.id"
-                          class="w-full px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-2 transition"
-                        >
-                          <span class="material-symbols-rounded text-sm">check_circle</span>
-                          {{ completingId === delivery.id ? 'Completing...' : 'Complete Delivery' }}
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Pagination Bar with Per-Page Dropdown Selector -->
-          <div class="bg-slate-50 dark:bg-slate-950/60 px-4 py-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-              <div class="flex items-center gap-1.5">
-                <label class="font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">Per page:</label>
-                <select
-                  v-model="itemsPerPage"
-                  @change="currentPage = 1"
-                  class="px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs"
-                >
-                  <option :value="5">5</option>
-                  <option :value="10">10</option>
-                  <option :value="20">20</option>
-                  <option :value="50">50</option>
-                  <option :value="100">100</option>
-                </select>
-              </div>
-              <span>
-                Showing {{ startIndex + 1 }} to {{ Math.min(endIndex, deliveries.length) }} of {{ deliveries.length }} entries
-              </span>
-            </div>
-
-            <div class="flex gap-1.5">
-              <button
-                @click="previousPage"
-                :disabled="currentPage === 1"
-                class="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Priority
+              </label>
+              <select
+                v-model="selectedPriority"
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 dark:focus:border-purple-400 transition cursor-pointer font-medium outline-none"
               >
-                ← Prev
+                <option value="all">All Priorities</option>
+                <option value="normal">Normal Priority</option>
+                <option value="high">High Priority</option>
+              </select>
+            </div>
+
+            <!-- Service Type Filter -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Destination
+              </label>
+              <select
+                v-model="selectedType"
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 dark:focus:border-purple-400 transition cursor-pointer font-medium outline-none"
+              >
+                <option value="all">All Deliveries</option>
+                <option value="room">Room Service</option>
+                <option value="walk_in">Takeout / Table</option>
+              </select>
+            </div>
+
+            <!-- Reset Filters -->
+            <div class="flex items-end">
+              <button
+                type="button"
+                @click="resetFilters"
+                class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
+              >
+                <RotateCcw class="w-3.5 h-3.5" />
+                <span>Reset Filters</span>
               </button>
-              <div class="flex items-center gap-1">
-                <button
-                  v-for="page in totalPages"
-                  :key="page"
-                  @click="goToPage(page)"
-                  :class="page === currentPage ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
-                  class="px-2.5 py-1 rounded-lg text-xs font-semibold transition"
-                >
-                  {{ page }}
-                </button>
-              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Deliveries Table -->
+      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+        <!-- Desktop Table View -->
+        <div class="hidden md:block overflow-x-auto w-full">
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+              <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">Order Ref</th>
+                <th class="py-3 px-4 whitespace-nowrap">Room / Destination</th>
+                <th class="py-3 px-4 whitespace-nowrap">Guest Name</th>
+                <th class="py-3 px-4 whitespace-nowrap">Started At</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">Priority</th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
+              <tr
+                v-for="delivery in paginatedDeliveries"
+                :key="delivery.id"
+                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+              >
+                <!-- Order Ref -->
+                <td class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
+                  #{{ delivery.order_number || delivery.order_id || String(delivery.id).substring(0, 8) }}
+                </td>
+
+                <!-- Room / Destination -->
+                <td class="py-3 px-4 whitespace-nowrap">
+                  <span
+                    v-if="delivery.room_number || delivery.room?.room_number"
+                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
+                  >
+                    <BedDouble class="w-3 h-3 text-slate-400" />
+                    Room {{ delivery.room_number || delivery.room?.room_number }}
+                  </span>
+                  <span
+                    v-else
+                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
+                  >
+                    <ShoppingBag class="w-3 h-3" />
+                    Takeout
+                  </span>
+                </td>
+
+                <!-- Guest -->
+                <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white">
+                  {{ delivery.guest_name || delivery.guest?.full_name || 'Guest' }}
+                </td>
+
+                <!-- Started At -->
+                <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400">
+                  {{ formatDateTime(delivery.on_delivery_at || delivery.picked_up_at || delivery.created_at) }}
+                </td>
+
+                <!-- Priority -->
+                <td class="py-3 px-4 text-center whitespace-nowrap">
+                  <span
+                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
+                    :class="[
+                      (delivery.priority || '').toLowerCase() === 'high'
+                        ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+                        : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
+                    ]"
+                  >
+                    {{ delivery.priority || 'Normal' }}
+                  </span>
+                </td>
+
+                <!-- Action -->
+                <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
+                  <button
+                    @click="completeDelivery(delivery.id)"
+                    :disabled="completingId === delivery.id"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50"
+                  >
+                    <CheckCircle2 class="w-3.5 h-3.5" />
+                    <span>{{ completingId === delivery.id ? 'Completing...' : 'Delivered' }}</span>
+                  </button>
+                </td>
+              </tr>
+
+              <!-- Empty State -->
+              <tr v-if="paginatedDeliveries.length === 0">
+                <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                  No active deliveries in transit right now.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+          <div
+            v-for="delivery in paginatedDeliveries"
+            :key="delivery.id"
+            class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+          >
+            <div class="flex items-center justify-between">
+              <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">
+                #{{ delivery.order_number || delivery.order_id }}
+              </span>
+              <button
+                @click="completeDelivery(delivery.id)"
+                class="px-3 py-1 bg-emerald-600 text-white font-bold text-xs rounded-lg"
+              >
+                Delivered
+              </button>
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+              <span>{{ delivery.guest_name || 'Guest' }}</span>
+              <span>Room {{ delivery.room_number || 'N/A' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Footer -->
+        <div
+          v-if="total > 0"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+        >
+          <div class="text-slate-500 dark:text-slate-400 font-medium">
+            Showing <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
+            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> deliveries
+          </div>
+
+          <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-1.5">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
+              <select
+                :value="itemsPerPage"
+                @change="changeItemsPerPage"
+                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
+              >
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-1">
+              <button
+                @click="prevPage"
+                :disabled="currentPage === 1"
+                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              >
+                <ChevronLeft class="w-4 h-4" />
+              </button>
+
+              <button
+                v-for="page in paginationPages"
+                :key="page"
+                @click="goToPage(page)"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                :class="[
+                  currentPage === page
+                    ? 'bg-purple-600 text-white'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ]"
+              >
+                {{ page }}
+              </button>
+
               <button
                 @click="nextPage"
-                :disabled="currentPage === totalPages || totalPages === 0"
-                class="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs"
+                :disabled="currentPage === totalPages"
+                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
               >
-                Next →
+                <ChevronRight class="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -155,88 +494,3 @@
     </div>
   </DashboardLayout>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import DashboardLayout from '@/Layouts/DashboardLayout.vue'
-import waiterService from '@/services/waiterService'
-
-const loading = ref(true)
-const deliveries = ref<any[]>([])
-const currentPage = ref(1)
-const itemsPerPage = ref(10)
-const completingId = ref<string | null>(null)
-const activeMenuId = ref<string | null>(null)
-
-const totalPages = computed(() => Math.ceil(deliveries.value.length / itemsPerPage.value))
-const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value)
-const endIndex = computed(() => startIndex.value + itemsPerPage.value)
-const paginatedDeliveries = computed(() => deliveries.value.slice(startIndex.value, endIndex.value))
-
-const toggleMenu = (id: string) => {
-  activeMenuId.value = activeMenuId.value === id ? null : id
-}
-
-const handleOutsideClick = () => {
-  activeMenuId.value = null
-}
-
-const formatDateTime = (date: string) => {
-  if (!date) return 'N/A'
-  try {
-    const d = new Date(date)
-    return d.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    })
-  } catch (e) {
-    return date
-  }
-}
-
-const previousPage = () => { if (currentPage.value > 1) currentPage.value-- }
-const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
-const goToPage = (page: number) => { currentPage.value = page }
-
-const loadDeliveries = async () => {
-  try {
-    loading.value = true
-    const data = await waiterService.getOnDelivery()
-    deliveries.value = data || []
-    currentPage.value = 1
-  } catch (err) {
-    console.error('[OnDelivery] Load error:', err)
-    deliveries.value = []
-  } finally {
-    loading.value = false
-  }
-}
-
-const completeDelivery = async (id: string) => {
-  try {
-    completingId.value = id
-    await waiterService.deliverOrder(id)
-    await loadDeliveries()
-  } catch (err) {
-    console.error('[OnDelivery] Complete error:', err)
-  } finally {
-    completingId.value = null
-  }
-}
-
-onMounted(() => {
-  loadDeliveries()
-  window.addEventListener('click', handleOutsideClick)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('click', handleOutsideClick)
-})
-</script>
-
-<style scoped>
-</style>

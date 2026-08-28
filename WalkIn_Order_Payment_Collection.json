@@ -1,0 +1,392 @@
+{
+	"info": {
+		"name": "Walk-In Customer - Pay Before Order",
+		"description": "Postman collection for walk-in restaurant customers ordering from tables with payment first workflow",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api"
+		},
+		{
+			"key": "table_id",
+			"value": "",
+			"description": "Restaurant table UUID"
+		},
+		{
+			"key": "qr_token",
+			"value": "",
+			"description": "Table QR token"
+		},
+		{
+			"key": "menu_item_id",
+			"value": "",
+			"description": "Menu item UUID"
+		},
+		{
+			"key": "menu_item_id_2",
+			"value": "",
+			"description": "Second menu item UUID"
+		},
+		{
+			"key": "tx_ref",
+			"value": "",
+			"description": "Transaction reference"
+		},
+		{
+			"key": "payment_id",
+			"value": ""
+		},
+		{
+			"key": "order_id",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "Step 1: Get Menu Items",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    var json = pm.response.json();",
+							"    if (json.data && json.data.length > 0) {",
+							"        pm.collectionVariables.set('menu_item_id', json.data[0].id);",
+							"        if (json.data.length > 1) {",
+							"            pm.collectionVariables.set('menu_item_id_2', json.data[1].id);",
+							"        }",
+							"        console.log('✓ Menu items loaded');",
+							"        console.log('Menu Item 1: ' + json.data[0].name + ' - ' + json.data[0].id);",
+							"    }",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/guest/menu/items",
+					"host": ["{{base_url}}"],
+					"path": ["guest", "menu", "items"]
+				},
+				"description": "Get all available menu items. Auto-saves menu item IDs to variables."
+			}
+		},
+		{
+			"name": "Step 2: Initialize Payment - Single Item",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    var json = pm.response.json();",
+							"    pm.collectionVariables.set('tx_ref', json.tx_ref);",
+							"    pm.collectionVariables.set('payment_id', json.payment_id);",
+							"    console.log('✓ Payment initialized');",
+							"    console.log('Checkout URL: ' + json.checkout_url);",
+							"    console.log('Transaction Ref: ' + json.tx_ref);",
+							"    console.log('Amount: ' + json.amount + ' ETB');",
+							"    console.log('');",
+							"    console.log('⚠ Customer must complete payment at checkout URL before proceeding!');",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"table_id\": \"{{table_id}}\",\n    \"qr_token\": \"{{qr_token}}\",\n    \"items\": [\n        {\n            \"menu_item_id\": \"{{menu_item_id}}\",\n            \"quantity\": 2\n        }\n    ],\n    \"special_requests\": \"Extra napkins please\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+251912345678\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/walk-in-payments/initialize",
+					"host": ["{{base_url}}"],
+					"path": ["walk-in-payments", "initialize"]
+				},
+				"description": "Initialize payment for walk-in customer ordering from table. Customer must complete payment at checkout_url."
+			}
+		},
+		{
+			"name": "Step 2: Initialize Payment - Multiple Items",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    var json = pm.response.json();",
+							"    pm.collectionVariables.set('tx_ref', json.tx_ref);",
+							"    pm.collectionVariables.set('payment_id', json.payment_id);",
+							"    console.log('Payment initialized - Checkout URL: ' + json.checkout_url);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"table_id\": \"{{table_id}}\",\n    \"qr_token\": \"{{qr_token}}\",\n    \"items\": [\n        {\n            \"menu_item_id\": \"{{menu_item_id}}\",\n            \"quantity\": 2\n        },\n        {\n            \"menu_item_id\": \"{{menu_item_id_2}}\",\n            \"quantity\": 1\n        }\n    ],\n    \"special_requests\": \"No onions, extra sauce\",\n    \"first_name\": \"Jane\",\n    \"last_name\": \"Smith\",\n    \"email\": \"jane.smith@example.com\",\n    \"phone\": \"+251923456789\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/walk-in-payments/initialize",
+					"host": ["{{base_url}}"],
+					"path": ["walk-in-payments", "initialize"]
+				},
+				"description": "Initialize payment with multiple menu items."
+			}
+		},
+		{
+			"name": "Step 2: Initialize Payment - Large Group Order",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"table_id\": \"{{table_id}}\",\n    \"qr_token\": \"{{qr_token}}\",\n    \"items\": [\n        {\n            \"menu_item_id\": \"{{menu_item_id}}\",\n            \"quantity\": 5\n        },\n        {\n            \"menu_item_id\": \"{{menu_item_id_2}}\",\n            \"quantity\": 5\n        }\n    ],\n    \"special_requests\": \"Group of 8 people, please bring extra plates\",\n    \"first_name\": \"Michael\",\n    \"last_name\": \"Johnson\",\n    \"email\": \"michael@example.com\",\n    \"phone\": \"+251934567890\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/walk-in-payments/initialize",
+					"host": ["{{base_url}}"],
+					"path": ["walk-in-payments", "initialize"]
+				},
+				"description": "Initialize payment for large group order."
+			}
+		},
+		{
+			"name": "Step 3: Verify Payment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    var json = pm.response.json();",
+							"    var status = json.payment ? json.payment.status : json.status;",
+							"    console.log('Payment Status: ' + status);",
+							"    ",
+							"    if (status === 'verified' || status === 'paid') {",
+							"        console.log('✓ Payment verified! You can now complete the order.');",
+							"    } else {",
+							"        console.log('✗ Payment not yet verified. Status: ' + status);",
+							"        console.log('Customer needs to complete payment first.');",
+							"    }",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/payments/verify/{{tx_ref}}",
+					"host": ["{{base_url}}"],
+					"path": ["payments", "verify", "{{tx_ref}}"]
+				},
+				"description": "Verify that payment has been completed successfully. Status must be 'verified' or 'paid' before creating order."
+			}
+		},
+		{
+			"name": "Step 4: Complete Order",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    var json = pm.response.json();",
+							"    if (json.order && json.order.id) {",
+							"        pm.collectionVariables.set('order_id', json.order.id);",
+							"        console.log('✓ Order created successfully!');",
+							"        console.log('Order ID: ' + json.order.id);",
+							"        console.log('Order Number: ' + json.order.order_number);",
+							"        console.log('Status: ' + json.order.status);",
+							"        console.log('Total: ' + json.order.total + ' ETB');",
+							"        console.log('');",
+							"        console.log('Order sent to kitchen! Chef will prepare it now.');",
+							"    }",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/walk-in-payments/complete/{{tx_ref}}",
+					"host": ["{{base_url}}"],
+					"path": ["walk-in-payments", "complete", "{{tx_ref}}"]
+				},
+				"description": "Complete order creation after payment is verified. This creates the order record and sends it to the kitchen."
+			}
+		},
+		{
+			"name": "Step 5: Get Order by Payment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {",
+							"    var json = pm.response.json();",
+							"    console.log('Order Status: ' + json.order.status);",
+							"    console.log('Order Items: ' + json.order.order_items.length);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/walk-in-payments/{{tx_ref}}",
+					"host": ["{{base_url}}"],
+					"path": ["walk-in-payments", "{{tx_ref}}"]
+				},
+				"description": "Get order details linked to payment transaction reference."
+			}
+		},
+		{
+			"name": "Extra: Get Payment Status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/payments/status/{{tx_ref}}",
+					"host": ["{{base_url}}"],
+					"path": ["payments", "status", "{{tx_ref}}"]
+				},
+				"description": "Alternative endpoint to check payment status."
+			}
+		},
+		{
+			"name": "Error Test: Missing Required Fields",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"table_id\": \"{{table_id}}\",\n    \"items\": [\n        {\n            \"menu_item_id\": \"{{menu_item_id}}\",\n            \"quantity\": 1\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/walk-in-payments/initialize",
+					"host": ["{{base_url}}"],
+					"path": ["walk-in-payments", "initialize"]
+				},
+				"description": "Test validation error when required fields are missing. Expected: 422 Validation Error"
+			}
+		},
+		{
+			"name": "Error Test: Invalid Table ID",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"table_id\": \"00000000-0000-0000-0000-000000000000\",\n    \"qr_token\": \"invalid-token\",\n    \"items\": [\n        {\n            \"menu_item_id\": \"{{menu_item_id}}\",\n            \"quantity\": 1\n        }\n    ],\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\",\n    \"email\": \"test@example.com\",\n    \"phone\": \"+251912345678\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/walk-in-payments/initialize",
+					"host": ["{{base_url}}"],
+					"path": ["walk-in-payments", "initialize"]
+				},
+				"description": "Test with invalid table ID. Expected: 422 Validation Error"
+			}
+		},
+		{
+			"name": "Error Test: Empty Items Array",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"table_id\": \"{{table_id}}\",\n    \"qr_token\": \"{{qr_token}}\",\n    \"items\": [],\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\",\n    \"email\": \"test@example.com\",\n    \"phone\": \"+251912345678\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/walk-in-payments/initialize",
+					"host": ["{{base_url}}"],
+					"path": ["walk-in-payments", "initialize"]
+				},
+				"description": "Test with empty items. Expected: 422 Validation Error - items must have at least 1"
+			}
+		},
+		{
+			"name": "Error Test: Invalid Quantity",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"table_id\": \"{{table_id}}\",\n    \"qr_token\": \"{{qr_token}}\",\n    \"items\": [\n        {\n            \"menu_item_id\": \"{{menu_item_id}}\",\n            \"quantity\": 0\n        }\n    ],\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\",\n    \"email\": \"test@example.com\",\n    \"phone\": \"+251912345678\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/walk-in-payments/initialize",
+					"host": ["{{base_url}}"],
+					"path": ["walk-in-payments", "initialize"]
+				},
+				"description": "Test with quantity 0. Expected: 422 Validation Error - quantity must be at least 1"
+			}
+		},
+		{
+			"name": "Error Test: Complete Order Without Payment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/walk-in-payments/complete/invalid-tx-ref",
+					"host": ["{{base_url}}"],
+					"path": ["walk-in-payments", "complete", "invalid-tx-ref"]
+				},
+				"description": "Test completing order with unverified payment. Expected: 400 or 404 Error"
+			}
+		}
+	]
+}

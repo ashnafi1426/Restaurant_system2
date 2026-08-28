@@ -5,9 +5,6 @@ namespace Database\Factories;
 use App\Models\Guest;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Guest>
- */
 class GuestFactory extends Factory
 {
     protected $model = Guest::class;

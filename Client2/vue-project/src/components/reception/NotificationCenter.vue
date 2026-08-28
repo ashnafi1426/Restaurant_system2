@@ -19,7 +19,7 @@ const getNotificationIcon = (type: string) => {
     booking: '📅',
     check_in: '🔓',
     check_out: '🚪',
-    cancellation: '❌',
+    cancellation: '',
     system: 'ℹ️',
   }
   return icons[type] || '📬'
@@ -52,12 +52,12 @@ const formatDate = (date: string | undefined) => {
 // Handle mark as read
 const handleMarkAsRead = async (notificationId: string | undefined) => {
   if (notificationId) {
-    console.log('🔵 [UI] Mark as read clicked for:', notificationId)
+    console.log(' [UI] Mark as read clicked for:', notificationId)
     try {
       await notificationStore.markNotificationAsRead(notificationId)
-      console.log('🔵 [UI] Mark as read successful')
+      console.log(' [UI] Mark as read successful')
     } catch (error) {
-      console.error('🔴 [UI] Error marking as read:', error)
+      console.error(' [UI] Error marking as read:', error)
     }
   }
 }

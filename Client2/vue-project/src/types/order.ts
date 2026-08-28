@@ -51,6 +51,7 @@ export interface OrderFilters {
   search?: string
   status?: string
   payment_type?: string
+  order_type?: string
   room_id?: string
   date_from?: string
   date_to?: string

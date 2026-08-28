@@ -289,7 +289,7 @@ async function loadMenu() {
 
     error.value = userMessage
 
-    console.error('[❌ Menu Load Error]', {
+    console.error('[ Menu Load Error]', {
       error: userMessage,
       qr_token: qrToken.value,
       status: err.response?.status,

@@ -67,7 +67,7 @@ export const useMenuStore = defineStore('menu', () => {
 
       console.log(' Menu Items Loaded:', menuItems.value.length, 'items', pagination.value)
     } catch (error) {
-      console.error('❌ Error fetching menu items:', error)
+      console.error(' Error fetching menu items:', error)
       menuItems.value = []
       throw error
     } finally {
@@ -77,7 +77,7 @@ export const useMenuStore = defineStore('menu', () => {
   async function fetchStatistics() {
     try {
       const response = await menuService.statistics()
-      console.log('📊 Statistics Response:', response.data)
+      console.log(' Statistics Response:', response.data)
 
       if (response.data.data) {
         statistics.value = response.data.data
@@ -89,7 +89,7 @@ export const useMenuStore = defineStore('menu', () => {
 
       console.log(' Statistics Loaded:', statistics.value)
     } catch (error) {
-      console.error('❌ Error fetching statistics:', error)
+      console.error(' Error fetching statistics:', error)
       statistics.value = {
         total_items: 0,
         available_items: 0,

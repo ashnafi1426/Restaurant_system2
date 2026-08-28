@@ -71,21 +71,45 @@ export const useOrderStore = defineStore('order', () => {
     }
     loading.value = true
     try {
-      const response = await orderService.getOrders(filters.value)
-      const orderData = response.data?.data || response.data || response || []
+      // Sanitize query params: strip empty strings, null, or undefined
+      const cleanParams: Record<string, any> = {}
+      for (const [key, value] of Object.entries(filters.value)) {
+        if (value !== '' && value !== null && value !== undefined) {
+          cleanParams[key] = value
+        }
+      }
+
+      const response = await orderService.getOrders(cleanParams)
+      const rawData = response.data || response
+      const orderData = rawData.data || rawData || []
       orders.value = Array.isArray(orderData) ? orderData : []
 
-      const meta = response.data?.meta || response.meta
+      const meta = response.data?.meta || response.meta || rawData.meta
       if (meta) {
         currentPage.value = meta.current_page || 1
         lastPage.value = meta.last_page || 1
-        perPage.value = meta.per_page || 10
+        perPage.value = meta.per_page || 15
         total.value = meta.total || orders.value.length
       } else {
         total.value = orders.value.length
-        lastPage.value = Math.ceil(total.value / (filters.value.per_page || 10)) || 1
+        lastPage.value = Math.ceil(total.value / (filters.value.per_page || 15)) || 1
       }
-      calculateStatistics()
+
+      // Check if backend returned statistics in payload
+      const serverStats = response.data?.statistics || response.statistics || rawData.statistics
+      if (serverStats) {
+        statistics.value = {
+          total_orders: Number(serverStats.total_orders || 0),
+          pending_orders: Number(serverStats.pending_orders || 0),
+          preparing_orders: Number(serverStats.preparing_orders || 0),
+          ready_orders: Number(serverStats.ready_orders || 0),
+          served_orders: Number(serverStats.served_orders || 0),
+          cancelled_orders: Number(serverStats.cancelled_orders || 0),
+          total_revenue: Number(serverStats.total_revenue || 0),
+        }
+      } else {
+        calculateStatistics()
+      }
     } catch (err) {
       console.error('Failed to fetch orders:', err)
     } finally {

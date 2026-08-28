@@ -18,7 +18,7 @@ class QRResolutionController extends Controller
     public function resolveQRToken(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'qr_token' => 'required|string|min:8|max:30', // Accept 8-30 characters for both formats
+            'qr_token' => 'required|string|min:1|max:100',
         ]);
 
         $qrToken = $validated['qr_token']; // Don't uppercase if it contains dashes

@@ -1,289 +1,52 @@
-<template>
-  <DashboardLayout>
-    <div class="min-h-screen bg-slate-50">
-      <!-- Header Area - Responsive -->
-      <div
-        class="bg-gradient-to-r from-slate-50 to-white border-b border-slate-200 px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-5 shadow-sm"
-      >
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <div class="flex items-center gap-2 sm:gap-3">
-            <div
-              class="w-8 sm:w-10 h-8 sm:h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-md flex-shrink-0 text-white"
-            >
-              <UtensilsCrossed class="w-5 h-5 stroke-[2]" />
-            </div>
-            <h1 class="text-lg sm:text-xl md:text-2xl font-black text-slate-900">
-              Menu Management
-            </h1>
-          </div>
-          <router-link
-            to="/admin/menu/add"
-            class="px-3 sm:px-4 md:px-5 py-2 md:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition text-xs sm:text-sm md:text-base whitespace-nowrap inline-flex items-center gap-1.5 cursor-pointer"
-          >
-            <Plus class="w-4 h-4 stroke-[3]" />
-            <span>Add Menu Item</span>
-          </router-link>
-        </div>
-      </div>
-
-      <!-- Main Content - Responsive -->
-      <div class="w-full mx-auto max-w-7xl px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
-        <!-- Header Section -->
-        <MenuHeader
-          :total="store.statistics.total_items"
-          title="Menu Management"
-          subtitle="Manage your restaurant's complete menu"
-          @create="navigateToCreate"
-          @add-item="navigateToCreate"
-          @export="exportMenus"
-          @manage-categories="manageCategories"
-        />
-
-        <!-- Statistics Section -->
-        <div class="mt-4 sm:mt-6 md:mt-8">
-          <MenuStats
-            :statistics="store.statistics"
-            :selected-category="selectedCategory"
-            :menu-items="store.menuItems"
-            @select="filterByCategory"
-          />
-        </div>
-
-        <!-- Filter Section -->
-        <div class="mt-4 sm:mt-6 md:mt-8">
-          <div
-            class="mb-4 sm:mb-6 md:mb-8 overflow-x-auto -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6"
-          >
-            <div class="inline-block w-full min-w-max">
-              <MenuCategoryTabs
-                :selected="selectedCategory"
-                @select="filterByCategory"
-                @manage-categories="manageCategories"
-              />
-            </div>
-          </div>
-
-          <!-- Section Title - Responsive -->
-          <div class="flex flex-col gap-2 sm:gap-3 mb-4 sm:mb-6">
-            <div>
-              <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">
-                {{
-                  selectedCategory
-                    ? selectedCategory.charAt(0).toUpperCase() +
-                      selectedCategory.slice(1) +
-                      ' Items'
-                    : 'All Items'
-                }}
-              </h2>
-              <p class="text-xs sm:text-sm text-slate-600 mt-1">
-                {{ store.menuItems.length }} items
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Display Content Area -->
-        <div class="mt-6 sm:mt-8">
-          <!-- Loading State -->
-          <div
-            v-if="store.loading"
-            class="flex flex-col items-center justify-center py-12 sm:py-16 gap-3"
-          >
-            <div
-              class="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"
-            ></div>
-            <span class="text-xs sm:text-sm font-semibold text-slate-500 tracking-wider"
-              >Loading Menu Data...</span
-            >
-          </div>
-
-          <!-- Empty State -->
-          <div
-            v-else-if="store.menuItems.length === 0"
-            class="text-center py-12 sm:py-16 md:py-20 bg-white rounded-lg sm:rounded-2xl border border-slate-200 shadow-sm px-4 sm:px-6"
-          >
-            <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
-              <Utensils class="w-8 h-8 stroke-[2]" />
-            </div>
-            <p class="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 mb-1">
-              No Items Found
-            </p>
-            <p class="text-xs sm:text-sm text-slate-400 mb-4 sm:mb-6">
-              There are no dishes matching this selection yet.
-            </p>
-            <router-link
-              to="/admin/menu/add"
-              class="inline-flex items-center gap-2 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm md:text-base rounded-lg sm:rounded-xl shadow transition cursor-pointer"
-            >
-              <Plus class="w-4 h-4 stroke-[3]" />
-              <span>Create Item</span>
-            </router-link>
-          </div>
-
-          <!-- Table Display - Responsive Overflow -->
-          <div
-            v-else
-            class="bg-white rounded-lg sm:rounded-xl border border-slate-200 shadow-sm overflow-x-auto"
-          >
-            <MenuTable
-              :items="store.menuItems"
-              :loading="store.loading"
-              @edit="editMenu"
-              @delete="deleteMenu"
-              @toggle="toggleAvailability"
-            />
-
-            <!-- Pagination Section - Responsive Layout -->
-            <div
-              class="border-t border-slate-200 px-3 sm:px-4 md:px-6 py-3 sm:py-4 space-y-4 sm:space-y-0"
-            >
-              <!-- Info Row - Responsive Text -->
-              <p class="text-xs sm:text-sm text-slate-600">
-                Showing <span class="font-semibold">{{ store.pagination.from || 1 }}</span> to
-                <span class="font-semibold">{{
-                  store.pagination.to || store.menuItems.length
-                }}</span>
-                of <span class="font-semibold">{{ store.pagination.total }}</span> items
-              </p>
-
-              <!-- Pagination Controls - Stack on Mobile -->
-              <div class="flex flex-col gap-3 sm:gap-4 sm:items-center sm:justify-between">
-                <!-- Previous/Next Buttons -->
-                <div class="flex items-center gap-1 sm:gap-2 overflow-x-auto sm:overflow-visible">
-                  <button
-                    @click="
-                      () => {
-                        currentPage--
-                        loadMenu()
-                      }
-                    "
-                    :disabled="currentPage === 1 || store.loading"
-                    class="px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-slate-200 transition whitespace-nowrap"
-                    :class="
-                      currentPage === 1
-                        ? 'text-slate-400 bg-slate-50 cursor-not-allowed'
-                        : 'text-slate-700 bg-white hover:bg-slate-50 cursor-pointer'
-                    "
-                  >
-                    ← Prev
-                  </button>
-
-                  <!-- Page Numbers - Hidden on very small screens, scrollable on mobile -->
-                  <div class="flex items-center gap-1 overflow-x-auto sm:overflow-visible">
-                    <button
-                      v-for="page in generatePageNumbers()"
-                      :key="page"
-                      @click="
-                        () => {
-                          currentPage = page
-                          loadMenu()
-                        }
-                      "
-                      :disabled="store.loading"
-                      class="min-w-max sm:w-8 h-8 text-xs sm:text-sm font-semibold rounded-lg border transition px-1 sm:px-0"
-                      :class="
-                        currentPage === page
-                          ? 'bg-indigo-600 text-white border-indigo-600'
-                          : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-50'
-                      "
-                    >
-                      {{ page }}
-                    </button>
-                  </div>
-
-                  <button
-                    @click="
-                      () => {
-                        currentPage++
-                        loadMenu()
-                      }
-                    "
-                    :disabled="currentPage === store.pagination.last_page || store.loading"
-                    class="px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-slate-200 transition whitespace-nowrap"
-                    :class="
-                      currentPage === store.pagination.last_page
-                        ? 'text-slate-400 bg-slate-50 cursor-not-allowed'
-                        : 'text-slate-700 bg-white hover:bg-slate-50 cursor-pointer'
-                    "
-                  >
-                    Next →
-                  </button>
-                </div>
-
-                <!-- Page Size Selector - Full Width on Mobile -->
-                <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                  <label class="text-xs sm:text-sm font-semibold text-slate-600 whitespace-nowrap"
-                    >Per page:</label
-                  >
-                  <select
-                    v-model.number="pageSize"
-                    @change="
-                      () => {
-                        currentPage = 1
-                        loadMenu()
-                      }
-                    "
-                    :disabled="store.loading"
-                    class="px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-700"
-                  >
-                    <option :value="10">10</option>
-                    <option :value="25">25</option>
-                    <option :value="50">50</option>
-                    <option :value="100">100</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </DashboardLayout>
-</template>
-
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
-import MenuHeader from '@/components/menu/MenuHeader.vue'
 import MenuStats from '@/components/menu/MenuStats.vue'
-import MenuCategoryTabs from '@/components/menu/MenuCategoryTabs.vue'
-import MenuCard from '@/components/menu/MenuCard.vue'
 import MenuTable from '@/components/menu/MenuTable.vue'
 import { useMenuStore } from '@/stores/menuStore'
-import { UtensilsCrossed, Utensils, Plus } from 'lucide-vue-next'
+import {
+  UtensilsCrossed,
+  Search,
+  Filter,
+  X,
+  RefreshCw,
+  Maximize2,
+  Minimize2,
+  Plus,
+  RotateCcw,
+  Utensils,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-vue-next'
 import type { MenuItem } from '@/types/menu'
 
 const router = useRouter()
 const store = useMenuStore()
+
+const isFilterOpen = ref(false)
+const isFullscreen = ref(false)
+
+const searchQuery = ref('')
 const selectedCategory = ref<string | null>(null)
+const availabilityFilter = ref<string>('all')
 const currentPage = ref<number>(1)
 const pageSize = ref<number>(10)
 
-// ================== Interface Operations Functions ==================
-
-/**
- * Filter list targets by category keyword definitions
- */
 function filterByCategory(category: string | null) {
   selectedCategory.value = category
-  currentPage.value = 1 // Reset to page 1 when filtering
+  currentPage.value = 1
   loadMenu()
 }
 
-/**
- * Navigate to add menu item page
- */
 function navigateToCreate() {
   router.push('/admin/menu/add')
 }
 
-/**
- * Navigate to edit menu item page
- */
 function editMenu(item: MenuItem) {
   router.push(`/admin/menu/add?id=${item.id}`)
 }
+
 async function deleteMenu(item: MenuItem) {
   const confirmed = window.confirm(`Are you sure you want to delete "${item.name}"?`)
   if (!confirmed) return
@@ -295,9 +58,6 @@ async function deleteMenu(item: MenuItem) {
   }
 }
 
-/**
- * Flip target element presence indicator values
- */
 async function toggleAvailability(item: MenuItem) {
   try {
     await store.toggleAvailability(item.id)
@@ -307,11 +67,7 @@ async function toggleAvailability(item: MenuItem) {
   }
 }
 
-/**
- * Query structural state array indices from back-end
- */
 async function loadMenu() {
-  console.log('🔵 loadMenu() called with page:', currentPage.value)
   const filters: any = {
     page: currentPage.value,
     per_page: pageSize.value,
@@ -319,63 +75,349 @@ async function loadMenu() {
   if (selectedCategory.value) {
     filters.category = selectedCategory.value
   }
+  if (searchQuery.value.trim()) {
+    filters.search = searchQuery.value.trim()
+  }
   try {
     await store.fetchMenuItems(filters)
-    console.log(' Menu loaded:', store.menuItems.length, 'items')
   } catch (error) {
-    console.error('❌ Error loading menu:', error)
+    console.error('Error loading menu:', error)
   }
 }
 
-/**
- * Fetch top header statistical metrics values from state storage API
- */
 async function loadStatistics() {
   await store.fetchStatistics()
 }
 
-/**
- * Force refresh wrapper across all components
- */
 async function refreshPage() {
   await Promise.all([loadMenu(), loadStatistics()])
 }
 
-// ================== Extra Utility Mock Handlers ==================
-function exportMenus() {
-  alert('Exporting structural summary list sheet...')
+function resetFilters() {
+  searchQuery.value = ''
+  selectedCategory.value = null
+  availabilityFilter.value = 'all'
+  currentPage.value = 1
+  loadMenu()
 }
 
-function manageCategories() {
-  router.push({ name: 'admin-menu-add-category' })
+function toggleFilter() {
+  isFilterOpen.value = !isFilterOpen.value
 }
 
-/**
- * Generate page numbers for pagination display
- */
+function toggleFullscreen() {
+  isFullscreen.value = !isFullscreen.value
+}
+
+const filteredMenuItems = computed(() => {
+  let list = store.menuItems || []
+  if (availabilityFilter.value !== 'all') {
+    const isAvail = availabilityFilter.value === 'available'
+    list = list.filter((i) => Boolean(i.is_available) === isAvail)
+  }
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase().trim()
+    list = list.filter((i) =>
+      (i.name || '').toLowerCase().includes(q) ||
+      (i.description || '').toLowerCase().includes(q) ||
+      (typeof i.category === 'string' ? i.category : i.category?.name || '').toLowerCase().includes(q)
+    )
+  }
+  return list
+})
+
+function changePageSize(event: Event) {
+  const target = event.target as HTMLSelectElement
+  pageSize.value = Number(target.value)
+  currentPage.value = 1
+  loadMenu()
+}
+
+function goToPage(p: number) {
+  if (p >= 1 && p <= store.pagination.last_page) {
+    currentPage.value = p
+    loadMenu()
+  }
+}
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--
+    loadMenu()
+  }
+}
+
+function nextPage() {
+  if (currentPage.value < store.pagination.last_page) {
+    currentPage.value++
+    loadMenu()
+  }
+}
+
 function generatePageNumbers() {
   const pages: number[] = []
-  const totalPages = store.pagination.last_page
-  const currentP = currentPage.value
+  const totalPages = store.pagination.last_page || 1
+  const cur = currentPage.value
 
-  // Always show first page
-  pages.push(1)
-
-  // Show pages around current page
-  for (let i = Math.max(2, currentP - 1); i <= Math.min(totalPages - 1, currentP + 1); i++) {
-    if (!pages.includes(i)) pages.push(i)
+  for (let i = Math.max(1, cur - 2); i <= Math.min(totalPages, cur + 2); i++) {
+    pages.push(i)
   }
-
-  // Always show last page if more than 1
-  if (totalPages > 1 && !pages.includes(totalPages)) {
-    pages.push(totalPages)
-  }
-
-  return pages.sort((a, b) => a - b)
+  return pages
 }
 
-// Lifecycle registration initialization hook
 onMounted(async () => {
   await refreshPage()
 })
 </script>
+
+<template>
+  <DashboardLayout>
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
+      :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
+    >
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+            <UtensilsCrossed class="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Menu Management</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage dishes, categories, pricing, and stock availability.</p>
+          </div>
+        </div>
+
+        <button
+          @click="navigateToCreate"
+          class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] text-white font-bold rounded-xl transition text-xs sm:text-sm inline-flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-600/20"
+        >
+          <Plus class="w-4 h-4 stroke-[3]" />
+          <span>Add Menu Item</span>
+        </button>
+      </div>
+
+      <!-- Stats Cards -->
+      <MenuStats
+        :statistics="store.statistics"
+        :selected-category="selectedCategory"
+        :menu-items="store.menuItems"
+        @select="filterByCategory"
+      />
+
+      <!-- Top Bar Toolbar -->
+      <div
+        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+      >
+        <!-- Left: Search & Filter Toggle -->
+        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
+          <!-- Search Input -->
+          <div class="relative flex-1">
+            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <input
+              v-model="searchQuery"
+              @keyup.enter="loadMenu"
+              type="text"
+              placeholder="Search dishes by name, description, or category..."
+              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
+            />
+          </div>
+
+          <!-- Filter Toggle Button -->
+          <button
+            type="button"
+            @click="toggleFilter"
+            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            :class="[
+              isFilterOpen
+                ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+            ]"
+          >
+            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
+            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+          </button>
+        </div>
+
+        <!-- Right: Action Buttons -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <!-- Refresh Button -->
+          <button
+            type="button"
+            @click="refreshPage"
+            :disabled="store.loading"
+            title="Refresh"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+          >
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.loading }" />
+          </button>
+
+          <!-- Fullscreen Toggle -->
+          <button
+            type="button"
+            @click="toggleFullscreen"
+            title="Toggle Fullscreen"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+          >
+            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Expandable Filter Panel -->
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="transform -translate-y-2 opacity-0 scale-98"
+        enter-to-class="transform translate-y-0 opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="transform translate-y-0 opacity-100 scale-100"
+        leave-to-class="transform -translate-y-2 opacity-0 scale-98"
+      >
+        <div
+          v-if="isFilterOpen"
+          class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
+        >
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+            <!-- Availability Filter -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Availability
+              </label>
+              <select
+                v-model="availabilityFilter"
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
+              >
+                <option value="all">All Items</option>
+                <option value="available">Available in Kitchen</option>
+                <option value="out_of_stock">Out of Stock</option>
+              </select>
+            </div>
+
+            <!-- Category Filter -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Category
+              </label>
+              <select
+                v-model="selectedCategory"
+                @change="loadMenu"
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
+              >
+                <option :value="null">All Categories</option>
+                <option value="Breakfast">Breakfast</option>
+                <option value="Main Course">Main Course</option>
+                <option value="Appetizers">Appetizers</option>
+                <option value="Desserts">Desserts</option>
+                <option value="Beverages">Beverages</option>
+              </select>
+            </div>
+
+            <!-- Reset Filters -->
+            <div class="flex items-end">
+              <button
+                type="button"
+                @click="resetFilters"
+                class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
+              >
+                <RotateCcw class="w-3.5 h-3.5" />
+                <span>Reset Filters</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Table Area -->
+      <div class="space-y-4">
+        <!-- Table Component -->
+        <MenuTable
+          :items="filteredMenuItems"
+          :loading="store.loading"
+          @edit="editMenu"
+          @delete="deleteMenu"
+          @toggle="toggleAvailability"
+        />
+
+        <!-- Empty State -->
+        <div
+          v-if="!store.loading && filteredMenuItems.length === 0"
+          class="text-center py-12 sm:py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs px-4"
+        >
+          <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3 border border-indigo-200 dark:border-indigo-500/20">
+            <Utensils class="w-7 h-7 stroke-[2]" />
+          </div>
+          <p class="text-lg font-bold text-slate-900 dark:text-white mb-1">No Menu Items Found</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
+            Try adjusting your search criteria or create a new menu item.
+          </p>
+          <button
+            @click="navigateToCreate"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-600/20 transition cursor-pointer"
+          >
+            <Plus class="w-4 h-4 stroke-[3]" />
+            <span>Create Menu Item</span>
+          </button>
+        </div>
+
+        <!-- Pagination Footer -->
+        <div
+          v-if="store.pagination && store.pagination.total > 0"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+        >
+          <div class="text-slate-500 dark:text-slate-400 font-medium">
+            Showing <span class="font-bold text-slate-900 dark:text-white">{{ store.pagination.from || 1 }}</span> to
+            <span class="font-bold text-slate-900 dark:text-white">{{ store.pagination.to || store.menuItems.length }}</span> of
+            <span class="font-bold text-slate-900 dark:text-white">{{ store.pagination.total }}</span> dishes
+          </div>
+
+          <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-1.5">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
+              <select
+                :value="pageSize"
+                @change="changePageSize"
+                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
+              >
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-1">
+              <button
+                @click="prevPage"
+                :disabled="currentPage === 1 || store.loading"
+                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              >
+                <ChevronLeft class="w-4 h-4" />
+              </button>
+
+              <button
+                v-for="page in generatePageNumbers()"
+                :key="page"
+                @click="goToPage(page)"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                :class="[
+                  currentPage === page
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ]"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                @click="nextPage"
+                :disabled="currentPage === store.pagination.last_page || store.loading"
+                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              >
+                <ChevronRight class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </DashboardLayout>
+</template>

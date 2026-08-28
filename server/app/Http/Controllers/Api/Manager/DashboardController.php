@@ -81,9 +81,9 @@ class DashboardController extends Controller
         
         return $this->handleAction(
             function() {
-                Log::info('[DashboardController.statistics] 📊 Calling getDashboardStats()');
+                Log::info('[DashboardController.statistics]  Calling getDashboardStats()');
                 $stats = $this->dashboardService->getDashboardStats();
-                Log::info('[DashboardController.statistics] ✅ Stats retrieved', [
+                Log::info('[DashboardController.statistics]  Stats retrieved', [
                     'keys' => array_keys($stats)
                 ]);
                 $resource = new DashboardStatsResource($stats);

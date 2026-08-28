@@ -2,60 +2,58 @@
   <div class="w-full">
     <!-- Desktop Table View (md and above) -->
     <div
-      class="hidden md:block bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden"
+      class="hidden md:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden"
     >
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
-          <thead>
-            <tr
-              class="border-b border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-400 uppercase tracking-widest select-none"
-            >
-              <th class="py-4 px-8 w-[35%]">Item Name</th>
-              <th class="py-4 px-6 w-[18%]">Category</th>
-              <th class="py-4 px-6 w-[16%]">Price</th>
-              <th class="py-4 px-6 w-[16%]">Status</th>
-              <th class="py-4 px-8 text-right w-[15%]">Actions</th>
+          <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+            <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
+              <th class="py-3 px-4 pl-5 whitespace-nowrap">Item Name</th>
+              <th class="py-3 px-4 whitespace-nowrap">Category</th>
+              <th class="py-3 px-4 whitespace-nowrap font-mono">Price</th>
+              <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
+              <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
+          <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs font-medium text-slate-600 dark:text-slate-300">
             <tr
               v-for="item in items"
               :key="item.id"
-              class="hover:bg-slate-50/50 transition-colors duration-150 group"
+              class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
             >
               <!-- Item Name & Thumbnail -->
-              <td class="py-5 px-8 flex items-center gap-4">
+              <td class="py-3 px-4 pl-5 flex items-center gap-3">
                 <div class="relative flex-shrink-0">
                   <img
                     :src="item.image_url || '/images/placeholder.png'"
-                    class="w-12 h-12 rounded-xl object-cover border border-slate-200 bg-slate-50 shadow-sm transition-transform duration-200 group-hover:scale-[1.02]"
+                    class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 shadow-xs transition-transform duration-200 group-hover:scale-[1.02]"
                     alt="Food preview"
                     onerror="this.src = '/images/placeholder.png'"
                   />
                 </div>
                 <div class="min-w-0 flex flex-col justify-center gap-0.5">
                   <div
-                    class="font-extrabold text-slate-900 group-hover:text-indigo-600 transition-colors text-base tracking-wide truncate"
+                    class="font-extrabold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-xs sm:text-sm tracking-wide truncate"
                   >
                     {{ item.name }}
                   </div>
-                  <div class="text-xs text-slate-400 font-medium truncate max-w-[200px]">
+                  <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate max-w-[220px]">
                     {{ item.description || 'Served hot and fresh...' }}
                   </div>
                 </div>
               </td>
               <!-- Category Badge -->
-              <td class="py-5 px-6 align-middle whitespace-nowrap">
+              <td class="py-3 px-4 align-middle whitespace-nowrap">
                 <span
                   :class="getCategoryBadgeClass(item.category)"
-                  class="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-extrabold tracking-wider uppercase border"
+                  class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold tracking-wider uppercase border"
                 >
                   {{ getCategoryName(item.category) }}
                 </span>
               </td>
               <!-- Price -->
               <td
-                class="py-5 px-6 align-middle font-black text-slate-900 text-base tracking-wide font-mono"
+                class="py-3 px-4 align-middle font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm tracking-wide font-mono"
               >
                 ${{
                   typeof item.price === 'number'
@@ -64,12 +62,12 @@
                 }}
               </td>
               <!-- Status -->
-              <td class="py-5 px-6 align-middle whitespace-nowrap">
+              <td class="py-3 px-4 align-middle text-center whitespace-nowrap">
                 <span
                   @click="$emit('toggle', item)"
-                  class="inline-flex items-center gap-2 font-bold cursor-pointer select-none group/status transition text-sm"
+                  class="inline-flex items-center gap-1.5 font-bold cursor-pointer select-none group/status transition text-xs"
                 >
-                  <span class="w-2 h-2 rounded-full relative flex flex-shrink-0">
+                  <span class="w-1.5 h-1.5 rounded-full relative flex flex-shrink-0">
                     <span
                       :class="item.is_available ? 'bg-emerald-400' : 'bg-rose-400'"
                       class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40"
@@ -80,7 +78,7 @@
                     ></span>
                   </span>
                   <span
-                    class="text-sm font-bold text-slate-600 group-hover/status:text-slate-900 transition-colors"
+                    class="text-xs font-bold text-slate-600 dark:text-slate-300 group-hover/status:text-slate-900 dark:group-hover/status:text-white transition-colors"
                   >
                     {{ item.is_available ? 'Available' : 'Out of Stock' }}
                   </span>
@@ -88,7 +86,7 @@
               </td>
               <!-- Actions Menu -->
               <td
-                class="py-5 px-8 text-right align-middle relative whitespace-nowrap"
+                class="py-3 px-4 text-right pr-5 align-middle relative whitespace-nowrap"
                 data-menu-container
               >
                 <div class="flex justify-end">

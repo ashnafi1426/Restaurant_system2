@@ -29,11 +29,11 @@ class KitchenService
                 'reservation',
                 'orderItems',
                 'orderItems.menuItem',
-                // ❌ REMOVED: 'chef' relationship doesn't exist in Order model
+                //  REMOVED: 'chef' relationship doesn't exist in Order model
             ])
             ->where('status', $status);
         
-        // ❌ REMOVED: chef_id filtering since column doesn't exist
+        //  REMOVED: chef_id filtering since column doesn't exist
         // if ($authUser && isset($authUser->role) && $authUser->role === 'chef' && isset($authUser->id)) {
         //     $query->where(function($q) use ($authUser) {
         //         $q->where('chef_id', $authUser->id)
@@ -60,7 +60,7 @@ class KitchenService
             'reservation',
             'orderItems',
             'orderItems.menuItem',
-            // ❌ REMOVED: 'chef' relationship doesn't exist
+            //  REMOVED: 'chef' relationship doesn't exist
         ]);
     }
     protected function validateStatusTransition(
@@ -203,7 +203,7 @@ class KitchenService
     }
     public function statistics($authUser = null): array
     {
-        // ✅ REMOVED chef_id filtering since column doesn't exist
+        //  REMOVED chef_id filtering since column doesn't exist
         $baseQuery = function() use ($authUser) {
             return Order::query();
         };

@@ -282,10 +282,10 @@ onMounted(async () => {
     }
 
     if (!checkoutUrl) {
-      console.warn('⚠️ [CHECKOUT] WARNING: Checkout URL is empty. This may cause payment to fail.');
+      console.warn(' [CHECKOUT] WARNING: Checkout URL is empty. This may cause payment to fail.');
     }
 
-    console.log('✅ [CHECKOUT] Payment information loaded');
+    console.log(' [CHECKOUT] Payment information loaded');
     
     // Store the payment details
     const payment = {
@@ -303,12 +303,12 @@ onMounted(async () => {
     // Update formData with payment amount
     formData.value.amount = bookingSessionData?.price_breakdown?.total || 0;
     
-    console.log('✅ [CHECKOUT] Form data updated with amount:', formData.value.amount);
+    console.log(' [CHECKOUT] Form data updated with amount:', formData.value.amount);
     
     isLoading.value = false;
 
   } catch (err: any) {
-    console.error('❌ [CHECKOUT] Error in onMounted:', err);
+    console.error(' [CHECKOUT] Error in onMounted:', err);
     error.value = err.message || 'Failed to process payment';
     isLoading.value = false;
   }
@@ -337,7 +337,7 @@ function submitPayment(): void {
     console.log('� [CHECKOUT] Redirecting to Chapa checkout at:', checkoutUrl);
     window.location.href = checkoutUrl;
   } catch (err: any) {
-    console.error('❌ [CHECKOUT] Submit payment error:', err);
+    console.error(' [CHECKOUT] Submit payment error:', err);
     error.value = err.message || 'Failed to proceed to payment';
   }
 }

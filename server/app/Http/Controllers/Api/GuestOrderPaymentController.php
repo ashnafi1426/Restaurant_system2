@@ -136,7 +136,7 @@ class GuestOrderPaymentController extends Controller
                 'metadata'  => [
                     'type'        => 'order',
                     'room_id'     => $validated['room_id'],
-                    'items'       => $orderItemsWithPrices, // ✅ Items with prices
+                    'items'       => $orderItemsWithPrices, //  Items with prices
                     'notes'       => $validated['notes'] ?? null,
                     'calculation' => $orderCalculation,
                 ],

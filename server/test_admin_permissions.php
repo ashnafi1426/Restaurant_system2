@@ -19,7 +19,7 @@ echo "===========================================\n\n";
 $adminUser = User::where('role', 'admin')->first();
 
 if (!$adminUser) {
-    echo "❌ No admin user found!\n";
+    echo " No admin user found!\n";
     exit(1);
 }
 
@@ -51,7 +51,7 @@ $allPassed = true;
 
 foreach ($testPermissions as $permission) {
     $hasPermission = $authService->hasPermission($adminUser, $permission);
-    $status = $hasPermission ? '✅ PASS' : '❌ FAIL';
+    $status = $hasPermission ? ' PASS' : ' FAIL';
     
     if (!$hasPermission) {
         $allPassed = false;
@@ -65,10 +65,10 @@ echo "  ROLE CHECKS\n";
 echo "===========================================\n\n";
 
 $hasAdminRole = $authService->hasRole($adminUser, 'admin');
-echo sprintf("%-30s %s\n", "Has 'admin' role", $hasAdminRole ? '✅ YES' : '❌ NO');
+echo sprintf("%-30s %s\n", "Has 'admin' role", $hasAdminRole ? ' YES' : ' NO');
 
 $hasManagerRole = $authService->hasRole($adminUser, 'manager');
-echo sprintf("%-30s %s\n", "Has 'manager' role", $hasManagerRole ? '✅ YES' : '❌ NO (Expected)');
+echo sprintf("%-30s %s\n", "Has 'manager' role", $hasManagerRole ? ' YES' : ' NO (Expected)');
 
 echo "\n===========================================\n";
 echo "  ACTIVE ROLES\n";
@@ -104,13 +104,13 @@ $nonExistentPerm = 'this.does.not.exist.in.database';
 $hasNonExistent = $authService->hasPermission($adminUser, $nonExistentPerm);
 
 echo "Testing permission: '{$nonExistentPerm}'\n";
-echo "Result: " . ($hasNonExistent ? '✅ HAS ACCESS' : '❌ NO ACCESS') . "\n\n";
+echo "Result: " . ($hasNonExistent ? ' HAS ACCESS' : ' NO ACCESS') . "\n\n";
 
 if ($hasNonExistent) {
-    echo "✅ SUPER-OVERRIDE WORKING!\n";
+    echo " SUPER-OVERRIDE WORKING!\n";
     echo "   Admin bypasses database checks and has access to ALL permissions!\n";
 } else {
-    echo "❌ SUPER-OVERRIDE NOT WORKING!\n";
+    echo " SUPER-OVERRIDE NOT WORKING!\n";
     echo "   Admin should have access to non-existent permissions!\n";
     $allPassed = false;
 }
@@ -120,7 +120,7 @@ echo "  FINAL RESULT\n";
 echo "===========================================\n\n";
 
 if ($allPassed) {
-    echo "✅ ALL TESTS PASSED!\n\n";
+    echo " ALL TESTS PASSED!\n\n";
     echo "Admin permissions are working correctly:\n";
     echo "  ✓ Admin role is assigned\n";
     echo "  ✓ Admin has access to all existing permissions\n";
@@ -128,7 +128,7 @@ if ($allPassed) {
     echo "  ✓ Admin has unlimited access to the system\n\n";
     echo "🎉 Your dynamic RBAC system is working perfectly!\n\n";
 } else {
-    echo "❌ SOME TESTS FAILED!\n\n";
+    echo " SOME TESTS FAILED!\n\n";
     echo "Please check:\n";
     echo "  1. AuthorizationService has admin super-override\n";
     echo "  2. User role column is set to 'admin'\n";

@@ -397,12 +397,12 @@ onMounted(async () => {
       // If txRef wasn't in URL, try to get it from stored data
       if (!txRef.value && parsed.tx_ref) {
         txRef.value = parsed.tx_ref
-        console.log('✅ [PAYMENT SUCCESS] Got tx_ref from sessionStorage:', txRef.value)
+        console.log(' [PAYMENT SUCCESS] Got tx_ref from sessionStorage:', txRef.value)
       }
       
-      console.log('✅ [PAYMENT SUCCESS] Got data from sessionStorage:', reservationData.value)
+      console.log(' [PAYMENT SUCCESS] Got data from sessionStorage:', reservationData.value)
     } catch (error) {
-      console.error('❌ [PAYMENT SUCCESS] Failed to parse stored data:', error)
+      console.error(' [PAYMENT SUCCESS] Failed to parse stored data:', error)
     }
   }
 
@@ -411,32 +411,32 @@ onMounted(async () => {
   
   setTimeout(() => {
     showHeader.value = true
-    console.log('✅ Stage 1: Header visible')
+    console.log(' Stage 1: Header visible')
   }, 200)
 
   setTimeout(() => {
     showSuccess.value = true
-    console.log('✅ Stage 2: Success message visible')
+    console.log(' Stage 2: Success message visible')
   }, 400)
 
   setTimeout(() => {
     showDetails.value = true
-    console.log('✅ Stage 3: Booking details visible')
+    console.log(' Stage 3: Booking details visible')
   }, 600)
 
   setTimeout(() => {
     showPayment.value = true
-    console.log('✅ Stage 4: Payment info visible')
+    console.log(' Stage 4: Payment info visible')
   }, 800)
 
   setTimeout(() => {
     showNextSteps.value = true
-    console.log('✅ Stage 5: Next steps visible')
+    console.log(' Stage 5: Next steps visible')
   }, 1000)
 
   setTimeout(() => {
     showButtons.value = true
-    console.log('✅ Stage 6: Action buttons visible')
+    console.log(' Stage 6: Action buttons visible')
     console.log('🎉 [PAYMENT SUCCESS] All sections now visible - user can interact!')
   }, 1200)
 
@@ -447,17 +447,17 @@ onMounted(async () => {
     setTimeout(() => {
       completeReservationAndFetchDetails()
         .then(() => {
-          console.log('✅ [PAYMENT SUCCESS] Background data fetch complete')
+          console.log(' [PAYMENT SUCCESS] Background data fetch complete')
         })
         .catch((err) => {
-          console.error('⚠️ [PAYMENT SUCCESS] Background fetch error (not critical):', err)
+          console.error(' [PAYMENT SUCCESS] Background fetch error (not critical):', err)
         })
     }, 1500)
   }
   
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-  console.log('✅ [PAYMENT SUCCESS] Page setup complete - animations starting!')
-  console.log('✅ [PAYMENT SUCCESS] Page WILL NOT redirect - stay here as long as you want')
+  console.log(' [PAYMENT SUCCESS] Page setup complete - animations starting!')
+  console.log(' [PAYMENT SUCCESS] Page WILL NOT redirect - stay here as long as you want')
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 })
 
@@ -496,9 +496,9 @@ async function completeReservationAndFetchDetails(): Promise<void> {
 
     if (verifyResponse.ok) {
       const verifyData = await verifyResponse.json()
-      console.log('✅ [PAYMENT SUCCESS] Payment verified:', verifyData)
+      console.log(' [PAYMENT SUCCESS] Payment verified:', verifyData)
     } else {
-      console.warn('⚠️ [PAYMENT SUCCESS] Payment verification returned non-OK status, but continuing...')
+      console.warn(' [PAYMENT SUCCESS] Payment verification returned non-OK status, but continuing...')
     }
 
     // Now try to complete the reservation
@@ -515,7 +515,7 @@ async function completeReservationAndFetchDetails(): Promise<void> {
 
     if (completeResponse.ok) {
       const completeData = await completeResponse.json()
-      console.log('✅ [PAYMENT SUCCESS] Reservation completed:', completeData)
+      console.log(' [PAYMENT SUCCESS] Reservation completed:', completeData)
       
       if (completeData.success && completeData.reservation) {
         // Extract guest details from reservation
@@ -533,11 +533,11 @@ async function completeReservationAndFetchDetails(): Promise<void> {
           special_requests: completeData.reservation.special_requests,
           total_amount: completeData.reservation.total_amount || completeData.payment?.amount,
         }
-        console.log('✅ [PAYMENT SUCCESS] Reservation data extracted:', reservationData.value)
+        console.log(' [PAYMENT SUCCESS] Reservation data extracted:', reservationData.value)
         return
       }
     } else {
-      console.warn('⚠️ [PAYMENT SUCCESS] Failed to complete reservation, trying direct fetch')
+      console.warn(' [PAYMENT SUCCESS] Failed to complete reservation, trying direct fetch')
     }
 
     // If completion failed, try to fetch reservation details directly
@@ -586,7 +586,7 @@ async function fetchReservationDetails(): Promise<void> {
           special_requests: data.reservation.special_requests,
           total_amount: data.reservation.total_amount || data.payment?.amount,
         }
-        console.log('✅ [PAYMENT SUCCESS] Reservation data fetched:', reservationData.value)
+        console.log(' [PAYMENT SUCCESS] Reservation data fetched:', reservationData.value)
       }
     } else {
       console.warn('[PAYMENT SUCCESS] Failed to fetch reservation details, status:', response.status)
@@ -627,20 +627,20 @@ async function downloadReceipt(): Promise<void> {
   console.log('📋 [DOWNLOAD] Current tx_ref:', txRef.value)
   
   if (!txRef.value) {
-    console.error('❌ [DOWNLOAD] No transaction reference available')
+    console.error(' [DOWNLOAD] No transaction reference available')
     alert('Error: Transaction reference not found. Please refresh the page.')
     return
   }
 
   if (!reservationData.value) {
-    console.error('❌ [DOWNLOAD] No reservation data available')
+    console.error(' [DOWNLOAD] No reservation data available')
     alert('Error: Reservation details not found. Please refresh the page and try again.')
     return
   }
 
   try {
     console.log('💾 [DOWNLOAD] Starting receipt generation...')
-    console.log('📊 [DOWNLOAD] Data being sent to receipt service:', {
+    console.log(' [DOWNLOAD] Data being sent to receipt service:', {
       booking_reference: reservationData.value.booking_reference,
       first_name: reservationData.value.first_name,
       last_name: reservationData.value.last_name,
@@ -674,11 +674,11 @@ async function downloadReceipt(): Promise<void> {
       special_requests: reservationData.value.special_requests,
     })
     
-    console.log('✅ [DOWNLOAD] Receipt generated and downloaded successfully!')
+    console.log(' [DOWNLOAD] Receipt generated and downloaded successfully!')
   } catch (error: any) {
-    console.error('❌ [DOWNLOAD] Error downloading receipt:', error)
-    console.error('❌ [DOWNLOAD] Error message:', error.message)
-    console.error('❌ [DOWNLOAD] Error stack:', error.stack)
+    console.error(' [DOWNLOAD] Error downloading receipt:', error)
+    console.error(' [DOWNLOAD] Error message:', error.message)
+    console.error(' [DOWNLOAD] Error stack:', error.stack)
     alert('Failed to generate receipt: ' + error.message)
   } finally {
     isLoading.value = false

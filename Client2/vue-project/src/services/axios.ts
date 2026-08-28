@@ -27,11 +27,15 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Don't redirect to login for guest-reviews endpoint (guests can't login)
     if (error.response?.status === 401) {
-      // Redirect to login on unauthorized
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      window.location.href = '/login'
+      const url = error.config?.url || ''
+      // Only redirect for authenticated endpoints, not guest endpoints
+      if (!url.includes('/guest-reviews') && !url.includes('/review-stats')) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }

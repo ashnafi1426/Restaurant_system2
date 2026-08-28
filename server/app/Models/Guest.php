@@ -68,6 +68,14 @@ class Guest extends Model
         return $this->hasMany(CheckIn::class);
     }
 
+    /**
+     * Guest has many reviews
+     */
+    public function reviews()
+    {
+        return $this->hasMany(MenuItemReview::class, 'guest_id');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Helper Methods
@@ -112,30 +120,71 @@ class Guest extends Model
             ->get();
     }
 
-    public function cancel(
-    Reservation $reservation
-){
+    public function cancel(Reservation $reservation)
+    {
+        if(!$reservation->canCancel()){
+            return response()->json([
+                'message'=>'Reservation cannot be cancelled.'
+            ],422);
+        }
 
-    if(!$reservation->canCancel()){
+        $reservation->update([
+            'status'=>'cancelled',
+            'cancelled_at'=>now()
+        ]);
 
         return response()->json([
-            'message'=>'Reservation cannot be cancelled.'
-        ],422);
-
+            'message'=>'Reservation cancelled.'
+        ]);
     }
 
-    $reservation->update([
+    /**
+     * Get eligible menu items for review
+     */
+    public function getEligibleMenuItemsForReview()
+    {
+        return MenuItem::whereHas('orderItems.order', function ($query) {
+            $query->where('guest_id', $this->id)
+                  ->whereIn('status', [Order::STATUS_SERVED, 'completed']);
+        })
+        ->whereDoesntHave('reviews', function ($query) {
+            $query->where('guest_id', $this->id);
+        })
+        ->with(['orderItems.order' => function ($query) {
+            $query->where('guest_id', $this->id)
+                  ->whereIn('status', [Order::STATUS_SERVED, 'completed']);
+        }])
+        ->get();
+    }
 
-        'status'=>'cancelled',
-
-        'cancelled_at'=>now()
-
-    ]);
-
-    return response()->json([
-
-        'message'=>'Reservation cancelled.'
-
-    ]);
-}
+    /**
+     * Check if guest can review a specific menu item from an order
+     */
+    public function canReviewMenuItem(string $menuItemId, string $orderId): bool
+    {
+        // Check if order exists and is completed
+        $order = Order::where('id', $orderId)
+            ->where('guest_id', $this->id)
+            ->whereIn('status', [Order::STATUS_SERVED, 'completed'])
+            ->first();
+        
+        if (!$order) {
+            return false;
+        }
+        
+        // Check if order contains the menu item
+        $hasMenuItem = $order->orderItems()->where('menu_item_id', $menuItemId)->exists();
+        
+        if (!$hasMenuItem) {
+            return false;
+        }
+        
+        // Check if review already exists
+        $reviewExists = MenuItemReview::where('guest_id', $this->id)
+            ->where('order_id', $orderId)
+            ->where('menu_item_id', $menuItemId)
+            ->exists();
+        
+        return !$reviewExists;
+    }
 }

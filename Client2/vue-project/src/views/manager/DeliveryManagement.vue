@@ -8,20 +8,34 @@ import {
   CheckCircle2,
   AlertCircle,
   RefreshCw,
+  Search,
+  Filter,
+  X,
+  Maximize2,
+  Minimize2,
+  RotateCcw,
   ChevronLeft,
   ChevronRight,
   Loader2,
-  X,
   Eye,
   User,
   Hotel,
   Calendar,
-  FileText
+  FileText,
+  BedDouble,
+  ShoppingBag,
 } from 'lucide-vue-next'
 import { useDeliveryManagementStore } from '@/stores/manager/deliveryManagementStore'
 
 const store = useDeliveryManagementStore()
 const isLoading = ref(false)
+const isFilterOpen = ref(false)
+const isFullscreen = ref(false)
+
+// Filter states
+const searchQuery = ref('')
+const selectedStatus = ref('')
+const selectedFloor = ref('')
 
 // Modal state
 const showDetailsModal = ref(false)
@@ -37,14 +51,13 @@ const closeDetailsModal = () => {
   selectedDelivery.value = null
 }
 
-// Computed properties for summary stats
 const deliveryData = computed(() => {
   if (!store.todaySummary) {
     return {
       total_deliveries: 0,
       completed: 0,
       in_progress: 0,
-      failed: 0
+      failed: 0,
     }
   }
 
@@ -52,29 +65,50 @@ const deliveryData = computed(() => {
     total_deliveries: store.todaySummary.total_deliveries || 0,
     completed: store.todaySummary.completed || 0,
     in_progress: store.todaySummary.in_progress || 0,
-    failed: store.todaySummary.failed || 0
+    failed: store.todaySummary.failed || 0,
   }
 })
 
-// Calculate total pages
-const totalPages = computed(() => Math.ceil(store.totalDeliveries / store.perPage) || 1)
+const filteredDeliveries = computed(() => {
+  let list = store.deliveries || []
+
+  if (selectedStatus.value !== '') {
+    list = list.filter((d) => (d.status || '').toLowerCase() === selectedStatus.value.toLowerCase())
+  }
+
+  if (selectedFloor.value !== '') {
+    list = list.filter((d) => String(d.floor || d.room?.floor || '') === selectedFloor.value)
+  }
+
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase().trim()
+    list = list.filter((d) => {
+      const roomStr = getRoomNumber(d).toLowerCase()
+      const orderId = String(d.order_id || d.order?.id || '').toLowerCase()
+      const waiterName = (d.waiter?.name || d.waiter?.full_name || '').toLowerCase()
+      return roomStr.includes(q) || orderId.includes(q) || waiterName.includes(q)
+    })
+  }
+
+  return list
+})
+
+const total = computed(() => filteredDeliveries.value.length)
+const totalPages = computed(() => Math.ceil(total.value / store.perPage) || 1)
 
 const paginatedDeliveries = computed(() => {
-  const all = store.deliveries || []
-  if (all.length > store.perPage) {
-    const start = (store.currentPage - 1) * store.perPage
-    return all.slice(start, start + store.perPage)
-  }
-  return all
+  const start = (store.currentPage - 1) * store.perPage
+  const end = start + store.perPage
+  return filteredDeliveries.value.slice(start, end)
 })
 
 const showingFrom = computed(() => {
-  if (store.totalDeliveries === 0) return 0
+  if (total.value === 0) return 0
   return (store.currentPage - 1) * store.perPage + 1
 })
 
 const showingTo = computed(() => {
-  return Math.min(store.currentPage * store.perPage, store.totalDeliveries)
+  return Math.min(store.currentPage * store.perPage, total.value)
 })
 
 const paginationPages = computed(() => {
@@ -91,10 +125,7 @@ const paginationPages = computed(() => {
 onMounted(async () => {
   isLoading.value = true
   try {
-    await Promise.all([
-      store.fetchTodaySummary(),
-      store.fetchDeliveries()
-    ])
+    await Promise.all([store.fetchTodaySummary(), store.fetchDeliveries()])
   } catch (error) {
     console.error('Failed to load delivery data:', error)
   } finally {
@@ -115,28 +146,51 @@ const generateReport = async () => {
   }
 }
 
-const changePageSize = async (event: Event) => {
+const changePageSize = (event: Event) => {
   const target = event.target as HTMLSelectElement
-  const size = Number(target.value)
-  store.perPage = size
-  await store.fetchDeliveries(1)
+  store.perPage = Number(target.value)
+  store.currentPage = 1
 }
 
-const goToPreviousPage = async () => {
+const goToPreviousPage = () => {
   if (store.currentPage > 1) {
-    await store.fetchDeliveries(store.currentPage - 1)
+    store.currentPage--
   }
 }
 
-const goToPage = async (page: number) => {
+const goToPage = (page: number) => {
   if (page >= 1 && page <= totalPages.value) {
-    await store.fetchDeliveries(page)
+    store.currentPage = page
   }
 }
 
-const goToNextPage = async () => {
+const goToNextPage = () => {
   if (store.currentPage < totalPages.value) {
-    await store.fetchDeliveries(store.currentPage + 1)
+    store.currentPage++
+  }
+}
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  selectedStatus.value = ''
+  selectedFloor.value = ''
+  store.currentPage = 1
+}
+
+const toggleFilter = () => {
+  isFilterOpen.value = !isFilterOpen.value
+}
+
+const toggleFullscreen = () => {
+  isFullscreen.value = !isFullscreen.value
+}
+
+const refresh = async () => {
+  isLoading.value = true
+  try {
+    await Promise.all([store.fetchTodaySummary(), store.fetchDeliveries()])
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -146,44 +200,52 @@ const getRoomNumber = (delivery: any): string => {
   if (delivery.room_number) return `Room ${delivery.room_number}`
   if (delivery.order?.room_number) return `Room ${delivery.order.room_number}`
   if (delivery.order?.room?.room_number) return `Room ${delivery.order.room.room_number}`
-  if (delivery.order_id) return `Order #${delivery.order_id.substring(0, 6)}`
+  if (delivery.order_id) return `Order #${String(delivery.order_id).substring(0, 6)}`
   return 'Walk-in / Table'
 }
 
 const getStatusBadgeClass = (status: string) => {
   switch ((status || '').toLowerCase()) {
     case 'delivered':
-      return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 font-black'
+      return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 font-bold'
     case 'on_delivery':
     case 'in_transit':
-      return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 font-black'
+      return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 font-bold'
     case 'assigned':
     case 'accepted':
     case 'picked_up':
-      return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 font-black'
+      return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 font-bold'
     case 'cancelled':
     case 'failed':
-      return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 font-black'
+      return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 font-bold'
     default:
-      return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20 font-black'
+      return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20 font-bold'
   }
 }
 </script>
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans">
-      <!-- Header Banner -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Room Service Deliveries</h1>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Track and manage all active, in-transit, and completed room service deliveries.</p>
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
+      :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
+    >
+      <!-- Header -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+            <Truck class="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Room Service Deliveries</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Track and manage all active, in-transit, and completed room service deliveries.</p>
+          </div>
         </div>
 
         <button
           @click="generateReport"
           :disabled="isLoading"
-          class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-extrabold transition flex items-center justify-center gap-2 cursor-pointer border border-slate-200 dark:border-slate-700 disabled:opacity-50"
+          class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer border border-slate-200 dark:border-slate-700 disabled:opacity-50"
         >
           <Download class="w-4 h-4" />
           <span>Generate Report</span>
@@ -193,11 +255,10 @@ const getStatusBadgeClass = (status: string) => {
       <!-- Statistics Summary Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <!-- Total Deliveries -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Deliveries</p>
             <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ deliveryData.total_deliveries }}</h3>
-            <p class="text-[10px] text-slate-400 font-bold mt-1">Today</p>
           </div>
           <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
             <Truck class="w-5 h-5" />
@@ -205,11 +266,10 @@ const getStatusBadgeClass = (status: string) => {
         </div>
 
         <!-- Completed -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Completed</p>
             <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ deliveryData.completed }}</h3>
-            <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-1">Delivered</p>
           </div>
           <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 class="w-5 h-5" />
@@ -217,11 +277,10 @@ const getStatusBadgeClass = (status: string) => {
         </div>
 
         <!-- In Progress -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">In Progress</p>
             <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ deliveryData.in_progress }}</h3>
-            <p class="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1">Active</p>
           </div>
           <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
             <Clock class="w-5 h-5" />
@@ -229,11 +288,10 @@ const getStatusBadgeClass = (status: string) => {
         </div>
 
         <!-- Failed / Cancelled -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Failed / Cancelled</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Failed / Issues</p>
             <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ deliveryData.failed }}</h3>
-            <p class="text-[10px] text-rose-600 dark:text-rose-400 font-bold mt-1">Issues</p>
           </div>
           <div class="p-3 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
             <AlertCircle class="w-5 h-5" />
@@ -241,316 +299,333 @@ const getStatusBadgeClass = (status: string) => {
         </div>
       </div>
 
-      <!-- Loading State -->
-      <div v-if="isLoading" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-16 text-center space-y-3">
-        <Loader2 class="w-8 h-8 text-amber-500 animate-spin mx-auto" />
-        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Loading delivery data...</p>
+      <!-- Top Bar Toolbar -->
+      <div
+        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+      >
+        <!-- Left: Search & Filter Toggle -->
+        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
+          <!-- Search Input -->
+          <div class="relative flex-1">
+            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search deliveries by room, order ID, or waiter..."
+              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
+            />
+          </div>
+
+          <!-- Filter Toggle Button -->
+          <button
+            type="button"
+            @click="toggleFilter"
+            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            :class="[
+              isFilterOpen
+                ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+            ]"
+          >
+            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
+            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+          </button>
+        </div>
+
+        <!-- Right: Action Buttons -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <!-- Refresh Button -->
+          <button
+            type="button"
+            @click="refresh"
+            :disabled="isLoading"
+            title="Refresh"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+          >
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
+          </button>
+
+          <!-- Fullscreen Toggle -->
+          <button
+            type="button"
+            @click="toggleFullscreen"
+            title="Toggle Fullscreen"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+          >
+            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      <!-- Error State -->
-      <div v-else-if="store.error" class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center gap-2.5">
-        <AlertCircle class="w-4 h-4 text-rose-500 flex-shrink-0" />
-        <span>Error: {{ store.error }}</span>
-      </div>
+      <!-- Expandable Filter Panel -->
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="transform -translate-y-2 opacity-0 scale-98"
+        enter-to-class="transform translate-y-0 opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="transform translate-y-0 opacity-100 scale-100"
+        leave-to-class="transform -translate-y-2 opacity-0 scale-98"
+      >
+        <div
+          v-if="isFilterOpen"
+          class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
+        >
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+            <!-- Status Filter -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Delivery Status
+              </label>
+              <select
+                v-model="selectedStatus"
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
+              >
+                <option value="">All Statuses</option>
+                <option value="delivered">Delivered</option>
+                <option value="on_delivery">In Transit / On Delivery</option>
+                <option value="assigned">Assigned / Picked Up</option>
+                <option value="failed">Failed / Cancelled</option>
+              </select>
+            </div>
+
+            <!-- Floor Filter -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Floor
+              </label>
+              <select
+                v-model="selectedFloor"
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
+              >
+                <option value="">All Floors</option>
+                <option value="1">Floor 1</option>
+                <option value="2">Floor 2</option>
+                <option value="3">Floor 3</option>
+                <option value="4">Floor 4</option>
+                <option value="5">Floor 5</option>
+              </select>
+            </div>
+
+            <!-- Reset Filters -->
+            <div class="flex items-end">
+              <button
+                type="button"
+                @click="resetFilters"
+                class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
+              >
+                <RotateCcw class="w-3.5 h-3.5" />
+                <span>Reset Filters</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
 
       <!-- Deliveries Data Table Container -->
-      <div v-else class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
-        <!-- Table Header Title Bar -->
-        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
-          <div class="flex items-center gap-2.5">
-            <Truck class="w-5 h-5 text-blue-500" />
-            <h2 class="text-base font-extrabold text-slate-900 dark:text-white">All Deliveries</h2>
-          </div>
-          <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
-            {{ store.totalDeliveries }} Total Tasks
-          </span>
-        </div>
-        
-        <div v-if="store.deliveries.length === 0" class="p-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-          No deliveries found for today.
-        </div>
-        
-        <div v-else class="overflow-x-auto w-full">
+      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+        <!-- Desktop Table View -->
+        <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                <th class="px-3.5 py-3 whitespace-nowrap">Room #</th>
-                <th class="px-3.5 py-3 whitespace-nowrap">Order ID</th>
-                <th class="px-3.5 py-3 whitespace-nowrap">Waiter</th>
-                <th class="px-3.5 py-3 whitespace-nowrap">Floor</th>
-                <th class="px-3.5 py-3 text-center whitespace-nowrap">Type</th>
-                <th class="px-3.5 py-3 text-center whitespace-nowrap">Status</th>
-                <th class="px-3.5 py-3 whitespace-nowrap">Assigned</th>
-                <th class="px-3.5 py-3 text-right whitespace-nowrap pr-6">Actions</th>
+            <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+              <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">Room / Location</th>
+                <th class="py-3 px-4 whitespace-nowrap">Order Ref</th>
+                <th class="py-3 px-4 whitespace-nowrap">Assigned Waiter</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">Floor</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Actions</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+            <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
               <tr
                 v-for="delivery in paginatedDeliveries"
                 :key="delivery.id"
-                class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition"
+                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
               >
-                <!-- Room Number -->
-                <td class="px-3.5 py-3 whitespace-nowrap">
+                <!-- Room -->
+                <td class="py-3 px-4 pl-5 whitespace-nowrap">
                   <div class="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm">
                     {{ getRoomNumber(delivery) }}
                   </div>
                 </td>
-                
+
                 <!-- Order ID -->
-                <td class="px-3.5 py-3 whitespace-nowrap font-mono text-[11px] font-bold text-slate-600 dark:text-slate-400">
-                  #{{ (delivery.order_id || '').substring(0, 8) || 'N/A' }}
+                <td class="py-3 px-4 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
+                  #{{ delivery.order_id || delivery.order?.order_number || delivery.id }}
                 </td>
-                
-                <!-- Waiter Name -->
-                <td class="px-3.5 py-3 whitespace-nowrap">
-                  <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-black text-[10px] flex items-center justify-center flex-shrink-0">
-                      {{ ((delivery.waiter?.user?.name || delivery.waiter?.name || 'W')[0] || 'W').toUpperCase() }}
-                    </div>
-                    <span class="font-bold text-slate-900 dark:text-white text-xs">
-                      {{ delivery.waiter?.user?.name || delivery.waiter?.name || 'Unassigned' }}
-                    </span>
-                  </div>
+
+                <!-- Waiter -->
+                <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white">
+                  {{ delivery.waiter?.name || delivery.waiter?.full_name || 'Unassigned' }}
                 </td>
-                
+
                 <!-- Floor -->
-                <td class="px-3.5 py-3 whitespace-nowrap text-slate-700 dark:text-slate-300 font-semibold text-xs">
-                  {{ delivery.floor?.name || (delivery.floor?.floor_number !== undefined ? 'Floor #' + delivery.floor.floor_number : 'N/A') }}
-                </td>
-                
-                <!-- Assignment Type -->
-                <td class="px-3.5 py-3 text-center whitespace-nowrap">
-                  <span 
-                    :class="[
-                      'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border',
-                      delivery.assignment_type === 'automatic'
-                        ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
-                        : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
-                    ]"
-                  >
-                    {{ delivery.assignment_type || 'N/A' }}
+                <td class="py-3 px-4 text-center whitespace-nowrap">
+                  <span class="font-semibold text-slate-600 dark:text-slate-400">
+                    Floor {{ delivery.floor || delivery.room?.floor || 1 }}
                   </span>
                 </td>
-                
-                <!-- Status Badge -->
-                <td class="px-3.5 py-3 text-center whitespace-nowrap">
-                  <span 
-                    :class="[
-                      'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border',
-                      getStatusBadgeClass(delivery.status)
-                    ]"
+
+                <!-- Status -->
+                <td class="py-3 px-4 text-center whitespace-nowrap">
+                  <span
+                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] border uppercase tracking-wider"
+                    :class="getStatusBadgeClass(delivery.status)"
                   >
-                    <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                    {{ (delivery.status || 'N/A').replace(/_/g, ' ') }}
+                    {{ (delivery.status || 'Pending').replace('_', ' ') }}
                   </span>
                 </td>
-                
-                <!-- Assigned Time -->
-                <td class="px-3.5 py-3 whitespace-nowrap text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                  {{ delivery.assigned_at ? new Date(delivery.assigned_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '-' }}
-                </td>
-                
+
                 <!-- Actions -->
-                <td class="px-3.5 py-3 text-right whitespace-nowrap pr-6">
+                <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
                   <button
                     @click="openDetailsModal(delivery)"
-                    class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition cursor-pointer flex items-center gap-1 ml-auto"
-                    title="View Details"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition"
                   >
-                    <Eye class="w-3.5 h-3.5" />
+                    <Eye class="w-3.5 h-3.5 text-blue-500" />
                     <span>View</span>
                   </button>
+                </td>
+              </tr>
+
+              <!-- Empty State -->
+              <tr v-if="paginatedDeliveries.length === 0">
+                <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                  No deliveries found matching your search or filter.
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <!-- Pagination Bar with 5, 10, 20, 50 Options -->
+        <!-- Mobile View -->
+        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+          <div
+            v-for="delivery in paginatedDeliveries"
+            :key="delivery.id"
+            class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+          >
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-900 dark:text-white text-sm">
+                {{ getRoomNumber(delivery) }}
+              </span>
+              <span
+                class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
+                :class="getStatusBadgeClass(delivery.status)"
+              >
+                {{ (delivery.status || 'Pending').replace('_', ' ') }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+              <span>Waiter: {{ delivery.waiter?.name || 'Unassigned' }}</span>
+              <button
+                @click="openDetailsModal(delivery)"
+                class="px-2 py-1 text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 rounded-lg"
+              >
+                Details
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Footer -->
         <div
-          v-if="store.totalDeliveries > 0"
-          class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-4 text-xs font-sans"
+          v-if="total > 0"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
-          <!-- Left Side: Per Page Selector & Showing Count -->
-          <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
+          <div class="text-slate-500 dark:text-slate-400 font-medium">
+            Showing <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
+            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> tasks
+          </div>
+
+          <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-1.5">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
               <select
                 :value="store.perPage"
                 @change="changePageSize"
-                class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-black focus:outline-none focus:border-amber-500 cursor-pointer shadow-2xs"
+                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
               >
-                <option :value="5">5</option>
                 <option :value="10">10</option>
                 <option :value="20">20</option>
                 <option :value="50">50</option>
               </select>
             </div>
 
-            <div class="text-xs font-medium">
-              Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
-              <span class="font-extrabold text-slate-900 dark:text-white">{{ showingTo }}</span> of
-              <span class="font-extrabold text-slate-900 dark:text-white">{{ store.totalDeliveries }}</span> deliveries
-            </div>
-          </div>
-
-          <!-- Right Side: Page Controls -->
-          <div class="flex items-center gap-1.5">
-            <button
-              @click="goToPreviousPage"
-              :disabled="store.currentPage <= 1"
-              class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
-              title="Previous Page"
-            >
-              <ChevronLeft class="w-4 h-4" />
-              <span class="hidden sm:inline">Prev</span>
-            </button>
-
             <div class="flex items-center gap-1">
               <button
-                v-for="p in paginationPages"
-                :key="p"
-                @click="goToPage(p)"
+                @click="goToPreviousPage"
+                :disabled="store.currentPage === 1"
+                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              >
+                <ChevronLeft class="w-4 h-4" />
+              </button>
+
+              <button
+                v-for="page in paginationPages"
+                :key="page"
+                @click="goToPage(page)"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
                 :class="[
-                  'w-8 h-8 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center border',
-                  store.currentPage === p
-                    ? 'bg-amber-500 border-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  store.currentPage === page
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                 ]"
               >
-                {{ p }}
+                {{ page }}
+              </button>
+
+              <button
+                @click="goToNextPage"
+                :disabled="store.currentPage === totalPages"
+                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              >
+                <ChevronRight class="w-4 h-4" />
               </button>
             </div>
-
-            <button
-              @click="goToNextPage"
-              :disabled="store.currentPage >= totalPages"
-              class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
-              title="Next Page"
-            >
-              <span class="hidden sm:inline">Next</span>
-              <ChevronRight class="w-4 h-4" />
-            </button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Delivery Task Details Modal -->
-    <div
-      v-if="showDetailsModal && selectedDelivery"
-      class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 font-sans"
-    >
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-6 relative animate-in fade-in zoom-in duration-150">
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center font-black">
-              <Truck class="w-5 h-5" />
+      <!-- Details Modal -->
+      <div
+        v-if="showDetailsModal"
+        class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+        @click.self="closeDetailsModal"
+      >
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Delivery Task Details</h3>
+            <button @click="closeDetailsModal" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+
+          <div v-if="selectedDelivery" class="space-y-3 text-xs">
+            <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500">Destination:</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{ getRoomNumber(selectedDelivery) }}</span>
             </div>
-            <div>
-              <h3 class="font-extrabold text-base text-slate-900 dark:text-white">Delivery Task Details</h3>
-              <p class="text-[11px] font-mono text-slate-400">Task #{{ (selectedDelivery.id || '').substring(0, 8) }}</p>
+            <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500">Order Reference:</span>
+              <span class="font-bold text-slate-900 dark:text-white">#{{ selectedDelivery.order_id || selectedDelivery.id }}</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500">Assigned Waiter:</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{ selectedDelivery.waiter?.name || 'Unassigned' }}</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500">Status:</span>
+              <span class="font-bold uppercase" :class="getStatusBadgeClass(selectedDelivery.status)">{{ selectedDelivery.status }}</span>
             </div>
           </div>
 
           <button
             @click="closeDetailsModal"
-            class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition cursor-pointer"
+            class="w-full py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-xs transition"
           >
-            <X class="w-4 h-4" />
-          </button>
-        </div>
-
-        <!-- Details Grid -->
-        <div class="grid grid-cols-2 gap-3 text-xs">
-          <!-- Room -->
-          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-              <Hotel class="w-3 h-3 text-blue-500" />
-              Location / Room
-            </p>
-            <p class="font-black text-slate-900 dark:text-white text-sm">
-              {{ getRoomNumber(selectedDelivery) }}
-            </p>
-          </div>
-
-          <!-- Status -->
-          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-              <CheckCircle2 class="w-3 h-3 text-emerald-500" />
-              Delivery Status
-            </p>
-            <span
-              :class="[
-                'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border mt-0.5',
-                getStatusBadgeClass(selectedDelivery.status)
-              ]"
-            >
-              {{ (selectedDelivery.status || 'N/A').replace(/_/g, ' ') }}
-            </span>
-          </div>
-
-          <!-- Waiter -->
-          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-              <User class="w-3 h-3 text-amber-500" />
-              Assigned Waiter
-            </p>
-            <p class="font-extrabold text-slate-900 dark:text-white">
-              {{ selectedDelivery.waiter?.user?.name || selectedDelivery.waiter?.name || 'Unassigned' }}
-            </p>
-          </div>
-
-          <!-- Order ID -->
-          <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-              <FileText class="w-3 h-3 text-purple-500" />
-              Order Reference
-            </p>
-            <p class="font-mono font-bold text-slate-900 dark:text-white">
-              #{{ (selectedDelivery.order_id || '').substring(0, 8) || 'N/A' }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Timestamps List -->
-        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 space-y-2 text-xs">
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-            <Calendar class="w-3 h-3 text-blue-500" />
-            Task Timeline
-          </p>
-
-          <div class="flex justify-between py-1 border-b border-slate-200/40 dark:border-slate-800/60">
-            <span class="text-slate-500">Assigned At:</span>
-            <span class="font-bold text-slate-900 dark:text-white">
-              {{ selectedDelivery.assigned_at ? new Date(selectedDelivery.assigned_at).toLocaleString() : 'N/A' }}
-            </span>
-          </div>
-
-          <div class="flex justify-between py-1 border-b border-slate-200/40 dark:border-slate-800/60">
-            <span class="text-slate-500">Assignment Method:</span>
-            <span class="font-extrabold uppercase text-blue-600 dark:text-blue-400">
-              {{ selectedDelivery.assignment_type || 'N/A' }}
-            </span>
-          </div>
-
-          <div v-if="selectedDelivery.remarks" class="pt-1">
-            <span class="text-slate-500 block mb-0.5">Remarks:</span>
-            <span class="font-medium text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-900 p-2 rounded-xl block border border-slate-200 dark:border-slate-800">
-              {{ selectedDelivery.remarks }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="pt-2 flex justify-end">
-          <button
-            @click="closeDetailsModal"
-            class="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-extrabold text-xs transition cursor-pointer"
-          >
-            Close Window
+            Close
           </button>
         </div>
       </div>

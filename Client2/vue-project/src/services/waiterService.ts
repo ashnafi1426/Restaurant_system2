@@ -8,25 +8,25 @@ import type {
 } from '@/types/waiter'
 class WaiterService {
   async getDashboard(): Promise<WaiterDashboard> {
-    console.log('🔵 [SERVICE] getDashboard API call initiated')
+    console.log(' [SERVICE] getDashboard API call initiated')
     try {
       const response = await api.get('/waiter/dashboard')
-      console.log('✅ [SERVICE] getDashboard response received:', {
+      console.log(' [SERVICE] getDashboard response received:', {
         'status': response.status,
         'data': response.data,
         'data.success': response.data?.success,
         'data.data': response.data?.data,
         'today_stats': response.data?.data?.today_stats,
       })
-      
+
       if (response.data && response.data.data) {
-        console.log('📊 [SERVICE] Extracted dashboard data with today_stats:', response.data.data.today_stats)
+        console.log(' [SERVICE] Extracted dashboard data with today_stats:', response.data.data.today_stats)
         return response.data.data
       }
       console.warn('[SERVICE] getDashboard response missing data field', response.data)
       return response.data
     } catch (err: any) {
-      console.error('❌ [SERVICE] getDashboard API error:', {
+      console.error(' [SERVICE] getDashboard API error:', {
         status: err.response?.status,
         message: err.response?.data?.message || err.message,
         data: err.response?.data,
@@ -53,6 +53,10 @@ class WaiterService {
     return response.data.data
   }
 
+  async getReadyForPickupOrders(): Promise<WaiterAssignment[]> {
+    return this.getReadyForPickup()
+  }
+
   async getPendingPickupOrders(): Promise<WaiterAssignment[]> {
     const response = await api.get('/waiter/dashboard/pending-pickup')
     return response.data.data
@@ -61,6 +65,15 @@ class WaiterService {
   async getOnDelivery(): Promise<WaiterAssignment[]> {
     const response = await api.get('/waiter/dashboard/on-delivery')
     return response.data.data
+  }
+
+  async getActiveDeliveries(): Promise<WaiterAssignment[]> {
+    return this.getOnDelivery()
+  }
+
+  async getDeliveryHistory(params: any = {}): Promise<any> {
+    const res = await this.getHistory(params)
+    return res.data || res
   }
 
   async getCompletedDeliveries(limit: number = 10): Promise<WaiterAssignment[]> {
@@ -83,13 +96,13 @@ class WaiterService {
   }
 
   async getQuickStats(): Promise<any> {
-    console.log('🔵 [SERVICE] getQuickStats API call initiated')
+    console.log(' [SERVICE] getQuickStats API call initiated')
     try {
       const response = await api.get('/waiter/dashboard/quick-stats')
       console.log(' [SERVICE] getQuickStats response received:', response.data)
       return response.data.data
     } catch (err: any) {
-      console.error('❌ [SERVICE] getQuickStats API error:', {
+      console.error(' [SERVICE] getQuickStats API error:', {
         status: err.response?.status,
         message: err.response?.data?.message || err.message,
         data: err.response?.data,
@@ -112,7 +125,7 @@ class WaiterService {
     sort_order?: string
     per_page?: number
   } = {}): Promise<{ data: WaiterAssignment[]; pagination: any }> {
-    console.log('🔵 [WAITER SERVICE] Calling getAssignments with params:', params)
+    console.log(' [WAITER SERVICE] Calling getAssignments with params:', params)
     const response = await api.get('/waiter/assignments', { params })
     console.log(' [WAITER SERVICE] getAssignments response:', response.data)
     return {

@@ -118,7 +118,7 @@ class MenuItemController extends Controller
             // Get category_id from category slug
             $category = \App\Models\Category::where('slug', $request->category)->first();
             if (!$category) {
-                \Log::error('❌ Category not found', ['slug' => $request->category]);
+                \Log::error(' Category not found', ['slug' => $request->category]);
                 DB::rollBack();
                 return response()->json([
                     'success' => false,
@@ -157,7 +157,7 @@ class MenuItemController extends Controller
 
                     $data['image'] = $path;
                 } catch (\Exception $e) {
-                    \Log::error('❌ Image upload failed', [
+                    \Log::error(' Image upload failed', [
                         'error' => $e->getMessage(),
                         'trace' => $e->getTraceAsString(),
                     ]);
@@ -170,7 +170,7 @@ class MenuItemController extends Controller
 
                 $data['image'] = $request->image_url;
             } else {
-                \Log::error('❌ No image source provided');
+                \Log::error(' No image source provided');
                 throw new \Exception('Either upload an image file or provide an image URL.');
             }
 
@@ -195,7 +195,7 @@ class MenuItemController extends Controller
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
-            \Log::error('❌ Validation Error', [
+            \Log::error(' Validation Error', [
                 'errors' => $e->errors(),
             ]);
             
@@ -208,7 +208,7 @@ class MenuItemController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            \Log::error('❌ Store failed - Unexpected Error', [
+            \Log::error(' Store failed - Unexpected Error', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -256,7 +256,7 @@ class MenuItemController extends Controller
             // Get category_id from category slug
             $category = \App\Models\Category::where('slug', $request->category)->first();
             if (!$category) {
-                \Log::error('❌ Category not found', ['slug' => $request->category]);
+                \Log::error(' Category not found', ['slug' => $request->category]);
                 DB::rollBack();
                 return response()->json([
                     'success' => false,
@@ -368,7 +368,7 @@ class MenuItemController extends Controller
         } catch (\Throwable $e) {
 
             DB::rollBack();
-            \Log::error('❌ Error deleting menu item', ['id' => $menuItem->id, 'error' => $e->getMessage()]);
+            \Log::error(' Error deleting menu item', ['id' => $menuItem->id, 'error' => $e->getMessage()]);
 
             return response()->json([
 

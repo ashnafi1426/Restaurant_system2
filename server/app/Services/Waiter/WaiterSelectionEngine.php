@@ -12,7 +12,7 @@ class WaiterSelectionEngine
 {
     public function selectBestWaiter(HotelFloor $floor, HotelShift $shift): ?Waiter
     {
-        Log::info('🔵 [SELECTION ENGINE] Starting waiter selection', [
+        Log::info(' [SELECTION ENGINE] Starting waiter selection', [
             'floor_id' => $floor->id,
             'floor_number' => $floor->floor_number,
             'shift_id' => $shift->id,
@@ -76,7 +76,7 @@ class WaiterSelectionEngine
      */
     public function selectWaiterForTable($table, HotelShift $shift): ?Waiter
     {
-        Log::info('🔵 [SELECTION ENGINE] Starting waiter selection for table', [
+        Log::info(' [SELECTION ENGINE] Starting waiter selection for table', [
             'table_id' => $table->id,
             'table_number' => $table->table_number,
             'shift_id' => $shift->id,
@@ -103,7 +103,7 @@ class WaiterSelectionEngine
                 ->first();
 
             if ($waiter) {
-                Log::info('✅ [SELECTION] Waiter selected for table', [
+                Log::info(' [SELECTION] Waiter selected for table', [
                     'waiter_id' => $waiter->id,
                     'name' => $waiter->user->email ?? 'Unknown',
                     'table_id' => $table->id,
@@ -116,7 +116,7 @@ class WaiterSelectionEngine
                 return $waiter;
             }
         } catch (Throwable $e) {
-            Log::error('❌ [SELECTION] Error selecting waiter for table', [
+            Log::error(' [SELECTION] Error selecting waiter for table', [
                 'error' => $e->getMessage(),
                 'table_id' => $table->id,
                 'shift_id' => $shift->id,
@@ -125,7 +125,7 @@ class WaiterSelectionEngine
             return null;
         }
 
-        Log::warning('⚠️ [SELECTION] NO WAITER ASSIGNED TO TABLE', [
+        Log::warning(' [SELECTION] NO WAITER ASSIGNED TO TABLE', [
             'table_id' => $table->id,
             'table_number' => $table->table_number,
             'shift_id' => $shift->id,
@@ -164,7 +164,7 @@ class WaiterSelectionEngine
             ]);
 
             if ($assignments->isEmpty()) {
-                Log::warning('❌ [TIER 1-3] No floor assignments found - floor may not be staffed', [
+                Log::warning(' [TIER 1-3] No floor assignments found - floor may not be staffed', [
                     'floor_id' => $floor->id,
                     'floor_number' => $floor->floor_number,
                     'date' => today()->toDateString(),
@@ -175,7 +175,7 @@ class WaiterSelectionEngine
             }
 
         } catch (Throwable $e) {
-            Log::error('❌ [TIER 1-3] Error fetching floor assignments', [
+            Log::error(' [TIER 1-3] Error fetching floor assignments', [
                 'error' => $e->getMessage(),
                 'floor_id' => $floor->id,
                 'trace' => $e->getTraceAsString(),
@@ -198,7 +198,7 @@ class WaiterSelectionEngine
                 default => "TIER {$tierNumber}",
             };
 
-            Log::info("🔵 [{$tierLabel}] Evaluating {$priority} waiter", [
+            Log::info(" [{$tierLabel}] Evaluating {$priority} waiter", [
                 'waiter_id' => $waiter->id ?? 'NULL',
                 'name' => $waiterName,
                 'priority' => $priority,
@@ -228,7 +228,7 @@ class WaiterSelectionEngine
 
             // VALIDATION: Check if this waiter is eligible
             if ($this->isWaiterEligible($waiter, $shift, $priority)) {
-                Log::info("✅ [{$tierLabel}] Eligible waiter found - ASSIGNMENT WILL PROCEED", [
+                Log::info(" [{$tierLabel}] Eligible waiter found - ASSIGNMENT WILL PROCEED", [
                     'waiter_id' => $waiter->id,
                     'name' => $waiterName,
                     'priority' => $priority,
@@ -236,12 +236,12 @@ class WaiterSelectionEngine
                     'remaining_capacity' => $waiter->maximum_orders - $waiter->current_orders,
                     'message' => "Order from {$floor->floor_number} will be assigned to {$waiterName}",
                 ]);
-                return $waiter;  // ✅ Found eligible waiter - return immediately
+                return $waiter;  //  Found eligible waiter - return immediately
             }
 
             // Log why waiter was rejected (for debugging)
             $reason = $this->getIneligibilityReason($waiter, $shift);
-            Log::warning("❌ [{$tierLabel}] Waiter rejected - {$priority} unavailable", [
+            Log::warning(" [{$tierLabel}] Waiter rejected - {$priority} unavailable", [
                 'waiter_id' => $waiter->id,
                 'name' => $waiterName,
                 'reason' => $reason,
@@ -257,7 +257,7 @@ class WaiterSelectionEngine
         }
 
         // No eligible waiter found in floor staff (all primary/secondary/backup unavailable)
-        Log::warning('❌ [TIER 1-3] All floor staff unavailable', [
+        Log::warning(' [TIER 1-3] All floor staff unavailable', [
             'floor_id' => $floor->id,
             'floor_number' => $floor->floor_number,
             'assignments_checked' => $assignments->count(),
@@ -301,7 +301,7 @@ class WaiterSelectionEngine
                 ->first();
 
             if ($sameFloorWaiter) {
-                Log::info('✅ [TIER 7A] Found available waiter from SAME FLOOR (non-primary)', [
+                Log::info(' [TIER 7A] Found available waiter from SAME FLOOR (non-primary)', [
                     'waiter_id' => $sameFloorWaiter->id,
                     'name' => $sameFloorWaiter->user->name ?? 'Unknown',
                     'current_orders' => $sameFloorWaiter->current_orders,
@@ -329,7 +329,7 @@ class WaiterSelectionEngine
                 ->first();
 
             if (!$bestWaiter) {
-                Log::warning('❌ [TIER 7] No available waiters in entire hotel', [
+                Log::warning(' [TIER 7] No available waiters in entire hotel', [
                     'floor_id' => $floor->id,
                     'total_active_waiters' => $totalActive,
                     'timestamp' => now(),
@@ -340,7 +340,7 @@ class WaiterSelectionEngine
 
             $assignedFloors = $bestWaiter->floorAssignments->pluck('floor.floor_number')->toArray();
 
-            Log::info('✅ [TIER 7B] Best available waiter selected from OTHER FLOORS', [
+            Log::info(' [TIER 7B] Best available waiter selected from OTHER FLOORS', [
                 'waiter_id' => $bestWaiter->id,
                 'name' => $bestWaiter->user->name ?? 'Unknown',
                 'current_orders' => $bestWaiter->current_orders,
@@ -369,7 +369,7 @@ class WaiterSelectionEngine
     private function isWaiterEligible(Waiter $waiter, HotelShift $shift, string $priority = ''): bool
     {
         if ($waiter->status !== 'active') {
-            Log::debug('[VALIDATION] ❌ Status check failed', [
+            Log::debug('[VALIDATION]  Status check failed', [
                 'waiter_id' => $waiter->id,
                 'name' => $waiter->user->name,
                 'status' => $waiter->status,
@@ -379,7 +379,7 @@ class WaiterSelectionEngine
             return false;
         }
         if ($waiter->availability !== 'available') {
-            Log::debug('[VALIDATION] ❌ Availability check failed', [
+            Log::debug('[VALIDATION]  Availability check failed', [
                 'waiter_id' => $waiter->id,
                 'name' => $waiter->user->name,
                 'availability' => $waiter->availability,
@@ -391,7 +391,7 @@ class WaiterSelectionEngine
         }
 
         if ($waiter->current_orders >= $waiter->maximum_orders) {
-            Log::debug('[VALIDATION] ❌ Workload check failed', [
+            Log::debug('[VALIDATION]  Workload check failed', [
                 'waiter_id' => $waiter->id,
                 'name' => $waiter->user->name,
                 'current_orders' => $waiter->current_orders,

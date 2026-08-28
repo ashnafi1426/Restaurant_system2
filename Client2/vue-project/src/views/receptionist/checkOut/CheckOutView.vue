@@ -1,9 +1,28 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import checkInService from '@/services/checkInService'
-import PaginationBar from '@/components/common/PaginationBar.vue'
 import { useAuthStore } from '@/stores/auth'
+import {
+  LogOut,
+  Users,
+  Search,
+  Filter,
+  X,
+  RefreshCw,
+  Maximize2,
+  Minimize2,
+  RotateCcw,
+  BedDouble,
+  Clock,
+  Calendar,
+  UserCheck,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  AlertCircle,
+  Building,
+} from 'lucide-vue-next'
 
 const authStore = useAuthStore()
 
@@ -40,107 +59,194 @@ interface CheckIn {
   checked_out_at: string | null
 }
 
-interface PaginationMeta {
-  current_page: number
-  last_page: number
-  per_page: number
-  total: number
-}
-
 const checkIns = ref<CheckIn[]>([])
 const loading = ref(false)
 const searchQuery = ref('')
+const filterRoom = ref('')
+const filterDeparture = ref<'all' | 'due_today' | 'overdue'>('all')
+
+const isFilterOpen = ref(false)
+const isFullscreen = ref(false)
+
 const currentPage = ref(1)
 const perPage = ref(10)
-const paginationMeta = ref<PaginationMeta>({
-  current_page: 1,
-  last_page: 1,
-  per_page: 10,
-  total: 0,
-})
+const totalCheckInsCount = ref(0)
 
 const showCheckOutModal = ref(false)
 const selectedCheckIn = ref<CheckIn | null>(null)
 const processingCheckOut = ref(false)
+const toastMessage = ref<string | null>(null)
 
 const userRoleName = computed(() => {
   const role = String(authStore.user?.role || 'Staff').toLowerCase()
   return role.charAt(0).toUpperCase() + role.slice(1)
 })
 
-// Filter active check-ins
+const showToast = (msg: string) => {
+  toastMessage.value = msg
+  setTimeout(() => {
+    toastMessage.value = null
+  }, 3000)
+}
+
+// Active in-house guests only for checkout view
 const activeCheckIns = computed(() => {
   return checkIns.value.filter((checkIn) => !checkIn.checked_out_at)
 })
 
+const dueTodayCount = computed(() => {
+  const todayStr = new Date().toISOString().slice(0, 10)
+  return activeCheckIns.value.filter((c) => (c.expected_check_out_at || '').startsWith(todayStr)).length
+})
+
+const overdueCount = computed(() => {
+  const now = new Date()
+  return activeCheckIns.value.filter((c) => {
+    if (!c.expected_check_out_at) return false
+    return new Date(c.expected_check_out_at) < now
+  }).length
+})
+
 const filteredCheckIns = computed(() => {
-  if (!searchQuery.value) {
-    return activeCheckIns.value
+  let list = activeCheckIns.value
+
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase().trim()
+    list = list.filter((checkIn) => {
+      const guestName = `${checkIn.guest?.first_name || ''} ${checkIn.guest?.last_name || ''}`.toLowerCase()
+      const roomNumber = String(checkIn.room?.room_number || '').toLowerCase()
+      const reservationNumber = (checkIn.reservation?.reservation_number || '').toLowerCase()
+      const email = (checkIn.guest?.email || '').toLowerCase()
+      const phone = String(checkIn.guest?.phone || '').toLowerCase()
+
+      return (
+        guestName.includes(query) ||
+        roomNumber.includes(query) ||
+        reservationNumber.includes(query) ||
+        email.includes(query) ||
+        phone.includes(query)
+      )
+    })
   }
 
-  const query = searchQuery.value.toLowerCase().trim()
-  return activeCheckIns.value.filter((checkIn) => {
-    const guestName = `${checkIn.guest?.first_name || ''} ${checkIn.guest?.last_name || ''}`.toLowerCase()
-    const roomNumber = (checkIn.room?.room_number || '').toLowerCase()
-    const reservationNumber = (checkIn.reservation?.reservation_number || '').toLowerCase()
-    const email = (checkIn.guest?.email || '').toLowerCase()
-    const phone = checkIn.guest?.phone || ''
+  if (filterRoom.value.trim()) {
+    const rQuery = filterRoom.value.toLowerCase().trim()
+    list = list.filter((c) => String(c.room?.room_number || '').toLowerCase().includes(rQuery))
+  }
 
-    return (
-      guestName.includes(query) ||
-      roomNumber.includes(query) ||
-      reservationNumber.includes(query) ||
-      email.includes(query) ||
-      phone.includes(query)
-    )
-  })
+  if (filterDeparture.value === 'due_today') {
+    const todayStr = new Date().toISOString().slice(0, 10)
+    list = list.filter((c) => (c.expected_check_out_at || '').startsWith(todayStr))
+  } else if (filterDeparture.value === 'overdue') {
+    const now = new Date()
+    list = list.filter((c) => c.expected_check_out_at && new Date(c.expected_check_out_at) < now)
+  }
+
+  return list
+})
+
+const totalRecords = computed(() => filteredCheckIns.value.length)
+const lastPage = computed(() => Math.ceil(totalRecords.value / perPage.value) || 1)
+
+const paginatedCheckIns = computed(() => {
+  const start = (currentPage.value - 1) * perPage.value
+  const end = start + perPage.value
+  return filteredCheckIns.value.slice(start, end)
+})
+
+const showingFrom = computed(() => {
+  if (totalRecords.value === 0) return 0
+  return (currentPage.value - 1) * perPage.value + 1
+})
+
+const showingTo = computed(() => {
+  return Math.min(currentPage.value * perPage.value, totalRecords.value)
+})
+
+const paginationPages = computed(() => {
+  const pages: number[] = []
+  const max = lastPage.value
+  const cur = currentPage.value
+
+  for (let i = Math.max(1, cur - 2); i <= Math.min(max, cur + 2); i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+watch([searchQuery, filterRoom, filterDeparture], () => {
+  currentPage.value = 1
 })
 
 const loadCheckIns = async () => {
   loading.value = true
   try {
     const response = await checkInService.getAll({
-      page: currentPage.value,
-      per_page: perPage.value,
-      search: searchQuery.value,
+      page: 1,
+      per_page: 100,
       status: 'active',
     })
 
     if (response.data) {
       if (response.data.data) {
         checkIns.value = response.data.data
-        paginationMeta.value = {
-          current_page: response.data.current_page || currentPage.value,
-          last_page: response.data.last_page || 1,
-          per_page: response.data.per_page || perPage.value,
-          total: response.data.total || response.data.data.length,
-        }
+        totalCheckInsCount.value = response.data.total || response.data.data.length
       } else if (Array.isArray(response.data)) {
         checkIns.value = response.data
-        paginationMeta.value = {
-          current_page: 1,
-          last_page: 1,
-          per_page: response.data.length || 10,
-          total: response.data.length,
-        }
+        totalCheckInsCount.value = response.data.length
       }
     }
   } catch (error: any) {
     console.error('Failed to load check-ins:', error)
+    showToast('Failed to load check-ins')
   } finally {
     loading.value = false
   }
 }
 
-const handlePageChange = (newPage: number) => {
-  currentPage.value = newPage
+const handleRefresh = async () => {
+  await loadCheckIns()
+  showToast('Guest departures refreshed')
+}
+
+const handleResetFilters = () => {
+  searchQuery.value = ''
+  filterRoom.value = ''
+  filterDeparture.value = 'all'
+  currentPage.value = 1
   loadCheckIns()
 }
 
-const handlePerPageChange = (newPerPage: number) => {
-  perPage.value = newPerPage
+const toggleFilter = () => {
+  isFilterOpen.value = !isFilterOpen.value
+}
+
+const toggleFullscreen = () => {
+  isFullscreen.value = !isFullscreen.value
+}
+
+const changePerPage = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  perPage.value = Number(target.value)
   currentPage.value = 1
-  loadCheckIns()
+}
+
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= lastPage.value) {
+    currentPage.value = page
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < lastPage.value) {
+    currentPage.value++
+  }
 }
 
 const openCheckOutModal = (checkIn: CheckIn) => {
@@ -161,11 +267,11 @@ const confirmCheckOut = async () => {
     await checkInService.checkOut(selectedCheckIn.value.id)
     await loadCheckIns()
     closeCheckOutModal()
-    alert('Guest checked out successfully!')
+    showToast('Guest checked out successfully!')
   } catch (error: any) {
     console.error('Check-out failed:', error)
-    const errorMessage = error.response?.data?.message || error.message || 'Check-out failed'
-    alert(`Check-out failed: ${errorMessage}`)
+    const msg = error.response?.data?.message || error.message || 'Check-out failed'
+    showToast(`Check-out failed: ${msg}`)
   } finally {
     processingCheckOut.value = false
   }
@@ -180,11 +286,26 @@ const calculateStayDuration = (checkedInAt: string): string => {
   const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
 
   if (diffDays === 0) {
-    return `${diffHours} hour${diffHours !== 1 ? 's' : ''}`
+    return `${diffHours} hr${diffHours !== 1 ? 's' : ''}`
   } else if (diffDays === 1) {
-    return `1 day, ${diffHours} hour${diffHours !== 1 ? 's' : ''}`
+    return `1 day, ${diffHours} hr`
   } else {
     return `${diffDays} days`
+  }
+}
+
+const formatDate = (date?: string) => {
+  if (!date) return '—'
+  try {
+    const d = new Date(date)
+    return d.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return date
   }
 }
 
@@ -195,181 +316,408 @@ onMounted(() => {
 
 <template>
   <DashboardLayout>
-    <div class="w-full min-h-screen bg-gray-50 dark:bg-slate-900 p-6 space-y-6">
-      <!-- Header -->
-      <div class="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl p-6 shadow-xs">
-        <div class="flex items-start justify-between flex-wrap gap-4">
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
+      :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
+    >
+      <!-- Toast Notification -->
+      <div v-if="toastMessage" class="fixed bottom-6 right-6 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-800 text-xs font-bold">
+        <CheckCircle2 class="w-4 h-4 text-emerald-500" />
+        <span>{{ toastMessage }}</span>
+      </div>
+
+      <!-- Header Section -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-rose-600 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+            <LogOut class="w-5 h-5 stroke-[2.2]" />
+          </div>
           <div>
-            <div class="flex items-center gap-2 mb-1">
-              <h1 class="text-2xl font-bold text-gray-900 dark:text-white">🚪 Guest Check-Out</h1>
-              <span class="text-xs font-bold uppercase bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2.5 py-0.5 rounded-full border border-purple-500/20">
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Guest Check-Out Management</h1>
+              <span class="text-[10px] uppercase font-black bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-md border border-purple-500/20">
                 {{ userRoleName }}
               </span>
             </div>
-            <p class="text-gray-500 dark:text-slate-400 text-sm">
-              Manage guest departures, room release, and occupancy records
-            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage guest departures, room release, and real-time occupancy records.</p>
           </div>
+        </div>
+      </div>
 
-          <!-- Stats Card -->
-          <div class="bg-gradient-to-br from-rose-500 to-rose-600 text-white px-6 py-3 rounded-2xl shadow-md">
-            <p class="text-xs font-bold opacity-90 uppercase tracking-wider">Active Guests</p>
-            <p class="text-3xl font-extrabold mt-0.5">{{ paginationMeta.total || activeCheckIns.length }}</p>
+      <!-- Statistics Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Active Guests In-House -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active In-House Guests</p>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ activeCheckIns.length }}</h3>
+          </div>
+          <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+            <UserCheck class="w-5 h-5" />
           </div>
         </div>
 
-        <!-- Search Bar -->
-        <div class="mt-5">
-          <div class="relative">
+        <!-- Departures Due Today -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Due Today</p>
+            <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ dueTodayCount }}</h3>
+          </div>
+          <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <Clock class="w-5 h-5" />
+          </div>
+        </div>
+
+        <!-- Overdue Departures -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Overdue Checkouts</p>
+            <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ overdueCount }}</h3>
+          </div>
+          <div class="p-3 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+            <AlertCircle class="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Bar Toolbar -->
+      <div
+        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+      >
+        <!-- Left: Search & Filter Toggle -->
+        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
+          <!-- Search Input -->
+          <div class="relative flex-1">
+            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
               v-model="searchQuery"
-              @keyup.enter="loadCheckIns"
               type="text"
-              placeholder="Search by guest name, room number, email, phone, or reservation ref..."
-              class="w-full px-4 py-3 pl-12 border border-gray-300 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-rose-500/50 focus:border-transparent dark:bg-slate-950 dark:text-white text-sm font-semibold"
+              placeholder="Search active guests by name, room #, booking reference, phone..."
+              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 dark:focus:border-purple-400 transition outline-none"
             />
-            <svg
-              class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          </div>
+
+          <!-- Filter Toggle Button -->
+          <button
+            type="button"
+            @click="toggleFilter"
+            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            :class="[
+              isFilterOpen
+                ? 'bg-purple-600/10 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border border-purple-500/40'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+            ]"
+          >
+            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
+            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+          </button>
+        </div>
+
+        <!-- Right: Action Buttons -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <!-- Refresh Button -->
+          <button
+            type="button"
+            @click="handleRefresh"
+            :disabled="loading"
+            title="Refresh"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+          >
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+          </button>
+
+          <!-- Fullscreen Toggle -->
+          <button
+            type="button"
+            @click="toggleFullscreen"
+            title="Toggle Fullscreen"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+          >
+            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Expandable Filter Panel -->
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="transform -translate-y-2 opacity-0 scale-98"
+        enter-to-class="transform translate-y-0 opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="transform translate-y-0 opacity-100 scale-100"
+        leave-to-class="transform -translate-y-2 opacity-0 scale-98"
+      >
+        <div
+          v-if="isFilterOpen"
+          class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
+        >
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+            <!-- Departure Schedule -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Departure Schedule
+              </label>
+              <select
+                v-model="filterDeparture"
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 dark:focus:border-purple-400 transition cursor-pointer font-medium outline-none"
+              >
+                <option value="all">All In-House Guests</option>
+                <option value="due_today">Due Today</option>
+                <option value="overdue">Overdue Departures</option>
+              </select>
+            </div>
+
+            <!-- Room Filter -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Filter by Room #
+              </label>
+              <input
+                v-model="filterRoom"
+                type="text"
+                placeholder="e.g. 101, 204..."
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 dark:focus:border-purple-400 transition outline-none"
               />
-            </svg>
+            </div>
+
+            <!-- Reset Button -->
+            <div class="flex items-end">
+              <button
+                type="button"
+                @click="handleResetFilters"
+                class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer h-[38px]"
+              >
+                <RotateCcw class="w-3.5 h-3.5" />
+                <span>Reset Filters</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </Transition>
 
-      <!-- Loading State -->
-      <div v-if="loading" class="flex items-center justify-center min-h-[300px]">
-        <div class="text-center">
-          <div class="w-12 h-12 border-4 border-rose-200 border-t-rose-600 rounded-full animate-spin mx-auto mb-3"></div>
-          <p class="text-xs font-semibold text-gray-600 dark:text-slate-400">Loading active guests...</p>
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div
-        v-else-if="filteredCheckIns.length === 0"
-        class="flex flex-col items-center justify-center min-h-[300px] text-center px-8 bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700"
-      >
-        <div class="p-4 bg-gray-100 dark:bg-slate-700 rounded-full mb-3">
-          <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <h3 class="text-base font-bold text-gray-900 dark:text-white mb-1">No Active Guests Found</h3>
-        <p class="text-xs text-gray-500 dark:text-slate-400">
-          {{ searchQuery ? 'No guests found matching your search term.' : 'All registered guests have been checked out.' }}
-        </p>
-      </div>
-
-      <!-- Check-Ins Table + Pagination -->
-      <div v-else class="space-y-4">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xs border border-gray-200 dark:border-slate-700 overflow-hidden">
+      <!-- Check-Out Table Container -->
+      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+        <!-- Desktop Table View -->
+        <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
-            <thead class="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
-              <tr>
-                <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-slate-300 uppercase">Guest</th>
-                <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-slate-300 uppercase">Room</th>
-                <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-slate-300 uppercase">Booking Ref</th>
-                <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-slate-300 uppercase">Check-In Time</th>
-                <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-slate-300 uppercase">Stay Duration</th>
-                <th class="px-4 py-3 text-xs font-bold text-gray-600 dark:text-slate-300 uppercase">Expected Out</th>
-                <th class="px-4 py-3 text-center text-xs font-bold text-gray-600 dark:text-slate-300 uppercase">Action</th>
+            <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+              <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">Guest</th>
+                <th class="py-3 px-4 whitespace-nowrap">Room & Type</th>
+                <th class="py-3 px-4 whitespace-nowrap">Booking Ref</th>
+                <th class="py-3 px-4 whitespace-nowrap">Check-In Time</th>
+                <th class="py-3 px-4 whitespace-nowrap">Stay Duration</th>
+                <th class="py-3 px-4 whitespace-nowrap">Expected Departure</th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Action</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100 dark:divide-slate-700/60 bg-white dark:bg-slate-800">
+            <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
               <tr
-                v-for="checkIn in filteredCheckIns"
+                v-for="checkIn in paginatedCheckIns"
                 :key="checkIn.id"
-                class="hover:bg-gray-50/80 dark:hover:bg-slate-700/50 transition"
+                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
               >
-                <td class="px-4 py-3">
-                  <div class="text-xs font-bold text-gray-900 dark:text-white">
-                    {{ checkIn.guest?.first_name }} {{ checkIn.guest?.last_name }}
+                <!-- Guest -->
+                <td class="py-3 px-4 pl-5 whitespace-nowrap">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 font-black flex items-center justify-center text-xs border border-purple-500/20 flex-shrink-0">
+                      {{ (checkIn.guest?.first_name || 'G').charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                      <div class="font-bold text-slate-900 dark:text-white">
+                        {{ checkIn.guest?.first_name }} {{ checkIn.guest?.last_name }}
+                      </div>
+                      <div class="text-[10px] text-slate-400 font-medium">
+                        {{ checkIn.guest?.phone || checkIn.guest?.email || 'No contact' }}
+                      </div>
+                    </div>
                   </div>
-                  <div class="text-[11px] text-gray-500 dark:text-slate-400 font-medium">{{ checkIn.guest?.phone }}</div>
                 </td>
-                <td class="px-4 py-3">
-                  <div class="text-xs font-black text-slate-900 dark:text-white">
-                    Room {{ checkIn.room?.room_number }}
-                  </div>
-                  <div class="text-[11px] text-gray-500 dark:text-slate-400 font-medium">
-                    {{ checkIn.room?.room_type?.name || 'Standard' }}
+
+                <!-- Room & Type -->
+                <td class="py-3 px-4 whitespace-nowrap">
+                  <div class="flex items-center gap-2">
+                    <span class="font-black text-slate-900 dark:text-white font-mono text-xs sm:text-sm">
+                      Room {{ checkIn.room?.room_number }}
+                    </span>
+                    <span v-if="checkIn.room?.room_type?.name" class="text-[10px] text-slate-400 font-medium">
+                      ({{ checkIn.room.room_type.name }})
+                    </span>
                   </div>
                 </td>
-                <td class="px-4 py-3">
-                  <span class="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">
-                    {{ checkIn.reservation?.reservation_number || 'N/A' }}
+
+                <!-- Booking Ref -->
+                <td class="py-3 px-4 whitespace-nowrap">
+                  <span class="font-mono text-xs font-semibold text-purple-600 dark:text-purple-400">
+                    {{ checkIn.reservation?.reservation_number || `#${checkIn.id.slice(-6)}` }}
                   </span>
                 </td>
-                <td class="px-4 py-3">
-                  <div class="text-xs font-semibold text-gray-900 dark:text-white">
-                    {{ checkIn.checked_in_at ? new Date(checkIn.checked_in_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' }}
-                  </div>
-                  <div class="text-[11px] text-gray-500 dark:text-slate-400 font-mono">
-                    {{ checkIn.checked_in_at ? new Date(checkIn.checked_in_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '' }}
+
+                <!-- Check-In Time -->
+                <td class="py-3 px-4 whitespace-nowrap">
+                  <div class="font-medium text-slate-800 dark:text-slate-200">
+                    {{ formatDate(checkIn.checked_in_at) }}
                   </div>
                 </td>
-                <td class="px-4 py-3">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200">
+
+                <!-- Stay Duration -->
+                <td class="py-3 px-4 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                     {{ calculateStayDuration(checkIn.checked_in_at) }}
                   </span>
                 </td>
-                <td class="px-4 py-3">
-                  <div class="text-xs font-semibold text-gray-900 dark:text-white">
-                    {{ checkIn.expected_check_out_at ? new Date(checkIn.expected_check_out_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' }}
+
+                <!-- Expected Departure -->
+                <td class="py-3 px-4 whitespace-nowrap">
+                  <div class="font-medium text-slate-800 dark:text-slate-200">
+                    {{ formatDate(checkIn.expected_check_out_at) }}
                   </div>
                 </td>
-                <td class="px-4 py-3 text-center">
+
+                <!-- Action -->
+                <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
                   <button
                     @click="openCheckOutModal(checkIn)"
-                    class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
                   >
+                    <LogOut class="w-3.5 h-3.5" />
                     <span>Check Out</span>
                   </button>
+                </td>
+              </tr>
+
+              <!-- Empty State -->
+              <tr v-if="paginatedCheckIns.length === 0">
+                <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                  No active in-house guests found matching your criteria.
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <!-- Pagination Bar -->
-        <PaginationBar
-          :pagination="paginationMeta"
-          :role-name="userRoleName"
-          @page-change="handlePageChange"
-          @per-page-change="handlePerPageChange"
-        />
+        <!-- Mobile View -->
+        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+          <div
+            v-for="checkIn in paginatedCheckIns"
+            :key="checkIn.id"
+            class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+          >
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-900 dark:text-white text-sm">
+                {{ checkIn.guest?.first_name }} {{ checkIn.guest?.last_name }}
+              </span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20">
+                {{ calculateStayDuration(checkIn.checked_in_at) }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+              <span>Room {{ checkIn.room?.room_number }}</span>
+              <span>Exp: {{ formatDate(checkIn.expected_check_out_at) }}</span>
+            </div>
+            <div class="flex items-center justify-end pt-1 border-t border-slate-100 dark:border-slate-800 text-xs font-bold">
+              <button
+                @click="openCheckOutModal(checkIn)"
+                class="px-3 py-1.5 bg-rose-600 text-white rounded-xl font-bold text-xs"
+              >
+                Check Out
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Footer -->
+        <div
+          v-if="filteredCheckIns.length > 0"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+        >
+          <div class="text-slate-500 dark:text-slate-400 font-medium">
+            Showing <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
+            <span class="font-bold text-slate-900 dark:text-white">{{ totalRecords }}</span> active guests
+          </div>
+
+          <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-1.5">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
+              <select
+                :value="perPage"
+                @change="changePerPage"
+                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
+              >
+                <option :value="5">5</option>
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-1">
+              <button
+                @click="prevPage"
+                :disabled="currentPage === 1"
+                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              >
+                <ChevronLeft class="w-4 h-4" />
+              </button>
+
+              <button
+                v-for="page in paginationPages"
+                :key="page"
+                @click="goToPage(page)"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                :class="[
+                  currentPage === page
+                    ? 'bg-purple-600 text-white'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ]"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                @click="nextPage"
+                :disabled="currentPage === lastPage"
+                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              >
+                <ChevronRight class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Check Out Modal -->
       <div v-if="showCheckOutModal && selectedCheckIn" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Confirm Guest Check-Out</h3>
-          <p class="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
-            Are you sure you want to check out <strong>{{ selectedCheckIn.guest?.first_name }} {{ selectedCheckIn.guest?.last_name }}</strong> from Room <strong>{{ selectedCheckIn.room?.room_number }}</strong>? This will set room status to Available/Cleaning.
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center flex-shrink-0">
+              <LogOut class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">Confirm Guest Departure</h3>
+              <p class="text-xs text-slate-500">Room release & checkout completion</p>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-950 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+            Check out <strong>{{ selectedCheckIn.guest?.first_name }} {{ selectedCheckIn.guest?.last_name }}</strong> from <strong>Room {{ selectedCheckIn.room?.room_number }}</strong>? This will release the room for cleaning and update status.
           </p>
 
-          <div class="flex justify-end gap-3 pt-2">
+          <div class="flex justify-end gap-2.5 pt-2">
             <button
               @click="closeCheckOutModal"
-              class="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-slate-400 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 transition cursor-pointer"
+              class="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               @click="confirmCheckOut"
               :disabled="processingCheckOut"
-              class="px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition shadow-xs disabled:opacity-50 cursor-pointer"
+              class="px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition shadow-sm shadow-rose-600/20 disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
             >
-              {{ processingCheckOut ? 'Processing...' : 'Confirm Check-Out' }}
+              <LogOut class="w-3.5 h-3.5" />
+              <span>{{ processingCheckOut ? 'Checking out...' : 'Confirm Check-Out' }}</span>
             </button>
           </div>
         </div>

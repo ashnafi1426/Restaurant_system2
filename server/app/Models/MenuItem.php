@@ -12,105 +12,91 @@ class MenuItem extends Model
     use HasFactory, HasUuids;
     public $incrementing = false;
     protected $keyType = 'string';
-
-    
     protected $table = 'menu_items';
-
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
-
         'name',
-
         'description',
-
         'category',
-
         'category_id',
-
         'price',
-
         'image',
-
         'is_available',
-
     ];
     protected $casts = [
-
         'price' => 'decimal:2',
-
         'is_available' => 'boolean',
-
     ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Menu item belongs to a category
-     */
     public function categoryRelation()
     {
         return $this->belongsTo(Category::class, 'category_id');
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Query Scopes
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Available menu items only.
-     */
     public function scopeAvailable($query)
     {
         return $query->where('is_available', true);
     }
-
-    /**
-     * Filter by category.
-     */
     public function scopeCategory($query, $category)
     {
         return $query->where('category', $category);
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Accessors
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Return full image URL.
-     */
     public function getImageUrlAttribute()
     {
         return $this->image 
             ? asset('storage/' . $this->image)
             : null;
     }
-
-    /**
-     * Return formatted price.
-     */
     public function getFormattedPriceAttribute()
     {
         return number_format($this->price, 2);
     }
-
-    /**
-     * Return status text.
-     */
     public function getStatusAttribute()
     {
         return $this->is_available
             ? 'Available'
             : 'Unavailable';
+    }
+
+    /**
+     * Menu item has many reviews
+     */
+    public function reviews()
+    {
+        return $this->hasMany(MenuItemReview::class, 'menu_item_id');
+    }
+
+    /**
+     * Get only approved reviews
+     */
+    public function approvedReviews()
+    {
+        return $this->reviews()->approved();
+    }
+
+    /**
+     * Get average rating
+     */
+    public function getAverageRatingAttribute(): ?float
+    {
+        $avg = $this->approvedReviews()->avg('rating');
+        return $avg ? round($avg, 1) : null;
+    }
+
+    /**
+     * Get review count
+     */
+    public function getReviewCountAttribute(): int
+    {
+        return $this->approvedReviews()->count();
+    }
+
+    /**
+     * Get rating distribution
+     */
+    public function getRatingDistributionAttribute(): array
+    {
+        $distribution = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $distribution[$i] = $this->approvedReviews()->where('rating', $i)->count();
+        }
+        return $distribution;
     }
 }

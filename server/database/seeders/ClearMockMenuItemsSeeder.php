@@ -31,7 +31,7 @@ class ClearMockMenuItemsSeeder extends Seeder
                 'dessert' => MenuItem::where('category', 'dessert')->count(),
             ];
 
-            echo "\n📊 Menu Items Before Deletion:\n";
+            echo "\n Menu Items Before Deletion:\n";
             echo "   Total: {$beforeCounts['total']}\n";
             echo "   - Breakfast: {$beforeCounts['breakfast']}\n";
             echo "   - Lunch: {$beforeCounts['lunch']}\n";
@@ -56,7 +56,7 @@ class ClearMockMenuItemsSeeder extends Seeder
             echo "   Remaining items: {$afterCount}\n";
 
             // Show new statistics
-            echo "\n📊 Menu Statistics After Deletion:\n";
+            echo "\n Menu Statistics After Deletion:\n";
             echo "   Total: {$afterCount}\n";
             echo "   - Breakfast: " . MenuItem::where('category', 'breakfast')->count() . "\n";
             echo "   - Lunch: " . MenuItem::where('category', 'lunch')->count() . "\n";
@@ -68,7 +68,7 @@ class ClearMockMenuItemsSeeder extends Seeder
             echo "   You can now create real menu items via the API.\n\n";
 
         } catch (\Exception $e) {
-            echo "\n❌ Error: " . $e->getMessage() . "\n";
+            echo "\n Error: " . $e->getMessage() . "\n";
             throw $e;
         }
     }

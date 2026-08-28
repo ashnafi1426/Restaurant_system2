@@ -388,7 +388,7 @@ onMounted(async () => {
         is_walk_in: true,
         room_number: null, // Walk-in orders don't have room
       }
-      console.log('✅ [WALK-IN] Got walk-in payment data from sessionStorage:', orderData.value)
+      console.log(' [WALK-IN] Got walk-in payment data from sessionStorage:', orderData.value)
       
       // If tx_ref not in URL, get it from stored data
       if (!txRef.value && data.tx_ref) {
@@ -396,7 +396,7 @@ onMounted(async () => {
         console.log('📋 [WALK-IN] TX Ref from sessionStorage:', txRef.value)
       }
     } catch (error) {
-      console.error('❌ [WALK-IN] Failed to parse walk-in data:', error)
+      console.error(' [WALK-IN] Failed to parse walk-in data:', error)
     }
   } else {
     // Check for room service order data
@@ -409,7 +409,7 @@ onMounted(async () => {
           is_walk_in: false,
         }
         roomNumber.value = data.room_number || 'N/A'
-        console.log('✅ [ROOM SERVICE] Got room service payment data from sessionStorage:', orderData.value)
+        console.log(' [ROOM SERVICE] Got room service payment data from sessionStorage:', orderData.value)
         
         // If tx_ref not in URL, get it from stored data
         if (!txRef.value && data.tx_ref) {
@@ -417,7 +417,7 @@ onMounted(async () => {
           console.log('📋 [ROOM SERVICE] TX Ref from sessionStorage:', txRef.value)
         }
       } catch (error) {
-        console.error('❌ [ROOM SERVICE] Failed to parse room service data:', error)
+        console.error(' [ROOM SERVICE] Failed to parse room service data:', error)
       }
     }
   }
@@ -449,7 +449,7 @@ onMounted(async () => {
       console.log('📡 [VERIFY] Response received:', verifyData)
 
       if (verifyResponse.ok && verifyData.success) {
-        console.log('✅ [ORDER PAYMENT SUCCESS] Payment verified, now completing order...')
+        console.log(' [ORDER PAYMENT SUCCESS] Payment verified, now completing order...')
 
         // Step 2: Complete order based on order type
         let completeEndpoint = ''
@@ -472,7 +472,7 @@ onMounted(async () => {
         console.log('📡 [ORDER COMPLETE] Response received:', completeData)
 
         if (completeResponse.ok && completeData.success) {
-          console.log('✅✅✅ [ORDER CREATED] Order created in database and sent to chef!')
+          console.log(' [ORDER CREATED] Order created in database and sent to chef!')
           console.log('📦 [ORDER CREATED] Payment data:', completeData.payment)
           
           if (completeData.order) {
@@ -508,20 +508,20 @@ onMounted(async () => {
             }
           }
         } else {
-          console.error('❌ [ORDER COMPLETE FAILED] Order completion failed:', completeData.message)
-          console.warn('⚠️ Order may not have been created in database')
+          console.error(' [ORDER COMPLETE FAILED] Order completion failed:', completeData.message)
+          console.warn(' Order may not have been created in database')
         }
       } else {
-        console.error('❌ [VERIFY FAILED] Payment verification failed:', verifyData.message)
-        console.warn('⚠️ Order may not have been created in database')
+        console.error(' [VERIFY FAILED] Payment verification failed:', verifyData.message)
+        console.warn(' Order may not have been created in database')
       }
     } catch (error) {
-      console.error('❌ [VERIFY ERROR] Failed to verify payment:', error)
-      console.warn('⚠️ Order may not have been created in database')
+      console.error(' [VERIFY ERROR] Failed to verify payment:', error)
+      console.warn(' Order may not have been created in database')
     }
   } else {
-    console.error('❌ [CRITICAL ERROR] No transaction reference found!')
-    console.error('❌ Cannot verify payment or create order')
+    console.error(' [CRITICAL ERROR] No transaction reference found!')
+    console.error(' Cannot verify payment or create order')
   }
 
   // Show sections with staggered animation
@@ -549,7 +549,7 @@ onMounted(async () => {
 
   setTimeout(() => {
     showButtons.value = true
-    console.log('✅ [ORDER PAYMENT SUCCESS] All sections visible')
+    console.log(' [ORDER PAYMENT SUCCESS] All sections visible')
   }, 1200)
 
   // Fetch order details in background (after verification completes)
@@ -582,7 +582,7 @@ async function fetchOrderDetails(): Promise<void> {
 
     if (response.ok) {
       const data = await response.json()
-      console.log('✅ [ORDER PAYMENT SUCCESS] Order details fetched:', data)
+      console.log(' [ORDER PAYMENT SUCCESS] Order details fetched:', data)
       
       if (data.success && data.order) {
         orderData.value = {
@@ -618,7 +618,7 @@ async function downloadReceipt(): Promise<void> {
   console.log('📋 [ORDER RECEIPT] Current tx_ref:', txRef.value)
   
   if (!orderData.value) {
-    console.error('❌ [ORDER RECEIPT] No order data available')
+    console.error(' [ORDER RECEIPT] No order data available')
     alert('Error: Order details not found. Please refresh the page and try again.')
     return
   }
@@ -629,7 +629,7 @@ async function downloadReceipt(): Promise<void> {
 
   try {
     console.log('💾 [ORDER RECEIPT] Starting receipt generation...')
-    console.log('📊 [ORDER RECEIPT] Data being sent to receipt service:', {
+    console.log(' [ORDER RECEIPT] Data being sent to receipt service:', {
       order_reference: orderData.value.order_number || 'ORD-' + referenceId.substring(0, 8).toUpperCase(),
       room_number: orderData.value.room_number || roomNumber.value,
       items: orderData.value.items,
@@ -660,11 +660,11 @@ async function downloadReceipt(): Promise<void> {
       special_requests: `Order Items:\n${orderData.value.items?.map((item: any) => `• ${item.name} x${item.quantity} - ${formatPrice(item.total)}`).join('\n') || 'N/A'}`,
     })
     
-    console.log('✅ [ORDER RECEIPT] Receipt generated and downloaded successfully!')
+    console.log(' [ORDER RECEIPT] Receipt generated and downloaded successfully!')
   } catch (error: any) {
-    console.error('❌ [ORDER RECEIPT] Error downloading receipt:', error)
-    console.error('❌ [ORDER RECEIPT] Error message:', error.message)
-    console.error('❌ [ORDER RECEIPT] Error stack:', error.stack)
+    console.error(' [ORDER RECEIPT] Error downloading receipt:', error)
+    console.error(' [ORDER RECEIPT] Error message:', error.message)
+    console.error(' [ORDER RECEIPT] Error stack:', error.stack)
     alert('Failed to generate receipt: ' + error.message)
   } finally {
     isLoading.value = false

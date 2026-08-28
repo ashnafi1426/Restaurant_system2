@@ -59,9 +59,9 @@ const filters = ref<OrderFilterType>({
 |--------------------------------------------------------------------------
 */
 
-const currentPage = computed(() => orderStore.pagination?.current_page || 1)
-const lastPage = computed(() => orderStore.pagination?.last_page || 1)
-const total = computed(() => orderStore.pagination?.total || 0)
+const currentPage = computed(() => orderStore.currentPage || 1)
+const lastPage = computed(() => orderStore.lastPage || 1)
+const total = computed(() => orderStore.total || 0)
 const orders = computed(() => orderStore.orders || [])
 
 onMounted(() => {
@@ -179,24 +179,37 @@ async function deleteOrder() {
   closeDialogs()
   loadOrders()
 }
+
+const isFullscreen = ref(false)
+
+function toggleFullscreen() {
+  isFullscreen.value = !isFullscreen.value
+}
 </script>
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans">
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
+      :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
+    >
       <!-- Header -->
       <OrderHeader @create="openCreate" />
 
       <!-- Statistics -->
       <OrderStatistics :statistics="orderStore.statistics" :loading="orderStore.loading" />
 
-      <!-- Filters -->
+      <!-- Filters & Toolbar -->
       <OrderFilters
         :filters="filters"
         :loading="orderStore.loading"
+        :is-fullscreen="isFullscreen"
         @update:filters="updateFilters"
         @search="searchOrders"
         @reset="resetFilters"
+        @refresh="loadOrders"
+        @create="openCreate"
+        @toggle-fullscreen="toggleFullscreen"
       />
 
       <!-- Table -->

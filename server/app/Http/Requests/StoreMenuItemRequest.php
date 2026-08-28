@@ -113,7 +113,7 @@ class StoreMenuItemRequest extends FormRequest
                 $hasImageUrl = $this->filled('image_url');
 
                 if (!$hasImage && !$hasImageUrl) {
-                    \Log::error('❌ Validation failed: No image provided', [
+                    \Log::error(' Validation failed: No image provided', [
                         'has_file_image' => $hasImage,
                         'filled_image_url' => $hasImageUrl,
                         'image_value' => $this->input('image'),

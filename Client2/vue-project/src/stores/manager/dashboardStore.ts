@@ -68,20 +68,20 @@ export const useManagerDashboardStore = defineStore('managerDashboard', () => {
     try {
       loading.value = true
       error.value = null
-      
+
       console.log('[dashboardStore.loadStatistics] Loading statistics...')
       const response = await managerService.getStatistics()
-      
+
       console.log('[dashboardStore.loadStatistics]  Statistics received from service:', response)
       console.log('[dashboardStore.loadStatistics] Setting statistics.value...')
-      
+
       statistics.value = response
-      
+
       console.log('[dashboardStore.loadStatistics]  statistics.value is now:', statistics.value)
       console.log('[dashboardStore.loadStatistics] Statistics stored successfully')
     } catch (err: any) {
-      console.error('[dashboardStore.loadStatistics] ❌ Failed to load statistics:', err)
-      
+      console.error('[dashboardStore.loadStatistics]  Failed to load statistics:', err)
+
       // Better error messages based on error type
       if (err.response?.status === 401) {
         error.value = 'Authentication failed - please log in again'
@@ -104,12 +104,12 @@ export const useManagerDashboardStore = defineStore('managerDashboard', () => {
 
   async function initialize() {
     console.log('[dashboardStore.initialize] Starting dashboard initialization...')
-    
+
     try {
       await Promise.all([loadDashboard(), loadStatistics()])
       console.log('[dashboardStore.initialize]  Dashboard initialization complete')
     } catch (err: any) {
-      console.error('[dashboardStore.initialize] ❌ Initialization failed:', err)
+      console.error('[dashboardStore.initialize]  Initialization failed:', err)
     }
   }
 

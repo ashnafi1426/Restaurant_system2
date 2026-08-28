@@ -15,7 +15,7 @@ class AssignWaiterListener
     public function handle(OrderReadyEvent $event): void
     {
         try {
-            Log::info('🔵 [LISTENER] AssignWaiterListener.handle() STARTED (SYNCHRONOUS)', [
+            Log::info(' [LISTENER] AssignWaiterListener.handle() STARTED (SYNCHRONOUS)', [
                 'order_id' => $event->order->id,
                 'order_number' => $event->order->order_number,
                 'status' => $event->order->status,
@@ -34,7 +34,7 @@ class AssignWaiterListener
             ]);
 
         } catch (Throwable $e) {
-            Log::error('❌ [LISTENER] AssignWaiterListener error', [
+            Log::error(' [LISTENER] AssignWaiterListener error', [
                 'order_id' => $event->order->id,
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),

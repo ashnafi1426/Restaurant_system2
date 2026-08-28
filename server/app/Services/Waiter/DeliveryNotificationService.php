@@ -29,7 +29,7 @@ class DeliveryNotificationService
             // This triggers NotifyWaiterListener which creates the actual notification
             WaiterAssignedEvent::dispatch($task, $waiter, $task->assignment_type ?? 'automatic');
 
-            Log::info('✅ [NOTIFICATION SERVICE] WaiterAssignedEvent dispatched', [
+            Log::info(' [NOTIFICATION SERVICE] WaiterAssignedEvent dispatched', [
                 'waiter_id'   => $waiter->id,
                 'waiter_name' => $waiter->user->name ?? 'Unknown',
                 'user_id'     => $waiter->user_id,
@@ -41,7 +41,7 @@ class DeliveryNotificationService
             ]);
             
         } catch (Throwable $e) {
-            Log::error('❌ [NOTIFICATION SERVICE] Event dispatch exception', [
+            Log::error(' [NOTIFICATION SERVICE] Event dispatch exception', [
                 'waiter_id'   => $waiter->id,
                 'delivery_id' => $task->id,
                 'error'       => $e->getMessage(),

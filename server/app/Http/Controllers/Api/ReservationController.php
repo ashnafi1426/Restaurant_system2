@@ -51,6 +51,18 @@ class ReservationController extends Controller
             $query->where('room_id', $request->room_id);
         }
 
+        // Filter by room type (Supports ID, UUID, or Type Name)
+        $roomTypeFilter = $request->input('room_type_id') ?: $request->input('room_type');
+        if (!empty($roomTypeFilter)) {
+            $query->whereHas('room', function ($r) use ($roomTypeFilter) {
+                $r->where('room_type_id', $roomTypeFilter)
+                  ->orWhereHas('roomType', function ($rt) use ($roomTypeFilter) {
+                      $rt->where('id', $roomTypeFilter)
+                         ->orWhere('name', 'LIKE', "%{$roomTypeFilter}%");
+                  });
+            });
+        }
+
         // Filter by guest
         if ($request->filled('guest_id')) {
             $query->where('guest_id', $request->guest_id);
@@ -201,7 +213,7 @@ class ReservationController extends Controller
                         'checkin_id' => $reservation->checkIn->id,
                     ]);
                     $reservation->checkIn()->delete();
-                    Log::info('✅ [RESERVATION DELETE] CheckIn record deleted successfully');
+                    Log::info(' [RESERVATION DELETE] CheckIn record deleted successfully');
                 }
 
                 // Disassociate orders linked to this reservation
@@ -223,7 +235,7 @@ class ReservationController extends Controller
                     $reservation->room->update([
                         'status' => 'available',
                     ]);
-                    Log::info('✅ [RESERVATION DELETE] Room status updated', [
+                    Log::info(' [RESERVATION DELETE] Room status updated', [
                         'room_id' => $reservation->room->id,
                         'room_number' => $reservation->room->room_number,
                         'old_status' => $oldStatus,
@@ -233,7 +245,7 @@ class ReservationController extends Controller
 
                 // Delete the reservation
                 $reservation->delete();
-                Log::info('✅ [RESERVATION DELETE] Reservation deleted successfully', [
+                Log::info(' [RESERVATION DELETE] Reservation deleted successfully', [
                     'reservation_id' => $reservation->id,
                 ]);
 
@@ -248,7 +260,7 @@ class ReservationController extends Controller
                 throw $e;
             }
         } catch (\Exception $e) {
-            Log::error('❌ [RESERVATION DELETE] Failed to delete reservation', [
+            Log::error(' [RESERVATION DELETE] Failed to delete reservation', [
                 'reservation_id' => $reservation->id ?? 'unknown',
                 'error' => $e->getMessage(),
                 'error_code' => $e->getCode(),
@@ -419,7 +431,7 @@ class ReservationController extends Controller
 
             // Verify room status was updated
             $room = $reservation->room->fresh();
-            Log::info('✅ [RESERVATION CHECKOUT] Room status updated', [
+            Log::info(' [RESERVATION CHECKOUT] Room status updated', [
                 'reservation_id' => $reservation->id,
                 'room_id' => $room->id,
                 'room_number' => $room->room_number,
@@ -432,7 +444,7 @@ class ReservationController extends Controller
                 $reservation->checkIn()->update([
                     'checked_out_at' => now(),
                 ]);
-                Log::info('✅ [RESERVATION] CheckIn record updated for checkout', [
+                Log::info(' [RESERVATION] CheckIn record updated for checkout', [
                     'reservation_id' => $reservation->id,
                 ]);
             }
