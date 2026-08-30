@@ -16,9 +16,6 @@ class ModerationController extends Controller
         $this->moderationService = $moderationService;
     }
 
-    /**
-     * List reviews filtered by status with pagination.
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -36,9 +33,6 @@ class ModerationController extends Controller
         }
     }
 
-    /**
-     * Approve a review.
-     */
     public function approve(Request $request, string $id): JsonResponse
     {
         try {
@@ -57,9 +51,6 @@ class ModerationController extends Controller
         }
     }
 
-    /**
-     * Reject a review.
-     */
     public function reject(Request $request, string $id): JsonResponse
     {
         try {
@@ -78,9 +69,6 @@ class ModerationController extends Controller
         }
     }
 
-    /**
-     * Permanently delete a review.
-     */
     public function destroy(string $id): JsonResponse
     {
         try {
@@ -97,9 +85,6 @@ class ModerationController extends Controller
         }
     }
 
-    /**
-     * Get moderation statistics.
-     */
     public function stats(): JsonResponse
     {
         try {

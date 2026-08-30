@@ -34,10 +34,6 @@ class OrderController extends Controller
             'statistics' => $statistics,
         ]);
     }
-
-    /**
-     * Store a newly created order.
-     */
     public function store(
         StoreOrderRequest $request
     ): JsonResponse {

@@ -92,26 +92,16 @@ class PasswordResetController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Reset user password.
-     * 
-     * POST /api/reset-password
-     */
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
-        // Rate limiting: 5 attempts per minute per IP
         $key = 'reset-password:' . $request->ip();
-        
         if (RateLimiter::tooManyAttempts($key, 5)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Too many attempts. Please try again later.'
             ], 429);
         }
-        
         RateLimiter::hit($key, 60);
-        
         try {
             // Find password reset record
             $resetRecord = DB::table('password_reset_tokens')

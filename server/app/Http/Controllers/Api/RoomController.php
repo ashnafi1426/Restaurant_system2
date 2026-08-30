@@ -32,10 +32,6 @@ class RoomController extends Controller
                   ->orWhere('floor', 'LIKE', '%' . $search . '%');
             });
         }
-
-        // Only filter by status if explicitly specified in request
-        // For admin room management, show all rooms
-        // For receptionist reservations, pass status=available
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }

@@ -16,9 +16,6 @@ class AnalyticsController extends Controller
         $this->analyticsService = $analyticsService;
     }
 
-    /**
-     * Get detailed statistics for a menu item.
-     */
     public function itemStats(string $id): JsonResponse
     {
         try {
@@ -35,9 +32,6 @@ class AnalyticsController extends Controller
         }
     }
 
-    /**
-     * Get top-rated menu items.
-     */
     public function topRated(Request $request): JsonResponse
     {
         try {
@@ -57,9 +51,6 @@ class AnalyticsController extends Controller
         }
     }
 
-    /**
-     * Get lowest-rated menu items.
-     */
     public function lowestRated(Request $request): JsonResponse
     {
         try {
@@ -79,9 +70,6 @@ class AnalyticsController extends Controller
         }
     }
 
-    /**
-     * Get pending review count.
-     */
     public function pendingCount(): JsonResponse
     {
         try {
@@ -100,9 +88,6 @@ class AnalyticsController extends Controller
         }
     }
 
-    /**
-     * Get review submission trends.
-     */
     public function trends(Request $request): JsonResponse
     {
         try {
@@ -122,9 +107,6 @@ class AnalyticsController extends Controller
         }
     }
 
-    /**
-     * Get overall review system statistics.
-     */
     public function overall(): JsonResponse
     {
         try {

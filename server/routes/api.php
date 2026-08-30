@@ -24,7 +24,7 @@ use App\Http\Controllers\Api\Manager\OccupancyController as ManagerOccupancyCont
 use App\Http\Controllers\Api\Manager\StaffController;
 use App\Http\Controllers\Api\Manager\OperationsController as ManagerOperationsController;
 use App\Http\Controllers\Api\Manager\WaiterController as ManagerWaiterController;
-use App\Http\Controllers\Api\Manager\AnalyticsController;
+use App\Http\Controllers\Api\Manager\AnalyticsController as ManagerAnalyticsController;
 use App\Http\Controllers\Api\Manager\ActivityController as ManagerActivityController;
 use App\Http\Controllers\Api\Manager\SettingsController as ManagerSettingsController;
 use App\Http\Controllers\Api\Manager\ComplaintController;
@@ -63,6 +63,14 @@ use App\Http\Controllers\Api\Rbac\UserRoleController;
 use App\Http\Controllers\Api\Rbac\TemporaryRoleController;
 use App\Http\Controllers\Api\Rbac\AuditLogController;
 use App\Http\Controllers\Api\Rbac\UserDirectPermissionController;
+use App\Http\Controllers\Api\ReceptionReportController;
+use App\Http\Controllers\Api\PublicReviewController;
+use App\Http\Controllers\Api\VotingController;
+use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\ModerationController;
+use App\Http\Controllers\Api\ResponseController;
+use App\Http\Controllers\Api\AnalyticsController;
+use App\Http\Controllers\Api\ReviewNotificationController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -349,11 +357,11 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Reception Reports
         Route::prefix('reception/reports')->group(function () {
-            Route::get('/reservations', [\App\Http\Controllers\Api\ReceptionReportController::class, 'reservationReport']);
-            Route::get('/occupancy', [\App\Http\Controllers\Api\ReceptionReportController::class, 'occupancyReport']);
-            Route::get('/guests', [\App\Http\Controllers\Api\ReceptionReportController::class, 'guestReport']);
-            Route::get('/revenue', [\App\Http\Controllers\Api\ReceptionReportController::class, 'revenueReport']);
-            Route::get('/check-in-out', [\App\Http\Controllers\Api\ReceptionReportController::class, 'checkInOutReport']);
+            Route::get('/reservations', [ReceptionReportController::class, 'reservationReport']);
+            Route::get('/occupancy', [ReceptionReportController::class, 'occupancyReport']);
+            Route::get('/guests', [ReceptionReportController::class, 'guestReport']);
+            Route::get('/revenue', [ReceptionReportController::class, 'revenueReport']);
+            Route::get('/check-in-out', [ReceptionReportController::class, 'checkInOutReport']);
         });
     });
     Route::middleware('role:staff')->prefix('manager')->group(function () {
@@ -494,7 +502,7 @@ Route::middleware('auth:sanctum')->group(function () {
         });
         
         Route::prefix('analytics')->group(function () {
-            Route::get('/', [AnalyticsController::class, 'index']);
+            Route::get('/', [ManagerAnalyticsController::class, 'index']);
         });
         Route::prefix('activities')->group(function () {
             Route::get('/', [ManagerActivityController::class, 'activities']);
@@ -634,70 +642,58 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
 });
-// ============================================================================
-// MENU ITEM REVIEW SYSTEM ROUTES
-// ============================================================================
-
-// Public Review Routes (No authentication required)
 Route::prefix('menu-items/{menuItemId}/reviews')->group(function () {
-    Route::get('/', [App\Http\Controllers\Api\PublicReviewController::class, 'index']); // Get public reviews
+    Route::get('/', [PublicReviewController::class, 'index']);
 });
 
-// Public Review Stats Route (No authentication required - for QR menu display)
-Route::get('/menu-items/{menuItemId}/review-stats', [App\Http\Controllers\Api\PublicReviewController::class, 'stats']); // Get review statistics
+Route::get('/menu-items/{menuItemId}/review-stats', [PublicReviewController::class, 'stats']);
 
-// Public Voting Routes (No authentication required - anonymous voting supported)
 Route::prefix('reviews/{reviewId}')->group(function () {
-    Route::post('/vote', [App\Http\Controllers\Api\VotingController::class, 'vote']); // Vote helpful/not_helpful
-    Route::get('/votes', [App\Http\Controllers\Api\VotingController::class, 'getCounts']); // Get vote counts
+    Route::post('/vote', [VotingController::class, 'vote']);
+    Route::get('/votes', [VotingController::class, 'getCounts']);
 });
 
-// Guest Review Routes (Authentication required for guests)
 Route::middleware('auth:sanctum')->prefix('reviews')->group(function () {
-    Route::post('/', [App\Http\Controllers\Api\ReviewController::class, 'store']); // Create review
-    Route::get('/{id}', [App\Http\Controllers\Api\ReviewController::class, 'show']); // Get review details
-    Route::put('/{id}', [App\Http\Controllers\Api\ReviewController::class, 'update']); // Update pending review
-    Route::delete('/{id}', [App\Http\Controllers\Api\ReviewController::class, 'destroy']); // Delete pending review
+    Route::post('/', [ReviewController::class, 'store']);
+    Route::get('/{id}', [ReviewController::class, 'show']);
+    Route::put('/{id}', [ReviewController::class, 'update']);
+    Route::delete('/{id}', [ReviewController::class, 'destroy']);
 });
 
-// QR Guest Review Route (No authentication required - for QR menu guests)
-Route::post('/guest-reviews', [App\Http\Controllers\Api\ReviewController::class, 'storeGuest']); // Create guest review via QR
+Route::post('/guest-reviews', [ReviewController::class, 'storeGuest']);
 
-// Guest Eligible Items Route
-Route::middleware('auth:sanctum')->get('/guests/{guestId}/eligible-reviews', [App\Http\Controllers\Api\ReviewController::class, 'eligibleItems']);
+Route::middleware('auth:sanctum')->get('/guests/{guestId}/eligible-reviews', [ReviewController::class, 'eligibleItems']);
 
-// Review Moderation Routes (Manager/Admin only)
 Route::middleware(['auth:sanctum', 'role:manager,admin'])->prefix('admin/reviews')->group(function () {
-    Route::get('/', [App\Http\Controllers\Api\ModerationController::class, 'index']); // List reviews with filters
-    Route::post('/{id}/approve', [App\Http\Controllers\Api\ModerationController::class, 'approve']); // Approve review
-    Route::post('/{id}/reject', [App\Http\Controllers\Api\ModerationController::class, 'reject']); // Reject review
-    Route::delete('/{id}', [App\Http\Controllers\Api\ModerationController::class, 'destroy']); // Delete review
-    Route::get('/stats', [App\Http\Controllers\Api\ModerationController::class, 'stats']); // Moderation stats
+    Route::get('/', [ModerationController::class, 'index']);
+    Route::post('/{id}/approve', [ModerationController::class, 'approve']);
+    Route::post('/{id}/reject', [ModerationController::class, 'reject']);
+    Route::delete('/{id}', [ModerationController::class, 'destroy']);
+    Route::get('/stats', [ModerationController::class, 'stats']);
 });
 
-// Management Response Routes (Manager/Admin only)
-Route::middleware(['auth:sanctum', 'role:manager,admin'])->prefix('admin/reviews/{reviewId}/response')->group(function () {
-    Route::post('/', [App\Http\Controllers\Api\ResponseController::class, 'store']); // Create response
+Route::middleware(['auth:sanctum', 'role:manager,admin'])->prefix('admin')->group(function () {
+    Route::prefix('reviews/{reviewId}/response')->group(function () {
+        Route::post('/', [ResponseController::class, 'store']);
+    });
+
+    Route::prefix('responses/{id}')->group(function () {
+        Route::put('/', [ResponseController::class, 'update']);
+        Route::delete('/', [ResponseController::class, 'destroy']);
+    });
 });
 
-Route::middleware(['auth:sanctum', 'role:manager,admin'])->prefix('admin/responses/{id}')->group(function () {
-    Route::put('/', [App\Http\Controllers\Api\ResponseController::class, 'update']); // Update response
-    Route::delete('/', [App\Http\Controllers\Api\ResponseController::class, 'destroy']); // Delete response
-});
-
-// Review Analytics Routes (Manager/Admin only)
 Route::middleware(['auth:sanctum', 'role:manager,admin'])->prefix('admin/analytics')->group(function () {
-    Route::get('/menu-items/{id}/review-stats', [App\Http\Controllers\Api\AnalyticsController::class, 'itemStats']); // Item statistics
-    Route::get('/reviews/top-rated', [App\Http\Controllers\Api\AnalyticsController::class, 'topRated']); // Top-rated items
-    Route::get('/reviews/lowest-rated', [App\Http\Controllers\Api\AnalyticsController::class, 'lowestRated']); // Lowest-rated items
-    Route::get('/reviews/pending-count', [App\Http\Controllers\Api\AnalyticsController::class, 'pendingCount']); // Pending count
-    Route::get('/reviews/trends', [App\Http\Controllers\Api\AnalyticsController::class, 'trends']); // Review trends
-    Route::get('/reviews/overall', [App\Http\Controllers\Api\AnalyticsController::class, 'overall']); // Overall stats
+    Route::get('/menu-items/{id}/review-stats', [AnalyticsController::class, 'itemStats']);
+    Route::get('/reviews/top-rated', [AnalyticsController::class, 'topRated']);
+    Route::get('/reviews/lowest-rated', [AnalyticsController::class, 'lowestRated']);
+    Route::get('/reviews/pending-count', [AnalyticsController::class, 'pendingCount']);
+    Route::get('/reviews/trends', [AnalyticsController::class, 'trends']);
+    Route::get('/reviews/overall', [AnalyticsController::class, 'overall']);
 });
 
-// Review Notification Routes (Authenticated users)
 Route::middleware('auth:sanctum')->prefix('notifications/reviews')->group(function () {
-    Route::get('/', [App\Http\Controllers\Api\ReviewNotificationController::class, 'index']); // Get notifications
-    Route::get('/unread-count', [App\Http\Controllers\Api\ReviewNotificationController::class, 'unreadCount']); // Unread count
-    Route::post('/{id}/read', [App\Http\Controllers\Api\ReviewNotificationController::class, 'markAsRead']); // Mark as read
+    Route::get('/', [ReviewNotificationController::class, 'index']);
+    Route::get('/unread-count', [ReviewNotificationController::class, 'unreadCount']);
+    Route::post('/{id}/read', [ReviewNotificationController::class, 'markAsRead']);
 });

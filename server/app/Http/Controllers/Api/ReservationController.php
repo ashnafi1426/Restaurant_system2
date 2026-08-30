@@ -22,8 +22,6 @@ class ReservationController extends Controller
             'room.roomType',
             'creator'
         ]);
-
-        // Search by booking reference, guest info, room number, or status
         if ($request->filled('search')) {
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {

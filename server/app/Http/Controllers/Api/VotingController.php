@@ -18,10 +18,6 @@ class VotingController extends Controller
         $this->votingService = $votingService;
     }
 
-    /**
-     * Record a helpfulness vote for a review.
-     * No authentication required (supports anonymous voting).
-     */
     public function vote(VoteRequest $request, string $reviewId): JsonResponse
     {
         try {
@@ -35,7 +31,6 @@ class VotingController extends Controller
                 $vote = $this->votingService->voteNotHelpful($reviewId, $guestId, $ipAddress);
             }
             
-            // Get updated vote counts
             $counts = $this->votingService->getVoteCounts($reviewId);
             
             return response()->json([
@@ -58,9 +53,6 @@ class VotingController extends Controller
         }
     }
 
-    /**
-     * Get vote counts for a review.
-     */
     public function getCounts(string $reviewId): JsonResponse
     {
         try {

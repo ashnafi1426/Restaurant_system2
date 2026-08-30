@@ -16,39 +16,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
-/**
- * ============================================================================
- * PaymentController
- * ============================================================================
- * Handles Chapa payment processing for:
- * - Hotel Reservations
- * - Guest QR Food Orders
- * - Payment initialization, verification, and webhook handling
- * 
- * Payment Flow:
- * 1. Initialize payment (create Payment record in 'pending' status)
- * 2. Get checkout URL from Chapa
- * 3. Redirect customer to Chapa
- * 4. Customer completes payment
- * 5. Verify payment status
- * 6. Create associated records (Reservation/Order) only after verification
- * ============================================================================
- */
+
 class PaymentController extends Controller
 {
     /**
      * Chapa Service Instance
      */
     protected ChapaService $chapa;
-
-    /**
-     * Constructor - Inject ChapaService
-     */
     public function __construct(ChapaService $chapa)
     {
         $this->chapa = $chapa;
     }
-
     /**
      * ============================================================================
      * Initialize Payment
@@ -263,12 +241,6 @@ class PaymentController extends Controller
                         // This can be handled manually or retried later
                     }
                 }
-                
-                // ============================================================================
-                // AUTO-CREATE ORDER AFTER PAYMENT VERIFICATION (QR MENU ORDERS)
-                // ============================================================================
-                
-                // Check if this is an order payment (has metadata with order data)
                 if ($payment->metadata && isset($payment->metadata['type']) && $payment->metadata['type'] === 'order') {
                     Log::info('🍽️ [ORDER] Creating order after payment verification', [
                         'payment_id' => $payment->id,

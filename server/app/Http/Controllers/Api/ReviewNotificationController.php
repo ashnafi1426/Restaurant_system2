@@ -16,9 +16,6 @@ class ReviewNotificationController extends Controller
         $this->notificationService = $notificationService;
     }
 
-    /**
-     * Get review notifications for authenticated user.
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -36,9 +33,6 @@ class ReviewNotificationController extends Controller
         }
     }
 
-    /**
-     * Get unread notification count.
-     */
     public function unreadCount(Request $request): JsonResponse
     {
         try {
@@ -58,9 +52,6 @@ class ReviewNotificationController extends Controller
         }
     }
 
-    /**
-     * Mark a notification as read.
-     */
     public function markAsRead(string $id): JsonResponse
     {
         try {

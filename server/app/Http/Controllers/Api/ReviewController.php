@@ -22,9 +22,6 @@ class ReviewController extends Controller
         $this->reviewService = $reviewService;
     }
 
-    /**
-     * Create a new review.
-     */
     public function store(CreateReviewRequest $request): JsonResponse
     {
         try {
@@ -52,16 +49,11 @@ class ReviewController extends Controller
         }
     }
 
-    /**
-     * Create a review from QR menu (no auth required - guest uses QR token).
-     * This allows guests to write reviews without being logged in.
-     */
     public function storeGuest(Request $request): JsonResponse
     {
         try {
-            // Validate the request
             $validated = $request->validate([
-                'order_id' => 'nullable|uuid',  // Make order_id optional - not all QR guests have placed orders
+                'order_id' => 'nullable|uuid',
                 'menu_item_id' => 'required|uuid',
                 'rating' => 'required|integer|between:1,5',
                 'review_text' => 'required|string|min:10|max:500',
@@ -69,7 +61,6 @@ class ReviewController extends Controller
                 'guest_email' => 'required|email',
             ]);
 
-            // Create a temporary guest user or use the order's guest
             $review = $this->reviewService->createGuestReview($validated);
             
             return response()->json([
@@ -100,9 +91,6 @@ class ReviewController extends Controller
         }
     }
 
-    /**
-     * Get a specific review.
-     */
     public function show(string $id): JsonResponse
     {
         try {
@@ -126,9 +114,6 @@ class ReviewController extends Controller
         }
     }
 
-    /**
-     * Update a review (guest owner only, pending only).
-     */
     public function update(UpdateReviewRequest $request, string $id): JsonResponse
     {
         try {
@@ -157,9 +142,6 @@ class ReviewController extends Controller
         }
     }
 
-    /**
-     * Delete a review (guest owner only, pending only).
-     */
     public function destroy(Request $request, string $id): JsonResponse
     {
         try {
@@ -194,9 +176,6 @@ class ReviewController extends Controller
         }
     }
 
-    /**
-     * Get eligible menu items that a guest can review.
-     */
     public function eligibleItems(string $guestId): JsonResponse
     {
         try {

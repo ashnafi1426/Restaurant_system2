@@ -16,10 +16,6 @@ class PublicReviewController extends Controller
         $this->reviewService = $reviewService;
     }
 
-    /**
-     * Get approved reviews for a menu item with pagination.
-     * No authentication required.
-     */
     public function index(Request $request, string $menuItemId): JsonResponse
     {
         try {
@@ -28,7 +24,6 @@ class PublicReviewController extends Controller
             
             $reviews = $this->reviewService->getPublicReviews($menuItemId, $perPage, $sortBy);
             
-            // Transform reviews to public display format
             $reviews->getCollection()->transform(function ($review) {
                 return $review->public_display_data;
             });
@@ -42,11 +37,6 @@ class PublicReviewController extends Controller
         }
     }
 
-    /**
-     * Get review statistics for a menu item.
-     * Returns: average rating, total reviews, rating distribution
-     * No authentication required.
-     */
     public function stats(Request $request, string $menuItemId): JsonResponse
     {
         try {
@@ -54,7 +44,6 @@ class PublicReviewController extends Controller
             
             return response()->json($stats);
         } catch (\Exception $e) {
-            // Return default stats on error
             return response()->json([
                 'menu_item_id' => $menuItemId,
                 'total_reviews' => 0,

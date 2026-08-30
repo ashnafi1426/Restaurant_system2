@@ -17,9 +17,6 @@ class ResponseController extends Controller
         $this->responseService = $responseService;
     }
 
-    /**
-     * Create a management response to a review.
-     */
     public function store(CreateResponseRequest $request, string $reviewId): JsonResponse
     {
         try {
@@ -47,9 +44,6 @@ class ResponseController extends Controller
         }
     }
 
-    /**
-     * Update an existing response.
-     */
     public function update(CreateResponseRequest $request, string $id): JsonResponse
     {
         try {
@@ -75,9 +69,6 @@ class ResponseController extends Controller
         }
     }
 
-    /**
-     * Delete a response.
-     */
     public function destroy(string $id): JsonResponse
     {
         try {
