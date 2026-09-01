@@ -1,16 +1,23 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import DashboardLayout from '../../../layouts/DashboardLayout.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import UserTable from '../../../components/user/UserTable.vue'
 import { useUserStore } from '../../../stores/user'
-import { Plus, Users, UserCheck, UserX } from 'lucide-vue-next'
-import type { User } from '../../../type/user'
+import { useHotelStore } from '../../../stores/hotelStore'
+import { Users, UserCheck, UserX } from 'lucide-vue-next'
+import type { User } from '@/types/user'
 
 const router = useRouter()
 const userStore = useUserStore()
+const hotelStore = useHotelStore()
 
 onMounted(async () => {
+  await userStore.fetchUsers()
+})
+
+// Re-fetch users whenever the selected hotel in the Navbar changes
+watch(() => hotelStore.hotelId, async () => {
   await userStore.fetchUsers()
 })
 
@@ -50,14 +57,6 @@ const refresh = async () => {
           <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">User & Staff Management</h1>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage system accounts, staff roles, and department access.</p>
         </div>
-
-        <button
-          @click="createUser"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-blue-600/20 transition cursor-pointer inline-flex items-center justify-center gap-2"
-        >
-          <Plus class="w-4 h-4 stroke-[3]" />
-          <span>Create User</span>
-        </button>
       </div>
 
       <!-- Stats Cards -->

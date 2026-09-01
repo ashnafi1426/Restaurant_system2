@@ -601,6 +601,24 @@ const router = createRouter({
       meta: { requiresAuth: false, title: '403 Unauthorized' },
     },
     {
+      path: '/admin/hotels',
+      name: 'admin-hotels',
+      component: () => import('@/views/Admin/hotels/HotelManagementView.vue'),
+      meta: { requiresAuth: true, superAdminOnly: true, title: 'Hotel Management' },
+    },
+    {
+      path: '/admin/hotel-admins',
+      name: 'admin-hotel-admins',
+      component: () => import('@/views/Admin/hotels/HotelAdminManagementView.vue'),
+      meta: { requiresAuth: true, superAdminOnly: true, title: 'Hotel Admins' },
+    },
+    {
+      path: '/admin/platform-users',
+      name: 'admin-platform-users',
+      component: () => import('@/views/Admin/hotels/PlatformUsersView.vue'),
+      meta: { requiresAuth: true, superAdminOnly: true, title: 'All Users & Staff' },
+    },
+    {
       path: '/admin/roles',
       name: 'admin-roles',
       component: RoleManagementView,
@@ -628,13 +646,13 @@ const router = createRouter({
       path: '/admin/temporary-roles',
       name: 'admin-temporary-roles',
       component: TemporaryRoleAssignmentView,
-      meta: { requiresAuth: true, permission: 'roles.assign_permissions', title: 'Temporary Roles' },
+      meta: { requiresAuth: true, superAdminOnly: true, title: 'Temporary Roles' },
     },
     {
       path: '/admin/audit-logs',
       name: 'admin-audit-logs',
       component: AuditLogView,
-      meta: { requiresAuth: true, permission: 'audit_logs.view', title: 'Audit Logs' },
+      meta: { requiresAuth: true, superAdminOnly: true, title: 'Audit Logs' },
     },
 
     ...managerRoutes,
@@ -671,8 +689,14 @@ router.beforeEach(async (to) => {
     return true
   }
 
-  // ADMIN SUPER-OVERRIDE: Admin user has unlimited access to all system routes
-  if (authStore.isAdmin) {
+  // 0. Super Admin exclusivity check (Platform / Multi-hotel routes strictly for Super Admin)
+  if (to.meta.superAdminOnly && !authStore.isPlatformAdmin) {
+    console.warn(`[RBAC GUARD] Access denied to ${to.path}. Platform Super Admin privileges required.`)
+    return '/admin'
+  }
+
+  // SUPER ADMIN OVERRIDE: Platform Super Admin user has unlimited access to all system routes
+  if (authStore.isPlatformAdmin) {
     return true
   }
 

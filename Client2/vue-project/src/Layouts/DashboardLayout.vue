@@ -1,14 +1,36 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import Sidebar from '../components/dashboard/Sidebar.vue'
 import Navbar from '../components/dashboard/Navbar.vue'
+import { useRouter } from 'vue-router'
 import { useThemeStore } from '../stores/theme'
 import { useSidebarStore } from '../stores/sidebarStore'
+import { useHotelStore } from '../stores/hotelStore'
+import { useAuthStore } from '../stores/auth'
+import { platformService } from '../services/platformService'
+import { ShieldAlert, LogOut, KeyRound, X } from 'lucide-vue-next'
+
 const themeStore = useThemeStore()
 const sidebarStore = useSidebarStore()
+const hotelStore = useHotelStore()
+const authStore = useAuthStore()
+const router = useRouter()
+
+const showPasswordNotice = ref(true)
+
 onMounted(() => {
   themeStore.initTheme()
 })
+
+const exitPlatformView = async () => {
+  try {
+    await platformService.exitHotelViewMode()
+  } catch (e) {
+    // ignore
+  }
+  hotelStore.exitPlatformViewMode()
+  router.push('/admin/hotels')
+}
 
 // Close sidebar when navigating (only on mobile)
 const closeMobileSidebar = () => {
@@ -49,6 +71,56 @@ const closeMobileSidebar = () => {
     </div>
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       <Navbar />
+
+      <!-- ===== PLATFORM ADMIN VIEW WARNING BANNER ===== -->
+      <div
+        v-if="hotelStore.isViewingAsPlatformAdmin"
+        class="bg-amber-500 text-slate-950 font-black px-4 sm:px-6 py-2 flex items-center justify-between shadow-md text-xs tracking-wide flex-shrink-0 z-20 animate-in fade-in duration-200"
+      >
+        <div class="flex items-center gap-2">
+          <ShieldAlert class="w-4 h-4 text-slate-950 flex-shrink-0" />
+          <span>⚠ PLATFORM ADMIN VIEW &mdash; Currently viewing: <strong class="underline">{{ hotelStore.hotelName }}</strong></span>
+          <span class="hidden md:inline text-[11px] font-semibold opacity-90">(Audit logging active for all operations)</span>
+        </div>
+        <button
+          @click="exitPlatformView"
+          class="px-3 py-1 bg-slate-950 hover:bg-slate-900 text-white rounded-lg transition font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
+        >
+          <LogOut class="w-3.5 h-3.5" />
+          <span>Exit Hotel View</span>
+        </button>
+      </div>
+
+      <!-- ===== NON-BLOCKING SYSTEM PASSWORD NOTICE BANNER ===== -->
+      <div
+        v-if="authStore.mustChangePassword && showPasswordNotice"
+        class="bg-indigo-500/10 border-b border-indigo-500/20 px-4 sm:px-6 py-2.5 flex items-center justify-between text-indigo-700 dark:text-indigo-300 text-xs flex-shrink-0 z-10 animate-in fade-in duration-200"
+      >
+        <div class="flex items-center gap-2">
+          <KeyRound class="w-4 h-4 text-indigo-500 flex-shrink-0" />
+          <span>
+            You logged in with a system-generated password. You can set your permanent password anytime on your
+            <router-link to="/admin/profile?tab=security" class="font-bold underline hover:text-indigo-900 dark:hover:text-indigo-100">
+              Profile page
+            </router-link>.
+          </span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <router-link
+            to="/admin/profile?tab=security"
+            class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] transition shadow-xs"
+          >
+            Go to Profile
+          </router-link>
+          <button
+            @click="showPasswordNotice = false"
+            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-0.5"
+            title="Dismiss notice"
+          >
+            <X class="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
 
       <!-- ===== MAIN CONTENT ===== -->
       <main class="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-slate-950 transition-colors duration-300">

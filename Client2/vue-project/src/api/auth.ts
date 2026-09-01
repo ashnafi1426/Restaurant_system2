@@ -30,6 +30,19 @@ api.interceptors.request.use(
       console.log(' [API INTERCEPTOR] Current User Role:', userData.role)
     }
 
+    const currentHotelRaw = localStorage.getItem('current_hotel')
+    if (currentHotelRaw) {
+      try {
+        const currentHotel = JSON.parse(currentHotelRaw)
+        if (currentHotel?.id) {
+          config.headers['X-Hotel-ID'] = currentHotel.id
+          console.log(' [API INTERCEPTOR] X-Hotel-ID header set:', currentHotel.id)
+        }
+      } catch (e) {
+        // ignore JSON parse error
+      }
+    }
+
     // Handle FormData - let browser set the Content-Type with boundary
     if (config.data instanceof FormData) {
       // Remove Content-Type to let browser set it automatically with boundary

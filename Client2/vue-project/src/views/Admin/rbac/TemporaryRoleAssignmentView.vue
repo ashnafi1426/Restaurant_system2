@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import DashboardLayout from '../../../Layouts/DashboardLayout.vue'
 import { rbacService } from '../../../services/rbacService'
 import type { TemporaryRoleAssignment, Role, RbacUserSummary } from '../../../types/rbacTypes'
@@ -56,7 +56,15 @@ const fetchData = async () => {
   }
 }
 
+import { useHotelStore } from '../../../stores/hotelStore'
+const hotelStore = useHotelStore()
+
 onMounted(() => {
+  fetchData()
+})
+
+// Re-fetch when selected hotel in Navbar changes
+watch(() => hotelStore.hotelId, () => {
   fetchData()
 })
 

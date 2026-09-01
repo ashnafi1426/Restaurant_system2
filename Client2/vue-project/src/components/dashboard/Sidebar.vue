@@ -2,6 +2,7 @@
 import { computed, ref, watch, onMounted, onUnmounted, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
+import { useHotelStore } from '../../stores/hotelStore'
 import { useSidebarStore } from '../../stores/sidebarStore'
 import { rbacService } from '../../services/rbacService'
 // Import Lucide components
@@ -48,6 +49,7 @@ import {
   ChevronDown,
   X,
   Star,
+  Building2,
 } from 'lucide-vue-next'
 
 // Define emits
@@ -58,6 +60,7 @@ const emit = defineEmits<{
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const hotelStore = useHotelStore()
 const sidebarStore = useSidebarStore()
 
 // Handler for navigation
@@ -106,10 +109,13 @@ const menuIcons: Record<string, Component> = {
   Grid: Grid,
   Key: Key,
   Reviews: Star,
+  Hotels: Building2,
+  Building: Building2,
 }
 
 const sectionIcons: Record<string, Component> = {
   'General': LayoutDashboard,
+  'Platform': Building2,
   'Administration': ShieldCheck,
   'Property Management': BedDouble,
   'Front Desk': LogIn,
@@ -127,66 +133,52 @@ interface MenuItem {
   icon: string
   section: string
   permission?: string
+  superAdminOnly?: boolean
   isDashboard?: boolean
   isProfile?: boolean
   roleSlug?: string
 }
 
 const operationalMenuItems: MenuItem[] = [
-  // Dynamic System Administration (Permission-Driven)
+  { name: 'Hotels', path: '/admin/hotels', icon: 'Hotels', superAdminOnly: true, section: 'Platform' },
+  { name: 'Hotel Admins', path: '/admin/hotel-admins', icon: 'Staff', superAdminOnly: true, section: 'Platform' },
+  { name: 'All Users & Staff', path: '/admin/platform-users', icon: 'Users', superAdminOnly: true, section: 'Platform' },
   { name: 'Users & Staff', path: '/users', icon: 'Users', permission: 'users.view', section: 'Administration' },
   { name: 'Role Management', path: '/admin/roles', icon: 'Security', permission: 'roles.view', section: 'Administration' },
   { name: 'Permission Catalog', path: '/admin/permissions', icon: 'Key', permission: 'permissions.view', section: 'Administration' },
-  // { name: 'Permission Matrix', path: '/admin/permission-matrix', icon: 'Grid', permission: 'roles.assign_permissions', section: 'Administration' },
+  { name: 'Permission Matrix', path: '/admin/permission-matrix', icon: 'Grid', permission: 'roles.assign_permissions', section: 'Administration' },
   { name: 'User Role Assignments', path: '/admin/user-roles', icon: 'Staff', permission: 'users.update', section: 'Administration' },
-  // { name: 'Temporary Delegations', path: '/admin/temporary-roles', icon: 'Manager', permission: 'roles.assign_permissions', section: 'Administration' },
-  // { name: 'Security Audit Logs', path: '/admin/audit-logs', icon: 'Reports', permission: 'audit_logs.view', section: 'Administration' },
-
-  // Property & Front Desk (Permission-Driven)
   { name: 'Rooms Management', path: '/Admin/rooms', icon: 'Rooms', permission: 'rooms.view', section: 'Property Management' },
   { name: 'Room Types', path: '/room-types', icon: 'Room Types', permission: 'rooms.view', section: 'Property Management' },
   { name: 'Reservations', path: '/reservations', icon: 'Reservations', permission: 'reservations.view', section: 'Front Desk' },
   { name: 'Check In', path: '/check-in', icon: 'Check In', permission: 'checkin.view', section: 'Front Desk' },
   { name: 'Check Out', path: '/check-out', icon: 'Check Out', permission: 'checkout.view', section: 'Front Desk' },
-
-  // Dining & Kitchen Operations (Permission-Driven)
   { name: 'Orders Management', path: '/orders', icon: 'Utensils', permission: 'orders.view', section: 'Dining & Kitchen' },
   { name: 'Menu Management', path: '/menu-management', icon: 'Restaurant', permission: 'menu.view', section: 'Dining & Kitchen' },
   { name: 'Food Orders', path: '/chef/food-orders', icon: 'Food Orders', permission: 'kitchen.view', section: 'Dining & Kitchen' },
   { name: 'Pending Orders', path: '/chef/pending-orders', icon: 'Pending Orders', permission: 'kitchen.accept', section: 'Dining & Kitchen' },
   { name: 'Preparing Orders', path: '/chef/preparing-orders', icon: 'Preparing Orders', permission: 'kitchen.prepare', section: 'Dining & Kitchen' },
   { name: 'Served Orders', path: '/chef/served-orders', icon: 'Served Orders', permission: 'kitchen.mark_ready', section: 'Dining & Kitchen' },
-
-  // Restaurant & Floor Operations (Permission-Driven)
   { name: 'Waiter Management', path: '/manager/waiters', icon: 'Waiters', permission: 'waiters.view', section: 'Operations' },
   { name: 'Restaurant Tables', path: '/manager/restaurant-tables', icon: 'Restaurant', permission: 'tables.view', section: 'Operations' },
   { name: 'Table Assignments', path: '/manager/table-assignments', icon: 'MapPin', permission: 'tables.assign', section: 'Operations' },
   { name: 'Assign Floors', path: '/manager/floor-assignment', icon: 'Manager', permission: 'floors.view', section: 'Operations' },
   { name: 'Daily Operations', path: '/manager/operations', icon: 'Operations', permission: 'reports.occupancy', section: 'Operations' },
-
-  // Deliveries & Room Service (Permission-Driven)
   { name: 'Room Service Management', path: '/manager/delivery-management', icon: 'Truck', permission: 'delivery.reassign', section: 'Deliveries' },
   { name: 'Assigned Orders', path: '/waiter/assigned-orders', icon: 'Room Service', permission: 'delivery.accept', section: 'Deliveries' },
   { name: 'Ready for Pickup', path: '/waiter/ready-pickup', icon: 'Pending Orders', permission: 'delivery.pickup', section: 'Deliveries' },
   { name: 'On Delivery', path: '/waiter/on-delivery', icon: 'Truck', permission: 'delivery.deliver', section: 'Deliveries' },
   { name: 'Delivery History', path: '/waiter/delivery-history', icon: 'Reports', permission: 'delivery.view', section: 'Deliveries' },
-
-  // Financials & Billing (Permission-Driven)
   { name: 'Payments & Billing', path: '/cashier/payments', icon: 'Payments', permission: 'payments.view', section: 'Billing' },
   { name: 'Financial Reports', path: '/cashier/reports', icon: 'Reports', permission: 'reports.sales', section: 'Billing' },
-
-  // Reports & Analytics (Permission-Driven)
   { name: 'Reports & Analytics', path: '/reports', icon: 'Reports', permission: 'reports.view', section: 'Reports & Analytics' },
-
-  // Reviews & Feedback (No permission for "My Reviews" - all authenticated users can see it)
-  // { name: 'My Reviews', path: '/reviews', icon: 'Reviews', section: 'Reports & Analytics' },
   { name: 'Review Moderation', path: '/reviews/moderation', icon: 'Notifications', permission: 'reviews.moderate', section: 'Reports & Analytics' },
   { name: 'Review Analytics', path: '/reviews/analytics', icon: 'Analytics', permission: 'reviews.analytics', section: 'Reports & Analytics' },
 ]
-
 const rolePermissionsMap = ref<Record<string, string[]>>({})
 
 const loadRolePermissions = async () => {
+  if (!auth.can('roles.view')) return
   try {
     const rolesData = await rbacService.getRoles()
     const map: Record<string, string[]> = {}
@@ -203,8 +195,12 @@ const loadRolePermissions = async () => {
   }
 }
 
+watch(() => hotelStore.hotelId, () => {
+  loadRolePermissions()
+})
+
 const userRoleSlug = computed(() => {
-  return String(auth.user?.role || 'guest').toLowerCase()
+  return String(hotelStore.currentHotel?.role || auth.user?.role || 'guest').toLowerCase()
 })
 
 const activeRouteRole = computed(() => {
@@ -213,14 +209,16 @@ const activeRouteRole = computed(() => {
 })
 
 const userDashboardPath = computed(() => {
-  if (auth.isAdmin) return '/admin'
+  if (auth.isPlatformAdmin) return '/admin'
   const role = userRoleSlug.value
+  if (role === 'admin') return '/admin'
   if (!role || role === 'guest') return '/orders'
   if (role === 'cashier') return '/cashier/dashboard'
   return `/${role}`
 })
 const userProfilePath = computed(() => {
   const role = userRoleSlug.value
+  if (role === 'admin') return '/admin/profile'
   return `/${role}/profile`
 })
 
@@ -234,14 +232,11 @@ const menus = computed(() => {
   ]
 
   const filteredOps = operationalMenuItems.filter(item => {
+    if (item.superAdminOnly && !auth.isPlatformAdmin) {
+      return false
+    }
     if (item.permission) {
       const targetPerm = String(item.permission).toLowerCase().trim()
-      if (auth.isAdmin && activeRouteRole.value === 'admin') return auth.can(targetPerm)
-
-      const rolePerms = rolePermissionsMap.value[userRoleSlug.value]
-      if (rolePerms && Array.isArray(rolePerms)) {
-        return checkRoleHasPerm(rolePerms, targetPerm)
-      }
       return auth.can(targetPerm)
     }
     return true
@@ -255,7 +250,7 @@ const menus = computed(() => {
 
 // Check if current user is admin
 const isAdminUser = computed(() => {
-  return auth.isAdmin || userRoleSlug.value === 'admin'
+  return auth.isPlatformAdmin || userRoleSlug.value === 'admin'
 })
 
 // Group menus by section
@@ -282,8 +277,9 @@ const groupedMenus = computed(() => {
 const searchQuery = ref('')
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const openSections = ref<Record<string, boolean>>({
-  'General': false,
-  'Administration': false,
+  'General': true,
+  'Platform': true,
+  'Administration': true,
 })
 
 const toggleSection = (section: string) => {
@@ -579,7 +575,7 @@ onUnmounted(() => {
                   class="w-5 h-5 text-slate-500 dark:text-slate-500 flex-shrink-0"
                   :stroke-width="1.75"
                 />
-                <span class="text-sm font-medium">{{ items[0]?.name || section }}</span>
+                <span class="text-sm font-medium">{{ section }}</span>
               </div>
               
               <ChevronDown
@@ -588,13 +584,14 @@ onUnmounted(() => {
               />
             </button>
 
-            <!-- Expandable Sub-items (Indented) -->
+            <!-- Expandable Sub-items (Indented) - only for sections with multiple items -->
             <div
+              v-if="items.length > 1"
               v-show="openSections[section]"
               class="space-y-0.5 pl-4 transition-all duration-200"
             >
               <router-link
-                v-for="menu in items.slice(items.length > 1 ? 0 : 0)"
+                v-for="menu in items"
                 :key="menu.path"
                 :to="menu.path"
                 @click="handleNavigate"
@@ -649,11 +646,11 @@ onUnmounted(() => {
       <!-- User Profile Info -->
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
         <div class="w-8 h-8 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30 flex items-center justify-center font-black text-xs flex-shrink-0 shadow-xs">
-          {{ (auth.user?.full_name || auth.user?.first_name || auth.user?.name || 'U').charAt(0).toUpperCase() }}
+          {{ (auth.user?.full_name || auth.user?.first_name || 'U').charAt(0).toUpperCase() }}
         </div>
         <div v-if="sidebarStore.isExpanded" class="flex-1 min-w-0 pr-1">
-          <p class="text-xs font-bold text-slate-900 dark:text-white truncate leading-tight">{{ auth.user?.full_name || auth.user?.first_name || auth.user?.name || 'Administrator' }}</p>
-          <p class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold capitalize truncate mt-0.5 leading-tight">{{ auth.userRoleName || auth.user?.role || 'Admin' }}</p>
+          <p class="text-xs font-bold text-slate-900 dark:text-white truncate leading-tight">{{ auth.user?.full_name || auth.user?.first_name || 'Administrator' }}</p>
+          <p class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold capitalize truncate mt-0.5 leading-tight">{{ auth.user?.role || 'Admin' }}</p>
         </div>
       </div>
 
@@ -668,7 +665,6 @@ onUnmounted(() => {
     </div>
   </aside>
 </template>
-
 <style scoped>
 nav::-webkit-scrollbar {
   width: 4px;

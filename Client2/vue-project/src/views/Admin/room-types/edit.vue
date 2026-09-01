@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import DashboardLayout from '../../../layouts/DashboardLayout.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import RoomTypeForm from '../../../components/room-types/RoomTypeForm.vue'
 import { roomTypeService } from '../../../services/roomtypeService'
 import { useRoomTypeStore } from '../../../stores/roomType'

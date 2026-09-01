@@ -16,6 +16,19 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    const currentHotelRaw = localStorage.getItem('current_hotel')
+    if (currentHotelRaw) {
+      try {
+        const currentHotel = JSON.parse(currentHotelRaw)
+        if (currentHotel?.id) {
+          config.headers['X-Hotel-ID'] = currentHotel.id
+        }
+      } catch (e) {
+        // ignore JSON parse error
+      }
+    }
+
     return config
   },
   (error) => {

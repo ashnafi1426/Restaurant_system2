@@ -28,12 +28,12 @@ export const useRoomTypeStore = defineStore('roomTypes', {
       await this.fetchRoomTypes()
     },
 
-    async updateRoomType(id: string, data: RoomType) {
+    async updateRoomType(id: string | number, data: RoomType) {
       await roomTypeService.updateRoomType(id, data)
       await this.fetchRoomTypes()
     },
 
-    async deleteRoomType(id: number) {
+    async deleteRoomType(id: number | string) {
       await roomTypeService.deleteRoomType(id)
       await this.fetchRoomTypes()
     },

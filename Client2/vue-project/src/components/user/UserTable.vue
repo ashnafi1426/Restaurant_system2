@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import type { User } from '../../type/user'
+import type { User } from '@/types/user'
 import {
   Search,
   Filter,
@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Shield,
+  Loader2,
 } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -327,9 +328,22 @@ onBeforeUnmount(() => {
     </Transition>
 
     <!-- Table Container -->
-    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
-      <!-- Desktop & Tablet Table View -->
-      <div class="hidden md:block overflow-x-auto w-full">
+    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full min-h-[220px]">
+      <!-- Loading State Spinner -->
+      <div v-if="loading" class="py-20 px-4 text-center flex flex-col items-center justify-center space-y-3">
+        <div class="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/50 shadow-xs">
+          <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+        </div>
+        <div>
+          <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Loading staff accounts...</p>
+          <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Please wait while fetching user data</p>
+        </div>
+      </div>
+
+      <!-- Loaded Content -->
+      <template v-else>
+        <!-- Desktop & Tablet Table View -->
+        <div class="hidden md:block overflow-x-auto w-full">
         <table class="w-full text-left border-collapse">
           <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
             <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
@@ -469,6 +483,13 @@ onBeforeUnmount(() => {
       <!-- Mobile View -->
       <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
         <div
+          v-if="paginatedUsers.length === 0"
+          class="p-8 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
+        >
+          No users match your current search or filter criteria.
+        </div>
+        <div
+          v-else
           v-for="user in paginatedUsers"
           :key="user.id"
           class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
@@ -570,6 +591,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
+      </template>
     </div>
   </div>
 </template>

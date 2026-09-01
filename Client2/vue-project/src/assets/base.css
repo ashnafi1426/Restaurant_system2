@@ -41,7 +41,23 @@
   --section-gap: 160px;
 }
 
-html.dark,
+html.dark {
+  --color-primary: #f59e0b;
+  --color-primary-hover: #d97706;
+  --color-primary-light: rgba(245, 158, 11, 0.15);
+  --color-accent: #10b981;
+
+  --color-background: #020617;
+  --color-background-soft: #0f172a;
+  --color-background-mute: #1e293b;
+
+  --color-border: #334155;
+  --color-border-hover: #475569;
+
+  --color-heading: #f8fafc;
+  --color-text: #cbd5e1;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --color-primary: #f59e0b;

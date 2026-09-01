@@ -281,6 +281,20 @@
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Change your account password securely.</p>
             </div>
 
+            <!-- Temporary Password Notice -->
+            <div
+              v-if="authStore.mustChangePassword"
+              class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs space-y-1"
+            >
+              <p class="font-extrabold flex items-center gap-1.5">
+                <KeyRound class="w-4 h-4 text-amber-500" />
+                Temporary Password Active
+              </p>
+              <p class="text-[11px] leading-relaxed">
+                Your account was initialized with a system-generated password. Enter your current temporary password below to set your personal permanent password.
+              </p>
+            </div>
+
             <form @submit.prevent="changePassword" class="space-y-4 text-xs max-w-md font-sans">
               <div>
                 <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Current Password *</label>
@@ -332,12 +346,17 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import { useAuthStore } from '@/stores/auth'
 import { adminProfileService, type AdminProfile, type AdminStats } from '@/services/profile/adminProfileService'
 import {
   Camera, User, Lock, BarChart3, Users, ShoppingBag, DollarSign, Building, Home,
-  Briefcase, Mail, Phone, Save, Shield, Calendar, RefreshCw
+  Briefcase, Mail, Phone, Save, Shield, Calendar, RefreshCw, KeyRound
 } from 'lucide-vue-next'
+
+const route = useRoute()
+const authStore = useAuthStore()
 
 // State
 const profile = ref<AdminProfile | null>(null)
@@ -452,11 +471,19 @@ async function changePassword() {
     alert('Error: Passwords do not match')
     return
   }
+  if (passwordData.value.new_password.length < 8) {
+    alert('Error: New password must be at least 8 characters long')
+    return
+  }
   
   try {
     loading.value = true
-    await adminProfileService.changePassword(passwordData.value)
-    alert('Password changed successfully')
+    await authStore.updatePassword(
+      passwordData.value.current_password,
+      passwordData.value.new_password,
+      passwordData.value.new_password_confirmation
+    )
+    alert('Password changed successfully! Your account is now updated.')
     
     passwordData.value = {
       current_password: '',
@@ -498,6 +525,9 @@ function formatNumber(num: number | undefined): string {
 
 // Lifecycle
 onMounted(() => {
+  if (route.query.tab === 'security') {
+    activeTab.value = 'security'
+  }
   loadProfile()
   loadStats()
 })

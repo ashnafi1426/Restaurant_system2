@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import DashboardLayout from '../../../Layouts/DashboardLayout.vue'
 import { rbacService } from '../../../services/rbacService'
+import { useHotelStore } from '../../../stores/hotelStore'
 import type { RbacUserSummary, Role } from '../../../types/rbacTypes'
 import {
   Users,
@@ -79,7 +80,14 @@ const fetchData = async () => {
   }
 }
 
+const hotelStore = useHotelStore()
+
 onMounted(() => {
+  fetchData()
+})
+
+// Re-fetch users whenever the selected hotel in the Navbar changes
+watch(() => hotelStore.hotelId, () => {
   fetchData()
 })
 
