@@ -28,16 +28,25 @@ class UpdateRoomRequest extends FormRequest
     {
         $roomParam = $this->route('room');
         $roomId = is_object($roomParam) ? $roomParam->id : $roomParam;
+        $hotelId = \App\Services\TenantContext::id();
+
+        $uniqueRoom = Rule::unique('rooms', 'room_number')->ignore($roomId, 'id');
+        $existsRoomType = Rule::exists('room_types', 'id');
+
+        if ($hotelId) {
+            $uniqueRoom = $uniqueRoom->where('hotel_id', $hotelId);
+            $existsRoomType = $existsRoomType->where('hotel_id', $hotelId);
+        }
 
         return [
             'room_number' => [
                 'required',
                 'string',
                 'max:50',
-                Rule::unique('rooms', 'room_number')->ignore($roomId, 'id'),
+                $uniqueRoom,
             ],
 
-            'room_type_id' => ['required', 'exists:room_types,id'],
+            'room_type_id' => ['required', $existsRoomType],
             'floor' => ['nullable', 'integer'],
             'description' => ['nullable', 'string'],
 

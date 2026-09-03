@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Models\Traits\BelongsToTenant;
 
 class Payment extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, BelongsToTenant;
 
     protected $table = 'payments';
 
@@ -22,7 +23,10 @@ class Payment extends Model
      * --------------------------------------------------------------------------
      */
     protected $fillable = [
+        'hotel_id',
         'tx_ref',
+        'transaction_reference',
+        'invoice_id',
         'chapa_transaction_id',
 
         'amount',
@@ -37,6 +41,7 @@ class Payment extends Model
         'payment_method',
 
         'status',
+        'payment_status',
 
         'checkout_url',
         'callback_url',
@@ -48,10 +53,25 @@ class Payment extends Model
 
         'paid_at',
         'verified_at',
+        'refunded_at',
+        'refund_reason',
+        'refund_amount',
 
         'raw_response',
         'metadata',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($payment) {
+            if (empty($payment->transaction_reference) && !empty($payment->tx_ref)) {
+                $payment->transaction_reference = $payment->tx_ref;
+            }
+            if (empty($payment->tx_ref) && !empty($payment->transaction_reference)) {
+                $payment->tx_ref = $payment->transaction_reference;
+            }
+        });
+    }
 
     /**
      * --------------------------------------------------------------------------
@@ -60,9 +80,11 @@ class Payment extends Model
      */
     protected $casts = [
         'amount' => 'decimal:2',
+        'refund_amount' => 'decimal:2',
 
         'paid_at' => 'datetime',
         'verified_at' => 'datetime',
+        'refunded_at' => 'datetime',
 
         'raw_response' => 'array',
         'metadata' => 'array',
@@ -219,6 +241,43 @@ class Payment extends Model
         $this->update([
             'status' => self::STATUS_REFUNDED,
         ]);
+    }
+
+    /**
+     * Update payment status with support for payment_status field
+     * 
+     * @param string $status
+     * @param array $details
+     * @param string|null $transactionId
+     * @param string|null $paymentMethod
+     * @return void
+     */
+    public function updatePaymentStatus(
+        string $status,
+        array $details = [],
+        ?string $transactionId = null,
+        ?string $paymentMethod = null
+    ): void {
+        $updateData = [
+            'status' => $status,
+            'payment_status' => $status,
+            'raw_response' => $details,
+        ];
+
+        if ($transactionId) {
+            $updateData['chapa_transaction_id'] = $transactionId;
+        }
+
+        if ($paymentMethod) {
+            $updateData['payment_method'] = $paymentMethod;
+        }
+
+        if ($status === 'completed' || $status === 'verified') {
+            $updateData['paid_at'] = now();
+            $updateData['verified_at'] = now();
+        }
+
+        $this->update($updateData);
     }
 
     /*

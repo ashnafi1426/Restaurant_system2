@@ -31,6 +31,11 @@ class PermissionMiddleware
             ], 401);
         }
 
+        // Admin or Platform Super Admin has full master access
+        if ($user->isAdmin() || $user->isPlatformAdmin() || $this->authService->hasRole($user, 'admin') || strtolower($user->role ?? '') === 'admin') {
+            return $next($request);
+        }
+
         // Support pipe-separated OR permission checks (e.g., 'orders.view|orders.create')
         $permissionList = explode('|', $permissions);
 

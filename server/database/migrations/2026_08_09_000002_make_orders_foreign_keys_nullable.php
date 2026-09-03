@@ -15,36 +15,41 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            // Drop existing foreign key constraints
-            $table->dropForeign(['room_id']);
-            $table->dropForeign(['guest_id']);
-            $table->dropForeign(['reservation_id']);
-        });
+        try {
+            Schema::table('orders', function (Blueprint $table) {
+                // Drop existing foreign key constraints
+                $table->dropForeign(['room_id']);
+                $table->dropForeign(['guest_id']);
+                $table->dropForeign(['reservation_id']);
+            });
+        } catch (\Throwable $e) {}
 
         // Alter columns to be nullable using raw SQL
-        // Laravel's change() method doesn't always work reliably with UUIDs
-        DB::statement('ALTER TABLE orders MODIFY COLUMN room_id CHAR(36) NULL');
-        DB::statement('ALTER TABLE orders MODIFY COLUMN guest_id CHAR(36) NULL');
-        DB::statement('ALTER TABLE orders MODIFY COLUMN reservation_id CHAR(36) NULL');
+        try {
+            DB::statement('ALTER TABLE orders MODIFY COLUMN room_id CHAR(36) NULL');
+            DB::statement('ALTER TABLE orders MODIFY COLUMN guest_id CHAR(36) NULL');
+            DB::statement('ALTER TABLE orders MODIFY COLUMN reservation_id CHAR(36) NULL');
+        } catch (\Throwable $e) {}
 
-        Schema::table('orders', function (Blueprint $table) {
-            // Re-add foreign keys with nullable and cascade on delete
-            $table->foreign('room_id')
-                  ->references('id')
-                  ->on('rooms')
-                  ->nullOnDelete();
-            
-            $table->foreign('guest_id')
-                  ->references('id')
-                  ->on('guests')
-                  ->nullOnDelete();
-            
-            $table->foreign('reservation_id')
-                  ->references('id')
-                  ->on('reservations')
-                  ->nullOnDelete();
-        });
+        try {
+            Schema::table('orders', function (Blueprint $table) {
+                // Re-add foreign keys with nullable and cascade on delete
+                $table->foreign('room_id')
+                      ->references('id')
+                      ->on('rooms')
+                      ->nullOnDelete();
+                
+                $table->foreign('guest_id')
+                      ->references('id')
+                      ->on('guests')
+                      ->nullOnDelete();
+                
+                $table->foreign('reservation_id')
+                      ->references('id')
+                      ->on('reservations')
+                      ->nullOnDelete();
+            });
+        } catch (\Throwable $e) {}
     }
 
     /**

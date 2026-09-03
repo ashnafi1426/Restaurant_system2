@@ -11,25 +11,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('review_helpfulness_votes', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('review_id');
-            $table->uuid('guest_id')->nullable();
-            $table->string('ip_address', 45)->nullable();
-            $table->enum('vote_type', ['helpful', 'not_helpful']);
-            $table->timestamp('created_at')->useCurrent();
-            
-            // Foreign keys
-            $table->foreign('review_id')->references('id')->on('menu_item_reviews')->onDelete('cascade');
-            $table->foreign('guest_id')->references('id')->on('guests')->onDelete('set null');
-            
-            // Unique constraints
-            $table->unique(['review_id', 'guest_id'], 'unique_guest_vote');
-            $table->unique(['review_id', 'ip_address'], 'unique_ip_vote');
-            
-            // Index
-            $table->index(['review_id', 'vote_type'], 'idx_review_votes');
-        });
+        if (!Schema::hasTable('review_helpfulness_votes')) {
+            Schema::create('review_helpfulness_votes', function (Blueprint $table) {
+                $table->uuid('id')->primary();
+                $table->uuid('review_id');
+                $table->uuid('guest_id')->nullable();
+                $table->string('ip_address', 45)->nullable();
+                $table->string('vote_type', 50);
+                $table->timestamp('created_at')->useCurrent();
+                
+                // Foreign keys
+                $table->foreign('review_id')->references('id')->on('menu_item_reviews')->onDelete('cascade');
+                $table->foreign('guest_id')->references('id')->on('guests')->onDelete('set null');
+                
+                // Unique constraints
+                $table->unique(['review_id', 'guest_id'], 'unique_guest_vote');
+                $table->unique(['review_id', 'ip_address'], 'unique_ip_vote');
+                
+                // Index
+                $table->index(['review_id', 'vote_type'], 'idx_review_votes');
+            });
+        }
     }
 
     /**

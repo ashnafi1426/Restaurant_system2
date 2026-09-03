@@ -6,16 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Traits\BelongsToTenant;
 
 class MenuItemReview extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes, BelongsToTenant;
 
     protected $table = 'menu_item_reviews';
     public $incrementing = false;
     protected $keyType = 'string';
 
     protected $fillable = [
+        'hotel_id',
         'guest_id',
         'order_id',
         'menu_item_id',

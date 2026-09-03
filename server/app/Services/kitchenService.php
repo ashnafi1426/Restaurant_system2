@@ -20,31 +20,64 @@ class KitchenService
             'served' => $this->getOrdersByStatus(Order::STATUS_SERVED, $authUser),
         ];
     }
+
+    protected function getBaseKitchenQuery($authUser = null)
+    {
+        $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+        if (!$hotelId && $authUser) {
+            $hotelId = $authUser->hotel_id 
+                ?? \App\Models\HotelUser::where('user_id', $authUser->id)->value('hotel_id');
+            if ($hotelId) {
+                app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+            }
+        }
+
+        $query = Order::withoutGlobalScope(\App\Models\Scopes\TenantScope::class);
+
+        if ($hotelId) {
+            $query->where(function ($q) use ($hotelId) {
+                $q->where('orders.hotel_id', $hotelId)
+                  ->orWhere(function ($sub) use ($hotelId) {
+                      $sub->whereNull('orders.hotel_id')
+                          ->where(function ($inner) use ($hotelId) {
+                              $inner->whereHas('room', fn($rq) => $rq->where('hotel_id', $hotelId))
+                                    ->orWhereHas('table', fn($tq) => $tq->where('hotel_id', $hotelId));
+                          });
+                  });
+            });
+        }
+
+        return $query;
+    }
+
     protected function getOrdersByStatus(string $status, $authUser = null): Collection
     {
-        $query = Order::query()
+        $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+        $query = $this->getBaseKitchenQuery($authUser)
             ->with([
                 'guest',
                 'room',
                 'reservation',
                 'orderItems',
                 'orderItems.menuItem',
-                //  REMOVED: 'chef' relationship doesn't exist in Order model
+                'table',
             ])
             ->where('status', $status);
         
-        //  REMOVED: chef_id filtering since column doesn't exist
-        // if ($authUser && isset($authUser->role) && $authUser->role === 'chef' && isset($authUser->id)) {
-        //     $query->where(function($q) use ($authUser) {
-        //         $q->where('chef_id', $authUser->id)
-        //           ->orWhereNull('chef_id');
-        //     });
-        // }
-        
         $results = $query->latest('order_time')->get();
+
+        // Self-heal: If any order in the active hotel has null hotel_id, backfill it
+        if ($hotelId) {
+            foreach ($results as $order) {
+                if (empty($order->hotel_id)) {
+                    $order->update(['hotel_id' => $hotelId]);
+                }
+            }
+        }
         
         Log::info("📋 [KITCHEN SERVICE] Orders Query", [
             'status' => $status,
+            'hotel_id' => $hotelId,
             'user_role' => $authUser->role ?? 'no-auth',
             'count' => $results->count(),
             'order_numbers' => $results->pluck('order_number')->toArray(),
@@ -203,10 +236,7 @@ class KitchenService
     }
     public function statistics($authUser = null): array
     {
-        //  REMOVED chef_id filtering since column doesn't exist
-        $baseQuery = function() use ($authUser) {
-            return Order::query();
-        };
+        $baseQuery = fn() => $this->getBaseKitchenQuery($authUser);
 
         return [
             'pending_orders' => $baseQuery()->where(

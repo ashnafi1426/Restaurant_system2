@@ -8,13 +8,16 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Models\Traits\BelongsToTenant;
+
 /**
  * HotelFloor Model
  * Represents physical floors/sections in the hotel
  */
 class HotelFloor extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids, BelongsToTenant;
     protected $table = 'hotel_floors';
     
     // Configure UUID as primary key
@@ -22,6 +25,7 @@ class HotelFloor extends Model
     public $incrementing = false;
 
     protected $fillable = [
+        'hotel_id',
         'floor_number',
         'name',
         'description',

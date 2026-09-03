@@ -12,19 +12,48 @@ use Illuminate\Support\Facades\Log;
 
 class WaiterManagementController extends Controller
 {
+    /**
+     * Get active hotel ID for tenant scoping.
+     */
+    protected function getHotelId(): ?string
+    {
+        $hotelId = request()->header('X-Hotel-ID')
+            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: (auth()->check() ? auth()->user()->hotel_id : null);
+
+        if (!$hotelId && auth()->check()) {
+            $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
+        }
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
+
     public function index(Request $request): JsonResponse
     {
         try {
-            // Get all waiters with user relationship and TODAY'S floor assignments loaded
-            $waiters = Waiter::with([
+            $hotelId = $this->getHotelId();
+
+            // Get all waiters with user relationship and TODAY'S floor assignments loaded strictly for active hotel
+            $waitersQuery = Waiter::with([
                 'user',
-                'floorAssignments' => function ($q) {
+                'floorAssignments' => function ($q) use ($hotelId) {
                     $q->where('assignment_date', '>=', today())
                       ->where('status', 'active')
+                      ->when($hotelId, fn($sub) => $sub->where('hotel_id', $hotelId))
                       ->with(['floor', 'shift'])
                       ->orderBy('priority');
                 }
-            ])
+            ]);
+
+            if ($hotelId) {
+                $waitersQuery->where('hotel_id', $hotelId);
+            }
+
+            $waiters = $waitersQuery
                 ->orderBy('section')
                 ->get()
                 ->map(function ($waiter) {
@@ -261,7 +290,11 @@ class WaiterManagementController extends Controller
             }
 
             try {
-                $existingWaiter = Waiter::where('user_id', $validated['user_id'])->first();
+                $hotelId = $this->getHotelId();
+
+                $existingWaiter = Waiter::where('user_id', $validated['user_id'])
+                    ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+                    ->first();
 
                 if ($existingWaiter) {
                     $existingWaiter->update([
@@ -289,6 +322,7 @@ class WaiterManagementController extends Controller
                 $user = User::find($validated['user_id']);
                 
                 $waiterData = [
+                    'hotel_id' => $hotelId,
                     'user_id' => $validated['user_id'],
                     'phone' => $validated['phone'] ?? null,
                     'section' => $validated['section'],
@@ -306,6 +340,14 @@ class WaiterManagementController extends Controller
                 Log::info('Creating waiter with data', $waiterData);
 
                 $waiter = Waiter::create($waiterData);
+
+                // Also ensure hotel membership exists in hotel_users
+                if ($hotelId && $user) {
+                    \App\Models\HotelUser::firstOrCreate(
+                        ['hotel_id' => $hotelId, 'user_id' => $user->id],
+                        ['id' => (string) \Illuminate\Support\Str::uuid(), 'role' => 'waiter', 'is_active' => true]
+                    );
+                }
 
                 // Create floor assignments if provided
                 if (!empty($validated['floor_assignments'])) {

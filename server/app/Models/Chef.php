@@ -29,10 +29,6 @@ class Chef extends Model
         'hire_date' => 'date',
         'experience_years' => 'integer',
     ];
-
-    /**
-     * Get the user associated with this chef
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id', 'id');

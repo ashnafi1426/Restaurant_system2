@@ -14,7 +14,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('restaurant_tables', function (Blueprint $table) {
+        if (!Schema::hasTable('restaurant_tables')) {
+            Schema::create('restaurant_tables', function (Blueprint $table) {
             $table->uuid('id')->primary();
             
             // Table identification
@@ -45,6 +46,7 @@ return new class extends Migration
             $table->index('qr_token');
             $table->index('is_active');
         });
+        }
     }
 
     /**

@@ -22,7 +22,8 @@ return new class extends Migration
         }
 
         // Create waiter_table_assignments table
-        Schema::create('waiter_table_assignments', function (Blueprint $table) {
+        if (!Schema::hasTable('waiter_table_assignments')) {
+            Schema::create('waiter_table_assignments', function (Blueprint $table) {
             $table->uuid('id')->primary();
             
             // Core assignment fields - waiter_id is bigint, not UUID
@@ -53,6 +54,7 @@ return new class extends Migration
             // Unique constraint: one waiter per table per shift per date
             $table->unique(['table_id', 'shift_id', 'assignment_date', 'priority'], 'unique_table_shift_date_priority');
         });
+        }
 
         // Add table_id to delivery_tasks if not exists (for walk-in orders)
         if (!Schema::hasColumn('delivery_tasks', 'table_id')) {

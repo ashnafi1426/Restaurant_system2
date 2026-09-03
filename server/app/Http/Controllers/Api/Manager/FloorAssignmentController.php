@@ -18,6 +18,26 @@ use Illuminate\Support\Facades\DB;
 class FloorAssignmentController extends Controller
 {
     /**
+     * Get active hotel ID for tenant scoping.
+     */
+    protected function getHotelId(): ?string
+    {
+        $hotelId = request()->header('X-Hotel-ID')
+            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: (auth()->check() ? auth()->user()->hotel_id : null);
+
+        if (!$hotelId && auth()->check()) {
+            $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
+        }
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
+
+    /**
      * Get today's floor assignments
      * 
      * GET /api/manager/floors/assignments/today
@@ -26,8 +46,10 @@ class FloorAssignmentController extends Controller
     {
         try {
             $today = now()->format('Y-m-d');
+            $hotelId = $this->getHotelId();
 
             $assignments = WaiterFloorAssignment::where('assignment_date', $today)
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->with('waiter', 'floor', 'shift')
                 ->orderBy('priority')
                 ->get();
@@ -77,13 +99,15 @@ class FloorAssignmentController extends Controller
                         'shift_id' => $assignment['shift_id'],
                     ]);
 
+                    $hotelId = $this->getHotelId();
+
                     // Check if assignment already exists
                     $existing = WaiterFloorAssignment::where([
                         'waiter_id' => $assignment['waiter_id'],
                         'floor_id' => $assignment['floor_id'],
                         'shift_id' => $assignment['shift_id'],
                         'assignment_date' => $assignment['assignment_date'],
-                    ])->first();
+                    ])->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->first();
 
                     if ($existing) {
                         // Update existing assignment
@@ -99,6 +123,7 @@ class FloorAssignmentController extends Controller
                         // Create new assignment
                         $newAssignment = WaiterFloorAssignment::create([
                             'id' => Str::uuid(),
+                            'hotel_id' => $hotelId,
                             'waiter_id' => $assignment['waiter_id'],
                             'floor_id' => $assignment['floor_id'],
                             'shift_id' => $assignment['shift_id'],
@@ -177,7 +202,12 @@ class FloorAssignmentController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
             $query = WaiterFloorAssignment::with('waiter', 'floor', 'shift');
+
+            if ($hotelId) {
+                $query->where('hotel_id', $hotelId);
+            }
 
             // Filter by date
             if ($request->has('date')) {

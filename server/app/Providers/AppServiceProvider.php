@@ -11,6 +11,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Register Multi-Tenant Context
+        $this->app->singleton(\App\Services\TenantContext::class, function () {
+            return new \App\Services\TenantContext();
+        });
+
         // Register Waiter Services
         $this->app->singleton(\App\Services\Waiter\FloorResolverService::class, 
             fn () => new \App\Services\Waiter\FloorResolverService()

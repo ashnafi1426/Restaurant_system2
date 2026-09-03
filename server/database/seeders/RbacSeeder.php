@@ -229,27 +229,21 @@ class RbacSeeder extends Seeder
             ],
         ];
 
+        $hasDisplayName = Schema::hasColumn('roles', 'display_name');
         foreach ($rolesData as $rData) {
-            $role = Role::where('slug', $rData['slug'])->orWhere('name', $rData['name'])->first();
-            if ($role) {
-                $role->update([
-                    'name' => $rData['name'],
-                    'display_name' => $rData['name'],
-                    'slug' => $rData['slug'],
-                    'description' => $rData['description'],
-                    'is_system' => $rData['is_system'],
-                    'is_active' => true,
-                ]);
-            } else {
-                $role = Role::create([
-                    'name' => $rData['name'],
-                    'display_name' => $rData['name'],
-                    'slug' => $rData['slug'],
-                    'description' => $rData['description'],
-                    'is_system' => $rData['is_system'],
-                    'is_active' => true,
-                ]);
+            $rolePayload = [
+                'name' => $rData['name'],
+                'description' => $rData['description'],
+                'is_system' => $rData['is_system'],
+                'is_active' => true,
+            ];
+            if ($hasDisplayName) {
+                $rolePayload['display_name'] = $rData['name'];
             }
+            $role = Role::updateOrCreate(
+                ['slug' => $rData['slug']],
+                $rolePayload
+            );
 
             // Sync role permissions
             $permissionIds = [];

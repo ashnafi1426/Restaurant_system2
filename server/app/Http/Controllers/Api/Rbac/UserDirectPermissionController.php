@@ -24,12 +24,14 @@ class UserDirectPermissionController extends Controller
     /**
      * Get user's primary role, inherited role permissions, direct permissions, and system permissions catalog.
      */
-    public function getUserPermissions(User $user)
+    public function getUserPermissions(Request $request, User $user)
     {
-        $activeRoles = $this->authService->getActiveRoles($user);
-        $primaryRole = $user->roles()->wherePivot('is_primary', true)->first()
-            ?? $activeRoles->first()
-            ?? Role::where('slug', strtolower($user->role ?? ''))->first();
+        $hotelId = app(\App\Services\TenantContext::class)->getHotelId()
+            ?: $request->header('X-Hotel-ID')
+            ?: $request->query('hotel_id');
+
+        $activeRoles = $this->authService->getActiveRoles($user, $hotelId);
+        $primaryRole = $activeRoles->first();
 
         // Role permissions
         $rolePermissions = [];
@@ -46,10 +48,15 @@ class UserDirectPermissionController extends Controller
                 ]);
         }
 
-        // Direct user permissions
-        $directUserPermissions = UserPermission::with('permission', 'grantor')
-            ->where('user_id', $user->id)
-            ->get()
+        // Direct user permissions for this hotel
+        $directQuery = UserPermission::with('permission', 'grantor')
+            ->where('user_id', $user->id);
+        if ($hotelId) {
+            $directQuery->where(function ($q) use ($hotelId) {
+                $q->where('hotel_id', $hotelId)->orWhereNull('hotel_id');
+            });
+        }
+        $directUserPermissions = $directQuery->get()
             ->map(fn($up) => [
                 'id' => $up->id,
                 'permission_id' => $up->permission_id,
@@ -65,7 +72,7 @@ class UserDirectPermissionController extends Controller
             ]);
 
         // Effective permission slugs
-        $effectivePermissions = $this->authService->getEffectivePermissions($user);
+        $effectivePermissions = $this->authService->getEffectivePermissions($user, $hotelId);
 
         // System all permissions grouped by module
         $allPermissionsGrouped = Permission::where('is_active', true)
@@ -119,6 +126,10 @@ class UserDirectPermissionController extends Controller
      */
     public function assignDirectPermissions(Request $request, User $user)
     {
+        $hotelId = app(\App\Services\TenantContext::class)->getHotelId()
+            ?: $request->header('X-Hotel-ID')
+            ?: $request->query('hotel_id');
+
         $validated = $request->validate([
             'permission_ids' => 'present|array',
             'permission_ids.*' => 'exists:permissions,id',
@@ -131,21 +142,30 @@ class UserDirectPermissionController extends Controller
             $grantorId = $request->user()?->id;
 
             // Fetch old direct permissions for audit
-            $oldPermissions = UserPermission::where('user_id', $user->id)
-                ->pluck('permission_id')
-                ->toArray();
+            $oldPermQuery = UserPermission::where('user_id', $user->id);
+            if ($hotelId) {
+                $oldPermQuery->where('hotel_id', $hotelId);
+            }
+            $oldPermissions = $oldPermQuery->pluck('permission_id')->toArray();
 
             $newPermissionIds = array_unique($validated['permission_ids']);
 
-            // Delete removed direct permissions
-            UserPermission::where('user_id', $user->id)
-                ->whereNotIn('permission_id', $newPermissionIds)
-                ->delete();
+            // Delete removed direct permissions for this hotel
+            $deleteQuery = UserPermission::where('user_id', $user->id)
+                ->whereNotIn('permission_id', $newPermissionIds);
+            if ($hotelId) {
+                $deleteQuery->where('hotel_id', $hotelId);
+            }
+            $deleteQuery->delete();
 
-            // Insert or update direct permissions
+            // Insert or update direct permissions with hotel_id
             foreach ($newPermissionIds as $permId) {
                 UserPermission::updateOrCreate(
-                    ['user_id' => $user->id, 'permission_id' => $permId],
+                    [
+                        'user_id' => $user->id,
+                        'permission_id' => $permId,
+                        'hotel_id' => $hotelId,
+                    ],
                     [
                         'granted_by' => $grantorId,
                         'starts_at' => $validated['starts_at'] ?? null,
@@ -155,27 +175,8 @@ class UserDirectPermissionController extends Controller
                 );
             }
 
-            // Auto-link Waiter profile row if any granted permission is delivery-related
-            // Ensures order pickup/delivery workflow operates seamlessly without altering user's primary role
-            $deliveryPermSlugs = ['orders.deliver', 'delivery.deliver', 'delivery.pickup', 'delivery.accept'];
-            $hasDeliveryPerm = Permission::whereIn('id', $newPermissionIds)
-                ->whereIn('slug', $deliveryPermSlugs)
-                ->exists();
-
-            if ($hasDeliveryPerm) {
-                \App\Models\Waiter::firstOrCreate(
-                    ['user_id' => $user->id],
-                    [
-                        'section' => 'All Sections',
-                        'shift' => 'morning',
-                        'experience_level' => 'junior',
-                        'status' => 'active',
-                    ]
-                );
-            }
-
             // Invalidate authorization cache for this user
-            $this->authService->invalidateUserCache($user->id);
+            $this->authService->invalidateUserCache($user->id, $hotelId);
 
             // Audit log
             RbacAuditLog::log(

@@ -5,14 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Models\Traits\BelongsToTenant;
 
 class Order extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, BelongsToTenant;
     protected $table = 'orders';
     public $incrementing = false;
     protected $keyType = 'string';
     protected $fillable = [
+        'hotel_id',
         'order_number',
         'reservation_id',
         'guest_id',

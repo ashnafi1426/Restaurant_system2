@@ -20,10 +20,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'permission' => \App\Http\Middleware\PermissionMiddleware::class,
+            'tenant' => \App\Http\Middleware\IdentifyTenant::class,
+            'platform.admin' => \App\Http\Middleware\PlatformAdminMiddleware::class,
+            'qr.token' => \App\Http\Middleware\QRTokenMiddleware::class,
         ]);
         
         // Configure API routes - exclude unified orders from Sanctum auth
         $middleware->statefulApi();
+        $middleware->api(prepend: [
+            \App\Http\Middleware\IdentifyTenant::class,
+        ]);
         
         // Exclude API routes from CSRF verification (using token-based auth)
         $middleware->validateCsrfTokens(except: [

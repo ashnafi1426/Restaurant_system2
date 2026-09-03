@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Services\KitchenService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\KitchenOrderResource;
 use App\Models\Order;
@@ -20,10 +21,25 @@ class KitchenController extends Controller
     {
         $this->kitchenService = $kitchenService;
     }
-    public function index(): JsonResponse
+
+    private function resolveTenant(Request $request): ?string
+    {
+        $hotelId = $request->input('hotel_id') 
+            ?: $request->header('X-Hotel-ID') 
+            ?: app(\App\Services\TenantContext::class)->getHotelId();
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
+
+    public function index(Request $request): JsonResponse
     {
 
         try {
+            $this->resolveTenant($request);
 
             \Log::info('🔍 [KITCHEN] Orders Request', [
                 'user_id' => auth()->id(),
@@ -285,10 +301,11 @@ class KitchenController extends Controller
      *
      * GET /api/kitchen/statistics
      */
-    public function statistics(): JsonResponse
+    public function statistics(Request $request): JsonResponse
     {
 
         try {
+            $this->resolveTenant($request);
 
 
             $statistics =

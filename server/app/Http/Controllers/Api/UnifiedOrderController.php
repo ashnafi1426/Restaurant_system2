@@ -165,11 +165,12 @@ class UnifiedOrderController extends Controller
                 $reservation = DB::table('reservations')->where('id', $reservationId)->first();
             }
 
-            // Calculate total
-            list($total, $orderItems) = $this->calculateOrderTotal($validated['items']);
+            // Calculate total and validate menu items match room hotel
+            list($total, $orderItems) = $this->calculateOrderTotal($validated['items'], $room->hotel_id);
 
             // Create order
             $order = Order::create([
+                'hotel_id' => $room->hotel_id,
                 'order_number' => Order::generateOrderNumber(),
                 'room_id' => $room->id,
                 'guest_id' => $reservation->guest_id,
@@ -218,11 +219,12 @@ class UnifiedOrderController extends Controller
         return DB::transaction(function () use ($validated, $tableData) {
             $table = RestaurantTable::findOrFail($tableData['table_id']);
 
-            // Calculate total
-            list($total, $orderItems) = $this->calculateOrderTotal($validated['items']);
+            // Calculate total and validate menu items match table hotel
+            list($total, $orderItems) = $this->calculateOrderTotal($validated['items'], $table->hotel_id);
 
             // Create walk-in order (no room/guest/reservation)
             $order = Order::create([
+                'hotel_id' => $table->hotel_id,
                 'order_number' => Order::generateOrderNumber(),
                 'room_id' => null,
                 'guest_id' => null,
@@ -267,15 +269,20 @@ class UnifiedOrderController extends Controller
     }
 
     /**
-     * Calculate order total from items
+     * Calculate order total from items and ensure all items belong to target hotel
      */
-    protected function calculateOrderTotal(array $items): array
+    protected function calculateOrderTotal(array $items, ?string $targetHotelId = null): array
     {
         $total = 0;
         $orderItems = [];
 
         foreach ($items as $item) {
             $menuItem = MenuItem::findOrFail($item['menu_item_id']);
+
+            if ($targetHotelId && $menuItem->hotel_id && $menuItem->hotel_id !== $targetHotelId) {
+                throw new \InvalidArgumentException("Menu item '{$menuItem->name}' does not belong to this hotel.");
+            }
+
             $lineTotal = $menuItem->price * $item['quantity'];
             $total += $lineTotal;
 

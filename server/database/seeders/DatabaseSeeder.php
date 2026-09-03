@@ -7,6 +7,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            RbacSeeder::class,                   // ← Create roles and permissions
             RoleUserSeeder::class,               // ← CREATE USERS (admin, manager, waiter, etc.)
             // RoomTypeSeeder::class,
             // RoomSeeder::class,

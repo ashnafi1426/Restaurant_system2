@@ -6,16 +6,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Traits\BelongsToTenant;
 
 class Waiter extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
     protected $table = 'waiters';
     // Override keyType since we use auto-increment int, not UUID
     protected $keyType = 'int';
     public $incrementing = true;
 
     protected $fillable = [
+        'hotel_id',
         'user_id',
         'employee_number',
         'phone',

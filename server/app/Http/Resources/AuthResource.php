@@ -12,11 +12,21 @@ class AuthResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $hotelId = app(\App\Services\TenantContext::class)->getHotelId()
+            ?: $request->header('X-Hotel-ID')
+            ?: $this->hotel_id
+            ?: $this->hotelMemberships()->where('is_active', true)->value('hotel_id');
+
         $authService = app(\App\Services\AuthorizationService::class);
 
-        $activeRoles = $authService->getActiveRoles($this->resource);
-        $effectivePermissions = $authService->getEffectivePermissions($this->resource);
+        $activeRoles = $authService->getActiveRoles($this->resource, $hotelId);
+        $effectivePermissions = $authService->getEffectivePermissions($this->resource, $hotelId);
         $tempAssignments = $authService->getActiveTemporaryRoles($this->resource);
+
+        // Dynamically compute primary role slug from active hotel roles
+        $primaryRoleSlug = $activeRoles->isNotEmpty()
+            ? strtolower($activeRoles->first()->slug)
+            : ($this->isPlatformAdmin() ? 'admin' : strtolower($this->role ?? 'guest'));
 
         return [
             'id' => $this->id,
@@ -25,8 +35,10 @@ class AuthResource extends JsonResource
             'last_name' => $this->last_name,
             'email' => $this->email,
             'phone' => $this->phone,
-            'role' => strtolower($this->role ?? 'guest'),
+            'role' => $primaryRoleSlug,
             'is_active' => $this->is_active,
+            'must_change_password' => (bool) ($this->must_change_password ?? false),
+            'is_platform_admin' => (bool) ($this->is_platform_admin ?? false),
             'last_login' => $this->last_login,
             'created_at' => $this->created_at,
             'roles' => $activeRoles->map(fn ($r) => [

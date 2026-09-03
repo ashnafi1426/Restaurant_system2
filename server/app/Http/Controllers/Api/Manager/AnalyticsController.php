@@ -7,11 +7,7 @@ use App\Services\Manager\ManagerDashboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * Manager Analytics Controller
- * 
- * Handles analytics and reports data
- */
+
 class AnalyticsController extends Controller
 {
     protected ManagerDashboardService $dashboardService;

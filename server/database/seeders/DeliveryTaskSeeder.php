@@ -86,6 +86,19 @@ class DeliveryTaskSeeder extends Seeder
 
         $this->command->info('Creating rooms...');
 
+        $defaultHotel = \App\Models\Hotel::first();
+        $roomType = \App\Models\RoomType::first();
+        if (!$roomType) {
+            $roomType = \App\Models\RoomType::create([
+                'hotel_id' => $defaultHotel?->id,
+                'name' => 'Standard Deluxe',
+                'description' => 'Comfortable standard deluxe room',
+                'base_price_per_night' => 150.00,
+                'capacity' => 2,
+                'is_active' => true,
+            ]);
+        }
+
         $roomsCreated = collect();
 
         foreach ($floors as $floor) {
@@ -96,8 +109,9 @@ class DeliveryTaskSeeder extends Seeder
 
                 $room = Room::create([
                     'id' => Str::uuid(),
+                    'hotel_id' => $defaultHotel?->id,
                     'room_number' => (string) $roomNumber,
-                    'room_type_id' => 1,
+                    'room_type_id' => $roomType->id,
                     'floor' => $floor->floor_number,
                     'floor_id' => $floor->id,
                     'description' => $this->getRandomRoomType() . " on {$floor->name}",
@@ -189,9 +203,11 @@ class DeliveryTaskSeeder extends Seeder
         foreach ($guests->take(12) as $guest) {
             $room = $rooms->random();
 
+            $hotelId = \App\Models\Hotel::first()?->id;
             $reservation = Reservation::create([
                 'id' => Str::uuid(),
-                'booking_reference' => 'BK-' . now()->format('Ymd') . '-' . str_pad($guest->id % 1000, 4, '0', STR_PAD_LEFT),
+                'hotel_id' => $hotelId,
+                'booking_reference' => 'BK-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6)),
                 'guest_id' => $guest->id,
                 'room_id' => $room->id,
                 'check_in_date' => $checkInDate,

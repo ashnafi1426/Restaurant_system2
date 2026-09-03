@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreRoomTypeRequest extends FormRequest
 {
@@ -14,17 +15,18 @@ class StoreRoomTypeRequest extends FormRequest
 
     public function rules(): array
     {
+        $hotelId = \App\Services\TenantContext::id();
+        $uniqueName = Rule::unique('room_types', 'name');
+        if ($hotelId) {
+            $uniqueName = $uniqueName->where('hotel_id', $hotelId);
+        }
+
         return [
             'name' => [
-
                 'required',
-
                 'string',
-
                 'max:100',
-
-                'unique:room_types,name',
-
+                $uniqueName,
             ],
             'description' => [
 

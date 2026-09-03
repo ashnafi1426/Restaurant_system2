@@ -27,6 +27,26 @@ class UserController extends Controller
     public function index(Request $request)
   {
     $query = User::query();
+
+    // Hotel tenant scoping: strictly fetch users belonging to the current active hotel
+    $hotelId = $request->header('X-Hotel-ID')
+        ?: app(\App\Services\TenantContext::class)->getHotelId()
+        ?: $request->query('hotel_id');
+
+    $isAllHotels = $request->boolean('all_hotels') && $request->user()?->isPlatformAdmin();
+
+    if (!$isAllHotels) {
+        if (!$hotelId && $request->user()) {
+            $hotelId = $request->user()->hotelMemberships()->first()?->hotel_id;
+        }
+
+        if ($hotelId) {
+            $query->whereHas('hotelMemberships', function ($q) use ($hotelId) {
+                $q->where('hotel_id', $hotelId);
+            });
+        }
+    }
+
     if ($request->filled('search')) {
       $search = $request->search;
       $query->where(function ($q) use ($search) {
@@ -72,18 +92,47 @@ class UserController extends Controller
         'email_verified_at' => now() // Mark email as verified
       ]);
 
-      // Sync role pivot table
-      if (!empty($user->role)) {
-        $targetRoleStr = strtolower($user->role);
-        $roleModel = \App\Models\Role::whereRaw('LOWER(slug) = ?', [$targetRoleStr])
-          ->orWhereRaw('LOWER(name) = ?', [$targetRoleStr])
+      // Attach newly created user to active hotel
+      $currentHotelId = app(\App\Services\TenantContext::class)->getHotelId()
+          ?: $request->header('X-Hotel-ID')
+          ?: auth()->user()?->hotelMemberships()->first()?->hotel_id;
+
+      $targetRoleModel = null;
+      if (!empty($user->role) && $currentHotelId) {
+        $targetRoleStr = strtolower(trim($user->role));
+        $targetRoleModel = \App\Models\Role::withoutTenant()
+          ->where('hotel_id', $currentHotelId)
+          ->where(function ($q) use ($targetRoleStr) {
+            $q->whereRaw('LOWER(slug) = ?', [$targetRoleStr])
+              ->orWhereRaw('LOWER(name) = ?', [$targetRoleStr]);
+          })
           ->first();
-        if ($roleModel) {
-          try {
-            $user->roles()->syncWithoutDetaching([
-              $roleModel->id => ['is_primary' => true]
-            ]);
-          } catch (\Exception $e) {}
+      }
+
+      if ($currentHotelId) {
+        \App\Models\HotelUser::firstOrCreate([
+          'hotel_id' => $currentHotelId,
+          'user_id' => $user->id,
+        ], [
+          'id' => (string) \Illuminate\Support\Str::uuid(),
+          'role' => $user->role ?: 'staff',
+          'role_id' => $targetRoleModel?->id,
+          'is_active' => true,
+        ]);
+
+        if ($targetRoleModel) {
+          \Illuminate\Support\Facades\DB::table('user_roles')->updateOrInsert(
+            [
+              'hotel_id' => $currentHotelId,
+              'user_id' => $user->id,
+              'role_id' => $targetRoleModel->id,
+            ],
+            [
+              'is_primary' => true,
+              'created_at' => now(),
+              'updated_at' => now(),
+            ]
+          );
         }
       }
 

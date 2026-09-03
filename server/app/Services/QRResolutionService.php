@@ -75,6 +75,8 @@ class QRResolutionService
                     'success' => true,
                     'context' => 'room',
                     'data' => [
+                        'hotel_id' => $room->hotel_id,
+                        'hotel_name' => $room->hotel?->name,
                         'room_id' => $room->id,
                         'room_number' => $room->room_number,
                         'floor' => $room->floor,
@@ -146,6 +148,8 @@ class QRResolutionService
                     'success' => true,
                     'context' => 'table',
                     'data' => [
+                        'hotel_id' => $table->hotel_id,
+                        'hotel_name' => $table->hotel?->name,
                         'table_id' => $table->id,
                         'table_number' => $table->table_number,
                         'table_name' => $table->table_name ?? ('Table ' . $table->table_number),

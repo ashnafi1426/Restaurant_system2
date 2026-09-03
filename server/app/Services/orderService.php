@@ -245,10 +245,18 @@ public function create(array $data): Order
 
         $subtotal = 0;
         $tax = 0;
-        $discount = 0;
-        $total = 0;
+        $hotelId = $data['hotel_id'] 
+            ?? $reservation->hotel_id 
+            ?? $reservation->room?->hotel_id 
+            ?? app(\App\Services\TenantContext::class)->getHotelId();
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
 
         $order = Order::create([
+
+            'hotel_id' => $hotelId,
 
             'order_number' => $this->generateOrderNumber(),
 

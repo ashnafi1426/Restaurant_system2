@@ -19,6 +19,8 @@ class User extends Authenticatable
         'role',
         'role_id',
         'is_active',
+        'must_change_password',
+        'is_platform_admin',
         'activation_token',
         'activation_token_expires_at',
         'activation_status',
@@ -32,6 +34,8 @@ class User extends Authenticatable
     {
         return [
             'is_active' => 'boolean',
+            'must_change_password' => 'boolean',
+            'is_platform_admin' => 'boolean',
             'activation_token_expires_at' => 'datetime',
             'email_verified_at' => 'datetime'
         ];
@@ -48,6 +52,10 @@ class User extends Authenticatable
     public function getFullNameAttribute(): string
     {
         return trim("{$this->first_name} {$this->last_name}");
+    }
+    public function isPlatformAdmin(): bool
+    {
+        return (bool) $this->is_platform_admin;
     }
     public function isAdmin()
     {
@@ -75,7 +83,7 @@ class User extends Authenticatable
      */
     public function isActivated(): bool
     {
-        return $this->activation_status === 'activated';
+        return in_array($this->activation_status, ['activated', 'active']) || !empty($this->password_hash);
     }
 
     /**
@@ -83,6 +91,11 @@ class User extends Authenticatable
      */
     public function needsActivation(): bool
     {
+        // If the user already has a password set and account is active, they can log in directly
+        if (!empty($this->password_hash) && $this->is_active) {
+            return false;
+        }
+
         return in_array($this->activation_status, ['pending', 'expired']);
     }
 
@@ -252,5 +265,76 @@ class User extends Authenticatable
     {
         return app(\App\Services\AuthorizationService::class)->getEffectivePermissions($this);
     }
+
+    /**
+     * Multi-Tenant: Hotels this user belongs to.
+     */
+    public function hotels()
+    {
+        return $this->belongsToMany(Hotel::class, 'hotel_users', 'user_id', 'hotel_id')
+            ->withPivot(['role', 'is_active'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Multi-Tenant: User's hotel membership records.
+     */
+    public function hotelMemberships()
+    {
+        return $this->hasMany(HotelUser::class, 'user_id');
+    }
+
+    /**
+     * Check if user belongs to a specific hotel.
+     */
+    public function belongsToHotel(string $hotelId): bool
+    {
+        return $this->hotelMemberships()
+            ->where('hotel_id', $hotelId)
+            ->where('is_active', true)
+            ->exists();
+    }
+
+    /**
+     * Get user's role in a specific hotel.
+     */
+    public function getHotelRole(string $hotelId): ?string
+    {
+        // 1. Check user_roles assignment for this hotel
+        $roleFromUserRoles = \App\Models\Role::withoutTenant()
+            ->where('hotel_id', $hotelId)
+            ->where('is_active', true)
+            ->whereHas('users', function ($q) use ($hotelId) {
+                $q->where('user_roles.user_id', $this->id)
+                  ->where('user_roles.hotel_id', $hotelId);
+            })
+            ->first();
+
+        if ($roleFromUserRoles) {
+            return strtolower($roleFromUserRoles->slug);
+        }
+
+        // 2. Check hotel membership record
+        $membership = $this->hotelMemberships()
+            ->where('hotel_id', $hotelId)
+            ->where('is_active', true)
+            ->first();
+
+        if ($membership) {
+            if ($membership->role_id) {
+                $roleModel = \App\Models\Role::withoutTenant()->find($membership->role_id);
+                if ($roleModel) {
+                    return strtolower($roleModel->slug);
+                }
+            }
+            if (!empty($membership->role)) {
+                return strtolower($membership->role);
+            }
+        }
+
+        // 3. Fallback to user model's role column
+        return !empty($this->role) ? strtolower($this->role) : null;
+    }
 }
+
 

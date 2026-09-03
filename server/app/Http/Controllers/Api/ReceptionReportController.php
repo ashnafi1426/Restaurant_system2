@@ -14,11 +14,25 @@ use Illuminate\Http\Request;
 
 class ReceptionReportController extends Controller
 {
+    private function resolveTenant(Request $request): ?string
+    {
+        $hotelId = $request->input('hotel_id') 
+            ?: $request->header('X-Hotel-ID') 
+            ?: app(\App\Services\TenantContext::class)->getHotelId();
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
+
     /**
      * Get reservation report with filters
      */
     public function reservationReport(Request $request): JsonResponse
     {
+        $this->resolveTenant($request);
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth());
         
@@ -66,6 +80,7 @@ class ReceptionReportController extends Controller
      */
     public function occupancyReport(Request $request): JsonResponse
     {
+        $this->resolveTenant($request);
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth());
         
@@ -121,6 +136,7 @@ class ReceptionReportController extends Controller
      */
     public function guestReport(Request $request): JsonResponse
     {
+        $this->resolveTenant($request);
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth());
         
@@ -157,6 +173,7 @@ class ReceptionReportController extends Controller
      */
     public function revenueReport(Request $request): JsonResponse
     {
+        $this->resolveTenant($request);
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth());
         
@@ -203,6 +220,7 @@ class ReceptionReportController extends Controller
      */
     public function checkInOutReport(Request $request): JsonResponse
     {
+        $this->resolveTenant($request);
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth());
         

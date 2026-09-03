@@ -42,15 +42,18 @@ class RestaurantTableSeeder extends Seeder
             ['table_number' => 'B03', 'table_name' => 'Bar High Table', 'capacity' => 4, 'location' => 'Bar'],
         ];
 
+        $hotel = \App\Models\Hotel::first();
         foreach ($tables as $tableData) {
-            RestaurantTable::create([
-                'table_number' => $tableData['table_number'],
-                'table_name' => $tableData['table_name'],
-                'capacity' => $tableData['capacity'],
-                'location' => $tableData['location'],
-                'status' => RestaurantTable::STATUS_AVAILABLE,
-                'is_active' => true,
-            ]);
+            RestaurantTable::firstOrCreate(
+                ['table_number' => $tableData['table_number'], 'hotel_id' => $hotel?->id],
+                [
+                    'table_name' => $tableData['table_name'],
+                    'capacity' => $tableData['capacity'],
+                    'location' => $tableData['location'],
+                    'status' => RestaurantTable::STATUS_AVAILABLE,
+                    'is_active' => true,
+                ]
+            );
 
             $this->command->info("Created table: {$tableData['table_number']} - {$tableData['table_name']}");
         }

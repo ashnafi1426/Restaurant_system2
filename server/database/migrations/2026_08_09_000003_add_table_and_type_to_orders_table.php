@@ -8,53 +8,48 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * 
-     * Adds table_id and order_type to support restaurant table ordering.
-     * - table_id: Links to restaurant_tables for walk-in orders
-     * - order_type: Distinguishes between 'room_service' and 'walk_in' orders
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            // Add table_id for restaurant table orders (nullable, not all orders have tables)
-            $table->uuid('table_id')->nullable()->after('room_id');
-            
-            $table->string('order_type', 50)
-                  ->default('room_service')
-                  ->after('table_id')
-                  ->comment('Order context: room_service for hotel guests, walk_in for restaurant customers');
-            
-            // Add foreign key constraint for table_id
-            $table->foreign('table_id')
-                  ->references('id')
-                  ->on('restaurant_tables')
-                  ->nullOnDelete();
-            
-            // Add indexes for better query performance
-            $table->index('table_id');
-            $table->index('order_type');
-            $table->index(['order_type', 'status']); // Composite index for common queries
-        });
+        if (Schema::hasTable('orders')) {
+            try {
+                Schema::table('orders', function (Blueprint $table) {
+                    if (!Schema::hasColumn('orders', 'table_id')) {
+                        $table->uuid('table_id')->nullable();
+                    }
+                    if (!Schema::hasColumn('orders', 'order_type')) {
+                        $table->string('order_type', 50)->default('room_service');
+                    }
+                });
+            } catch (\Throwable $e) {}
+
+            try {
+                Schema::table('orders', function (Blueprint $table) {
+                    $table->foreign('table_id')
+                          ->references('id')
+                          ->on('restaurant_tables')
+                          ->nullOnDelete();
+                    
+                    $table->index('table_id');
+                    $table->index('order_type');
+                    $table->index(['order_type', 'status']);
+                });
+            } catch (\Throwable $e) {}
+        }
     }
 
     /**
      * Reverse the migrations.
-     * 
-     * Removes table_id and order_type columns.
      */
     public function down(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            // Drop indexes first
-            $table->dropIndex(['order_type', 'status']);
-            $table->dropIndex(['order_type']);
-            $table->dropIndex(['table_id']);
-            
-            // Drop foreign key
-            $table->dropForeign(['table_id']);
-            
-            // Drop columns
-            $table->dropColumn(['table_id', 'order_type']);
-        });
+        if (Schema::hasTable('orders')) {
+            try {
+                Schema::table('orders', function (Blueprint $table) {
+                    $table->dropForeign(['table_id']);
+                    $table->dropColumn(['table_id', 'order_type']);
+                });
+            } catch (\Throwable $e) {}
+        }
     }
 };

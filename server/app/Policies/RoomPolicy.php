@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\User;
 use App\Models\Room;
 use App\Services\AuthorizationService;
+use App\Services\TenantContext;
 
 class RoomPolicy
 {
@@ -15,33 +16,49 @@ class RoomPolicy
         $this->authService = $authService;
     }
 
+    protected function checkTenantAccess(User $user, ?string $hotelId): bool
+    {
+        if ($user->isPlatformAdmin()) {
+            return true;
+        }
+
+        $currentHotelId = $hotelId ?: TenantContext::id();
+        return $currentHotelId ? $user->belongsToHotel($currentHotelId) : false;
+    }
+
     public function viewAny(User $user): bool
     {
-        return $this->authService->hasPermission($user, 'rooms.view');
+        return $this->checkTenantAccess($user, null) 
+            && $this->authService->hasPermission($user, 'rooms.view');
     }
 
     public function view(User $user, Room $room): bool
     {
-        return $this->authService->hasPermission($user, 'rooms.view');
+        return $this->checkTenantAccess($user, $room->hotel_id) 
+            && $this->authService->hasPermission($user, 'rooms.view');
     }
 
     public function create(User $user): bool
     {
-        return $this->authService->hasPermission($user, 'rooms.create');
+        return $this->checkTenantAccess($user, null) 
+            && $this->authService->hasPermission($user, 'rooms.create');
     }
 
     public function update(User $user, Room $room): bool
     {
-        return $this->authService->hasPermission($user, 'rooms.update');
+        return $this->checkTenantAccess($user, $room->hotel_id) 
+            && $this->authService->hasPermission($user, 'rooms.update');
     }
 
     public function delete(User $user, Room $room): bool
     {
-        return $this->authService->hasPermission($user, 'rooms.delete');
+        return $this->checkTenantAccess($user, $room->hotel_id) 
+            && $this->authService->hasPermission($user, 'rooms.delete');
     }
 
     public function assign(User $user, Room $room): bool
     {
-        return $this->authService->hasPermission($user, 'rooms.assign');
+        return $this->checkTenantAccess($user, $room->hotel_id) 
+            && $this->authService->hasPermission($user, 'rooms.assign');
     }
 }

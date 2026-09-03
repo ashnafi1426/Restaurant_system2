@@ -11,6 +11,16 @@ class RoomResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'hotel_id' => $this->hotel_id,
+            'hotel' => $this->relationLoaded('hotel') && $this->hotel ? [
+                'id' => $this->hotel->id,
+                'name' => $this->hotel->name,
+                'city' => $this->hotel->city,
+            ] : ($this->hotel ? [
+                'id' => $this->hotel->id,
+                'name' => $this->hotel->name,
+                'city' => $this->hotel->city,
+            ] : null),
             'room_number' => $this->room_number,
             'room_type_id' => $this->room_type_id,
             'floor' => $this->floor,

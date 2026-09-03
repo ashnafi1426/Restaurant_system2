@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
+use Illuminate\Validation\Rule;
+
 /**
  * FloorManagementController
  * 
@@ -29,6 +31,26 @@ class FloorManagementController extends Controller
     }
 
     /**
+     * Get active hotel ID for tenant scoping.
+     */
+    protected function getHotelId(): ?string
+    {
+        $hotelId = request()->header('X-Hotel-ID')
+            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: (auth()->check() ? auth()->user()->hotel_id : null);
+
+        if (!$hotelId && auth()->check()) {
+            $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
+        }
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
+
+    /**
      * Get all floors
      * 
      * GET /api/manager/floors
@@ -36,7 +58,12 @@ class FloorManagementController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
             $query = HotelFloor::query();
+
+            if ($hotelId) {
+                $query->where('hotel_id', $hotelId);
+            }
 
             // Filter by status
             if ($request->has('is_active')) {
@@ -88,14 +115,30 @@ class FloorManagementController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
+
             $validated = $request->validate([
-                'floor_number' => 'required|integer|unique:hotel_floors,floor_number',
-                'name' => 'required|string|max:100|unique:hotel_floors,name',
+                'floor_number' => [
+                    'required',
+                    'integer',
+                    $hotelId 
+                        ? Rule::unique('hotel_floors', 'floor_number')->where('hotel_id', $hotelId)
+                        : 'unique:hotel_floors,floor_number',
+                ],
+                'name' => [
+                    'required',
+                    'string',
+                    'max:100',
+                    $hotelId 
+                        ? Rule::unique('hotel_floors', 'name')->where('hotel_id', $hotelId)
+                        : 'unique:hotel_floors,name',
+                ],
                 'description' => 'nullable|string|max:500',
             ]);
 
             $floor = HotelFloor::create([
                 'id' => Str::uuid(),
+                'hotel_id' => $hotelId,
                 'floor_number' => $validated['floor_number'],
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,

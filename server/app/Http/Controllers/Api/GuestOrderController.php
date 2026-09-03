@@ -122,7 +122,22 @@ class GuestOrderController extends Controller
                     'error' => 'Invalid QR code',
                 ], 404);
             }
-            $menuItems = MenuItem::where('is_available', true)
+
+            if ($room->hotel_id) {
+                app(\App\Services\TenantContext::class)->setHotelId($room->hotel_id);
+            }
+
+            $query = MenuItem::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                ->where('is_available', true);
+
+            if ($room->hotel_id) {
+                $query->where(function ($q) use ($room) {
+                    $q->where('hotel_id', $room->hotel_id)
+                      ->orWhereNull('hotel_id');
+                });
+            }
+
+            $menuItems = $query
                 ->orderBy('category')
                 ->orderBy('name')
                 ->get();
@@ -307,15 +322,26 @@ class GuestOrderController extends Controller
                     ->where('room_id', $room->id)
                     ->orderBy('created_at', 'desc')
                     ->first();
+                $hotelId = $room->hotel_id 
+                    ?? $request->input('hotel_id') 
+                    ?? $request->header('X-Hotel-ID') 
+                    ?? app(\App\Services\TenantContext::class)->getHotelId();
+
+                if ($hotelId) {
+                    app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+                }
+
                 if (!$reservation) {
                     Log::info('[QR ORDER] Creating guest and reservation for QR order', [
                         'qr_token' => $validated['qr_token'],
                         'room_id' => $room->id,
+                        'hotel_id' => $hotelId,
                     ]);
                     
                     // Create temporary guest
                     $guest = Guest::create([
                         'id' => Str::uuid(),
+                        'hotel_id' => $hotelId,
                         'first_name' => 'QR Guest',
                         'last_name' => $room->room_number,
                         'email' => 'qr-' . $room->room_number . '@hotel.local',
@@ -326,6 +352,7 @@ class GuestOrderController extends Controller
                     $reservationId = Str::uuid();
                     DB::table('reservations')->insert([
                         'id' => $reservationId,
+                        'hotel_id' => $hotelId,
                         'booking_reference' => Reservation::generateBookingReference(),
                         'room_id' => $room->id,
                         'guest_id' => $guest->id,
@@ -372,13 +399,14 @@ class GuestOrderController extends Controller
                 // Create order linked to reservation and guest
                 $orderNumber = 'ORD-' . now()->format('YmdHis') . '-' . str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);
                 $order = Order::create([
+                    'hotel_id' => $hotelId,
                     'order_number' => $orderNumber,
                     'room_id' => $room->id,
                     'guest_id' => $guest_id,
                     'reservation_id' => $reservation_id,
                     'order_time' => now(), // Set order time for kitchen queue sorting
                     'total' => $total,
-                    'status' => 'pending',
+                    'status' => Order::STATUS_PENDING,
                     'source' => 'guest_qr', // Track that this came from guest QR scan
                     'special_requests' => $validated['special_requests'] ?? null,
                 ]);

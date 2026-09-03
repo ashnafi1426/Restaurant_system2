@@ -32,8 +32,8 @@ class RoleMiddleware
 
         $userRole = strtolower($user->role ?? '');
 
-        // 1. Admin user has full system access
-        if ($this->authService->hasRole($user, 'admin') || $userRole === 'admin') {
+        // 1. Platform Admin or Admin user has full system access
+        if ($user->isPlatformAdmin() || $this->authService->hasRole($user, 'admin') || $userRole === 'admin') {
             return $next($request);
         }
 

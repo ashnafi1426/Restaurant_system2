@@ -14,18 +14,28 @@ class UpdateReservationRequest extends FormRequest
 
     public function rules(): array
     {
+        $hotelId = \App\Services\TenantContext::id();
+
+        $roomRule = Rule::exists('rooms', 'id');
+        $guestRule = Rule::exists('guests', 'id');
+
+        if ($hotelId) {
+            $roomRule = $roomRule->where('hotel_id', $hotelId)->where('is_active', true);
+            $guestRule = $guestRule->where('hotel_id', $hotelId);
+        }
+
         return [
 
             'guest_id' => [
                 'required',
                 'uuid',
-                'exists:guests,id',
+                $guestRule,
             ],
 
             'room_id' => [
                 'required',
                 'uuid',
-                'exists:rooms,id',
+                $roomRule,
             ],
 
             'check_in_date' => [

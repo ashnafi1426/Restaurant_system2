@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Traits\BelongsToTenant;
 
 /**
  * DeliveryTask Model
@@ -13,9 +14,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class DeliveryTask extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, BelongsToTenant;
     protected $table = 'delivery_tasks';
     protected $fillable = [
+        'hotel_id',
         'order_id',
         'reservation_id',
         'room_id',

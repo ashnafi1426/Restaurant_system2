@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('check_outs', function (Blueprint $table) {
+        if (!Schema::hasTable('check_outs')) {
+            Schema::create('check_outs', function (Blueprint $table) {
 
             $table->uuid('id')->primary();
 
@@ -98,6 +99,7 @@ return new class extends Migration
                 ->references('id')
                 ->on('rooms');
         });
+        }
     }
 
     /**

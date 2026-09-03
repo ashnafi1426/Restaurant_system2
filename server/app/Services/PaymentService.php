@@ -58,18 +58,24 @@ class PaymentService
                 'guest_id' => $data['guest_id'] ?? null,
             ]);
             
+            $hotelId = $data['hotel_id'] ?? ($metadata['hotel_id'] ?? null);
+
+            $txRef = (new ChapaService())->generateTransactionReference();
+
             $payment = Payment::create([
-                'tx_ref'           => (new ChapaService())->generateTransactionReference(),
-                'amount'           => $amount,
-                'currency'         => 'ETB',
-                'first_name'       => $data['first_name'],
-                'last_name'        => $data['last_name'],
-                'email'            => $data['email'],
-                'phone'            => $data['phone'],
-                'payment_provider' => Payment::PROVIDER_CHAPA,
-                'status'           => Payment::STATUS_PENDING,
-                'guest_id'         => $data['guest_id'] ?? null,
-                'metadata'         => $metadata,
+                'hotel_id'              => $hotelId,
+                'tx_ref'                => $txRef,
+                'transaction_reference' => $txRef,
+                'amount'                => $amount,
+                'currency'              => 'ETB',
+                'first_name'            => $data['first_name'],
+                'last_name'             => $data['last_name'],
+                'email'                 => $data['email'],
+                'phone'                 => $data['phone'],
+                'payment_provider'      => Payment::PROVIDER_CHAPA,
+                'status'                => Payment::STATUS_PENDING,
+                'guest_id'              => $data['guest_id'] ?? null,
+                'metadata'              => $metadata,
             ]);
 
             Log::info('Reservation Payment Created', [
@@ -182,9 +188,12 @@ class PaymentService
         try {
             // Start database transaction
             $reservation = DB::transaction(function () use ($payment, $reservationData) {
+                $hotelId = $payment->hotel_id ?? ($payment->metadata['hotel_id'] ?? null) ?? ($reservationData['hotel_id'] ?? null);
+
                 // Create reservation record with 'pending' status
                 // Receptionist needs to confirm before it becomes 'confirmed'
                 $reservation = Reservation::create([
+                    'hotel_id'          => $hotelId,
                     'booking_reference' => Reservation::generateBookingReference(),
                     'guest_id'          => $reservationData['guest_id'],
                     'room_id'           => $reservationData['room_id'],
@@ -236,9 +245,21 @@ class PaymentService
     {
         try {
             // Start database transaction
-            $order = DB::transaction(function () use ($payment, $orderData, $orderItems) {
+                $roomId = $orderData['room_id'] ?? null;
+                $room = $roomId ? Room::find($roomId) : null;
+                $hotelId = $payment->hotel_id 
+                    ?? $room?->hotel_id 
+                    ?? ($payment->metadata['hotel_id'] ?? null)
+                    ?? ($orderData['hotel_id'] ?? null)
+                    ?? app(\App\Services\TenantContext::class)->getHotelId();
+
+                if ($hotelId) {
+                    app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+                }
+
                 // Create order record
                 $order = Order::create([
+                    'hotel_id'        => $hotelId,
                     'order_number'    => Order::generateOrderNumber(),
                     'guest_id'        => $orderData['guest_id'],
                     'room_id'         => $orderData['room_id'] ?? null,

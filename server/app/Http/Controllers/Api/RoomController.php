@@ -19,8 +19,8 @@ class RoomController extends Controller
     */
     public function index(Request $request)
     {
-        // Always eager load room_type to avoid N+1 queries
-        $query = Room::with('roomType');
+        // Always eager load room_type and hotel to avoid N+1 queries
+        $query = Room::with('roomType', 'hotel');
 
         // Search by room number, floor, description, or status
         if ($request->filled('search')) {
@@ -98,9 +98,14 @@ class RoomController extends Controller
     */
     public function show(Room $room)
     {
+        $currentHotelId = \App\Services\TenantContext::id();
+        if ($currentHotelId && $room->hotel_id && $room->hotel_id !== $currentHotelId) {
+            abort(404, 'Room not found.');
+        }
+
         return response()->json([
             'success' => true,
-            'data' => new RoomResource($room->load('roomType'))
+            'data' => new RoomResource($room->load('roomType', 'hotel'))
         ]);
     }
 
@@ -190,3 +195,4 @@ class RoomController extends Controller
         ]);
     }
 }
+

@@ -100,6 +100,22 @@ class WaiterTableAssignmentService
     }
 
     /**
+     * Get active hotel ID for tenant scoping.
+     */
+    protected function getHotelId(): ?string
+    {
+        $hotelId = request()->header('X-Hotel-ID')
+            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: (auth()->check() ? auth()->user()->hotel_id : null);
+
+        if (!$hotelId && auth()->check()) {
+            $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
+        }
+
+        return $hotelId;
+    }
+
+    /**
      * Get all table assignments with filters
      * 
      * @param array $filters
@@ -107,6 +123,7 @@ class WaiterTableAssignmentService
      */
     public function getAssignments(array $filters = [])
     {
+        $this->ensureTableExists();
         $this->autoSeedAssignmentsIfEmpty();
 
         $perPage = $filters['per_page'] ?? 100;
@@ -115,7 +132,16 @@ class WaiterTableAssignmentService
             return new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage, 1);
         }
 
+        $hotelId = $this->getHotelId();
+
         $query = WaiterTableAssignment::query()
+            ->when($hotelId, function($q) use ($hotelId) {
+                if (Schema::hasColumn('waiter_table_assignments', 'hotel_id')) {
+                    $q->where('waiter_table_assignments.hotel_id', $hotelId);
+                } else {
+                    $q->whereHas('table', fn($t) => $t->where('hotel_id', $hotelId));
+                }
+            })
             ->with([
                 'waiter.user',
                 'table',
@@ -181,11 +207,20 @@ class WaiterTableAssignmentService
             return collect();
         }
 
+        $hotelId = $this->getHotelId();
+
         return WaiterTableAssignment::with([
             'waiter.user',
             'table',
             'shift'
         ])
+        ->when($hotelId, function($q) use ($hotelId) {
+            if (Schema::hasColumn('waiter_table_assignments', 'hotel_id')) {
+                $q->where('waiter_table_assignments.hotel_id', $hotelId);
+            } else {
+                $q->whereHas('table', fn($t) => $t->where('hotel_id', $hotelId));
+            }
+        })
         ->active()
         ->today()
         ->orderByRaw("
@@ -214,6 +249,8 @@ class WaiterTableAssignmentService
         DB::beginTransaction();
         
         try {
+            $hotelId = $this->getHotelId();
+
             foreach ($assignments as $index => $assignmentData) {
                 try {
                     // Validate required fields
@@ -225,6 +262,7 @@ class WaiterTableAssignmentService
                         ->where('assignment_date', $assignmentData['assignment_date'])
                         ->where('priority', $assignmentData['priority'])
                         ->where('status', WaiterTableAssignment::STATUS_ACTIVE)
+                        ->when($hotelId && Schema::hasColumn('waiter_table_assignments', 'hotel_id'), fn($q) => $q->where('hotel_id', $hotelId))
                         ->exists();
 
                     if ($exists) {
@@ -236,7 +274,7 @@ class WaiterTableAssignmentService
                     }
 
                     // Create assignment
-                    $assignment = WaiterTableAssignment::create([
+                    $createPayload = [
                         'waiter_id' => $assignmentData['waiter_id'],
                         'table_id' => $assignmentData['table_id'],
                         'shift_id' => $assignmentData['shift_id'],
@@ -244,7 +282,13 @@ class WaiterTableAssignmentService
                         'priority' => $assignmentData['priority'] ?? WaiterTableAssignment::PRIORITY_PRIMARY,
                         'status' => WaiterTableAssignment::STATUS_ACTIVE,
                         'assigned_by' => $assignedBy,
-                    ]);
+                    ];
+
+                    if ($hotelId && Schema::hasColumn('waiter_table_assignments', 'hotel_id')) {
+                        $createPayload['hotel_id'] = $hotelId;
+                    }
+
+                    $assignment = WaiterTableAssignment::create($createPayload);
 
                     $assignment->load(['waiter.user', 'table', 'shift', 'assignedByUser']);
                     $created[] = $assignment;

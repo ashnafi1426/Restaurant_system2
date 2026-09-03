@@ -46,24 +46,42 @@ class PermissionController extends Controller
             'action' => 'required|string|max:100',
             'description' => 'nullable|string|max:1000',
             'is_active' => 'nullable|boolean',
+            'role_ids' => 'nullable|array',
+            'role_ids.*' => 'exists:roles,id',
         ]);
 
-        $slug = !empty($validated['slug'])
-            ? Str::slug($validated['slug'])
-            : Str::slug($validated['module'] . '.' . $validated['action']);
+        $module = strtolower(trim(preg_replace('/[^a-zA-Z0-9_]/', '', $validated['module'])));
+        $action = strtolower(trim(preg_replace('/[^a-zA-Z0-9_]/', '', $validated['action'])));
+
+        if (!empty($validated['slug'])) {
+            $slug = strtolower(trim(preg_replace('/[^a-zA-Z0-9_.-]/', '', $validated['slug'])));
+        } else {
+            $slug = "{$module}.{$action}";
+        }
 
         if (Permission::where('slug', $slug)->exists()) {
-            $slug = $slug . '-' . time();
+            $slug = $slug . '_' . time();
         }
 
         $permission = Permission::create([
             'name' => $validated['name'],
             'slug' => $slug,
-            'module' => Str::slug($validated['module']),
-            'action' => Str::slug($validated['action']),
+            'module' => $module,
+            'action' => $action,
             'description' => $validated['description'] ?? null,
             'is_active' => $validated['is_active'] ?? true,
         ]);
+
+        if (!empty($validated['role_ids'])) {
+            $permission->roles()->sync($validated['role_ids']);
+        } else {
+            $adminRole = \App\Models\Role::where('slug', 'admin')->first();
+            if ($adminRole) {
+                $permission->roles()->syncWithoutDetaching([$adminRole->id]);
+            }
+        }
+
+        \Illuminate\Support\Facades\Cache::flush();
 
         RbacAuditLog::log(
             $request->user()?->id,
@@ -73,10 +91,11 @@ class PermissionController extends Controller
             null,
             $permission->toArray()
         );
+
         return response()->json([
             'success' => true,
             'message' => 'Permission created successfully',
-            'data' => $permission,
+            'data' => $permission->load('roles'),
         ], 201);
     }
 
@@ -100,12 +119,39 @@ class PermissionController extends Controller
             'name' => 'sometimes|required|string|max:255',
             'module' => 'sometimes|required|string|max:100',
             'action' => 'sometimes|required|string|max:100',
+            'slug' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'is_active' => 'sometimes|required|boolean',
+            'role_ids' => 'nullable|array',
+            'role_ids.*' => 'exists:roles,id',
         ]);
 
+        $updateData = [];
+        if (isset($validated['name'])) $updateData['name'] = $validated['name'];
+        if (array_key_exists('description', $validated)) $updateData['description'] = $validated['description'];
+        if (isset($validated['is_active'])) $updateData['is_active'] = $validated['is_active'];
+
+        if (isset($validated['module'])) {
+            $updateData['module'] = strtolower(trim(preg_replace('/[^a-zA-Z0-9_]/', '', $validated['module'])));
+        }
+        if (isset($validated['action'])) {
+            $updateData['action'] = strtolower(trim(preg_replace('/[^a-zA-Z0-9_]/', '', $validated['action'])));
+        }
+
+        if (!empty($validated['slug'])) {
+            $updateData['slug'] = strtolower(trim(preg_replace('/[^a-zA-Z0-9_.-]/', '', $validated['slug'])));
+        } elseif (isset($updateData['module']) && isset($updateData['action'])) {
+            $updateData['slug'] = "{$updateData['module']}.{$updateData['action']}";
+        }
+
         $oldValues = $permission->toArray();
-        $permission->update($validated);
+        $permission->update($updateData);
+
+        if (isset($validated['role_ids'])) {
+            $permission->roles()->sync($validated['role_ids']);
+        }
+
+        \Illuminate\Support\Facades\Cache::flush();
 
         RbacAuditLog::log(
             $request->user()?->id,
@@ -119,7 +165,7 @@ class PermissionController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Permission updated successfully',
-            'data' => $permission,
+            'data' => $permission->load('roles'),
         ]);
     }
 
@@ -131,6 +177,7 @@ class PermissionController extends Controller
         // Safe deactivation preferred over deletion if assigned to roles
         if ($permission->roles()->count() > 0) {
             $permission->update(['is_active' => false]);
+            \Illuminate\Support\Facades\Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -140,6 +187,7 @@ class PermissionController extends Controller
 
         $oldValues = $permission->toArray();
         $permission->delete();
+        \Illuminate\Support\Facades\Cache::flush();
 
         RbacAuditLog::log(
             $request->user()?->id,

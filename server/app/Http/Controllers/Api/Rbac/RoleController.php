@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\Permission;
 use App\Models\User;
+use App\Models\Hotel;
 use App\Models\RbacAuditLog;
 use App\Services\AuthorizationService;
+use App\Services\TenantContext;
+use App\Services\TenantRoleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -15,53 +18,170 @@ use Illuminate\Support\Facades\DB;
 class RoleController extends Controller
 {
     protected AuthorizationService $authService;
+    protected TenantRoleService $tenantRoleService;
 
-    public function __construct(AuthorizationService $authService)
+    public function __construct(AuthorizationService $authService, TenantRoleService $tenantRoleService)
     {
         $this->authService = $authService;
+        $this->tenantRoleService = $tenantRoleService;
     }
 
     /**
-     * Display a listing of all roles.
+     * Resolve the current authorized hotel ID for this request.
      */
-    public function index()
+    protected function resolveHotelId(Request $request): ?string
     {
-        $roles = Role::with(['permissions'])
-            ->withCount(['permissions', 'users'])
-            ->orderBy('name')
-            ->get();
+        $hotelId = app(TenantContext::class)->getHotelId()
+            ?: $request->header('X-Hotel-ID')
+            ?: $request->query('hotel_id');
+
+        $user = $request->user();
+        if ($hotelId && $user && !$user->isPlatformAdmin()) {
+            if (!$user->belongsToHotel($hotelId)) {
+                return null;
+            }
+        }
+
+        if (!$hotelId && $user && !$user->isPlatformAdmin()) {
+            $membership = $user->hotelMemberships()->where('is_active', true)->first();
+            $hotelId = $membership?->hotel_id;
+        }
+
+        return $hotelId;
+    }
+
+    /**
+     * Verify that the requested role strictly belongs to the current tenant hotel.
+     */
+    protected function verifyRoleAccess(Role $role, Request $request): ?\Illuminate\Http\JsonResponse
+    {
+        $user = $request->user();
+        if ($user && $user->isPlatformAdmin()) {
+            return null; // Platform super admin has unrestricted master access
+        }
+
+        $hotelId = $this->resolveHotelId($request);
+        if (!$hotelId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active hotel context found. Please specify a hotel.',
+            ], 403);
+        }
+
+        if ($role->hotel_id !== $hotelId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Access Denied: This role belongs to a different hotel tenant.',
+            ], 403);
+        }
+
+        return null;
+    }
+    public function index(Request $request)
+    {
+        $hotelId = $this->resolveHotelId($request);
+        $user = $request->user();
+
+        // Ensure default roles exist for this hotel if newly created
+        if ($hotelId) {
+            $hotel = Hotel::find($hotelId);
+            if ($hotel) {
+                $this->tenantRoleService->provisionRolesForHotel($hotel);
+            }
+        }
+        $query = Role::withoutTenant()->with(['permissions'])->withCount(['permissions']);
+        if ($hotelId) {
+            $query->where('hotel_id', $hotelId);
+        } elseif ($user && $user->isPlatformAdmin()) {
+            // Super admin can see global template roles or filter by hotel
+            if ($request->filled('hotel_id')) {
+                $query->where('hotel_id', $request->input('hotel_id'));
+            }
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Access Denied: Hotel context required.',
+            ], 403);
+        }
+
+        $roles = $query->orderBy('name')->get();
+
+        // Calculate users count per role within this hotel context
+        if ($hotelId) {
+            $roles->transform(function ($role) use ($hotelId) {
+                $role->users_count = DB::table('user_roles')
+                    ->where('role_id', $role->id)
+                    ->where('hotel_id', $hotelId)
+                    ->count()
+                    ?: DB::table('hotel_users')
+                        ->where('hotel_id', $hotelId)
+                        ->where(function ($q) use ($role) {
+                            $q->where('role_id', $role->id)
+                              ->orWhere('role', $role->slug);
+                        })
+                        ->count();
+                return $role;
+            });
+        }
 
         return response()->json([
             'success' => true,
+            'hotel_id' => $hotelId,
             'data' => $roles,
         ]);
     }
 
     /**
-     * Get list of active system roles for dynamic UI options.
+     * Get list of active roles for dynamic UI options in the current hotel.
      */
-    public function getActiveRoles()
+    public function getActiveRoles(Request $request)
     {
-        $roles = Role::where('is_active', true)
+        $hotelId = $this->resolveHotelId($request);
+        $user = $request->user();
+
+        $query = Role::withoutTenant()
+            ->where('is_active', true)
             ->with(['permissions'])
-            ->withCount(['permissions', 'users'])
-            ->orderBy('name')
-            ->get();
+            ->withCount(['permissions']);
+
+        if ($hotelId) {
+            $query->where('hotel_id', $hotelId);
+        } elseif ($user && $user->isPlatformAdmin()) {
+            if ($request->filled('hotel_id')) {
+                $query->where('hotel_id', $request->input('hotel_id'));
+            }
+        } else {
+            // Fallback for public registration / unauthenticated: return standard system template roles
+            $query->whereNull('hotel_id')->orWhere('is_system', true);
+        }
+
+        $roles = $query->orderBy('name')->get();
 
         return response()->json([
             'success' => true,
+            'hotel_id' => $hotelId,
             'data' => $roles,
         ]);
     }
 
     /**
-     * Store a newly created role.
+     * Store a newly created role within the current hotel.
      */
     public function store(Request $request)
     {
+        $hotelId = $this->resolveHotelId($request);
+        $user = $request->user();
+
+        if (!$hotelId && (!$user || !$user->isPlatformAdmin())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot create role without active hotel context.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:roles,slug',
+            'slug' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'is_active' => 'nullable|boolean',
             'permissions' => 'nullable|array',
@@ -72,15 +192,26 @@ class RoleController extends Controller
             ? Str::slug($validated['slug'])
             : Str::slug($validated['name']);
 
-        if (Role::where('slug', $slug)->exists()) {
-            $slug = $slug . '-' . time();
+        // Enforce uniqueness within this hotel
+        $existingSlugQuery = Role::withoutTenant()->where('slug', $slug);
+        if ($hotelId) {
+            $existingSlugQuery->where('hotel_id', $hotelId);
+        } else {
+            $existingSlugQuery->whereNull('hotel_id');
+        }
+
+        if ($existingSlugQuery->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => "A role with slug '{$slug}' already exists in this hotel.",
+            ], 422);
         }
 
         DB::beginTransaction();
         try {
-            $role = Role::create([
+            $role = Role::withoutTenant()->create([
+                'hotel_id' => $hotelId,
                 'name' => $validated['name'],
-                'display_name' => $validated['name'],
                 'slug' => $slug,
                 'description' => $validated['description'] ?? null,
                 'is_system' => false,
@@ -104,8 +235,8 @@ class RoleController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Role created successfully',
-                'data' => $role->load(['permissions', 'users']),
+                'message' => 'Role created successfully for hotel',
+                'data' => $role->load(['permissions']),
             ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -117,11 +248,15 @@ class RoleController extends Controller
     }
 
     /**
-     * Display the specified role with its permissions and assigned users.
+     * Display the specified role.
      */
-    public function show(Role $role)
+    public function show(Request $request, Role $role)
     {
-        $role->load(['permissions', 'users']);
+        if ($denied = $this->verifyRoleAccess($role, $request)) {
+            return $denied;
+        }
+
+        $role->load(['permissions']);
 
         return response()->json([
             'success' => true,
@@ -130,19 +265,19 @@ class RoleController extends Controller
     }
 
     /**
-     * Update the specified role.
+     * Update the specified role within this hotel.
      */
     public function update(Request $request, Role $role)
     {
+        if ($denied = $this->verifyRoleAccess($role, $request)) {
+            return $denied;
+        }
+
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'is_active' => 'sometimes|required|boolean',
         ]);
-
-        if (isset($validated['name'])) {
-            $validated['display_name'] = $validated['name'];
-        }
 
         // Prevent deactivating critical system role 'admin'
         if ($role->slug === 'admin' && isset($validated['is_active']) && !$validated['is_active']) {
@@ -152,8 +287,19 @@ class RoleController extends Controller
             ], 422);
         }
 
+        $updateData = [];
+        if (isset($validated['name'])) {
+            $updateData['name'] = $validated['name'];
+        }
+        if (array_key_exists('description', $validated)) {
+            $updateData['description'] = $validated['description'];
+        }
+        if (isset($validated['is_active'])) {
+            $updateData['is_active'] = $validated['is_active'];
+        }
+
         $oldValues = $role->toArray();
-        $role->update($validated);
+        $role->update($updateData);
 
         $this->authService->invalidateRoleCache($role);
 
@@ -169,7 +315,7 @@ class RoleController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Role updated successfully',
-            'data' => $role->load(['permissions', 'users']),
+            'data' => $role->load(['permissions']),
         ]);
     }
 
@@ -178,6 +324,10 @@ class RoleController extends Controller
      */
     public function destroy(Request $request, Role $role)
     {
+        if ($denied = $this->verifyRoleAccess($role, $request)) {
+            return $denied;
+        }
+
         if ($role->is_system) {
             return response()->json([
                 'success' => false,
@@ -185,10 +335,13 @@ class RoleController extends Controller
             ], 422);
         }
 
-        if ($role->users()->count() > 0) {
+        $assignedCount = DB::table('hotel_users')->where('role_id', $role->id)->count()
+            + DB::table('user_roles')->where('role_id', $role->id)->count();
+
+        if ($assignedCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Cannot delete role because users are currently assigned to it. Reassign or remove users first.',
+                'message' => 'Cannot delete role because users are currently assigned to it in this hotel.',
             ], 422);
         }
 
@@ -215,30 +368,43 @@ class RoleController extends Controller
     /**
      * Get all permission IDs assigned to a role.
      */
-    public function getPermissions(Role $role)
+    public function getPermissions(Request $request, Role $role)
     {
+        if ($denied = $this->verifyRoleAccess($role, $request)) {
+            return $denied;
+        }
+
         $permissions = $role->permissions;
         return response()->json([
             'success' => true,
             'role_id' => $role->id,
+            'hotel_id' => $role->hotel_id,
             'data' => $permissions,
             'permission_ids' => $permissions->pluck('id'),
         ]);
     }
 
     /**
-     * Sync permissions for a role.
+     * Sync permissions strictly for a hotel-specific role.
      */
     public function syncPermissions(Request $request, Role $role)
     {
+        // 1. Enforce strict hotel ownership check
+        if ($denied = $this->verifyRoleAccess($role, $request)) {
+            return $denied;
+        }
+
         $validated = $request->validate([
             'permission_ids' => 'present|array',
             'permission_ids.*' => 'exists:permissions,id',
         ]);
 
         $oldPermissionIds = $role->permissions()->pluck('permissions.id')->toArray();
+        
+        // 2. Sync permissions ONLY to this hotel-specific role record
         $role->permissions()->sync($validated['permission_ids']);
 
+        // 3. Invalidate role cache strictly for users in this hotel
         $this->authService->invalidateRoleCache($role);
 
         RbacAuditLog::log(
@@ -246,13 +412,15 @@ class RoleController extends Controller
             'role.permissions_updated',
             'Role',
             (string)$role->id,
-            ['permission_ids' => $oldPermissionIds],
-            ['permission_ids' => $validated['permission_ids']]
+            ['permission_ids' => $oldPermissionIds, 'hotel_id' => $role->hotel_id],
+            ['permission_ids' => $validated['permission_ids'], 'hotel_id' => $role->hotel_id]
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'Permissions updated successfully for role ' . $role->name,
+            'message' => "Permissions updated successfully for {$role->name} in this hotel",
+            'role_id' => $role->id,
+            'hotel_id' => $role->hotel_id,
             'data' => $role->load('permissions'),
         ]);
     }

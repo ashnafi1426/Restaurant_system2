@@ -6,14 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Traits\BelongsToTenant;
 
 class MenuItem extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, BelongsToTenant;
     public $incrementing = false;
     protected $keyType = 'string';
     protected $table = 'menu_items';
     protected $fillable = [
+        'hotel_id',
         'name',
         'description',
         'category',

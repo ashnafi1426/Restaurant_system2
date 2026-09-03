@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Models\Traits\BelongsToTenant;
 
 class Reservation extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, BelongsToTenant;
     protected $keyType = 'string';
 
     /**
@@ -20,6 +21,7 @@ class Reservation extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
+        'hotel_id',
         'booking_reference',
         'guest_id',
         'room_id',
@@ -201,6 +203,18 @@ class Reservation extends Model
     {
         return "{$this->total_nights} Night(s)";
     }
+
+    /**
+     * Get total nights for this reservation
+     */
+    public function getTotalNightsAttribute(): int
+    {
+        if ($this->check_in_date && $this->check_out_date) {
+            return $this->check_out_date->diffInDays($this->check_in_date);
+        }
+        return 0;
+    }
+
     public function getGuestNameAttribute(): string
     {
         return $this->guest

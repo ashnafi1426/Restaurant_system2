@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('review_notifications', function (Blueprint $table) {
+        if (!Schema::hasTable('review_notifications')) {
+            Schema::create('review_notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
 
             $table->foreignUuid('user_id')
@@ -38,6 +39,7 @@ return new class extends Migration
             // Index for efficient queries
             $table->index(['user_id', 'is_read', 'created_at'], 'idx_user_unread');
         });
+        }
     }
 
     public function down(): void

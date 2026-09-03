@@ -78,7 +78,7 @@ class ReservationPaymentController extends Controller
             // Validate request with less strict email validation for now
             $validated = $request->validate([
                 'room_id'          => 'required|exists:rooms,id',
-                'guest_id'         => 'required|exists:guests,id',
+                'guest_id'         => 'nullable|exists:guests,id',
                 'check_in_date'    => 'required|date|after_or_equal:today',
                 'check_out_date'   => 'required|date|after:check_in_date',
                 'number_of_guests' => 'required|integer|min:1',
@@ -161,10 +161,63 @@ class ReservationPaymentController extends Controller
                 'has_room_number' => isset($room->room_number),
             ]);
 
-            // Get guest details
-            Log::info('Looking up guest', ['guest_id' => $validated['guest_id']]);
-            $guest = Guest::findOrFail($validated['guest_id']);
-            Log::info('Guest Found', ['guest_id' => $guest->id]);
+            // Enforce room active and not in maintenance
+            if ($room->status === 'maintenance' || !$room->is_active) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This room is currently unavailable or under maintenance.',
+                ], 422);
+            }
+
+            // Enforce room capacity
+            $capacity = $room->roomType?->capacity ?? 2;
+            if ((int)$validated['number_of_guests'] > $capacity) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Number of guests exceeds room capacity (maximum {$capacity} guests).",
+                ], 422);
+            }
+
+            // Enforce date overlap availability strictly within this hotel
+            $hasConflict = Reservation::where('hotel_id', $room->hotel_id)
+                ->where('room_id', $room->id)
+                ->whereNotIn('status', ['cancelled', 'checked_out'])
+                ->where(function ($query) use ($validated) {
+                    $query->where('check_in_date', '<', $validated['check_out_date'])
+                          ->where('check_out_date', '>', $validated['check_in_date']);
+                })
+                ->exists();
+
+            if ($hasConflict) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The selected room is already booked for these dates.',
+                ], 422);
+            }
+
+            // Get or create guest details
+            if (!empty($validated['guest_id'])) {
+                Log::info('Looking up guest', ['guest_id' => $validated['guest_id']]);
+                $guest = Guest::withoutTenant()->findOrFail($validated['guest_id']);
+            } else {
+                Log::info('Finding or creating guest', ['email' => $validated['email'], 'hotel_id' => $room->hotel_id]);
+                $guest = Guest::withoutTenant()
+                    ->where('hotel_id', $room->hotel_id)
+                    ->where('email', $validated['email'])
+                    ->first();
+
+                if (!$guest) {
+                    $guest = Guest::withoutTenant()->create([
+                        'hotel_id'   => $room->hotel_id,
+                        'email'      => $validated['email'],
+                        'first_name' => $validated['first_name'],
+                        'last_name'  => $validated['last_name'],
+                        'phone'      => $validated['phone'],
+                    ]);
+                }
+            }
+            $validated['guest_id'] = $guest->id;
+            Log::info('Guest Found or Created', ['guest_id' => $guest->id]);
 
             // Calculate reservation price
             Log::info('Calculating price');
@@ -178,9 +231,10 @@ class ReservationPaymentController extends Controller
             );
             Log::info('Price Calculated', ['breakdown' => $priceBreakdown]);
             
-            // Prepare metadata
+            // Prepare metadata with hotel_id
             $metadata = [
                 'type'             => 'reservation',
+                'hotel_id'         => $room->hotel_id,
                 'room_id'          => $validated['room_id'],
                 'check_in_date'    => $validated['check_in_date'],
                 'check_out_date'   => $validated['check_out_date'],
@@ -192,16 +246,17 @@ class ReservationPaymentController extends Controller
                 'price_breakdown'  => $priceBreakdown,
             ];
 
-            // Create payment record
+            // Create payment record with hotel_id
             Log::info('Creating payment record');
             $payment = $this->paymentService->createReservationPayment([
-                'amount'    => $priceBreakdown['total'],
+                'hotel_id'   => $room->hotel_id,
+                'amount'     => $priceBreakdown['total'],
                 'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'email'     => $validated['email'],
-                'phone'     => $validated['phone'],
-                'guest_id'  => $validated['guest_id'],
-                'metadata'  => $metadata,
+                'last_name'  => $validated['last_name'],
+                'email'      => $validated['email'],
+                'phone'      => $validated['phone'],
+                'guest_id'   => $validated['guest_id'],
+                'metadata'   => $metadata,
             ]);
             Log::info('Payment Record Created', ['payment_id' => $payment->id]);
 

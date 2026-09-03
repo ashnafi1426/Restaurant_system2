@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+use App\Models\Traits\BelongsToTenant;
+
 class RoomType extends Model
 {
-    use HasFactory;
-    use HasUuids;
+    use HasFactory, HasUuids, BelongsToTenant;
 
     /*
     |--------------------------------------------------------------------------
@@ -21,7 +22,7 @@ class RoomType extends Model
     protected $keyType = 'string';
     public $incrementing = false;
     protected $fillable = [
-
+        'hotel_id',
         'name',
 
         'description',

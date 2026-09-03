@@ -4,14 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Models\Traits\BelongsToTenant;
 
 class CheckIn extends Model
 {
-    use HasUuids;
+    use HasUuids, BelongsToTenant;
 
     protected $table = 'check_ins';
 
     protected $fillable = [
+        'hotel_id',
         'reservation_id',
         'guest_id',
         'room_id',

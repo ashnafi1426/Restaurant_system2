@@ -7,12 +7,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Services\QRCodeService;
 use Illuminate\Support\Str;
+use App\Models\Traits\BelongsToTenant;
 
 class RestaurantTable extends Model
 {
-    use HasUuids, SoftDeletes;
+    use HasUuids, SoftDeletes, BelongsToTenant;
 
     protected $fillable = [
+        'hotel_id',
         'table_number',
         'table_name',
         'capacity',

@@ -47,11 +47,32 @@ class PaymentController extends Controller
     public function initialize(InitializePaymentRequest $request): JsonResponse
     {
         try {
+            $hotelId = \App\Services\TenantContext::id() 
+                ?: auth()->user()?->hotel_id 
+                ?: ($request->metadata['hotel_id'] ?? null)
+                ?: $request->header('X-Hotel-ID');
+
+            if ($hotelId) {
+                $hotel = \App\Models\Hotel::find($hotelId);
+                if (!$hotel || !$hotel->isActive()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid or inactive hotel selected for payment.'
+                    ], 422);
+                }
+            }
+
             // Generate unique transaction reference
             $txRef = $this->chapa->generateTransactionReference();
 
+            $metadata = $request->metadata ?? [];
+            if ($hotelId && empty($metadata['hotel_id'])) {
+                $metadata['hotel_id'] = $hotelId;
+            }
+
             // Create Payment record (transaction starts at 'pending')
             $payment = Payment::create([
+                'hotel_id'           => $hotelId,
                 'tx_ref'             => $txRef,
                 'amount'             => $request->amount,
                 'currency'           => 'ETB',
@@ -61,7 +82,7 @@ class PaymentController extends Controller
                 'phone'              => $request->phone,
                 'payment_provider'   => Payment::PROVIDER_CHAPA,
                 'status'             => Payment::STATUS_PENDING,
-                'metadata'           => $request->metadata ?? [],
+                'metadata'           => $metadata,
             ]);
 
             // Initialize payment with Chapa
@@ -208,14 +229,27 @@ class PaymentController extends Controller
                     ]);
                     
                     try {
+                        $paymentHotelId = $payment->hotel_id ?? ($payment->metadata['hotel_id'] ?? null);
+
+                        if ($paymentHotelId && !empty($payment->metadata['room_id'])) {
+                            $roomBelongs = \App\Models\Room::where('hotel_id', $paymentHotelId)
+                                ->where('id', $payment->metadata['room_id'])
+                                ->exists();
+                            if (!$roomBelongs) {
+                                throw new \Exception("Room {$payment->metadata['room_id']} does not belong to hotel {$paymentHotelId}");
+                            }
+                        }
+
                         // Create the reservation
                         $reservation = Reservation::create([
+                            'hotel_id'          => $paymentHotelId,
                             'booking_reference' => Reservation::generateBookingReference(),
                             'guest_id'          => $payment->guest_id,
                             'room_id'           => $payment->metadata['room_id'],
                             'check_in_date'     => $payment->metadata['check_in_date'],
                             'check_out_date'    => $payment->metadata['check_out_date'],
                             'number_of_guests'  => $payment->metadata['number_of_guests'],
+                            'total_amount'      => $payment->amount,
                             'status'            => 'pending',  // Receptionist needs to confirm
                             'special_requests'  => $payment->metadata['special_requests'] ?? null,
                             'created_by'        => null,  // Guest booking
@@ -227,6 +261,7 @@ class PaymentController extends Controller
                         Log::info('Reservation created successfully after payment', [
                             'payment_id'       => $payment->id,
                             'reservation_id'   => $reservation->id,
+                            'hotel_id'         => $reservation->hotel_id,
                             'booking_reference' => $reservation->booking_reference,
                             'status'           => $reservation->status,
                         ]);
@@ -275,6 +310,7 @@ class PaymentController extends Controller
 
                             // Create order record
                             $order = Order::create([
+                                'hotel_id'         => $payment->hotel_id ?? ($payment->metadata['hotel_id'] ?? null),
                                 'order_number'     => Order::generateOrderNumber(),
                                 'reservation_id'   => null, //  QR orders have no reservation initially  
                                 'guest_id'         => $payment->guest_id,

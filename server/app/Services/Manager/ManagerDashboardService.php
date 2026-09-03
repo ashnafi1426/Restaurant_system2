@@ -8,46 +8,164 @@ use App\Models\Reservation;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Guest;
+use App\Models\HotelUser;
 use App\Models\ManagerActivityLog;
 use App\Models\HousekeepingTask;
 use App\Models\RoomServiceDelivery;
+use App\Models\DeliveryTask;
 use App\Models\Waiter;
 use App\Models\LaundryRequest;
+use App\Services\TenantContext;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
-class ManagerDashboardService{
+class ManagerDashboardService
+{
+    /**
+     * Get active hotel ID for tenant scoping.
+     */
+    protected function getHotelId(): ?string
+    {
+        $hotelId = request()->header('X-Hotel-ID')
+            ?: request()->query('hotel_id')
+            ?: request()->input('hotel_id')
+            ?: app(TenantContext::class)->getHotelId()
+            ?: (auth()->check() ? auth()->user()->hotel_id : null);
+
+        if (!$hotelId && auth()->check()) {
+            $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
+        }
+
+        if ($hotelId) {
+            app(TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
 
     public function statistics(): array
     {
+        $hotelId = $this->getHotelId();
         $today = Carbon::today();
         
-        // Calculate actual order statistics
-        $orders = Order::query();
+        // Calculate actual order statistics strictly for this tenant
+        $orders = Order::withoutGlobalScopes();
+        if ($hotelId && Schema::hasColumn('orders', 'hotel_id')) {
+            $orders->where('hotel_id', $hotelId);
+        } elseif ($hotelId) {
+            $orders->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId));
+        } else {
+            $orders->whereRaw('1 = 0');
+        }
+
         $totalOrders = (clone $orders)->count();
         $pendingOrders = (clone $orders)->where('status', Order::STATUS_PENDING)->count();
         $preparingOrders = (clone $orders)->where('status', Order::STATUS_PREPARING)->count();
         $readyOrders = (clone $orders)->where('status', Order::STATUS_READY)->count();
         $servedOrders = (clone $orders)->where('status', Order::STATUS_SERVED)->count();
         
-        // Calculate delivery statistics  
-        $deliveries = \App\Models\DeliveryTask::query();
+        // Delivery tasks
+        $deliveries = DeliveryTask::withoutGlobalScopes();
+        if ($hotelId && Schema::hasColumn('delivery_tasks', 'hotel_id')) {
+            $deliveries->where('hotel_id', $hotelId);
+        } elseif ($hotelId) {
+            $deliveries->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId));
+        } else {
+            $deliveries->whereRaw('1 = 0');
+        }
+
         $totalDeliveries = (clone $deliveries)->count();
         $activeDeliveries = (clone $deliveries)->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery'])->count();
         $completedDeliveries = (clone $deliveries)->where('status', 'delivered')->count();
+
+        // Room & Occupancy
+        $roomQuery = Room::withoutGlobalScopes();
+        $checkInQuery = CheckIn::withoutGlobalScopes();
+        $resQuery = Reservation::withoutGlobalScopes();
+        $guestQuery = Guest::withoutGlobalScopes();
+
+        if ($hotelId) {
+            $roomQuery->where('hotel_id', $hotelId);
+            $checkInQuery->where('hotel_id', $hotelId);
+            $resQuery->where('hotel_id', $hotelId);
+            $guestQuery->where('hotel_id', $hotelId);
+        } else {
+            $roomQuery->whereRaw('1 = 0');
+            $checkInQuery->whereRaw('1 = 0');
+            $resQuery->whereRaw('1 = 0');
+            $guestQuery->whereRaw('1 = 0');
+        }
+
+        $totalRooms = (clone $roomQuery)->count();
+        $occupiedRooms = (clone $checkInQuery)->whereNull('checked_out_at')->count();
+        $availableRooms = (clone $roomQuery)->where('status', 'available')->count();
+        $reservedRooms = (clone $resQuery)->where('status', 'confirmed')->count();
+        $maintenanceRooms = (clone $roomQuery)->where('status', 'maintenance')->count();
+
+        $totalGuests = (clone $guestQuery)->count();
+        $checkedInGuests = (clone $checkInQuery)->whereNull('checked_out_at')->count();
+        $guestCheckouts = (clone $checkInQuery)->whereDate('expected_check_out_at', $today)->count();
+        $todayReservations = (clone $resQuery)->whereDate('created_at', $today)->count();
+
+        // Laundry & Housekeeping
+        $laundryQuery = LaundryRequest::withoutGlobalScopes();
+        $housekeepingQuery = HousekeepingTask::withoutGlobalScopes();
+        if ($hotelId && Schema::hasColumn('laundry_requests', 'hotel_id')) {
+            $laundryQuery->where('hotel_id', $hotelId);
+        } elseif ($hotelId) {
+            $laundryQuery->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId));
+        } else {
+            $laundryQuery->whereRaw('1 = 0');
+        }
+
+        if ($hotelId && Schema::hasColumn('housekeeping_tasks', 'hotel_id')) {
+            $housekeepingQuery->where('hotel_id', $hotelId);
+        } elseif ($hotelId) {
+            $housekeepingQuery->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId));
+        } else {
+            $housekeepingQuery->whereRaw('1 = 0');
+        }
+
+        $pendingLaundry = (clone $laundryQuery)->where('status', 'pending')->count();
+        $pendingHousekeeping = (clone $housekeepingQuery)->where('status', 'pending')->count();
+
+        // Staff
+        $activeStaff = 0;
+        if ($hotelId) {
+            $activeStaff = HotelUser::where('hotel_id', $hotelId)->where('is_active', true)->count();
+        }
+
+        // Revenue
+        $todayRevenue = (float) ((clone $orders)->whereDate('served_at', $today)->where('status', Order::STATUS_SERVED)->sum('total') ?: 0);
+        $monthlyRevenue = (float) ((clone $orders)->whereMonth('served_at', $today->month)->where('status', Order::STATUS_SERVED)->sum('total') ?: 0);
+
+        if ($todayRevenue == 0 && $hotelId) {
+            try {
+                $todayRevenue = (float) DB::table('payments')
+                    ->where('status', 'completed')
+                    ->when(Schema::hasColumn('payments', 'hotel_id'), fn($q) => $q->where('hotel_id', $hotelId))
+                    ->whereDate('created_at', $today)
+                    ->sum('amount');
+                $monthlyRevenue = (float) DB::table('payments')
+                    ->where('status', 'completed')
+                    ->when(Schema::hasColumn('payments', 'hotel_id'), fn($q) => $q->where('hotel_id', $hotelId))
+                    ->whereMonth('created_at', $today->month)
+                    ->sum('amount');
+            } catch (\Throwable $e) {}
+        }
         
         return [
-            'totalRooms' => Room::count(),
-            'occupiedRooms' => CheckIn::whereNull('checked_out_at')->count(),
-            'availableRooms' => Room::where('status', 'available')->count(),
-            'reservedRooms' => Reservation::where('status', 'confirmed')->count(),
-            'maintenanceRooms' => Room::where('status', 'maintenance')->count(),
+            'totalRooms' => $totalRooms,
+            'occupiedRooms' => $occupiedRooms,
+            'availableRooms' => $availableRooms,
+            'reservedRooms' => $reservedRooms,
+            'maintenanceRooms' => $maintenanceRooms,
             
-            'totalGuests' => Guest::count(),
-            'checkedInGuests' => CheckIn::whereNull('checked_out_at')->count(),
-            'guestCheckouts' => CheckIn::whereDate('expected_check_out_at', $today)->count(),
-            
-            'todayReservations' => Reservation::whereDate('created_at', $today)->count(),
+            'totalGuests' => $totalGuests,
+            'checkedInGuests' => $checkedInGuests,
+            'guestCheckouts' => $guestCheckouts,
+            'todayReservations' => $todayReservations,
             
             // Restaurant Orders Statistics
             'totalOrders' => $totalOrders,
@@ -61,13 +179,13 @@ class ManagerDashboardService{
             'activeDeliveries' => $activeDeliveries,
             'completedDeliveries' => $completedDeliveries,
             
-            'pendingLaundry' => LaundryRequest::where('status', 'pending')->count(),
-            'pendingHousekeeping' => HousekeepingTask::where('status', 'pending')->count(),
+            'pendingLaundry' => $pendingLaundry,
+            'pendingHousekeeping' => $pendingHousekeeping,
             
-            'activeStaff' => User::where('is_active', true)->count(),
+            'activeStaff' => $activeStaff,
             
-            'todayRevenue' => Order::whereDate('served_at', $today)->where('status', Order::STATUS_SERVED)->sum('total') ?? 0,
-            'monthlyRevenue' => Order::whereMonth('served_at', $today->month)->where('status', Order::STATUS_SERVED)->sum('total') ?? 0,
+            'todayRevenue' => round($todayRevenue, 2),
+            'monthlyRevenue' => round($monthlyRevenue, 2),
         ];
     }
     public function revenueSummary(): array
@@ -88,16 +206,47 @@ class ManagerDashboardService{
     }
     private function calculateRevenue(Carbon $start, Carbon $end): float
     {
-        return Order::whereBetween('created_at', [$start->startOfDay(), $end->endOfDay()])
-            ->sum('total') ?? 0;
+        $hotelId = $this->getHotelId();
+        if (!$hotelId) return 0;
+
+        try {
+            if (Schema::hasTable('payments') && Schema::hasColumn('payments', 'hotel_id')) {
+                return (float) DB::table('payments')
+                    ->where('hotel_id', $hotelId)
+                    ->where('status', 'completed')
+                    ->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+                    ->sum('amount');
+            }
+        } catch (\Throwable $e) {}
+
+        $orderQuery = Order::withoutGlobalScopes();
+        if (Schema::hasColumn('orders', 'hotel_id')) {
+            $orderQuery->where('hotel_id', $hotelId);
+        } else {
+            $orderQuery->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId));
+        }
+
+        return (float) ($orderQuery->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])->sum('total') ?: 0);
     }
     public function occupancySummary(): array
     {
-        $totalRooms = Room::count();
-        $occupiedRooms = CheckIn::whereNull('checked_out_at')->count();
-        $availableRooms = Room::where('status', 'available')->count();
-        $reservedRooms = Reservation::where('status', 'confirmed')->count();
-        $maintenanceRooms = Room::where('status', 'maintenance')->count();
+        $hotelId = $this->getHotelId();
+        if (!$hotelId) {
+            return [
+                'totalRooms' => 0,
+                'occupiedRooms' => 0,
+                'availableRooms' => 0,
+                'reservedRooms' => 0,
+                'maintenanceRooms' => 0,
+                'occupancyRate' => 0,
+            ];
+        }
+
+        $totalRooms = Room::withoutGlobalScopes()->where('hotel_id', $hotelId)->count();
+        $occupiedRooms = CheckIn::withoutGlobalScopes()->where('hotel_id', $hotelId)->whereNull('checked_out_at')->count();
+        $availableRooms = Room::withoutGlobalScopes()->where('hotel_id', $hotelId)->where('status', 'available')->count();
+        $reservedRooms = Reservation::withoutGlobalScopes()->where('hotel_id', $hotelId)->where('status', 'confirmed')->count();
+        $maintenanceRooms = Room::withoutGlobalScopes()->where('hotel_id', $hotelId)->where('status', 'maintenance')->count();
 
         $occupancyRate = $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100, 2) : 0;
 
@@ -112,12 +261,23 @@ class ManagerDashboardService{
     }
     public function reservationSummary(): array
     {
+        $hotelId = $this->getHotelId();
+        if (!$hotelId) {
+            return [
+                'pending' => 0,
+                'confirmed' => 0,
+                'checkedIn' => 0,
+                'checkedOut' => 0,
+                'cancelled' => 0,
+            ];
+        }
+
         return [
-            'pending' => Reservation::where('status', 'pending')->count(),
-            'confirmed' => Reservation::where('status', 'confirmed')->count(),
-            'checkedIn' => CheckIn::whereNull('checked_out_at')->count(),
-            'checkedOut' => CheckIn::whereNotNull('checked_out_at')->count(),
-            'cancelled' => Reservation::where('status', 'cancelled')->count(),
+            'pending' => Reservation::withoutGlobalScopes()->where('hotel_id', $hotelId)->where('status', 'pending')->count(),
+            'confirmed' => Reservation::withoutGlobalScopes()->where('hotel_id', $hotelId)->where('status', 'confirmed')->count(),
+            'checkedIn' => CheckIn::withoutGlobalScopes()->where('hotel_id', $hotelId)->whereNull('checked_out_at')->count(),
+            'checkedOut' => CheckIn::withoutGlobalScopes()->where('hotel_id', $hotelId)->whereNotNull('checked_out_at')->count(),
+            'cancelled' => Reservation::withoutGlobalScopes()->where('hotel_id', $hotelId)->where('status', 'cancelled')->count(),
         ];
     }
     public function revenueChart(string $period = 'monthly'): array
@@ -159,23 +319,30 @@ class ManagerDashboardService{
     }
     public function occupancyChart(): array
     {
+        $hotelId = $this->getHotelId();
         $data = [];
 
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
-            $total = Room::count();
-            $occupied = CheckIn::where(function ($query) use ($date) {
-                    $query->whereDate('checked_in_at', '<=', $date)
-                        ->where(function ($q) use ($date) {
-                            $q->whereDate('expected_check_out_at', '>=', $date)
-                                ->orWhereNull('checked_out_at');
-                        });
-                })->count();
+            $total = $hotelId ? Room::withoutGlobalScopes()->where('hotel_id', $hotelId)->count() : 0;
+            $occupied = 0;
+
+            if ($hotelId) {
+                $occupied = CheckIn::withoutGlobalScopes()
+                    ->where('hotel_id', $hotelId)
+                    ->where(function ($query) use ($date) {
+                        $query->whereDate('checked_in_at', '<=', $date)
+                            ->where(function ($q) use ($date) {
+                                $q->whereDate('expected_check_out_at', '>=', $date)
+                                    ->orWhereNull('checked_out_at');
+                            });
+                    })->count();
+            }
 
             $data[] = [
                 'label' => $date->format('D'),
                 'occupied' => $occupied,
-                'available' => $total - $occupied,
+                'available' => max(0, $total - $occupied),
             ];
         }
 
@@ -202,24 +369,40 @@ class ManagerDashboardService{
     }
     public function getStaff(): array
     {
-        return User::where('role', '!=', 'guest')
-            ->select('id', 'first_name', 'last_name', 'phone', 'role', 'is_active')
+        $hotelId = $this->getHotelId();
+        if (!$hotelId) return [];
+
+        return HotelUser::where('hotel_id', $hotelId)
+            ->with(['user', 'roleModel'])
+            ->whereHas('user', fn($q) => $q->where('role', '!=', 'guest'))
             ->limit(10)
             ->get()
-            ->map(function ($staff) {
+            ->map(function ($membership) {
+                $user = $membership->user;
+                $roleName = $membership->roleModel?->name ?? ucfirst($membership->role ?: 'staff');
                 return [
-                    'id' => $staff->id,
-                    'name' => $staff->first_name . ' ' . $staff->last_name,
-                    'phone' => $staff->phone,
-                    'role' => $staff->role,
-                    'status' => $staff->is_active ? 'active' : 'inactive',
+                    'id' => $user->id,
+                    'name' => $user->first_name . ' ' . $user->last_name,
+                    'phone' => $user->phone,
+                    'role' => $roleName,
+                    'status' => ($user->is_active && $membership->is_active) ? 'active' : 'inactive',
                 ];
             })
             ->toArray();
     }
     public function getRecentOrders(): array
     {
-        return Order::with('guest', 'room', 'orderItems')
+        $hotelId = $this->getHotelId();
+        if (!$hotelId) return [];
+
+        $orderQuery = Order::withoutGlobalScopes();
+        if (Schema::hasColumn('orders', 'hotel_id')) {
+            $orderQuery->where('hotel_id', $hotelId);
+        } else {
+            $orderQuery->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId));
+        }
+
+        return $orderQuery->with('guest', 'room', 'orderItems')
             ->select('id', 'order_number', 'guest_id', 'room_id', 'status', 'total', 'created_at')
             ->latest()
             ->limit(10)
@@ -240,42 +423,47 @@ class ManagerDashboardService{
     }
     public function getDeliveries(): array
     {
-        return \App\Models\DeliveryTask::with('room', 'order', 'waiter')
+        $hotelId = $this->getHotelId();
+        if (!$hotelId) return [];
+
+        $query = DeliveryTask::withoutGlobalScopes();
+        if (Schema::hasColumn('delivery_tasks', 'hotel_id')) {
+            $query->where('hotel_id', $hotelId);
+        } else {
+            $query->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId));
+        }
+
+        return $query->with('room', 'order', 'waiter')
             ->select('id', 'room_id', 'order_id', 'status', 'waiter_id', 'assigned_at', 'delivered_at')
             ->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery', 'delivered'])
             ->latest()
             ->limit(10)
             ->get()
             ->map(function ($delivery) {
-                // Map status to frontend expectations
-                $statusMap = [
-                    'assigned' => 'pending',
-                    'accepted' => 'pending',
-                    'picked_up' => 'in_transit',
-                    'on_delivery' => 'in_transit',
-                    'delivered' => 'delivered',
-                ];
-                
                 return [
                     'id' => $delivery->id,
-                    'roomId' => $delivery->room_id,
                     'roomNumber' => $delivery->room?->room_number,
-                    'guestName' => $delivery->room ? 'Guest ' . $delivery->room->room_number : 'Unknown',
-                    'orderId' => $delivery->order_id,
-                    'items' => $delivery->order?->orderItems?->map(fn($item) => $item->dish_name)->join(', ') ?? 'N/A',
-                    'status' => $statusMap[$delivery->status] ?? $delivery->status,
-                    'waiterName' => $delivery->waiter ? ($delivery->waiter->user?->first_name . ' ' . $delivery->waiter->user?->last_name) : 'Unassigned',
-                    'assignedAt' => $delivery->assigned_at,
-                    'deliveredAt' => $delivery->delivered_at,
+                    'orderNumber' => $delivery->order?->order_number,
+                    'waiterName' => $delivery->waiter?->name ?? 'Unassigned',
+                    'status' => $delivery->status,
+                    'time' => $delivery->delivered_at ?: $delivery->assigned_at,
                 ];
             })
             ->toArray();
     }
     public function getHousekeeping(): array
     {
-        return HousekeepingTask::with('room', 'assignedTo')
-            ->select('id', 'room_id', 'assigned_to', 'status', 'task_type', 'priority', 'scheduled_time')
-            ->whereIn('status', ['pending', 'in_progress'])
+        $hotelId = $this->getHotelId();
+        if (!$hotelId) return [];
+
+        $query = HousekeepingTask::withoutGlobalScopes();
+        if (Schema::hasColumn('housekeeping_tasks', 'hotel_id')) {
+            $query->where('hotel_id', $hotelId);
+        } else {
+            $query->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId));
+        }
+
+        return $query->with('room', 'assignedTo')
             ->latest()
             ->limit(10)
             ->get()
@@ -295,7 +483,17 @@ class ManagerDashboardService{
     }
     public function getLaundry(): array
     {
-        return LaundryRequest::with('room', 'guest')
+        $hotelId = $this->getHotelId();
+        if (!$hotelId) return [];
+
+        $query = LaundryRequest::withoutGlobalScopes();
+        if (Schema::hasColumn('laundry_requests', 'hotel_id')) {
+            $query->where('hotel_id', $hotelId);
+        } else {
+            $query->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId));
+        }
+
+        return $query->with('room', 'guest')
             ->select('id', 'room_id', 'guest_id', 'status', 'requested_time', 'pickup_time', 'delivery_time', 'cost')
             ->whereIn('status', ['pending', 'processing', 'ready'])
             ->latest()
@@ -318,7 +516,15 @@ class ManagerDashboardService{
     }
     public function getActivities(): array
     {
-        return ManagerActivityLog::select('id', 'manager_id', 'action', 'description', 'created_at')
+        $hotelId = $this->getHotelId();
+        if (!$hotelId) return [];
+
+        $query = ManagerActivityLog::withoutGlobalScopes();
+        if (Schema::hasColumn('manager_activity_logs', 'hotel_id')) {
+            $query->where('hotel_id', $hotelId);
+        }
+
+        return $query->select('id', 'manager_id', 'action', 'description', 'created_at')
             ->with('manager')
             ->latest()
             ->limit(10)
@@ -336,7 +542,15 @@ class ManagerDashboardService{
     }
     public function getWaiters(): array
     {
-        return Waiter::with('user')
+        $hotelId = $this->getHotelId();
+        if (!$hotelId) return [];
+
+        $query = Waiter::withoutGlobalScopes();
+        if (Schema::hasColumn('waiters', 'hotel_id')) {
+            $query->where('hotel_id', $hotelId);
+        }
+
+        return $query->with('user')
             ->select('id', 'user_id', 'section', 'status', 'shift', 'experience_level')
             ->where('status', 'active')
             ->latest()

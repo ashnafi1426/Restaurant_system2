@@ -6,24 +6,33 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Traits\BelongsToTenant;
 
 class Role extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
     protected $fillable = [
+        'hotel_id',
         'name',
-        'display_name',
         'slug',
         'description',
         'is_system',
         'is_active',
     ];
 
+    protected $appends = [
+        'display_name',
+    ];
+
     protected $casts = [
         'is_system' => 'boolean',
         'is_active' => 'boolean',
     ];
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->attributes['name'] ?? '';
+    }
 
     public function permissions(): BelongsToMany
     {

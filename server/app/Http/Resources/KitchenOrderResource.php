@@ -85,27 +85,29 @@ class KitchenOrderResource extends JsonResource
             |--------------------------------------------------------------------------
             */
 
-            'items' => $this->orderItems->map(fn ($item) => [
+            'items' => $this->orderItems ? $this->orderItems->map(fn ($item) => [
 
                 'id' => $item->id,
 
                 'menu_item_id' => $item->menu_item_id,
 
-                'name' => $item->menuItem?->name,
+                'name' => $item->menuItem?->name ?? $item->item_name ?? 'Item',
 
-                'category' => $item->menuItem?->category,
+                'category' => is_string($item->menuItem?->category ?? null) 
+                    ? $item->menuItem->category 
+                    : ($item->menuItem?->categoryRelation?->name ?? 'General'),
 
                 'image' => $item->menuItem?->image_url,
 
-                'quantity' => $item->quantity,
+                'quantity' => $item->quantity ?? 1,
 
-                'unit_price' => $item->item_price_at_order,
+                'unit_price' => $item->item_price_at_order ?? $item->price ?? 0,
 
-                'line_total' => $item->line_total,
+                'line_total' => $item->line_total ?? 0,
 
                 'notes' => $item->notes,
 
-            ]),
+            ]) : [],
 
             /*
             |--------------------------------------------------------------------------

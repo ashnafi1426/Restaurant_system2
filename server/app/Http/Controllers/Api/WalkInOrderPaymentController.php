@@ -296,9 +296,20 @@ class WalkInOrderPaymentController extends Controller
             // Create order
             $result = DB::transaction(function () use ($payment, $metadata) {
                 $calculation = $metadata['calculation'];
+                $tableId = $metadata['table_id'] ?? null;
+                $table = $tableId ? RestaurantTable::find($tableId) : null;
+                $hotelId = $payment->hotel_id 
+                    ?? $table?->hotel_id 
+                    ?? ($metadata['hotel_id'] ?? null) 
+                    ?? app(\App\Services\TenantContext::class)->getHotelId();
+
+                if ($hotelId) {
+                    app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+                }
                 
                 // Create order
                 $order = Order::create([
+                    'hotel_id' => $hotelId,
                     'order_number' => Order::generateOrderNumber(),
                     'room_id' => null,
                     'guest_id' => null,

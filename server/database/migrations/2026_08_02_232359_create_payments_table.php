@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
+        if (!Schema::hasTable('payments')) {
+            Schema::create('payments', function (Blueprint $table) {
             // Primary Key
             $table->uuid('id')->primary();
 
@@ -67,6 +68,7 @@ return new class extends Migration
             $table->index(['payment_provider', 'created_at']);
             $table->index('created_at');
         });
+        }
     }
 
     /**

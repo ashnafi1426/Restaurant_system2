@@ -6,19 +6,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Traits\BelongsToTenant;
 
 class Guest extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes, BelongsToTenant;
     protected $table = 'guests';
     protected $primaryKey = 'id';
     public $incrementing = false;
     protected $keyType = 'string';
 
-    /**
-     * Mass assignable fields.
-     */
     protected $fillable = [
+        'hotel_id',
         'first_name',
         'last_name',
         'email',
@@ -38,23 +37,10 @@ class Guest extends Model
         'date_of_birth' => 'date:Y-m-d',
     ];
 
-    /**
-     * Accessor for full name.
-     */
     public function getFullNameAttribute(): string
     {
         return trim($this->first_name . ' ' . $this->last_name);
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Guest has many reservations
-     */
     public function reservations()
     {
         return $this->hasMany(Reservation::class);
@@ -138,9 +124,7 @@ class Guest extends Model
         ]);
     }
 
-    /**
-     * Get eligible menu items for review
-     */
+
     public function getEligibleMenuItemsForReview()
     {
         return MenuItem::whereHas('orderItems.order', function ($query) {

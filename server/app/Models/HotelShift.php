@@ -5,14 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Models\Traits\BelongsToTenant;
+
 class HotelShift extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids, BelongsToTenant;
     protected $table = 'hotel_shifts';
     protected $keyType = 'string';
     public $incrementing = false;
     protected $fillable = [
+        'hotel_id',
         'name',
         'start_time',
         'end_time',

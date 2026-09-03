@@ -16,12 +16,26 @@ use Carbon\Carbon;
 
 class ReportController extends Controller
 {
+    private function resolveTenant(Request $request): ?string
+    {
+        $hotelId = $request->input('hotel_id') 
+            ?: $request->header('X-Hotel-ID') 
+            ?: app(\App\Services\TenantContext::class)->getHotelId();
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
+
     /**
      * Get revenue report
      */
     public function revenue(Request $request): JsonResponse
     {
         try {
+            $this->resolveTenant($request);
             $startDate = $request->input('start_date', now()->subDays(30)->toDateString());
             $endDate = $request->input('end_date', now()->toDateString());
             $groupBy = $request->input('group_by', 'day'); // day, week, month
@@ -82,6 +96,7 @@ class ReportController extends Controller
     public function operations(Request $request): JsonResponse
     {
         try {
+            $hotelId = $this->resolveTenant($request);
             $startDate = $request->input('start_date', now()->subDays(30)->toDateString());
             $endDate = $request->input('end_date', now()->toDateString());
 
@@ -119,9 +134,15 @@ class ReportController extends Controller
                 ->first();
 
             // Popular items
-            $popularItems = DB::table('order_items')
+            $popularItemsQuery = DB::table('order_items')
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')
-                ->whereBetween('orders.created_at', [$startDate, $endDate])
+                ->whereBetween('orders.created_at', [$startDate, $endDate]);
+
+            if ($hotelId) {
+                $popularItemsQuery->where('orders.hotel_id', $hotelId);
+            }
+
+            $popularItems = $popularItemsQuery
                 ->select(
                     'order_items.item_name',
                     DB::raw('SUM(order_items.quantity) as total_quantity'),
@@ -157,6 +178,7 @@ class ReportController extends Controller
     public function staff(Request $request): JsonResponse
     {
         try {
+            $this->resolveTenant($request);
             $startDate = $request->input('start_date', now()->subDays(30)->toDateString());
             $endDate = $request->input('end_date', now()->toDateString());
 

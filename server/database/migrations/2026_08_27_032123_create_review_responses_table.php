@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('review_responses', function (Blueprint $table) {
+        if (!Schema::hasTable('review_responses')) {
+            Schema::create('review_responses', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('review_id');
             $table->uuid('responder_id')->nullable();
@@ -25,6 +26,7 @@ return new class extends Migration
             // Unique constraint - one response per review
             $table->unique('review_id', 'unique_response_per_review');
         });
+        }
     }
 
     /**

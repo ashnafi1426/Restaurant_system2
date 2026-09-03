@@ -7,11 +7,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use App\Services\QRCodeService;
 use Illuminate\Support\Str;
 
+use App\Models\Traits\BelongsToTenant;
+
 class Room extends Model
 {
-    use HasUuids;
+    use HasUuids, BelongsToTenant;
 
     protected $fillable = [
+        'hotel_id',
         'room_number',
         'room_type_id',
         'floor',
@@ -23,7 +26,6 @@ class Room extends Model
         'qr_image_path',
         'qr_generated_at',
     ];
-
     protected $casts = [
         'is_active' => 'boolean',
         'qr_generated_at' => 'datetime',
