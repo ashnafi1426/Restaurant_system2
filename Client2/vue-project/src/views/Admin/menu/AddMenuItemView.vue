@@ -1,6 +1,5 @@
 <template>
   <DashboardLayout>
-    <!-- Page Header -->
     <template #header>
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
@@ -24,7 +23,6 @@
       </div>
     </template>
 
-    <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center py-12">
       <div class="flex flex-col items-center gap-4">
         <div
@@ -34,24 +32,18 @@
       </div>
     </div>
 
-    <!-- Form Container -->
     <div v-else class="max-w-4xl mx-auto">
-      <!-- Error Alert -->
       <div v-if="errors.general" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
         <p class="text-red-700 font-medium">{{ errors.general }}</p>
       </div>
 
       <form @submit.prevent="submitForm" class="space-y-4 sm:space-y-6">
-        <!-- Main Content Row: Left Form + Right Image (Responsive Stack) -->
         <div class="flex flex-col lg:flex-row lg:gap-6">
-          <!-- LEFT SIDE: Form Fields (Full width on mobile, flex-1 on desktop) -->
           <div class="w-full lg:flex-1 space-y-4 sm:space-y-6">
-            <!-- Item Name & Price -->
             <div
               class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm"
             >
               <div class="space-y-4">
-                <!-- Item Name -->
                 <div>
                   <label
                     for="name"
@@ -70,16 +62,19 @@
                   <p v-if="errors.name" class="text-red-600 text-xs mt-1">{{ errors.name }}</p>
                 </div>
 
-                <!-- Price & Category Row (Responsive Grid) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <!-- Price -->
                   <div>
-                    <label
-                      for="price"
-                      class="block text-xs font-semibold text-slate-600 uppercase mb-2"
-                    >
-                      Price <span class="text-red-500">*</span>
-                    </label>
+                    <div class="flex items-center justify-between mb-2">
+                      <label
+                        for="price"
+                        class="block text-xs font-semibold text-slate-600 uppercase"
+                      >
+                        Price <span class="text-red-500">*</span>
+                      </label>
+                      <span v-if="formData.price && parseFloat(formData.price) > 0" class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Total with Tax: ${{ pricePreview.totalPrice }}
+                      </span>
+                    </div>
                     <div class="flex items-center gap-2">
                       <span class="text-slate-600 font-medium">$</span>
                       <input
@@ -89,14 +84,16 @@
                         placeholder="0.00"
                         step="0.01"
                         min="0"
-                        class="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                        class="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm font-semibold"
                         :class="{ 'border-red-500 focus:ring-red-500': errors.price }"
                       />
                     </div>
                     <p v-if="errors.price" class="text-red-600 text-xs mt-1">{{ errors.price }}</p>
+                    <p v-else-if="formData.price && parseFloat(formData.price) > 0" class="text-[11px] text-slate-500 mt-1">
+                      Base: ${{ pricePreview.basePrice }} + Tax: ${{ pricePreview.taxAmount }} = <strong class="text-slate-800">Total ${{ pricePreview.totalPrice }}</strong>
+                    </p>
                   </div>
 
-                  <!-- Category -->
                   <div>
                     <div class="flex items-center justify-between mb-2 gap-2 flex-wrap">
                       <label
@@ -148,7 +145,89 @@
               </div>
             </div>
 
-            <!-- Description -->
+            <!-- Dedicated Tax & Pricing Configuration Card -->
+            <div class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <span class="p-1 rounded-md bg-amber-500/10 text-amber-600 text-xs">%</span>
+                    Tax & Pricing Configuration
+                  </h3>
+                  <p class="text-xs text-slate-500 mt-0.5">Assign hotel tax rate & configure inclusive/exclusive pricing</p>
+                </div>
+                <router-link
+                  to="/admin/taxes"
+                  target="_blank"
+                  class="text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors"
+                >
+                  Manage Taxes ↗
+                </router-link>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="tax_rate" class="block text-xs font-semibold text-slate-600 uppercase mb-2">
+                    Applied Tax Rate
+                  </label>
+                  <select
+                    id="tax_rate"
+                    v-model="formData.tax_rate_id"
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                  >
+                    <option value="">No Tax (0.00%)</option>
+                    <option v-for="tax in taxRateStore.activeTaxRates" :key="tax.id" :value="tax.id">
+                      {{ tax.name }} ({{ tax.rate }}{{ tax.type === 'percentage' ? '%' : ' Fixed' }}) {{ tax.is_default ? '★ Default' : '' }}
+                    </option>
+                  </select>
+                  <p class="text-[11px] text-slate-400 mt-1">Select from hotel pre-configured tax rates</p>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">
+                    Tax Treatment
+                  </label>
+                  <div class="flex items-center gap-3 pt-2">
+                    <input
+                      id="tax_included"
+                      v-model="formData.tax_included"
+                      type="checkbox"
+                      class="w-4 h-4 rounded accent-amber-500 cursor-pointer"
+                    />
+                    <label for="tax_included" class="cursor-pointer">
+                      <span class="text-sm font-medium text-slate-700">Price Includes Tax</span>
+                    </label>
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-1">
+                    {{ formData.tax_included ? 'Tax is extracted from price' : 'Tax will be added on top at order checkout' }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Live Price Breakdown Preview Card -->
+              <div v-if="formData.price && parseFloat(formData.price) > 0" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                <div class="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                  <span>Live Pricing Breakdown Preview</span>
+                  <span class="text-[11px] font-normal text-slate-500">
+                    {{ selectedTaxRate ? `${selectedTaxRate.name} (${selectedTaxRate.rate}%)` : 'No Tax' }}
+                  </span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-center pt-1">
+                  <div class="p-2 rounded-lg bg-white border border-slate-100">
+                    <div class="text-[11px] text-slate-500">Base Net Price</div>
+                    <div class="text-sm font-bold text-slate-800">${{ pricePreview.basePrice }}</div>
+                  </div>
+                  <div class="p-2 rounded-lg bg-white border border-slate-100">
+                    <div class="text-[11px] text-slate-500">Estimated Tax</div>
+                    <div class="text-sm font-bold text-amber-600">${{ pricePreview.taxAmount }}</div>
+                  </div>
+                  <div class="p-2 rounded-lg bg-white border border-slate-100">
+                    <div class="text-[11px] text-slate-500">Total Customer Pays</div>
+                    <div class="text-sm font-bold text-emerald-600">${{ pricePreview.totalPrice }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div
               class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm"
             >
@@ -166,7 +245,7 @@
                 class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none text-sm"
               ></textarea>
             </div>
-            <!-- Publish Status -->
+
             <div
               class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm"
             >
@@ -197,7 +276,6 @@
             </div>
           </div>
 
-          <!-- RIGHT SIDE: Image Upload (Full width on mobile, fixed width on desktop) -->
           <div class="w-full lg:w-80 mt-4 sm:mt-6 lg:mt-0">
             <div
               class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-3 sm:p-6 shadow-sm lg:sticky lg:top-6"
@@ -206,7 +284,6 @@
                 Item Image
               </label>
 
-              <!-- Image Preview -->
               <div v-if="imagePreview" class="mb-4">
                 <div class="relative inline-block w-full">
                   <img
@@ -224,7 +301,6 @@
                 </div>
               </div>
 
-              <!-- Upload/URL Buttons -->
               <div class="flex gap-2 mb-4">
                 <button
                   type="button"
@@ -252,9 +328,7 @@
                 </button>
               </div>
 
-              <!-- Upload Tab Content -->
               <div v-show="formData.image_input_type === 'upload'" class="space-y-3">
-                <!-- Drag and Drop Zone -->
                 <div
                   @dragover="onDragOver"
                   @dragleave="onDragLeave"
@@ -304,7 +378,6 @@
                 <p class="text-xs text-slate-500">PNG, JPG, GIF, WebP • Max 5MB</p>
               </div>
 
-              <!-- URL Tab Content -->
               <div v-show="formData.image_input_type === 'url'" class="space-y-3">
                 <input
                   id="image_url"
@@ -321,28 +394,38 @@
           </div>
         </div>
 
-        <!-- Form Actions (Responsive Layout) -->
         <div
-          class="flex flex-col-reverse sm:flex-row gap-3 items-stretch sm:items-center sm:justify-end mt-8 pt-6 border-t border-slate-200"
+          class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center sm:justify-between mt-8 pt-6 border-t border-slate-200"
         >
-          <button
-            type="button"
-            @click="goBack"
-            class="px-4 sm:px-6 py-2 rounded-lg border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            :disabled="!isFormValid || submitting"
-            class="px-6 sm:px-8 py-2 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 text-sm"
-          >
-            <span
-              v-if="submitting"
-              class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
-            ></span>
-            <span>{{ submitting ? 'Saving...' : isEditMode ? 'Update Item' : 'Add Item' }}</span>
-          </button>
+          <div v-if="formData.price && parseFloat(formData.price) > 0" class="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200/80">
+            <span class="font-medium text-slate-500">Customer Selling Price:</span>
+            <span class="font-black text-emerald-600 text-base font-mono">${{ pricePreview.totalPrice }}</span>
+            <span class="text-[11px] text-slate-400">
+              ({{ selectedTaxRate ? (formData.tax_included ? `Includes ${selectedTaxRate.rate}% ${selectedTaxRate.name}` : `$${pricePreview.basePrice} base + $${pricePreview.taxAmount} tax`) : 'No Tax' }})
+            </span>
+          </div>
+          <div v-else class="hidden sm:block"></div>
+
+          <div class="flex items-center gap-3 justify-end">
+            <button
+              type="button"
+              @click="goBack"
+              class="px-4 sm:px-6 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 transition-colors text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              :disabled="!isFormValid || submitting"
+              class="px-6 sm:px-8 py-2.5 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 text-sm shadow-md shadow-emerald-500/20"
+            >
+              <span
+                v-if="submitting"
+                class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+              ></span>
+              <span>{{ submitting ? 'Saving...' : isEditMode ? 'Update Item' : 'Add Item' }}</span>
+            </button>
+          </div>
         </div>
       </form>
     </div>
@@ -352,25 +435,26 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import DashboardLayout from '@/layouts/DashboardLayout.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import menuService from '@/services/menuService'
 import categoryService from '@/services/categoryService'
 import { useMenuStore } from '@/stores/menuStore'
+import { useTaxRateStore } from '@/stores/taxRateStore'
 import type { MenuItem } from '@/types/menu'
 
-// Router & Route
 const route = useRoute()
 const router = useRouter()
 
-// Store
 const menuStore = useMenuStore()
+const taxRateStore = useTaxRateStore()
 
-// State
 const formData = ref({
   name: '',
   description: '',
   price: '',
   category: '',
+  tax_rate_id: '',
+  tax_included: false,
   is_available: true,
   dietary_tags: [] as string[],
   image: null as File | null,
@@ -386,11 +470,44 @@ const isDragOver = ref(false)
 const categories = ref<Array<{ id: string; name: string; slug: string }>>([])
 const categoriesLoading = ref(false)
 
-// Edit mode
 const isEditMode = computed(() => !!route.query.id)
 const editingItemId = computed(() => route.query.id as string)
 
-// Dietary tags options
+const selectedTaxRate = computed(() => {
+  return taxRateStore.taxRates.find((t) => t.id === formData.value.tax_rate_id) || null
+})
+
+const pricePreview = computed(() => {
+  const price = parseFloat(formData.value.price) || 0
+  const rate = selectedTaxRate.value ? Number(selectedTaxRate.value.rate) : 0
+
+  if (price <= 0 || rate <= 0) {
+    return {
+      basePrice: price.toFixed(2),
+      taxAmount: '0.00',
+      totalPrice: price.toFixed(2),
+    }
+  }
+
+  if (formData.value.tax_included) {
+    const base = price / (1 + rate / 100)
+    const tax = price - base
+    return {
+      basePrice: base.toFixed(2),
+      taxAmount: tax.toFixed(2),
+      totalPrice: price.toFixed(2),
+    }
+  } else {
+    const tax = price * (rate / 100)
+    const total = price + tax
+    return {
+      basePrice: price.toFixed(2),
+      taxAmount: tax.toFixed(2),
+      totalPrice: total.toFixed(2),
+    }
+  }
+})
+
 const dietaryTagsOptions = [
   { value: 'vegetarian', label: 'Vegetarian' },
   { value: 'vegan', label: 'Vegan' },
@@ -401,7 +518,6 @@ const dietaryTagsOptions = [
   { value: 'low-carb', label: 'Low Carb' },
 ]
 
-// Category options - computed from database
 const categoryOptions = computed(() => {
   return categories.value.map((cat) => ({
     value: cat.slug,
@@ -409,7 +525,6 @@ const categoryOptions = computed(() => {
   }))
 })
 
-// Computed
 const isFormValid = computed(() => {
   return (
     formData.value.name.trim().length > 0 &&
@@ -426,7 +541,6 @@ const selectedDietaryTags = computed({
   },
 })
 
-// Methods
 const loadMenuItemForEdit = async () => {
   if (!isEditMode.value) return
 
@@ -434,7 +548,6 @@ const loadMenuItemForEdit = async () => {
   try {
     const response = await menuService.getMenus({ id: editingItemId.value })
 
-    // Extract the item from response
     let item: MenuItem | null = null
 
     if (response.data.data && Array.isArray(response.data.data)) {
@@ -448,12 +561,13 @@ const loadMenuItemForEdit = async () => {
       formData.value.description = item.description || ''
       formData.value.price = String(item.price)
       formData.value.category = item.category
+      formData.value.tax_rate_id = (item as any).tax_rate_id || (item as any).tax_rate?.id || ''
+      formData.value.tax_included = Boolean((item as any).tax_included)
       formData.value.is_available = item.is_available
       formData.value.dietary_tags = item.dietary_tags || []
 
       if (item.image) {
         imagePreview.value = item.image
-        // Check if image is a URL or a local file
         if (item.image.startsWith('http')) {
           formData.value.image_url = item.image
           formData.value.image_input_type = 'url'
@@ -463,7 +577,7 @@ const loadMenuItemForEdit = async () => {
       }
     }
   } catch (error) {
-    console.error('Error loading menu item:', error)
+    console.error('[AddMenuItemView] Error loading menu item:', error)
     errors.value.general = 'Failed to load menu item'
   } finally {
     loading.value = false
@@ -508,7 +622,6 @@ const onDrop = (event: DragEvent) => {
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
 const processImageFile = (file: File) => {
-  // Validate file size (max 5MB)
   if (file.size > 5 * 1024 * 1024) {
     errors.value.image = 'Image must be less than 5MB'
     return
@@ -519,7 +632,6 @@ const processImageFile = (file: File) => {
   formData.value.image_input_type = 'upload'
   errors.value.image = ''
 
-  // Create preview
   const reader = new FileReader()
   reader.onload = (e) => {
     imagePreview.value = e.target?.result as string
@@ -568,11 +680,9 @@ const submitForm = async () => {
   submitting.value = true
 
   try {
-    // Prepare form data
     let payload: FormData | Record<string, any>
 
     if (formData.value.image) {
-      // Use FormData for file upload
       payload = new FormData()
       payload.append('name', formData.value.name)
       payload.append('description', formData.value.description)
@@ -580,12 +690,10 @@ const submitForm = async () => {
       payload.append('category', formData.value.category)
       payload.append('is_available', formData.value.is_available ? '1' : '0')
       payload.append('image', formData.value.image)
-
-      console.log('📤 FormData payload prepared for file upload')
-      console.log(' File:', formData.value.image.name)
-      console.log(' Name:', formData.value.name)
-      console.log(' Category:', formData.value.category)
-      console.log(' Price:', formData.value.price)
+      if (formData.value.tax_rate_id) {
+        payload.append('tax_rate_id', formData.value.tax_rate_id)
+      }
+      payload.append('tax_included', formData.value.tax_included ? '1' : '0')
 
       if (formData.value.dietary_tags.length > 0) {
         formData.value.dietary_tags.forEach((tag) => {
@@ -593,54 +701,33 @@ const submitForm = async () => {
         })
       }
     } else if (formData.value.image_url) {
-      // Use JSON with image_url
       payload = {
         name: formData.value.name,
         description: formData.value.description,
         price: parseFloat(formData.value.price),
         category: formData.value.category,
+        tax_rate_id: formData.value.tax_rate_id || null,
+        tax_included: formData.value.tax_included,
         is_available: formData.value.is_available,
         image_url: formData.value.image_url,
         dietary_tags: formData.value.dietary_tags,
       }
-      console.log('📤 JSON payload prepared for URL image', payload)
     } else {
-      // No image provided - use placeholder image
-      console.error(
-        ' Validation Error: No image provided. Please upload an image file or provide an image URL.',
-      )
       errors.value.image = 'Please upload an image file or provide an image URL'
       submitting.value = false
       return
     }
 
     if (isEditMode.value) {
-      // Update existing item
       await menuStore.updateMenuItem(editingItemId.value, payload)
     } else {
-      // Create new item
       await menuStore.createMenuItem(payload)
     }
 
-    // Refresh menu items
     await menuStore.fetchMenuItems()
-
-    // Redirect to menu view
     router.push({ name: 'admin-menu' })
   } catch (error: any) {
-    console.error(' Error submitting form:', error)
-
-    // Log ALL error response data
-    console.error(' Full error response:', error.response?.data)
-
-    // Log validation errors if available
-    if (error.response?.data?.errors) {
-      console.error('📋 Validation Errors:', error.response.data.errors)
-      console.table(error.response.data.errors)
-    } else if (error.response?.data?.message) {
-      console.error('📋 Error Message:', error.response.data.message)
-    }
-
+    console.error('[AddMenuItemView] Error saving menu item:', error)
     errors.value.general = error.response?.data?.message || 'Failed to save menu item'
   } finally {
     submitting.value = false
@@ -651,36 +738,33 @@ const goBack = () => {
   router.push({ name: 'admin-menu' })
 }
 
-// Navigate to add category page
 const navigateToAddCategory = () => {
   router.push({ name: 'admin-menu-add-category' })
 }
 
-// Load categories from database
 const loadCategories = async () => {
   categoriesLoading.value = true
   try {
     const response = await categoryService.getCategories({ is_active: true })
     if (response.data?.data && Array.isArray(response.data.data)) {
       categories.value = response.data.data
-      // Set default category to first one if available
       if (categories.value.length > 0 && !formData.value.category) {
         formData.value.category = categories.value[0].slug
       }
     }
   } catch (error) {
-    console.error('Error loading categories:', error)
-    // Show error but don't block the form
+    console.error('[AddMenuItemView] Error loading categories:', error)
   } finally {
     categoriesLoading.value = false
   }
 }
 
-// Lifecycle
 onMounted(async () => {
-  await loadCategories()
+  await Promise.all([loadCategories(), taxRateStore.fetchTaxRates()])
   if (isEditMode.value) {
     await loadMenuItemForEdit()
+  } else if (taxRateStore.defaultTaxRate) {
+    formData.value.tax_rate_id = taxRateStore.defaultTaxRate.id
   }
 })
 </script>

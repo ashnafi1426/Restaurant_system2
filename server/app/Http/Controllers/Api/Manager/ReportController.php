@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api\Manager;
+
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Payment;
@@ -29,35 +30,28 @@ class ReportController extends Controller
         return $hotelId;
     }
 
-    /**
-     * Get revenue report
-     */
     public function revenue(Request $request): JsonResponse
     {
         try {
             $this->resolveTenant($request);
             $startDate = $request->input('start_date', now()->subDays(30)->toDateString());
             $endDate = $request->input('end_date', now()->toDateString());
-            $groupBy = $request->input('group_by', 'day'); // day, week, month
+            $groupBy = $request->input('group_by', 'day');
 
-            // Total revenue by source
             $revenueBySource = Payment::whereBetween('created_at', [$startDate, $endDate])
                 ->where('status', 'completed')
                 ->select('payment_type', DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as count'))
                 ->groupBy('payment_type')
                 ->get();
 
-            // Revenue over time
             $revenueOverTime = $this->getRevenueOverTime($startDate, $endDate, $groupBy);
 
-            // Payment method breakdown
             $paymentMethods = Payment::whereBetween('created_at', [$startDate, $endDate])
                 ->where('status', 'completed')
                 ->select('payment_method', DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as count'))
                 ->groupBy('payment_method')
                 ->get();
 
-            // Summary
             $totalRevenue = Payment::whereBetween('created_at', [$startDate, $endDate])
                 ->where('status', 'completed')
                 ->sum('amount');
@@ -90,9 +84,6 @@ class ReportController extends Controller
         }
     }
 
-    /**
-     * Get operational metrics report
-     */
     public function operations(Request $request): JsonResponse
     {
         try {
@@ -100,7 +91,6 @@ class ReportController extends Controller
             $startDate = $request->input('start_date', now()->subDays(30)->toDateString());
             $endDate = $request->input('end_date', now()->toDateString());
 
-            // Order statistics
             $orderStats = Order::whereBetween('created_at', [$startDate, $endDate])
                 ->select(
                     DB::raw('COUNT(*) as total_orders'),
@@ -110,13 +100,11 @@ class ReportController extends Controller
                 )
                 ->first();
 
-            // Orders by status
             $ordersByStatus = Order::whereBetween('created_at', [$startDate, $endDate])
                 ->select('status', DB::raw('COUNT(*) as count'))
                 ->groupBy('status')
                 ->get();
 
-            // Peak hours analysis
             $peakHours = Order::whereBetween('created_at', [$startDate, $endDate])
                 ->select(DB::raw('HOUR(created_at) as hour'), DB::raw('COUNT(*) as order_count'))
                 ->groupBy('hour')
@@ -124,7 +112,6 @@ class ReportController extends Controller
                 ->limit(5)
                 ->get();
 
-            // Delivery performance
             $deliveryStats = DeliveryTask::whereBetween('created_at', [$startDate, $endDate])
                 ->select(
                     DB::raw('COUNT(*) as total_deliveries'),
@@ -133,7 +120,6 @@ class ReportController extends Controller
                 )
                 ->first();
 
-            // Popular items
             $popularItemsQuery = DB::table('order_items')
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')
                 ->whereBetween('orders.created_at', [$startDate, $endDate]);
@@ -172,9 +158,6 @@ class ReportController extends Controller
         }
     }
 
-    /**
-     * Get staff performance report
-     */
     public function staff(Request $request): JsonResponse
     {
         try {
@@ -182,7 +165,6 @@ class ReportController extends Controller
             $startDate = $request->input('start_date', now()->subDays(30)->toDateString());
             $endDate = $request->input('end_date', now()->toDateString());
 
-            // Waiter performance
             $waiterPerformance = Waiter::with('user')
                 ->select('waiters.*')
                 ->withCount([
@@ -209,7 +191,6 @@ class ReportController extends Controller
                     ];
                 });
 
-            // Staff summary
             $staffSummary = [
                 'total_active_staff' => Waiter::where('status', 'active')->count(),
                 'total_staff' => Waiter::count(),
@@ -232,19 +213,14 @@ class ReportController extends Controller
         }
     }
 
-    /**
-     * Get occupancy report
-     */
     public function occupancy(Request $request): JsonResponse
     {
         try {
             $startDate = $request->input('start_date', now()->subDays(30)->toDateString());
             $endDate = $request->input('end_date', now()->toDateString());
 
-            // Total rooms
             $totalRooms = Room::where('is_active', true)->count();
 
-            // Current occupancy
             $occupiedRooms = Room::where('is_active', true)
                 ->where('status', 'occupied')
                 ->count();
@@ -253,7 +229,6 @@ class ReportController extends Controller
                 ? round(($occupiedRooms / $totalRooms) * 100, 2)
                 : 0;
 
-            // Check-in/Check-out statistics
             $checkInStats = CheckIn::whereBetween('check_in_date', [$startDate, $endDate])
                 ->select(
                     DB::raw('COUNT(*) as total_check_ins'),
@@ -262,7 +237,6 @@ class ReportController extends Controller
                 )
                 ->first();
 
-            // Reservation statistics
             $reservationStats = Reservation::whereBetween('created_at', [$startDate, $endDate])
                 ->select(
                     DB::raw('COUNT(*) as total_reservations'),
@@ -271,7 +245,6 @@ class ReportController extends Controller
                 )
                 ->first();
 
-            // Occupancy over time
             $occupancyOverTime = $this->getOccupancyOverTime($startDate, $endDate);
 
             return response()->json([
@@ -297,34 +270,27 @@ class ReportController extends Controller
         }
     }
 
-    /**
-     * Get comprehensive summary report
-     */
     public function summary(Request $request): JsonResponse
     {
         try {
-            $period = $request->input('period', 'today'); // today, week, month, year
+            $period = $request->input('period', 'today');
 
             $dates = $this->getPeriodDates($period);
             $startDate = $dates['start'];
             $endDate = $dates['end'];
 
-            // Revenue summary
             $totalRevenue = Payment::whereBetween('created_at', [$startDate, $endDate])
                 ->where('status', 'completed')
                 ->sum('amount');
 
-            // Orders summary
             $totalOrders = Order::whereBetween('created_at', [$startDate, $endDate])->count();
             $completedOrders = Order::whereBetween('created_at', [$startDate, $endDate])
                 ->where('status', 'completed')
                 ->count();
 
-            // Occupancy summary
             $totalRooms = Room::where('is_active', true)->count();
             $occupiedRooms = Room::where('is_active', true)->where('status', 'occupied')->count();
 
-            // Staff summary
             $activeStaff = Waiter::where('status', 'active')->count();
 
             return response()->json([
@@ -359,9 +325,6 @@ class ReportController extends Controller
         }
     }
 
-    /**
-     * Helper: Get revenue over time
-     */
     private function getRevenueOverTime($startDate, $endDate, $groupBy)
     {
         $dateFormat = match($groupBy) {
@@ -382,12 +345,8 @@ class ReportController extends Controller
             ->get();
     }
 
-    /**
-     * Helper: Get occupancy over time
-     */
     private function getOccupancyOverTime($startDate, $endDate)
     {
-        // This is a simplified version - you may want to enhance this
         return CheckIn::whereBetween('check_in_date', [$startDate, $endDate])
             ->select(
                 DB::raw('DATE(check_in_date) as date'),
@@ -398,9 +357,6 @@ class ReportController extends Controller
             ->get();
     }
 
-    /**
-     * Helper: Get period dates
-     */
     private function getPeriodDates($period)
     {
         return match($period) {

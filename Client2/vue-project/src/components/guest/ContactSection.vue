@@ -10,8 +10,6 @@ const form = reactive({
 })
 
 function submitForm() {
-  console.log(form)
-
   alert('Thank you! Your message has been sent.')
 }
 </script>
@@ -19,10 +17,6 @@ function submitForm() {
 <template>
   <section class="bg-[#f8f5f0] py-24">
     <div class="mx-auto max-w-7xl px-6 lg:px-10">
-      <!-- ====================================== -->
-      <!-- Section Heading -->
-      <!-- ====================================== -->
-
       <div class="mb-16 text-center">
         <p class="mb-4 uppercase tracking-[6px] text-amber-600">Contact Us</p>
 
@@ -35,10 +29,6 @@ function submitForm() {
       </div>
 
       <div class="grid gap-12 lg:grid-cols-2">
-        <!-- ====================================== -->
-        <!-- Contact Information -->
-        <!-- ====================================== -->
-
         <div>
           <div class="rounded-3xl bg-white p-10 shadow-lg">
             <h3 class="text-3xl font-semibold text-slate-900">Hotel Information</h3>
@@ -52,7 +42,6 @@ function submitForm() {
 
                   <p class="mt-2 text-slate-500">
                     123 Luxury Avenue<br />
-
                     Addis Ababa, Ethiopia
                   </p>
                 </div>
@@ -90,8 +79,6 @@ function submitForm() {
             </div>
           </div>
 
-          <!-- Map -->
-
           <div class="mt-8 overflow-hidden rounded-3xl shadow-lg">
             <iframe
               src="https://www.google.com/maps/embed?pb="
@@ -100,10 +87,6 @@ function submitForm() {
             />
           </div>
         </div>
-
-        <!-- ====================================== -->
-        <!-- Contact Form -->
-        <!-- ====================================== -->
 
         <div>
           <form class="rounded-3xl bg-white p-10 shadow-lg" @submit.prevent="submitForm">
@@ -154,10 +137,6 @@ function submitForm() {
           </form>
         </div>
       </div>
-
-      <!-- ====================================== -->
-      <!-- CTA -->
-      <!-- ====================================== -->
 
       <div class="mt-20 rounded-3xl bg-slate-900 px-10 py-16 text-center text-white">
         <h2 class="text-4xl font-light">Ready For Your Next Stay?</h2>

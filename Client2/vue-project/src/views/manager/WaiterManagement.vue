@@ -3,7 +3,13 @@
   <div class="waiter-management">
     <div class="page-header">
       <div class="header-content">
-        <h1>Waiter Management</h1>
+        <div class="flex items-center gap-2">
+          <h1>Waiter Management</h1>
+          <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+            <Building2 class="w-3 h-3" />
+            {{ hotelStore.hotelName }}
+          </span>
+        </div>
         <p>Manage hotel waiters, assignments, and performance</p>
       </div>
       <button class="btn btn-primary" @click="showRegisterModal = true">
@@ -11,7 +17,6 @@
       </button>
     </div>
 
-    <!-- Stats Cards -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon active">
@@ -54,7 +59,6 @@
       </div>
     </div>
 
-    <!-- Filters -->
     <div class="filters-section">
       <div class="search-box">
         <input
@@ -79,19 +83,16 @@
       </div>
     </div>
 
-    <!-- Error Message -->
     <div v-if="error" class="alert alert-error">
       {{ error }}
       <button @click="clearError" class="btn-close">×</button>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="isLoading" class="loading-state">
-      <div class="spinner" />
-      <p>Loading waiters...</p>
+    <div v-if="isLoading" class="loading-state py-16 text-center flex flex-col items-center justify-center gap-3">
+      <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+      <p class="text-xs font-bold text-slate-600 dark:text-slate-400">Loading waiters...</p>
     </div>
 
-    <!-- Waiter Table -->
     <div v-else class="table-section">
       <WaiterTable
         :waiters="waiters"
@@ -103,7 +104,6 @@
         @delete="handleDeleteWaiter"
       />
 
-      <!-- Pagination -->
       <div v-if="totalPages > 1" class="pagination">
         <button
           :disabled="currentPage === 1"
@@ -135,7 +135,6 @@
       </div>
     </div>
 
-    <!-- Register Modal -->
     <div v-if="showRegisterModal" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
@@ -218,12 +217,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useWaiterManagementStore } from '@/stores/manager/waiterManagementStore'
+import { useHotelStore } from '@/stores/hotelStore'
 import WaiterTable from '@/components/manager/WaiterTable.vue'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
+import { Building2, Loader2 } from 'lucide-vue-next'
 
 const store = useWaiterManagementStore()
+const hotelStore = useHotelStore()
 
 const showRegisterModal = ref(false)
 const isSubmitting = ref(false)
@@ -243,7 +245,6 @@ const registerForm = ref({
   employee_number: '',
 })
 
-// Computed
 const waiters = computed(() => store.waiters)
 const isLoading = computed(() => store.isLoading)
 const error = computed(() => store.error)
@@ -254,8 +255,11 @@ const activeWaiters = computed(() => store.activeWaiters)
 const busyWaiters = computed(() => store.busyWaiters)
 const availableWaiters = computed(() => store.availableWaiters)
 
-// Methods
 onMounted(() => {
+  store.fetchWaiters()
+})
+
+watch(() => hotelStore.hotelId, () => {
   store.fetchWaiters()
 })
 
@@ -278,7 +282,6 @@ async function submitRegister() {
   try {
     await store.registerWaiter(registerForm.value)
     closeModal()
-    // Reset form
     registerForm.value = {
       first_name: '',
       last_name: '',
@@ -291,8 +294,8 @@ async function submitRegister() {
       maximum_orders: 10,
       employee_number: '',
     }
-  } catch (err) {
-    console.error('Error registering waiter:', err)
+  } catch (err: any) {
+    console.error('[WaiterManagement] Error registering waiter:', err)
   } finally {
     isSubmitting.value = false
   }
@@ -302,23 +305,17 @@ function closeModal() {
   showRegisterModal.value = false
 }
 
-function handleViewWaiter(waiter: any) {
-  // TODO: Open detail view
-  console.log('View waiter:', waiter)
-}
+function handleViewWaiter(waiter: any) {}
 
-function handleEditWaiter(waiter: any) {
-  // TODO: Open edit modal
-  console.log('Edit waiter:', waiter)
-}
+function handleEditWaiter(waiter: any) {}
 
 async function handleChangeAvailability(waiter: any) {
   const newStatus = prompt(
     'Select availability:\navailable\nbusy\nbreak\noffline',
     waiter.availability
   )
-  if (newStatus) {
-    await store.changeAvailability(waiter.id, newStatus)
+  if (newStatus && ['available', 'busy', 'break', 'offline'].includes(newStatus)) {
+    await store.changeAvailability(waiter.id, newStatus as 'available' | 'busy' | 'break' | 'offline')
   }
 }
 
@@ -625,7 +622,6 @@ function clearError() {
   cursor: not-allowed;
 }
 
-/* Modal Styles */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -714,7 +710,6 @@ function clearError() {
   border-top: 1px solid #f0f0f0;
 }
 
-/* Dark mode support */
 :global(.dark) .modal-content,
 .dark .modal-content {
   background: #0f172a !important;

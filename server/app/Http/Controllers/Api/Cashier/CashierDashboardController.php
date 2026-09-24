@@ -11,21 +11,37 @@ use Illuminate\Support\Facades\DB;
 
 class CashierDashboardController extends Controller
 {
-    /**
-     * Get cashier dashboard statistics
-     */
+    protected function getHotelId(): ?string
+    {
+        $hotelId = request()->header('X-Hotel-ID')
+            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: (auth()->check() ? auth()->user()->hotel_id : null);
+
+        if (!$hotelId && auth()->check()) {
+            $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
+        }
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
+
     public function index(): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
+
             $stats = [
-                'today_revenue' => $this->getTodayRevenue(),
-                'weekly_revenue' => $this->getWeeklyRevenue(),
-                'monthly_revenue' => $this->getMonthlyRevenue(),
-                'pending_payments' => $this->getPendingPaymentsCount(),
-                'completed_payments' => $this->getCompletedPaymentsCount(),
-                'failed_payments' => $this->getFailedPaymentsCount(),
-                'refund_requests' => $this->getRefundRequestsCount(),
-                'total_transactions' => $this->getTotalTransactionsCount(),
+                'today_revenue' => $this->getTodayRevenue($hotelId),
+                'weekly_revenue' => $this->getWeeklyRevenue($hotelId),
+                'monthly_revenue' => $this->getMonthlyRevenue($hotelId),
+                'pending_payments' => $this->getPendingPaymentsCount($hotelId),
+                'completed_payments' => $this->getCompletedPaymentsCount($hotelId),
+                'failed_payments' => $this->getFailedPaymentsCount($hotelId),
+                'refund_requests' => $this->getRefundRequestsCount($hotelId),
+                'total_transactions' => $this->getTotalTransactionsCount($hotelId),
             ];
             return response()->json([
                 'success' => true,
@@ -42,7 +58,10 @@ class CashierDashboardController extends Controller
     public function recentPayments(): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
+
             $payments = Payment::with(['guest', 'reservation', 'order'])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->latest()
                 ->limit(10)
                 ->get()
@@ -78,10 +97,14 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
+
     public function pendingPayments(): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
+
             $payments = Payment::with(['guest', 'reservation', 'order'])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->whereIn('status', [Payment::STATUS_PENDING, Payment::STATUS_INITIALIZED])
                 ->latest()
                 ->limit(10)
@@ -112,10 +135,14 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
+
     public function recentTransactions(): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
+
             $transactions = Payment::with(['guest', 'reservation', 'order'])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
                 ->latest('paid_at')
                 ->limit(10)
@@ -149,13 +176,17 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
+
     public function revenueChart(): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
             $last7Days = [];
+
             for ($i = 6; $i >= 0; $i--) {
                 $date = now()->subDays($i)->format('Y-m-d');
                 $revenue = Payment::whereDate('paid_at', $date)
+                    ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                     ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
                     ->sum('amount');
 
@@ -178,10 +209,14 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
+
     public function paymentMethodChart(): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
+
             $methods = Payment::whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->whereNotNull('payment_method')
                 ->select('payment_method', DB::raw('count(*) as count'))
                 ->groupBy('payment_method')
@@ -205,10 +240,14 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
+
     public function refundRequests(): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
+
             $refunds = Payment::with(['guest', 'reservation', 'order'])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->where('status', Payment::STATUS_REFUNDED)
                 ->latest()
                 ->limit(10)
@@ -237,53 +276,64 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
-    private function getTodayRevenue(): float
+
+    private function getTodayRevenue(?string $hotelId): float
     {
         return (float) Payment::whereDate('paid_at', today())
+            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
             ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
             ->sum('amount');
     }
-    private function getWeeklyRevenue(): float
+
+    private function getWeeklyRevenue(?string $hotelId): float
     {
         return (float) Payment::whereBetween('paid_at', [now()->startOfWeek(), now()->endOfWeek()])
+            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
             ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
             ->sum('amount');
     }
-    private function getMonthlyRevenue(): float
+
+    private function getMonthlyRevenue(?string $hotelId): float
     {
         return (float) Payment::whereMonth('paid_at', now()->month)
             ->whereYear('paid_at', now()->year)
+            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
             ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
             ->sum('amount');
     }
 
-    private function getPendingPaymentsCount(): int
+    private function getPendingPaymentsCount(?string $hotelId): int
     {
-        return Payment::whereIn('status', [Payment::STATUS_PENDING, Payment::STATUS_INITIALIZED])
+        return Payment::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+            ->whereIn('status', [Payment::STATUS_PENDING, Payment::STATUS_INITIALIZED])
             ->count();
     }
 
-    private function getCompletedPaymentsCount(): int
+    private function getCompletedPaymentsCount(?string $hotelId): int
     {
-        return Payment::whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
+        return Payment::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+            ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
             ->count();
     }
 
-    private function getFailedPaymentsCount(): int
+    private function getFailedPaymentsCount(?string $hotelId): int
     {
-        return Payment::where('status', Payment::STATUS_FAILED)
+        return Payment::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+            ->where('status', Payment::STATUS_FAILED)
             ->count();
     }
 
-    private function getRefundRequestsCount(): int
+    private function getRefundRequestsCount(?string $hotelId): int
     {
-        return Payment::where('status', Payment::STATUS_REFUNDED)
+        return Payment::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+            ->where('status', Payment::STATUS_REFUNDED)
             ->count();
     }
 
-    private function getTotalTransactionsCount(): int
+    private function getTotalTransactionsCount(?string $hotelId): int
     {
-        return Payment::whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
+        return Payment::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+            ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
             ->count();
     }
 }

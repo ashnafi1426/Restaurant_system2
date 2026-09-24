@@ -130,7 +130,6 @@ const openDropdown = () => {
 
   nextTick(() => {
     searchInputRef.value?.focus()
-    // Scroll selected item into view
     if (selectedOption.value && listRef.value) {
       const selectedIndex = filteredOptions.value.findIndex(o => isSelected(o))
       if (selectedIndex >= 0) {
@@ -211,7 +210,6 @@ const scrollToHighlighted = () => {
   })
 }
 
-// Click outside handler
 const handleClickOutside = (event: MouseEvent) => {
   if (containerRef.value && !containerRef.value.contains(event.target as Node)) {
     closeDropdown()
@@ -237,7 +235,6 @@ watch(searchQuery, () => {
     class="relative w-full select-none"
     :class="{ 'opacity-60 pointer-events-none': disabled }"
   >
-    <!-- Trigger Button -->
     <button
       ref="triggerRef"
       type="button"
@@ -286,7 +283,6 @@ watch(searchQuery, () => {
       </div>
     </button>
 
-    <!-- Dropdown Menu -->
     <Transition
       enter-active-class="transition duration-150 ease-out"
       enter-from-class="transform scale-95 opacity-0"
@@ -303,7 +299,6 @@ watch(searchQuery, () => {
           dropdownClass
         ]"
       >
-        <!-- Search Bar -->
         <div class="p-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60">
           <div class="relative flex items-center">
             <Search class="w-4 h-4 text-slate-400 absolute left-2.5 pointer-events-none" />
@@ -336,7 +331,6 @@ watch(searchQuery, () => {
           </div>
         </div>
 
-        <!-- Options List -->
         <ul
           ref="listRef"
           role="listbox"
@@ -377,7 +371,6 @@ watch(searchQuery, () => {
             />
           </li>
 
-          <!-- Empty State -->
           <li
             v-if="filteredOptions.length === 0"
             class="py-6 px-4 text-center text-slate-400 text-xs flex flex-col items-center justify-center gap-1"

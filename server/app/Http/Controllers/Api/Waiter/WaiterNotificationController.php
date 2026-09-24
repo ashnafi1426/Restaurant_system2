@@ -9,14 +9,10 @@ use Illuminate\Support\Facades\Auth;
 
 class WaiterNotificationController extends Controller
 {
-    /**
-     * Get all notifications for the waiter
-     */
     public function getNotifications(): JsonResponse
     {
         $user = Auth::user();
         
-        // Get waiter by user_id
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
         
         if (!$waiter) {
@@ -37,14 +33,10 @@ class WaiterNotificationController extends Controller
         ]);
     }
 
-    /**
-     * Get unread notification count
-     */
     public function getUnreadCount(): JsonResponse
     {
         $user = Auth::user();
         
-        // Get waiter by user_id
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
         
         if (!$waiter) {
@@ -64,14 +56,10 @@ class WaiterNotificationController extends Controller
         ]);
     }
 
-    /**
-     * Get unread notifications
-     */
     public function getUnread(): JsonResponse
     {
         $user = Auth::user();
         
-        // Get waiter by user_id
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
         
         if (!$waiter) {
@@ -92,14 +80,10 @@ class WaiterNotificationController extends Controller
         ]);
     }
 
-    /**
-     * Mark notification as read
-     */
     public function markAsRead($id): JsonResponse
     {
         $user = Auth::user();
         
-        // Get waiter by user_id
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
         
         if (!$waiter) {
@@ -129,14 +113,10 @@ class WaiterNotificationController extends Controller
         ]);
     }
 
-    /**
-     * Mark all notifications as read
-     */
     public function markAllAsRead(): JsonResponse
     {
         $user = Auth::user();
         
-        // Get waiter by user_id
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
         
         if (!$waiter) {
@@ -156,14 +136,10 @@ class WaiterNotificationController extends Controller
         ]);
     }
 
-    /**
-     * Delete notification
-     */
     public function deleteNotification($id): JsonResponse
     {
         $user = Auth::user();
         
-        // Get waiter by user_id
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
         
         if (!$waiter) {
@@ -192,14 +168,10 @@ class WaiterNotificationController extends Controller
         ]);
     }
 
-    /**
-     * Delete all notifications
-     */
     public function deleteAll(): JsonResponse
     {
         $user = Auth::user();
         
-        // Get waiter by user_id
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
         
         if (!$waiter) {
@@ -217,14 +189,10 @@ class WaiterNotificationController extends Controller
         ]);
     }
 
-    /**
-     * Get notification statistics
-     */
     public function getStats(): JsonResponse
     {
         $user = Auth::user();
         
-        // Get waiter by user_id
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
         
         if (!$waiter) {

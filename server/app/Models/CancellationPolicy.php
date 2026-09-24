@@ -7,19 +7,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use App\Models\Traits\BelongsToTenant;
 
-/**
- * ============================================================================
- * CancellationPolicy Model
- * ============================================================================
- * Manages cancellation policies for hotel reservations
- * 
- * Features:
- * - Flexible, moderate, strict, and non-refundable policies
- * - Refund percentage based on days before check-in
- * - Policy application per hotel or room type
- * - Cancellation deadline tracking
- * ============================================================================
- */
 class CancellationPolicy extends Model
 {
     use HasFactory, HasUuids, BelongsToTenant;
@@ -30,17 +17,11 @@ class CancellationPolicy extends Model
 
     protected $keyType = 'string';
 
-    /**
-     * Policy Type Constants
-     */
     public const TYPE_FLEXIBLE = 'flexible';
     public const TYPE_MODERATE = 'moderate';
     public const TYPE_STRICT = 'strict';
     public const TYPE_NON_REFUNDABLE = 'non_refundable';
 
-    /**
-     * Mass Assignable Attributes
-     */
     protected $fillable = [
         'hotel_id',
         'name',
@@ -54,9 +35,6 @@ class CancellationPolicy extends Model
         'created_by',
     ];
 
-    /**
-     * Attribute Casting
-     */
     protected $casts = [
         'cancellation_deadline_days' => 'integer',
         'refund_percentage' => 'decimal:2',
@@ -66,97 +44,48 @@ class CancellationPolicy extends Model
         'updated_at' => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Policy creator (Admin/Manager)
-     */
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /**
-     * Get reservations using this policy
-     */
     public function reservations()
     {
         return $this->hasMany(Reservation::class, 'cancellation_policy_id');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Query Scopes
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Get active policies
-     */
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
 
-    /**
-     * Get flexible policies
-     */
     public function scopeFlexible($query)
     {
         return $query->where('type', self::TYPE_FLEXIBLE);
     }
 
-    /**
-     * Get moderate policies
-     */
     public function scopeModerate($query)
     {
         return $query->where('type', self::TYPE_MODERATE);
     }
 
-    /**
-     * Get strict policies
-     */
     public function scopeStrict($query)
     {
         return $query->where('type', self::TYPE_STRICT);
     }
 
-    /**
-     * Get non-refundable policies
-     */
     public function scopeNonRefundable($query)
     {
         return $query->where('type', self::TYPE_NON_REFUNDABLE);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Helper Methods
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Calculate refund amount based on cancellation date
-     * 
-     * @param float $totalAmount - Total booking amount
-     * @param \DateTime $checkInDate - Reservation check-in date
-     * @param \DateTime $cancellationDate - Cancellation date
-     * @return array - {refund_amount: float, refund_percentage: float, is_refundable: bool}
-     */
     public function calculateRefund(
         float $totalAmount,
         \DateTime $checkInDate,
         \DateTime $cancellationDate
     ): array {
-        // Calculate days until check-in
         $daysUntilCheckIn = $checkInDate->diff($cancellationDate)->days;
 
-        // Non-refundable policy
         if ($this->type === self::TYPE_NON_REFUNDABLE) {
             return [
                 'refund_amount' => 0,
@@ -166,7 +95,6 @@ class CancellationPolicy extends Model
             ];
         }
 
-        // Check cancellation deadline
         if ($daysUntilCheckIn < $this->cancellation_deadline_days) {
             return [
                 'refund_amount' => 0,
@@ -178,7 +106,6 @@ class CancellationPolicy extends Model
             ];
         }
 
-        // Calculate refund based on policy type
         $refundPercentage = $this->getRefundPercentage($daysUntilCheckIn);
         $refundAmount = ($totalAmount * $refundPercentage) / 100;
 
@@ -191,32 +118,19 @@ class CancellationPolicy extends Model
         ];
     }
 
-    /**
-     * Get refund percentage based on days until check-in
-     * 
-     * @param int $daysUntilCheckIn
-     * @return float
-     */
     private function getRefundPercentage(int $daysUntilCheckIn): float
     {
         return match ($this->type) {
-            self::TYPE_FLEXIBLE => 100, // Full refund
-            self::TYPE_MODERATE => $daysUntilCheckIn >= 14 ? 100 : 50, // Full if 14+ days, 50% otherwise
-            self::TYPE_STRICT => $daysUntilCheckIn >= 30 ? 100 : ($daysUntilCheckIn >= 7 ? 50 : 0), // Full if 30+ days, 50% if 7+, 0 otherwise
-            self::TYPE_NON_REFUNDABLE => 0, // No refund
-            default => (float) $this->refund_percentage, // Custom percentage
+            self::TYPE_FLEXIBLE => 100,
+            self::TYPE_MODERATE => $daysUntilCheckIn >= 14 ? 100 : 50,
+            self::TYPE_STRICT => $daysUntilCheckIn >= 30 ? 100 : ($daysUntilCheckIn >= 7 ? 50 : 0),
+            self::TYPE_NON_REFUNDABLE => 0,
+            default => (float) $this->refund_percentage,
         };
     }
 
-    /**
-     * Check if reservation can be cancelled
-     * 
-     * @param Reservation $reservation
-     * @return array - {can_cancel: bool, reason: string, refund: array}
-     */
     public function canCancel(Reservation $reservation): array
     {
-        // Check reservation status
         if (!in_array($reservation->status, ['pending', 'confirmed'])) {
             return [
                 'can_cancel' => false,
@@ -224,7 +138,6 @@ class CancellationPolicy extends Model
             ];
         }
 
-        // Calculate refund
         $refund = $this->calculateRefund(
             $reservation->total_amount ?? 0,
             $reservation->check_in_date,
@@ -238,12 +151,6 @@ class CancellationPolicy extends Model
         ];
     }
 
-    /**
-     * Get default policy for hotel
-     * 
-     * @param string $hotelId
-     * @return self|null
-     */
     public static function getDefaultPolicy(string $hotelId): ?self
     {
         return self::where('hotel_id', $hotelId)
@@ -252,13 +159,6 @@ class CancellationPolicy extends Model
             ->first();
     }
 
-    /**
-     * Create standard policies for hotel
-     * 
-     * @param string $hotelId
-     * @param string $createdBy
-     * @return void
-     */
     public static function createStandardPolicies(string $hotelId, string $createdBy): void
     {
         $policies = [

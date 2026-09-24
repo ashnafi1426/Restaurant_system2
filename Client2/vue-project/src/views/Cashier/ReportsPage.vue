@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
 import { useCashierStore } from '@/stores/cashierStore'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
 import {
   TrendingUp, DollarSign, Download, Calendar, CreditCard, RefreshCw,
   BarChart3, PieChart, ArrowUpRight, Filter, FileSpreadsheet, Printer,
-  Building, CheckCircle, Clock, XCircle, ChevronLeft, ChevronRight
+  Building, CheckCircle, Clock, XCircle, ChevronLeft, ChevronRight, Building2
 } from 'lucide-vue-next'
 
 const cashierStore = useCashierStore()
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 const activeTab = ref<'revenue' | 'payment' | 'refund'>('revenue')
 const dateFrom = ref(new Date(new Date().setDate(1)).toISOString().split('T')[0])
 const dateTo = ref(new Date().toISOString().split('T')[0])
@@ -23,12 +27,12 @@ const showFilters = ref(false)
 const currentPage = ref(1)
 const perPage = ref(10)
 
-const quickDateFilters = [
-  { label: 'Today', value: 'today' },
-  { label: 'This Week', value: 'week' },
-  { label: 'This Month', value: 'month' },
-  { label: 'This Year', value: 'year' }
-]
+const quickDateFilters = computed(() => [
+  { label: languageStore.t('today', 'Today'), value: 'today' },
+  { label: languageStore.t('this_week', 'This Week'), value: 'week' },
+  { label: languageStore.t('this_month', 'This Month'), value: 'month' },
+  { label: languageStore.t('this_year', 'This Year'), value: 'year' }
+])
 
 const paginatedDailyBreakdown = computed(() => {
   if (!revenueReport.value?.daily_breakdown) return []
@@ -117,6 +121,8 @@ const resetPagination = () => {
 
 onMounted(() => { loadReports() })
 
+watch(() => hotelStore.hotelId, () => { loadReports() })
+
 const loadReports = async () => {
   loading.value = true
   try {
@@ -124,6 +130,8 @@ const loadReports = async () => {
       loadRevenueReport(), loadPaymentReport(), loadRefundReport()
     ])
     resetPagination()
+  } catch (error) {
+    console.error('[Cashier ReportsPage] Error loading reports:', error)
   } finally { loading.value = false }
 }
 
@@ -182,9 +190,11 @@ const revenueAnalytics = computed(() => {
   }
 })
 
+const currency = computed(() => hotelStore.currentHotel?.currency || 'ETB')
+
 const formatCurrency = (amount: number | string) => {
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
-  return `${(numAmount || 0).toFixed(2)} ETB`
+  return `${(numAmount || 0).toFixed(2)} ${currency.value}`
 }
 
 const formatDate = (date: string) => {
@@ -204,7 +214,8 @@ const downloadExcel = () => {
   
   if (activeTab.value === 'revenue' && revenueReport.value) {
     filename = `revenue_report_${dateFrom.value}_to_${dateTo.value}.csv`
-    csvContent = 'Revenue Report\n\n'
+    const hotelBrand = hotelStore.hotelName ? `Hotel: ${hotelStore.hotelName}\n` : ''
+    csvContent = `Revenue Report\n${hotelBrand}\n`
     csvContent += `Period:,${dateFrom.value} to ${dateTo.value}\n\n`
     csvContent += 'Metric,Value\n'
     csvContent += `Total Revenue,${revenueReport.value.total_revenue}\n`
@@ -234,8 +245,14 @@ const downloadExcel = () => {
       <!-- Header Banner -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Financial Reports</h1>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Comprehensive financial analytics, revenue breakdowns, and transaction insights.</p>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{{ languageStore.t('financial_reports', 'Financial Reports') }}</h1>
+            <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+              <Building2 class="w-3 h-3" />
+              {{ hotelStore.hotelName }}
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('financial_reports_sub', 'Comprehensive financial analytics, revenue breakdowns, and transaction insights.') }}</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -244,7 +261,7 @@ const downloadExcel = () => {
             class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700"
           >
             <Printer class="w-3.5 h-3.5" />
-            <span>Print</span>
+            <span>{{ languageStore.t('print', 'Print') }}</span>
           </button>
 
           <button
@@ -253,7 +270,7 @@ const downloadExcel = () => {
             class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-md shadow-blue-600/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             <RefreshCw :class="['w-3.5 h-3.5', loading && 'animate-spin']" />
-            <span>Refresh</span>
+            <span>{{ languageStore.t('refresh', 'Refresh') }}</span>
           </button>
         </div>
       </div>
@@ -262,7 +279,7 @@ const downloadExcel = () => {
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 shadow-xs space-y-3">
         <div class="flex items-center gap-2">
           <Calendar class="w-4 h-4 text-blue-500" />
-          <h3 class="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Quick Date Filters</h3>
+          <h3 class="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">{{ languageStore.t('quick_date_filters', 'Quick Date Filters') }}</h3>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <button
@@ -281,35 +298,35 @@ const downloadExcel = () => {
         <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
           <h3 class="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-wider">
             <Filter class="w-4 h-4 text-blue-500" />
-            Advanced Date & Period Filters
+            {{ languageStore.t('advanced_date_filters', 'Advanced Date & Period Filters') }}
           </h3>
           <button @click="showFilters = !showFilters" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
-            {{ showFilters ? 'Hide' : 'Show' }} Filters
+            {{ showFilters ? languageStore.t('hide_filters', 'Hide Filters') : languageStore.t('show_filters', 'Show Filters') }}
           </button>
         </div>
 
         <div v-if="showFilters" class="p-5 border-t border-slate-100 dark:border-slate-800">
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Date From</label>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('date_from', 'Date From') }}</label>
               <input v-model="dateFrom" type="date" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none" />
             </div>
             <div>
-              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Date To</label>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('date_to', 'Date To') }}</label>
               <input v-model="dateTo" type="date" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none" />
             </div>
             <div>
-              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Period</label>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('period', 'Period') }}</label>
               <select v-model="period" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none">
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
+                <option value="daily">{{ languageStore.t('daily', 'Daily') }}</option>
+                <option value="weekly">{{ languageStore.t('weekly', 'Weekly') }}</option>
+                <option value="monthly">{{ languageStore.t('monthly', 'Monthly') }}</option>
+                <option value="yearly">{{ languageStore.t('yearly', 'Yearly') }}</option>
               </select>
             </div>
             <div class="flex items-end">
               <button @click="applyFilters" :disabled="loading" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-blue-600/20 transition cursor-pointer disabled:opacity-50">
-                Apply Filters
+                {{ languageStore.t('apply_filters', 'Apply Filters') }}
               </button>
             </div>
           </div>
@@ -329,7 +346,7 @@ const downloadExcel = () => {
             ]"
           >
             <TrendingUp class="w-4 h-4" />
-            <span>Revenue Report</span>
+            <span>{{ languageStore.t('revenue_report', 'Revenue Report') }}</span>
           </button>
 
           <button
@@ -342,7 +359,7 @@ const downloadExcel = () => {
             ]"
           >
             <CreditCard class="w-4 h-4" />
-            <span>Payment Report</span>
+            <span>{{ languageStore.t('payment_report', 'Payment Report') }}</span>
           </button>
 
           <button
@@ -355,7 +372,7 @@ const downloadExcel = () => {
             ]"
           >
             <RefreshCw class="w-4 h-4" />
-            <span>Refund Report</span>
+            <span>{{ languageStore.t('refund_report', 'Refund Report') }}</span>
           </button>
         </div>
       </div>
@@ -363,7 +380,7 @@ const downloadExcel = () => {
       <!-- Loading State -->
       <div v-if="loading && !revenueReport" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-16 text-center space-y-3">
         <RefreshCw class="w-8 h-8 text-amber-500 animate-spin mx-auto" />
-        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Loading financial reports...</p>
+        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ languageStore.t('loading_reports', 'Loading financial reports...') }}</p>
       </div>
 
       <!-- Revenue Report View -->
@@ -372,11 +389,11 @@ const downloadExcel = () => {
         <div class="flex justify-end gap-2">
           <button @click="printPage" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold shadow-xs transition flex items-center gap-1.5 cursor-pointer">
             <Download class="w-3.5 h-3.5" />
-            <span>Export PDF</span>
+            <span>{{ languageStore.t('export_pdf', 'Export PDF') }}</span>
           </button>
           <button @click="downloadExcel" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs transition flex items-center gap-1.5 cursor-pointer">
             <FileSpreadsheet class="w-3.5 h-3.5" />
-            <span>Export Excel</span>
+            <span>{{ languageStore.t('export_excel', 'Export Excel') }}</span>
           </button>
         </div>
 
@@ -393,7 +410,7 @@ const downloadExcel = () => {
                 <span>+12.5%</span>
               </div>
             </div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Revenue</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('total_revenue', 'Total Revenue') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ formatCurrency(revenueReport.total_revenue) }}</p>
           </div>
 
@@ -408,7 +425,7 @@ const downloadExcel = () => {
                 <span>+8.3%</span>
               </div>
             </div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Transactions</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('total_transactions', 'Total Transactions') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ revenueReport.total_transactions }}</p>
           </div>
 
@@ -423,7 +440,7 @@ const downloadExcel = () => {
                 <span>+5.2%</span>
               </div>
             </div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Avg. Transaction</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('avg_transaction', 'Avg. Transaction') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ formatCurrency(revenueReport.average_transaction) }}</p>
           </div>
 
@@ -434,9 +451,9 @@ const downloadExcel = () => {
                 <PieChart class="w-5 h-5" />
               </div>
             </div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Report Period</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('report_period', 'Report Period') }}</p>
             <p class="text-xs font-black text-slate-900 dark:text-white mt-1">{{ formatDate(dateFrom) }}</p>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">to {{ formatDate(dateTo) }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">{{ languageStore.t('to', 'to') }} {{ formatDate(dateTo) }}</p>
           </div>
         </div>
 
@@ -446,14 +463,14 @@ const downloadExcel = () => {
           <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
             <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
               <PieChart class="w-4 h-4 text-blue-500" />
-              <span>Revenue by Category</span>
+              <span>{{ languageStore.t('revenue_by_category', 'Revenue by Category') }}</span>
             </h3>
 
             <div class="space-y-4">
               <!-- Reservations -->
               <div>
                 <div class="flex justify-between items-center mb-1 text-xs">
-                  <span class="font-bold text-slate-700 dark:text-slate-300">Reservations</span>
+                  <span class="font-bold text-slate-700 dark:text-slate-300">{{ languageStore.t('reservations', 'Reservations') }}</span>
                   <div class="text-right">
                     <span class="font-black text-slate-900 dark:text-white mr-1.5">{{ formatCurrency(revenueReport.reservation_revenue) }}</span>
                     <span class="text-[10px] text-slate-400 font-bold" v-if="revenueAnalytics">({{ revenueAnalytics.reservation_percentage }}%)</span>
@@ -470,7 +487,7 @@ const downloadExcel = () => {
               <!-- Orders -->
               <div>
                 <div class="flex justify-between items-center mb-1 text-xs">
-                  <span class="font-bold text-slate-700 dark:text-slate-300">Restaurant Orders</span>
+                  <span class="font-bold text-slate-700 dark:text-slate-300">{{ languageStore.t('orders', 'Restaurant Orders') }}</span>
                   <div class="text-right">
                     <span class="font-black text-slate-900 dark:text-white mr-1.5">{{ formatCurrency(revenueReport.order_revenue) }}</span>
                     <span class="text-[10px] text-slate-400 font-bold" v-if="revenueAnalytics">({{ revenueAnalytics.order_percentage }}%)</span>
@@ -490,7 +507,7 @@ const downloadExcel = () => {
           <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-3">
             <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
               <CreditCard class="w-4 h-4 text-blue-500" />
-              <span>Revenue by Payment Method</span>
+              <span>{{ languageStore.t('revenue_by_method', 'Revenue by Payment Method') }}</span>
             </h3>
 
             <div class="space-y-2">
@@ -505,7 +522,7 @@ const downloadExcel = () => {
                   </div>
                   <div>
                     <p class="font-extrabold text-slate-900 dark:text-white capitalize">{{ item.method || 'Other' }}</p>
-                    <p class="text-[10px] text-slate-400 font-medium">Gateway</p>
+                    <p class="text-[10px] text-slate-400 font-medium">{{ languageStore.t('gateway', 'Gateway') }}</p>
                   </div>
                 </div>
 
@@ -528,10 +545,10 @@ const downloadExcel = () => {
           <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
             <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
               <Calendar class="w-4 h-4 text-blue-500" />
-              <span>Daily Revenue Breakdown</span>
+              <span>{{ languageStore.t('daily_revenue_breakdown', 'Daily Revenue Breakdown') }}</span>
             </h3>
             <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
-              {{ revenueReport.daily_breakdown.length }} Days
+              {{ revenueReport.daily_breakdown.length }} {{ languageStore.t('days', 'Days') }}
             </span>
           </div>
 
@@ -539,10 +556,10 @@ const downloadExcel = () => {
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                  <th class="px-3.5 py-3 whitespace-nowrap">Date</th>
-                  <th class="px-3.5 py-3 text-right whitespace-nowrap">Revenue</th>
-                  <th class="px-3.5 py-3 text-right whitespace-nowrap">Transactions</th>
-                  <th class="px-3.5 py-3 text-right whitespace-nowrap pr-6">Avg. Value</th>
+                  <th class="px-3.5 py-3 whitespace-nowrap">{{ languageStore.t('date', 'Date') }}</th>
+                  <th class="px-3.5 py-3 text-right whitespace-nowrap">{{ languageStore.t('revenue', 'Revenue') }}</th>
+                  <th class="px-3.5 py-3 text-right whitespace-nowrap">{{ languageStore.t('transactions', 'Transactions') }}</th>
+                  <th class="px-3.5 py-3 text-right whitespace-nowrap pr-6">{{ languageStore.t('avg_value', 'Avg. Value') }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
@@ -576,7 +593,7 @@ const downloadExcel = () => {
             <!-- Left Side: Per Page Selector & Showing Count -->
             <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400">
               <div class="flex items-center gap-2">
-                <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
+                <span class="font-bold text-slate-700 dark:text-slate-300">{{ languageStore.t('items_per_page', 'Items per page:') }}</span>
                 <select
                   :value="perPage"
                   @change="changePerPage"
@@ -590,9 +607,9 @@ const downloadExcel = () => {
               </div>
 
               <div class="text-xs font-medium">
-                Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
-                <span class="font-extrabold text-slate-900 dark:text-white">{{ showingTo }}</span> of
-                <span class="font-extrabold text-slate-900 dark:text-white">{{ revenueReport.daily_breakdown.length }}</span> entries
+                {{ languageStore.t('showing', 'Showing') }} <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
+                <span class="font-extrabold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
+                <span class="font-extrabold text-slate-900 dark:text-white">{{ revenueReport.daily_breakdown.length }}</span> {{ languageStore.t('entries', 'entries') }}
               </div>
             </div>
 
@@ -602,10 +619,10 @@ const downloadExcel = () => {
                 @click="previousPage"
                 :disabled="currentPage <= 1"
                 class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
-                title="Previous Page"
+                :title="languageStore.t('previous_page', 'Previous Page')"
               >
                 <ChevronLeft class="w-4 h-4" />
-                <span class="hidden sm:inline">Prev</span>
+                <span class="hidden sm:inline">{{ languageStore.t('prev', 'Prev') }}</span>
               </button>
 
               <div class="flex items-center gap-1">
@@ -628,9 +645,9 @@ const downloadExcel = () => {
                 @click="nextPage"
                 :disabled="currentPage >= totalPages"
                 class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
-                title="Next Page"
+                :title="languageStore.t('next_page', 'Next Page')"
               >
-                <span class="hidden sm:inline">Next</span>
+                <span class="hidden sm:inline">{{ languageStore.t('next', 'Next') }}</span>
                 <ChevronRight class="w-4 h-4" />
               </button>
             </div>
@@ -644,7 +661,7 @@ const downloadExcel = () => {
         <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
             <BarChart3 class="w-4 h-4 text-blue-500" />
-            <span>Payment Status Breakdown</span>
+            <span>{{ languageStore.t('payment_status_breakdown', 'Payment Status Breakdown') }}</span>
           </h3>
 
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -662,7 +679,7 @@ const downloadExcel = () => {
                   status.status === 'refunded' && 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
                 ]"
               >
-                {{ status.status }}
+                {{ languageStore.t(status.status, status.status) }}
               </span>
               <p class="text-2xl font-black text-slate-900 dark:text-white">{{ status.count }}</p>
               <p class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ formatCurrency(status.total) }}</p>
@@ -676,17 +693,17 @@ const downloadExcel = () => {
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs">
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Refunded</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('total_refunded', 'Total Refunded') }}</p>
             <p class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ formatCurrency(refundReport.total_refunded) }}</p>
           </div>
 
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs">
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Refunds Count</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('total_refunds_count', 'Total Refunds Count') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ refundReport.total_count }}</p>
           </div>
 
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs">
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Average Refund</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('average_refund', 'Average Refund') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">
               {{ formatCurrency(refundReport.total_count ? refundReport.total_refunded / refundReport.total_count : 0) }}
             </p>
@@ -699,9 +716,9 @@ const downloadExcel = () => {
           class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs"
         >
           <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
-            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Recent Refunds Log</h3>
+            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('recent_refunds_log', 'Recent Refunds Log') }}</h3>
             <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
-              {{ refundReport.refunds_list.length }} Records
+              {{ refundReport.refunds_list.length }} {{ languageStore.t('records', 'Records') }}
             </span>
           </div>
 
@@ -709,11 +726,11 @@ const downloadExcel = () => {
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                  <th class="px-3.5 py-3 whitespace-nowrap">Transaction Ref</th>
-                  <th class="px-3.5 py-3 whitespace-nowrap">Customer</th>
-                  <th class="px-3.5 py-3 whitespace-nowrap">Type</th>
-                  <th class="px-3.5 py-3 text-right whitespace-nowrap">Amount</th>
-                  <th class="px-3.5 py-3 text-right whitespace-nowrap pr-6">Refunded At</th>
+                  <th class="px-3.5 py-3 whitespace-nowrap">{{ languageStore.t('transaction_ref', 'Transaction Ref') }}</th>
+                  <th class="px-3.5 py-3 whitespace-nowrap">{{ languageStore.t('customer', 'Customer') }}</th>
+                  <th class="px-3.5 py-3 whitespace-nowrap">{{ languageStore.t('type', 'Type') }}</th>
+                  <th class="px-3.5 py-3 text-right whitespace-nowrap">{{ languageStore.t('amount', 'Amount') }}</th>
+                  <th class="px-3.5 py-3 text-right whitespace-nowrap pr-6">{{ languageStore.t('refunded_at', 'Refunded At') }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
@@ -750,7 +767,7 @@ const downloadExcel = () => {
             class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-4 text-xs font-sans"
           >
             <div class="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-              <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
+              <span class="font-bold text-slate-700 dark:text-slate-300">{{ languageStore.t('items_per_page', 'Items per page:') }}</span>
               <select
                 :value="refundPerPage"
                 @change="changeRefundPerPage"
@@ -772,7 +789,7 @@ const downloadExcel = () => {
                 <ChevronLeft class="w-4 h-4" />
               </button>
               <span class="font-black text-slate-900 dark:text-white px-2">
-                Page {{ refundCurrentPage }} of {{ totalRefundPages }}
+                {{ languageStore.t('page', 'Page') }} {{ refundCurrentPage }} {{ languageStore.t('of', 'of') }} {{ totalRefundPages }}
               </span>
               <button
                 @click="refundCurrentPage < totalRefundPages && refundCurrentPage++"

@@ -2,21 +2,21 @@
   <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow transition">
     <div class="flex items-center justify-between mb-3">
       <div class="flex items-center gap-2">
-        <h4 class="font-semibold text-gray-900">Order #{{ assignment.order?.order_number }}</h4>
+        <h4 class="font-semibold text-gray-900">{{ languageStore.t('order', 'Order') }} #{{ assignment.order?.order_number }}</h4>
         <StatusBadge :status="assignment.status" />
       </div>
       <span v-if="assignment.order?.priority" :class="getPriorityClass(assignment.order.priority)">
-        {{ assignment.order.priority.toUpperCase() }}
+        {{ languageStore.t(assignment.order.priority.toLowerCase(), assignment.order.priority.toUpperCase()) }}
       </span>
     </div>
 
     <div class="grid grid-cols-2 gap-3 mb-4 text-sm text-gray-700">
       <div>
-        <p class="text-gray-500">Guest</p>
-        <p class="font-medium">{{ assignment.order?.guest_name || 'Unknown' }}</p>
+        <p class="text-gray-500">{{ languageStore.t('guest', 'Guest') }}</p>
+        <p class="font-medium">{{ assignment.order?.guest_name || languageStore.t('unknown', 'Unknown') }}</p>
       </div>
       <div>
-        <p class="text-gray-500">Room</p>
+        <p class="text-gray-500">{{ languageStore.t('room', 'Room') }}</p>
         <p class="font-medium">{{ assignment.order?.room_number }}</p>
       </div>
     </div>
@@ -32,20 +32,20 @@
         @click="$emit('accept', assignment.id)"
         class="flex-1 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition"
       >
-        Accept
+        {{ languageStore.t('accept', 'Accept') }}
       </button>
       <button
         v-if="assignment.status === 'pending'"
         @click="$emit('reject', assignment.id)"
         class="flex-1 px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition"
       >
-        Reject
+        {{ languageStore.t('reject', 'Reject') }}
       </button>
       <button
         @click="$emit('view', assignment)"
         class="flex-1 px-3 py-2 bg-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-gray-300 transition"
       >
-        View
+        {{ languageStore.t('view', 'View') }}
       </button>
     </div>
   </div>
@@ -55,6 +55,9 @@
 import { Clock } from 'lucide-vue-next'
 import StatusBadge from './StatusBadge.vue'
 import type { WaiterAssignment } from '@/types/waiter'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
 
 defineProps<{
   assignment: WaiterAssignment
@@ -78,6 +81,6 @@ const getPriorityClass = (priority: string) => {
 
 const formatTime = (dateString: string) => {
   const date = new Date(dateString)
-  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 </script>

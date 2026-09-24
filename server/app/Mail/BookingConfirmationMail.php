@@ -9,20 +9,6 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-/**
- * ============================================================================
- * BookingConfirmationMail
- * ============================================================================
- * Sends booking confirmation email to guest after successful reservation
- * 
- * Features:
- * - Booking reference and details
- * - Check-in and check-out dates
- * - Room information and price breakdown
- * - Hotel contact information
- * - Queued for async sending
- * ============================================================================
- */
 class BookingConfirmationMail extends Mailable
 {
     use Queueable, SerializesModels;
@@ -31,9 +17,6 @@ class BookingConfirmationMail extends Mailable
         public Reservation $reservation
     ) {}
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
@@ -41,9 +24,6 @@ class BookingConfirmationMail extends Mailable
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         $hotel = $this->reservation->room?->hotel ?? null;
@@ -74,11 +54,6 @@ class BookingConfirmationMail extends Mailable
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
     public function attachments(): array
     {
         return [];

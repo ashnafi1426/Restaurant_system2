@@ -1,12 +1,10 @@
 <template>
   <div class="qr-code-section">
-    <!-- Header -->
     <div class="header">
-      <h3>📱 QR Code Management</h3>
+      <h3>QR Code Management</h3>
       <p class="subtitle">Download or print the QR code for this room</p>
     </div>
 
-    <!-- QR Code Display -->
     <div v-if="room.qr_code_url" class="qr-display">
       <div class="qr-container">
         <img 
@@ -17,7 +15,6 @@
         <p class="qr-token">Token: {{ room.qr_token }}</p>
       </div>
 
-      <!-- Action Buttons -->
       <div class="actions flex-wrap items-center gap-3">
         <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
           <label for="qrCopies" class="text-xs font-bold text-slate-700 dark:text-slate-300">Print Copies:</label>
@@ -27,34 +24,30 @@
         </div>
 
         <button @click="downloadQRCode" class="btn btn-primary">
-          <span>📥 Download PNG</span>
+          <span> Download PNG</span>
         </button>
         <button @click="printQRCode" class="btn btn-secondary">
           <span>🖨️ Print ({{ printCopies }})</span>
         </button>
         <button @click="regenerateQRCode" class="btn btn-warning" :disabled="regenerating">
-          <span v-if="!regenerating">🔄 Regenerate</span>
+          <span v-if="!regenerating"> Regenerate</span>
           <span v-else>Regenerating...</span>
         </button>
       </div>
 
-      <!-- Info -->
       <div v-if="room.qr_generated_at" class="info">
         <p> QR Code generated: {{ formatDate(room.qr_generated_at) }}</p>
       </div>
     </div>
 
-    <!-- Loading State -->
     <div v-else-if="loading" class="loading">
       <p>Loading QR code...</p>
     </div>
-    <!-- Error State -->
     <div v-else-if="error" class="error">
       <p> {{ error }}</p>
       <button @click="loadQRCode" class="btn btn-small">Retry</button>
     </div>
 
-    <!-- No QR Code -->
     <div v-else class="no-qr">
       <p>No QR code found for this room</p>
       <button @click="regenerateQRCode" class="btn btn-primary" :disabled="regenerating">
@@ -63,7 +56,6 @@
       </button>
     </div>
 
-    <!-- Success/Error Messages -->
     <div v-if="successMessage" class="message success"> {{ successMessage }}</div>
     <div v-if="errorMessage" class="message error"> {{ errorMessage }}</div>
   </div>
@@ -95,32 +87,17 @@ const imageLoading = ref(true)
 const imageError = ref(false)
 const printCopies = ref(1)
 
-/**
- * Handle image load success
- */
 const handleImageLoad = () => {
   imageLoading.value = false
   imageError.value = false
-  console.log(' QR code image loaded successfully')
 }
 
-/**
- * Handle image load error
- */
 const handleImageError = (event: Event) => {
   imageLoading.value = false
   imageError.value = true
-  console.error(' QR code image failed to load:', {
-    src: (event.target as HTMLImageElement)?.src,
-    room_id: props.room.id,
-    qr_url: props.room.qr_code_url,
-  })
   errorMessage.value = 'Failed to load QR code image. Try regenerating.'
 }
 
-/**
- * Load QR code info
- */
 const loadQRCode = async () => {
   if (!props.room.id) return
 
@@ -132,22 +109,16 @@ const loadQRCode = async () => {
 
     if (response.data.success && response.data.data) {
       const qrData = response.data.data
-      // Update room object with QR data
       Object.assign(props.room, {
         qr_code_url: qrData.qr_url,
         qr_token: qrData.qr_token,
         qr_image_path: qrData.qr_image_path,
         qr_generated_at: qrData.qr_generated_at,
       })
-      console.log(' QR code loaded:', {
-        room_id: props.room.id,
-        url: qrData.qr_url,
-        token: qrData.qr_token,
-      })
     }
   } catch (err: any) {
+    console.error('[QRCodeDownload] Error fetching QR code:', err)
     error.value = err.response?.data?.message || 'Failed to load QR code'
-    console.error(' Load QR Code Error:', err)
   } finally {
     loading.value = false
   }
@@ -159,16 +130,11 @@ const downloadQRCode = async () => {
     successMessage.value = ''
     errorMessage.value = ''
 
-    console.log(' Starting download for room:', props.room.id)
-    console.log('🔗 QR Code URL:', props.room.qr_code_url)
-
-    // Use the public download endpoint
     const downloadUrl = `${api.defaults.baseURL?.replace('/api', '')}/api/qr-codes/download/${props.room.id}`
-    console.log('📥 Download URL:', downloadUrl)
 
     const response = await fetch(downloadUrl, {
       method: 'GET',
-      credentials: 'omit', // Don't send credentials for public endpoint
+      credentials: 'omit',
     })
 
     if (!response.ok) {
@@ -181,9 +147,6 @@ const downloadQRCode = async () => {
       throw new Error('Downloaded file is empty')
     }
 
-    console.log(` Blob received: ${blob.size} bytes, type: ${blob.type}`)
-
-    // Create blob URL and trigger download
     const blobUrl = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = blobUrl
@@ -194,23 +157,18 @@ const downloadQRCode = async () => {
     link.click()
     document.body.removeChild(link)
 
-    // Clean up blob URL after a short delay
     setTimeout(() => {
       window.URL.revokeObjectURL(blobUrl)
     }, 100)
 
     successMessage.value = ` QR code downloaded: Room_${props.room.room_number}_QR.png`
-    console.log(' Download successful for room:', props.room.id)
   } catch (err: any) {
+    console.error('[QRCodeDownload] Error downloading QR code:', err)
     const message = err.message || 'Failed to download QR code'
     errorMessage.value = message
-    console.error(' Download Error:', err)
 
-    // Fallback: Try direct URL access via storage symlink
-    console.log('Fallback: Trying direct storage URL access...')
     try {
       const directUrl = props.room.qr_code_url
-      console.log('📥 Direct URL:', directUrl)
 
       const response = await fetch(directUrl, {
         method: 'GET',
@@ -233,17 +191,13 @@ const downloadQRCode = async () => {
       window.URL.revokeObjectURL(blobUrl)
 
       successMessage.value = ` QR code downloaded: Room_${props.room.room_number}_QR.png (direct)`
-      console.log(' Fallback download successful')
     } catch (fallbackErr: any) {
-      console.error(' Both methods failed:', fallbackErr)
+      console.error('[QRCodeDownload] Fallback direct download failed:', fallbackErr)
       errorMessage.value = `Download failed: ${fallbackErr.message}`
     }
   }
 }
 
-/**
- * Print QR code
- */
 const printQRCode = async () => {
   if (!props.room.id) return
 
@@ -259,14 +213,12 @@ const printQRCode = async () => {
       throw new Error('No HTML template received')
     }
 
-    // Open print window
     const printWindow = window.open('', '_blank')
     if (printWindow) {
       printWindow.document.write(response.data)
       printWindow.document.close()
       printWindow.focus()
 
-      // Delay print dialog to ensure content is loaded
       setTimeout(() => {
         printWindow.print()
       }, 500)
@@ -275,17 +227,13 @@ const printQRCode = async () => {
     }
 
     successMessage.value = ' Print dialog opened - Ready to print'
-    console.log('Print template opened for room:', props.room.id)
   } catch (err: any) {
+    console.error('[QRCodeDownload] Error printing QR code:', err)
     const message = err.response?.data?.message || err.message || 'Failed to open print template'
     errorMessage.value = message
-    console.error('Print Error:', err)
   }
 }
 
-/**
- * Regenerate QR code
- */
 const regenerateQRCode = async () => {
   if (!props.room.id) return
 
@@ -306,22 +254,18 @@ const regenerateQRCode = async () => {
       })
 
       successMessage.value = ` QR code regenerated successfully for Room ${props.room.room_number}`
-      console.log('QR regenerated for room:', props.room.id)
     } else {
       throw new Error(response.data.message || 'Regeneration failed')
     }
   } catch (err: any) {
+    console.error('[QRCodeDownload] Error regenerating QR code:', err)
     const message = err.response?.data?.message || err.message || 'Failed to regenerate QR code'
     errorMessage.value = message
-    console.error('Regenerate Error:', err)
   } finally {
     regenerating.value = false
   }
 }
 
-/**
- * Format date
- */
 const formatDate = (date: string | undefined) => {
   if (!date) return 'Unknown'
   return new Date(date).toLocaleString('en-US', {
@@ -333,14 +277,12 @@ const formatDate = (date: string | undefined) => {
   })
 }
 
-// Load QR code on mount
 onMounted(() => {
   if (props.room.id && !props.room.qr_code_url) {
     loadQRCode()
   }
 })
 
-// Reload when room ID changes
 watch(
   () => props.room.id,
   () => {

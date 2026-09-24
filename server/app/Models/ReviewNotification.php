@@ -14,7 +14,6 @@ class ReviewNotification extends Model
     public $incrementing = false;
     protected $keyType = 'string';
     
-    // Disable automatic updated_at
     public $timestamps = false;
 
     protected $fillable = [
@@ -32,21 +31,9 @@ class ReviewNotification extends Model
         'read_at' => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Notification Type Constants
-    |--------------------------------------------------------------------------
-    */
-
     public const TYPE_NEW_REVIEW = 'new_review';
     public const TYPE_REVIEW_APPROVED = 'review_approved';
     public const TYPE_REVIEW_REJECTED = 'review_rejected';
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
 
     public function user()
     {
@@ -58,12 +45,6 @@ class ReviewNotification extends Model
         return $this->belongsTo(MenuItemReview::class, 'review_id');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Query Scopes
-    |--------------------------------------------------------------------------
-    */
-
     public function scopeUnread($query)
     {
         return $query->where('is_read', false);
@@ -73,12 +54,6 @@ class ReviewNotification extends Model
     {
         return $query->where('user_id', $userId);
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Helper Methods
-    |--------------------------------------------------------------------------
-    */
 
     public function markAsRead(): void
     {

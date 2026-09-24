@@ -16,9 +16,6 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    /**
-     * Get main administrator dashboard metrics and statistics.
-     */
     public function index(Request $request)
     {
         try {
@@ -27,7 +24,6 @@ class DashboardController extends Controller
                 ?: app(TenantContext::class)->getHotelId()
                 ?: ($user->isPlatformAdmin() ? null : $user->hotel_id);
 
-            // 1. Room statistics
             $roomQuery = Room::withoutGlobalScopes();
             if ($hotelId) {
                 $roomQuery->where('hotel_id', $hotelId);
@@ -41,14 +37,12 @@ class DashboardController extends Controller
 
             $occupancyRate = $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100, 1) : 0;
 
-            // 2. Room types
             $roomTypeQuery = RoomType::withoutGlobalScopes();
             if ($hotelId) {
                 $roomTypeQuery->where('hotel_id', $hotelId);
             }
             $totalRoomTypes = $roomTypeQuery->count();
 
-            // 3. Staff & User metrics
             if ($hotelId) {
                 $totalUsers = HotelUser::where('hotel_id', $hotelId)->count();
                 $activeStaff = HotelUser::where('hotel_id', $hotelId)->where('is_active', true)->count();
@@ -61,7 +55,6 @@ class DashboardController extends Controller
                 $activeStaff = User::where('is_active', true)->count();
             }
 
-            // 4. Revenue calculation (Today)
             $today = Carbon::today();
             $todayRevenue = 0;
             try {
@@ -71,7 +64,6 @@ class DashboardController extends Controller
                 }
                 $todayRevenue = (float) $paymentQuery->sum('amount');
             } catch (\Throwable $e) {
-                // Fallback to reservation totals if payments table structure differs
                 $resQuery = Reservation::withoutGlobalScopes()->whereDate('created_at', $today);
                 if ($hotelId) {
                     $resQuery->where('hotel_id', $hotelId);
@@ -79,10 +71,8 @@ class DashboardController extends Controller
                 $todayRevenue = (float) ($resQuery->sum('total_amount') ?: 0);
             }
 
-            // 5. Monthly Revenue (Last 6 Months)
             $monthlyRevenue = $this->getMonthlyRevenueSeries($hotelId);
 
-            // 6. Recent Reservations
             $resQuery = Reservation::withoutGlobalScopes()
                 ->with(['guest', 'room.roomType'])
                 ->orderBy('created_at', 'desc')
@@ -109,7 +99,6 @@ class DashboardController extends Controller
                 ];
             });
 
-            // 7. Maintenance alerts
             $maintenanceQuery = Room::withoutGlobalScopes()->where('status', 'maintenance')->limit(5);
             if ($hotelId) {
                 $maintenanceQuery->where('hotel_id', $hotelId);
@@ -123,7 +112,6 @@ class DashboardController extends Controller
                 ];
             });
 
-            // 8. Staff activity stream
             $staffActivity = collect([
                 [
                     'id' => 1,
@@ -170,9 +158,6 @@ class DashboardController extends Controller
         }
     }
 
-    /**
-     * Get revenue data tailored for chart timeframes (week, month, year).
-     */
     public function revenue(Request $request)
     {
         try {
@@ -201,9 +186,6 @@ class DashboardController extends Controller
         }
     }
 
-    /**
-     * Helper: 6-month revenue series
-     */
     private function getMonthlyRevenueSeries(?string $hotelId = null): array
     {
         $series = [];
@@ -223,12 +205,10 @@ class DashboardController extends Controller
                 }
                 $amount = (float) $q->sum('amount');
             } catch (\Throwable $e) {
-                // Fallback
                 $amount = 0;
             }
 
             if ($amount <= 0) {
-                // Estimate from reservations if payments table is empty
                 $resQ = Reservation::withoutGlobalScopes()
                     ->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = ?", [$yearMonth]);
                 if ($hotelId) {
@@ -246,9 +226,6 @@ class DashboardController extends Controller
         return $series;
     }
 
-    /**
-     * Helper: 7-day revenue series
-     */
     private function getWeeklyRevenueSeries(?string $hotelId = null): array
     {
         $series = [];
@@ -288,9 +265,6 @@ class DashboardController extends Controller
         return $series;
     }
 
-    /**
-     * Helper: 12-month revenue series
-     */
     private function getYearlyRevenueSeries(?string $hotelId = null): array
     {
         return $this->getMonthlyRevenueSeries($hotelId);

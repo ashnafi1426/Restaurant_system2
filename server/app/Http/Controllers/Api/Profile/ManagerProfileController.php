@@ -13,10 +13,6 @@ use Illuminate\Support\Facades\Storage;
 
 class ManagerProfileController extends Controller
 {
-    /**
-     * Get manager profile
-     * GET /api/manager/profile
-     */
     public function getProfile(): JsonResponse
     {
         try {
@@ -29,7 +25,6 @@ class ManagerProfileController extends Controller
                 ], 401);
             }
 
-            // Load manager relationship if not loaded
             if ($user->relationLoaded('manager') === false) {
                 $user->load('manager');
             }
@@ -75,10 +70,6 @@ class ManagerProfileController extends Controller
         }
     }
 
-    /**
-     * Update manager profile
-     * PUT /api/manager/profile
-     */
     public function updateProfile(Request $request): JsonResponse
     {
         try {
@@ -94,13 +85,11 @@ class ManagerProfileController extends Controller
             
             DB::beginTransaction();
 
-            // Update user fields
             $userUpdates = array_intersect_key($validated, array_flip(['first_name', 'last_name', 'phone']));
             if (!empty($userUpdates)) {
                 $user->update($userUpdates);
             }
 
-            // Update manager fields
             $managerUpdates = array_intersect_key($validated, array_flip(['department', 'bio']));
             if (!empty($managerUpdates) && $user->manager) {
                 $user->manager->update($managerUpdates);
@@ -143,10 +132,6 @@ class ManagerProfileController extends Controller
         }
     }
 
-    /**
-     * Upload profile photo
-     * POST /api/manager/profile/photo
-     */
     public function uploadPhoto(Request $request): JsonResponse
     {
         try {
@@ -163,12 +148,10 @@ class ManagerProfileController extends Controller
                 ], 404);
             }
 
-            // Delete old photo if exists
             if ($user->manager->profile_photo) {
                 Storage::disk('public')->delete($user->manager->profile_photo);
             }
 
-            // Store new photo
             $path = $request->file('photo')->store('profile_photos/managers', 'public');
 
             $user->manager->update(['profile_photo' => $path]);
@@ -190,10 +173,6 @@ class ManagerProfileController extends Controller
         }
     }
 
-    /**
-     * Change password
-     * POST /api/manager/profile/change-password
-     */
     public function changePassword(Request $request): JsonResponse
     {
         try {
@@ -204,7 +183,6 @@ class ManagerProfileController extends Controller
 
             $user = auth()->user();
 
-            // Verify current password
             if (!Hash::check($validated['current_password'], $user->password_hash)) {
                 return response()->json([
                     'success' => false,
@@ -212,7 +190,6 @@ class ManagerProfileController extends Controller
                 ], 422);
             }
 
-            // Update password
             $user->update([
                 'password_hash' => Hash::make($validated['new_password']),
             ]);
@@ -236,10 +213,6 @@ class ManagerProfileController extends Controller
         }
     }
 
-    /**
-     * Get manager statistics
-     * GET /api/manager/profile/stats
-     */
     public function getStats(): JsonResponse
     {
         try {
@@ -252,7 +225,6 @@ class ManagerProfileController extends Controller
                 ], 404);
             }
 
-            // Get various statistics
             $stats = [
                 'total_employees_managed' => DB::table('users')->where('role', '!=', 'admin')->where('role', '!=', 'manager')->count(),
                 'total_orders_today' => DB::table('orders')->whereDate('created_at', today())->count(),

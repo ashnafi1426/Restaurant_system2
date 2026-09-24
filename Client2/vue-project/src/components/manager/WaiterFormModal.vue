@@ -3,7 +3,6 @@
     <Transition name="modal">
       <div v-if="isOpen" class="modal-overlay" @click.self="close">
         <div class="modal-container">
-            <!-- Modal Header -->
             <div class="modal-header">
               <div class="header-content">
                 <div class="header-icon">
@@ -19,12 +18,9 @@
               </button>
             </div>
 
-      <!-- Modal Body with Two Columns -->
       <div class="modal-body">
         <form @submit.prevent="submitForm" class="form-container">
-          <!-- Left Column -->
           <div class="form-column">
-            <!-- Personal Information Section -->
             <div class="form-section">
               <div class="section-header">
                 <div class="section-icon person-icon">👤</div>
@@ -100,10 +96,9 @@
               </div>
             </div>
 
-            <!-- Info Note for Activation -->
             <div v-if="!props.isEditMode" class="form-section">
               <div class="info-banner">
-                <div class="info-icon">ℹ️</div>
+                <div class="info-icon"></div>
                 <div class="info-content">
                   <h4>Account Activation</h4>
                   <p>The waiter will receive an email with an activation link to set their own password.</p>
@@ -112,9 +107,7 @@
             </div>
           </div>
 
-          <!-- Right Column -->
           <div class="form-column">
-            <!-- Assignment Section -->
             <div class="form-section">
               <div class="section-header">
                 <div class="section-icon work-icon">👨‍💼</div>
@@ -139,9 +132,9 @@
                 <select id="shift" v-model="formData.shift" class="form-control" required>
                   <option value="">Select...</option>
                   <option value="morning">🌅 Morning</option>
-                  <option value="afternoon">🌤️ Afternoon</option>
+                  <option value="afternoon"> Afternoon</option>
                   <option value="evening">🌆 Evening</option>
-                  <option value="night">🌙 Night</option>
+                  <option value="night"> Night</option>
                 </select>
                 <span v-if="fieldErrors.shift" class="error">{{ fieldErrors.shift }}</span>
               </div>
@@ -189,7 +182,6 @@
               </div>
             </div>
 
-            <!-- Floor Assignments Section -->
             <div class="form-section">
               <div class="section-header">
                 <div class="section-icon floor-icon">🏢</div>
@@ -222,7 +214,7 @@
                   <select v-model="assignment.priority" class="form-control">
                     <option value="primary">⭐ Primary</option>
                     <option value="secondary">👥 Secondary</option>
-                    <option value="backup">🔄 Backup</option>
+                    <option value="backup"> Backup</option>
                   </select>
                   
                   <button type="button" @click="removeFloorAssignment(index)" class="btn-remove" title="Remove">
@@ -243,7 +235,6 @@
           </div>
         </form>
 
-        <!-- Error Alert -->
         <div v-if="errorMessage" class="alert alert-error">
           <AlertCircle :size="14" />
           <div>
@@ -253,7 +244,6 @@
         </div>
       </div>
 
-      <!-- Modal Footer -->
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" @click="close">Cancel</button>
         <button type="submit" class="btn btn-primary" @click="submitForm" :disabled="submitting">
@@ -300,7 +290,7 @@ const formData = ref({
   section: '',
   shift: '',
   experience_level: '',
-  status: 'inactive', // Default to inactive for new waiters
+  status: 'inactive',
   maximum_orders: 5,
   employee_number: '',
   floor_assignments: [] as Array<{
@@ -318,7 +308,6 @@ const newUserData = ref({
   phone: '',
 })
 
-// Load floors and shifts on mount
 onMounted(async () => {
   try {
     loadingFloors.value = true
@@ -327,14 +316,10 @@ onMounted(async () => {
       shiftService.getShifts()
     ])
     
-    // Extract data from paginated response
     floors.value = floorsRes.data?.data || floorsRes.data || []
     shifts.value = shiftsRes.data || []
-    
-    console.log('[WaiterFormModal] Loaded floors:', floors.value.length)
-    console.log('[WaiterFormModal] Loaded shifts:', shifts.value.length)
   } catch (error) {
-    console.error('[WaiterFormModal] Error loading floors/shifts:', error)
+    console.error('[WaiterFormModal] Failed to load floors and shifts:', error)
     errorMessage.value = 'Failed to load floors and shifts'
   } finally {
     loadingFloors.value = false
@@ -344,8 +329,6 @@ onMounted(async () => {
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {
     if (props.isEditMode && props.waiterData) {
-      // Load existing waiter data for editing
-      console.log('[WaiterFormModal] Loading edit data:', props.waiterData)
       formData.value = {
         section: props.waiterData.section || '',
         shift: props.waiterData.shift || '',
@@ -355,7 +338,6 @@ watch(() => props.isOpen, (newVal) => {
         employee_number: props.waiterData.employee_number || '',
         floor_assignments: props.waiterData.floor_assignments || []
       }
-      // Don't load user data in edit mode (read-only)
       newUserData.value = {
         first_name: props.waiterData.user?.first_name || '',
         last_name: props.waiterData.user?.last_name || '',
@@ -400,9 +382,7 @@ const validateForm = (): boolean => {
   fieldErrors.value = {}
   let isValid = true
 
-  // In edit mode, only validate the fields that can be edited
   if (props.isEditMode) {
-    // User info is read-only, so skip validation
     if (!formData.value.section?.trim()) {
       fieldErrors.value.section = 'Required'
       isValid = false
@@ -422,7 +402,6 @@ const validateForm = (): boolean => {
     return isValid
   }
 
-  // Create mode - validate all fields (NO PASSWORD NEEDED)
   if (!newUserData.value.first_name?.trim()) {
     fieldErrors.value.first_name = 'Required'
     isValid = false
@@ -476,6 +455,7 @@ const submitForm = async () => {
     emit('submit', submitData)
     close()
   } catch (error: any) {
+    console.error('[WaiterFormModal] Form submission error:', error)
     errorMessage.value = error.message || 'Error'
   } finally {
     submitting.value = false
@@ -493,7 +473,6 @@ const close = () => {
   box-sizing: border-box;
 }
 
-/* Modal Overlay - Full Screen with Centering */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -509,7 +488,6 @@ const close = () => {
   padding: 20px;
 }
 
-/* Modal Container - Centered Content */
 .modal-container {
   position: relative;
   background: white;
@@ -534,7 +512,6 @@ const close = () => {
   }
 }
 
-/* Header */
 .modal-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -592,7 +569,6 @@ const close = () => {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Body */
 .modal-body {
   flex: 1;
   overflow-y: auto;
@@ -715,7 +691,6 @@ label {
   border-left: 3px solid #ff9800;
 }
 
-/* Info Banner */
 .info-banner {
   display: flex;
   gap: 12px;
@@ -830,7 +805,6 @@ label {
   font-size: 11px;
 }
 
-/* Footer */
 .modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -890,7 +864,6 @@ label {
   to { transform: rotate(360deg); }
 }
 
-/* Mobile */
 @media (max-width: 768px) {
   .modal-overlay {
     padding: 12px;
@@ -917,7 +890,6 @@ label {
   }
 }
 
-/* Scrollbar */
 .modal-body::-webkit-scrollbar {
   width: 4px;
 }
@@ -935,7 +907,6 @@ label {
   background: #999;
 }
 
-/* Floor Assignments */
 .assignments-list {
   display: flex;
   flex-direction: column;
@@ -1011,7 +982,6 @@ label {
   color: #666;
 }
 
-/* Vue Transition Animations */
 .modal-enter-active,
 .modal-leave-active {
   transition: opacity 0.3s ease;
@@ -1033,9 +1003,6 @@ label {
   opacity: 0;
 }
 
-/* ==========================================================================
-   Dark Mode Support
-   ========================================================================== */
 :global(.dark) .modal-container,
 .dark .modal-container {
   background: #0f172a !important;

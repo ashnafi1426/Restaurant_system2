@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import { platformService, type Hotel, type CreateHotelPayload } from '@/services/platformService'
 import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
 import {
   Building2,
   Plus,
@@ -32,21 +33,42 @@ import {
   Utensils,
   DollarSign,
   Users,
-  LayoutDashboard
+  LayoutDashboard,
+  Minimize2,
+  Maximize2,
+  RotateCcw,
+  Loader2,
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
 // State
 const hotels = ref<Hotel[]>([])
 const loading = ref(true)
 const saving = ref(false)
+const isFilterOpen = ref(false)
+const isFullscreen = ref(false)
 const searchQuery = ref('')
 const selectedStatus = ref('all')
 const selectedCity = ref('all')
 const successMessage = ref('')
 const errorMessage = ref('')
+
+const toggleFilter = () => {
+  isFilterOpen.value = !isFilterOpen.value
+}
+
+const toggleFullscreen = () => {
+  isFullscreen.value = !isFullscreen.value
+}
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  selectedStatus.value = 'all'
+  selectedCity.value = 'all'
+}
 
 // Pagination
 const currentPage = ref(1)
@@ -97,7 +119,7 @@ const editForm = ref({
   country: '',
   timezone: '',
   currency: '',
-  status: 'active' as const,
+  status: 'active' as 'active' | 'inactive' | 'suspended' | 'archived',
 })
 
 // Auto-generate slug when typing hotel name
@@ -252,6 +274,7 @@ const handleCreateHotel = async () => {
     await loadHotels()
     setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
+    console.error('[HotelManagement] Create hotel error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to create hotel.'
   } finally {
     saving.value = false
@@ -269,6 +292,7 @@ const handleUpdateHotel = async () => {
     await loadHotels()
     setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
+    console.error('[HotelManagement] Update hotel error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to update hotel.'
   } finally {
     saving.value = false
@@ -289,6 +313,7 @@ const handleEnterHotelViewMode = async (hotel: Hotel) => {
     })
     router.push('/admin')
   } catch (err: any) {
+    console.error('[HotelManagement] Enter hotel view mode error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to enter hotel view mode.'
   }
 }
@@ -301,6 +326,7 @@ const handleActivateHotel = async (hotel: Hotel) => {
     await loadHotels()
     setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
+    console.error('[HotelManagement] Activate hotel error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to activate hotel.'
   }
 }
@@ -313,6 +339,7 @@ const handleDeactivateHotel = async (hotel: Hotel) => {
     await loadHotels()
     setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
+    console.error('[HotelManagement] Deactivate hotel error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to deactivate hotel.'
   }
 }
@@ -327,6 +354,7 @@ const handleConfirmSuspend = async () => {
     await loadHotels()
     setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
+    console.error('[HotelManagement] Suspend hotel error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to suspend hotel.'
   } finally {
     saving.value = false
@@ -343,6 +371,7 @@ const handleConfirmArchive = async () => {
     await loadHotels()
     setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
+    console.error('[HotelManagement] Archive hotel error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to archive hotel.'
   } finally {
     saving.value = false
@@ -364,6 +393,7 @@ const handleConfirmPermanentDelete = async () => {
     await loadHotels()
     setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
+    console.error('[HotelManagement] Delete hotel error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to permanently delete hotel.'
   } finally {
     saving.value = false
@@ -389,37 +419,19 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
             <div>
               <div class="flex items-center gap-2">
                 <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                  Hotels Management
+                  {{ languageStore.t('hotels_management', 'Hotels Management') }}
                 </h1>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                  {{ totalHotels }} Hotels
+                  {{ totalHotels }} {{ languageStore.t('hotels_count', 'Hotels') }}
                 </span>
               </div>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Centralized platform governance to onboard, configure, suspend, and supervise multi-tenant hotel properties.
+                {{ languageStore.t('hotels_governance_desc', 'Centralized platform governance to onboard, configure, suspend, and supervise multi-tenant hotel properties.') }}
               </p>
             </div>
           </div>
         </div>
 
-        <div class="flex items-center gap-2.5">
-          <button
-            @click="loadHotels"
-            :disabled="loading"
-            class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition cursor-pointer border border-slate-200 dark:border-slate-700 font-bold text-xs flex items-center gap-1.5"
-          >
-            <RefreshCw :class="['w-4 h-4', loading && 'animate-spin']" />
-            <span>Refresh</span>
-          </button>
-
-          <button
-            @click="openCreateModal"
-            class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs shadow-md shadow-indigo-600/20 transition flex items-center gap-2 cursor-pointer"
-          >
-            <Plus class="w-4 h-4" />
-            <span>Add Hotel</span>
-          </button>
-        </div>
       </div>
 
       <!-- Feedback Alerts -->
@@ -433,51 +445,135 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Search & Filters Toolbar -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
-        <!-- Search -->
-        <div class="relative w-full md:w-80">
-          <Search class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search hotel, city, or email..."
-            class="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
-          />
+      <!-- Top Bar Toolbar -->
+      <div
+        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+      >
+        <!-- Left: Search & Filter Toggle -->
+        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
+          <!-- Search Input -->
+          <div class="relative flex-1">
+            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              :placeholder="languageStore.t('search_hotel_placeholder', 'Search hotel by name, city, email, code...')"
+              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none font-medium"
+            />
+          </div>
+
+          <!-- Filter Toggle Button -->
+          <button
+            type="button"
+            @click="toggleFilter"
+            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            :class="[
+              isFilterOpen
+                ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+            ]"
+          >
+            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
+            <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
+          </button>
         </div>
 
-        <!-- Filter Selects -->
-        <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
-          <!-- Status filter -->
-          <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold text-slate-400">Status:</span>
-            <select
-              v-model="selectedStatus"
-              class="px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-medium focus:outline-none"
-            >
-              <option value="all">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="suspended">Suspended</option>
-              <option value="archived">Archived</option>
-            </select>
-          </div>
+        <!-- Right: Action Buttons -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <!-- Refresh Button -->
+          <button
+            type="button"
+            @click="loadHotels"
+            :disabled="loading"
+            :title="languageStore.t('refresh', 'Refresh')"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+          >
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+          </button>
 
-          <!-- City filter -->
-          <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold text-slate-400">City:</span>
-            <select
-              v-model="selectedCity"
-              class="px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-medium focus:outline-none"
-            >
-              <option value="all">All Cities</option>
-              <option v-for="city in availableCities" :key="city" :value="city">
-                {{ city }}
-              </option>
-            </select>
-          </div>
+          <!-- Fullscreen Toggle -->
+          <button
+            type="button"
+            @click="toggleFullscreen"
+            :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+          >
+            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+          </button>
+
+          <!-- Add Hotel Primary Button -->
+          <button
+            type="button"
+            @click="openCreateModal"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold shadow-md shadow-blue-600/25 transition active:scale-98 cursor-pointer flex-shrink-0"
+          >
+            <Plus class="w-4 h-4 text-white" />
+            <span class="text-white">{{ languageStore.t('create_hotel', 'Create Hotel') }}</span>
+          </button>
         </div>
       </div>
+
+      <!-- Expandable Filter Panel -->
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="transform -translate-y-2 opacity-0 scale-98"
+        enter-to-class="transform translate-y-0 opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="transform translate-y-0 opacity-100 scale-100"
+        leave-to-class="transform -translate-y-2 opacity-0 scale-98"
+      >
+        <div
+          v-if="isFilterOpen"
+          class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
+        >
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+            <!-- Status Filter -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                {{ languageStore.t('hotel_status', 'Hotel Status') }}
+              </label>
+              <select
+                v-model="selectedStatus"
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
+              >
+                <option value="all">{{ languageStore.t('all_statuses', 'All Statuses') }}</option>
+                <option value="active">{{ languageStore.t('active', 'Active') }}</option>
+                <option value="inactive">{{ languageStore.t('inactive', 'Inactive') }}</option>
+                <option value="suspended">{{ languageStore.t('suspended', 'Suspended') }}</option>
+                <option value="archived">{{ languageStore.t('archived', 'Archived') }}</option>
+              </select>
+            </div>
+
+            <!-- City Filter -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                {{ languageStore.t('location_city', 'Location City') }}
+              </label>
+              <select
+                v-model="selectedCity"
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
+              >
+                <option value="all">{{ languageStore.t('all_cities', 'All Cities') }}</option>
+                <option v-for="city in availableCities" :key="city" :value="city">
+                  {{ city }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Reset Filters -->
+            <div class="flex items-end">
+              <button
+                type="button"
+                @click="resetFilters"
+                class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer h-[38px]"
+              >
+                <RotateCcw class="w-3.5 h-3.5" />
+                <span>{{ languageStore.t('reset_filters', 'Reset Filters') }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
 
       <!-- HOTELS TABLE -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden">
@@ -485,12 +581,12 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
           <table class="w-full text-left text-xs border-collapse">
             <thead class="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700/80">
               <tr>
-                <th class="py-4 px-5">Hotel</th>
-                <th class="py-4 px-4">Location</th>
-                <th class="py-4 px-4">Hotel Admin</th>
-                <th class="py-4 px-4">Rooms</th>
-                <th class="py-4 px-4">Status</th>
-                <th class="py-4 px-5 text-right">Actions</th>
+                <th class="py-4 px-5">{{ languageStore.t('hotel', 'Hotel') }}</th>
+                <th class="py-4 px-4">{{ languageStore.t('location', 'Location') }}</th>
+                <th class="py-4 px-4">{{ languageStore.t('hotel_admin', 'Hotel Admin') }}</th>
+                <th class="py-4 px-4">{{ languageStore.t('rooms', 'Rooms') }}</th>
+                <th class="py-4 px-4">{{ languageStore.t('status', 'Status') }}</th>
+                <th class="py-4 px-5 text-right">{{ languageStore.t('actions', 'Actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
@@ -498,7 +594,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
               <tr v-if="loading">
                 <td colspan="6" class="p-12 text-center text-xs text-slate-400">
                   <RefreshCw class="w-6 h-6 text-indigo-500 animate-spin mx-auto mb-2" />
-                  <span>Loading platform hotels...</span>
+                  <span>{{ languageStore.t('loading_hotels', 'Loading platform hotels...') }}</span>
                 </td>
               </tr>
 
@@ -506,8 +602,8 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
               <tr v-else-if="hotels.length === 0">
                 <td colspan="6" class="p-12 text-center text-xs text-slate-400">
                   <Building2 class="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                  <p class="font-bold">No hotels found.</p>
-                  <p class="text-[11px] text-slate-400 mt-0.5">Try refining your search or add a new hotel.</p>
+                  <p class="font-bold">{{ languageStore.t('no_hotels_found', 'No hotels found.') }}</p>
+                  <p class="text-[11px] text-slate-400 mt-0.5">{{ languageStore.t('refine_hotel_search', 'Try refining your search or add a new hotel.') }}</p>
                 </td>
               </tr>
 
@@ -550,7 +646,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                 <td class="py-4 px-4">
                   <div class="flex items-center gap-1.5 text-xs text-slate-800 dark:text-slate-200 font-semibold">
                     <UserCheck class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
-                    <span>{{ hotel.admin_name || 'No Admin Assigned' }}</span>
+                    <span>{{ hotel.admin_name || languageStore.t('no_admin_assigned', 'No Admin Assigned') }}</span>
                   </div>
                   <span v-if="hotel.admin_email" class="text-[10px] text-slate-400 block ml-5 font-mono">
                     {{ hotel.admin_email }}
@@ -560,7 +656,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                 <!-- Rooms -->
                 <td class="py-4 px-4">
                   <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs">
-                    {{ hotel.rooms_count ?? 0 }} rooms
+                    {{ hotel.rooms_count ?? 0 }} {{ languageStore.t('rooms', 'rooms') }}
                   </span>
                 </td>
 
@@ -570,25 +666,25 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                     v-if="hotel.status === 'active'"
                     class="px-2.5 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                   >
-                    Active
+                    {{ languageStore.t('active', 'Active') }}
                   </span>
                   <span
                     v-else-if="hotel.status === 'suspended'"
                     class="px-2.5 py-1 rounded-full text-xs font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
                   >
-                    Suspended
+                    {{ languageStore.t('suspended', 'Suspended') }}
                   </span>
                   <span
                     v-else-if="hotel.status === 'archived'"
                     class="px-2.5 py-1 rounded-full text-xs font-black bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20"
                   >
-                    Archived
+                    {{ languageStore.t('archived', 'Archived') }}
                   </span>
                   <span
                     v-else
                     class="px-2.5 py-1 rounded-full text-xs font-black bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20"
                   >
-                    Inactive
+                    {{ languageStore.t('inactive', 'Inactive') }}
                   </span>
                 </td>
 
@@ -611,7 +707,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                       class="w-full px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center gap-2.5 font-bold transition cursor-pointer"
                     >
                       <Eye class="w-3.5 h-3.5 text-indigo-500" />
-                      <span>View Details</span>
+                      <span>{{ languageStore.t('view_details', 'View Details') }}</span>
                     </button>
 
                     <button
@@ -619,7 +715,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                       class="w-full px-3.5 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center gap-2.5 font-bold transition cursor-pointer"
                     >
                       <LayoutDashboard class="w-3.5 h-3.5 text-indigo-500" />
-                      <span>View Hotel Dashboard</span>
+                      <span>{{ languageStore.t('view_hotel_dashboard', 'View Hotel Dashboard') }}</span>
                     </button>
 
                     <button
@@ -627,7 +723,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                       class="w-full px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center gap-2.5 font-bold transition cursor-pointer"
                     >
                       <Edit class="w-3.5 h-3.5 text-blue-500" />
-                      <span>Edit Hotel</span>
+                      <span>{{ languageStore.t('edit_hotel', 'Edit Hotel') }}</span>
                     </button>
 
                     <div class="h-px bg-slate-100 dark:bg-slate-800 my-1"></div>
@@ -639,7 +735,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                       class="w-full px-3.5 py-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center gap-2.5 font-bold transition cursor-pointer"
                     >
                       <Power class="w-3.5 h-3.5 text-emerald-500" />
-                      <span>Activate Hotel</span>
+                      <span>{{ languageStore.t('activate_hotel', 'Activate Hotel') }}</span>
                     </button>
 
                     <!-- Deactivate if active -->
@@ -649,7 +745,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                       class="w-full px-3.5 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center gap-2.5 font-bold transition cursor-pointer"
                     >
                       <Power class="w-3.5 h-3.5 text-slate-400" />
-                      <span>Deactivate Hotel</span>
+                      <span>{{ languageStore.t('deactivate_hotel', 'Deactivate Hotel') }}</span>
                     </button>
 
                     <!-- Suspend -->
@@ -659,7 +755,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                       class="w-full px-3.5 py-2 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center gap-2.5 font-bold transition cursor-pointer"
                     >
                       <ShieldAlert class="w-3.5 h-3.5 text-amber-500" />
-                      <span>Suspend Hotel</span>
+                      <span>{{ languageStore.t('suspend_hotel', 'Suspend Hotel') }}</span>
                     </button>
 
                     <!-- Archive -->
@@ -669,7 +765,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                       class="w-full px-3.5 py-2 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center gap-2.5 font-bold transition cursor-pointer"
                     >
                       <Archive class="w-3.5 h-3.5 text-purple-500" />
-                      <span>Archive Hotel</span>
+                      <span>{{ languageStore.t('archive_hotel', 'Archive Hotel') }}</span>
                     </button>
 
                     <div class="h-px bg-slate-100 dark:bg-slate-800 my-1"></div>
@@ -680,7 +776,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                       class="w-full px-3.5 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2.5 font-bold transition cursor-pointer"
                     >
                       <Trash2 class="w-3.5 h-3.5 text-rose-500" />
-                      <span>Permanent Delete</span>
+                      <span>{{ languageStore.t('permanent_delete', 'Permanent Delete') }}</span>
                     </button>
                   </div>
                 </td>
@@ -692,7 +788,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
         <!-- Pagination Bar -->
         <div v-if="lastPage > 1" class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <span class="text-xs text-slate-500">
-            Page {{ currentPage }} of {{ lastPage }} ({{ totalHotels }} total)
+            {{ languageStore.t('page', 'Page') }} {{ currentPage }} {{ languageStore.t('of', 'of') }} {{ lastPage }} ({{ totalHotels }} {{ languageStore.t('total', 'total') }})
           </span>
           <div class="flex items-center gap-2">
             <button
@@ -700,14 +796,14 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
               @click="currentPage--; loadHotels()"
               class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold disabled:opacity-40"
             >
-              Previous
+              {{ languageStore.t('previous', 'Previous') }}
             </button>
             <button
               :disabled="currentPage >= lastPage"
               @click="currentPage++; loadHotels()"
               class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold disabled:opacity-40"
             >
-              Next
+              {{ languageStore.t('next', 'Next') }}
             </button>
           </div>
         </div>
@@ -727,8 +823,8 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   <Building2 class="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 class="text-lg font-black text-slate-900 dark:text-white">Create New Hotel</h2>
-                  <p class="text-xs text-slate-500">Add a new tenant property to the platform</p>
+                  <h2 class="text-lg font-black text-slate-900 dark:text-white">{{ languageStore.t('create_new_hotel', 'Create New Hotel') }}</h2>
+                  <p class="text-xs text-slate-500">{{ languageStore.t('add_tenant_desc', 'Add a new tenant property to the platform') }}</p>
                 </div>
               </div>
               <button @click="showCreateModal = false" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer">
@@ -740,7 +836,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
             <div class="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Hotel Name *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('hotel_name', 'Hotel Name') }} *</label>
                   <input
                     v-model="hotelForm.name"
                     type="text"
@@ -749,7 +845,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Hotel Slug *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('hotel_slug', 'Hotel Slug') }} *</label>
                   <input
                     v-model="hotelForm.slug"
                     type="text"
@@ -758,7 +854,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Email *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('email', 'Email') }} *</label>
                   <input
                     v-model="hotelForm.email"
                     type="email"
@@ -767,7 +863,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Phone *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('phone', 'Phone') }} *</label>
                   <input
                     v-model="hotelForm.phone"
                     type="text"
@@ -776,7 +872,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Address *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('address', 'Address') }} *</label>
                   <input
                     v-model="hotelForm.address"
                     type="text"
@@ -785,7 +881,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">City *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('city', 'City') }} *</label>
                   <input
                     v-model="hotelForm.city"
                     type="text"
@@ -794,7 +890,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Country *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('country', 'Country') }} *</label>
                   <input
                     v-model="hotelForm.country"
                     type="text"
@@ -803,7 +899,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Timezone *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('timezone', 'Timezone') }} *</label>
                   <input
                     v-model="hotelForm.timezone"
                     type="text"
@@ -811,7 +907,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Currency *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('currency', 'Currency') }} *</label>
                   <input
                     v-model="hotelForm.currency"
                     type="text"
@@ -819,14 +915,14 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Initial Status</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('initial_status', 'Initial Status') }}</label>
                   <select
                     v-model="hotelForm.status"
                     class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
                   >
-                    <option value="active">Active (Fully operational immediately)</option>
-                    <option value="inactive">Inactive (Disabled until configured)</option>
-                    <option value="suspended">Suspended</option>
+                    <option value="active">{{ languageStore.t('operational_immediately', 'Active (Fully operational immediately)') }}</option>
+                    <option value="inactive">{{ languageStore.t('disabled_until_configured', 'Inactive (Disabled until configured)') }}</option>
+                    <option value="suspended">{{ languageStore.t('suspended', 'Suspended') }}</option>
                   </select>
                 </div>
               </div>
@@ -835,12 +931,12 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
               <div class="pt-4 border-t border-slate-200 dark:border-slate-800">
                 <label class="flex items-center gap-2 cursor-pointer mb-3">
                   <input type="checkbox" v-model="createInitialAdmin" class="rounded text-indigo-600 accent-indigo-600" />
-                  <span class="font-extrabold text-slate-900 dark:text-white">Create Initial Hotel Admin Account</span>
+                  <span class="font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('create_initial_admin', 'Create Initial Hotel Admin Account') }}</span>
                 </label>
 
                 <div v-if="createInitialAdmin" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-500/20">
                   <div>
-                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Admin First Name *</label>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('admin_first_name', 'Admin First Name') }} *</label>
                     <input
                       v-model="hotelForm.admin_first_name"
                       type="text"
@@ -849,7 +945,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                     />
                   </div>
                   <div>
-                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Admin Last Name *</label>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('admin_last_name', 'Admin Last Name') }} *</label>
                     <input
                       v-model="hotelForm.admin_last_name"
                       type="text"
@@ -858,7 +954,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                     />
                   </div>
                   <div>
-                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Admin Email *</label>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('admin_email', 'Admin Email') }} *</label>
                     <input
                       v-model="hotelForm.admin_email"
                       type="email"
@@ -867,11 +963,11 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                     />
                   </div>
                   <div>
-                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Password (Default: HotelAdmin123@)</label>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('admin_password_hint', 'Password (Default: HotelAdmin123@)') }}</label>
                     <input
                       v-model="hotelForm.admin_password"
                       type="password"
-                      placeholder="Leave blank for default"
+                      :placeholder="languageStore.t('leave_blank_default', 'Leave blank for default')"
                       class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
                     />
                   </div>
@@ -886,7 +982,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                 @click="showCreateModal = false"
                 class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs"
               >
-                Cancel
+                {{ languageStore.t('cancel', 'Cancel') }}
               </button>
               <button
                 type="button"
@@ -895,7 +991,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                 class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs shadow-md transition disabled:opacity-50 flex items-center gap-1.5"
               >
                 <RefreshCw v-if="saving" class="w-3.5 h-3.5 animate-spin" />
-                <span>{{ saving ? 'Creating...' : 'Create Hotel' }}</span>
+                <span>{{ saving ? languageStore.t('creating', 'Creating...') : languageStore.t('create_hotel', 'Create Hotel') }}</span>
               </button>
             </div>
           </div>
@@ -930,38 +1026,38 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
               <!-- Statistics Cards Grid -->
               <div>
                 <h3 class="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-3">
-                  Hotel Statistics & Overview
+                  {{ languageStore.t('hotel_statistics', 'Hotel Statistics & Overview') }}
                 </h3>
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                   <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
                     <BedDouble class="w-5 h-5 text-indigo-500 mx-auto mb-1" />
                     <span class="block text-base font-black text-slate-900 dark:text-white">{{ selectedHotel.rooms_count ?? 0 }}</span>
-                    <span class="text-[10px] text-slate-400 font-bold uppercase">Rooms</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ languageStore.t('rooms', 'Rooms') }}</span>
                   </div>
                   <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
                     <Users class="w-5 h-5 text-blue-500 mx-auto mb-1" />
                     <span class="block text-base font-black text-slate-900 dark:text-white">{{ selectedHotel.staff_count ?? 0 }}</span>
-                    <span class="text-[10px] text-slate-400 font-bold uppercase">Staff</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ languageStore.t('staff', 'Staff') }}</span>
                   </div>
                   <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
                     <UserCheck class="w-5 h-5 text-teal-500 mx-auto mb-1" />
                     <span class="block text-base font-black text-slate-900 dark:text-white">{{ selectedHotel.guests_count ?? 0 }}</span>
-                    <span class="text-[10px] text-slate-400 font-bold uppercase">Guests</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ languageStore.t('guests', 'Guests') }}</span>
                   </div>
                   <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
                     <CalendarCheck class="w-5 h-5 text-amber-500 mx-auto mb-1" />
                     <span class="block text-base font-black text-slate-900 dark:text-white">{{ selectedHotel.reservations_count ?? 0 }}</span>
-                    <span class="text-[10px] text-slate-400 font-bold uppercase">Bookings</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ languageStore.t('bookings', 'Bookings') }}</span>
                   </div>
                   <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
                     <Utensils class="w-5 h-5 text-orange-500 mx-auto mb-1" />
                     <span class="block text-base font-black text-slate-900 dark:text-white">{{ selectedHotel.orders_count ?? 0 }}</span>
-                    <span class="text-[10px] text-slate-400 font-bold uppercase">Orders</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ languageStore.t('orders', 'Orders') }}</span>
                   </div>
                   <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
                     <DollarSign class="w-5 h-5 text-emerald-500 mx-auto mb-1" />
                     <span class="block text-base font-black text-slate-900 dark:text-white">{{ formatCurrency(selectedHotel.revenue_total, selectedHotel.currency) }}</span>
-                    <span class="text-[10px] text-slate-400 font-bold uppercase">Revenue</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ languageStore.t('revenue', 'Revenue') }}</span>
                   </div>
                 </div>
               </div>
@@ -969,48 +1065,48 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
               <!-- Information Grid -->
               <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-3">
                 <h3 class="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider">
-                  Hotel Details
+                  {{ languageStore.t('hotel_details', 'Hotel Details') }}
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="flex items-center gap-2">
                     <Mail class="w-4 h-4 text-slate-400" />
                     <div>
-                      <span class="text-slate-400 block text-[10px]">Email</span>
+                      <span class="text-slate-400 block text-[10px]">{{ languageStore.t('email', 'Email') }}</span>
                       <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedHotel.email || 'N/A' }}</span>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <Phone class="w-4 h-4 text-slate-400" />
                     <div>
-                      <span class="text-slate-400 block text-[10px]">Phone</span>
+                      <span class="text-slate-400 block text-[10px]">{{ languageStore.t('phone', 'Phone') }}</span>
                       <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedHotel.phone || 'N/A' }}</span>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <MapPin class="w-4 h-4 text-slate-400" />
                     <div>
-                      <span class="text-slate-400 block text-[10px]">Address</span>
+                      <span class="text-slate-400 block text-[10px]">{{ languageStore.t('address', 'Address') }}</span>
                       <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedHotel.address || 'N/A' }}</span>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <Globe class="w-4 h-4 text-slate-400" />
                     <div>
-                      <span class="text-slate-400 block text-[10px]">Location</span>
+                      <span class="text-slate-400 block text-[10px]">{{ languageStore.t('location', 'Location') }}</span>
                       <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedHotel.city }}, {{ selectedHotel.country }}</span>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <Clock class="w-4 h-4 text-slate-400" />
                     <div>
-                      <span class="text-slate-400 block text-[10px]">Timezone</span>
+                      <span class="text-slate-400 block text-[10px]">{{ languageStore.t('timezone', 'Timezone') }}</span>
                       <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedHotel.timezone || 'Africa/Addis_Ababa' }}</span>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <Coins class="w-4 h-4 text-slate-400" />
                     <div>
-                      <span class="text-slate-400 block text-[10px]">Currency</span>
+                      <span class="text-slate-400 block text-[10px]">{{ languageStore.t('currency', 'Currency') }}</span>
                       <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedHotel.currency || 'ETB' }}</span>
                     </div>
                   </div>
@@ -1020,7 +1116,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
               <!-- Admins List -->
               <div>
                 <h3 class="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-2">
-                  Assigned Hotel Administrators
+                  {{ languageStore.t('assigned_hotel_admins', 'Assigned Hotel Administrators') }}
                 </h3>
                 <div v-if="selectedHotel.admins && selectedHotel.admins.length > 0" class="space-y-2">
                   <div
@@ -1033,12 +1129,12 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                       <span class="text-slate-400 block text-[11px] font-mono">{{ adm.email }}</span>
                     </div>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-500">
-                      Hotel Admin
+                      {{ languageStore.t('hotel_admin', 'Hotel Admin') }}
                     </span>
                   </div>
                 </div>
                 <div v-else class="p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-center text-slate-400">
-                  No hotel administrators assigned yet.
+                  {{ languageStore.t('no_admins_yet', 'No hotel administrators assigned yet.') }}
                 </div>
               </div>
             </div>
@@ -1046,14 +1142,14 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
             <!-- Footer -->
             <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <span class="text-[11px] text-slate-400">Status:</span>
+                <span class="text-[11px] text-slate-400">{{ languageStore.t('status', 'Status') }}:</span>
                 <span class="font-bold uppercase text-xs">{{ selectedHotel.status }}</span>
               </div>
               <button
                 @click="showDetailsModal = false"
                 class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer"
               >
-                Close
+                {{ languageStore.t('close', 'Close') }}
               </button>
             </div>
           </div>
@@ -1073,8 +1169,8 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   <Edit class="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 class="text-lg font-black text-slate-900 dark:text-white">Edit Hotel</h2>
-                  <p class="text-xs text-slate-500">Update hotel profile and contact information</p>
+                  <h2 class="text-lg font-black text-slate-900 dark:text-white">{{ languageStore.t('edit_hotel', 'Edit Hotel') }}</h2>
+                  <p class="text-xs text-slate-500">{{ languageStore.t('update_hotel_desc', 'Update hotel profile and contact information') }}</p>
                 </div>
               </div>
               <button @click="showEditModal = false" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer">
@@ -1085,7 +1181,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
             <div class="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div class="sm:col-span-2">
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Hotel Name *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('hotel_name', 'Hotel Name') }} *</label>
                   <input
                     v-model="editForm.name"
                     type="text"
@@ -1093,7 +1189,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('email', 'Email') }}</label>
                   <input
                     v-model="editForm.email"
                     type="email"
@@ -1101,7 +1197,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Phone</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('phone', 'Phone') }}</label>
                   <input
                     v-model="editForm.phone"
                     type="text"
@@ -1109,7 +1205,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Address</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('address', 'Address') }}</label>
                   <input
                     v-model="editForm.address"
                     type="text"
@@ -1117,7 +1213,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">City</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('city', 'City') }}</label>
                   <input
                     v-model="editForm.city"
                     type="text"
@@ -1125,7 +1221,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Country</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('country', 'Country') }}</label>
                   <input
                     v-model="editForm.country"
                     type="text"
@@ -1133,7 +1229,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Timezone</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('timezone', 'Timezone') }}</label>
                   <input
                     v-model="editForm.timezone"
                     type="text"
@@ -1141,7 +1237,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Currency</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('currency', 'Currency') }}</label>
                   <input
                     v-model="editForm.currency"
                     type="text"
@@ -1156,7 +1252,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                 @click="showEditModal = false"
                 class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs"
               >
-                Cancel
+                {{ languageStore.t('cancel', 'Cancel') }}
               </button>
               <button
                 :disabled="saving"
@@ -1164,7 +1260,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                 class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-md transition disabled:opacity-50 flex items-center gap-1.5"
               >
                 <RefreshCw v-if="saving" class="w-3.5 h-3.5 animate-spin" />
-                <span>{{ saving ? 'Saving...' : 'Save Changes' }}</span>
+                <span>{{ saving ? languageStore.t('saving', 'Saving...') : languageStore.t('save_changes', 'Save Changes') }}</span>
               </button>
             </div>
           </div>
@@ -1183,8 +1279,8 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                 <ShieldAlert class="w-6 h-6" />
               </div>
               <div>
-                <h3 class="text-base font-black text-slate-900 dark:text-white">Suspend Hotel Property</h3>
-                <p class="text-slate-400">Restricts tenant access while preserving all data</p>
+                <h3 class="text-base font-black text-slate-900 dark:text-white">{{ languageStore.t('suspend_hotel_title', 'Suspend Hotel Property') }}</h3>
+                <p class="text-slate-400">{{ languageStore.t('suspend_hotel_desc', 'Restricts tenant access while preserving all data') }}</p>
               </div>
             </div>
 
@@ -1201,14 +1297,14 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                 @click="showSuspendModal = false"
                 class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold"
               >
-                Cancel
+                {{ languageStore.t('cancel', 'Cancel') }}
               </button>
               <button
                 :disabled="saving"
                 @click="handleConfirmSuspend"
                 class="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold shadow-md transition disabled:opacity-50"
               >
-                {{ saving ? 'Suspending...' : 'Confirm Suspension' }}
+                {{ saving ? languageStore.t('suspending', 'Suspending...') : languageStore.t('confirm_suspension', 'Confirm Suspension') }}
               </button>
             </div>
           </div>
@@ -1227,8 +1323,8 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                 <Archive class="w-6 h-6" />
               </div>
               <div>
-                <h3 class="text-base font-black text-slate-900 dark:text-white">Archive Hotel Property</h3>
-                <p class="text-slate-400">Safe storage without accidental permanent deletion</p>
+                <h3 class="text-base font-black text-slate-900 dark:text-white">{{ languageStore.t('archive_hotel_title', 'Archive Hotel Property') }}</h3>
+                <p class="text-slate-400">{{ languageStore.t('archive_hotel_desc', 'Safe storage without accidental permanent deletion') }}</p>
               </div>
             </div>
 
@@ -1242,14 +1338,14 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                 @click="showArchiveModal = false"
                 class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold"
               >
-                Cancel
+                {{ languageStore.t('cancel', 'Cancel') }}
               </button>
               <button
                 :disabled="saving"
                 @click="handleConfirmArchive"
                 class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold shadow-md transition disabled:opacity-50"
               >
-                {{ saving ? 'Archiving...' : 'Archive Property' }}
+                {{ saving ? languageStore.t('archiving', 'Archiving...') : languageStore.t('archive_property', 'Archive Property') }}
               </button>
             </div>
           </div>
@@ -1268,8 +1364,8 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                 <Trash2 class="w-6 h-6" />
               </div>
               <div>
-                <h3 class="text-base font-black text-rose-600 dark:text-rose-400">Permanent Destruction</h3>
-                <p class="text-slate-400">High-risk action</p>
+                <h3 class="text-base font-black text-rose-600 dark:text-rose-400">{{ languageStore.t('permanent_destruction', 'Permanent Destruction') }}</h3>
+                <p class="text-slate-400">{{ languageStore.t('high_risk_action', 'High-risk action') }}</p>
               </div>
             </div>
 
@@ -1280,7 +1376,7 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
 
             <div>
               <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                Type <span class="font-mono text-rose-600 font-bold">{{ selectedHotel.name }}</span> to confirm:
+                Type <span class="font-mono text-rose-600 font-bold">{{ selectedHotel.name }}</span> {{ languageStore.t('type_to_confirm', 'to confirm:') }}
               </label>
               <input
                 v-model="deleteConfirmName"
@@ -1294,14 +1390,14 @@ const formatCurrency = (val?: number, currency = 'ETB') => {
                 @click="showDeleteModal = false"
                 class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold"
               >
-                Cancel
+                {{ languageStore.t('cancel', 'Cancel') }}
               </button>
               <button
                 :disabled="saving || deleteConfirmName.trim() !== selectedHotel.name.trim()"
                 @click="handleConfirmPermanentDelete"
                 class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-40 text-white font-extrabold shadow-md transition"
               >
-                {{ saving ? 'Deleting...' : 'Delete Permanently' }}
+                {{ saving ? languageStore.t('deleting', 'Deleting...') : languageStore.t('delete_permanently', 'Delete Permanently') }}
               </button>
             </div>
           </div>

@@ -11,9 +11,6 @@ use Illuminate\Support\Facades\Validator;
 
 class RestaurantTableController extends Controller
 {
-    /**
-     * Get all restaurant tables with pagination and filtering
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -26,32 +23,26 @@ class RestaurantTableController extends Controller
             
             $query = RestaurantTable::query();
 
-            // Search filter
             if ($request->filled('search')) {
                 $query->search($request->search);
             }
 
-            // Status filter
             if ($request->filled('status')) {
                 $query->where('status', $request->status);
             }
 
-            // Active filter
             if ($request->has('is_active') && $request->is_active !== null) {
                 $query->where('is_active', $request->boolean('is_active'));
             }
 
-            // Location filter
             if ($request->filled('location')) {
                 $query->where('location', $request->location);
             }
 
-            // Sorting
             $sortBy = $request->get('sort_by', 'table_number');
             $sortOrder = $request->get('sort_order', 'asc');
             $query->orderBy($sortBy, $sortOrder);
 
-            // Pagination
             $perPage = $request->get('per_page', 15);
             $tables = $query->paginate($perPage);
             
@@ -62,7 +53,6 @@ class RestaurantTableController extends Controller
                 'current_page' => $tables->currentPage(),
             ]);
 
-            // Add QR code URLs to each table
             $tables->getCollection()->transform(function ($table) {
                 $table->qr_code_url = $table->qr_code_url;
                 return $table;
@@ -91,9 +81,6 @@ class RestaurantTableController extends Controller
         }
     }
 
-    /**
-     * Get a single restaurant table by ID
-     */
     public function show(string $id): JsonResponse
     {
         try {
@@ -124,12 +111,8 @@ class RestaurantTableController extends Controller
         }
     }
 
-    /**
-     * Create a new restaurant table
-     */
     public function store(Request $request): JsonResponse
     {
-        // Log incoming request data
         Log::info('Creating restaurant table', [
             'request_data' => $request->all(),
             'user_id' => auth()->id(),
@@ -167,7 +150,6 @@ class RestaurantTableController extends Controller
                 'is_active' => $request->get('is_active', true),
             ]);
 
-            // Reload to get QR code info
             $table->refresh();
             $table->qr_code_url = $table->qr_code_url;
 
@@ -197,9 +179,6 @@ class RestaurantTableController extends Controller
         }
     }
 
-    /**
-     * Update an existing restaurant table
-     */
     public function update(Request $request, string $id): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -263,15 +242,11 @@ class RestaurantTableController extends Controller
         }
     }
 
-    /**
-     * Delete a restaurant table (soft delete)
-     */
     public function destroy(string $id): JsonResponse
     {
         try {
             $table = RestaurantTable::findOrFail($id);
 
-            // Check if table has active orders
             $activeOrders = $table->orders()
                                   ->whereIn('status', ['pending', 'preparing', 'ready'])
                                   ->count();
@@ -314,9 +289,6 @@ class RestaurantTableController extends Controller
         }
     }
 
-    /**
-     * Regenerate QR code for a table
-     */
     public function regenerateQR(string $id): JsonResponse
     {
         try {
@@ -359,9 +331,6 @@ class RestaurantTableController extends Controller
         }
     }
 
-    /**
-     * Get table statistics
-     */
     public function statistics(): JsonResponse
     {
         try {
@@ -394,9 +363,6 @@ class RestaurantTableController extends Controller
         }
     }
 
-    /**
-     * Download table QR code image as binary file attachment
-     */
     public function downloadQR(string $id)
     {
         try {

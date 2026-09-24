@@ -23,7 +23,7 @@ export default {
   async getReservation(id: string) {
     const response = await api.get(`/reservations/${id}`, {
       params: {
-        include: 'guest,room', // Include guest and room relationships
+        include: 'guest,room',
       },
     })
     return response.data
@@ -41,33 +41,37 @@ export default {
 
   async deleteReservation(id: string) {
     const response = await api.delete(`/admin-reservations/${id}`)
-    console.log(' [SERVICE] Delete response structure:', response)
     return response.data
   },
 
   async confirmReservation(id: string) {
     const response = await api.post(`/admin-reservations/${id}/confirm`)
-    console.log(' [SERVICE] Confirm response structure:', response)
-    console.log(' [SERVICE] Response.data:', response.data)
-    // Backend returns { message, data } structure
     return response.data
   },
 
   async checkInReservation(id: string) {
     const response = await api.post(`/admin-reservations/${id}/check-in`)
-    console.log(' [SERVICE] Check-in response structure:', response)
     return response.data
   },
 
   async checkOutReservation(id: string) {
     const response = await api.post(`/admin-reservations/${id}/check-out`)
-    console.log(' [SERVICE] Check-out response structure:', response)
     return response.data
   },
 
   async cancelReservation(id: string) {
     const response = await api.post(`/admin-reservations/${id}/cancel`)
-    console.log(' [SERVICE] Cancel response structure:', response)
+    return response.data
+  },
+
+  async checkAvailability(params: {
+    check_in_date: string
+    check_out_date: string
+    room_id?: string
+    room_type_id?: string
+    capacity?: number
+  }) {
+    const response = await api.get('/reservations/availability', { params })
     return response.data
   },
 }

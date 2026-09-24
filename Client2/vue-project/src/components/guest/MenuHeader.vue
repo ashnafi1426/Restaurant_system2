@@ -11,7 +11,7 @@ defineProps<{
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">🍽️ Room Service</h1>
+          <h1 class="text-3xl font-bold text-gray-900">Room Service</h1>
           <p class="text-sm text-gray-600 mt-1">
             Room <span class="font-semibold">{{ roomNumber }}</span> • Welcome,
             <span class="font-semibold">{{ guestName }}</span

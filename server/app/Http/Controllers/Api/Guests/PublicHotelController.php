@@ -8,9 +8,6 @@ use Illuminate\Http\Request;
 
 class PublicHotelController extends Controller
 {
-    /**
-     * Get a list of active hotels for the public guest portal.
-     */
     public function index()
     {
         $hotels = Hotel::where('status', 'active')
@@ -23,9 +20,6 @@ class PublicHotelController extends Controller
         ]);
     }
 
-    /**
-     * Get details of a specific hotel by slug.
-     */
     public function show($slug)
     {
         $hotel = Hotel::where('slug', $slug)

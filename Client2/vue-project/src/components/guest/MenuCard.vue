@@ -22,26 +22,22 @@ const emit = defineEmits<{
   addToCart: [item: MenuItem]
 }>()
 
-// Track image loading state
 const imageError = ref(false)
 const imageLoading = ref(false)
 
-// Get the image URL from either image or image_url field
 const imageUrl = computed(() => {
   return props.item.image || props.item.image_url || null
 })
 
-// Determine availability status
 const isAvailable = computed(() => {
   return props.item.is_available !== false && props.item.status !== 'unavailable'
 })
 
-// Get emoji based on category
 const getCategoryEmoji = (category: string): string => {
   const emojiMap: Record<string, string> = {
     breakfast: '🥞',
     lunch: '🥗',
-    dinner: '🍽️',
+    dinner: '',
     appetizer: '🥒',
     main: '🍖',
     dessert: '🍰',
@@ -62,21 +58,16 @@ const getCategoryEmoji = (category: string): string => {
   }
 
   const lowercaseCategory = (category || '').toLowerCase()
-  return emojiMap[lowercaseCategory] || '🍽️'
+  return emojiMap[lowercaseCategory] || ''
 }
 
 const handleImageError = () => {
   imageError.value = true
-  console.warn(`[MenuCard] Failed to load image for "${props.item.name}"`, {
-    image_url: imageUrl.value,
-    item_id: props.item.id,
-  })
 }
 
 const handleImageLoad = () => {
   imageLoading.value = false
   imageError.value = false
-  console.log(`[MenuCard] Image loaded successfully for "${props.item.name}"`)
 }
 
 const handleImageLoadStart = () => {
@@ -93,7 +84,6 @@ const addToCart = () => {
     class="group bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
     :class="{ 'opacity-75': !isAvailable }"
   >
-    <!-- Image Section -->
     <div
       class="relative h-56 sm:h-64 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden"
     >
@@ -117,19 +107,15 @@ const addToCart = () => {
         </span>
       </div>
 
-      <!-- Loading Indicator -->
       <div
         v-if="imageLoading"
         class="absolute inset-0 bg-white/40 backdrop-blur-sm flex items-center justify-center"
       >
-        <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-8 h-8) -->
         <div class="relative w-8 h-8">
-          <!-- Static background - BRIGHT CYAN -->
           <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
           </svg>
           
-          <!-- Animated spinner - BRIGHT YELLOW -->
           <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
             <svg viewBox="0 0 100 100" class="w-full h-full">
               <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
@@ -138,14 +124,12 @@ const addToCart = () => {
         </div>
       </div>
 
-      <!-- Category Badge -->
       <div
         class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold text-amber-700 shadow-md"
       >
         {{ getCategoryEmoji(item.category || '') }} {{ item.category }}
       </div>
 
-      <!-- Availability Badge -->
       <div
         v-if="!isAvailable"
         class="absolute top-3 right-3 bg-red-500/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold text-white shadow-md"
@@ -159,7 +143,6 @@ const addToCart = () => {
         Available
       </div>
 
-      <!-- Dietary Tags -->
       <div
         v-if="item.dietary_tags && item.dietary_tags.length > 0"
         class="absolute bottom-3 left-3 flex flex-wrap gap-2"
@@ -174,36 +157,32 @@ const addToCart = () => {
       </div>
     </div>
 
-    <!-- Content Section -->
     <div class="p-4 sm:p-5 flex flex-col h-full">
-      <!-- Name -->
       <h3 class="font-bold text-lg sm:text-xl text-slate-900 leading-tight mb-1">
         {{ item.name }}
       </h3>
 
-      <!-- Category Label (Mobile Fallback) -->
       <p
         class="text-xs sm:text-sm text-amber-600 font-semibold uppercase tracking-wide mb-2 sm:hidden"
       >
         {{ item.category || 'Menu Item' }}
       </p>
 
-      <!-- Description -->
       <p class="text-sm sm:text-base text-slate-600 mb-4 line-clamp-2 flex-grow">
         {{ item.description }}
       </p>
 
-      <!-- Price and Action Row -->
       <div class="flex items-center justify-between gap-3 pt-2 border-t border-slate-200">
-        <!-- Price -->
         <div class="flex flex-col">
-          <span class="text-xs text-slate-500 font-medium">Price</span>
+          <span class="text-xs text-slate-500 font-medium">Price (incl. tax)</span>
           <span class="text-xl sm:text-2xl font-bold text-amber-600">
-            ${{ item.price.toFixed(2) }}
+            ${{ ((item.total_price !== undefined && item.total_price !== null) ? Number(item.total_price) : Number(item.price)).toFixed(2) }}
+          </span>
+          <span v-if="item.tax_rate && Number(item.tax_rate.rate) > 0" class="text-[10px] text-slate-400">
+            {{ item.tax_included ? `Incl. ${item.tax_rate.rate}% ${item.tax_rate.name || 'tax'}` : `+$${(item.tax_amount || 0).toFixed(2)} tax` }}
           </span>
         </div>
 
-        <!-- Add to Cart Button -->
         <button
           :disabled="!isAvailable"
           @click="addToCart"

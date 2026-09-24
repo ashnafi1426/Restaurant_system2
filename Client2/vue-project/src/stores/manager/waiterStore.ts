@@ -4,21 +4,9 @@ import managerService from '@/services/managerService'
 import type { Waiter } from '@/types/manager'
 
 export const useManagerWaiterStore = defineStore('managerWaiter', () => {
-  /*
-  |--------------------------------------------------------------------------
-  | STATE
-  |--------------------------------------------------------------------------
-  */
-
   const waiters = ref<Waiter[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
-
-  /*
-  |--------------------------------------------------------------------------
-  | COMPUTED
-  |--------------------------------------------------------------------------
-  */
 
   const waiterStats = computed(() => {
     const allWaiters = waiters.value
@@ -57,17 +45,10 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
     try {
       loading.value = true
       error.value = null
-      console.log('[WaiterStore] Starting load()...')
       const data = await managerService.getWaiters()
-      console.log('[WaiterStore] API response received:', data)
-      console.log('[WaiterStore] Data is array:', Array.isArray(data))
-      console.log('[WaiterStore] Data length:', data?.length)
-      
       waiters.value = data || []
-      console.log('[WaiterStore] Set waiters to:', waiters.value.length, 'items')
-      console.log('[WaiterStore] First waiter sample:', waiters.value[0])
     } catch (err: any) {
-      console.error('[WaiterStore] Error loading waiters:', err)
+      console.error('[manager/waiterStore] Failed to load waiters:', err)
       error.value = err.message
     } finally {
       loading.value = false
@@ -87,11 +68,8 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
     password?: string
   }) {
     try {
-      console.log('[WaiterStore] Creating waiter with data:', data)
       const response = await managerService.createWaiter(data)
-      console.log('[WaiterStore] Got response from backend:', response)
       
-      // Normalize the response to match our display format
       const normalizedWaiter = {
         id: response.id,
         userId: response.user_id,
@@ -102,15 +80,12 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
         experienceLevel: response.experience_level,
         phone: response.user?.phone || 'N/A',
         user: response.user,
-        // Keep original fields for compatibility
         user_id: response.user_id,
         experience_level: response.experience_level,
       }
       
-      console.log('[WaiterStore] Normalized waiter:', normalizedWaiter)
       waiters.value.push(normalizedWaiter)
       
-      // Return both the normalized waiter and success details for display
       return {
         waiter: normalizedWaiter,
         message: `${normalizedWaiter.name} has been created as a waiter in ${normalizedWaiter.section} section (${normalizedWaiter.shift} shift)`,
@@ -123,8 +98,7 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
         }
       }
     } catch (err: any) {
-      console.error('[WaiterStore] Error creating waiter:', err)
-      // Check if it's a validation error with detailed errors
+      console.error('[manager/waiterStore] Failed to create waiter:', err)
       if (err.response?.status === 422 && err.response?.data?.errors) {
         const errors = err.response.data.errors
         const errorMessages = Object.values(errors)
@@ -146,6 +120,7 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
         waiter.status = status
       }
     } catch (err: any) {
+      console.error('[manager/waiterStore] Failed to update waiter status:', err)
       error.value = err.message
       throw err
     }
@@ -164,6 +139,7 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
       }
       return response
     } catch (err: any) {
+      console.error('[manager/waiterStore] Failed to update waiter:', err)
       error.value = err.message
       throw err
     }
@@ -173,6 +149,7 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
     try {
       return await managerService.getWaiterPerformance(waiterId)
     } catch (err: any) {
+      console.error('[manager/waiterStore] Failed to get waiter performance:', err)
       error.value = err.message
       throw err
     }
@@ -182,6 +159,7 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
     try {
       return await managerService.getWaiterAssignments(waiterId)
     } catch (err: any) {
+      console.error('[manager/waiterStore] Failed to get waiter assignments:', err)
       error.value = err.message
       throw err
     }
@@ -192,6 +170,7 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
       await managerService.deleteWaiter(waiterId)
       waiters.value = waiters.value.filter((w) => w.id !== waiterId)
     } catch (err: any) {
+      console.error('[manager/waiterStore] Failed to delete waiter:', err)
       error.value = err.message
       throw err
     }

@@ -18,9 +18,6 @@ class ManagerDeliveryManagementController extends Controller
         private AutomaticWaiterAssignmentService $assignmentService
     ) {}
 
-    /**
-     * Get all deliveries with optional filters
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -51,7 +48,6 @@ class ManagerDeliveryManagementController extends Controller
                 $date = $request->query('date');
                 $query->whereDate('assigned_at', $date);
             }
-            // Removed default date filter - show all deliveries unless specific date is provided
 
             $deliveries = $query->orderBy('assigned_at', 'desc')->paginate(20);
 
@@ -76,9 +72,6 @@ class ManagerDeliveryManagementController extends Controller
         }
     }
 
-    /**
-     * Get today's delivery summary
-     */
     public function todaySummary(): JsonResponse
     {
         try {
@@ -102,9 +95,6 @@ class ManagerDeliveryManagementController extends Controller
         }
     }
 
-    /**
-     * Get detailed delivery information
-     */
     public function show(string $deliveryId): JsonResponse
     {
         try {
@@ -143,9 +133,6 @@ class ManagerDeliveryManagementController extends Controller
         }
     }
 
-    /**
-     * Reassign delivery to different waiter
-     */
     public function reassign(string $deliveryId, Request $request): JsonResponse
     {
         try {
@@ -159,7 +146,7 @@ class ManagerDeliveryManagementController extends Controller
             $reason = $request->input('reason', 'Manager reassignment');
             $managerId = auth()->id();
 
-            Log::info('🔄 Delivery reassignment started', [
+            Log::info(' Delivery reassignment started', [
                 'delivery_id' => $deliveryId,
                 'old_waiter_id' => $delivery->waiter_id,
                 'new_waiter_id' => $newWaiter->id,
@@ -167,7 +154,6 @@ class ManagerDeliveryManagementController extends Controller
 
             DB::beginTransaction();
 
-            //  STRICT VALIDATION: Re-validate waiter eligibility before manual assignment
             if ($newWaiter->status !== 'active') {
                 DB::rollBack();
                 return response()->json([
@@ -186,7 +172,6 @@ class ManagerDeliveryManagementController extends Controller
                 ], 422);
             }
 
-            //  STRICT CAPACITY CHECK: current_orders < maximum_orders (NOT <=)
             if ($newWaiter->current_orders >= $newWaiter->maximum_orders) {
                 DB::rollBack();
                 return response()->json([
@@ -200,7 +185,6 @@ class ManagerDeliveryManagementController extends Controller
             $oldWaiterId = $delivery->waiter_id;
             $oldWaiter = $oldWaiterId ? Waiter::find($oldWaiterId) : null;
 
-            // Update delivery assignment
             $delivery->update([
                 'waiter_id' => $newWaiter->id,
                 'assignment_type' => 'manual',
@@ -208,7 +192,6 @@ class ManagerDeliveryManagementController extends Controller
                 'remarks' => $reason,
             ]);
 
-            //  UPDATE WORKLOAD: Decrement old waiter, increment new waiter
             if ($oldWaiter) {
                 $oldWaiter->decrementOrders();
                 Log::info('📉 Old waiter workload decremented', [
@@ -219,7 +202,6 @@ class ManagerDeliveryManagementController extends Controller
             }
             
             $newWaiter->incrementOrders();
-            //  UPDATE last_assigned_at for new waiter
             $newWaiter->update(['last_assigned_at' => now()]);
 
             Log::info('📈 New waiter workload incremented', [
@@ -260,9 +242,6 @@ class ManagerDeliveryManagementController extends Controller
         }
     }
 
-    /**
-     * Get delivery report for date range
-     */
     public function report(Request $request): JsonResponse
     {
         try {
@@ -296,9 +275,6 @@ class ManagerDeliveryManagementController extends Controller
         }
     }
 
-    /**
-     * Get deliveries waiting for manual assignment
-     */
     public function waitingAssignment(): JsonResponse
     {
         try {
@@ -323,9 +299,6 @@ class ManagerDeliveryManagementController extends Controller
         }
     }
 
-    /**
-     * Manually assign waiting delivery to a waiter
-     */
     public function manuallyAssign(string $deliveryId, Request $request): JsonResponse
     {
         try {
@@ -346,7 +319,6 @@ class ManagerDeliveryManagementController extends Controller
 
             DB::beginTransaction();
 
-            //  STRICT VALIDATION: Re-validate waiter eligibility before manual assignment
             if ($waiter->status !== 'active') {
                 DB::rollBack();
                 return response()->json([
@@ -365,7 +337,6 @@ class ManagerDeliveryManagementController extends Controller
                 ], 422);
             }
 
-            //  STRICT CAPACITY CHECK: current_orders < maximum_orders (NOT <=)
             if ($waiter->current_orders >= $waiter->maximum_orders) {
                 DB::rollBack();
                 return response()->json([
@@ -376,7 +347,6 @@ class ManagerDeliveryManagementController extends Controller
                 ], 422);
             }
 
-            // Update delivery assignment
             $delivery->update([
                 'waiter_id' => $waiter->id,
                 'status' => 'assigned',
@@ -385,7 +355,6 @@ class ManagerDeliveryManagementController extends Controller
                 'assigned_at' => now(),
             ]);
 
-            //  UPDATE WORKLOAD AND last_assigned_at
             $waiter->incrementOrders();
             $waiter->update(['last_assigned_at' => now()]);
 
@@ -416,9 +385,6 @@ class ManagerDeliveryManagementController extends Controller
         }
     }
 
-    /**
-     * Delete/cancel a delivery
-     */
     public function destroy(string $deliveryId): JsonResponse
     {
         try {

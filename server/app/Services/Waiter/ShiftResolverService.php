@@ -8,9 +8,6 @@ use Throwable;
 
 class ShiftResolverService
 {
-    /**
-     * Safely determine the currently active HotelShift.
-     */
     public function getCurrentShift(): ?HotelShift
     {
         try {

@@ -12,11 +12,6 @@ use App\Services\Manager\ComplaintService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * Manager Complaint Controller
- * 
- * Handles complaint ticket management and resolution
- */
 class ComplaintController extends Controller
 {
     protected ComplaintService $complaintService;
@@ -26,9 +21,6 @@ class ComplaintController extends Controller
         $this->complaintService = $complaintService;
     }
 
-    /**
-     * Get all complaints with filters
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -67,9 +59,6 @@ class ComplaintController extends Controller
         }
     }
 
-    /**
-     * Get single complaint
-     */
     public function show($id): JsonResponse
     {
         try {
@@ -89,9 +78,6 @@ class ComplaintController extends Controller
         }
     }
 
-    /**
-     * Create new complaint
-     */
     public function store(CreateComplaintRequest $request): JsonResponse
     {
         try {
@@ -115,9 +101,6 @@ class ComplaintController extends Controller
         }
     }
 
-    /**
-     * Assign complaint to staff
-     */
     public function assign($id, AssignComplaintRequest $request): JsonResponse
     {
         try {
@@ -139,9 +122,6 @@ class ComplaintController extends Controller
         }
     }
 
-    /**
-     * Escalate complaint
-     */
     public function escalate($id): JsonResponse
     {
         try {
@@ -162,9 +142,6 @@ class ComplaintController extends Controller
         }
     }
 
-    /**
-     * Resolve complaint
-     */
     public function resolve($id, ResolveComplaintRequest $request): JsonResponse
     {
         try {
@@ -190,9 +167,6 @@ class ComplaintController extends Controller
         }
     }
 
-    /**
-     * Get complaint statistics
-     */
     public function statistics(): JsonResponse
     {
         try {
@@ -212,9 +186,6 @@ class ComplaintController extends Controller
         }
     }
 
-    /**
-     * Get complaints by type
-     */
     public function byType(): JsonResponse
     {
         try {
@@ -234,9 +205,6 @@ class ComplaintController extends Controller
         }
     }
 
-    /**
-     * Get complaints by severity
-     */
     public function bySeverity(): JsonResponse
     {
         try {
@@ -256,9 +224,6 @@ class ComplaintController extends Controller
         }
     }
 
-    /**
-     * Get department performance
-     */
     public function departmentPerformance(): JsonResponse
     {
         try {
@@ -278,9 +243,6 @@ class ComplaintController extends Controller
         }
     }
 
-    /**
-     * Generate complaint report
-     */
     public function report(Request $request): JsonResponse
     {
         try {

@@ -21,10 +21,7 @@ class WaiterProfileController extends Controller
         $this->performanceService = $performanceService;
         $this->waiterContextResolver = app(WaiterContextResolver::class);
     }
-    /**
-     * Get waiter profile
-     * GET /api/waiter/profile
-     */
+
     public function getProfile(): JsonResponse
     {
         try {
@@ -37,7 +34,6 @@ class WaiterProfileController extends Controller
                 ], 401);
             }
             
-            // Try to load waiter relationship if it exists
             if ($user->relationLoaded('waiter') === false) {
                 $user->load('waiter');
             }
@@ -84,17 +80,12 @@ class WaiterProfileController extends Controller
         }
     }
 
-    /**
-     * Update waiter profile
-     * PUT /api/waiter/profile
-     */
     public function updateProfile(UpdateWaiterProfileRequest $request): JsonResponse
     {
         try {
             $user = auth()->user();
             $validated = $request->validated();
 
-            // Update user fields
             $userUpdates = [];
             if (isset($validated['first_name'])) {
                 $userUpdates['first_name'] = $validated['first_name'];
@@ -110,7 +101,6 @@ class WaiterProfileController extends Controller
                 $user->update($userUpdates);
             }
 
-            // Update waiter fields
             if ($user->waiter) {
                 $waiterData = [];
                 
@@ -127,7 +117,6 @@ class WaiterProfileController extends Controller
                 }
             }
 
-            // Reload relationships
             $user->load('waiter');
 
             return response()->json([
@@ -158,10 +147,6 @@ class WaiterProfileController extends Controller
         }
     }
 
-    /**
-     * Get waiter performance overview
-     * GET /api/waiter/profile/performance
-     */
     public function getPerformanceOverview(): JsonResponse
     {
         try {
@@ -187,10 +172,6 @@ class WaiterProfileController extends Controller
         }
     }
 
-    /**
-     * Get waiter rating history
-     * GET /api/waiter/profile/ratings
-     */
     public function getRatingHistory(Request $request): JsonResponse
     {
         try {
@@ -205,7 +186,6 @@ class WaiterProfileController extends Controller
 
             $trend = $this->performanceService->getPerformanceTrend($waiterId, $days);
 
-            // Extract guest ratings
             $ratings = array_map(function ($item) {
                 return [
                     'date' => $item['date'],
@@ -227,10 +207,6 @@ class WaiterProfileController extends Controller
         }
     }
 
-    /**
-     * Change password
-     * POST /api/waiter/profile/change-password
-     */
     public function changePassword(Request $request): JsonResponse
     {
         try {
@@ -242,10 +218,8 @@ class WaiterProfileController extends Controller
 
             $user = auth()->user();
 
-            // Check if password_hash exists, if not use password field
             $passwordField = $user->password_hash ? 'password_hash' : 'password';
             
-            // Verify current password
             if (!\Hash::check($validated['current_password'], $user->{$passwordField})) {
                 return response()->json([
                     'success' => false,
@@ -253,7 +227,6 @@ class WaiterProfileController extends Controller
                 ], 422);
             }
 
-            // Update password - use password_hash if it exists
             $user->update([
                 $passwordField => \Hash::make($validated['new_password']),
             ]);
@@ -277,10 +250,6 @@ class WaiterProfileController extends Controller
         }
     }
 
-    /**
-     * Get waiter shift information
-     * GET /api/waiter/profile/shift
-     */
     public function getShiftInfo(): JsonResponse
     {
         try {
@@ -310,10 +279,6 @@ class WaiterProfileController extends Controller
         }
     }
 
-    /**
-     * Get waiter availability
-     * GET /api/waiter/profile/availability
-     */
     public function getAvailability(): JsonResponse
     {
         try {
@@ -342,15 +307,11 @@ class WaiterProfileController extends Controller
         }
     }
 
-    /**
-     * Upload profile photo
-     * POST /api/waiter/profile/photo
-     */
     public function uploadPhoto(Request $request): JsonResponse
     {
         try {
             $request->validate([
-                'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB max
+                'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
             $user = auth()->user();
@@ -362,15 +323,12 @@ class WaiterProfileController extends Controller
                 ], 404);
             }
 
-            // Delete old photo if exists
             if ($user->waiter->profile_photo) {
                 \Storage::disk('public')->delete($user->waiter->profile_photo);
             }
 
-            // Store new photo
             $path = $request->file('photo')->store('profile_photos', 'public');
             
-            // Update waiter profile
             $user->waiter->update([
                 'profile_photo' => $path,
             ]);
@@ -398,10 +356,6 @@ class WaiterProfileController extends Controller
         }
     }
 
-    /**
-     * Get waiter statistics
-     * GET /api/waiter/profile/stats
-     */
     public function getStats(): JsonResponse
     {
         try {
@@ -414,32 +368,27 @@ class WaiterProfileController extends Controller
                 ], 403);
             }
 
-            // Get today's deliveries
             $deliveriesToday = DB::table('delivery_tasks')
                 ->where('waiter_id', $waiterId)
                 ->whereDate('created_at', today())
                 ->count();
 
-            // Get this week's deliveries
             $deliveriesWeek = DB::table('delivery_tasks')
                 ->where('waiter_id', $waiterId)
                 ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
                 ->count();
 
-            // Get completed today
             $completedToday = DB::table('delivery_tasks')
                 ->where('waiter_id', $waiterId)
                 ->where('status', 'delivered')
                 ->whereDate('updated_at', today())
                 ->count();
 
-            // Get pending assignments
             $pendingAssignments = DB::table('delivery_tasks')
                 ->where('waiter_id', $waiterId)
                 ->whereIn('status', ['pending', 'accepted', 'picked_up'])
                 ->count();
 
-            // Get average rating from performance - use correct table name
             $avgRating = DB::table('waiters_performance')
                 ->where('waiter_id', $waiterId)
                 ->avg('guest_rating_avg') ?? 0;
@@ -470,16 +419,11 @@ class WaiterProfileController extends Controller
         }
     }
 
-    /**
-     * Get settings
-     * GET /api/waiter/settings
-     */
     public function getSettings(): JsonResponse
     {
         try {
             $waiter = auth()->user();
 
-            // Get or create settings (could be stored in waiter table or separate settings table)
             $settings = [
                 'notifications_enabled' => true,
                 'email_notifications' => true,
@@ -501,10 +445,6 @@ class WaiterProfileController extends Controller
         }
     }
 
-    /**
-     * Update settings
-     * PUT /api/waiter/settings
-     */
     public function updateSettings(Request $request): JsonResponse
     {
         try {
@@ -516,8 +456,6 @@ class WaiterProfileController extends Controller
                 'language' => 'sometimes|in:en,es,fr,de',
             ]);
 
-            // Store settings (could be in database or cache)
-            // For now, just return the validated settings
             $settings = [
                 'notifications_enabled' => $validated['notifications_enabled'] ?? true,
                 'email_notifications' => $validated['email_notifications'] ?? true,

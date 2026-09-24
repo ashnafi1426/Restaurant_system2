@@ -59,7 +59,6 @@ const formatTime = (timestamp: string) => {
 
 <template>
   <section class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-    <!-- HEADER -->
     <div class="flex justify-between items-center mb-8">
       <div>
         <h2 class="text-xl font-bold">Recent Activity</h2>
@@ -70,7 +69,6 @@ const formatTime = (timestamp: string) => {
       </div>
     </div>
 
-    <!-- ACTIVITY TIMELINE -->
     <div class="space-y-0">
       <div
         v-for="(activity, index) in manager.activities.slice(0, 10)"
@@ -78,7 +76,6 @@ const formatTime = (timestamp: string) => {
         class="flex gap-4 py-4"
         :class="{ 'border-b': index !== manager.activities.slice(0, 10).length - 1 }"
       >
-        <!-- TIMELINE DOT -->
         <div class="flex flex-col items-center flex-shrink-0">
           <div
             :class="[
@@ -94,7 +91,6 @@ const formatTime = (timestamp: string) => {
           ></div>
         </div>
 
-        <!-- ACTIVITY CONTENT -->
         <div class="pt-1 flex-1 min-w-0">
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
@@ -113,7 +109,6 @@ const formatTime = (timestamp: string) => {
       </div>
     </div>
 
-    <!-- VIEW ALL LINK -->
     <div v-if="manager.activities.length > 10" class="mt-4 pt-4 border-t text-center">
       <button class="text-blue-600 hover:text-blue-700 font-medium text-sm">
         View All Activities →

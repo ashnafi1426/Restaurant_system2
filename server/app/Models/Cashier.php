@@ -26,33 +26,21 @@ class Cashier extends Model
         'hire_date' => 'date',
     ];
 
-    /**
-     * Get the user associated with this cashier
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id', 'id');
     }
 
-    /**
-     * Check if cashier is active
-     */
     public function isActive(): bool
     {
         return $this->status === 'active';
     }
 
-    /**
-     * Check if cashier is on break
-     */
     public function isOnBreak(): bool
     {
         return $this->status === 'on_break';
     }
 
-    /**
-     * Scope to get active cashiers
-     */
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

@@ -1,8 +1,3 @@
-/**
- * Review Store (Pinia)
- * Manages review-related state and actions
- */
-
 import { defineStore } from 'pinia'
 import reviewService from '@/services/reviewService'
 import type {
@@ -16,34 +11,28 @@ import type {
 } from '@/types/review'
 
 export interface ReviewState {
-  // Guest Reviews
   guestReviews: Review[]
   selectedReview: Review | null
   guestReviewsLoading: boolean
 
-  // Public Reviews
   publicReviews: PublicReview[]
   publicReviewsLoading: boolean
   currentPublicPage: number
   currentPublicSort: 'recent' | 'helpful'
 
-  // Moderation
   pendingReviews: Review[]
   approvedReviews: Review[]
   rejectedReviews: Review[]
   moderationLoading: boolean
   pendingCount: number
 
-  // Notifications
   notifications: ReviewNotification[]
   unreadNotificationCount: number
   notificationsLoading: boolean
 
-  // Eligible Items
   eligibleItems: EligibleMenuItem[]
   eligibleItemsLoading: boolean
 
-  // Analytics
   reviewStats: Record<string, ReviewStats>
   topRatedItems: TopRatedItem[]
   lowestRatedItems: TopRatedItem[]
@@ -53,34 +42,28 @@ export interface ReviewState {
 
 export const useReviewStore = defineStore('review', {
   state: (): ReviewState => ({
-    // Guest Reviews
     guestReviews: [],
     selectedReview: null,
     guestReviewsLoading: false,
 
-    // Public Reviews
     publicReviews: [],
     publicReviewsLoading: false,
     currentPublicPage: 1,
     currentPublicSort: 'recent',
 
-    // Moderation
     pendingReviews: [],
     approvedReviews: [],
     rejectedReviews: [],
     moderationLoading: false,
     pendingCount: 0,
 
-    // Notifications
     notifications: [],
     unreadNotificationCount: 0,
     notificationsLoading: false,
 
-    // Eligible Items
     eligibleItems: [],
     eligibleItemsLoading: false,
 
-    // Analytics
     reviewStats: {},
     topRatedItems: [],
     lowestRatedItems: [],
@@ -89,9 +72,6 @@ export const useReviewStore = defineStore('review', {
   }),
 
   getters: {
-    /**
-     * Get average rating across all menu items
-     */
     overallAverageRating(): number {
       if (Object.keys(this.reviewStats).length === 0) return 0
       const stats = Object.values(this.reviewStats)
@@ -99,16 +79,10 @@ export const useReviewStore = defineStore('review', {
       return sum / stats.length
     },
 
-    /**
-     * Get total review count across all items
-     */
     totalReviewCount(): number {
       return Object.values(this.reviewStats).reduce((sum, stat) => sum + stat.total_reviews, 0)
     },
 
-    /**
-     * Get count of reviews by status
-     */
     reviewCountByStatus(): Record<string, number> {
       return {
         pending: this.pendingReviews.length,
@@ -117,9 +91,6 @@ export const useReviewStore = defineStore('review', {
       }
     },
 
-    /**
-     * Get ratio of helpful votes
-     */
     getHelpfulnessRatio: () => (reviewId: string) => {
       const review = [...this.guestReviews, ...this.publicReviews].find(r => r.id === reviewId)
       if (!review) return 0
@@ -129,10 +100,6 @@ export const useReviewStore = defineStore('review', {
   },
 
   actions: {
-    /**
-     * Guest Review Operations
-     */
-
     async submitReview(guestId: string, orderId: string, menuItemId: string, rating: number, reviewText?: string) {
       this.guestReviewsLoading = true
       try {
@@ -191,10 +158,6 @@ export const useReviewStore = defineStore('review', {
       }
     },
 
-    /**
-     * Public Reviews
-     */
-
     async fetchPublicReviews(menuItemId: string, page: number = 1, sort: 'recent' | 'helpful' = 'recent') {
       this.publicReviewsLoading = true
       try {
@@ -217,7 +180,7 @@ export const useReviewStore = defineStore('review', {
           review.helpfulness_ratio = review.helpful_count / (review.helpful_count + review.not_helpful_count)
         }
       } catch (error) {
-        console.error('Vote helpful failed:', error)
+        console.error('[ReviewStore] Error voting helpful:', error)
         throw error
       }
     },
@@ -232,14 +195,10 @@ export const useReviewStore = defineStore('review', {
           review.helpfulness_ratio = review.helpful_count / (review.helpful_count + review.not_helpful_count)
         }
       } catch (error) {
-        console.error('Vote not helpful failed:', error)
+        console.error('[ReviewStore] Error voting not helpful:', error)
         throw error
       }
     },
-
-    /**
-     * Moderation
-     */
 
     async fetchModeratorReviews(status?: 'pending' | 'approved' | 'rejected', page: number = 1) {
       this.moderationLoading = true
@@ -247,12 +206,10 @@ export const useReviewStore = defineStore('review', {
         const data = await reviewService.listReviewsForModeration(status, page, 15)
         const reviews = (data.data as Review[]) || []
 
-        // Separate by status
         this.pendingReviews = reviews.filter(r => r.status === 'pending')
         this.approvedReviews = reviews.filter(r => r.status === 'approved')
         this.rejectedReviews = reviews.filter(r => r.status === 'rejected')
 
-        // Set pending count from the filtered list
         this.pendingCount = this.pendingReviews.length
       } finally {
         this.moderationLoading = false
@@ -303,10 +260,6 @@ export const useReviewStore = defineStore('review', {
       }
     },
 
-    /**
-     * Notifications
-     */
-
     async fetchNotifications(page: number = 1) {
       this.notificationsLoading = true
       try {
@@ -326,14 +279,10 @@ export const useReviewStore = defineStore('review', {
           notification.is_read = true
           this.unreadNotificationCount = Math.max(0, this.unreadNotificationCount - 1)
         }
-      } catch (error) {
-        console.error('Mark as read failed:', error)
+      } catch (err: any) {
+        console.error('[ReviewStore] Error marking notification as read:', err)
       }
     },
-
-    /**
-     * Eligible Items
-     */
 
     async fetchEligibleItems(guestId: string) {
       this.eligibleItemsLoading = true
@@ -343,10 +292,6 @@ export const useReviewStore = defineStore('review', {
         this.eligibleItemsLoading = false
       }
     },
-
-    /**
-     * Analytics
-     */
 
     async fetchMenuItemStats(menuItemId: string) {
       this.analyticsLoading = true
@@ -375,10 +320,6 @@ export const useReviewStore = defineStore('review', {
         this.analyticsLoading = false
       }
     },
-
-    /**
-     * Utility Methods
-     */
 
     clearGuestReviews() {
       this.guestReviews = []

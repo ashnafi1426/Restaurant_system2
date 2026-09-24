@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useTableAssignmentStore } from '@/stores/manager/tableAssignmentStore'
+import { useLanguageStore } from '@/stores/language'
 import AssignWaiterToTableModal from '@/components/manager/AssignWaiterToTableModal.vue'
 import EditTableAssignmentModal from '@/components/manager/EditTableAssignmentModal.vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
@@ -23,9 +24,11 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Loader2,
 } from 'lucide-vue-next'
 
 const tableAssignmentStore = useTableAssignmentStore()
+const languageStore = useLanguageStore()
 
 const showAssignModal = ref(false)
 const showEditModal = ref(false)
@@ -63,7 +66,8 @@ const formatTime = (timeString?: string): string => {
       return `${hours}:${minutes} ${ampm}`
     }
     return timeString
-  } catch {
+  } catch (err) {
+    console.error('[TableAssignments] Error formatting time:', err)
     return timeString
   }
 }
@@ -279,7 +283,8 @@ const confirmDelete = async () => {
       await handleRefresh()
       showToast('Assignment removed successfully')
     }
-  } catch {
+  } catch (err: any) {
+    console.error('[TableAssignments] Error deleting assignment:', err)
     showToast('Failed to delete assignment')
   }
 }
@@ -310,18 +315,10 @@ const handleAssignSuccess = async () => {
             <Users class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Table Assignments</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Assign waiters to dining tables, designate shifts, and monitor priority coverage.</p>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{{ languageStore.t('table_assignments', 'Table Assignments') }}</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('table_assignments_desc', 'Assign waiters to dining tables, designate shifts, and monitor priority coverage.') }}</p>
           </div>
         </div>
-
-        <button
-          @click="showAssignModal = true"
-          class="bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-blue-600/20 transition cursor-pointer flex items-center justify-center gap-2"
-        >
-          <Plus class="w-4 h-4" />
-          <span>Assign Table</span>
-        </button>
       </div>
 
       <!-- Statistics Cards -->
@@ -329,7 +326,7 @@ const handleAssignSuccess = async () => {
         <!-- Total Assignments -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Assignments</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('total_assignments', 'Total Assignments') }}</p>
             <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ tableAssignmentStore.stats.total_assignments }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -340,7 +337,7 @@ const handleAssignSuccess = async () => {
         <!-- Tables Covered -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tables Covered</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('tables_covered', 'Tables Covered') }}</p>
             <h3 class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">{{ tableAssignmentStore.stats.total_tables }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
@@ -351,7 +348,7 @@ const handleAssignSuccess = async () => {
         <!-- Waiters Assigned -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Waiters on Duty</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('waiters_on_duty', 'Waiters on Duty') }}</p>
             <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ tableAssignmentStore.stats.total_waiters }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -362,7 +359,7 @@ const handleAssignSuccess = async () => {
         <!-- Primary Assignments -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Primary Priority</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('primary_priority', 'Primary Priority') }}</p>
             <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ tableAssignmentStore.stats.primary_assignments }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
@@ -383,7 +380,7 @@ const handleAssignSuccess = async () => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search assignments by waiter, table, shift..."
+              :placeholder="languageStore.t('search_assignments_placeholder', 'Search assignments by waiter, table, shift...')"
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
@@ -400,7 +397,7 @@ const handleAssignSuccess = async () => {
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+            <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
           </button>
         </div>
 
@@ -411,7 +408,7 @@ const handleAssignSuccess = async () => {
             type="button"
             @click="handleRefresh"
             :disabled="tableAssignmentStore.loading"
-            title="Refresh"
+            :title="languageStore.t('refresh', 'Refresh')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': tableAssignmentStore.loading }" />
@@ -421,7 +418,7 @@ const handleAssignSuccess = async () => {
           <button
             type="button"
             @click="toggleFullscreen"
-            title="Toggle Fullscreen"
+            :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
@@ -431,10 +428,10 @@ const handleAssignSuccess = async () => {
           <button
             type="button"
             @click="showAssignModal = true"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold shadow-md shadow-blue-600/25 transition active:scale-98 cursor-pointer flex-shrink-0"
           >
-            <Plus class="w-4 h-4" />
-            <span>Assign Table</span>
+            <Plus class="w-4 h-4 text-white" />
+            <span class="text-white">{{ languageStore.t('assign_table', 'Assign Table') }}</span>
           </button>
         </div>
       </div>
@@ -456,7 +453,7 @@ const handleAssignSuccess = async () => {
             <!-- Date Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Assignment Date
+                {{ languageStore.t('assignment_date', 'Assignment Date') }}
               </label>
               <input
                 v-model="filterDate"
@@ -468,33 +465,33 @@ const handleAssignSuccess = async () => {
             <!-- Priority Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Priority Tier
+                {{ languageStore.t('priority_tier', 'Priority Tier') }}
               </label>
               <select
                 v-model="filterPriority"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="">All Priorities</option>
-                <option value="primary">Primary</option>
-                <option value="secondary">Secondary</option>
-                <option value="backup">Backup</option>
+                <option value="">{{ languageStore.t('all_priorities', 'All Priorities') }}</option>
+                <option value="primary">{{ languageStore.t('primary', 'Primary') }}</option>
+                <option value="secondary">{{ languageStore.t('secondary', 'Secondary') }}</option>
+                <option value="backup">{{ languageStore.t('backup', 'Backup') }}</option>
               </select>
             </div>
 
             <!-- Shift Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Shift
+                {{ languageStore.t('shift', 'Shift') }}
               </label>
               <select
                 v-model="filterShift"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="">All Shifts</option>
-                <option value="morning">Morning</option>
-                <option value="afternoon">Afternoon</option>
-                <option value="evening">Evening</option>
-                <option value="night">Night</option>
+                <option value="">{{ languageStore.t('all_shifts', 'All Shifts') }}</option>
+                <option value="morning">{{ languageStore.t('morning', 'Morning') }}</option>
+                <option value="afternoon">{{ languageStore.t('afternoon', 'Afternoon') }}</option>
+                <option value="evening">{{ languageStore.t('evening', 'Evening') }}</option>
+                <option value="night">{{ languageStore.t('night', 'Night') }}</option>
               </select>
             </div>
 
@@ -506,7 +503,7 @@ const handleAssignSuccess = async () => {
                 class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
               >
                 <RotateCcw class="w-3.5 h-3.5" />
-                <span>Reset Filters</span>
+                <span>{{ languageStore.t('reset_filters', 'Reset Filters') }}</span>
               </button>
             </div>
           </div>
@@ -520,28 +517,40 @@ const handleAssignSuccess = async () => {
           <table class="w-full text-left border-collapse">
             <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">Table</th>
-                <th class="py-3 px-4 whitespace-nowrap">Assigned Waiter</th>
-                <th class="py-3 px-4 whitespace-nowrap">Shift & Schedule</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">Priority</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Actions</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('table', 'Table') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('assigned_waiter', 'Assigned Waiter') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('shift_schedule', 'Shift & Schedule') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('priority', 'Priority') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('status', 'Status') }}</th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('actions', 'Actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <tr
-                v-for="assignment in paginatedAssignments"
-                :key="assignment.id"
-                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
-              >
+              <!-- Loading Spinner State -->
+              <tr v-if="tableAssignmentStore.loading">
+                <td colspan="6" class="px-6 py-20 text-center">
+                  <div class="flex flex-col items-center justify-center gap-3">
+                    <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_table_assignments', 'Loading table assignments...') }}</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Data Rows -->
+              <template v-else>
+                <tr
+                  v-for="assignment in paginatedAssignments"
+                  :key="assignment.id"
+                  class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+                >
                 <!-- Table -->
                 <td class="py-3 px-4 pl-5 whitespace-nowrap">
                   <div class="flex items-center gap-2">
                     <span class="font-extrabold text-slate-900 dark:text-white font-mono text-xs sm:text-sm">
-                      Table {{ getTableNumber(assignment) }}
+                      {{ languageStore.t('table', 'Table') }} {{ getTableNumber(assignment) }}
                     </span>
                     <span v-if="getTableCapacity(assignment)" class="text-[10px] text-slate-400 font-bold">
-                      ({{ getTableCapacity(assignment) }} seats)
+                      ({{ getTableCapacity(assignment) }} {{ languageStore.t('seats', 'seats') }})
                     </span>
                   </div>
                 </td>
@@ -572,7 +581,7 @@ const handleAssignSuccess = async () => {
                     class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
                     :class="getPriorityBadgeClass(assignment.priority)"
                   >
-                    {{ assignment.priority || 'primary' }}
+                    {{ languageStore.t(assignment.priority || 'primary', assignment.priority || 'primary') }}
                   </span>
                 </td>
 
@@ -582,7 +591,7 @@ const handleAssignSuccess = async () => {
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold"
                     :class="assignment.status === 'active' || assignment.is_active !== false ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-slate-100 text-slate-500 border border-slate-200'"
                   >
-                    {{ (assignment.status || (assignment.is_active !== false ? 'active' : 'inactive')).replace('_', ' ') }}
+                    {{ languageStore.t(assignment.status || (assignment.is_active !== false ? 'active' : 'inactive'), (assignment.status || (assignment.is_active !== false ? 'active' : 'inactive')).replace('_', ' ')) }}
                   </span>
                 </td>
 
@@ -592,14 +601,14 @@ const handleAssignSuccess = async () => {
                     <button
                       @click="handleEdit(assignment)"
                       class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
-                      title="Edit Assignment"
+                      :title="languageStore.t('edit', 'Edit')"
                     >
                       <Edit3 class="w-3.5 h-3.5" />
                     </button>
                     <button
                       @click="handleDeleteClick(assignment)"
                       class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
-                      title="Delete Assignment"
+                      :title="languageStore.t('delete', 'Delete')"
                     >
                       <Trash2 class="w-3.5 h-3.5" />
                     </button>
@@ -610,15 +619,21 @@ const handleAssignSuccess = async () => {
               <!-- Empty State -->
               <tr v-if="paginatedAssignments.length === 0">
                 <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  No table assignments found for this filter.
+                  {{ languageStore.t('no_table_assignments', 'No table assignments found for this filter.') }}
                 </td>
               </tr>
-            </tbody>
-          </table>
-        </div>
+            </template>
+          </tbody>
+        </table>
+      </div>
 
-        <!-- Mobile View -->
-        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+      <!-- Mobile View -->
+      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+        <div v-if="tableAssignmentStore.loading" class="py-16 text-center flex flex-col items-center justify-center gap-3">
+          <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_table_assignments', 'Loading table assignments...') }}</span>
+        </div>
+        <template v-else>
           <div
             v-for="assignment in paginatedAssignments"
             :key="assignment.id"
@@ -626,24 +641,28 @@ const handleAssignSuccess = async () => {
           >
             <div class="flex items-center justify-between">
               <span class="font-bold text-slate-900 dark:text-white text-sm">
-                Table {{ getTableNumber(assignment) }}
+                {{ languageStore.t('table', 'Table') }} {{ getTableNumber(assignment) }}
               </span>
               <span
                 class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
                 :class="getPriorityBadgeClass(assignment.priority)"
               >
-                {{ assignment.priority || 'primary' }}
+                {{ languageStore.t(assignment.priority || 'primary', assignment.priority || 'primary') }}
               </span>
             </div>
             <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-              <span>Waiter: {{ getWaiterName(assignment.waiter) }}</span>
+              <span>{{ languageStore.t('waiter', 'Waiter') }}: {{ getWaiterName(assignment.waiter) }}</span>
               <div class="flex gap-2">
-                <button @click="handleEdit(assignment)" class="text-blue-600 font-bold">Edit</button>
-                <button @click="handleDeleteClick(assignment)" class="text-rose-600 font-bold">Delete</button>
+                <button @click="handleEdit(assignment)" class="text-blue-600 font-bold cursor-pointer">{{ languageStore.t('edit', 'Edit') }}</button>
+                <button @click="handleDeleteClick(assignment)" class="text-rose-600 font-bold cursor-pointer">{{ languageStore.t('delete', 'Delete') }}</button>
               </div>
             </div>
           </div>
-        </div>
+          <div v-if="paginatedAssignments.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">
+            {{ languageStore.t('no_table_assignments', 'No table assignments found for this filter.') }}
+          </div>
+        </template>
+      </div>
 
         <!-- Pagination Footer -->
         <div
@@ -651,14 +670,14 @@ const handleAssignSuccess = async () => {
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            Showing <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
-            <span class="font-bold text-slate-900 dark:text-white">{{ totalRecords }}</span> assignments
+            {{ languageStore.t('showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ totalRecords }}</span> {{ languageStore.t('assignments', 'assignments') }}
           </div>
 
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
               <select
                 :value="perPage"
                 @change="changePerPage"
@@ -731,23 +750,23 @@ const handleAssignSuccess = async () => {
               <div class="w-12 h-12 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center mx-auto">
                 <AlertCircle class="w-6 h-6" />
               </div>
-              <h3 class="text-base font-black text-slate-900 dark:text-white">Delete Assignment?</h3>
+              <h3 class="text-base font-black text-slate-900 dark:text-white">{{ languageStore.t('delete_assignment_q', 'Delete Assignment?') }}</h3>
               <p class="text-xs text-slate-500 dark:text-slate-400">
-                Are you sure you want to unassign this waiter from the table?
+                {{ languageStore.t('delete_assignment_confirm', 'Are you sure you want to unassign this waiter from the table?') }}
               </p>
             </div>
             <div class="flex gap-3">
               <button
                 @click="showDeleteConfirm = false"
-                class="flex-1 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300"
+                class="flex-1 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer"
               >
-                Cancel
+                {{ languageStore.t('cancel', 'Cancel') }}
               </button>
               <button
                 @click="confirmDelete"
-                class="flex-1 py-2 bg-rose-600 text-white rounded-xl text-xs font-bold"
+                class="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold cursor-pointer"
               >
-                Delete
+                {{ languageStore.t('delete', 'Delete') }}
               </button>
             </div>
           </div>

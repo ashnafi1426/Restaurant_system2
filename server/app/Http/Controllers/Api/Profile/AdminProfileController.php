@@ -11,9 +11,6 @@ use Illuminate\Support\Facades\Storage;
 
 class AdminProfileController extends Controller
 {
-    /**
-     * Ensure all profile columns exist in administrators table
-     */
     private function ensureAdminColumns()
     {
         try {
@@ -54,10 +51,6 @@ class AdminProfileController extends Controller
         }
     }
 
-    /**
-     * Get admin profile
-     * GET /api/admin/profile
-     */
     public function getProfile(): JsonResponse
     {
         try {
@@ -113,10 +106,6 @@ class AdminProfileController extends Controller
         }
     }
 
-    /**
-     * Update admin profile
-     * PUT /api/admin/profile
-     */
     public function updateProfile(Request $request): JsonResponse
     {
         try {
@@ -172,10 +161,6 @@ class AdminProfileController extends Controller
         }
     }
 
-    /**
-     * Upload profile photo
-     * POST /api/admin/profile/photo
-     */
     public function uploadPhoto(Request $request): JsonResponse
     {
         try {
@@ -229,10 +214,6 @@ class AdminProfileController extends Controller
         }
     }
 
-    /**
-     * Change password
-     * POST /api/admin/profile/change-password
-     */
     public function changePassword(Request $request): JsonResponse
     {
         try {
@@ -267,10 +248,6 @@ class AdminProfileController extends Controller
         }
     }
 
-    /**
-     * Get admin statistics
-     * GET /api/admin/profile/stats
-     */
     public function getStats(): JsonResponse
     {
         try {

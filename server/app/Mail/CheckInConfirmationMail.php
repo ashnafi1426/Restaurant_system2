@@ -13,17 +13,11 @@ class CheckInConfirmationMail extends Mailable
 
     public $checkIn;
 
-    /**
-     * Create a new message instance.
-     */
     public function __construct(CheckIn $checkIn)
     {
         $this->checkIn = $checkIn;
     }
 
-    /**
-     * Build the message.
-     */
     public function build()
     {
         $guestName = $this->checkIn->guest->first_name . ' ' . $this->checkIn->guest->last_name;

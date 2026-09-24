@@ -158,11 +158,7 @@ class RbacSeeder extends Seeder
             }
             $createdPermissions[$permission->slug] = $permission->id;
         }
-
-        // 2. Default System Roles
-        // NOTE: Only Admin gets permissions by default.
-        // All other roles start with NO permissions - Admin assigns them via the Permission Matrix UI.
-        $rolesData = [
+       $rolesData = [
             [
                 'name' => 'Admin',
                 'slug' => 'admin',

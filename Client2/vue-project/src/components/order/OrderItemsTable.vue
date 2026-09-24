@@ -140,7 +140,7 @@ function itemPrice(item: any) {
     <!-- ===================================================== -->
 
     <div v-else-if="items.length === 0" class="py-12 sm:py-14 md:py-16 lg:py-20 text-center px-4">
-      <div class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl">🍽️</div>
+      <div class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl"></div>
 
       <h3
         class="mt-3 sm:mt-4 md:mt-5 text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900"

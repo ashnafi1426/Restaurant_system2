@@ -38,7 +38,6 @@ const handleAddWaiter = () => {
 
 <template>
   <section class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-    <!-- HEADER -->
     <div class="flex justify-between items-center mb-8">
       <div>
         <h2 class="text-xl font-bold">Waiter Management</h2>
@@ -53,7 +52,6 @@ const handleAddWaiter = () => {
       </button>
     </div>
 
-    <!-- STATISTICS -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
       <div class="bg-blue-50 rounded-2xl p-4">
         <p class="text-sm text-slate-500">Total Waiters</p>
@@ -76,7 +74,6 @@ const handleAddWaiter = () => {
       </div>
     </div>
 
-    <!-- WAITERS TABLE -->
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
@@ -163,7 +160,6 @@ const handleAddWaiter = () => {
       </table>
     </div>
 
-    <!-- ADD WAITER MODAL -->
     <div
       v-if="showAddModal"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-xl"

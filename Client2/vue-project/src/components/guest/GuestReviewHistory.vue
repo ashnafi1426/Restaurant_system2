@@ -1,20 +1,16 @@
 <template>
   <div class="guest-review-history bg-white rounded-lg shadow p-6">
-    <!-- Header -->
     <div class="mb-6">
       <h2 class="text-2xl font-bold text-gray-900 mb-2">My Review History</h2>
       <p class="text-gray-600">Track your reviews and feedback</p>
     </div>
 
-    <!-- Stats Row -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <!-- Total Reviews -->
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p class="text-gray-600 text-sm">Total Reviews</p>
         <p class="text-3xl font-bold text-blue-600">{{ totalReviews }}</p>
       </div>
 
-      <!-- Average Rating -->
       <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <p class="text-gray-600 text-sm">Average Rating</p>
         <div class="flex items-center gap-2">
@@ -23,19 +19,17 @@
         </div>
       </div>
 
-      <!-- Approved Count -->
       <div class="bg-green-50 border border-green-200 rounded-lg p-4">
         <p class="text-gray-600 text-sm">Approved Reviews</p>
         <p class="text-3xl font-bold text-green-600">{{ approvedCount }}</p>
       </div>
     </div>
 
-    <!-- Filter Tabs -->
     <div class="flex gap-2 mb-6 border-b border-gray-200">
       <button
         v-for="status in ['all', 'pending', 'approved', 'rejected']"
         :key="status"
-        @click="selectedStatus = status"
+        @click="selectedStatus = status as any"
         :class="[
           'px-4 py-2 font-semibold border-b-2 transition-colors',
           selectedStatus === status
@@ -50,7 +44,6 @@
       </button>
     </div>
 
-    <!-- Reviews List -->
     <div v-if="loading" class="space-y-4">
       <div v-for="i in 3" :key="i" class="animate-pulse h-24 bg-gray-200 rounded"></div>
     </div>
@@ -65,7 +58,6 @@
         :key="review.id"
         class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
       >
-        <!-- Header -->
         <div class="flex items-start justify-between mb-3">
           <div>
             <h3 class="font-semibold text-gray-900">{{ review.menu_item?.name }}</h3>
@@ -81,30 +73,25 @@
           </span>
         </div>
 
-        <!-- Rating -->
         <div class="flex gap-1 mb-3">
           <span v-for="i in 5" :key="i" class="text-lg"
             :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-300'"
           >★</span>
         </div>
 
-        <!-- Review Text -->
         <p v-if="review.review_text" class="text-gray-700 mb-3">{{ review.review_text }}</p>
 
-        <!-- Stats -->
         <div class="flex gap-4 text-sm text-gray-600 mb-3 pb-3 border-t border-gray-200 pt-3">
           <span>👍 {{ review.helpful_count }} helpful</span>
           <span>👎 {{ review.not_helpful_count }} not helpful</span>
         </div>
 
-        <!-- Management Response -->
         <div v-if="review.response" class="bg-blue-50 border-l-4 border-blue-500 p-3 mb-3">
           <p class="text-xs font-semibold text-blue-900 mb-1">Management Response</p>
           <p class="text-sm text-gray-700">{{ review.response.response_text }}</p>
           <p class="text-xs text-gray-600 mt-1">{{ formatDate(review.response?.created_at) }}</p>
         </div>
 
-        <!-- Actions -->
         <div class="flex gap-2">
           <button
             v-if="review.status === 'pending'"
@@ -129,7 +116,6 @@
       </div>
     </div>
 
-    <!-- Pagination -->
     <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
       <button
         @click="currentPage = Math.max(1, currentPage - 1)"
@@ -203,10 +189,7 @@ const getCountByStatus = (status: string) => {
   return 0
 }
 
-const editReview = (review: Review) => {
-  // Navigate to edit review
-  console.log('Edit review:', review.id)
-}
+const editReview = (_review: Review) => {}
 
 const deleteReview = async (reviewId: string) => {
   if (!confirm('Are you sure you want to delete this review?')) return
@@ -216,7 +199,7 @@ const deleteReview = async (reviewId: string) => {
     await reviewService.deleteReview(reviewId)
     reviews.value = reviews.value.filter(r => r.id !== reviewId)
   } catch (error) {
-    console.error('Failed to delete review:', error)
+    console.error('[GuestReviewHistory] Failed to delete review:', error)
   } finally {
     loading.value = false
   }
@@ -227,11 +210,9 @@ const loadReviews = async () => {
 
   loading.value = true
   try {
-    // Load from store or API
-    // For now, using store data
     reviews.value = reviewStore.guestReviews
   } catch (error) {
-    console.error('Failed to load reviews:', error)
+    console.error('[GuestReviewHistory] Failed to load reviews:', error)
   } finally {
     loading.value = false
   }
@@ -247,7 +228,4 @@ watch(currentPage, () => {
 </script>
 
 <style scoped>
-.guest-review-history {
-  /* Component styles */
-}
 </style>

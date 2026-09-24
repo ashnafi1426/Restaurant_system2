@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Waiter;
 use App\Http\Controllers\Controller;
 use App\Services\Waiter\WaiterDashboardService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class WaiterDashboardController extends Controller
 {
@@ -13,6 +14,21 @@ class WaiterDashboardController extends Controller
     {
         $this->dashboardService = $dashboardService;
     }
+
+    private function resolveTenant(Request $request): ?string
+    {
+        $hotelId = $request->input('hotel_id') 
+            ?: $request->query('hotel_id')
+            ?: $request->header('X-Hotel-ID') 
+            ?: app(\App\Services\TenantContext::class)->getHotelId();
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
+
     private function getWaiterId()
     {
         try {
@@ -24,27 +40,19 @@ class WaiterDashboardController extends Controller
             return null;
         }
     }
+
     private function handleAction(callable $action, array $defaultData = []): JsonResponse
     {
         try {
+            $request = request();
+            $this->resolveTenant($request);
             $waiterId = $this->getWaiterId();
-            
-            if (!$waiterId) {
-                \Log::warning('Waiter dashboard requested without a linked waiter profile', [
-                    'user_id' => auth()->id(),
-                ]);
-
-                return response()->json([
-                    'success' => true,
-                    'data' => $defaultData,
-                ], 200);
-            }
 
             $result = $action($waiterId);
 
             return response()->json([
                 'success' => true,
-                'data' => $result,
+                'data' => $result ?? $defaultData,
             ], 200);
         } catch (\Throwable $e) {
             \Log::error('Dashboard action error:', [
@@ -61,42 +69,24 @@ class WaiterDashboardController extends Controller
         }
     }
 
-    /**
-     * Get complete dashboard statistics
-     * GET /api/waiter/dashboard
-     */
-    public function getDashboard(): JsonResponse
+    public function getDashboard(Request $request): JsonResponse
     {
         try {
+            $hotelId = $this->resolveTenant($request);
             $waiterId = $this->getWaiterId();
             
             \Log::info('🟠 [CONTROLLER] getDashboard called:', [
                 'user_id' => auth()->id(),
                 'waiter_id' => $waiterId,
+                'hotel_id' => $hotelId,
                 'timestamp' => now()->toDateTimeString(),
             ]);
-            
-            if (!$waiterId) {
-                \Log::warning(' Waiter dashboard requested without a linked waiter profile', [
-                    'user_id' => auth()->id(),
-                ]);
-
-                return response()->json([
-                    'success' => true,
-                    'data' => [
-                        'today_stats' => [],
-                        'performance' => [],
-                        'recent_assignments' => [],
-                        'pending_count' => 0,
-                        'active_count' => 0,
-                    ],
-                ], 200);
-            }
 
             $result = $this->dashboardService->getDashboardStats($waiterId);
             
             \Log::info(' [CONTROLLER] getDashboard returning:', [
                 'waiter_id' => $waiterId,
+                'hotel_id' => $hotelId,
                 'today_stats' => $result['today_stats'] ?? null,
             ]);
 
@@ -125,10 +115,6 @@ class WaiterDashboardController extends Controller
         }
     }
 
-    /**
-     * Get today's statistics
-     * GET /api/waiter/dashboard/today
-     */
     public function getTodayStats(): JsonResponse
     {
         return $this->handleAction(
@@ -146,10 +132,6 @@ class WaiterDashboardController extends Controller
         );
     }
 
-    /**
-     * Get performance metrics
-     * GET /api/waiter/dashboard/performance
-     */
     public function getPerformance(): JsonResponse
     {
         return $this->handleAction(
@@ -162,10 +144,6 @@ class WaiterDashboardController extends Controller
         );
     }
 
-    /**
-     * Get recent assignments
-     * GET /api/waiter/dashboard/recent-assignments
-     */
     public function getRecentAssignments(): JsonResponse
     {
         return $this->handleAction(
@@ -174,10 +152,6 @@ class WaiterDashboardController extends Controller
         );
     }
 
-    /**
-     * Get all orders ready from kitchen
-     * GET /api/waiter/dashboard/kitchen-ready-orders
-     */
     public function getKitchenReadyOrders(): JsonResponse
     {
         return $this->handleAction(
@@ -186,10 +160,6 @@ class WaiterDashboardController extends Controller
         );
     }
 
-    /**
-     * Get orders ready for pickup
-     * GET /api/waiter/dashboard/ready-pickup
-     */
     public function getReadyForPickup(): JsonResponse
     {
         return $this->handleAction(
@@ -198,10 +168,6 @@ class WaiterDashboardController extends Controller
         );
     }
 
-    /**
-     * Get pending orders awaiting acceptance (and ready from kitchen)
-     * GET /api/waiter/dashboard/pending-pickup
-     */
     public function getPendingPickupOrders(): JsonResponse
     {
         return $this->handleAction(
@@ -210,10 +176,6 @@ class WaiterDashboardController extends Controller
         );
     }
 
-    /**
-     * Get orders on delivery
-     * GET /api/waiter/dashboard/on-delivery
-     */
     public function getOnDelivery(): JsonResponse
     {
         return $this->handleAction(
@@ -222,10 +184,6 @@ class WaiterDashboardController extends Controller
         );
     }
 
-    /**
-     * Get completed deliveries
-     * GET /api/waiter/dashboard/completed
-     */
     public function getCompletedDeliveries(): JsonResponse
     {
         return $this->handleAction(
@@ -234,10 +192,6 @@ class WaiterDashboardController extends Controller
         );
     }
 
-    /**
-     * Get failed deliveries
-     * GET /api/waiter/dashboard/failed
-     */
     public function getFailedDeliveries(): JsonResponse
     {
         return $this->handleAction(
@@ -246,10 +200,6 @@ class WaiterDashboardController extends Controller
         );
     }
 
-    /**
-     * Get delivery timeline
-     * GET /api/waiter/dashboard/timeline
-     */
     public function getDeliveryTimeline(): JsonResponse
     {
         return $this->handleAction(
@@ -258,10 +208,6 @@ class WaiterDashboardController extends Controller
         );
     }
 
-    /**
-     * Get weekly performance data
-     * GET /api/waiter/dashboard/weekly-performance
-     */
     public function getWeeklyPerformance(): JsonResponse
     {
         return $this->handleAction(
@@ -270,10 +216,6 @@ class WaiterDashboardController extends Controller
         );
     }
 
-    /**
-     * Get monthly performance data
-     * GET /api/waiter/dashboard/monthly-performance
-     */
     public function getMonthlyPerformance(): JsonResponse
     {
         return $this->handleAction(
@@ -282,10 +224,6 @@ class WaiterDashboardController extends Controller
         );
     }
 
-    /**
-     * Get performance comparison
-     * GET /api/waiter/dashboard/performance-comparison
-     */
     public function getPerformanceComparison(): JsonResponse
     {
         return $this->handleAction(
@@ -298,10 +236,6 @@ class WaiterDashboardController extends Controller
         );
     }
 
-    /**
-     * Get quick stats for sidebar
-     * GET /api/waiter/dashboard/quick-stats
-     */
     public function getQuickStats(): JsonResponse
     {
         return $this->handleAction(

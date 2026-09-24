@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300">
-    <!-- Global Page Loader -->
     <GlobalPageLoader />
     
     <router-view />
@@ -26,7 +25,6 @@ html:not(.dark) {
   color: #1f2937;
 }
 
-/* Global scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;

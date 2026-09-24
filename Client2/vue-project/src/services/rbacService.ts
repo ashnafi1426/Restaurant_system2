@@ -8,12 +8,12 @@ import type {
 } from '../types/rbacTypes'
 
 export const rbacService = {
-  // Roles API
   async getRoles(): Promise<Role[]> {
     try {
       const response = await api.get('/roles')
       return response.data.data
     } catch (e) {
+      console.warn('[RbacService] /roles endpoint failed, falling back to /roles/active:', e)
       return this.getActiveRoles()
     }
   },
@@ -23,6 +23,7 @@ export const rbacService = {
       const response = await api.get('/roles/active')
       return response.data.data
     } catch (e) {
+      console.warn('[RbacService] /roles/active endpoint failed, falling back to /public/roles:', e)
       const response = await api.get('/public/roles')
       return response.data.data
     }
@@ -57,7 +58,6 @@ export const rbacService = {
     return response.data.data
   },
 
-  // Permissions API
   async getPermissions(): Promise<{ data: Permission[]; grouped: Record<string, Permission[]> }> {
     const response = await api.get('/permissions')
     return response.data
@@ -77,7 +77,6 @@ export const rbacService = {
     await api.delete(`/permissions/${id}`)
   },
 
-  // User Roles API
   async getUserRoleSummaries(): Promise<RbacUserSummary[]> {
     const response = await api.get('/user-roles')
     return response.data.data
@@ -99,11 +98,12 @@ export const rbacService = {
   async removeUserRole(userId: string, roleId: number): Promise<void> {
     await api.delete(`/users/${userId}/roles/${roleId}`)
   },
-  // Temporary Roles API
+
   async getTemporaryRoles(): Promise<TemporaryRoleAssignment[]> {
     const response = await api.get('/temporary-roles')
     return response.data.data
   },
+
   async createTemporaryRole(data: {
     user_id: string
     role_id: number
@@ -119,7 +119,6 @@ export const rbacService = {
     await api.delete(`/temporary-roles/${id}`)
   },
 
-  // User Direct Permissions API
   async getUserDirectPermissions(userId: string): Promise<any> {
     const response = await api.get(`/users/${userId}/direct-permissions`)
     return response.data
@@ -143,7 +142,6 @@ export const rbacService = {
     return response.data
   },
 
-  // Audit Logs API
   async getAuditLogs(page = 1): Promise<{ data: RbacAuditLogItem[]; pagination: any }> {
     const response = await api.get(`/audit-logs?page=${page}`)
     return response.data

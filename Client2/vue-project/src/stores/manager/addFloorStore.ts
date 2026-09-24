@@ -3,7 +3,6 @@ import { ref, computed } from 'vue'
 import floorManagementService, { type Floor } from '@/services/manager/floorManagementService'
 
 export const useAddFloorStore = defineStore('addFloor', () => {
-  // State
   const formData = ref({
     floor_number: '',
     name: '',
@@ -16,12 +15,10 @@ export const useAddFloorStore = defineStore('addFloor', () => {
   const success = ref<string | null>(null)
   const validationErrors = ref<Record<string, string>>({})
 
-  // Validation state
   const floorNumberUnique = ref(true)
   const floorNameUnique = ref(true)
   const checkingUniqueness = ref(false)
 
-  // Computed
   const isFormValid = computed(() => {
     return (
       formData.value.floor_number &&
@@ -36,7 +33,6 @@ export const useAddFloorStore = defineStore('addFloor', () => {
     return isFormValid.value && !submitting.value && !checkingUniqueness.value
   })
 
-  // Methods
   const validateFloorNumber = () => {
     const num = parseInt(formData.value.floor_number)
     if (!num || num < 0) {
@@ -103,9 +99,9 @@ export const useAddFloorStore = defineStore('addFloor', () => {
       } else {
         delete validationErrors.value.floor_number
       }
-    } catch (err) {
-      console.error('Error checking floor number uniqueness:', err)
-      floorNumberUnique.value = true // Assume unique on error
+    } catch (err: any) {
+      console.error('[AddFloorStore] Error checking floor number uniqueness:', err)
+      floorNumberUnique.value = true
     } finally {
       checkingUniqueness.value = false
     }
@@ -125,11 +121,9 @@ export const useAddFloorStore = defineStore('addFloor', () => {
   }
 
   const createFloor = async (): Promise<Floor | null> => {
-    // Clear previous messages
     error.value = null
     success.value = null
 
-    // Validate all fields
     if (!validateAll()) {
       error.value = 'Please fix validation errors before submitting'
       return null
@@ -147,20 +141,18 @@ export const useAddFloorStore = defineStore('addFloor', () => {
 
       success.value = `Floor "${createdFloor.name}" created successfully!`
 
-      // Reset form after successful creation
       resetForm()
 
       return createdFloor
     } catch (err: any) {
+      console.error('[AddFloorStore] Error creating floor:', err)
       const errorMsg = err.response?.data?.message || err.message || 'Failed to create floor'
       error.value = errorMsg
 
-      // Parse validation errors from Laravel
       if (err.response?.data?.errors) {
         validationErrors.value = err.response.data.errors
       }
 
-      console.error('Error creating floor:', err)
       return null
     } finally {
       submitting.value = false
@@ -178,14 +170,12 @@ export const useAddFloorStore = defineStore('addFloor', () => {
   const setFieldValue = (field: string, value: any) => {
     ;(formData.value as any)[field] = value
     
-    // Clear error for this field when user starts typing
     if (validationErrors.value[field]) {
       delete validationErrors.value[field]
     }
   }
 
   return {
-    // State
     formData,
     loading,
     submitting,
@@ -196,11 +186,9 @@ export const useAddFloorStore = defineStore('addFloor', () => {
     floorNameUnique,
     checkingUniqueness,
 
-    // Computed
     isFormValid,
     canSubmit,
 
-    // Methods
     validateFloorNumber,
     validateName,
     validateDescription,

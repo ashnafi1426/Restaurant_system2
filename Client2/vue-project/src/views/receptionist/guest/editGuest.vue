@@ -2,15 +2,17 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import DashboardLayout from '../../../layouts/DashboardLayout.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import GuestForm from '../../../components/guest/guestForm.vue'
 
 import { useGuestStore } from '../../../stores/guestStore'
+import { useLanguageStore } from '@/stores/language'
 import type { GuestForm as GuestFormType } from '../../../types/guest'
 
 const route = useRoute()
 const router = useRouter()
 const guestStore = useGuestStore()
+const languageStore = useLanguageStore()
 
 const guestId = route.params.id as string
 const loading = ref(true)
@@ -44,7 +46,7 @@ const loadGuest = async () => {
       }
     }
   } catch (error) {
-    console.error(error)
+    console.error('[EditGuest] Failed to load guest:', error)
   } finally {
     loading.value = false
   }
@@ -54,11 +56,11 @@ const updateGuest = async () => {
   try {
     await guestStore.editGuest(guestId, form.value)
 
-    alert('Guest updated successfully.')
+    alert(languageStore.t('guest_updated_success', 'Guest updated successfully.'))
 
     router.push('/guests')
   } catch (error) {
-    console.error(error)
+    console.error('[EditGuest] Failed to update guest:', error)
   }
 }
 const cancel = () => {
@@ -72,12 +74,14 @@ onMounted(loadGuest)
   <DashboardLayout>
     <div class="max-w-6xl mx-auto bg-white dark:bg-slate-900 p-6 rounded-lg">
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Edit Guest</h1>
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">{{ languageStore.t('edit_guest', 'Edit Guest') }}</h1>
 
-        <p class="text-gray-500 dark:text-slate-400 mt-2">Update guest information.</p>
+        <p class="text-gray-500 dark:text-slate-400 mt-2">{{ languageStore.t('update_guest_info', 'Update guest information.') }}</p>
       </div>
 
-      <div v-if="loading" class="bg-white dark:bg-slate-800 rounded-xl shadow p-10 text-center text-gray-800 dark:text-white">Loading...</div>
+      <div v-if="loading" class="bg-white dark:bg-slate-800 rounded-xl shadow p-10 text-center text-gray-800 dark:text-white font-medium">
+        {{ languageStore.t('loading', 'Loading...') }}
+      </div>
 
       <GuestForm
         v-else

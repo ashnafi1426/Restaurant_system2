@@ -8,7 +8,7 @@
         stat.color,
       ]"
     >
-      <p class="text-[11px] font-black uppercase tracking-wider opacity-80">{{ stat.label }}</p>
+      <p class="text-[11px] font-black uppercase tracking-wider opacity-80">{{ languageStore.t(stat.labelKey, stat.label) }}</p>
       <div class="mt-2 flex items-end justify-between">
         <p class="text-2xl sm:text-3xl font-black">
           {{ getStatValue(stat.key) }}
@@ -21,6 +21,9 @@
 
 <script setup lang="ts">
 import { Clock, ChefHat, CheckCircle, UtensilsCrossed, XCircle } from 'lucide-vue-next'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
 
 const props = defineProps<{
   statistics?: Record<string, any>
@@ -30,6 +33,7 @@ const props = defineProps<{
 const stats = [
   {
     label: 'PENDING',
+    labelKey: 'pending',
     key: 'pending_orders',
     color: 'border-amber-500 bg-amber-500/10 text-amber-900 dark:text-amber-300 border-amber-500/30',
     icon: Clock,
@@ -37,6 +41,7 @@ const stats = [
   },
   {
     label: 'PREPARING',
+    labelKey: 'preparing',
     key: 'preparing_orders',
     color: 'border-blue-500 bg-blue-500/10 text-blue-900 dark:text-blue-300 border-blue-500/30',
     icon: ChefHat,
@@ -44,6 +49,7 @@ const stats = [
   },
   {
     label: 'READY',
+    labelKey: 'ready',
     key: 'ready_orders',
     color: 'border-emerald-500 bg-emerald-500/10 text-emerald-900 dark:text-emerald-300 border-emerald-500/30',
     icon: CheckCircle,
@@ -51,6 +57,7 @@ const stats = [
   },
   {
     label: 'SERVED',
+    labelKey: 'served',
     key: 'served_orders',
     color: 'border-slate-400 bg-slate-500/10 text-slate-900 dark:text-slate-300 border-slate-500/30',
     icon: UtensilsCrossed,
@@ -58,6 +65,7 @@ const stats = [
   },
   {
     label: 'CANCELLED',
+    labelKey: 'cancelled',
     key: 'cancelled_orders',
     color: 'border-rose-500 bg-rose-500/10 text-rose-900 dark:text-rose-300 border-rose-500/30',
     icon: XCircle,

@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import waiterService from '@/services/waiterService'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
 import {
   Search,
   Filter,
@@ -18,11 +20,19 @@ import {
   BedDouble,
   ShoppingBag,
   Timer,
+  Building2,
 } from 'lucide-vue-next'
+
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
 const loading = ref(true)
 const error = ref<string | null>(null)
 const history = ref<any[]>([])
+
+watch(() => hotelStore.hotelId, () => {
+  fetchHistory()
+})
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 
@@ -159,7 +169,8 @@ const formatDateTime = (dateStr: string) => {
       hour: '2-digit',
       minute: '2-digit',
     })
-  } catch {
+  } catch (err) {
+    console.error('[DeliveryHistory] Error formatting date:', err)
     return dateStr
   }
 }
@@ -188,14 +199,14 @@ onMounted(() => {
             <FileText class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Delivery History</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">View your past completed deliveries, durations, and timestamps.</p>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{{ languageStore.t('delivery_history', 'Delivery History') }}</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('delivery_history_desc', 'View your past completed deliveries, durations, and timestamps.') }}</p>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
           <div class="px-4 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-extrabold text-xs sm:text-sm">
-            Total: {{ history.length }} Deliveries
+            {{ languageStore.t('total', 'Total') }}: {{ history.length }} {{ languageStore.t('deliveries', 'Deliveries') }}
           </div>
         </div>
       </div>
@@ -212,7 +223,7 @@ onMounted(() => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search history by order # or room..."
+              :placeholder="languageStore.t('search_history_placeholder', 'Search history by order # or room...')"
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-400 transition outline-none"
             />
           </div>
@@ -229,7 +240,7 @@ onMounted(() => {
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+            <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
           </button>
         </div>
 
@@ -240,7 +251,7 @@ onMounted(() => {
             type="button"
             @click="fetchHistory"
             :disabled="loading"
-            title="Refresh"
+            :title="languageStore.t('refresh', 'Refresh')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
@@ -250,7 +261,7 @@ onMounted(() => {
           <button
             type="button"
             @click="toggleFullscreen"
-            title="Toggle Fullscreen"
+            :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
@@ -275,7 +286,7 @@ onMounted(() => {
             <!-- Start Date -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Start Date
+                {{ languageStore.t('start_date', 'Start Date') }}
               </label>
               <input
                 v-model="filters.start_date"
@@ -287,7 +298,7 @@ onMounted(() => {
             <!-- End Date -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                End Date
+                {{ languageStore.t('end_date', 'End Date') }}
               </label>
               <input
                 v-model="filters.end_date"
@@ -299,15 +310,15 @@ onMounted(() => {
             <!-- Type -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Service Type
+                {{ languageStore.t('service_type', 'Service Type') }}
               </label>
               <select
                 v-model="filters.type"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 dark:focus:border-indigo-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="all">All Types</option>
-                <option value="room">Room Service</option>
-                <option value="walk_in">Takeout / Table</option>
+                <option value="all">{{ languageStore.t('all_types', 'All Types') }}</option>
+                <option value="room">{{ languageStore.t('room_service', 'Room Service') }}</option>
+                <option value="walk_in">{{ languageStore.t('takeout_table', 'Takeout / Table') }}</option>
               </select>
             </div>
 
@@ -318,13 +329,13 @@ onMounted(() => {
                 @click="fetchHistory"
                 class="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 text-xs font-bold transition cursor-pointer"
               >
-                <span>Apply</span>
+                <span>{{ languageStore.t('apply', 'Apply') }}</span>
               </button>
               <button
                 type="button"
                 @click="resetFilters"
                 class="inline-flex items-center justify-center p-2 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
-                title="Reset"
+                :title="languageStore.t('reset', 'Reset')"
               >
                 <RotateCcw class="w-4 h-4" />
               </button>
@@ -340,94 +351,116 @@ onMounted(() => {
           <table class="w-full text-left border-collapse">
             <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">Order Ref</th>
-                <th class="py-3 px-4 whitespace-nowrap">Room / Destination</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
-                <th class="py-3 px-4 whitespace-nowrap">Delivered At</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Duration</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('order_ref', 'Order Ref') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('room_destination', 'Room / Destination') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('status', 'Status') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('delivered_at', 'Delivered At') }}</th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('duration', 'Duration') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <tr
-                v-for="item in paginatedHistory"
-                :key="item.id"
-                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
-              >
-                <!-- Order Ref -->
-                <td class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
-                  #{{ item.order_number || item.order_id || String(item.id).substring(0, 8) }}
-                </td>
-
-                <!-- Room / Destination -->
-                <td class="py-3 px-4 whitespace-nowrap">
-                  <span
-                    v-if="item.room_number || item.room?.room_number"
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
-                  >
-                    <BedDouble class="w-3 h-3 text-slate-400" />
-                    Room {{ item.room_number || item.room?.room_number }}
-                  </span>
-                  <span
-                    v-else
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
-                  >
-                    <ShoppingBag class="w-3 h-3" />
-                    Takeout
-                  </span>
-                </td>
-
-                <!-- Status -->
-                <td class="py-3 px-4 text-center whitespace-nowrap">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
-                    <CheckCircle2 class="w-3.5 h-3.5" />
-                    <span>Delivered</span>
-                  </span>
-                </td>
-
-                <!-- Delivered At -->
-                <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400">
-                  {{ formatDateTime(item.delivered_at || item.created_at || item.assigned_at) }}
-                </td>
-
-                <!-- Duration -->
-                <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold font-mono text-xs border border-blue-200 dark:border-blue-800">
-                    <Timer class="w-3.5 h-3.5" />
-                    {{ formatDuration(item.delivery_time_minutes || item.delivery_time || item.delivery_duration) }} min
-                  </span>
+              <!-- Loading Spinner State -->
+              <tr v-if="loading">
+                <td colspan="5" class="px-6 py-16 text-center">
+                  <div class="flex flex-col items-center justify-center gap-3">
+                    <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_delivery_history', 'Loading delivery history...') }}</span>
+                  </div>
                 </td>
               </tr>
 
-              <!-- Empty State -->
-              <tr v-if="paginatedHistory.length === 0">
-                <td colspan="5" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  No delivery history records found.
-                </td>
-              </tr>
+              <!-- Data Rows -->
+              <template v-else>
+                <tr
+                  v-for="item in paginatedHistory"
+                  :key="item.id"
+                  class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+                >
+                  <!-- Order Ref -->
+                  <td class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
+                    #{{ item.order_number || item.order_id || String(item.id).substring(0, 8) }}
+                  </td>
+
+                  <!-- Room / Destination -->
+                  <td class="py-3 px-4 whitespace-nowrap">
+                    <span
+                      v-if="item.room_number || item.room?.room_number"
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
+                    >
+                      <BedDouble class="w-3 h-3 text-slate-400" />
+                      {{ languageStore.t('room', 'Room') }} {{ item.room_number || item.room?.room_number }}
+                    </span>
+                    <span
+                      v-else
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
+                    >
+                      <ShoppingBag class="w-3 h-3" />
+                      {{ languageStore.t('takeout', 'Takeout') }}
+                    </span>
+                  </td>
+
+                  <!-- Status -->
+                  <td class="py-3 px-4 text-center whitespace-nowrap">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+                      <CheckCircle2 class="w-3.5 h-3.5" />
+                      <span>{{ languageStore.t('delivered', 'Delivered') }}</span>
+                    </span>
+                  </td>
+
+                  <!-- Delivered At -->
+                  <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400">
+                    {{ formatDateTime(item.delivered_at || item.created_at || item.assigned_at) }}
+                  </td>
+
+                  <!-- Duration -->
+                  <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold font-mono text-xs border border-blue-200 dark:border-blue-800">
+                      <Timer class="w-3.5 h-3.5" />
+                      {{ formatDuration(item.delivery_time_minutes || item.delivery_time || item.delivery_duration) }} {{ languageStore.t('min', 'min') }}
+                    </span>
+                  </td>
+                </tr>
+
+                <!-- Empty State -->
+                <tr v-if="paginatedHistory.length === 0">
+                  <td colspan="5" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                    {{ languageStore.t('no_delivery_history', 'No delivery history records found.') }}
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </table>
         </div>
 
         <!-- Mobile View -->
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-          <div
-            v-for="item in paginatedHistory"
-            :key="item.id"
-            class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
-          >
-            <div class="flex items-center justify-between">
-              <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">
-                #{{ item.order_number || item.order_id }}
-              </span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase">
-                Delivered
-              </span>
-            </div>
-            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-              <span>{{ formatDateTime(item.delivered_at || item.created_at) }}</span>
-              <span class="font-bold">{{ formatDuration(item.delivery_time_minutes || item.delivery_time) }} min</span>
-            </div>
+          <div v-if="loading" class="py-12 text-center flex flex-col items-center justify-center gap-3">
+            <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_delivery_history', 'Loading delivery history...') }}</span>
           </div>
+          <template v-else>
+            <div
+              v-for="item in paginatedHistory"
+              :key="item.id"
+              class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+            >
+              <div class="flex items-center justify-between">
+                <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">
+                  #{{ item.order_number || item.order_id }}
+                </span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase">
+                  {{ languageStore.t('delivered', 'Delivered') }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+                <span>{{ formatDateTime(item.delivered_at || item.created_at) }}</span>
+                <span class="font-bold">{{ formatDuration(item.delivery_time_minutes || item.delivery_time) }} {{ languageStore.t('min', 'min') }}</span>
+              </div>
+            </div>
+            <div v-if="paginatedHistory.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">
+              {{ languageStore.t('no_delivery_history', 'No delivery history records found.') }}
+            </div>
+          </template>
         </div>
 
         <!-- Pagination Footer -->
@@ -436,14 +469,14 @@ onMounted(() => {
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            Showing <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
-            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> deliveries
+            {{ languageStore.t('showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> {{ languageStore.t('deliveries', 'deliveries') }}
           </div>
 
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
               <select
                 :value="itemsPerPage"
                 @change="changeItemsPerPage"

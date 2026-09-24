@@ -2,7 +2,6 @@
 import { ref, computed, watch } from 'vue'
 import reviewService from '@/services/reviewService'
 import type { MenuItem } from '@/types/menu'
-import type { CreateReviewRequest } from '@/types/review'
 import { Star } from 'lucide-vue-next'
 
 interface Props {
@@ -10,7 +9,7 @@ interface Props {
   menuItem: MenuItem | null
   guestName?: string
   guestEmail?: string
-  orderId?: string  // Optional - QR guests may not have placed an order yet
+  orderId?: string
 }
 
 interface Emits {
@@ -27,13 +26,11 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-// Form state
 const rating = ref(5)
 const reviewText = ref('')
 const isSubmitting = ref(false)
 const hoverRating = ref(0)
 
-// Validation
 const isFormValid = computed(() => {
   return rating.value >= 1 && rating.value <= 5 && reviewText.value.trim().length >= 10
 })
@@ -44,7 +41,6 @@ const errorMessage = computed(() => {
   return null
 })
 
-// Reset form when modal closes
 watch(
   () => props.isOpen,
   (newVal) => {
@@ -83,7 +79,6 @@ const handleSubmit = async () => {
       guest_email: props.guestEmail || 'guest@example.com',
     }
 
-    // Only include order_id if it's provided and looks like a valid UUID
     if (props.orderId && isValidUUID(props.orderId)) {
       reviewPayload.order_id = props.orderId
     }
@@ -98,7 +93,7 @@ const handleSubmit = async () => {
       emit('error', response.message || 'Failed to submit review')
     }
   } catch (error: any) {
-    console.error('Review submission error:', error)
+    console.error('[GuestReviewModal] Error submitting review:', error)
     const errorMsg = error.response?.data?.message || error.response?.data?.errors?.review_text?.[0] || error.message || 'Failed to submit review'
     emit('error', errorMsg)
   } finally {
@@ -106,7 +101,6 @@ const handleSubmit = async () => {
   }
 }
 
-// Helper function to validate UUID format
 const isValidUUID = (uuid: string): boolean => {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   return uuidRegex.test(uuid)
@@ -118,7 +112,6 @@ const renderStars = (count: number): string => {
 </script>
 
 <template>
-  <!-- Review Modal Backdrop -->
   <Teleport to="body">
     <Transition name="fade">
       <div
@@ -126,12 +119,10 @@ const renderStars = (count: number): string => {
         class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
         @click.self="$emit('close')"
       >
-        <!-- Modal Card -->
         <div
           class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
           @click.stop
         >
-          <!-- Header -->
           <div class="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-5 text-white sticky top-0 z-10">
             <div class="flex items-start justify-between gap-4">
               <div>
@@ -149,9 +140,7 @@ const renderStars = (count: number): string => {
             </div>
           </div>
 
-          <!-- Content -->
           <div class="p-6 space-y-5">
-            <!-- Menu Item Info -->
             <div v-if="menuItem" class="bg-amber-50 rounded-lg p-4 border border-amber-200">
               <div class="flex gap-3">
                 <img
@@ -163,12 +152,11 @@ const renderStars = (count: number): string => {
                 <div class="flex-1 min-w-0">
                   <h3 class="font-bold text-gray-800 truncate">{{ menuItem.name }}</h3>
                   <p class="text-sm text-gray-600 line-clamp-2 mt-1">{{ menuItem.description }}</p>
-                  <p class="text-lg font-bold text-amber-600 mt-2">${{ menuItem.price.toFixed(2) }}</p>
+                  <p class="text-lg font-bold text-amber-600 mt-2">${{ ((menuItem.total_price !== undefined && menuItem.total_price !== null) ? Number(menuItem.total_price) : Number(menuItem.price)).toFixed(2) }}</p>
                 </div>
               </div>
             </div>
 
-            <!-- Rating Selection -->
             <div class="space-y-2">
               <label class="block text-sm font-bold text-gray-800">How would you rate this item?</label>
               <div class="flex gap-2 justify-center">
@@ -197,7 +185,6 @@ const renderStars = (count: number): string => {
               </p>
             </div>
 
-            <!-- Review Text -->
             <div class="space-y-2">
               <label class="block text-sm font-bold text-gray-800">
                 Your Review
@@ -219,7 +206,6 @@ const renderStars = (count: number): string => {
               </div>
             </div>
 
-            <!-- Guest Info Display -->
             <div v-if="guestName" class="bg-blue-50 rounded-lg p-3 border border-blue-200">
               <p class="text-xs text-blue-700">
                 <span class="font-bold">Posting as:</span> {{ guestName }}
@@ -227,15 +213,13 @@ const renderStars = (count: number): string => {
               </p>
             </div>
 
-            <!-- Info Alert -->
             <div class="bg-blue-50 rounded-lg p-3 border border-blue-200">
               <p class="text-xs text-blue-700">
-                ℹ️ Your review will be shown publicly after manager approval.
+                 Your review will be shown publicly after manager approval.
               </p>
             </div>
           </div>
 
-          <!-- Footer Actions -->
           <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 sticky bottom-0 flex gap-3">
             <button
               @click="$emit('close')"

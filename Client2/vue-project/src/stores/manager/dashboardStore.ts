@@ -4,22 +4,10 @@ import managerService from '@/services/managerService'
 import type { ManagerDashboardResponse, DashboardStatistics } from '@/types/manager'
 
 export const useManagerDashboardStore = defineStore('managerDashboard', () => {
-  /*
-  |--------------------------------------------------------------------------
-  | STATE
-  |--------------------------------------------------------------------------
-  */
-
   const dashboard = ref<ManagerDashboardResponse | null>(null)
   const statistics = ref<DashboardStatistics | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
-
-  /*
-  |--------------------------------------------------------------------------
-  | COMPUTED
-  |--------------------------------------------------------------------------
-  */
 
   const safeStatistics = computed(
     () =>
@@ -45,12 +33,6 @@ export const useManagerDashboardStore = defineStore('managerDashboard', () => {
       },
   )
 
-  /*
-  |--------------------------------------------------------------------------
-  | ACTIONS
-  |--------------------------------------------------------------------------
-  */
-
   async function loadDashboard() {
     try {
       loading.value = true
@@ -58,6 +40,7 @@ export const useManagerDashboardStore = defineStore('managerDashboard', () => {
       const response = await managerService.getDashboard()
       dashboard.value = response
     } catch (err: any) {
+      console.error('[manager/dashboardStore] Failed loading dashboard:', err)
       error.value = err.message || 'Failed loading dashboard'
     } finally {
       loading.value = false
@@ -68,32 +51,18 @@ export const useManagerDashboardStore = defineStore('managerDashboard', () => {
     try {
       loading.value = true
       error.value = null
-
-      console.log('[dashboardStore.loadStatistics] Loading statistics...')
       const response = await managerService.getStatistics()
-
-      console.log('[dashboardStore.loadStatistics]  Statistics received from service:', response)
-      console.log('[dashboardStore.loadStatistics] Setting statistics.value...')
-
       statistics.value = response
-
-      console.log('[dashboardStore.loadStatistics]  statistics.value is now:', statistics.value)
-      console.log('[dashboardStore.loadStatistics] Statistics stored successfully')
     } catch (err: any) {
-      console.error('[dashboardStore.loadStatistics]  Failed to load statistics:', err)
-
-      // Better error messages based on error type
+      console.error('[manager/dashboardStore] Failed loading dashboard statistics:', err)
       if (err.response?.status === 401) {
         error.value = 'Authentication failed - please log in again'
-        console.error('[dashboardStore.loadStatistics] 401 Unauthorized - no valid token')
       } else if (err.response?.status === 403) {
         error.value = 'Access denied - insufficient permissions for manager'
-        console.error('[dashboardStore.loadStatistics] 403 Forbidden - permission denied')
       } else if (err.code === 'ECONNABORTED') {
         error.value = 'Request timeout - server not responding'
       } else if (!err.response) {
         error.value = 'Cannot connect to server'
-        console.error('[dashboardStore.loadStatistics] Network error - server may be down')
       } else {
         error.value = err.message || 'Failed to load dashboard statistics'
       }
@@ -103,13 +72,10 @@ export const useManagerDashboardStore = defineStore('managerDashboard', () => {
   }
 
   async function initialize() {
-    console.log('[dashboardStore.initialize] Starting dashboard initialization...')
-
     try {
       await Promise.all([loadDashboard(), loadStatistics()])
-      console.log('[dashboardStore.initialize]  Dashboard initialization complete')
     } catch (err: any) {
-      console.error('[dashboardStore.initialize]  Initialization failed:', err)
+      console.error('[ManagerDashboardStore] Error initializing dashboard:', err)
     }
   }
 

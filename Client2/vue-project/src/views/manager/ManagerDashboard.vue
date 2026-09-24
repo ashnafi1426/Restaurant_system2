@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useHotelStore } from '@/stores/hotelStore'
 import { useManagerStore } from '@/stores/managerStore'
+import { useLanguageStore } from '@/stores/language'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
 import managerService from '@/services/managerService'
-import { Calendar, Home, Users, AlertCircle, TrendingUp, Sparkles, RefreshCw } from 'lucide-vue-next'
+import { Calendar, Home, Users, AlertCircle, TrendingUp, Sparkles, RefreshCw, Building2 } from 'lucide-vue-next'
 import { Bar, Doughnut } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -34,81 +36,94 @@ ChartJS.register(
 )
 
 const auth = useAuthStore()
+const hotelStore = useHotelStore()
 const manager = useManagerStore()
+const languageStore = useLanguageStore()
 const loading = ref(true)
 const error = ref<string | null>(null)
 const trendTab = ref<'weekly' | 'monthly'>('weekly')
 
 const stats = computed(() => ({
-  total_reservations: manager.dashboardStats.totalReservations || 36,
-  rooms_occupied: manager.dashboardStats.occupiedRooms || 6,
-  max_rooms: manager.dashboardStats.totalRooms || 9,
-  active_waiters: manager.dashboardStats.activeStaff || 3,
-  kitchen_ready: manager.dashboardStats.preparingOrders || 2,
-  today_revenue: manager.dashboardStats.todayRevenue || 1480,
+  total_reservations: Number(manager.dashboardStats.totalReservations ?? 0),
+  rooms_occupied: Number(manager.dashboardStats.occupiedRooms ?? 0),
+  max_rooms: Number(manager.dashboardStats.totalRooms ?? 0),
+  active_waiters: Number(manager.dashboardStats.activeStaff ?? 0),
+  kitchen_ready: Number(manager.dashboardStats.preparingOrders ?? 0),
+  today_revenue: Number(manager.dashboardStats.todayRevenue ?? 0),
 }))
 
 const activities = computed(() => manager.dashboardActivities || [])
 
-// Chart.js Revenue Trend Data
-const weeklyRevenueChartData = computed(() => ({
-  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-  datasets: [
-    {
-      label: 'Revenue ($)',
-      data: [420, 680, 510, 890, 1120, 1480, 950],
-      backgroundColor: '#3B82F6',
-      borderRadius: 8,
-      borderSkipped: false,
-      hoverBackgroundColor: '#2563EB',
-    }
-  ]
-}))
+// Live Chart.js Revenue Trend Data from backend
+const weeklyTrends = ref<{ label: string; revenue: number }[]>([])
+const monthlyTrends = ref<{ label: string; revenue: number }[]>([])
 
-const monthlyRevenueChartData = computed(() => ({
-  labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-  datasets: [
-    {
-      label: 'Monthly Revenue ($)',
-      data: [6400, 8900, 10200, 10760],
-      backgroundColor: '#6366F1',
-      borderRadius: 8,
-      borderSkipped: false,
-      hoverBackgroundColor: '#4F46E5',
-    }
-  ]
-}))
+const weeklyRevenueChartData = computed(() => {
+  const labels = weeklyTrends.value.length ? weeklyTrends.value.map(t => t.label) : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  const data = weeklyTrends.value.length ? weeklyTrends.value.map(t => t.revenue) : [0, 0, 0, 0, 0, 0, 0]
+  return {
+    labels,
+    datasets: [
+      {
+        label: `Revenue (${hotelStore.currentHotel?.currency || 'ETB'})`,
+        data,
+        backgroundColor: '#3B82F6',
+        borderRadius: 8,
+        borderSkipped: false,
+        hoverBackgroundColor: '#2563EB',
+      }
+    ]
+  }
+})
 
-const chartOptions = {
+const monthlyRevenueChartData = computed(() => {
+  const labels = monthlyTrends.value.length ? monthlyTrends.value.map(t => t.label) : ['Day 1', 'Day 10', 'Day 20', 'Day 30']
+  const data = monthlyTrends.value.length ? monthlyTrends.value.map(t => t.revenue) : [0, 0, 0, 0]
+  return {
+    labels,
+    datasets: [
+      {
+        label: `Monthly Revenue (${hotelStore.currentHotel?.currency || 'ETB'})`,
+        data,
+        backgroundColor: '#6366F1',
+        borderRadius: 8,
+        borderSkipped: false,
+        hoverBackgroundColor: '#4F46E5',
+      }
+    ]
+  }
+})
+
+const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
     tooltip: {
       backgroundColor: '#0F172A',
-      titleFont: { size: 12, weight: 'bold' },
+      titleFont: { size: 12, weight: 'bold' as const },
       bodyFont: { size: 12 },
       padding: 10,
       displayColors: false,
       callbacks: {
-        label: (context: any) => `Revenue: $${context.raw.toLocaleString()}`
+        label: (context: any) => `Revenue: ${Number(context.raw || 0).toLocaleString()} ${hotelStore.currentHotel?.currency || 'ETB'}`
       }
     }
   },
   scales: {
     x: {
       grid: { display: false },
-      ticks: { font: { size: 11, weight: '600' } }
+      ticks: { font: { size: 11, weight: 'bold' as const } }
     },
     y: {
       grid: { color: 'rgba(226, 232, 240, 0.5)' },
       ticks: {
         font: { size: 11 },
-        callback: (value: any) => `$${value}`
+        callback: (value: any) => `${value} ${hotelStore.currentHotel?.currency || 'ETB'}`
       }
     }
   }
-}
+}))
 
 // Occupancy Chart Data
 const occupancyChartData = computed(() => ({
@@ -127,7 +142,7 @@ const doughnutOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
-    legend: { position: 'bottom' as const, labels: { font: { size: 11, weight: '600' } } }
+    legend: { position: 'bottom' as const, labels: { font: { size: 11, weight: 'bold' as const } } }
   },
   cutout: '70%'
 }
@@ -155,6 +170,12 @@ const loadData = async () => {
     loading.value = true
     error.value = null
     await manager.initializeManagerDashboard()
+    try {
+      weeklyTrends.value = await managerService.getRevenueChart('weekly')
+      monthlyTrends.value = await managerService.getRevenueChart('monthly')
+    } catch (chartErr) {
+      console.warn('[ManagerDashboard] Chart load warning:', chartErr)
+    }
   } catch (err: any) {
     console.error('[ManagerDashboard] Load error:', err)
     error.value = err.message || 'Failed to load manager dashboard'
@@ -162,6 +183,15 @@ const loadData = async () => {
     loading.value = false
   }
 }
+
+watch(
+  () => hotelStore.hotelId,
+  (newHotelId) => {
+    if (newHotelId) {
+      loadData()
+    }
+  }
+)
 
 onMounted(() => {
   loadData()
@@ -175,39 +205,40 @@ onMounted(() => {
         <!-- Header & Action Controls -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Manager Executive Dashboard</h1>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Real-time revenue, occupancy analytics, staff operations & AI insights</p>
+            <div class="flex items-center gap-2.5">
+              <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ languageStore.t('manager_dashboard', 'Manager Executive Dashboard') }}</h1>
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+                <Building2 class="w-3.5 h-3.5" />
+                {{ hotelStore.hotelName }}
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('manager_dashboard_desc', 'Tenant-scoped operational analytics, live revenue, staff management & insights') }}</p>
           </div>
           <button 
             @click="loadData"
             :disabled="loading"
-            class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition shadow-xs self-start sm:self-auto disabled:opacity-50"
+            class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition shadow-xs self-start sm:self-auto disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw :class="['w-4 h-4', loading ? 'animate-spin' : '']" />
-            Refresh Overview
+            {{ languageStore.t('refresh', 'Refresh Overview') }}
           </button>
         </div>
-
-        <!-- KPI Metric Cards Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <!-- Total Reservations -->
           <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Reservations</span>
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('Reservations', 'Reservations') }}</span>
               <div class="p-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
                 <Calendar class="w-5 h-5" />
               </div>
             </div>
             <h3 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-3">{{ stats.total_reservations }}</h3>
-            <p class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1 flex items-center gap-1">
-              <span class="material-symbols-rounded text-sm">trending_up</span> +12% this week
-            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">{{ languageStore.t('active_bookings', 'Active hotel bookings') }}</p>
           </div>
 
           <!-- Rooms Occupied -->
           <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rooms Occupied</span>
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('room_occupancy', 'Rooms Occupancy') }}</span>
               <div class="p-2.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
                 <Home class="w-5 h-5" />
               </div>
@@ -217,46 +248,44 @@ onMounted(() => {
               <span class="text-sm font-bold text-slate-400 dark:text-slate-500">/ {{ stats.max_rooms }}</span>
             </div>
             <p class="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-1">
-              {{ Math.round((stats.rooms_occupied / Math.max(1, stats.max_rooms)) * 100) }}% Occupancy Rate
+              {{ stats.max_rooms > 0 ? Math.round((stats.rooms_occupied / stats.max_rooms) * 100) : 0 }}% {{ languageStore.t('occupancy_rate', 'Occupancy Rate') }}
             </p>
           </div>
 
           <!-- Active Waiters -->
           <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Staff</span>
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('active_staff', 'Active Staff') }}</span>
               <div class="p-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
                 <Users class="w-5 h-5" />
               </div>
             </div>
             <h3 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-3">{{ stats.active_waiters }}</h3>
-            <p class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1">All floors covered</p>
+            <p class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1">{{ languageStore.t('hotel_staff_members', 'Hotel staff members') }}</p>
           </div>
 
           <!-- Kitchen Urgent Orders -->
           <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kitchen Alert</span>
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('kitchen_alert', 'Kitchen Alert') }}</span>
               <div class="p-2.5 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl">
                 <AlertCircle class="w-5 h-5" />
               </div>
             </div>
             <h3 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-3">{{ stats.kitchen_ready }}</h3>
-            <p class="text-xs text-amber-600 dark:text-amber-400 font-semibold mt-1">Ready for pickup</p>
+            <p class="text-xs text-amber-600 dark:text-amber-400 font-semibold mt-1">{{ languageStore.t('preparing_ready_orders', 'Preparing / Ready orders') }}</p>
           </div>
 
           <!-- Today's Revenue Card -->
           <div class="bg-gradient-to-br from-indigo-600 via-blue-600 to-blue-700 text-white rounded-2xl p-5 shadow-lg shadow-blue-500/20 sm:col-span-2 lg:col-span-1">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-100">Today's Revenue</span>
+              <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-100">{{ languageStore.t("Today's Revenue", "Today's Revenue") }}</span>
               <TrendingUp class="w-5 h-5 text-white/80" />
             </div>
-            <h3 class="text-2xl sm:text-3xl font-black mt-3">${{ stats.today_revenue.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</h3>
-            <p class="text-xs text-indigo-100 mt-1 font-medium">Room Service & Dining</p>
+            <h3 class="text-2xl sm:text-3xl font-black mt-3">{{ stats.today_revenue.toLocaleString('en-US', { minimumFractionDigits: 2 }) }} <span class="text-sm font-normal text-indigo-200">{{ hotelStore.currentHotel?.currency || 'ETB' }}</span></h3>
+            <p class="text-xs text-indigo-100 mt-1 font-medium">{{ languageStore.t('hotel_dining_orders', 'Hotel Dining & Orders') }}</p>
           </div>
         </div>
-
-
 
         <!-- Charts & Analytics Section -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -264,8 +293,8 @@ onMounted(() => {
           <div class="lg:col-span-2 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-xl">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
               <div>
-                <h2 class="text-lg font-bold text-slate-900 dark:text-white">Revenue Analytics</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Live Chart.js breakdown of daily & weekly restaurant income</p>
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ languageStore.t('revenue_analytics', 'Revenue Analytics') }}</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('revenue_analytics_desc', 'Live Chart.js breakdown of daily & weekly restaurant income') }}</p>
               </div>
 
               <!-- Filter Tabs -->
@@ -273,20 +302,20 @@ onMounted(() => {
                 <button
                   @click="trendTab = 'weekly'"
                   :class="[
-                    'px-3 py-1.5 rounded-lg text-xs font-bold transition',
+                    'px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer',
                     trendTab === 'weekly' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                   ]"
                 >
-                  Weekly
+                  {{ languageStore.t('Week', 'Weekly') }}
                 </button>
                 <button
                   @click="trendTab = 'monthly'"
                   :class="[
-                    'px-3 py-1.5 rounded-lg text-xs font-bold transition',
+                    'px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer',
                     trendTab === 'monthly' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                   ]"
                 >
-                  Monthly
+                  {{ languageStore.t('Month', 'Monthly') }}
                 </button>
               </div>
             </div>
@@ -303,8 +332,8 @@ onMounted(() => {
           <!-- Occupancy Doughnut Chart -->
           <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-xl flex flex-col justify-between">
             <div>
-              <h2 class="text-lg font-bold text-slate-900 dark:text-white">Room Occupancy</h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Live ratio of occupied vs available rooms</p>
+              <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ languageStore.t('room_occupancy', 'Room Occupancy') }}</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('room_occupancy_desc', 'Live ratio of occupied vs available rooms') }}</p>
             </div>
 
             <div class="h-56 relative w-full my-4 flex items-center justify-center">
@@ -313,12 +342,12 @@ onMounted(() => {
 
             <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-around text-center text-xs">
               <div>
-                <p class="text-slate-500 dark:text-slate-400 font-semibold">Occupied</p>
-                <p class="text-base font-extrabold text-blue-600 dark:text-blue-400 mt-0.5">{{ stats.rooms_occupied }} Rooms</p>
+                <p class="text-slate-500 dark:text-slate-400 font-semibold">{{ languageStore.t('Occupied', 'Occupied') }}</p>
+                <p class="text-base font-extrabold text-blue-600 dark:text-blue-400 mt-0.5">{{ stats.rooms_occupied }} {{ languageStore.t('rooms', 'Rooms') }}</p>
               </div>
               <div>
-                <p class="text-slate-500 dark:text-slate-400 font-semibold">Available</p>
-                <p class="text-base font-extrabold text-slate-700 dark:text-slate-300 mt-0.5">{{ Math.max(0, stats.max_rooms - stats.rooms_occupied) }} Rooms</p>
+                <p class="text-slate-500 dark:text-slate-400 font-semibold">{{ languageStore.t('Available', 'Available') }}</p>
+                <p class="text-base font-extrabold text-slate-700 dark:text-slate-300 mt-0.5">{{ Math.max(0, stats.max_rooms - stats.rooms_occupied) }} {{ languageStore.t('rooms', 'Rooms') }}</p>
               </div>
             </div>
           </div>
@@ -328,13 +357,13 @@ onMounted(() => {
         <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-xl">
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h2 class="text-lg font-bold text-slate-900 dark:text-white">Recent Operations Log</h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Real-time system events, check-ins and order dispatches</p>
+              <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ languageStore.t('recent_operations_log', 'Recent Operations Log') }}</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('recent_operations_desc', 'Real-time system events, check-ins and order dispatches') }}</p>
             </div>
           </div>
 
           <div v-if="activities.length === 0" class="text-center py-8 text-slate-500 dark:text-slate-400 text-xs">
-            No recent activity logs recorded
+            {{ languageStore.t('no_recent_activity_logs', 'No recent activity logs recorded') }}
           </div>
 
           <div v-else class="divide-y divide-slate-100 dark:divide-slate-800">

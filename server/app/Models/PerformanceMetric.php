@@ -44,17 +44,11 @@ class PerformanceMetric extends Model
         'notes' => 'json',
     ];
 
-    /**
-     * Get the staff member
-     */
     public function staff(): BelongsTo
     {
         return $this->belongsTo(User::class, 'staff_id');
     }
 
-    /**
-     * Calculate completion rate
-     */
     public function calculateCompletionRate(): void
     {
         if ($this->tasks_assigned > 0) {
@@ -62,9 +56,6 @@ class PerformanceMetric extends Model
         }
     }
 
-    /**
-     * Calculate on-time rate
-     */
     public function calculateOnTimeRate(): void
     {
         $completed = $this->tasks_completed;
@@ -74,55 +65,36 @@ class PerformanceMetric extends Model
         }
     }
 
-    /**
-     * Scope: Get metrics for a specific staff member
-     */
     public function scopeForStaff($query, $staffId)
     {
         return $query->where('staff_id', $staffId);
     }
 
-    /**
-     * Scope: Get metrics for a department
-     */
     public function scopeForDepartment($query, $department)
     {
         return $query->where('department', $department);
     }
 
-    /**
-     * Scope: Get metrics for a date range
-     */
     public function scopeDateRange($query, $startDate, $endDate)
     {
         return $query->whereBetween('metric_date', [$startDate, $endDate]);
     }
 
-    /**
-     * Scope: Get recent metrics
-     */
     public function scopeRecent($query, $days = 30)
     {
         return $query->where('metric_date', '>=', now()->subDays($days)->toDateString());
     }
 
-    /**
-     * Get performance rating (1-5 stars)
-     */
     public function getPerformanceRating(): float
     {
         $scores = [];
 
-        // Completion rate (40% weight)
         $scores[] = ($this->completion_rate / 100) * 5 * 0.4;
 
-        // On-time rate (30% weight)
         $scores[] = ($this->on_time_rate / 100) * 5 * 0.3;
 
-        // Quality score (20% weight)
         $scores[] = ($this->quality_score / 100) * 5 * 0.2;
 
-        // Satisfaction rating (10% weight)
         if ($this->satisfaction_rating) {
             $scores[] = $this->satisfaction_rating * 0.1;
         }

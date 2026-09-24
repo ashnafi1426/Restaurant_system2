@@ -1,0 +1,132 @@
+<?php
+
+namespace App\Translations\Message;
+
+class Amharic
+{
+    public static function get(): array
+    {
+        return [
+            // General System Responses
+            'success' => 'ተግባሩ በተሳካ ሁኔታ ተከናውኗል',
+            'error' => 'ያልተጠበቀ ስህተት ተከስቷል',
+            'server_error' => 'የሲስተም ስህተት ተከስቷል። እባክዎ ትንሽ ቆይተው እንደገና ይሞክሩ።',
+            'not_found' => 'የተፈለገው መረጃ አልተገኘም',
+            'unauthorized' => 'ያልተፈቀደ መዳረሻ። እባክዎ መጀመሪያ ይግቡ።',
+            'forbidden' => 'ይህን ተግባር ለማከናወን ፈቃድ የለዎትም።',
+            'validation_error' => 'የተሞላው መረጃ ትክክል አይደለም።',
+            'saved_successfully' => 'በተሳካ ሁኔታ ተቀምጧል',
+            'updated_successfully' => 'በተሳካ ሁኔታ ተሻሽሏል',
+            'deleted_successfully' => 'በተሳካ ሁኔታ ተሰርዟል',
+            'created_successfully' => 'በተሳካ ሁኔታ ተፈጥሯል',
+            'changes_saved' => 'ለውጦችዎ በተሳካ ሁኔታ ተቀምጠዋል',
+            'action_completed' => 'እርምጃው በተሳካ ሁኔታ ተጠናቋል',
+            'no_data_found' => 'ምንም መረጃ አልተገኘም',
+            'invalid_request' => 'ልክ ያልሆነ የጥያቄ መረጃ',
+            'feature_disabled' => 'ይህ አገልግሎት ለጊዜው ተዘግቷል',
+            'file_uploaded' => 'ፋይሉ በተሳካ ሁኔታ ተጭኗል',
+            'file_deleted' => 'ፋይሉ በተሳካ ሁኔታ ተሰርዟል',
+            'language_changed' => 'ቋንቋ በተሳካ ሁኔታ ተቀይሯል',
+            'hotel_switched' => 'ሆቴል በተሳካ ሁኔታ ተቀይሯል',
+
+            // Auth & Account
+            'login_success' => 'በተሳካ ሁኔታ ገብተዋል',
+            'login_failed' => 'የተሳሳተ ኢሜይል ወይም የይለፍ ቃል',
+            'login_required' => 'እባክዎ ለመቀጠል መጀመሪያ ይግቡ',
+            'logout_success' => 'በተሳካ ሁኔታ ወጥተዋል',
+            'account_disabled' => 'መለያዎ ታግዷል። እባክዎ የስርዓት አስተዳዳሪውን ያነጋግሩ።',
+            'account_not_activated' => 'መለያዎ እስካሁን አልነቃም። እባክዎ ወደ ኢሜይልዎ የተላከውን የማረጋገጫ ማስፈንጠሪያ ይመልከቱ።',
+            'password_reset_sent' => 'የይለፍ ቃል መቀየሪያ ማስፈንጠሪያ ወደ ኢሜይልዎ ተልኳል።',
+            'password_reset_success' => 'የይለፍ ቃልዎ በተሳካ ሁኔታ ተቀይሯል።',
+            'password_updated' => 'የይለፍ ቃል በተሳካ ሁኔታ ተሻሽሏል።',
+            'password_incorrect' => 'ያስገቡት የቆየ የይለፍ ቃል ትክክል አይደለም።',
+            'profile_updated' => 'መገለጫዎ በተሳካ ሁኔታ ተሻሽሏል።',
+            'token_expired' => 'የቆይታ ጊዜዎ አልቋል። እባክዎ እንደገና ይግቡ።',
+            'email_already_exists' => 'ይህ ኢሜይል አስቀድሞ ተመዝግቧል።',
+            'phone_already_exists' => 'ይህ ስልክ ቁጥር አስቀድሞ ተመዝግቧል።',
+            'registration_success' => 'ምዝገባው በተሳካ ሁኔታ ተጠናቋል።',
+            'access_denied' => 'መዳረሻ ተከልክሏል። በቂ ፈቃድ የለዎትም።',
+
+            // Orders, Food, Cart & QR
+            'added_to_cart' => 'ወደ ቅርጫት በተሳካ ሁኔታ ተጨምሯል',
+            'removed_from_cart' => 'እቃው ከቅርጫት ወጥቷል',
+            'cart_cleared' => 'ቅርጫቱ ጸድቷል',
+            'cart_empty' => 'ቅርጫትዎ ባዶ ነው',
+            'order_placed' => 'ትዕዛዝዎ በተሳካ ሁኔታ ተጠናቋል',
+            'order_created' => 'ትዕዛዙ በተሳካ ሁኔታ ተፈጥሯል',
+            'order_updated' => 'ትዕዛዙ በተሳካ ሁኔታ ተሻሽሏል',
+            'order_cancelled' => 'ትዕዛዙ ተሰርዟል',
+            'order_not_found' => 'ትዕዛዙ አልተገኘም',
+            'order_status_updated' => 'የትዕዛዙ ሁኔታ ተሻሽሏል',
+            'item_unavailable' => 'ከተመረጡት ምግቦች ውስጥ አንዱ ወይም ከዚያ በላይ ለጊዜው አይገኙም',
+            'order_in_preparation' => 'ትዕዛዝዎ በማብሰል / ዝግጅት ላይ ነው',
+            'order_ready' => 'ትዕዛዝዎ ዝግጁ ሆኗል',
+            'order_served' => 'ትዕዛዙ መስተናገዱ ተረጋግጧል',
+            'order_delivered' => 'ትዕዛዝዎ በተሳካ ሁኔታ ደርሷል',
+            'kitchen_notified' => 'ትዕዛዙ ወደ ማብሰያ ቤት ተልኳል',
+            'special_instructions_received' => 'ልዩ ማሳሰቢያዎ ተመዝግቧል',
+            'invalid_qr_code' => 'ልክ ያልሆነ የQR ኮድ። እባክዎ ትክክለኛ የክፍል ወይም የጠረጴዛ QR ኮድ ይቃኙ።',
+            'qr_expired' => 'ይህ የQR ኮድ ጊዜው አልፎበታል',
+            'no_active_reservation' => 'ለዚህ ክፍል ንቁ የሆነ ማስያዣ የለም። እባክዎ መጀመሪያ ቼክ-ኢን ያድርጉ።',
+
+            // Rooms, Bookings & Guests
+            'reservation_created' => 'ክፍሉ በተሳካ ሁኔታ ተይዟል',
+            'reservation_confirmed' => 'የክፍል ማስያዣው ተረጋግጧል',
+            'reservation_cancelled' => 'የክፍል ማስያዣው ተሰርዟል',
+            'reservation_not_found' => 'የክፍል ማስያዣው አልተገኘም',
+            'check_in_success' => 'እንግዳው በተሳካ ሁኔታ ገብቷል (ቼክ-ኢን)',
+            'check_out_success' => 'እንግዳው በተሳካ ሁኔታ ወጥቷል (ቼክ-አውት)',
+            'room_not_available' => 'የተመረጠው ክፍል በተመረጡት ቀናት ውስጥ አይገኝም',
+            'room_status_updated' => 'የክፍሉ ሁኔታ በተሳካ ሁኔታ ተሻሽሏል',
+            'room_created' => 'አዲስ ክፍል በተሳካ ሁኔታ ተጨምሯል',
+            'room_updated' => 'የክፍሉ መረጃ በተሳካ ሁኔታ ተሻሽሏል',
+            'room_deleted' => 'ክፍሉ በተሳካ ሁኔታ ተሰርዟል',
+            'room_already_occupied' => 'ክፍሉ በአሁኑ ጊዜ በእንግዳ ተይዟል',
+            'room_under_maintenance' => 'ክፍሉ በአሁኑ ጊዜ በጥገና ላይ ነው',
+            'dates_invalid' => 'የመውጫ ቀን ከመግቢያ ቀን በኋላ መሆን አለበት',
+            'guest_registered' => 'የእንግዳ መረጃ በተሳካ ሁኔታ ተመዝግቧል',
+            'guest_not_found' => 'እንግዳው አልተገኘም',
+
+            // Payments, Invoices & Billing
+            'payment_successful' => 'ክፍያው በተሳካ ሁኔታ ተጠናቋል',
+            'payment_failed' => 'ክፍያው አልተሳካም። እባክዎ እንደገና ይሞክሩ ወይም ሌላ የክፍያ መንገድ ይምረጡ።',
+            'payment_pending' => 'ክፍያው በማረጋገጥ ላይ ነው',
+            'payment_verified' => 'ክፍያው በተሳካ ሁኔታ ተረጋግጧል',
+            'payment_initiated' => 'ክፍያው ተጀምሯል',
+            'refund_processed' => 'ተመላሽ ገንዘብ በተሳካ ሁኔታ ተፈጽሟል',
+            'refund_failed' => 'ተመላሽ ገንዘብ መፈጸም አልተቻለም',
+            'invoice_generated' => 'ደረሰኝ በተሳካ ሁኔታ ተዘጋጅቷል',
+            'invoice_sent' => 'ደረሰኙ ወደ እንግዳው ኢሜይል ተልኳል',
+            'amount_invalid' => 'ልክ ያልሆነ የክፍያ መጠን',
+            'insufficient_balance' => 'በቂ ሂሳብ የለም',
+            'transaction_recorded' => 'የገንዘብ ዝውውሩ በተሳካ ሁኔታ ተመዝግቧል',
+
+            // Menu Management
+            'menu_item_created' => 'የምግብ ዝርዝር በተሳካ ሁኔታ ተፈጥሯል',
+            'menu_item_updated' => 'የምግብ ዝርዝር በተሳካ ሁኔታ ተሻሽሏል',
+            'menu_item_deleted' => 'የምግብ ዝርዝር በተሳካ ሁኔታ ተሰርዟል',
+            'category_created' => 'ምድብ በተሳካ ሁኔታ ተፈጥሯል',
+            'category_updated' => 'ምድብ በተሳካ ሁኔታ ተሻሽሏል',
+            'category_deleted' => 'ምድብ በተሳካ ሁኔታ ተሰርዟል',
+            'item_stock_updated' => 'የምግቡ አቅርቦት ሁኔታ ተሻሽሏል',
+
+            // Reviews & Ratings
+            'review_submitted' => 'እናመሰግናለን! አስተያየትዎ በተሳካ ሁኔታ ተልኳል',
+            'review_deleted' => 'አስተያየቱ በተሳካ ሁኔታ ተሰርዟል',
+            'review_approved' => 'አስተያየቱ ጸድቋል',
+            'review_rejected' => 'አስተያየቱ ውድቅ ተደርጓል',
+            'rating_required' => 'እባክዎ ከ1 እስከ 5 ኮከብ ደረጃ ይስጡ',
+            'already_reviewed' => 'ለዚህ አገልግሎት ወይም ቆይታ አስቀድመው አስተያየት ሰጥተዋል',
+
+            // Staff & RBAC
+            'staff_created' => 'ሰራተኛው በተሳካ ሁኔታ ተመዝግቧል',
+            'staff_updated' => 'የሰራተኛው መረጃ ተሻሽሏል',
+            'staff_deleted' => 'ሰራተኛው በተሳካ ሁኔታ ተሰርዟል',
+            'role_created' => 'ሚናው በተሳካ ሁኔታ ተፈጥሯል',
+            'role_updated' => 'ሚናው በተሳካ ሁኔታ ተሻሽሏል',
+            'role_deleted' => 'ሚናው በተሳካ ሁኔታ ተሰርዟል',
+            'permissions_updated' => 'ፈቃዶች በተሳካ ሁኔታ ተሻሽለዋል',
+            'status_changed' => 'ሁኔታው በተሳካ ሁኔታ ተቀይሯል',
+        ];
+    }
+}

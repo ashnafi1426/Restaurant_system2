@@ -19,15 +19,10 @@ import type {
   RevenueChartItem,
   OccupancyChartItem,
   Waiter,
+  WaiterStatus,
 } from '@/types/manager'
 
 export const useManagerStore = defineStore('manager', () => {
-  /*
-  |--------------------------------------------------------------------------
-  | STATE
-  |--------------------------------------------------------------------------
-  */
-
   const dashboard = ref<ManagerDashboardResponse | null>(null)
   const statistics = ref<DashboardStatistics | null>(null)
   const revenueSummary = ref<RevenueSummary | null>(null)
@@ -44,12 +39,6 @@ export const useManagerStore = defineStore('manager', () => {
   const activities = ref<RecentActivity[]>([])
   const waiters = ref<Waiter[]>([])
 
-  /*
-  |--------------------------------------------------------------------------
-  | DASHBOARD SPECIFIC STATE
-  |--------------------------------------------------------------------------
-  */
-
   const dashboardStats = ref({
     totalReservations: 0,
     todayCheckIns: 0,
@@ -65,12 +54,6 @@ export const useManagerStore = defineStore('manager', () => {
 
   const dashboardActivities = ref<any[]>([])
 
-  /*
-  |--------------------------------------------------------------------------
-  | UI STATES
-  |--------------------------------------------------------------------------
-  */
-
   const loading = ref(false)
   const loadingRevenue = ref(false)
   const loadingStaff = ref(false)
@@ -80,12 +63,6 @@ export const useManagerStore = defineStore('manager', () => {
   const dashboardActivityLoading = ref(false)
   const error = ref<string | null>(null)
   const dashboardError = ref<string | null>(null)
-
-  /*
-  |--------------------------------------------------------------------------
-  | COMPUTED
-  |--------------------------------------------------------------------------
-  */
 
   const unreadNotifications = computed(() =>
     notifications.value.filter((notification) => !notification.read_at),
@@ -167,12 +144,6 @@ export const useManagerStore = defineStore('manager', () => {
     laundry: 0,
   }))
 
-  /*
-  |--------------------------------------------------------------------------
-  | LOAD COMPLETE DASHBOARD
-  |--------------------------------------------------------------------------
-  */
-
   async function loadDashboard() {
     try {
       loading.value = true
@@ -180,31 +151,17 @@ export const useManagerStore = defineStore('manager', () => {
       const response = await managerService.getDashboard()
       dashboard.value = response
     } catch (err: any) {
+      console.error('[managerStore] Failed loading dashboard:', err)
       error.value = err.message || 'Failed loading dashboard'
     } finally {
       loading.value = false
     }
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | LOAD STATISTICS
-  |--------------------------------------------------------------------------
-  */
-
   async function loadStatistics() {
     try {
-      console.log('\n>>> [managerStore.loadStatistics] START')
-      console.log('[managerStore] 🚀 Loading statistics from service...')
-
       const response = await managerService.getStatistics()
 
-      console.log('[managerStore]  Response received from service')
-      console.log('[managerStore] Response type:', typeof response)
-      console.log('[managerStore] Response keys:', Object.keys(response))
-      console.log('[managerStore] Full response:', response)
-
-      // Update dashboard stats ref
       dashboardStats.value = {
         totalReservations: response.totalReservations,
         todayCheckIns: response.todayCheckIns,
@@ -218,26 +175,12 @@ export const useManagerStore = defineStore('manager', () => {
         completedOrders: response.completedOrders,
       }
 
-      // Also update statistics ref for backward compatibility
       statistics.value = response
-
-      console.log('[managerStore]  Dashboard stats updated:')
-      console.log('[managerStore] dashboardStats.value =', dashboardStats.value)
-      console.log('[managerStore] statistics.value =', statistics.value)
-      console.log('>>> [managerStore.loadStatistics] COMPLETE\n')
     } catch (err: any) {
-      console.error('[managerStore]  Error loading statistics:', err)
-      console.error('[managerStore] Error message:', err.message)
-      console.error('[managerStore] Error stack:', err.stack)
+      console.error('[managerStore] Failed loading statistics:', err)
       dashboardError.value = err.message
     }
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | REVENUE
-  |--------------------------------------------------------------------------
-  */
 
   async function loadRevenueSummary() {
     try {
@@ -252,32 +195,14 @@ export const useManagerStore = defineStore('manager', () => {
     revenueChart.value = await managerService.getRevenueChart(period)
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | OCCUPANCY
-  |--------------------------------------------------------------------------
-  */
-
   async function loadOccupancy() {
     occupancySummary.value = await managerService.getOccupancySummary()
     occupancyChart.value = await managerService.getOccupancyChart()
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | RESERVATION
-  |--------------------------------------------------------------------------
-  */
-
   async function loadReservations() {
     reservationSummary.value = await managerService.getReservationSummary()
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | STAFF
-  |--------------------------------------------------------------------------
-  */
 
   async function loadStaff() {
     try {
@@ -288,12 +213,6 @@ export const useManagerStore = defineStore('manager', () => {
     }
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | RESTAURANT ORDERS
-  |--------------------------------------------------------------------------
-  */
-
   async function loadOrders() {
     try {
       loadingOrders.value = true
@@ -303,41 +222,17 @@ export const useManagerStore = defineStore('manager', () => {
     }
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | ROOM SERVICE DELIVERY
-  |--------------------------------------------------------------------------
-  */
-
   async function loadDeliveries() {
     deliveries.value = await managerService.getDeliveries()
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | HOUSEKEEPING
-  |--------------------------------------------------------------------------
-  */
 
   async function loadHousekeeping() {
     housekeeping.value = await managerService.getHousekeeping()
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | LAUNDRY
-  |--------------------------------------------------------------------------
-  */
-
   async function loadLaundry() {
     laundryRequests.value = await managerService.getLaundryRequests()
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | NOTIFICATIONS
-  |--------------------------------------------------------------------------
-  */
 
   async function loadNotifications() {
     try {
@@ -356,40 +251,24 @@ export const useManagerStore = defineStore('manager', () => {
     }
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | ACTIVITIES
-  |--------------------------------------------------------------------------
-  */
-
   async function loadActivities() {
     try {
-      console.log('\n>>> [managerStore.loadActivities] START')
-      console.log('[managerStore] 🚀 Loading activities...')
       dashboardActivityLoading.value = true
       dashboardActivities.value = await managerService.getRecentActivities()
       activities.value = dashboardActivities.value
-      console.log('[managerStore]  Activities loaded:', dashboardActivities.value.length, 'items')
-      console.log('[managerStore] Activities:', dashboardActivities.value)
-      console.log('>>> [managerStore.loadActivities] COMPLETE\n')
     } catch (err: any) {
-      console.error('[managerStore]  Error loading activities:', err)
+      console.error('[managerStore] Failed loading activities:', err)
       dashboardError.value = err.message
     } finally {
       dashboardActivityLoading.value = false
     }
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | WAITERS
-  |--------------------------------------------------------------------------
-  */
-
   async function loadWaiters() {
     try {
       waiters.value = await managerService.getWaiters()
     } catch (err: any) {
+      console.error('[managerStore] Failed loading waiters:', err)
       error.value = err.message
     }
   }
@@ -410,18 +289,20 @@ export const useManagerStore = defineStore('manager', () => {
       const newWaiter = await managerService.createWaiter(data)
       waiters.value.push(newWaiter)
     } catch (err: any) {
+      console.error('[managerStore] Failed creating waiter:', err)
       error.value = err.message
     }
   }
 
-  async function updateWaiterStatus(waiterId: string, status: string) {
+  async function updateWaiterStatus(waiterId: string, status: WaiterStatus | string) {
     try {
       await managerService.updateWaiterStatus(waiterId, status)
       const waiter = waiters.value.find((w) => w.id === waiterId)
       if (waiter) {
-        waiter.status = status
+        waiter.status = status as WaiterStatus
       }
     } catch (err: any) {
+      console.error('[managerStore] Failed updating waiter status:', err)
       error.value = err.message
     }
   }
@@ -431,49 +312,25 @@ export const useManagerStore = defineStore('manager', () => {
       await managerService.deleteWaiter(waiterId)
       waiters.value = waiters.value.filter((w) => w.id !== waiterId)
     } catch (err: any) {
+      console.error('[managerStore] Failed deleting waiter:', err)
       error.value = err.message
     }
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | LOAD DASHBOARD ONLY (for ManagerDashboard component)
-  |--------------------------------------------------------------------------
-  */
-
   async function initializeManagerDashboard() {
     try {
-      console.log('\n========== [managerStore.initializeManagerDashboard] START ==========')
-      console.log('[managerStore] 🚀 Initializing dashboard...')
       dashboardLoading.value = true
       dashboardError.value = null
 
-      console.log('[managerStore] Step 1/2: Loading statistics...')
       await loadStatistics()
-      console.log('[managerStore]  Statistics loaded')
-
-      console.log('[managerStore] Step 2/2: Loading activities...')
       await loadActivities()
-      console.log('[managerStore]  Activities loaded')
-
-      console.log('[managerStore]  Dashboard initialized successfully')
-      console.log('========== [managerStore.initializeManagerDashboard] COMPLETE ==========\n')
     } catch (err: any) {
-      console.error('\n========== [managerStore.initializeManagerDashboard] ERROR ==========')
-      console.error('[managerStore]  Error initializing dashboard:', err)
-      console.error('[managerStore] Error message:', err.message)
+      console.error('[managerStore] Failed initializing manager dashboard:', err)
       dashboardError.value = err.message
-      console.log('========== [managerStore.initializeManagerDashboard] ERROR END ==========\n')
     } finally {
       dashboardLoading.value = false
     }
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | LOAD EVERYTHING
-  |--------------------------------------------------------------------------
-  */
 
   async function initializeFullManager() {
     await Promise.all([
@@ -494,21 +351,9 @@ export const useManagerStore = defineStore('manager', () => {
     ])
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | REFRESH
-  |--------------------------------------------------------------------------
-  */
-
   async function refresh() {
     await initializeManagerDashboard()
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | RESET STORE
-  |--------------------------------------------------------------------------
-  */
 
   function reset() {
     dashboard.value = null
@@ -544,7 +389,6 @@ export const useManagerStore = defineStore('manager', () => {
   }
 
   return {
-    // state
     dashboard,
     statistics,
     revenueSummary,
@@ -561,11 +405,9 @@ export const useManagerStore = defineStore('manager', () => {
     activities,
     waiters,
 
-    // dashboard specific
     dashboardStats,
     dashboardActivities,
 
-    // loading
     loading,
     loadingRevenue,
     loadingStaff,
@@ -576,10 +418,10 @@ export const useManagerStore = defineStore('manager', () => {
     error,
     dashboardError,
 
-    // computed
     unreadNotifications,
     pendingOrders,
     preparingOrdersComputed,
+    preparingOrders: preparingOrdersComputed,
     readyOrders,
     activeDeliveries,
     pendingLaundry,
@@ -589,7 +431,6 @@ export const useManagerStore = defineStore('manager', () => {
     revenue,
     safeStatistics,
 
-    // actions
     loadDashboard,
     loadStatistics,
     loadRevenueSummary,

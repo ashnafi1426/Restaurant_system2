@@ -7,41 +7,19 @@ use Illuminate\Validation\Rules\Password;
 
 class ActivateAccountRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            /*
-            |--------------------------------------------------------------------------
-            | Activation Token
-            |--------------------------------------------------------------------------
-            | UUID token sent via email
-            */
             'token' => [
                 'required',
                 'string',
-                'size:36' // UUID length
+                'size:36'
             ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | Password
-            |--------------------------------------------------------------------------
-            | Minimum 8 characters
-            | Must contain uppercase, lowercase, number, and special character
-            */
             'password' => [
                 'required',
                 'string',
@@ -52,12 +30,6 @@ class ActivateAccountRequest extends FormRequest
                     ->symbols()
                     ->uncompromised()
             ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | Password Confirmation
-            |--------------------------------------------------------------------------
-            */
             'password_confirmation' => [
                 'required',
                 'string'
@@ -65,11 +37,6 @@ class ActivateAccountRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     *
-     * @return array<string, string>
-     */
     public function messages(): array
     {
         return [
@@ -81,11 +48,6 @@ class ActivateAccountRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom attributes for validator errors.
-     *
-     * @return array<string, string>
-     */
     public function attributes(): array
     {
         return [

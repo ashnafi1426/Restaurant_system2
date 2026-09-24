@@ -4,7 +4,6 @@ import { ref } from 'vue'
 
 const router = useRouter()
 
-// Hotel highlights - these are mostly static but structured for potential backend integration
 const highlights = [
   {
     icon: '🏨',
@@ -17,7 +16,7 @@ const highlights = [
     description: 'Enjoy breathtaking city and landscape views from every floor.',
   },
   {
-    icon: '🍽️',
+    icon: '',
     title: 'Fine Dining',
     description: 'International cuisine prepared by experienced chefs.',
   },
@@ -28,7 +27,6 @@ const highlights = [
   },
 ]
 
-// Experience section images - could be fetched from backend
 const experienceImage = ref('/images/facilities/restaurant.jpg')
 
 function discoverMore() {
@@ -40,20 +38,12 @@ function discoverMore() {
   <section class="bg-white py-12 sm:py-16 md:py-20 lg:py-24">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10">
       <div class="grid items-center gap-8 sm:gap-10 md:gap-12 lg:gap-16 grid-cols-1 lg:grid-cols-2">
-        <!-- ================================= -->
-        <!-- Images -->
-        <!-- ================================= -->
-
         <div class="relative order-2 lg:order-1">
-          <!-- Main Image -->
-
           <img
             :src="experienceImage"
             alt="Luxury Hotel"
             class="h-48 sm:h-56 md:h-64 lg:h-80 w-full rounded-2xl sm:rounded-3xl lg:rounded-4xl object-cover shadow-lg sm:shadow-xl md:shadow-2xl"
           />
-
-          <!-- Floating Card -->
 
           <div
             class="absolute -bottom-6 sm:-bottom-8 -right-4 sm:-right-6 md:-right-8 rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 md:p-8 shadow-lg sm:shadow-xl md:shadow-2xl"
@@ -68,10 +58,6 @@ function discoverMore() {
           </div>
         </div>
 
-        <!-- ================================= -->
-        <!-- Content -->
-        <!-- ================================= -->
-
         <div class="order-1 lg:order-2">
           <p
             class="mb-2 sm:mb-3 md:mb-4 uppercase tracking-[2px] sm:tracking-[3px] md:tracking-[4px] lg:tracking-[6px] text-amber-600 text-xs sm:text-sm"
@@ -84,7 +70,6 @@ function discoverMore() {
           >
             More Than
             <br />
-
             Just A Stay
           </h2>
 
@@ -95,8 +80,6 @@ function discoverMore() {
             unforgettable experiences, and genuine hospitality. From elegant rooms to premium dining
             and wellness facilities, your stay becomes a memorable journey.
           </p>
-
-          <!-- Features -->
 
           <div
             class="mt-8 sm:mt-10 md:mt-12 lg:mt-16 grid gap-4 sm:gap-6 md:gap-8 grid-cols-1 md:grid-cols-2"
@@ -132,10 +115,6 @@ function discoverMore() {
           </button>
         </div>
       </div>
-
-      <!-- ================================= -->
-      <!-- Statistics -->
-      <!-- ================================= -->
 
       <div
         class="mt-12 sm:mt-16 md:mt-20 lg:mt-24 grid gap-6 sm:gap-8 md:gap-10 lg:gap-12 rounded-2xl sm:rounded-3xl lg:rounded-4xl bg-slate-900 p-6 sm:p-8 md:p-10 lg:p-12 text-center text-white grid-cols-2 md:grid-cols-2 lg:grid-cols-4"

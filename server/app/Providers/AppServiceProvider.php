@@ -63,6 +63,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Include translation helpers
+        require_once app_path('Translations/helpers.php');
+
         // Register view namespace for email templates
         view()->addNamespace('mail', resource_path('views/emails'));
     }

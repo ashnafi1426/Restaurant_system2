@@ -14,46 +14,30 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-
+use App\Services\TenantContext;
+use App\Models\Hotel;
+use App\Models\Room;
 
 class PaymentController extends Controller
 {
-    /**
-     * Chapa Service Instance
-     */
     protected ChapaService $chapa;
+
     public function __construct(ChapaService $chapa)
     {
         $this->chapa = $chapa;
     }
-    /**
-     * ============================================================================
-     * Initialize Payment
-     * ============================================================================
-     * Validates payment request and initializes transaction with Chapa
-     * 
-     * Flow:
-     * 1. Validate request data
-     * 2. Generate unique transaction reference
-     * 3. Create Payment record in 'pending' status
-     * 4. Call Chapa API to initialize payment
-     * 5. Update Payment with checkout URL and status='initialized'
-     * 6. Return checkout URL to frontend
-     * 
-     * @param InitializePaymentRequest $request
-     * @return JsonResponse
-     */
+
     public function initialize(InitializePaymentRequest $request): JsonResponse
     {
         try {
-            $hotelId = \App\Services\TenantContext::id() 
-                ?: auth()->user()?->hotel_id 
+            $hotelId = TenantContext::id() 
+                ?: Auth::user()?->hotel_id 
                 ?: ($request->metadata['hotel_id'] ?? null)
                 ?: $request->header('X-Hotel-ID');
-
             if ($hotelId) {
-                $hotel = \App\Models\Hotel::find($hotelId);
+                $hotel = Hotel::find($hotelId);
                 if (!$hotel || !$hotel->isActive()) {
                     return response()->json([
                         'success' => false,
@@ -61,16 +45,12 @@ class PaymentController extends Controller
                     ], 422);
                 }
             }
-
-            // Generate unique transaction reference
             $txRef = $this->chapa->generateTransactionReference();
 
             $metadata = $request->metadata ?? [];
             if ($hotelId && empty($metadata['hotel_id'])) {
                 $metadata['hotel_id'] = $hotelId;
             }
-
-            // Create Payment record (transaction starts at 'pending')
             $payment = Payment::create([
                 'hotel_id'           => $hotelId,
                 'tx_ref'             => $txRef,
@@ -84,8 +64,6 @@ class PaymentController extends Controller
                 'status'             => Payment::STATUS_PENDING,
                 'metadata'           => $metadata,
             ]);
-
-            // Initialize payment with Chapa
             $response = $this->chapa->initialize([
                 'amount'        => $payment->amount,
                 'currency'      => $payment->currency,
@@ -99,8 +77,6 @@ class PaymentController extends Controller
                 'title'         => $request->title ?? 'Hotel Management System Payment',
                 'description'   => $request->description ?? 'Secure Payment Processing',
             ]);
-
-            // Handle initialization failure
             if (!$response['success']) {
                 Log::error('Chapa Initialize Failed', [
                     'tx_ref'  => $txRef,
@@ -109,28 +85,20 @@ class PaymentController extends Controller
                 ]);
 
                 $payment->markAsFailed($response);
-
                 return response()->json([
                     'success' => false,
                     'message' => $response['message'] ?? 'Unable to initialize payment',
                     'error'   => 'PAYMENT_INIT_FAILED',
                 ], 400);
             }
-
-            // Extract checkout URL
             $checkoutUrl = $this->chapa->getCheckoutUrl($response);
-
-            // Update payment with checkout URL and initialized status
             $payment->markAsInitialized($checkoutUrl);
-
             Log::info('Payment Initialized Successfully', [
                 'payment_id' => $payment->id,
                 'tx_ref'     => $txRef,
                 'amount'     => $payment->amount,
                 'email'      => $payment->email,
             ]);
-
-            // Return response with checkout URL
             return response()->json([
                 'success'       => true,
                 'message'       => 'Payment initialized successfully',
@@ -155,32 +123,12 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Verify Payment
-     * ============================================================================
-     * Verifies payment status with Chapa and updates Payment record
-     * 
-     * Flow:
-     * 1. Find Payment by transaction reference
-     * 2. Query Chapa API for transaction status
-     * 3. If verified/success, mark as verified and return success
-     * 4. Create associated records (Reservation/Order) after verification
-     * 5. Return verification result
-     * 
-     * @param string $txRef - Transaction Reference
-     * @return JsonResponse
-     */
     public function verify(string $txRef): JsonResponse
     {
         try {
-            // Find payment record
             $payment = Payment::where('tx_ref', $txRef)->firstOrFail();
-
-            // Query Chapa for verification
             $response = $this->chapa->verify($txRef);
 
-            // Handle verification failure
             if (!$response['success']) {
                 Log::error('Chapa Verification Failed', [
                     'tx_ref'  => $txRef,
@@ -197,15 +145,10 @@ class PaymentController extends Controller
                 ], 400);
             }
 
-            // Check if payment was successful
             if ($this->chapa->isSuccessful($response)) {
-                // First mark as paid (sets paid_at timestamp and transaction ID)
                 $payment->markAsPaid($this->chapa->getTransactionId($response));
-                
-                // Then mark as verified (sets verified_at and raw_response)
                 $payment->markAsVerified($response);
                 
-                // Update payment method
                 $payment->update([
                     'payment_method' => $this->chapa->getPaymentMethod($response),
                 ]);
@@ -214,14 +157,8 @@ class PaymentController extends Controller
                     'payment_id' => $payment->id,
                     'tx_ref'     => $txRef,
                     'amount'     => $payment->amount,
-                    'status'     => $payment->fresh()->status,  // Get fresh status
+                    'status'     => $payment->fresh()->status,
                 ]);
-
-                // ============================================================================
-                // AUTO-CREATE RESERVATION OR ORDER AFTER PAYMENT VERIFICATION
-                // ============================================================================
-                
-                // Check if this is a reservation payment (has metadata with reservation data)
                 if ($payment->metadata && isset($payment->metadata['type']) && $payment->metadata['type'] === 'reservation') {
                     Log::info('Creating reservation after payment verification', [
                         'payment_id' => $payment->id,
@@ -232,7 +169,7 @@ class PaymentController extends Controller
                         $paymentHotelId = $payment->hotel_id ?? ($payment->metadata['hotel_id'] ?? null);
 
                         if ($paymentHotelId && !empty($payment->metadata['room_id'])) {
-                            $roomBelongs = \App\Models\Room::where('hotel_id', $paymentHotelId)
+                            $roomBelongs = Room::where('hotel_id', $paymentHotelId)
                                 ->where('id', $payment->metadata['room_id'])
                                 ->exists();
                             if (!$roomBelongs) {
@@ -240,7 +177,6 @@ class PaymentController extends Controller
                             }
                         }
 
-                        // Create the reservation
                         $reservation = Reservation::create([
                             'hotel_id'          => $paymentHotelId,
                             'booking_reference' => Reservation::generateBookingReference(),
@@ -250,12 +186,11 @@ class PaymentController extends Controller
                             'check_out_date'    => $payment->metadata['check_out_date'],
                             'number_of_guests'  => $payment->metadata['number_of_guests'],
                             'total_amount'      => $payment->amount,
-                            'status'            => 'pending',  // Receptionist needs to confirm
+                            'status'            => 'pending',
                             'special_requests'  => $payment->metadata['special_requests'] ?? null,
-                            'created_by'        => null,  // Guest booking
+                            'created_by'        => null,
                         ]);
                         
-                        // Link payment to reservation
                         $payment->update(['reservation_id' => $reservation->id]);
                         
                         Log::info('Reservation created successfully after payment', [
@@ -272,8 +207,6 @@ class PaymentController extends Controller
                             'tx_ref'     => $txRef,
                             'error'      => $e->getMessage(),
                         ]);
-                        // Don't fail the payment verification if reservation creation fails
-                        // This can be handled manually or retried later
                     }
                 }
                 if ($payment->metadata && isset($payment->metadata['type']) && $payment->metadata['type'] === 'order') {
@@ -284,14 +217,13 @@ class PaymentController extends Controller
                     ]);
 
                     if ($payment->order_id) {
-                        Log::info('ℹ️ [ORDER] Order already exists for verified payment, skipping duplicate creation', [
+                        Log::info(' [ORDER] Order already exists for verified payment, skipping duplicate creation', [
                             'payment_id' => $payment->id,
                             'order_id'   => $payment->order_id,
                             'tx_ref'     => $txRef,
                         ]);
                     } else {
                         try {
-                            // Extract order data from metadata
                             $calculation = $payment->metadata['calculation'] ?? [];
                             $orderItems = $payment->metadata['items'] ?? [];
                             $roomId = $payment->metadata['room_id'] ?? null;
@@ -308,16 +240,15 @@ class PaymentController extends Controller
                                 throw new \Exception('No order items found in payment metadata');
                             }
 
-                            // Create order record
                             $order = Order::create([
                                 'hotel_id'         => $payment->hotel_id ?? ($payment->metadata['hotel_id'] ?? null),
                                 'order_number'     => Order::generateOrderNumber(),
-                                'reservation_id'   => null, //  QR orders have no reservation initially  
+                                'reservation_id'   => null,
                                 'guest_id'         => $payment->guest_id,
                                 'room_id'          => $roomId,
                                 'order_time'       => now(),
-                                'status'           => Order::STATUS_PENDING, //  Now visible to chef!
-                                'payment_type'     => 'card', //  Match enum: 'room_charge', 'cash', 'card'
+                                'status'           => Order::STATUS_PENDING,
+                                'payment_type'     => 'card',
                                 'subtotal'         => $calculation['subtotal'] ?? $payment->amount,
                                 'tax'              => $calculation['tax'] ?? 0,
                                 'discount'         => $calculation['discount'] ?? 0,
@@ -330,9 +261,8 @@ class PaymentController extends Controller
                                 'order_number' => $order->order_number,
                             ]);
 
-                            // Create order items
                             foreach ($orderItems as $item) {
-                                Log::info('🔧 [ORDER] Creating order item', [
+                                Log::info(' [ORDER] Creating order item', [
                                     'menu_item_id' => $item['menu_item_id'] ?? 'missing',
                                     'quantity'     => $item['quantity'] ?? 'missing',
                                     'price'        => $item['price'] ?? 'missing',
@@ -345,15 +275,14 @@ class PaymentController extends Controller
                                 $order->orderItems()->create([
                                     'menu_item_id'        => $item['menu_item_id'],
                                     'quantity'            => $quantity,
-                                    'item_price_at_order' => $itemPrice, //  Correct column name
-                                    'line_total'          => $lineTotal,  //  Required column
+                                    'item_price_at_order' => $itemPrice,
+                                    'line_total'          => $lineTotal,
                                     'notes'               => $item['special_instructions'] ?? null,
                                 ]);
                             }
 
                             Log::info('📦 [ORDER] All order items created');
 
-                            // Link payment to order
                             $payment->update(['order_id' => $order->id]);
 
                             Log::info(' [ORDER] Order created successfully after payment - NOW VISIBLE TO CHEF!', [
@@ -375,8 +304,6 @@ class PaymentController extends Controller
                                 'line'       => $e->getLine(),
                                 'trace'      => $e->getTraceAsString(),
                             ]);
-                            // Don't fail the payment verification if order creation fails
-                            // Payment is still successful, order creation can be retried
                         }
                     }
                 }
@@ -389,7 +316,6 @@ class PaymentController extends Controller
                 ]);
             }
 
-            // Payment not successful
             Log::warning('Payment Status Not Successful', [
                 'tx_ref'   => $txRef,
                 'status'   => $response['data']['status'] ?? 'unknown',
@@ -427,21 +353,6 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Chapa Callback
-     * ============================================================================
-     * Handles webhook callback from Chapa payment gateway
-     * 
-     * Flow:
-     * 1. Extract transaction reference from callback payload
-     * 2. Call verify method
-     * 3. Create associated records (Reservation/Order) if verified
-     * 4. Return response to Chapa
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function callback(Request $request): JsonResponse
     {
         try {
@@ -450,7 +361,6 @@ class PaymentController extends Controller
                 'data'   => $request->all(),
             ]);
 
-            // Extract transaction reference
             $txRef = $request->get('tx_ref');
 
             if (!$txRef) {
@@ -462,7 +372,6 @@ class PaymentController extends Controller
                 ], 400);
             }
 
-            // Verify the payment
             return $this->verify($txRef);
 
         } catch (\Exception $e) {
@@ -477,15 +386,6 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Get Payment Status
-     * ============================================================================
-     * Retrieve current payment status
-     * 
-     * @param string $paymentId - Payment UUID
-     * @return JsonResponse
-     */
     public function getStatus(string $paymentId): JsonResponse
     {
         try {
@@ -515,14 +415,6 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Get Payment by Transaction Reference
-     * ============================================================================
-     * 
-     * @param string $txRef
-     * @return JsonResponse
-     */
     public function getByTransactionRef(string $txRef): JsonResponse
     {
         try {
@@ -552,31 +444,19 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * List Payments (Admin/Manager)
-     * ============================================================================
-     * Retrieve paginated list of payments with filtering
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function index(Request $request): JsonResponse
     {
         try {
             $query = Payment::query();
 
-            // Filter by status
             if ($request->has('status')) {
                 $query->where('status', $request->get('status'));
             }
 
-            // Filter by provider
             if ($request->has('provider')) {
                 $query->where('payment_provider', $request->get('provider'));
             }
 
-            // Filter by date range
             if ($request->has('from_date') && $request->has('to_date')) {
                 $query->whereBetween('created_at', [
                     $request->get('from_date'),
@@ -584,12 +464,10 @@ class PaymentController extends Controller
                 ]);
             }
 
-            // Filter by email
             if ($request->has('email')) {
                 $query->where('email', 'like', '%' . $request->get('email') . '%');
             }
 
-            // Pagination
             $per_page = $request->get('per_page', 15);
             $payments = $query->latest()->paginate($per_page);
 

@@ -68,6 +68,21 @@ function changePage(page: number): void {
   emit('page-change', page)
 }
 
+function previousPage(page?: number): void {
+  const current = page ?? props.currentPage
+  if (current > 1) {
+    changePage(current - 1)
+  }
+}
+
+function nextPage(page?: number, last?: number): void {
+  const current = page ?? props.currentPage
+  const maxPage = last ?? props.lastPage
+  if (current < maxPage) {
+    changePage(current + 1)
+  }
+}
+
 function changePerPage(event: Event): void {
   const target = event.target as HTMLSelectElement
   emit('per-page-change', Number(target.value))
@@ -89,7 +104,8 @@ function formatDate(value: string): string {
       hour: '2-digit',
       minute: '2-digit',
     }).format(new Date(value))
-  } catch {
+  } catch (error) {
+    console.error('[OrderTable] Error formatting date:', error)
     return value
   }
 }
@@ -259,7 +275,6 @@ function handleClickOutside() {
                   {{ order.order_number || `ORD-${String(order.id).padStart(6, '0')}` }}
                 </span>
               </td>
-
               <!-- Guest -->
               <td class="px-3 py-3">
                 <div class="flex items-center gap-2 max-w-[160px]">
@@ -288,7 +303,6 @@ function handleClickOutside() {
                 </span>
                 <span v-else class="text-slate-400 text-xs italic">N/A</span>
               </td>
-
               <!-- Payment -->
               <td class="px-2.5 py-2.5 whitespace-nowrap">
                 <span
@@ -298,7 +312,6 @@ function handleClickOutside() {
                   {{ paymentLabel(order.payment_type) }}
                 </span>
               </td>
-
               <!-- Status -->
               <td class="px-2.5 py-2.5 text-center whitespace-nowrap">
                 <span
@@ -353,7 +366,6 @@ function handleClickOutside() {
                       <RefreshCw class="w-3.5 h-3.5 text-emerald-500" />
                       <span>Status</span>
                     </button>
-
                     <button
                       @click="editOrder(order)"
                       class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition cursor-pointer"
@@ -361,9 +373,7 @@ function handleClickOutside() {
                       <Edit class="w-3.5 h-3.5 text-amber-500" />
                       <span>Edit</span>
                     </button>
-
                     <div class="border-t border-slate-100 dark:border-slate-800 my-0.5"></div>
-
                     <button
                       @click="deleteOrder(order)"
                       class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer"
@@ -403,7 +413,6 @@ function handleClickOutside() {
             <span class="font-extrabold text-slate-900 dark:text-white">{{ total }}</span> orders
           </div>
         </div>
-
         <div class="flex items-center gap-1">
           <button
             type="button"

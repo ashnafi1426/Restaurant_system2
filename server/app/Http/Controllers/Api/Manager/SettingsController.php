@@ -15,11 +15,6 @@ use App\Models\ManagerAnnouncement;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * Manager Settings Controller
- * 
- * Handles settings, announcements, and reports
- */
 class SettingsController extends Controller
 {
     protected ManagerService $service;
@@ -29,9 +24,6 @@ class SettingsController extends Controller
         $this->service = $service;
     }
 
-    /**
-     * Get dashboard settings
-     */
     public function dashboardSettings(Request $request)
     {
         return new ManagerDashboardSettingResource(
@@ -39,9 +31,6 @@ class SettingsController extends Controller
         );
     }
 
-    /**
-     * Update dashboard settings
-     */
     public function updateDashboardSettings(
         UpdateManagerDashboardSettingRequest $request,
         ManagerDashboardSetting $setting
@@ -55,9 +44,6 @@ class SettingsController extends Controller
         return new ManagerDashboardSettingResource($setting);
     }
 
-    /**
-     * Get all announcements
-     */
     public function announcements(Request $request)
     {
         return ManagerAnnouncementResource::collection(
@@ -65,9 +51,6 @@ class SettingsController extends Controller
         );
     }
 
-    /**
-     * Create announcement
-     */
     public function storeAnnouncement(StoreManagerAnnouncementRequest $request)
     {
         $announcement = $this->service->createAnnouncement(
@@ -77,9 +60,6 @@ class SettingsController extends Controller
         return new ManagerAnnouncementResource($announcement);
     }
 
-    /**
-     * Update announcement
-     */
     public function updateAnnouncement(
         UpdateManagerAnnouncementRequest $request,
         ManagerAnnouncement $announcement
@@ -93,9 +73,6 @@ class SettingsController extends Controller
         return new ManagerAnnouncementResource($announcement);
     }
 
-    /**
-     * Delete announcement
-     */
     public function destroyAnnouncement(
         ManagerAnnouncement $announcement
     ): JsonResponse
@@ -108,9 +85,6 @@ class SettingsController extends Controller
         ]);
     }
 
-    /**
-     * Get all reports
-     */
     public function reports(Request $request)
     {
         return ManagerReportResource::collection(

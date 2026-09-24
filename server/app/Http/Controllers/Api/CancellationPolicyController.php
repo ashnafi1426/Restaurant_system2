@@ -10,26 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
-/**
- * ============================================================================
- * CancellationPolicyController
- * ============================================================================
- * Manages cancellation policies for reservations
- * 
- * Features:
- * - CRUD operations for cancellation policies
- * - Refund calculation based on policy type and dates
- * - Policy application to reservations
- * ============================================================================
- */
 class CancellationPolicyController extends Controller
 {
-    /**
-     * Get all cancellation policies for hotel
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -44,12 +26,10 @@ class CancellationPolicyController extends Controller
 
             $query = CancellationPolicy::where('hotel_id', $hotelId);
 
-            // Filter by active status
             if ($request->has('active')) {
                 $query->where('is_active', $request->boolean('active'));
             }
 
-            // Filter by type
             if ($request->has('type')) {
                 $query->where('type', $request->get('type'));
             }
@@ -73,12 +53,6 @@ class CancellationPolicyController extends Controller
         }
     }
 
-    /**
-     * Get single cancellation policy
-     * 
-     * @param string $policyId
-     * @return JsonResponse
-     */
     public function show(string $policyId): JsonResponse
     {
         try {
@@ -112,12 +86,6 @@ class CancellationPolicyController extends Controller
         }
     }
 
-    /**
-     * Create new cancellation policy
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function store(Request $request): JsonResponse
     {
         try {
@@ -178,13 +146,6 @@ class CancellationPolicyController extends Controller
         }
     }
 
-    /**
-     * Update cancellation policy
-     * 
-     * @param string $policyId
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function update(string $policyId, Request $request): JsonResponse
     {
         try {
@@ -243,12 +204,6 @@ class CancellationPolicyController extends Controller
         }
     }
 
-    /**
-     * Delete cancellation policy
-     * 
-     * @param string $policyId
-     * @return JsonResponse
-     */
     public function destroy(string $policyId): JsonResponse
     {
         try {
@@ -258,7 +213,6 @@ class CancellationPolicyController extends Controller
                 ->where('id', $policyId)
                 ->firstOrFail();
 
-            // Check if policy is in use
             $inUse = Reservation::where('cancellation_policy_id', $policyId)->exists();
 
             if ($inUse) {
@@ -298,13 +252,6 @@ class CancellationPolicyController extends Controller
         }
     }
 
-    /**
-     * Calculate refund amount for a reservation
-     * 
-     * @param string $policyId
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function calculateRefund(string $policyId, Request $request): JsonResponse
     {
         try {

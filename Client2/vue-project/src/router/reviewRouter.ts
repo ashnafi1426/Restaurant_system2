@@ -1,8 +1,3 @@
-/**
- * Review Routes
- * Routes for review-related pages and components
- */
-
 export default [
   {
     path: '/dashboard/guest',

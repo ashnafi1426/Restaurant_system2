@@ -22,18 +22,17 @@ class KitchenMonitorService
             $query->whereDate('created_at', Carbon::today());
         }
 
-        // Filter by priority
         if (!empty($filters['priority'])) {
             $query->where('priority', $filters['priority']);
         }
 
-        // Sort
         $sortBy = $filters['sort_by'] ?? 'created_at';
         $sortOrder = $filters['sort_order'] ?? 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
         return $query->paginate($perPage);
     }
+
     public function getMetrics(): array
     {
         $today = Carbon::today();
@@ -69,6 +68,7 @@ class KitchenMonitorService
             'prep_time_trend' => $this->getPrepTimeTrend(),
         ];
     }
+
     public function getDelayedOrders()
     {
         return Order::whereDate('created_at', Carbon::today())
@@ -78,6 +78,7 @@ class KitchenMonitorService
             ->orderBy('created_at', 'asc')
             ->get();
     }
+
     public function getChefWorkload(): array
     {
         $today = Carbon::today();
@@ -91,6 +92,7 @@ class KitchenMonitorService
             ->get()
             ->toArray();
     }
+
     public function getPerformance(): array
     {
         $today = Carbon::today();
@@ -114,6 +116,7 @@ class KitchenMonitorService
             'quality_score' => $this->getQualityScore(),
         ];
     }
+
     private function getAveragePrepTime(): ?float
     {
         $avgTime = Order::where('status', 'completed')
@@ -122,6 +125,7 @@ class KitchenMonitorService
 
         return $avgTime ? round($avgTime, 2) : null;
     }
+
     private function getPrepTimeTrend(): array
     {
         $trend = [];
@@ -140,6 +144,7 @@ class KitchenMonitorService
 
         return $trend;
     }
+
     private function getDelayedPercentage(): float
     {
         $today = Carbon::today();
@@ -157,6 +162,7 @@ class KitchenMonitorService
             ? round(($delayedOrders / $totalOrders) * 100, 2)
             : 0;
     }
+
     private function getQualityScore(): float
     {
         $today = Carbon::today();
@@ -176,6 +182,7 @@ class KitchenMonitorService
         $qualityScore = (1 - ($rejectedOrders / ($completedOrders + $rejectedOrders))) * 100;
         return round($qualityScore, 2);
     }
+
     public function getTopPreparedItems($limit = 5): array
     {
         $today = Carbon::today();
@@ -191,6 +198,7 @@ class KitchenMonitorService
             ->get()
             ->toArray();
     }
+
     public function getQueueStatus(): array
     {
         $today = Carbon::today();

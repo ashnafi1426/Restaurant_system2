@@ -25,12 +25,6 @@ class ReviewResponse extends Model
         'updated_at' => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
     public function review()
     {
         return $this->belongsTo(MenuItemReview::class, 'review_id');

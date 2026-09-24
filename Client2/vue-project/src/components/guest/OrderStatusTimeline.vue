@@ -38,7 +38,7 @@ const steps = computed(() => [
     key: 'ready',
     title: 'Ready',
     description: 'Your meal is ready for delivery.',
-    icon: '🍽️',
+    icon: '',
   },
   {
     key: 'delivered',
@@ -227,7 +227,7 @@ const statusColor = computed(() => {
 
     <div class="border-t border-slate-200 bg-amber-50 px-6 py-5">
       <div class="flex items-start gap-4">
-        <div class="text-2xl">ℹ️</div>
+        <div class="text-2xl"></div>
 
         <div>
           <h3 class="font-semibold text-slate-900">Need Assistance?</h3>

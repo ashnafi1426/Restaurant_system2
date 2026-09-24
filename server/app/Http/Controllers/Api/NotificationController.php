@@ -9,9 +9,6 @@ use Illuminate\Http\JsonResponse;
 
 class NotificationController extends Controller
 {
-    /**
-     * Get all notifications for the authenticated user (receptionist)
-     */
     public function index(Request $request): JsonResponse
     {
         $limit = $request->get('limit', 10);
@@ -38,9 +35,6 @@ class NotificationController extends Controller
         }
     }
 
-    /**
-     * Get the latest notification for real-time updates
-     */
     public function latest(): JsonResponse
     {
         $userId = auth()->id();
@@ -72,9 +66,6 @@ class NotificationController extends Controller
         }
     }
 
-    /**
-     * Get unread notification count
-     */
     public function unreadCount(): JsonResponse
     {
         $userId = auth()->id();
@@ -98,9 +89,6 @@ class NotificationController extends Controller
         }
     }
 
-    /**
-     * Mark a notification as read
-     */
     public function markAsRead(string $id): JsonResponse
     {
         $userId = auth()->id();
@@ -127,9 +115,6 @@ class NotificationController extends Controller
         }
     }
 
-    /**
-     * Mark all notifications as read
-     */
     public function markAllAsRead(): JsonResponse
     {
         $userId = auth()->id();
@@ -153,9 +138,6 @@ class NotificationController extends Controller
         }
     }
 
-    /**
-     * Delete a notification
-     */
     public function destroy(string $id): JsonResponse
     {
         $userId = auth()->id();
@@ -181,9 +163,6 @@ class NotificationController extends Controller
         }
     }
 
-    /**
-     * Clear all notifications
-     */
     public function clearAll(): JsonResponse
     {
         $userId = auth()->id();
@@ -205,9 +184,6 @@ class NotificationController extends Controller
         }
     }
 
-    /**
-     * Create a notification (called when booking is made)
-     */
     public static function createNotification(
         $userId,
         string $type,

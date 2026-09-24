@@ -28,7 +28,6 @@ export const useGuestStore = defineStore('guest', () => {
       const response: GuestListResponse = await getGuests(filters)
       guests.value = response.data
 
-      // Ensure all pagination values are numbers, not arrays
       const meta = response.meta || {
         current_page: 1,
         last_page: 1,
@@ -63,6 +62,7 @@ export const useGuestStore = defineStore('guest', () => {
               : 0,
       }
     } catch (err: any) {
+      console.error('[guestStore] Failed to load guests:', err)
       error.value = err.response?.data?.message ?? 'Failed to load guests.'
     } finally {
       loading.value = false
@@ -77,6 +77,7 @@ export const useGuestStore = defineStore('guest', () => {
       const response = await getGuest(id)
       guest.value = response.data
     } catch (err: any) {
+      console.error('[guestStore] Failed to fetch guest:', err)
       error.value = err.response?.data?.message ?? 'Guest not found.'
     } finally {
       loading.value = false
@@ -91,6 +92,7 @@ export const useGuestStore = defineStore('guest', () => {
       await createGuest(form)
       await fetchGuests()
     } catch (err: any) {
+      console.error('[guestStore] Failed to create guest:', err)
       error.value = err.response?.data?.message ?? 'Failed to create guest.'
       throw err
     } finally {
@@ -106,6 +108,7 @@ export const useGuestStore = defineStore('guest', () => {
       await updateGuest(id, form)
       await fetchGuests()
     } catch (err: any) {
+      console.error('[guestStore] Failed to update guest:', err)
       error.value = err.response?.data?.message ?? 'Failed to update guest.'
       throw err
     } finally {
@@ -121,6 +124,7 @@ export const useGuestStore = defineStore('guest', () => {
       await deleteGuest(id)
       guests.value = guests.value.filter((guest) => guest.id !== String(id))
     } catch (err: any) {
+      console.error('[guestStore] Failed to delete guest:', err)
       error.value = err.response?.data?.message ?? 'Failed to delete guest.'
       throw err
     } finally {

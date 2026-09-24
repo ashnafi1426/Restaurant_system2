@@ -9,20 +9,16 @@ use App\Http\Resources\RoomResource;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Database\QueryException;
+use App\Models\CheckIn;
+use App\Models\Reservation;
+use App\Services\TenantContext;
 class RoomController extends Controller
 {
-    /*
-    |----------------------------------------------------
-    | GET /rooms
-    |----------------------------------------------------
-    */
     public function index(Request $request)
     {
-        // Always eager load room_type and hotel to avoid N+1 queries
         $query = Room::with('roomType', 'hotel');
 
-        // Search by room number, floor, description, or status
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
@@ -39,18 +35,10 @@ class RoomController extends Controller
         if ($request->filled('room_type_id')) {
             $query->where('room_type_id', $request->input('room_type_id'));
         }
-
-        // Show both active and inactive rooms for admin management
-        // Only filter if explicitly requested
         if ($request->filled('is_active')) {
             $query->where('is_active', $request->input('is_active'));
         }
-
-        // For admin views (no pagination specified or high limit), return all rooms
-        // This ensures search and filters work on complete dataset
-        $perPage = $request->input('per_page', 100); // Default to 100 instead of 10
-        
-        // If explicitly requesting a small page size, respect it
+        $perPage = $request->input('per_page', 100);
         if ($request->filled('page') && $request->input('per_page')) {
             $perPage = $request->input('per_page');
         }
@@ -59,12 +47,6 @@ class RoomController extends Controller
 
         return RoomResource::collection($rooms);
     }
-
-    /*
-    |----------------------------------------------------
-    | POST /rooms
-    |----------------------------------------------------
-    */
     public function store(StoreRoomRequest $request)
     {
         DB::beginTransaction();
@@ -90,15 +72,9 @@ class RoomController extends Controller
             ], 500);
         }
     }
-
-    /*
-    |----------------------------------------------------
-    | GET /rooms/{room}
-    |----------------------------------------------------
-    */
     public function show(Room $room)
     {
-        $currentHotelId = \App\Services\TenantContext::id();
+        $currentHotelId =TenantContext::id();
         if ($currentHotelId && $room->hotel_id && $room->hotel_id !== $currentHotelId) {
             abort(404, 'Room not found.');
         }
@@ -108,12 +84,6 @@ class RoomController extends Controller
             'data' => new RoomResource($room->load('roomType', 'hotel'))
         ]);
     }
-
-    /*
-    |----------------------------------------------------
-    | PUT /rooms/{room}
-    |----------------------------------------------------
-    */
     public function update(UpdateRoomRequest $request, Room $room)
     {
         DB::beginTransaction();
@@ -139,18 +109,11 @@ class RoomController extends Controller
             ], 500);
         }
     }
-
-    /*
-    |----------------------------------------------------
-    | DELETE /rooms/{room}
-    |----------------------------------------------------
-    */
     public function destroy(Room $room)
     {
         try {
-            // Check if there are associated reservations or check-ins
-            $hasReservations = \App\Models\Reservation::where('room_id', $room->id)->exists();
-            $hasCheckIns = \App\Models\CheckIn::where('room_id', $room->id)->exists();
+            $hasReservations = Reservation::where('room_id', $room->id)->exists();
+            $hasCheckIns = CheckIn::where('room_id', $room->id)->exists();
 
             if ($hasReservations || $hasCheckIns) {
                 return response()->json([
@@ -165,7 +128,7 @@ class RoomController extends Controller
                 'success' => true,
                 'message' => 'Room deleted successfully'
             ]);
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Cannot delete room due to linked database records (reservations, check-ins, or orders).'
@@ -177,12 +140,6 @@ class RoomController extends Controller
             ], 500);
         }
     }
-
-    /*
-    |----------------------------------------------------
-    | PATCH /rooms/{room}/toggle-status
-    |----------------------------------------------------
-    */
     public function toggleStatus(Room $room)
     {
         $room->is_active = !$room->is_active;

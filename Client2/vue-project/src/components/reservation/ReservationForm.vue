@@ -1,19 +1,25 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import axios from 'axios'
+import { ref, computed, watch } from 'vue'
+import { X } from 'lucide-vue-next'
+import api from '@/api/auth'
+import { useReservationStore } from '@/stores/reservationStore'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
 
 interface Room {
-  id: number
+  id: string | number
+  hotel_id?: string | number
   room_number: string | number
-  floor: number
-  status: string
-  description: string
-  room_type: {
-    id: number
-    name: string
-    capacity: number
-    base_price_per_night: number
-  } | string
+  floor?: number
+  status?: string
+  description?: string
+  room_type?: {
+    id?: string | number
+    name?: string
+    capacity?: number
+    base_price_per_night?: number
+  } | string | null
 }
 
 interface Props {
@@ -29,7 +35,6 @@ const emit = defineEmits<{
   submit: [formData: any]
 }>()
 
-// Registration form
 const newGuestForm = ref({
   first_name: '',
   last_name: '',
@@ -40,10 +45,9 @@ const newGuestForm = ref({
 const registrationError = ref('')
 const registrationSuccess = ref('')
 
-// Reservation form
 const form = ref({
   guest_id: '',
-  room_id: '',
+  room_id: '' as string | number,
   check_in_date: '',
   check_out_date: '',
   number_of_guests: 1,
@@ -91,7 +95,7 @@ const filteredRooms = computed(() => {
         id.includes(search)
       )
     } catch (e) {
-      console.error('Error filtering room:', r, e)
+      console.error('[ReservationForm] Filter room search error:', e)
       return false
     }
   })
@@ -137,34 +141,88 @@ const nights = computed(() => {
   return Math.max(diff / (1000 * 60 * 60 * 24), 0)
 })
 
-// Get the selected room object
 const selectedRoom = computed(() => {
   if (!form.value.room_id) return null
   return props.rooms.find(r => r.id === form.value.room_id)
 })
 
-// Get price per night from selected room
 const pricePerNight = computed(() => {
   if (!selectedRoom.value) return 0
-  return selectedRoom.value.room_type?.base_price_per_night || 0
+  if (typeof selectedRoom.value.room_type === 'object' && selectedRoom.value.room_type) {
+    return selectedRoom.value.room_type.base_price_per_night || 0
+  }
+  return 0
 })
 
-// Calculate subtotal (nights × price per night)
 const subtotal = computed(() => {
   return nights.value * pricePerNight.value
 })
 
-// Calculate tax (15%)
 const taxAmount = computed(() => {
   return subtotal.value * 0.15
 })
 
-// Calculate total amount (subtotal + tax)
 const totalAmount = computed(() => {
   return subtotal.value + taxAmount.value
 })
 
-// Open payment dialog - validates form before showing dialog
+const reservationStore = useReservationStore()
+const isCheckingAvailability = ref(false)
+const availabilityStatus = ref<{ available: boolean; message: string } | null>(null)
+
+const roomCapacity = computed(() => {
+  if (!selectedRoom.value) return 99
+  if (typeof selectedRoom.value.room_type === 'object' && selectedRoom.value.room_type?.capacity) {
+    return Number(selectedRoom.value.room_type.capacity)
+  }
+  return 2
+})
+
+const isCapacityExceeded = computed(() => {
+  return Boolean(form.value.room_id) && Number(form.value.number_of_guests) > roomCapacity.value
+})
+
+const checkRoomAvailability = async () => {
+  if (
+    !form.value.room_id ||
+    !form.value.check_in_date ||
+    !form.value.check_out_date ||
+    !isValidDateRange.value ||
+    isPastDate.value
+  ) {
+    availabilityStatus.value = null
+    return
+  }
+
+  isCheckingAvailability.value = true
+  try {
+    const res = await reservationStore.checkAvailability({
+      room_id: String(form.value.room_id),
+      check_in_date: form.value.check_in_date,
+      check_out_date: form.value.check_out_date,
+    })
+    availabilityStatus.value = {
+      available: Boolean(res.available),
+      message: res.message || (res.available ? 'Room is available for selected dates.' : 'Room is already booked for selected dates.'),
+    }
+  } catch (err: any) {
+    console.error('[ReservationForm] Check room availability error:', err)
+    availabilityStatus.value = {
+      available: false,
+      message: err.response?.data?.message || 'Selected room is not available for these dates.',
+    }
+  } finally {
+    isCheckingAvailability.value = false
+  }
+}
+
+watch(
+  () => [form.value.room_id, form.value.check_in_date, form.value.check_out_date],
+  () => {
+    checkRoomAvailability()
+  }
+)
+
 function openPaymentDialog() {
   if (isPastDate.value) {
     alert('Check-in date cannot be in the past')
@@ -191,32 +249,29 @@ function openPaymentDialog() {
     return
   }
 
-  // All validations passed, show dialog
+  if (isCapacityExceeded.value) {
+    alert(`Selected room maximum capacity is ${roomCapacity.value} guest(s). Please choose another room or reduce number of guests.`)
+    return
+  }
+
+  if (availabilityStatus.value && !availabilityStatus.value.available) {
+    alert('This room is not available for the selected dates in this hotel.')
+    return
+  }
+
   showPaymentDialog.value = true
 }
 
-// Close payment dialog without proceeding
 function closePaymentDialog() {
   showPaymentDialog.value = false
 }
 
-// Proceed to payment - called when user clicks "Pay Now" in dialog
 const proceedToPayment = async () => {
   paymentLoading.value = true
 
   try {
-    console.log('[RESERVATION] Initiating payment with data:', {
-      room_id: form.value.room_id,
-      guest_id: form.value.guest_id,
-      check_in_date: form.value.check_in_date,
-      check_out_date: form.value.check_out_date,
-      number_of_guests: form.value.number_of_guests,
-      total_amount: totalAmount.value,
-    })
-
-    // Initialize payment with reservation details
-    const paymentResponse = await axios.post(
-      'http://127.0.0.1:8000/api/reservation-payments/initialize',
+    const paymentResponse = await api.post(
+      '/reservation-payments/initialize',
       {
         room_id: form.value.room_id,
         guest_id: form.value.guest_id,
@@ -231,10 +286,7 @@ const proceedToPayment = async () => {
       }
     )
 
-    console.log('[RESERVATION] Payment initialization response:', paymentResponse.data)
-
     if (paymentResponse.data.success && paymentResponse.data.checkout_url) {
-      // Store reservation data in sessionStorage for post-payment verification
       const reservationData = {
         payment_id: paymentResponse.data.payment_id,
         tx_ref: paymentResponse.data.tx_ref,
@@ -254,21 +306,15 @@ const proceedToPayment = async () => {
       
       sessionStorage.setItem('reservationPaymentData', JSON.stringify(reservationData))
 
-      console.log('[RESERVATION] Redirecting to Chapa checkout:', paymentResponse.data.checkout_url)
-
-      // Close dialog and redirect to Chapa checkout
       showPaymentDialog.value = false
       window.location.href = paymentResponse.data.checkout_url
     } else {
       const message = paymentResponse.data.message || 'Failed to initialize payment'
-      console.error('[RESERVATION] Payment initialization failed:', message)
       alert('Failed to initialize payment: ' + message)
       paymentLoading.value = false
     }
   } catch (error: any) {
-    console.error('[RESERVATION] Payment error:', error)
-    console.error('[RESERVATION] Full error response:', error.response?.data)
-    
+    console.error('[ReservationForm] Payment initialization error:', error)
     let message = 'An error occurred'
     if (error.response?.data?.error) {
       message = error.response.data.error
@@ -278,54 +324,30 @@ const proceedToPayment = async () => {
       message = error.message
     }
     
-    // If there's debug info, log it
-    if (error.response?.data?.debug_info) {
-      console.error('[RESERVATION] Debug Info:', error.response.data.debug_info)
-    }
-    
     alert('Payment initialization failed: ' + message)
     paymentLoading.value = false
   }
 }
 
-// Register new guest
 async function registerGuest() {
   registrationError.value = ''
   registrationSuccess.value = ''
 
-  // Validate required fields
   if (!newGuestForm.value.first_name || !newGuestForm.value.last_name || !newGuestForm.value.phone) {
     registrationError.value = 'First name, last name, and phone are required'
     return
   }
 
   try {
-    const response = await fetch('http://127.0.0.1:8000/api/guests', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newGuestForm.value),
-    })
+    const response = await api.post('/guests', newGuestForm.value)
+    const newGuest = response.data?.data || response.data
 
-    if (!response.ok) {
-      const error = await response.json()
-      registrationError.value = error.message || 'Failed to register guest'
-      return
-    }
-
-    const data = await response.json()
-    const newGuest = data.data
-
-    // Set the guest_id in the form
     form.value.guest_id = newGuest.id
 
     registrationSuccess.value = `✓ Guest registered successfully! Welcome, ${newGuest.first_name} ${newGuest.last_name}`
 
-    // Reset form after 2 seconds
     setTimeout(() => {
       registrationSuccess.value = ''
-      // Reset registration form
       Object.assign(newGuestForm.value, {
         first_name: '',
         last_name: '',
@@ -334,385 +356,372 @@ async function registerGuest() {
       })
     }, 2000)
   } catch (error: any) {
-    registrationError.value = error.message || 'Failed to register guest. Please try again.'
+    console.error('[ReservationForm] Guest registration error:', error)
+    registrationError.value = error.response?.data?.message || error.message || 'Failed to register guest. Please try again.'
   }
 }
-
-
 </script>
 
 <template>
   <div
-    class="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6"
+    class="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6"
   >
-    <!-- Title -->
     <div>
-      <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900">Reservation Form</h2>
-      <p class="text-xs sm:text-sm text-slate-500 mt-1">Complete your booking details</p>
+      <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900 dark:text-white">{{ languageStore.t('reservation_form', 'Reservation Form') }}</h2>
+      <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('complete_booking_details', 'Complete your booking details') }}</p>
     </div>
 
-    <!-- Guest Registration Form (Required) -->
-    <div class="border-2 border-blue-300 bg-blue-50 rounded-lg p-4 sm:p-6">
-      <!-- Header -->
-      <h3 class="text-base sm:text-lg font-semibold text-slate-900 mb-4">Guest Information</h3>
+    <div class="border-2 border-blue-300 dark:border-blue-700/60 bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 sm:p-6">
+      <h3 class="text-base sm:text-lg font-semibold text-slate-900 dark:text-white mb-4">{{ languageStore.t('guest_information', 'Guest Information') }}</h3>
 
-      <!-- Error Alert -->
       <div
         v-if="registrationError"
-        class="mb-4 rounded-lg bg-red-50 border border-red-200 p-3 text-red-700 text-xs sm:text-sm"
+        class="mb-4 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-3 text-red-700 dark:text-red-300 text-xs sm:text-sm"
       >
         {{ registrationError }}
       </div>
 
-      <!-- Success Alert -->
       <div
         v-if="registrationSuccess"
-        class="mb-4 rounded-lg bg-green-50 border border-green-200 p-3 text-green-700 text-xs sm:text-sm"
+        class="mb-4 rounded-lg bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-3 text-green-700 dark:text-green-300 text-xs sm:text-sm"
       >
         {{ registrationSuccess }}
       </div>
 
-      <!-- Registration Form Fields -->
       <div class="space-y-4">
-        <!-- First & Last Name -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
-              First Name <span class="text-red-500">*</span>
+            <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              {{ languageStore.t('first_name', 'First Name') }} <span class="text-red-500">*</span>
             </label>
             <input
               v-model="newGuestForm.first_name"
               type="text"
               placeholder="John"
-              class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
             />
           </div>
           <div>
-            <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
-              Last Name <span class="text-red-500">*</span>
+            <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              {{ languageStore.t('last_name', 'Last Name') }} <span class="text-red-500">*</span>
             </label>
             <input
               v-model="newGuestForm.last_name"
               type="text"
               placeholder="Doe"
-              class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
             />
           </div>
         </div>
 
-        <!-- Email & Phone -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
-              Email <span class="text-slate-500 text-xs">(Optional)</span>
+            <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              {{ languageStore.t('email', 'Email') }} <span class="text-slate-500 text-xs">({{ languageStore.t('optional', 'Optional') }})</span>
             </label>
             <input
               v-model="newGuestForm.email"
               type="email"
               placeholder="john@gmail.com"
-              class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
             />
           </div>
           <div>
-            <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
-              Phone <span class="text-red-500">*</span>
+            <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              {{ languageStore.t('phone', 'Phone') }} <span class="text-red-500">*</span>
             </label>
             <input
               v-model="newGuestForm.phone"
               type="tel"
               placeholder="+251912345678"
-              class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
             />
-            <p class="text-xs text-slate-500 mt-1">Use format: +251912345678 or 0912345678</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Use format: +251912345678 or 0912345678</p>
           </div>
         </div>
 
-        <!-- Register Button -->
         <button
           type="button"
           @click="registerGuest"
-          class="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-xs sm:text-sm transition-all"
+          class="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
         >
-          ✓ Register & Continue
+          ✓ {{ languageStore.t('register_and_continue', 'Register & Continue') }}
         </button>
       </div>
 
-      <!-- Info Text -->
-      <p class="mt-4 text-xs sm:text-sm text-slate-600 text-center">
-        Your information helps us provide better service during your stay
+      <p class="mt-4 text-xs sm:text-sm text-slate-600 dark:text-slate-400 text-center">
+        {{ languageStore.t('info_helps_service', 'Your information helps us provide better service during your stay') }}
       </p>
     </div>
 
-    <!-- Room Selection -->
     <div class="relative">
-      <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
-        Room <span class="text-red-500">*</span>
+      <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+        {{ languageStore.t('room', 'Room') }} <span class="text-red-500">*</span>
       </label>
 
-      <!-- Search Input -->
       <input
         type="text"
         v-model="roomSearch"
         @focus="showRoomDropdown = true"
-        placeholder="Search by room number, type..."
-        class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+        :placeholder="languageStore.t('search_room_placeholder', 'Search by room number, type...')"
+        class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
         :class="{ 'border-red-500 ring-2 ring-red-200': !form.room_id && form.room_id !== '' }"
       />
 
-      <!-- Selected Room Display -->
-      <div v-if="form.room_id && !showRoomDropdown" class="text-xs text-slate-600 mt-1">
-        ✓ Selected:
+      <div v-if="form.room_id && !showRoomDropdown" class="text-xs text-slate-600 dark:text-slate-400 mt-1">
+        ✓ {{ languageStore.t('selected', 'Selected') }}:
         {{
           selectedRoom
             ? formatRoomDisplay(selectedRoom)
-            : 'Loading...'
+            : languageStore.t('loading', 'Loading...')
         }}
       </div>
 
-      <!-- Search Results Dropdown -->
       <div
         v-if="showRoomDropdown"
-        class="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
+        class="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
       >
-        <!-- No results -->
         <div
           v-if="filteredRooms.length === 0"
-          class="p-3 sm:p-4 text-slate-500 text-center text-xs sm:text-sm"
+          class="p-3 sm:p-4 text-slate-500 dark:text-slate-400 text-center text-xs sm:text-sm"
         >
-          No rooms found
+          {{ languageStore.t('no_rooms_found', 'No rooms found') }}
         </div>
 
-        <!-- Room options -->
         <div
           v-for="room in filteredRooms"
           :key="room.id"
           @click="selectRoom(room)"
-          class="p-2 sm:p-3 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-b-0 text-xs sm:text-sm transition duration-150"
-          :class="{ 'bg-blue-100': form.room_id === room.id }"
+          class="p-2 sm:p-3 hover:bg-blue-50 dark:hover:bg-slate-800 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-b-0 text-xs sm:text-sm transition duration-150"
+          :class="{ 'bg-blue-100 dark:bg-slate-800': form.room_id === room.id }"
         >
-          <div class="font-medium text-slate-900">Room {{ room.room_number }}</div>
-          <div class="text-xs text-slate-600 mt-0.5">
-            {{ room.room_type?.name }} - {{ room.room_type?.capacity }} guests
+          <div class="font-medium text-slate-900 dark:text-white">{{ languageStore.t('room', 'Room') }} {{ room.room_number }}</div>
+          <div class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+            {{ typeof room.room_type === 'object' && room.room_type ? room.room_type.name : (room.room_type || 'Standard') }}
+            <template v-if="typeof room.room_type === 'object' && room.room_type?.capacity">
+              - {{ room.room_type.capacity }} {{ languageStore.t('guests', 'guests') }}
+            </template>
           </div>
-          <div class="text-xs text-slate-500">{{ formatRoomDisplay(room) }}</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400">{{ formatRoomDisplay(room) }}</div>
         </div>
       </div>
     </div>
 
-    <!-- Dates -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
-      <!-- Check In -->
       <div>
-        <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
-          Check In <span class="text-red-500">*</span>
+        <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+          {{ languageStore.t('check_in', 'Check In') }} <span class="text-red-500">*</span>
         </label>
         <input
           type="date"
           v-model="form.check_in_date"
-          class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+          class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
           :min="today"
         />
         <p v-if="isPastDate" class="text-red-500 text-xs sm:text-sm mt-1">
-          Check-in cannot be in the past
+          {{ languageStore.t('check_in_past_error', 'Check-in cannot be in the past') }}
         </p>
       </div>
 
-      <!-- Check Out -->
       <div>
-        <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
-          Check Out <span class="text-red-500">*</span>
+        <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+          {{ languageStore.t('check_out', 'Check Out') }} <span class="text-red-500">*</span>
         </label>
         <input
           type="date"
           v-model="form.check_out_date"
-          class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+          class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
           :min="form.check_in_date || today"
         />
         <p v-if="!isValidDateRange" class="text-red-500 text-xs sm:text-sm mt-1">
-          Check-out must be after check-in
+          {{ languageStore.t('checkout_after_checkin', 'Check-out must be after check-in') }}
         </p>
       </div>
     </div>
 
-    <!-- Guests Count -->
+    <div v-if="isCheckingAvailability || availabilityStatus" class="text-xs sm:text-sm font-medium">
+      <span v-if="isCheckingAvailability" class="text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+        <span class="animate-spin">⏳</span> {{ languageStore.t('checking_availability', 'Checking room availability for selected dates...') }}
+      </span>
+      <span v-else-if="availabilityStatus?.available" class="text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 px-3 py-1.5 rounded-lg">
+        ✓ {{ availabilityStatus.message }}
+      </span>
+      <span v-else-if="availabilityStatus && !availabilityStatus.available" class="text-rose-700 dark:text-rose-300 flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 px-3 py-1.5 rounded-lg">
+        ✗ {{ availabilityStatus.message }}
+      </span>
+    </div>
+
     <div>
-      <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
-        Number of Guests <span class="text-red-500">*</span>
-      </label>
+      <div class="flex justify-between items-center mb-1.5 sm:mb-2">
+        <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
+          {{ languageStore.t('number_of_guests', 'Number of Guests') }} <span class="text-red-500">*</span>
+        </label>
+        <span v-if="selectedRoom && roomCapacity < 90" class="text-xs text-slate-500 dark:text-slate-400">
+          Max Capacity: {{ roomCapacity }} {{ languageStore.t('guests', 'guests') }}
+        </span>
+      </div>
       <input
         type="number"
         v-model="form.number_of_guests"
-        class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+        class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+        :class="{ 'border-rose-500 focus:ring-rose-500': isCapacityExceeded }"
         min="1"
         max="99"
       />
+      <p v-if="isCapacityExceeded" class="text-rose-600 dark:text-rose-400 text-xs sm:text-sm mt-1 font-medium">
+        {{ languageStore.t('room_capacity_exceeded', `Room capacity exceeded (maximum ${roomCapacity} guests for this room).`) }}
+      </p>
     </div>
 
-    <!-- Special Requests -->
     <div>
-      <label class="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
-        Special Requests <span class="text-slate-500 text-xs">(Optional)</span>
+      <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+        {{ languageStore.t('special_requests', 'Special Requests') }} <span class="text-slate-500 text-xs">({{ languageStore.t('optional', 'Optional') }})</span>
       </label>
       <textarea
         v-model="form.special_requests"
         rows="3"
-        class="w-full border border-slate-300 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 resize-none"
-        placeholder="Any special requirements or preferences..."
+        class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 resize-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+        :placeholder="languageStore.t('special_requests_placeholder', 'Any special requirements or preferences...')"
       ></textarea>
     </div>
 
-    <!-- Nights Display -->
     <div
-      class="bg-gradient-to-r from-blue-50 to-blue-100/50 p-3 sm:p-4 rounded-lg border border-blue-200 text-xs sm:text-sm"
+      class="bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-indigo-950/30 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-800/50 text-xs sm:text-sm"
     >
       <div class="flex justify-between items-center">
-        <span class="text-slate-700 font-medium">Total Nights:</span>
-        <span class="text-lg sm:text-xl font-bold text-blue-600"
-          >{{ nights }} {{ nights === 1 ? 'night' : 'nights' }}</span
+        <span class="text-slate-700 dark:text-slate-300 font-medium">{{ languageStore.t('total_nights', 'Total Nights') }}:</span>
+        <span class="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-400"
+          >{{ nights }} {{ nights === 1 ? languageStore.t('night', 'night') : languageStore.t('nights', 'nights') }}</span
         >
       </div>
     </div>
 
-    <!-- Price Breakdown (if room selected and dates valid) -->
     <div
       v-if="form.room_id && form.check_in_date && form.check_out_date && isValidDateRange && nights > 0"
-      class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 sm:p-5 rounded-lg border border-green-200"
+      class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-emerald-950/30 dark:to-teal-950/30 p-4 sm:p-5 rounded-lg border border-green-200 dark:border-emerald-800/50"
     >
-      <h3 class="font-semibold text-slate-900 text-sm mb-3">Price Breakdown</h3>
+      <h3 class="font-semibold text-slate-900 dark:text-white text-sm mb-3">{{ languageStore.t('price_breakdown', 'Price Breakdown') }}</h3>
       <div class="space-y-2 text-xs sm:text-sm">
-        <!-- Subtotal row -->
-        <div class="flex justify-between text-slate-700">
-          <span>{{ nights }} {{ nights === 1 ? 'night' : 'nights' }} × {{ pricePerNight }} ETB</span>
+        <div class="flex justify-between text-slate-700 dark:text-slate-300">
+          <span>{{ nights }} {{ nights === 1 ? languageStore.t('night', 'night') : languageStore.t('nights', 'nights') }} × {{ pricePerNight }} ETB</span>
           <span class="font-medium">{{ subtotal.toFixed(2) }} ETB</span>
         </div>
-        <!-- Tax row -->
-        <div class="flex justify-between text-slate-700">
-          <span>Tax (15%)</span>
+        <div class="flex justify-between text-slate-700 dark:text-slate-300">
+          <span>{{ languageStore.t('tax', 'Tax') }} (15%)</span>
           <span class="font-medium">{{ taxAmount.toFixed(2) }} ETB</span>
         </div>
-        <!-- Total row -->
-        <div class="border-t border-green-200 pt-2 flex justify-between">
-          <span class="font-semibold text-slate-900">Total Amount</span>
-          <span class="text-lg font-bold text-green-600">{{ totalAmount.toFixed(2) }} ETB</span>
+        <div class="border-t border-green-200 dark:border-emerald-800/50 pt-2 flex justify-between">
+          <span class="font-semibold text-slate-900 dark:text-white">{{ languageStore.t('total_amount', 'Total Amount') }}</span>
+          <span class="text-lg font-bold text-green-600 dark:text-emerald-400">{{ totalAmount.toFixed(2) }} ETB</span>
         </div>
       </div>
-      <p class="text-xs text-slate-500 mt-3">💳 You will pay this amount via Chapa Payment Gateway</p>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-3">💳 {{ languageStore.t('chapa_secure_msg', 'Your payment is secure and processed through Chapa payment gateway') }}</p>
     </div>
 
-    <!-- Actions -->
     <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
       <button
         type="button"
-        class="px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-700 transition duration-200"
+        class="px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition duration-200 cursor-pointer"
       >
-        Cancel
+        {{ languageStore.t('cancel', 'Cancel') }}
       </button>
 
       <button
         type="button"
         @click="openPaymentDialog"
-        :disabled="loading || !isValidDateRange || isPastDate || !form.guest_id || !form.room_id"
-        class="px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+        :disabled="loading || !isValidDateRange || isPastDate || !form.guest_id || !form.room_id || isCapacityExceeded || (availabilityStatus !== null && !availabilityStatus.available)"
+        class="px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 cursor-pointer"
       >
         <span v-if="loading" class="inline-flex items-center gap-2">
           <span class="animate-spin">⌛</span>
-          Processing...
+          {{ languageStore.t('processing', 'Processing...') }}
         </span>
-        <span v-else>💳 Proceed to Payment</span>
+        <span v-else>💳 {{ languageStore.t('proceed_to_payment', 'Proceed to Payment') }}</span>
       </button>
     </div>
 
-    <!-- Payment Confirmation Dialog -->
-    <div v-if="showPaymentDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
-        <!-- Dialog Header -->
-        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-8 text-white">
-          <h3 class="text-2xl font-bold mb-2">Payment Confirmation</h3>
-          <p class="text-blue-100">Review your booking details before payment</p>
+    <div v-if="showPaymentDialog" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 overflow-hidden" @click.self="closePaymentDialog">
+      <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
+        <div class="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-5 py-4 text-white flex items-center justify-between flex-shrink-0">
+          <div>
+            <h3 class="text-lg sm:text-xl font-bold">{{ languageStore.t('payment_confirmation', 'Payment Confirmation') }}</h3>
+            <p class="text-xs text-blue-100">{{ languageStore.t('complete_booking_details', 'Review your booking details before payment') }}</p>
+          </div>
+          <button
+            @click="closePaymentDialog"
+            class="text-white/80 hover:text-white hover:bg-white/20 p-1.5 rounded-lg transition cursor-pointer"
+            title="Close"
+          >
+            <X class="w-5 h-5" />
+          </button>
         </div>
 
-        <!-- Dialog Content -->
-        <div class="p-6 space-y-4">
-          <!-- Booking Summary -->
-          <div class="space-y-3">
-            <h4 class="font-semibold text-slate-900">Booking Summary</h4>
+        <div class="p-5 space-y-3.5 overflow-y-auto flex-1 text-slate-800 dark:text-slate-200">
+          <div class="space-y-2.5 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
+            <h4 class="text-xs uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">{{ languageStore.t('booking_summary', 'Booking Summary') }}</h4>
             
-            <!-- Room -->
             <div class="flex justify-between items-start text-sm">
-              <span class="text-slate-600">Room:</span>
-              <span class="font-medium text-slate-900">{{ selectedRoom?.room_number || 'N/A' }}</span>
+              <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('room', 'Room') }}:</span>
+              <span class="font-bold text-slate-900 dark:text-white">#{{ selectedRoom?.room_number || 'N/A' }}</span>
             </div>
 
-            <!-- Check-in -->
             <div class="flex justify-between items-start text-sm">
-              <span class="text-slate-600">Check-in:</span>
-              <span class="font-medium text-slate-900">{{ form.check_in_date }}</span>
+              <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('check_in', 'Check-in') }}:</span>
+              <span class="font-medium text-slate-900 dark:text-white">{{ form.check_in_date }}</span>
             </div>
 
-            <!-- Check-out -->
             <div class="flex justify-between items-start text-sm">
-              <span class="text-slate-600">Check-out:</span>
-              <span class="font-medium text-slate-900">{{ form.check_out_date }}</span>
+              <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('check_out', 'Check-out') }}:</span>
+              <span class="font-medium text-slate-900 dark:text-white">{{ form.check_out_date }}</span>
             </div>
 
-            <!-- Nights -->
-            <div class="flex justify-between items-start text-sm">
-              <span class="text-slate-600">Nights:</span>
-              <span class="font-medium text-slate-900">{{ nights }}</span>
-            </div>
-
-            <!-- Guests -->
-            <div class="flex justify-between items-start text-sm">
-              <span class="text-slate-600">Guests:</span>
-              <span class="font-medium text-slate-900">{{ form.number_of_guests }}</span>
+            <div class="flex justify-between items-start text-sm pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+              <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('stay_history', 'Stay') }}:</span>
+              <span class="font-semibold text-slate-900 dark:text-white">{{ nights }} {{ nights > 1 ? languageStore.t('nights', 'Nights') : languageStore.t('night', 'Night') }} • {{ form.number_of_guests }} {{ form.number_of_guests > 1 ? languageStore.t('guests', 'Guests') : languageStore.t('guest', 'Guest') }}</span>
             </div>
           </div>
 
-          <!-- Divider -->
-          <div class="border-t border-slate-200 pt-4"></div>
+          <div class="space-y-2 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
+            <h4 class="text-xs uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">{{ languageStore.t('price_breakdown', 'Price Breakdown') }}</h4>
 
-          <!-- Price Breakdown -->
-          <div class="space-y-2">
             <div class="flex justify-between text-sm">
-              <span class="text-slate-600">{{ nights }} nights × {{ pricePerNight }} ETB</span>
-              <span class="font-medium text-slate-900">{{ subtotal.toFixed(2) }} ETB</span>
+              <span class="text-slate-600 dark:text-slate-400">{{ nights }} {{ languageStore.t('nights', 'nights') }} × {{ pricePerNight }} ETB</span>
+              <span class="font-semibold text-slate-900 dark:text-white">{{ subtotal.toFixed(2) }} ETB</span>
             </div>
 
             <div class="flex justify-between text-sm">
-              <span class="text-slate-600">Tax (15%)</span>
-              <span class="font-medium text-slate-900">{{ taxAmount.toFixed(2) }} ETB</span>
+              <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('tax', 'Tax') }} (15%)</span>
+              <span class="font-medium text-slate-900 dark:text-white">{{ taxAmount.toFixed(2) }} ETB</span>
             </div>
 
-            <div class="flex justify-between text-base font-bold pt-2 border-t border-slate-200">
-              <span class="text-slate-900">Total Amount:</span>
-              <span class="text-blue-600">{{ totalAmount.toFixed(2) }} ETB</span>
+            <div class="flex justify-between text-base font-extrabold pt-2 border-t border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white">
+              <span>{{ languageStore.t('total_amount', 'Total Amount') }}:</span>
+              <span class="text-blue-600 dark:text-blue-400 text-lg">{{ totalAmount.toFixed(2) }} ETB</span>
             </div>
           </div>
 
-          <!-- Terms -->
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-700">
-            ✓ Your payment is secure and processed through Chapa payment gateway
+          <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300">
+            ✓ {{ languageStore.t('chapa_secure_msg', 'Your payment is secure and processed through Chapa payment gateway') }}
           </div>
         </div>
 
-        <!-- Dialog Actions -->
-        <div class="bg-slate-50 px-6 py-4 flex gap-3">
+        <div class="bg-slate-50 dark:bg-slate-800/90 px-5 py-3.5 border-t border-slate-200 dark:border-slate-700 flex gap-3 flex-shrink-0 shadow-lg">
           <button
             @click="closePaymentDialog"
             :disabled="paymentLoading"
-            class="flex-1 px-4 py-2 text-sm font-medium border border-slate-300 rounded-lg hover:bg-slate-100 text-slate-700 transition duration-200 disabled:opacity-50"
+            class="flex-1 px-4 py-2.5 text-sm font-bold border-2 border-slate-300 dark:border-slate-600 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition duration-200 disabled:opacity-50 cursor-pointer"
           >
-            Cancel
+            {{ languageStore.t('cancel', 'Cancel') }}
           </button>
 
           <button
             @click="proceedToPayment"
             :disabled="paymentLoading"
-            class="flex-1 px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
+            class="flex-1 px-4 py-2.5 text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 cursor-pointer"
           >
             <span v-if="paymentLoading" class="animate-spin">⌛</span>
-            <span v-if="paymentLoading">Processing...</span>
-            <span v-else>💳 Pay Now</span>
+            <span v-if="paymentLoading">{{ languageStore.t('processing', 'Processing...') }}</span>
+            <span v-else>💳 {{ languageStore.t('pay_now', 'Pay Now') }} ({{ totalAmount.toFixed(2) }} ETB)</span>
           </button>
         </div>
       </div>

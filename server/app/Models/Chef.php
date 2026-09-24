@@ -34,49 +34,31 @@ class Chef extends Model
         return $this->belongsTo(User::class, 'id', 'id');
     }
 
-    /**
-     * Get all orders prepared by this chef
-     */
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class, 'chef_id', 'id');
     }
 
-    /**
-     * Check if chef is active
-     */
     public function isActive(): bool
     {
         return $this->status === 'active';
     }
 
-    /**
-     * Check if chef is on break
-     */
     public function isOnBreak(): bool
     {
         return $this->status === 'on_break';
     }
 
-    /**
-     * Check if chef is head chef or above
-     */
     public function isSeniorChef(): bool
     {
         return in_array($this->rank, ['head_chef', 'executive_chef']);
     }
 
-    /**
-     * Scope to get active chefs
-     */
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
     }
 
-    /**
-     * Scope to get chefs by rank
-     */
     public function scopeByRank($query, $rank)
     {
         return $query->where('rank', $rank);

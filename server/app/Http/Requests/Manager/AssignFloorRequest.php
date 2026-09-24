@@ -5,25 +5,17 @@ namespace App\Http\Requests\Manager;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * AssignFloorRequest
- * 
- * Validates floor assignment data
- * Ensures valid waiter-floor-shift combinations
- */
 class AssignFloorRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return auth()->check() && auth()->user()->role === 'manager';
+        return auth()->check() && (
+            in_array(auth()->user()->role, ['manager', 'admin', 'superadmin', 'super_admin'])
+            || auth()->user()->hasRole('manager')
+            || auth()->user()->hasRole('admin')
+        );
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
         return [
@@ -55,9 +47,6 @@ class AssignFloorRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get the error messages for the defined validation rules.
-     */
     public function messages(): array
     {
         return [
@@ -76,9 +65,6 @@ class AssignFloorRequest extends FormRequest
         ];
     }
 
-    /**
-     * Prepare the data for validation.
-     */
     protected function prepareForValidation(): void
     {
         if ($this->has('assignments')) {
@@ -94,9 +80,6 @@ class AssignFloorRequest extends FormRequest
         }
     }
 
-    /**
-     * Get the assignment data
-     */
     public function getAssignments(): array
     {
         return $this->input('assignments', []);

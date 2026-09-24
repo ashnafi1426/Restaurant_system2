@@ -29,25 +29,16 @@ class ManagerAuditLog extends Model
         'new_values' => 'json',
     ];
 
-    /**
-     * Get the manager who performed the action
-     */
     public function manager(): BelongsTo
     {
         return $this->belongsTo(User::class, 'manager_id');
     }
 
-    /**
-     * Scope: Get logs for a specific manager
-     */
     public function scopeForManager($query, $managerId)
     {
         return $query->where('manager_id', $managerId);
     }
 
-    /**
-     * Scope: Get logs for a specific resource
-     */
     public function scopeForResource($query, $resourceType, $resourceId = null)
     {
         $query->where('resource_type', $resourceType);
@@ -57,17 +48,11 @@ class ManagerAuditLog extends Model
         return $query;
     }
 
-    /**
-     * Scope: Get logs for a specific action
-     */
     public function scopeForAction($query, $action)
     {
         return $query->where('action', $action);
     }
 
-    /**
-     * Scope: Get recent logs
-     */
     public function scopeRecent($query, $days = 7)
     {
         return $query->where('created_at', '>=', now()->subDays($days));

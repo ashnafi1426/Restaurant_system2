@@ -97,8 +97,8 @@ class SeedTestDeliveryData extends Command
 
         // Create test orders with delivery tasks
         $statuses = ['assigned', 'accepted', 'picked_up', 'on_delivery', 'delivered'];
-        
-        $this->info('📦 Creating delivery tasks...');
+
+        $this->info(' Creating delivery tasks...');
         
         foreach ($statuses as $index => $status) {
             $order = Order::create([

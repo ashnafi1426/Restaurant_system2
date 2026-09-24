@@ -1,10 +1,12 @@
 <?php
 
 namespace App\Http\Controllers\Api\Manager;
+
 use App\Http\Controllers\Controller;
 use App\Services\Manager\ManagerDashboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+
 class StaffController extends Controller
 {
     protected ManagerDashboardService $dashboardService;
@@ -14,9 +16,6 @@ class StaffController extends Controller
         $this->dashboardService = $dashboardService;
     }
 
-    /**
-     * Get staff overview
-     */
     public function index(Request $request): JsonResponse
     {
         try {

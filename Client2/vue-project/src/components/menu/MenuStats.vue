@@ -15,7 +15,7 @@
       <!-- Meta Card Label & Character Icon Container -->
       <div class="flex items-center justify-between">
         <span class="text-[10px] font-black tracking-wider text-slate-400 dark:text-slate-500 uppercase">{{
-          card.title
+          languageStore.t(card.key, card.title)
         }}</span>
         <div
           class="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500/20 transition-colors"
@@ -29,7 +29,7 @@
         <span class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
           {{ card.count }}
         </span>
-        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 ml-1">Items</span>
+        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 ml-1">{{ languageStore.t('items_count', 'Items') }}</span>
       </div>
     </div>
   </div>
@@ -39,6 +39,9 @@
 import { computed } from 'vue'
 import type { MenuItem } from '@/types/menu'
 import { Sun, Utensils, Soup, Wine, Cake } from 'lucide-vue-next'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
 
 interface BackendStatistics {
   total_items?: number

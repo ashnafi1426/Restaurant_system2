@@ -10,36 +10,53 @@ use Illuminate\Support\Facades\DB;
 
 class CashierReportController extends Controller
 {
-    /**
-     * Get revenue report
-     */
+    protected function getHotelId(): ?string
+    {
+        $hotelId = request()->header('X-Hotel-ID')
+            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: (auth()->check() ? auth()->user()->hotel_id : null);
+
+        if (!$hotelId && auth()->check()) {
+            $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
+        }
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
+
     public function revenueReport(Request $request): JsonResponse
     {
         try {
-            $period = $request->get('period', 'daily'); // daily, weekly, monthly, yearly
+            $hotelId = $this->getHotelId();
+            $period = $request->get('period', 'daily');
             $dateFrom = $request->get('date_from', now()->startOfMonth());
             $dateTo = $request->get('date_to', now()->endOfMonth());
 
             $query = Payment::whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->whereBetween('paid_at', [$dateFrom, $dateTo]);
 
-            $totalRevenue = (float) $query->sum('amount');
-            $totalTransactions = $query->count();
+            $totalRevenue = (float) (clone $query)->sum('amount');
+            $totalTransactions = (clone $query)->count();
             $averageTransaction = $totalTransactions > 0 ? $totalRevenue / $totalTransactions : 0;
 
-            // Revenue by type
             $reservationRevenue = (float) Payment::whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->whereNotNull('reservation_id')
                 ->whereBetween('paid_at', [$dateFrom, $dateTo])
                 ->sum('amount');
 
             $orderRevenue = (float) Payment::whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->whereNotNull('order_id')
                 ->whereBetween('paid_at', [$dateFrom, $dateTo])
                 ->sum('amount');
 
-            // Revenue by payment method
             $revenueByMethod = Payment::whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->whereBetween('paid_at', [$dateFrom, $dateTo])
                 ->select('payment_method', DB::raw('SUM(amount) as total'))
                 ->groupBy('payment_method')
@@ -51,10 +68,9 @@ class CashierReportController extends Controller
                     ];
                 });
 
-            // Daily breakdown
             $dailyBreakdown = [];
             if ($period === 'daily') {
-                $dailyBreakdown = $this->getDailyBreakdown($dateFrom, $dateTo);
+                $dailyBreakdown = $this->getDailyBreakdown($dateFrom, $dateTo, $hotelId);
             }
 
             return response()->json([
@@ -81,53 +97,36 @@ class CashierReportController extends Controller
         }
     }
 
-    /**
-     * Get payment report
-     */
     public function paymentReport(Request $request): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
             $dateFrom = $request->get('date_from', now()->startOfMonth());
             $dateTo = $request->get('date_to', now()->endOfMonth());
 
-            // Status breakdown
             $statusBreakdown = Payment::whereBetween('created_at', [$dateFrom, $dateTo])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->select('status', DB::raw('COUNT(*) as count'), DB::raw('SUM(amount) as total'))
                 ->groupBy('status')
                 ->get()
                 ->map(function ($item) {
                     return [
                         'status' => $item->status,
-                        'count' => $item->count,
+                        'count' => (int) $item->count,
                         'total' => (float) $item->total,
                     ];
                 });
 
-            // Provider breakdown
-            $providerBreakdown = Payment::whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
-                ->whereBetween('paid_at', [$dateFrom, $dateTo])
+            $providerBreakdown = Payment::whereBetween('created_at', [$dateFrom, $dateTo])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+                ->whereNotNull('payment_provider')
                 ->select('payment_provider', DB::raw('COUNT(*) as count'), DB::raw('SUM(amount) as total'))
                 ->groupBy('payment_provider')
                 ->get()
                 ->map(function ($item) {
                     return [
-                        'provider' => $item->payment_provider ?? 'Unknown',
-                        'count' => $item->count,
-                        'total' => (float) $item->total,
-                    ];
-                });
-
-            // Method breakdown
-            $methodBreakdown = Payment::whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
-                ->whereBetween('paid_at', [$dateFrom, $dateTo])
-                ->whereNotNull('payment_method')
-                ->select('payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(amount) as total'))
-                ->groupBy('payment_method')
-                ->get()
-                ->map(function ($item) {
-                    return [
-                        'method' => $item->payment_method,
-                        'count' => $item->count,
+                        'provider' => $item->payment_provider,
+                        'count' => (int) $item->count,
                         'total' => (float) $item->total,
                     ];
                 });
@@ -139,7 +138,6 @@ class CashierReportController extends Controller
                     'date_to' => $dateTo,
                     'status_breakdown' => $statusBreakdown,
                     'provider_breakdown' => $providerBreakdown,
-                    'method_breakdown' => $methodBreakdown,
                 ],
             ]);
         } catch (\Exception $e) {
@@ -151,16 +149,15 @@ class CashierReportController extends Controller
         }
     }
 
-    /**
-     * Get refund report
-     */
     public function refundReport(Request $request): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
             $dateFrom = $request->get('date_from', now()->startOfMonth());
             $dateTo = $request->get('date_to', now()->endOfMonth());
 
             $refunds = Payment::with(['guest', 'reservation', 'order'])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->where('status', Payment::STATUS_REFUNDED)
                 ->whereBetween('updated_at', [$dateFrom, $dateTo])
                 ->get();
@@ -205,11 +202,7 @@ class CashierReportController extends Controller
         }
     }
 
-    // ========================================================================
-    // Private Helper Methods
-    // ========================================================================
-
-    private function getDailyBreakdown($dateFrom, $dateTo): array
+    private function getDailyBreakdown($dateFrom, $dateTo, ?string $hotelId = null): array
     {
         $days = [];
         $start = \Carbon\Carbon::parse($dateFrom);
@@ -218,10 +211,12 @@ class CashierReportController extends Controller
         while ($start->lte($end)) {
             $date = $start->format('Y-m-d');
             $revenue = (float) Payment::whereDate('paid_at', $date)
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
                 ->sum('amount');
 
             $count = Payment::whereDate('paid_at', $date)
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
                 ->count();
 

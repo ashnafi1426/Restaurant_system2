@@ -15,12 +15,6 @@ class AnalyticsService
         $this->ratingCalculationService = $ratingCalculationService;
     }
 
-    /**
-     * Get detailed statistics for a menu item.
-     *
-     * @param string $menuItemId
-     * @return array
-     */
     public function getMenuItemStatistics(string $menuItemId): array
     {
         $stats = $this->ratingCalculationService->calculateRatingStats($menuItemId);
@@ -31,13 +25,6 @@ class AnalyticsService
         ]);
     }
 
-    /**
-     * Get top-rated menu items.
-     *
-     * @param int $minReviews Minimum number of reviews required
-     * @param int $limit Maximum number of items to return
-     * @return \Illuminate\Support\Collection
-     */
     public function getTopRatedItems(int $minReviews = 5, int $limit = 20)
     {
         return MenuItem::select('menu_items.*')
@@ -63,13 +50,6 @@ class AnalyticsService
             });
     }
 
-    /**
-     * Get lowest-rated menu items.
-     *
-     * @param int $minReviews Minimum number of reviews required
-     * @param int $limit Maximum number of items to return
-     * @return \Illuminate\Support\Collection
-     */
     public function getLowestRatedItems(int $minReviews = 5, int $limit = 20)
     {
         return MenuItem::select('menu_items.*')
@@ -95,23 +75,11 @@ class AnalyticsService
             });
     }
 
-    /**
-     * Get count of pending reviews awaiting moderation.
-     *
-     * @return int
-     */
     public function getPendingReviewCount(): int
     {
         return MenuItemReview::pending()->count();
     }
 
-    /**
-     * Get review submission trends over time.
-     *
-     * @param string $period 'daily', 'weekly', or 'monthly'
-     * @param int $limit Number of periods to return
-     * @return array
-     */
     public function getReviewTrends(string $period = 'daily', int $limit = 30): array
     {
         $dateFormat = match ($period) {
@@ -140,11 +108,6 @@ class AnalyticsService
         return $trends->toArray();
     }
 
-    /**
-     * Get overall review system statistics.
-     *
-     * @return array
-     */
     public function getOverallStatistics(): array
     {
         return [

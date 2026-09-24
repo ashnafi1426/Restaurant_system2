@@ -2,13 +2,11 @@
   <DashboardLayout>
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
       <div class="max-w-4xl mx-auto">
-        <!-- Header -->
         <div class="mb-8">
-          <h1 class="text-4xl font-bold text-slate-900">Settings</h1>
-          <p class="text-slate-600 mt-2">Manage your preferences and account settings</p>
+          <h1 class="text-4xl font-bold text-slate-900">{{ languageStore.t('settings', 'Settings') }}</h1>
+          <p class="text-slate-600 mt-2">{{ languageStore.t('manage_preferences_account_settings', 'Manage your preferences and account settings') }}</p>
         </div>
 
-        <!-- Loading State -->
         <div v-if="loading" class="flex items-center justify-center py-16">
           <div class="text-center">
             <div class="relative w-12 h-12 mx-auto mb-4">
@@ -21,27 +19,24 @@
                 </svg>
               </div>
             </div>
-            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">Loading settings...</p>
+            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">{{ languageStore.t('loading_settings', 'Loading settings...') }}</p>
           </div>
         </div>
 
-        <!-- Error State -->
         <div v-else-if="error" class="bg-red-50 border-l-4 border-red-600 rounded-lg p-6 mb-6">
-          <p class="text-red-700 font-semibold">Error loading settings</p>
+          <p class="text-red-700 font-semibold">{{ languageStore.t('error_loading_settings', 'Error loading settings') }}</p>
           <p class="text-red-600 text-sm mt-2">{{ error }}</p>
         </div>
 
-        <!-- Settings Content -->
         <div v-else class="space-y-6">
-          <!-- Notification Settings -->
           <div class="bg-white rounded-lg shadow-sm p-6">
-            <h2 class="text-lg font-bold text-slate-900 mb-6">Notification Settings</h2>
+            <h2 class="text-lg font-bold text-slate-900 mb-6">{{ languageStore.t('notification_settings', 'Notification Settings') }}</h2>
             
             <div class="space-y-4">
               <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                 <div>
-                  <p class="font-medium text-slate-900">Push Notifications</p>
-                  <p class="text-sm text-slate-600 mt-1">Receive notifications for new orders and alerts</p>
+                  <p class="font-medium text-slate-900">{{ languageStore.t('push_notifications', 'Push Notifications') }}</p>
+                  <p class="text-sm text-slate-600 mt-1">{{ languageStore.t('push_notifications_desc', 'Receive notifications for new orders and alerts') }}</p>
                 </div>
                 <div>
                   <input 
@@ -54,8 +49,8 @@
 
               <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                 <div>
-                  <p class="font-medium text-slate-900">Email Notifications</p>
-                  <p class="text-sm text-slate-600 mt-1">Receive email updates about your deliveries</p>
+                  <p class="font-medium text-slate-900">{{ languageStore.t('email_notifications', 'Email Notifications') }}</p>
+                  <p class="text-sm text-slate-600 mt-1">{{ languageStore.t('email_notifications_desc', 'Receive email updates about your deliveries') }}</p>
                 </div>
                 <div>
                   <input 
@@ -68,8 +63,8 @@
 
               <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                 <div>
-                  <p class="font-medium text-slate-900">SMS Notifications</p>
-                  <p class="text-sm text-slate-600 mt-1">Receive SMS alerts for urgent messages</p>
+                  <p class="font-medium text-slate-900">{{ languageStore.t('sms_notifications', 'SMS Notifications') }}</p>
+                  <p class="text-sm text-slate-600 mt-1">{{ languageStore.t('sms_notifications_desc', 'Receive SMS alerts for urgent messages') }}</p>
                 </div>
                 <div>
                   <input 
@@ -82,14 +77,12 @@
             </div>
           </div>
 
-          <!-- Preference Settings -->
           <div class="bg-white rounded-lg shadow-sm p-6">
-            <h2 class="text-lg font-bold text-slate-900 mb-6">Preferences</h2>
+            <h2 class="text-lg font-bold text-slate-900 mb-6">{{ languageStore.t('preferences', 'Preferences') }}</h2>
             
             <div class="space-y-4">
-              <!-- Theme Selection -->
               <div class="p-4 bg-slate-50 rounded-lg">
-                <p class="font-medium text-slate-900 mb-3">Theme</p>
+                <p class="font-medium text-slate-900 mb-3">{{ languageStore.t('theme', 'Theme') }}</p>
                 <div class="flex gap-4">
                   <label class="flex items-center gap-2">
                     <input 
@@ -98,7 +91,7 @@
                       value="light"
                       class="w-4 h-4 text-blue-600"
                     >
-                    <span class="text-slate-700">Light</span>
+                    <span class="text-slate-700">{{ languageStore.t('light', 'Light') }}</span>
                   </label>
                   <label class="flex items-center gap-2">
                     <input 
@@ -107,7 +100,7 @@
                       value="dark"
                       class="w-4 h-4 text-blue-600"
                     >
-                    <span class="text-slate-700">Dark</span>
+                    <span class="text-slate-700">{{ languageStore.t('dark', 'Dark') }}</span>
                   </label>
                   <label class="flex items-center gap-2">
                     <input 
@@ -116,20 +109,21 @@
                       value="auto"
                       class="w-4 h-4 text-blue-600"
                     >
-                    <span class="text-slate-700">Auto</span>
+                    <span class="text-slate-700">{{ languageStore.t('auto', 'Auto') }}</span>
                   </label>
                 </div>
               </div>
 
-              <!-- Language Selection -->
               <div class="p-4 bg-slate-50 rounded-lg">
-                <label for="language" class="block font-medium text-slate-900 mb-3">Language</label>
+                <label for="language" class="block font-medium text-slate-900 mb-3">{{ languageStore.t('language', 'Language') }}</label>
                 <select 
                   v-model="settings.language"
                   id="language"
+                  @change="onLanguageChange"
                   class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="en">English</option>
+                  <option value="am">አማርኛ (Amharic)</option>
                   <option value="es">Spanish</option>
                   <option value="fr">French</option>
                   <option value="de">German</option>
@@ -138,57 +132,53 @@
             </div>
           </div>
 
-          <!-- Account Settings -->
           <div class="bg-white rounded-lg shadow-sm p-6">
-            <h2 class="text-lg font-bold text-slate-900 mb-6">Account</h2>
+            <h2 class="text-lg font-bold text-slate-900 mb-6">{{ languageStore.t('account', 'Account') }}</h2>
             
             <div class="space-y-4">
               <button
                 @click="changePasswordModal = true"
                 class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
               >
-                Change Password
+                {{ languageStore.t('change_password', 'Change Password') }}
               </button>
               <button
                 class="w-full px-4 py-3 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition font-medium border border-red-200"
               >
-                Logout All Devices
+                {{ languageStore.t('logout_all_devices', 'Logout All Devices') }}
               </button>
             </div>
           </div>
 
-          <!-- Save Button -->
           <div class="flex gap-4">
             <button
               @click="saveSettings"
               :disabled="saving"
               class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium disabled:opacity-50"
             >
-              {{ saving ? 'Saving...' : 'Save Settings' }}
+              {{ saving ? languageStore.t('saving', 'Saving...') : languageStore.t('save_settings', 'Save Settings') }}
             </button>
             <button
               @click="resetSettings"
               class="px-6 py-3 bg-slate-200 text-slate-900 rounded-lg hover:bg-slate-300 transition font-medium"
             >
-              Reset
+              {{ languageStore.t('reset', 'Reset') }}
             </button>
           </div>
 
-          <!-- Success Message -->
           <div v-if="successMessage" class="bg-green-50 border-l-4 border-green-600 rounded-lg p-6">
             <p class="text-green-700 font-semibold">{{ successMessage }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Change Password Modal -->
       <div v-if="changePasswordModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-          <h3 class="text-xl font-bold text-slate-900 mb-4">Change Password</h3>
+          <h3 class="text-xl font-bold text-slate-900 mb-4">{{ languageStore.t('change_password', 'Change Password') }}</h3>
           
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Current Password</label>
+              <label class="block text-sm font-medium text-slate-700 mb-1">{{ languageStore.t('current_password', 'Current Password') }}</label>
               <input 
                 v-model="passwordForm.current_password"
                 type="password" 
@@ -196,7 +186,7 @@
               >
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">New Password</label>
+              <label class="block text-sm font-medium text-slate-700 mb-1">{{ languageStore.t('new_password', 'New Password') }}</label>
               <input 
                 v-model="passwordForm.new_password"
                 type="password" 
@@ -204,7 +194,7 @@
               >
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Confirm Password</label>
+              <label class="block text-sm font-medium text-slate-700 mb-1">{{ languageStore.t('confirm_password', 'Confirm Password') }}</label>
               <input 
                 v-model="passwordForm.new_password_confirmation"
                 type="password" 
@@ -218,14 +208,14 @@
               @click="changePasswordModal = false"
               class="flex-1 px-4 py-2 bg-slate-200 text-slate-900 rounded-lg hover:bg-slate-300 transition font-medium"
             >
-              Cancel
+              {{ languageStore.t('cancel', 'Cancel') }}
             </button>
             <button
               @click="updatePassword"
               :disabled="passwordSaving"
               class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50"
             >
-              {{ passwordSaving ? 'Updating...' : 'Update Password' }}
+              {{ passwordSaving ? languageStore.t('updating', 'Updating...') : languageStore.t('update_password', 'Update Password') }}
             </button>
           </div>
         </div>
@@ -238,6 +228,9 @@
 import { ref, onMounted } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import waiterService from '@/services/waiterService'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
 
 const loading = ref(true)
 const saving = ref(false)
@@ -267,7 +260,6 @@ onMounted(async () => {
     loading.value = true
     error.value = null
     
-    console.log('[WaiterSettings] Loading settings...')
     const data = await waiterService.getSettings()
     
     if (data) {
@@ -281,7 +273,7 @@ onMounted(async () => {
       originalSettings.value = { ...settings.value }
     }
   } catch (err: any) {
-    console.error('[WaiterSettings] Error:', err)
+    console.error('[WaiterSettings] Error loading settings:', err)
     error.value = err.message || 'Failed to load settings'
   } finally {
     loading.value = false
@@ -293,7 +285,6 @@ const saveSettings = async () => {
     saving.value = true
     successMessage.value = null
     
-    console.log('[WaiterSettings] Saving settings...', settings.value)
     await waiterService.updateSettings(settings.value)
     
     originalSettings.value = { ...settings.value }
@@ -303,7 +294,7 @@ const saveSettings = async () => {
       successMessage.value = null
     }, 5000)
   } catch (err: any) {
-    console.error('[WaiterSettings] Error saving:', err)
+    console.error('[WaiterSettings] Error saving settings:', err)
     error.value = err.message || 'Failed to save settings'
   } finally {
     saving.value = false
@@ -327,7 +318,6 @@ const updatePassword = async () => {
     }
 
     passwordSaving.value = true
-    console.log('[WaiterSettings] Updating password...')
     
     await waiterService.changePassword({
       current_password: passwordForm.value.current_password,
@@ -351,6 +341,12 @@ const updatePassword = async () => {
     error.value = err.message || 'Failed to update password'
   } finally {
     passwordSaving.value = false
+  }
+}
+
+const onLanguageChange = () => {
+  if (settings.value.language === 'am' || settings.value.language === 'en') {
+    languageStore.setLanguage(settings.value.language)
   }
 }
 </script>

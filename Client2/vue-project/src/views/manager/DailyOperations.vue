@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
+import axios from '@/services/axios'
 import {
   ClipboardList,
   AlertCircle,
@@ -16,8 +19,11 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  Building2,
 } from 'lucide-vue-next'
 
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 const isLoading = ref(false)
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
@@ -25,19 +31,13 @@ const searchQuery = ref('')
 const selectedPriority = ref('all')
 
 const operationsData = ref({
-  pending_tasks: 8,
-  completed_tasks: 24,
-  urgent_tasks: 2,
-  total_staff: 12,
+  pending_tasks: 0,
+  completed_tasks: 0,
+  urgent_tasks: 0,
+  total_staff: 0,
 })
 
-const tasksList = ref([
-  { id: 1, title: 'Inspect Room Service Station Supplies', area: 'Kitchen Floor 1', priority: 'High', status: 'Pending', time: '10:30 AM' },
-  { id: 2, title: 'Verify Dining Table QR Code Placements', area: 'Main Dining Room', priority: 'Normal', status: 'Completed', time: '09:15 AM' },
-  { id: 3, title: 'Roster Review for Evening Shift Waiters', area: 'Floor Management', priority: 'High', status: 'Pending', time: '02:00 PM' },
-  { id: 4, title: 'Terrace Seating Weather Check', area: 'Outdoor Terrace', priority: 'Normal', status: 'Completed', time: '08:45 AM' },
-  { id: 5, title: 'Restock Linen & Napkins in Service Pantries', area: 'Floor 2 & 3', priority: 'Normal', status: 'Pending', time: '11:00 AM' },
-])
+const tasksList = ref<any[]>([])
 
 const filteredTasks = computed(() => {
   let list = tasksList.value
@@ -67,13 +67,55 @@ const resetFilters = () => {
 const refreshData = async () => {
   isLoading.value = true
   try {
-    await new Promise((resolve) => setTimeout(resolve, 400))
+    const [statsRes, tasksRes] = await Promise.all([
+      axios.get('/manager/dashboard/statistics').catch((err) => {
+        console.error('[DailyOperations] Failed to load dashboard statistics:', err)
+        return null
+      }),
+      axios.get('/manager/operations/housekeeping').catch((err) => {
+        console.error('[DailyOperations] Failed to load housekeeping operations:', err)
+        return null
+      }),
+    ])
+
+    const stats = statsRes?.data?.data || {}
+    const tasks = tasksRes?.data?.data || []
+
+    const pendingCount = tasks.filter((t: any) => (t.status || '').toLowerCase() === 'pending').length
+    const completedCount = tasks.filter((t: any) => (t.status || '').toLowerCase() === 'completed').length
+    const urgentCount = tasks.filter((t: any) => (t.priority || '').toLowerCase() === 'urgent' || (t.priority || '').toLowerCase() === 'high').length
+
+    operationsData.value = {
+      pending_tasks: pendingCount || stats.pending_orders_count || 0,
+      completed_tasks: completedCount || stats.total_orders || 0,
+      urgent_tasks: urgentCount || 0,
+      total_staff: stats.total_waiters || 0,
+    }
+
+    if (Array.isArray(tasks) && tasks.length > 0) {
+      tasksList.value = tasks.map((t: any, idx: number) => ({
+        id: t.id || idx + 1,
+        title: t.title || t.task_description || t.task || 'Room Service Task',
+        area: t.area || (t.room ? `Room ${t.room.room_number}` : 'Hotel Facility'),
+        priority: t.priority || 'Normal',
+        status: t.status ? t.status.charAt(0).toUpperCase() + t.status.slice(1) : 'Pending',
+        time: t.created_at ? new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—',
+      }))
+    } else {
+      tasksList.value = []
+    }
+  } catch (err) {
+    console.error('Failed to load operations data:', err)
   } finally {
     isLoading.value = false
   }
 }
 
 onMounted(async () => {
+  await refreshData()
+})
+
+watch(() => hotelStore.hotelId, async () => {
   await refreshData()
 })
 </script>
@@ -91,8 +133,18 @@ onMounted(async () => {
             <ClipboardList class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Daily Operations</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage daily floor tasks, checklists, and operations status.</p>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                {{ languageStore.t('daily_operations', 'Daily Operations') }}
+              </h1>
+              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+                <Building2 class="w-3 h-3" />
+                {{ hotelStore.hotelName }}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{ languageStore.t('daily_operations_desc', 'Manage daily floor tasks, checklists, and operations status.') }}
+            </p>
           </div>
         </div>
       </div>
@@ -101,7 +153,9 @@ onMounted(async () => {
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Tasks</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('pending_tasks', 'Pending Tasks') }}
+            </p>
             <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ operationsData.pending_tasks }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
@@ -111,7 +165,9 @@ onMounted(async () => {
 
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Completed</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('completed', 'Completed') }}
+            </p>
             <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ operationsData.completed_tasks }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -121,7 +177,9 @@ onMounted(async () => {
 
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Urgent Attention</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('urgent_attention', 'Urgent Attention') }}
+            </p>
             <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ operationsData.urgent_tasks }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
@@ -131,7 +189,9 @@ onMounted(async () => {
 
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Staff On Duty</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('Staff On Duty', 'Staff On Duty') }}
+            </p>
             <h3 class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">{{ operationsData.total_staff }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -152,7 +212,7 @@ onMounted(async () => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search daily tasks or areas..."
+              :placeholder="languageStore.t('search_daily_tasks', 'Search daily tasks or areas...')"
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
@@ -169,7 +229,7 @@ onMounted(async () => {
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+            <span>{{ isFilterOpen ? languageStore.t('hide_filters', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
           </button>
         </div>
 
@@ -180,7 +240,7 @@ onMounted(async () => {
             type="button"
             @click="refreshData"
             :disabled="isLoading"
-            title="Refresh"
+            :title="languageStore.t('refresh', 'Refresh')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
@@ -190,7 +250,7 @@ onMounted(async () => {
           <button
             type="button"
             @click="toggleFullscreen"
-            title="Toggle Fullscreen"
+            :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
@@ -215,15 +275,15 @@ onMounted(async () => {
             <!-- Priority Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Task Priority
+                {{ languageStore.t('task_priority', 'Task Priority') }}
               </label>
               <select
                 v-model="selectedPriority"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="all">All Priorities</option>
-                <option value="high">High Priority</option>
-                <option value="normal">Normal</option>
+                <option value="all">{{ languageStore.t('all_priorities', 'All Priorities') }}</option>
+                <option value="high">{{ languageStore.t('high_priority', 'High Priority') }}</option>
+                <option value="normal">{{ languageStore.t('normal', 'Normal') }}</option>
               </select>
             </div>
 
@@ -235,7 +295,7 @@ onMounted(async () => {
                 class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
               >
                 <RotateCcw class="w-3.5 h-3.5" />
-                <span>Reset Filters</span>
+                <span>{{ languageStore.t('reset_filters', 'Reset Filters') }}</span>
               </button>
             </div>
           </div>
@@ -248,14 +308,19 @@ onMounted(async () => {
           <table class="w-full text-left border-collapse">
             <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">Task Description</th>
-                <th class="py-3 px-4 whitespace-nowrap">Area / Floor</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">Priority</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Scheduled Time</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('task_description', 'Task Description') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('area_floor', 'Area / Floor') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('priority', 'Priority') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('status', 'Status') }}</th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('scheduled_time', 'Scheduled Time') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
+              <tr v-if="filteredTasks.length === 0">
+                <td colspan="5" class="py-12 text-center text-slate-400 dark:text-slate-500">
+                  {{ languageStore.t('no_tasks_found', 'No operations tasks match your criteria.') }}
+                </td>
+              </tr>
               <tr
                 v-for="task in filteredTasks"
                 :key="task.id"

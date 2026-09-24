@@ -12,51 +12,24 @@ class RoomType extends Model
 {
     use HasFactory, HasUuids, BelongsToTenant;
 
-    /*
-    |--------------------------------------------------------------------------
-    | Table
-    |--------------------------------------------------------------------------
-    */
-
     protected $table = 'room_types';
     protected $keyType = 'string';
     public $incrementing = false;
     protected $fillable = [
         'hotel_id',
         'name',
-
         'description',
-
         'base_price_per_night',
-
         'capacity',
-
         'amenities',
-
         'is_active',
-
     ];
     protected $casts = [
-
         'amenities' => 'array',
-
         'base_price_per_night' => 'decimal:2',
-
         'capacity' => 'integer',
-
         'is_active' => 'boolean',
-
     ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relationship
-    |--------------------------------------------------------------------------
-    |
-    | One RoomType
-    | hasMany Rooms
-    |
-    */
 
     public function rooms()
     {
@@ -66,12 +39,6 @@ class RoomType extends Model
             'id'
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Scope : Active Room Types
-    |--------------------------------------------------------------------------
-    */
 
     public function scopeActive($query)
     {

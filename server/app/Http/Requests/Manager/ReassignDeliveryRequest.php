@@ -4,25 +4,13 @@ namespace App\Http\Requests\Manager;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/**
- * ReassignDeliveryRequest
- * 
- * Validates manual delivery reassignment
- * Ensures new waiter exists and is valid
- */
 class ReassignDeliveryRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return auth()->check() && auth()->user()->role === 'manager';
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
         return [
@@ -43,9 +31,6 @@ class ReassignDeliveryRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get the error messages for the defined validation rules.
-     */
     public function messages(): array
     {
         return [
@@ -58,9 +43,6 @@ class ReassignDeliveryRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get reassignment data
-     */
     public function getReassignmentData(): array
     {
         return $this->only([

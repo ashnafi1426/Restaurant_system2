@@ -9,15 +9,31 @@ use Illuminate\Http\Request;
 
 class CashierPaymentController extends Controller
 {
-    /**
-     * Get all payments with filters, search, sorting and pagination
-     */
+    protected function getHotelId(): ?string
+    {
+        $hotelId = request()->header('X-Hotel-ID')
+            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: (auth()->check() ? auth()->user()->hotel_id : null);
+
+        if (!$hotelId && auth()->check()) {
+            $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
+        }
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
+
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = Payment::with(['guest', 'reservation', 'order']);
+            $hotelId = $this->getHotelId();
 
-            // Search
+            $query = Payment::with(['guest', 'reservation', 'order'])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId));
+
             if ($request->filled('search')) {
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
@@ -29,17 +45,14 @@ class CashierPaymentController extends Controller
                 });
             }
 
-            // Filter by status
             if ($request->filled('status')) {
                 $query->where('status', $request->status);
             }
 
-            // Filter by payment provider
             if ($request->filled('provider')) {
                 $query->where('payment_provider', $request->provider);
             }
 
-            // Filter by type (reservation or order)
             if ($request->filled('type')) {
                 if ($request->type === 'reservation') {
                     $query->whereNotNull('reservation_id');
@@ -48,7 +61,6 @@ class CashierPaymentController extends Controller
                 }
             }
 
-            // Filter by date range
             if ($request->filled('date_from')) {
                 $query->whereDate('created_at', '>=', $request->date_from);
             }
@@ -57,7 +69,6 @@ class CashierPaymentController extends Controller
                 $query->whereDate('created_at', '<=', $request->date_to);
             }
 
-            // Quick filters
             if ($request->filled('filter')) {
                 switch ($request->filter) {
                     case 'today':
@@ -85,16 +96,13 @@ class CashierPaymentController extends Controller
                 }
             }
 
-            // Sorting
             $sortBy = $request->get('sort_by', 'created_at');
             $sortOrder = $request->get('sort_order', 'desc');
             $query->orderBy($sortBy, $sortOrder);
 
-            // Pagination
             $perPage = $request->get('per_page', 15);
             $payments = $query->paginate($perPage);
 
-            // Transform data
             $payments->getCollection()->transform(function ($payment) {
                 return [
                     'id' => $payment->id,
@@ -143,9 +151,6 @@ class CashierPaymentController extends Controller
         }
     }
 
-    /**
-     * Get single payment details
-     */
     public function show(string $id): JsonResponse
     {
         try {
@@ -212,15 +217,11 @@ class CashierPaymentController extends Controller
         }
     }
 
-    /**
-     * Mark payment as refunded
-     */
     public function refund(string $id, Request $request): JsonResponse
     {
         try {
             $payment = Payment::findOrFail($id);
 
-            // Only paid or verified payments can be refunded
             if (!in_array($payment->status, [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])) {
                 return response()->json([
                     'success' => false,

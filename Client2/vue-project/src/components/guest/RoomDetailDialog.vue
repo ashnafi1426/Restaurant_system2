@@ -229,7 +229,7 @@ function reserveRoom() {
                     <h3 class="text-3xl font-bold text-slate-900">Included Services</h3>
 
                     <div class="mt-8 grid gap-5 md:grid-cols-2">
-                      <div class="rounded-xl bg-slate-50 p-5">🍽️ Complimentary Breakfast</div>
+                      <div class="rounded-xl bg-slate-50 p-5">Complimentary Breakfast</div>
 
                       <div class="rounded-xl bg-slate-50 p-5">📶 High-Speed Wi-Fi</div>
 
@@ -369,7 +369,7 @@ function reserveRoom() {
                     <h3 class="text-3xl font-bold text-slate-900">Included Services</h3>
 
                     <div class="mt-8 grid gap-5 md:grid-cols-2">
-                      <div class="rounded-xl bg-slate-50 p-5">🍽️ Complimentary Breakfast</div>
+                      <div class="rounded-xl bg-slate-50 p-5">Complimentary Breakfast</div>
 
                       <div class="rounded-xl bg-slate-50 p-5">📶 High-Speed Wi-Fi</div>
 

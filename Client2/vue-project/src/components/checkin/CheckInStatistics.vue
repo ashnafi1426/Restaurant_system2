@@ -54,7 +54,6 @@ const cards = computed(() => [
       class="group relative overflow-hidden rounded-2xl border-l-4 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
       :class="card.border"
     >
-      <!-- Decorative Circle -->
       <div
         class="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-slate-100 opacity-40 transition-all duration-300 group-hover:scale-125"
       ></div>

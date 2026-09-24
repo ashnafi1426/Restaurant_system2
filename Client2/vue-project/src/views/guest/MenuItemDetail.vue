@@ -1,24 +1,20 @@
 <template>
   <div class="menu-item-detail-page min-h-screen bg-gray-50">
     <div class="max-w-4xl mx-auto px-4 py-8">
-      <!-- Header with Back Button -->
       <div class="flex items-center justify-between mb-6">
         <button
           @click="goBack"
-          class="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold"
+          class="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Menu
+          {{ languageStore.t('back_to_menu', 'Back to Menu') }}
         </button>
       </div>
 
-      <!-- Main Content Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- Left: Image and Basic Info -->
         <div>
-          <!-- Item Image -->
           <div class="rounded-lg overflow-hidden mb-6 h-80 bg-gray-200">
             <img
               v-if="item?.image"
@@ -27,19 +23,16 @@
               class="w-full h-full object-cover"
             />
             <div v-else class="w-full h-full flex items-center justify-center">
-              <span class="text-6xl">🍽️</span>
+              <span class="text-6xl"></span>
             </div>
           </div>
 
-          <!-- Basic Info Card -->
           <div class="bg-white rounded-lg p-6 shadow">
-            <!-- Name and Category -->
             <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ item?.name }}</h1>
             <span class="inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold mb-4">
               {{ item?.category }}
             </span>
 
-            <!-- Rating and Reviews Count -->
             <div v-if="stats" class="mb-4 pb-4 border-b border-gray-200">
               <div class="flex items-center gap-4">
                 <div>
@@ -51,11 +44,10 @@
                       >★</span>
                     </div>
                   </div>
-                  <p class="text-sm text-gray-600">{{ stats.total_reviews }} review{{ stats.total_reviews !== 1 ? 's' : '' }}</p>
+                  <p class="text-sm text-gray-600">{{ stats.total_reviews }} {{ languageStore.t('reviews', 'reviews') }}</p>
                 </div>
               </div>
 
-              <!-- Rating Distribution -->
               <div class="mt-4 space-y-2">
                 <div v-for="rating in 5" :key="rating" class="flex items-center gap-2">
                   <span class="text-sm w-4">{{ rating }}★</span>
@@ -70,12 +62,23 @@
               </div>
             </div>
 
-            <!-- Price -->
             <div class="mb-6">
-              <span class="text-3xl font-bold text-green-600">${{ item?.price?.toFixed(2) }}</span>
+              <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-bold text-green-600">
+                  ${{ ((item?.total_price !== undefined && item?.total_price !== null) ? Number(item.total_price) : Number(item?.price || 0)).toFixed(2) }}
+                </span>
+                <span class="text-xs font-semibold text-slate-500 uppercase">Incl. Tax</span>
+              </div>
+              <div v-if="item?.tax_rate && Number(item.tax_rate.rate) > 0" class="text-xs text-slate-500 mt-1">
+                <span v-if="item.tax_included" class="text-emerald-600 font-medium">
+                  Includes {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
+                </span>
+                <span v-else>
+                  Base Price: ${{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% Tax (${{ (item.tax_amount || 0).toFixed(2) }})
+                </span>
+              </div>
             </div>
 
-            <!-- Availability -->
             <div class="mb-6">
               <span :class="[
                 'inline-block px-4 py-2 rounded-full font-semibold',
@@ -83,68 +86,60 @@
                   ? 'bg-green-100 text-green-700'
                   : 'bg-red-100 text-red-700'
               ]">
-                {{ item?.is_available ? '✓ Available' : '✗ Not Available' }}
+                {{ item?.is_available ? `✓ ${languageStore.t('available', 'Available')}` : `✗ ${languageStore.t('unavailable', 'Unavailable')}` }}
               </span>
             </div>
 
-            <!-- Add to Cart Button -->
             <button
               @click="addToCart"
               :disabled="!item?.is_available"
-              class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+              class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-lg transition-colors cursor-pointer"
             >
-              Add to Cart
+              {{ languageStore.t('add_to_cart', 'Add to Cart') }}
             </button>
           </div>
         </div>
 
-        <!-- Right: Description and Reviews -->
         <div class="space-y-6">
-          <!-- Description Card -->
           <div class="bg-white rounded-lg p-6 shadow">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Description</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">{{ languageStore.t('description', 'Description') }}</h2>
             <p class="text-gray-700 leading-relaxed">
-              {{ item?.description || 'No description available' }}
+              {{ item?.description || languageStore.t('no_description_available', 'No description available') }}
             </p>
           </div>
 
-          <!-- Reviews Tabs -->
           <div class="bg-white rounded-lg shadow overflow-hidden">
-            <!-- Tabs -->
             <div class="border-b border-gray-200 flex">
               <button
                 @click="reviewTab = 'reviews'"
                 :class="[
-                  'flex-1 px-4 py-3 font-semibold text-center transition-colors',
+                  'flex-1 px-4 py-3 font-semibold text-center transition-colors cursor-pointer',
                   reviewTab === 'reviews'
                     ? 'border-b-2 border-blue-600 text-blue-600'
                     : 'text-gray-600 hover:text-gray-900'
                 ]"
               >
-                Reviews ({{ stats?.total_reviews || 0 }})
+                {{ languageStore.t('reviews', 'Reviews') }} ({{ stats?.total_reviews || 0 }})
               </button>
               <button
                 v-if="canReview"
                 @click="reviewTab = 'submit'"
                 :class="[
-                  'flex-1 px-4 py-3 font-semibold text-center transition-colors',
+                  'flex-1 px-4 py-3 font-semibold text-center transition-colors cursor-pointer',
                   reviewTab === 'submit'
                     ? 'border-b-2 border-blue-600 text-blue-600'
                     : 'text-gray-600 hover:text-gray-900'
                 ]"
               >
-                Write Review
+                {{ languageStore.t('write_review', 'Write Review') }}
               </button>
             </div>
 
-            <!-- Tab Content -->
             <div class="p-6">
-              <!-- Reviews List Tab -->
               <div v-show="reviewTab === 'reviews'">
                 <PublicReviewsList :menu-item-id="menuItemId" />
               </div>
 
-              <!-- Submit Review Tab -->
               <div v-show="reviewTab === 'submit'" v-if="canReview">
                 <ReviewSubmissionForm
                   :menu-item-id="menuItemId"
@@ -156,9 +151,8 @@
                 />
               </div>
 
-              <!-- Not Eligible Message -->
               <div v-if="!canReview && !item?.is_available" class="text-center py-8">
-                <p class="text-gray-600">Item not available for review</p>
+                <p class="text-gray-600">{{ languageStore.t('item_not_available_review', 'Item not available for review') }}</p>
               </div>
             </div>
           </div>
@@ -172,6 +166,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useLanguageStore } from '@/stores/language'
 import reviewService from '@/services/reviewService'
 import { ReviewStats } from '@/types/review'
 import PublicReviewsList from '@/components/reviews/PublicReviewsList.vue'
@@ -180,6 +175,7 @@ import ReviewSubmissionForm from '@/components/reviews/ReviewSubmissionForm.vue'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const languageStore = useLanguageStore()
 
 const menuItemId = computed(() => route.params.id as string)
 const item = ref<any>(null)
@@ -188,7 +184,6 @@ const currentUser = authStore.user
 const selectedOrderId = ref<string | null>(null)
 const reviewTab = ref<'reviews' | 'submit'>('reviews')
 
-// Check if user can review
 const canReview = computed(() => {
   return currentUser?.id && item.value?.is_available
 })
@@ -197,21 +192,15 @@ const goBack = () => {
   router.back()
 }
 
-const addToCart = () => {
-  // Emit to parent or use store
-  console.log('Added to cart:', item.value)
-}
+const addToCart = () => {}
 
 const onReviewSuccess = (review: any) => {
   reviewTab.value = 'reviews'
-  // Reload stats
   loadStats()
 }
 
 const loadItem = async () => {
   try {
-    // This would come from your menu store
-    // For now, using placeholder
     item.value = {
       id: menuItemId.value,
       name: 'Menu Item',
@@ -222,7 +211,7 @@ const loadItem = async () => {
       is_available: true
     }
   } catch (error) {
-    console.error('Failed to load item:', error)
+    console.error('[MenuItemDetail] Error loading item:', error)
   }
 }
 
@@ -230,7 +219,7 @@ const loadStats = async () => {
   try {
     stats.value = await reviewService.getMenuItemStats(menuItemId.value)
   } catch (error) {
-    console.error('Failed to load stats:', error)
+    console.error('[MenuItemDetail] Error loading review stats:', error)
   }
 }
 

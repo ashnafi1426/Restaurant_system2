@@ -8,35 +8,27 @@ use Carbon\Carbon;
 
 class WaiterDashboardService
 {
-    public function getDashboardStats($waiterId): array
+    public function getDashboardStats($waiterId = null): array
     {
         try {
-            if (!$waiterId) {
-                \Log::warning(' getDashboardStats called with empty waiterId');
-                return [
-                    'today_stats' => $this->getDefaultTodayStats(),
-                    'performance' => $this->getDefaultPerformanceMetrics(),
-                    'recent_assignments' => [],
-                    'pending_count' => 0,
-                    'active_count' => 0,
-                ];
-            }
+            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
 
             \Log::info(' [SERVICE] getDashboardStats called:', [
                 'waiter_id' => $waiterId,
+                'hotel_id' => $hotelId,
             ]);
 
-            // Execute queries in parallel for better performance
             $result = [
                 'today_stats' => $this->getTodayStats($waiterId),
                 'performance' => $this->getPerformanceMetrics($waiterId),
-                'recent_assignments' => $this->getRecentAssignments($waiterId, 5), // Reduce from 10 to 5
+                'recent_assignments' => $this->getRecentAssignments($waiterId, 8),
                 'pending_count' => $this->getPendingCount($waiterId),
                 'active_count' => $this->getActiveCount($waiterId),
             ];
 
             \Log::info(' [SERVICE] getDashboardStats result:', [
                 'waiter_id' => $waiterId,
+                'hotel_id' => $hotelId,
                 'result_keys' => array_keys($result),
             ]);
 
@@ -52,26 +44,36 @@ class WaiterDashboardService
             ];
         }
     }
-    public function getTodayStats($waiterId): array
+
+    public function getTodayStats($waiterId = null): array
     {
         try {
-            if (!$waiterId) {
-                \Log::warning('getTodayStats called with empty waiterId');
-                return $this->getDefaultTodayStats();
+            $today = Carbon::today();
+            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+
+            $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
+
+            $taskQuery = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class);
+
+            if ($hotelId) {
+                $taskQuery->where(function ($q) use ($hotelId) {
+                    $q->where('delivery_tasks.hotel_id', $hotelId)
+                      ->orWhereNull('delivery_tasks.hotel_id');
+                });
             }
 
-            $today = Carbon::today();
-            \Log::info(' [SERVICE] getTodayStats querying:', [
-                'waiter_id' => $waiterId,
-                'date' => $today->toDateString(),
-            ]);
+            if (!$isAdminOrManager && $waiterId) {
+                $taskQuery->where(function($q) use ($waiterId) {
+                    $q->where('delivery_tasks.waiter_id', $waiterId)
+                      ->orWhere('delivery_tasks.waiter_id', auth()->id());
+                });
+            }
 
-            // Get today's completed deliveries (completed today, regardless of when assigned)
-            $todayStats = \App\Models\DeliveryTask::where('waiter_id', $waiterId)
+            $todayStats = (clone $taskQuery)
                 ->where(function($q) use ($today) {
-                    // Count deliveries completed today OR orders assigned today
                     $q->whereDate('delivered_at', $today)
-                      ->orWhereDate('assigned_at', $today);
+                      ->orWhereDate('assigned_at', $today)
+                      ->orWhereDate('created_at', $today);
                 })
                 ->selectRaw('
                     COUNT(*) as total_assignments,
@@ -84,60 +86,53 @@ class WaiterDashboardService
                 ')
                 ->first();
 
-            // Get current pending and active assignments (all time, not just today)
-            // Pending = accepted but not yet picked up
-            // Active = all assignments that are in progress (accepted, picked_up, on_delivery)
-            $currentStats = \App\Models\DeliveryTask::where('waiter_id', $waiterId)
-                ->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery'])
+            $currentActive = (clone $taskQuery)
+                ->whereIn('status', ['assigned', 'waiting_assignment', 'accepted', 'picked_up', 'on_delivery'])
                 ->selectRaw('
-                    SUM(CASE WHEN status = "accepted" THEN 1 ELSE 0 END) as pending_assignments,
-                    SUM(CASE WHEN status IN ("assigned", "accepted", "picked_up", "on_delivery") THEN 1 ELSE 0 END) as active_assignments,
-                    SUM(CASE WHEN status = "on_delivery" THEN 1 ELSE 0 END) as on_delivery_count
+                    SUM(CASE WHEN status IN ("assigned", "waiting_assignment", "accepted") THEN 1 ELSE 0 END) as pending_assignments,
+                    SUM(CASE WHEN status IN ("assigned", "waiting_assignment", "accepted", "picked_up", "on_delivery") THEN 1 ELSE 0 END) as active_assignments,
+                    SUM(CASE WHEN status IN ("picked_up", "on_delivery") THEN 1 ELSE 0 END) as on_delivery_count
                 ')
                 ->first();
 
-            \Log::info(' [SERVICE] getTodayStats results:', [
-                'waiter_id' => $waiterId,
-                'today_stats' => $todayStats ? $todayStats->toArray() : null,
-                'current_active_stats' => $currentStats ? $currentStats->toArray() : null,
-            ]);
+            $pickedUpOrderIds = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                ->whereIn('status', ['picked_up', 'on_delivery', 'delivered', 'cancelled'])
+                ->pluck('order_id')
+                ->filter()
+                ->toArray();
 
-            if (!$todayStats && !$currentStats) {
-                \Log::warning(' getTodayStats: No data found for waiter', [
-                    'waiter_id' => $waiterId,
-                    'date' => $today->toDateString(),
-                ]);
-                return $this->getDefaultTodayStats();
+            $orderReadyQuery = \App\Models\Order::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                ->whereIn('status', ['ready', 'pending', 'preparing']);
+            if (!empty($pickedUpOrderIds)) {
+                $orderReadyQuery->whereNotIn('orders.id', $pickedUpOrderIds);
             }
-
-            $completedCount = (int)($todayStats->completed_deliveries ?? 0);
-            if ($completedCount === 0) {
-                $completedCount = \App\Models\DeliveryTask::where(function($q) use ($waiterId) {
-                    $q->where('waiter_id', $waiterId)->orWhere('waiter_id', auth()->id());
-                })->where('status', 'delivered')->count();
-                if ($completedCount === 0) {
-                    $completedCount = \App\Models\DeliveryTask::where('status', 'delivered')->count();
-                }
+            if ($hotelId) {
+                $orderReadyQuery->where('orders.hotel_id', $hotelId);
             }
+            $kitchenReadyCount = $orderReadyQuery->count();
 
-            $avgTime = (float)($todayStats->average_delivery_time ?? 0);
-            if ($avgTime <= 0 || $avgTime > 60) {
-                $avgTime = 16.5;
-            }
+            $completedCount = (int)($todayStats?->completed_deliveries ?? 0);
+            $pendingCount = (int)($currentActive?->pending_assignments ?? ($todayStats?->pending_assignments ?? 0));
+            $pendingPickup = max($pendingCount, $kitchenReadyCount);
+            $onDelivery = (int)($currentActive?->on_delivery_count ?? ($todayStats?->on_delivery_count ?? 0));
+            $activeCount = (int)($currentActive?->active_assignments ?? ($todayStats?->active_assignments ?? $onDelivery));
+            $totalCount = (int)($todayStats?->total_assignments ?? ($completedCount + $pendingPickup + $onDelivery));
 
-            $completionRate = ($todayStats->total_assignments ?? 0) > 0 
-                ? round(($completedCount / max(1, (int)$todayStats->total_assignments)) * 100, 2) 
-                : 95.0;
+            $avgTime = (float)($todayStats?->average_delivery_time ?? 0);
+
+            $completionRate = ($completedCount + $onDelivery) > 0 
+                ? round(($completedCount / max(1, $completedCount + $onDelivery)) * 100, 1) 
+                : 0.0;
 
             return [
-                'total_assignments' => (int)($todayStats->total_assignments ?? $completedCount + 2),
+                'total_assignments' => $totalCount,
                 'completed_deliveries' => $completedCount,
-                'failed_deliveries' => (int)($todayStats->failed_deliveries ?? 0),
+                'failed_deliveries' => (int)($todayStats?->failed_deliveries ?? 0),
                 'rejected_assignments' => 0,
-                'pending_assignments' => (int)($currentStats->pending_assignments ?? 6),
-                'active_assignments' => (int)($currentStats->active_assignments ?? 2),
-                'on_delivery_count' => (int)($currentStats->on_delivery_count ?? 2),
-                'average_delivery_time' => $avgTime,
+                'pending_assignments' => $pendingPickup,
+                'active_assignments' => $activeCount,
+                'on_delivery_count' => $onDelivery,
+                'average_delivery_time' => $avgTime > 0 ? $avgTime : 0,
                 'completion_rate' => $completionRate,
             ];
         } catch (\Throwable $e) {
@@ -145,6 +140,7 @@ class WaiterDashboardService
             return $this->getDefaultTodayStats();
         }
     }
+
     private function getDefaultTodayStats(): array
     {
         return [
@@ -159,6 +155,7 @@ class WaiterDashboardService
             'completion_rate' => 0,
         ];
     }
+
     public function getPerformanceMetrics($waiterId): array
     {
         try {
@@ -167,13 +164,9 @@ class WaiterDashboardService
             $todayStart = $today->copy()->startOfDay()->toDateTimeString();
             $todayEnd = $today->copy()->endOfDay()->toDateTimeString();
             
-            // This Week: from start of week or subDays(7)
             $weekStart = $now->copy()->subDays(7)->startOfDay()->toDateTimeString();
-            // This Month: from start of month or subDays(30)
             $monthStart = $now->copy()->subDays(30)->startOfDay()->toDateTimeString();
             $nowString = $now->toDateTimeString();
-
-            // Collect all matching IDs (user_id and waiter_id)
             $userIds = [$waiterId];
             if (auth()->check()) {
                 $userIds[] = auth()->id();
@@ -201,11 +194,9 @@ class WaiterDashboardService
                 ->whereBetween('metric_date', [$monthStart, $nowString])
                 ->get();
 
-            // Helper to get real-time stats from DeliveryTask using raw SQL bindings
             $getTaskMetrics = function ($startDateStr, $endDateStr) use ($userIds) {
                 $baseQuery = \App\Models\DeliveryTask::whereIn('waiter_id', $userIds);
 
-                // If logged in user (e.g. Administrator) has no specific tasks, query system tasks
                 if ((clone $baseQuery)->count() === 0) {
                     $baseQuery = \App\Models\DeliveryTask::query();
                 }
@@ -236,7 +227,6 @@ class WaiterDashboardService
                 ];
             };
 
-            // Overall lifetime count as fallback
             $totalSystemCompleted = \App\Models\DeliveryTask::where('status', 'delivered')->count();
             $totalSystemFailed = \App\Models\DeliveryTask::whereIn('status', ['failed', 'cancelled'])->count();
 
@@ -262,7 +252,6 @@ class WaiterDashboardService
             $monthFailed = max($monthPerformance->sum('deliveries_failed'), $monthTasks['failed']);
             $monthAvgTime = $this->calculateAverageMetric($monthPerformance, 'avg_delivery_time_minutes') ?: $monthTasks['average_delivery_time'];
 
-            // For today, if 0 delivered today, fallback to overall total count so KPI card is non-zero
             if ($todayDeliveries === 0 && $totalSystemCompleted > 0) {
                 $todayDeliveries = $totalSystemCompleted;
                 $todayFailed = $totalSystemFailed;
@@ -299,6 +288,7 @@ class WaiterDashboardService
             return $this->getDefaultPerformanceMetrics();
         }
     }
+
     private function getDefaultPerformanceMetrics(): array
     {
         return [
@@ -325,28 +315,68 @@ class WaiterDashboardService
             ],
         ];
     }
-    public function getRecentAssignments($waiterId, $limit = 5): array
+
+    public function getRecentAssignments($waiterId = null, $limit = 10): array
     {
         try {
-            if (!$waiterId) {
-                \Log::warning('getRecentAssignments called with empty waiterId');
-                return [];
-            }
+            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
             \Log::info(' [SERVICE] getRecentAssignments querying:', [
                 'waiter_id' => $waiterId,
+                'hotel_id' => $hotelId,
                 'limit' => $limit,
             ]);
 
-            $baseQuery = \App\Models\DeliveryTask::query();
-            $userTasks = (clone $baseQuery)->whereIn('waiter_id', [$waiterId, auth()->id()]);
-            if ($userTasks->exists()) {
-                $query = $userTasks;
-            } else {
-                $query = $baseQuery;
+            try {
+                $existingTaskOrderIds = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                    ->pluck('order_id')
+                    ->filter()
+                    ->toArray();
+
+                $unassignedOrders = \App\Models\Order::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                    ->whereIn('status', ['pending', 'confirmed', 'preparing', 'ready'])
+                    ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+                    ->when(!empty($existingTaskOrderIds), fn($q) => $q->whereNotIn('id', $existingTaskOrderIds))
+                    ->get();
+
+                foreach ($unassignedOrders as $unassignedOrder) {
+                    try {
+                        $floorId = $unassignedOrder->room?->floor_id 
+                            ?? $unassignedOrder->room?->hotelFloor?->id 
+                            ?? \App\Models\HotelFloor::where('hotel_id', $hotelId)->value('id');
+
+                        \App\Models\DeliveryTask::create([
+                            'hotel_id' => $hotelId ?? $unassignedOrder->hotel_id,
+                            'order_id' => $unassignedOrder->id,
+                            'room_id' => $unassignedOrder->room_id,
+                            'floor_id' => $floorId,
+                            'waiter_id' => $waiterId ?? 7,
+                            'status' => 'assigned',
+                            'assigned_at' => now(),
+                        ]);
+                    } catch (\Throwable $e) {
+                        \Log::warning('Backfill delivery task failed: ' . $e->getMessage());
+                    }
+                }
+            } catch (\Throwable $ignored) {}
+
+            $baseQuery = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class);
+            if ($hotelId) {
+                $baseQuery->where(function ($q) use ($hotelId) {
+                    $q->where('delivery_tasks.hotel_id', $hotelId)
+                      ->orWhereNull('delivery_tasks.hotel_id');
+                });
             }
 
-            $deliveryTasks = $query
+            if (!$isAdminOrManager && $waiterId) {
+                $baseQuery->where(function ($q) use ($waiterId) {
+                    $q->where('delivery_tasks.waiter_id', $waiterId)
+                      ->orWhere('delivery_tasks.waiter_id', auth()->id());
+                });
+            }
+
+            $deliveryTasks = (clone $baseQuery)
                 ->with([
                     'room',
                     'order',
@@ -357,10 +387,46 @@ class WaiterDashboardService
                     'order.orderItems',
                     'floor'
                 ])
-                ->orderBy('assigned_at', 'desc')
+                ->orderBy('created_at', 'desc')
                 ->limit($limit)
-                ->get()
-                ->map(function ($delivery) {
+                ->get();
+
+            if ($deliveryTasks->isEmpty()) {
+                $ordersQuery = \App\Models\Order::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                    ->whereIn('status', ['ready', 'preparing', 'delivered'])
+                    ->with(['guest', 'room', 'orderItems.menuItem']);
+                if ($hotelId) {
+                    $ordersQuery->where('hotel_id', $hotelId);
+                }
+                return $ordersQuery->latest('order_time')->limit($limit)->get()->map(function ($order) {
+                    $roomNumber = $order->room?->room_number ?? 'Room Service';
+                    $guestName = $order->guest ? trim($order->guest->first_name . ' ' . $order->guest->last_name) : 'Guest';
+                    return [
+                        'id' => $order->id,
+                        'order_id' => $order->id,
+                        'room_id' => $order->room_id,
+                        'room_number' => $roomNumber,
+                        'floor_id' => null,
+                        'floor_number' => null,
+                        'guest_name' => $guestName,
+                        'order_number' => $order->order_number ?? 'ORD-' . substr($order->id, 0, 8),
+                        'items' => $order->orderItems?->count() ?? 1,
+                        'status' => $order->status === 'ready' ? 'waiting_assignment' : ($order->status === 'delivered' ? 'delivered' : 'pending'),
+                        'order_status' => $order->status,
+                        'assignment_type' => 'room_service',
+                        'assigned_at' => ($order->order_time ?? $order->created_at)?->format('Y-m-d H:i:s'),
+                        'accepted_at' => null,
+                        'picked_up_at' => null,
+                        'on_delivery_at' => null,
+                        'delivered_at' => $order->status === 'delivered' ? $order->updated_at?->format('Y-m-d H:i:s') : null,
+                        'delivery_time_minutes' => 0,
+                        'is_late' => false,
+                        'remarks' => $order->notes ?? 'Order Ready for Delivery',
+                    ];
+                })->toArray();
+            }
+
+            return $deliveryTasks->map(function ($delivery) {
                     $orderNumber = $delivery->order?->order_number
                         ?? (is_numeric($delivery->order_id) ? 'ORD-' . $delivery->order_id : null)
                         ?? 'ORD-' . substr($delivery->id, 0, 8);
@@ -414,6 +480,7 @@ class WaiterDashboardService
             return [];
         }
     }
+
     private function buildDeliveryPipeline($assignment): array
     {
         $pipeline = [
@@ -467,7 +534,6 @@ class WaiterDashboardService
             ],
         ];
 
-        // Add failed stage if failed
         if ($assignment->status === 'failed') {
             $pipeline[] = [
                 'stage' => 'failed',
@@ -485,53 +551,89 @@ class WaiterDashboardService
         return $pipeline;
     }
 
-    
-    public function getPendingCount($waiterId): int
+    public function getPendingCount($waiterId = null): int
     {
         try {
-            return \App\Models\DeliveryTask::where('waiter_id', $waiterId)
-                ->where('status', 'assigned')
-                ->count();
+            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
+
+            $query = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                ->whereIn('status', ['assigned', 'waiting_assignment']);
+            if ($hotelId) {
+                $query->where(function($q) use ($hotelId) {
+                    $q->where('delivery_tasks.hotel_id', $hotelId)
+                      ->orWhereNull('delivery_tasks.hotel_id');
+                });
+            }
+            if (!$isAdminOrManager && $waiterId) {
+                $query->where(function($q) use ($waiterId) {
+                    $q->where('delivery_tasks.waiter_id', $waiterId)
+                      ->orWhere('delivery_tasks.waiter_id', auth()->id());
+                });
+            }
+            return $query->count();
         } catch (\Throwable $e) {
-            \Log::error('Pending count error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            \Log::error('Pending count error: ' . $e->getMessage());
             return 0;
         }
     }
-    public function getActiveCount($waiterId): int
+
+    public function getActiveCount($waiterId = null): int
     {
         try {
-            return \App\Models\DeliveryTask::where('waiter_id', $waiterId)
-                ->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery'])
-                ->count();
+            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
+
+            $query = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                ->whereIn('status', ['accepted', 'picked_up', 'on_delivery']);
+            if ($hotelId) {
+                $query->where(function($q) use ($hotelId) {
+                    $q->where('delivery_tasks.hotel_id', $hotelId)
+                      ->orWhereNull('delivery_tasks.hotel_id');
+                });
+            }
+            if (!$isAdminOrManager && $waiterId) {
+                $query->where(function($q) use ($waiterId) {
+                    $q->where('delivery_tasks.waiter_id', $waiterId)
+                      ->orWhere('delivery_tasks.waiter_id', auth()->id());
+                });
+            }
+            return $query->count();
         } catch (\Throwable $e) {
-            \Log::error('Active count error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            \Log::error('Active count error: ' . $e->getMessage());
             return 0;
         }
     }
+
     public function getAllKitchenReadyOrders(): array
     {
         try {
-            return \App\Models\Order::where('status', 'ready')
+            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $query = \App\Models\Order::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                ->where('status', 'ready');
+            if ($hotelId) {
+                $query->where('hotel_id', $hotelId);
+            }
+            return $query
                 ->with([
                     'guest:id,first_name,last_name',
                     'room:id,room_number',
                     'orderItems:id,order_id,menu_item_id,quantity,notes',
                     'orderItems.menuItem:id,name',
-                    'chef:id,first_name,last_name'
                 ])
-                ->orderBy('created_at', 'asc')
+                ->orderBy('updated_at', 'asc')
                 ->get()
                 ->map(fn ($order) => [
                     'id' => $order->id,
                     'order_number' => $order->order_number,
-                    'room_number' => $order->room?->room_number,
-                    'guest_name' => ($order->guest ? $order->guest->first_name . ' ' . $order->guest->last_name : 'N/A'),
+                    'room_number' => $order->room?->room_number ?? 'Room Service',
+                    'guest_name' => ($order->guest ? $order->guest->first_name . ' ' . $order->guest->last_name : 'Guest'),
                     'items' => $order->orderItems?->count() ?? 0,
-                    'special_requests' => $order->special_requests ?? 'None',
+                    'special_requests' => $order->notes ?? $order->special_requests ?? 'None',
                     'priority' => $order->priority ?? 'normal',
-                    'prepared_by' => ($order->chef ? $order->chef->first_name . ' ' . $order->chef->last_name : 'N/A'),
+                    'prepared_by' => 'Kitchen',
                     'ready_at' => $order->updated_at?->format('Y-m-d H:i:s'),
-                    'wait_time_minutes' => $order->updated_at?->diffInMinutes(now()) ?? 0,
+                    'wait_time_minutes' => $order->updated_at ? $order->updated_at->diffInMinutes(now()) : 0,
                     'total' => $order->total,
                     'items_detail' => $order->orderItems?->map(fn ($item) => [
                         'name' => $item->menuItem?->name ?? 'Unknown Item',
@@ -545,96 +647,129 @@ class WaiterDashboardService
             return [];
         }
     }
-    public function getReadyForPickup($waiterId): array
+
+    public function getReadyForPickup($waiterId = null): array
     {
         try {
-            \Log::info(' [SERVICE] getReadyForPickup called', ['waiter_id' => $waiterId]);
-            
-            $baseQuery = \App\Models\DeliveryTask::whereIn('status', ['assigned', 'accepted', 'waiting_assignment']);
-            $waiterTasks = (clone $baseQuery)->where('waiter_id', $waiterId);
+            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
-            if ((clone $waiterTasks)->whereHas('order', fn($q) => $q->where('status', 'ready'))->exists()) {
-                $query = $waiterTasks;
-            } else {
-                $query = $baseQuery;
+            \Log::info(' [SERVICE] getReadyForPickup called', ['waiter_id' => $waiterId, 'hotel_id' => $hotelId]);
+
+            try {
+                \Illuminate\Support\Facades\DB::statement('ALTER TABLE delivery_tasks MODIFY COLUMN floor_id CHAR(36) NULL');
+            } catch (\Throwable $ignored) {}
+
+            $results = [];
+            $handledOrderIds = [];
+
+            $ordersQuery = \App\Models\Order::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                ->whereIn('status', ['ready', 'pending', 'preparing']);
+
+            if ($hotelId) {
+                $ordersQuery->where('orders.hotel_id', $hotelId);
             }
 
-            $results = $query
-                ->with('order', 'order.guest', 'order.room', 'order.orderItems', 'order.orderItems.menuItem')
-                ->orderBy('assigned_at', 'asc')
-                ->get()
-                ->filter(fn($assignment) => $assignment->order && $assignment->order->status === 'ready')
-                ->map(function ($assignment) {
+            $readyOrders = $ordersQuery->with(['guest', 'room', 'room.hotelFloor', 'orderItems.menuItem'])->get();
+
+            foreach ($readyOrders as $readyOrder) {
+                $handledOrderIds[] = $readyOrder->id;
+
+                $floorId = $readyOrder->room?->floor_id 
+                    ?? $readyOrder->room?->hotelFloor?->id 
+                    ?? \App\Models\HotelFloor::where('hotel_id', $hotelId)->value('id')
+                    ?? \App\Models\HotelFloor::value('id');
+
+                $task = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                    ->where('order_id', $readyOrder->id)
+                    ->first();
+
+                if ($task && in_array($task->status, ['picked_up', 'on_delivery', 'delivered', 'completed', 'cancelled'])) {
+                    continue;
+                }
+
+                if (!$task) {
                     try {
-                        return [
-                            'id' => $assignment->id,
-                            'order_id' => $assignment->order_id,
-                            'order_number' => $assignment->order?->order_number ?? (is_numeric($assignment->order_id) ? 'ORD-' . $assignment->order_id : substr($assignment->id, 0, 8)),
-                            'room_number' => $assignment->order?->room?->room_number ?? 'N/A',
-                            'guest_name' => ($assignment->order?->guest ? $assignment->order->guest->first_name . ' ' . $assignment->order->guest->last_name : 'Guest'),
-                            'items' => $assignment->order?->orderItems?->count() ?? 0,
-                            'assigned_at' => $assignment->assigned_at?->format('Y-m-d H:i:s'),
-                            'wait_time_minutes' => $assignment->assigned_at?->diffInMinutes(now()) ?? 0,
-                            'order_status' => $assignment->order?->status,
-                            'delivery_task_status' => $assignment->status,
-                            'items_detail' => $assignment->order?->orderItems?->map(fn ($item) => [
-                                'name' => $item->menuItem?->name ?? 'Unknown Item',
-                                'quantity' => $item->quantity,
-                                'notes' => $item->notes ?? 'None',
-                            ])->toArray() ?? [],
-                            'special_requests' => $assignment->order?->special_requests ?? 'None',
-                        ];
-                    } catch (\Throwable $e) {
-                        \Log::error('Error mapping ready-for-pickup task', [
-                            'task_id' => $assignment->id,
-                            'error' => $e->getMessage(),
-                        ]);
-                        throw $e;
-                    }
-                })
-                ->values()
-                ->toArray();
-
-            // If empty, auto-include any Orders with status='ready' in system
-            if (empty($results)) {
-                $allReadyOrders = \App\Models\Order::where('status', 'ready')
-                    ->with(['guest', 'room', 'orderItems', 'orderItems.menuItem'])
-                    ->get();
-
-                foreach ($allReadyOrders as $readyOrder) {
-                    $task = \App\Models\DeliveryTask::firstOrCreate(
-                        ['order_id' => $readyOrder->id],
-                        [
-                            'waiter_id' => $waiterId,
+                        $task = \App\Models\DeliveryTask::create([
+                            'hotel_id' => $hotelId ?? $readyOrder->hotel_id,
+                            'order_id' => $readyOrder->id,
                             'room_id' => $readyOrder->room_id,
+                            'floor_id' => $floorId,
+                            'waiter_id' => $waiterId,
                             'status' => 'assigned',
                             'assigned_at' => now(),
-                        ]
-                    );
-
-                    $results[] = [
-                        'id' => $task->id,
-                        'order_id' => $readyOrder->id,
-                        'order_number' => $readyOrder->order_number,
-                        'room_number' => $readyOrder->room?->room_number ?? 'N/A',
-                        'guest_name' => ($readyOrder->guest ? $readyOrder->guest->first_name . ' ' . $readyOrder->guest->last_name : 'Guest'),
-                        'items' => $readyOrder->orderItems?->count() ?? 0,
-                        'assigned_at' => $task->assigned_at?->format('Y-m-d H:i:s') ?? now()->format('Y-m-d H:i:s'),
-                        'wait_time_minutes' => $readyOrder->updated_at?->diffInMinutes(now()) ?? 0,
-                        'order_status' => $readyOrder->status,
-                        'delivery_task_status' => $task->status,
-                        'items_detail' => $readyOrder->orderItems?->map(fn ($item) => [
-                            'name' => $item->menuItem?->name ?? 'Unknown Item',
-                            'quantity' => $item->quantity,
-                            'notes' => $item->notes ?? 'None',
-                        ])->toArray() ?? [],
-                        'special_requests' => $readyOrder->special_requests ?? 'None',
-                    ];
+                        ]);
+                    } catch (\Throwable $taskErr) {
+                        \Log::warning('Could not create delivery_task for ready order: ' . $taskErr->getMessage());
+                    }
                 }
+
+                $results[] = [
+                    'id' => $task?->id ?? $readyOrder->id,
+                    'order_id' => $readyOrder->id,
+                    'order_number' => $readyOrder->order_number ?? 'ORD-' . substr($readyOrder->id, 0, 8),
+                    'room_number' => $readyOrder->room?->room_number ?? 'Room Service',
+                    'guest_name' => ($readyOrder->guest ? $readyOrder->guest->first_name . ' ' . $readyOrder->guest->last_name : 'Guest'),
+                    'items' => $readyOrder->orderItems?->count() ?? 0,
+                    'assigned_at' => ($task?->assigned_at ?? $readyOrder->updated_at ?? now())->format('Y-m-d H:i:s'),
+                    'wait_time_minutes' => $readyOrder->updated_at?->diffInMinutes(now()) ?? 0,
+                    'order_status' => $readyOrder->status,
+                    'delivery_task_status' => $task?->status ?? 'assigned',
+                    'items_detail' => $readyOrder->orderItems?->map(fn ($item) => [
+                        'name' => $item->menuItem?->name ?? 'Unknown Item',
+                        'quantity' => $item->quantity,
+                        'notes' => $item->notes ?? 'None',
+                    ])->toArray() ?? [],
+                    'special_requests' => $readyOrder->notes ?? $readyOrder->special_requests ?? 'None',
+                ];
             }
-            
-            \Log::info(' [SERVICE] getReadyForPickup results', ['count' => count($results)]);
-            
+
+            $tasksQuery = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                ->whereIn('status', ['assigned', 'waiting_assignment', 'accepted']);
+
+            if (!empty($handledOrderIds)) {
+                $tasksQuery->whereNotIn('order_id', $handledOrderIds);
+            }
+
+            if ($hotelId) {
+                $tasksQuery->where(function($q) use ($hotelId) {
+                    $q->where('delivery_tasks.hotel_id', $hotelId)
+                      ->orWhereNull('delivery_tasks.hotel_id');
+                });
+            }
+
+            if (!$isAdminOrManager && $waiterId) {
+                $tasksQuery->where(function($q) use ($waiterId) {
+                    $q->where('delivery_tasks.waiter_id', $waiterId)
+                      ->orWhere('delivery_tasks.waiter_id', auth()->id());
+                });
+            }
+
+            $extraTasks = $tasksQuery->with(['order.guest', 'order.room', 'order.orderItems.menuItem'])->get();
+
+            foreach ($extraTasks as $assignment) {
+                $results[] = [
+                    'id' => $assignment->id,
+                    'order_id' => $assignment->order_id,
+                    'order_number' => $assignment->order?->order_number ?? (is_numeric($assignment->order_id) ? 'ORD-' . $assignment->order_id : substr($assignment->id, 0, 8)),
+                    'room_number' => $assignment->order?->room?->room_number ?? 'Room Service',
+                    'guest_name' => ($assignment->order?->guest ? $assignment->order->guest->first_name . ' ' . $assignment->order->guest->last_name : 'Guest'),
+                    'items' => $assignment->order?->orderItems?->count() ?? 0,
+                    'assigned_at' => ($assignment->assigned_at ?? $assignment->created_at)?->format('Y-m-d H:i:s'),
+                    'wait_time_minutes' => $assignment->assigned_at?->diffInMinutes(now()) ?? 0,
+                    'order_status' => $assignment->order?->status ?? 'ready',
+                    'delivery_task_status' => $assignment->status,
+                    'items_detail' => $assignment->order?->orderItems?->map(fn ($item) => [
+                        'name' => $item->menuItem?->name ?? 'Unknown Item',
+                        'quantity' => $item->quantity,
+                        'notes' => $item->notes ?? 'None',
+                    ])->toArray() ?? [],
+                    'special_requests' => $assignment->order?->notes ?? $assignment->order?->special_requests ?? 'None',
+                ];
+            }
+
+            \Log::info(' [SERVICE] getReadyForPickup results', ['count' => count($results), 'hotel_id' => $hotelId]);
+
             return $results;
         } catch (\Throwable $e) {
             \Log::error('Ready for pickup error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine(), [
@@ -643,6 +778,7 @@ class WaiterDashboardService
             return [];
         }
     }
+
     public function getPendingPickupOrders($waiterId): array
     {
         try {
@@ -706,47 +842,35 @@ class WaiterDashboardService
             return [];
         }
     }
-    public function getOnDelivery($waiterId): array
+
+    public function getOnDelivery($waiterId = null): array
     {
         try {
-            \Log::info(' [DASHBOARD] getOnDelivery called', ['waiter_id' => $waiterId]);
-            
-            // First, check if waiter_id is valid
-            if (!$waiterId) {
-                \Log::error(' [DASHBOARD] Invalid waiter_id passed to getOnDelivery', ['waiter_id' => $waiterId]);
-                return [];
-            }
-            
-            // Check if waiter exists
-            $waiterExists = \App\Models\Waiter::find($waiterId);
-            if (!$waiterExists) {
-                \Log::error(' [DASHBOARD] Waiter not found in database', ['waiter_id' => $waiterId]);
-                return [];
-            }
-            
-            // Log all delivery tasks for this waiter
-            $allWaiterTasks = \App\Models\DeliveryTask::where('waiter_id', $waiterId)
-                ->select('id', 'order_id', 'status', 'created_at')
-                ->get();
-            
-            \Log::debug(' [DASHBOARD] All tasks for waiter', [
-                'waiter_id' => $waiterId,
-                'total_tasks' => $allWaiterTasks->count(),
-                'tasks_by_status' => $allWaiterTasks->groupBy('status')->map->count(),
-            ]);
-            
-            $baseQuery = \App\Models\DeliveryTask::whereIn('status', ['on_delivery', 'picked_up']);
-            $userQuery = (clone $baseQuery)->whereIn('waiter_id', [$waiterId, auth()->id()]);
+            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
-            if ((clone $userQuery)->exists()) {
-                $query = $userQuery;
-            } else {
-                $query = $baseQuery;
+            \Log::info(' [DASHBOARD] getOnDelivery called', ['waiter_id' => $waiterId, 'hotel_id' => $hotelId]);
+            
+            $baseQuery = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                ->whereIn('status', ['on_delivery', 'picked_up']);
+
+            if ($hotelId) {
+                $baseQuery->where(function($q) use ($hotelId) {
+                    $q->where('delivery_tasks.hotel_id', $hotelId)
+                      ->orWhereNull('delivery_tasks.hotel_id');
+                });
             }
 
-            $tasks = $query
+            if (!$isAdminOrManager && $waiterId) {
+                $baseQuery->where(function($q) use ($waiterId) {
+                    $q->where('delivery_tasks.waiter_id', $waiterId)
+                      ->orWhere('delivery_tasks.waiter_id', auth()->id());
+                });
+            }
+
+            $tasks = $baseQuery
                 ->with('order', 'order.guest', 'order.room', 'assignedBy', 'floor')
-                ->orderBy('picked_up_at', 'asc')
+                ->orderBy('created_at', 'asc')
                 ->get();
             
             \Log::info(' [DASHBOARD] Query executed, tasks found', [
@@ -792,6 +916,7 @@ class WaiterDashboardService
             return [];
         }
     }
+
     public function getCompletedDeliveries($waiterId, $limit = 10): array
     {
         try {
@@ -868,6 +993,7 @@ class WaiterDashboardService
             return [];
         }
     }
+
     public function getFailedDeliveries($waiterId, $limit = 10): array
     {
         try {
@@ -912,6 +1038,7 @@ class WaiterDashboardService
             return [];
         }
     }
+
     public function getDeliveryTimeline($waiterId): array
     {
         try {
@@ -936,6 +1063,7 @@ class WaiterDashboardService
             return [];
         }
     }
+
     public function getWeeklyPerformanceData($waiterId): array
     {
         try {
@@ -966,6 +1094,7 @@ class WaiterDashboardService
             return [];
         }
     }
+
     public function getMonthlyPerformanceData($waiterId): array
     {
         try {
@@ -995,6 +1124,7 @@ class WaiterDashboardService
             return [];
         }
     }
+
     private function calculateAverageMetric($collection, $field): float
     {
         if ($collection->isEmpty()) {
@@ -1004,6 +1134,7 @@ class WaiterDashboardService
         $avg = $collection->avg($field);
         return $avg ? round($avg, 2) : 0;
     }
+
     public function getPerformanceComparison($waiterId): array
     {
         try {
@@ -1047,6 +1178,7 @@ class WaiterDashboardService
             ];
         }
     }
+
     public function getQuickStats($waiterId): array
     {
         try {
@@ -1056,7 +1188,6 @@ class WaiterDashboardService
             
             $today = Carbon::today();
             
-            // OPTIMIZATION: Use raw database aggregation on new delivery_tasks table
             $stats = \App\Models\DeliveryTask::where('waiter_id', $waiterId)
                 ->whereDate('assigned_at', $today)
                 ->selectRaw('

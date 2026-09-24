@@ -7,11 +7,6 @@ use App\Services\Manager\ManagerDashboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * Manager Operations Controller
- * 
- * Handles restaurant orders, room service, laundry, and housekeeping
- */
 class OperationsController extends Controller
 {
     protected ManagerDashboardService $dashboardService;
@@ -21,9 +16,6 @@ class OperationsController extends Controller
         $this->dashboardService = $dashboardService;
     }
 
-    /**
-     * Get restaurant orders
-     */
     public function orders(Request $request): JsonResponse
     {
         try {
@@ -41,9 +33,6 @@ class OperationsController extends Controller
         }
     }
 
-    /**
-     * Get room service deliveries
-     */
     public function deliveries(Request $request): JsonResponse
     {
         try {
@@ -61,9 +50,6 @@ class OperationsController extends Controller
         }
     }
 
-    /**
-     * Get housekeeping tasks
-     */
     public function housekeeping(Request $request): JsonResponse
     {
         try {
@@ -81,9 +67,6 @@ class OperationsController extends Controller
         }
     }
 
-    /**
-     * Get laundry requests
-     */
     public function laundry(Request $request): JsonResponse
     {
         try {

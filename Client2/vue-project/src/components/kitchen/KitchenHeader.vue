@@ -44,7 +44,6 @@ const chefName = computed(() => {
     <div
       class="flex flex-col items-start justify-between gap-3 sm:gap-4 md:flex-row md:items-center"
     >
-      <!-- Left Section -->
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2 sm:gap-3">
           <div
@@ -63,9 +62,7 @@ const chefName = computed(() => {
         </div>
       </div>
 
-      <!-- Right Section -->
       <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3 w-full md:w-auto">
-        <!-- Search Bar -->
         <div class="relative hidden lg:block w-full md:w-auto">
           <input
             type="text"
@@ -75,23 +72,19 @@ const chefName = computed(() => {
           <Search class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         </div>
 
-        <!-- Notification -->
         <button class="relative rounded-xl p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition flex-shrink-0">
           <Bell class="h-5 w-5" />
           <span class="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-500"></span>
         </button>
 
-        <!-- Settings -->
         <button class="rounded-xl p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition hidden sm:block flex-shrink-0">
           <Settings class="h-5 w-5" />
         </button>
 
-        <!-- Help -->
         <button class="rounded-xl p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition hidden sm:block flex-shrink-0">
           <HelpCircle class="h-5 w-5" />
         </button>
 
-        <!-- User Profile -->
         <div
           class="hidden sm:flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 px-3 py-1.5 flex-shrink-0"
         >
@@ -106,7 +99,6 @@ const chefName = computed(() => {
           </div>
         </div>
 
-        <!-- Action Buttons -->
         <div class="flex gap-2 w-full sm:w-auto">
           <button
             @click="emit('new-ticket')"

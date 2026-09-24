@@ -16,13 +16,13 @@
       <div class="max-w-md space-y-2 sm:space-y-3 text-white">
         <!-- Main Heading with Gold Accent -->
         <h1 class="text-2xl sm:text-3xl md:text-4xl font-serif font-bold tracking-tight leading-tight">
-          <span class="inline block text-white">Good Food, </span>
-          <span class="inline block text-[#c29353] drop-shadow-md">Great Moments</span>
+          <span class="inline block text-white">{{ languageStore.t('good_food', 'Good Food, ') }}</span>
+          <span class="inline block text-[#c29353] drop-shadow-md">{{ languageStore.t('great_moments', 'Great Moments') }}</span>
         </h1>
 
         <!-- Subtitle Text -->
         <p class="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed max-w-sm">
-          Fresh ingredients, expertly prepared. Delivered directly to your room.
+          {{ languageStore.t('fresh_ingredients_desc', 'Fresh ingredients, expertly prepared. Delivered directly to your room.') }}
         </p>
 
         <!-- CTA Button -->
@@ -31,7 +31,7 @@
             @click="handleSpecials"
             class="px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-[#c29353] hover:bg-[#b08244] text-white font-black text-xs sm:text-sm shadow-lg hover:shadow-xl transition cursor-pointer inline-flex items-center gap-2 transform hover:-translate-y-0.5"
           >
-            <span>View Specials</span>
+            <span>{{ languageStore.t('view_specials', 'View Specials') }}</span>
             <ArrowRight class="w-4 h-4" />
           </button>
         </div>
@@ -42,6 +42,9 @@
 
 <script setup lang="ts">
 import { ArrowRight } from 'lucide-vue-next'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
 
 const emit = defineEmits<{
   'view-specials': []

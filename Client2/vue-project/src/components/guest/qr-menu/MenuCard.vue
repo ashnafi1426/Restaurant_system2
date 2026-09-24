@@ -34,7 +34,7 @@
         <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <!-- Price on Left -->
           <span class="text-xs font-black text-[#c29353]">
-            {{ formatPrice(item.price) }}
+            {{ formatPrice(item.total_price != null ? item.total_price : item.price) }}
           </span>
 
           <!-- Add Button on Right -->

@@ -6,43 +6,15 @@ import kitchenService from '../services/kitchenService'
 import type { KitchenOrder, KitchenStatistics } from '@/types/kitchen'
 
 export const useKitchenStore = defineStore('kitchen', () => {
-  /*
-    |--------------------------------------------------------------------------
-    | State
-    |--------------------------------------------------------------------------
-    */
-
-  /**
-   * All kitchen orders
-   */
   const orders = ref<KitchenOrder[]>([])
 
-  /**
-   * Kitchen dashboard statistics
-   */
   const statistics = ref<KitchenStatistics | null>(null)
 
-  /**
-   * Initial dashboard loading
-   */
   const loading = ref(false)
 
-  /**
-   * Button/action loading
-   * Stores current processing order id
-   */
   const actionLoading = ref<string | null>(null)
 
-  /**
-   * API errors
-   */
   const error = ref<string | null>(null)
-
-  /*
-    |--------------------------------------------------------------------------
-    | Computed Order Groups
-    |--------------------------------------------------------------------------
-    */
 
   const pendingOrders = computed(() => orders.value.filter((order) => order.status === 'pending'))
 
@@ -54,12 +26,6 @@ export const useKitchenStore = defineStore('kitchen', () => {
 
   const completedOrders = computed(() => orders.value.filter((order) => order.status === 'served'))
 
-  /*
-    |--------------------------------------------------------------------------
-    | Load Kitchen Dashboard
-    |--------------------------------------------------------------------------
-    */
-
   async function fetchDashboard() {
     loading.value = true
 
@@ -68,22 +34,22 @@ export const useKitchenStore = defineStore('kitchen', () => {
     try {
       const data = await kitchenService.refresh()
 
-      /**
-       * Flatten all orders from the response
-       * API returns { pending, preparing, ready, served }
-       */
+      const ordersObj = data?.orders || (data as any) || {}
+      const pending = Array.isArray(ordersObj.pending) ? ordersObj.pending : []
+      const preparing = Array.isArray(ordersObj.preparing) ? ordersObj.preparing : []
+      const ready = Array.isArray(ordersObj.ready) ? ordersObj.ready : []
+      const served = Array.isArray(ordersObj.served) ? ordersObj.served : []
+
       orders.value = [
-        ...data.orders.pending,
-        ...data.orders.preparing,
-        ...data.orders.ready,
-        ...data.orders.served,
+        ...pending,
+        ...preparing,
+        ...ready,
+        ...served,
       ]
 
-      /**
-       * Statistics
-       */
-      statistics.value = data.statistics
+      statistics.value = data?.statistics || null
     } catch (err: any) {
+      console.error('[kitchenStore] Failed to load kitchen dashboard:', err)
       error.value =
         err?.response?.data?.message ?? err.message ?? 'Failed to load kitchen dashboard'
     } finally {
@@ -91,108 +57,58 @@ export const useKitchenStore = defineStore('kitchen', () => {
     }
   }
 
-  /*
-    |--------------------------------------------------------------------------
-    | Alias: refreshDashboard (for consistency)
-    |--------------------------------------------------------------------------
-    */
-
   const refreshDashboard = fetchDashboard
 
-  /*
-    |--------------------------------------------------------------------------
-    | Start Preparing Order
-    |--------------------------------------------------------------------------
-    */
-
   async function startPreparing(orderId: string) {
-    console.log(`📍 [STORE] startPreparing called for order: ${orderId}`)
     actionLoading.value = orderId
     error.value = null
 
     try {
-      console.log(` [STORE] Calling API for order ${orderId}...`)
       const updatedOrder = await kitchenService.startPreparing(orderId)
-
-      console.log(` [STORE] API Response received:`, updatedOrder)
-      console.log(` [STORE] Order status changed to: ${updatedOrder.status}`)
-
       updateOrder(updatedOrder)
-      console.log(` [STORE] Order updated in local state`)
     } catch (err: any) {
+      console.error('[kitchenStore] Failed to start preparing order:', err)
       const errorMsg =
         err?.response?.data?.message ?? err.message ?? 'Failed to start preparing order'
       error.value = errorMsg
-      console.error(` [STORE] Error occurred:`, {
-        message: errorMsg,
-        status: err?.response?.status,
-        data: err?.response?.data,
-        fullError: err,
-      })
     } finally {
       actionLoading.value = null
     }
   }
-
-  /*
-    |--------------------------------------------------------------------------
-    | Mark Order Ready
-    |--------------------------------------------------------------------------
-    */
 
   async function markReady(orderId: string) {
-    console.log(`📍 [STORE] markReady called for order: ${orderId}`)
     actionLoading.value = orderId
 
     error.value = null
 
     try {
-      console.log(` [STORE] Calling API for order ${orderId}...`)
       const updatedOrder = await kitchenService.markReady(orderId)
-
-      console.log(` [STORE] API Response received, order status: ${updatedOrder.status}`)
       updateOrder(updatedOrder)
     } catch (err: any) {
+      console.error('[kitchenStore] Failed to mark order ready:', err)
       const errorMsg = err?.response?.data?.message ?? err.message ?? 'Failed to mark order ready'
       error.value = errorMsg
-      console.error(` [STORE] Error occurred:`, errorMsg)
     } finally {
       actionLoading.value = null
     }
   }
 
-  /*
-    |--------------------------------------------------------------------------
-    | Mark Order Served / Completed
-    |--------------------------------------------------------------------------
-    */
-
   async function markServed(orderId: string) {
-    console.log(`📍 [STORE] markServed called for order: ${orderId}`)
     actionLoading.value = orderId
 
     error.value = null
 
     try {
-      console.log(` [STORE] Calling API for order ${orderId}...`)
       const updatedOrder = await kitchenService.markServed(orderId)
-
-      console.log(` [STORE] API Response received, order status: ${updatedOrder.status}`)
       updateOrder(updatedOrder)
     } catch (err: any) {
+      console.error('[kitchenStore] Failed to complete order:', err)
       const errorMsg = err?.response?.data?.message ?? err.message ?? 'Failed to complete order'
       error.value = errorMsg
-      console.error(` [STORE] Error occurred:`, errorMsg)
     } finally {
       actionLoading.value = null
     }
   }
-
-  /*
-    |--------------------------------------------------------------------------
-    | Update Single Order Locally
-    |--------------------------------------------------------------------------
-    */
 
   function updateOrder(updatedOrder: KitchenOrder) {
     const index = orders.value.findIndex((order) => order.id === updatedOrder.id)
@@ -201,12 +117,6 @@ export const useKitchenStore = defineStore('kitchen', () => {
       orders.value[index] = updatedOrder
     }
   }
-
-  /*
-    |--------------------------------------------------------------------------
-    | Clear Store
-    |--------------------------------------------------------------------------
-    */
 
   function clearStore() {
     orders.value = []
@@ -221,8 +131,6 @@ export const useKitchenStore = defineStore('kitchen', () => {
   }
 
   return {
-    // state
-
     orders,
 
     statistics,
@@ -233,14 +141,11 @@ export const useKitchenStore = defineStore('kitchen', () => {
 
     error,
 
-    // computed
-
     pendingOrders,
 
     preparingOrders,
     readyOrders,
     completedOrders,
-    // actions
     fetchDashboard,
     refreshDashboard,
     startPreparing,

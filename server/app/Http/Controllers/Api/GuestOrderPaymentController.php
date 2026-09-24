@@ -17,27 +17,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-/**
- * ============================================================================
- * GuestOrderPaymentController
- * ============================================================================
- * Handles payment flow for guest QR food orders
- * 
- * Payment Flow:
- * 1. Guest scans room QR code
- * 2. Guest selects menu items and adds to cart
- * 3. Guest initiates checkout with payment
- * 4. Initialize payment with Chapa
- * 5. Redirect to Chapa checkout
- * 6. Customer completes payment
- * 7. Verify payment status
- * 8. Create order record ONLY after payment verification
- * 9. Send order to kitchen
- * 10. Chef cannot see order until payment is verified
- * 
- * Order is NEVER created before successful payment verification
- * ============================================================================
- */
 class GuestOrderPaymentController extends Controller
 {
     protected PaymentService $paymentService;
@@ -51,38 +30,9 @@ class GuestOrderPaymentController extends Controller
         $this->chapaService = $chapaService;
     }
 
-    /**
-     * ============================================================================
-     * Initialize Order Payment
-     * ============================================================================
-     * Validates order items and initializes payment with Chapa
-     * 
-     * Request Body:
-     * {
-     *   "guest_id": "uuid",
-     *   "room_id": "uuid",
-     *   "items": [
-     *     {
-     *       "menu_item_id": "uuid",
-     *       "quantity": 2,
-     *       "special_instructions": "No onions"
-     *     },
-     *     ...
-     *   ],
-     *   "notes": "Optional order notes",
-     *   "first_name": "John",
-     *   "last_name": "Doe",
-     *   "email": "john@example.com",
-     *   "phone": "+251912345678"
-     * }
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function initializePayment(Request $request): JsonResponse
     {
         try {
-            // Validate request
             $validated = $request->validate([
                 'guest_id'     => 'required|uuid|exists:guests,id',
                 'room_id'      => 'required|uuid|exists:rooms,id',
@@ -97,11 +47,9 @@ class GuestOrderPaymentController extends Controller
                 'phone'        => 'required|string|max:20',
             ]);
 
-            // Get guest and room
             $guest = Guest::findOrFail($validated['guest_id']);
             $room = Room::findOrFail($validated['room_id']);
 
-            // Calculate order total
             $orderCalculation = $this->calculateOrderTotal($validated['items']);
 
             if (!$orderCalculation['success']) {
@@ -111,7 +59,6 @@ class GuestOrderPaymentController extends Controller
                 ], 400);
             }
 
-            // Prepare order items with prices for payment metadata
             $orderItemsWithPrices = [];
             foreach ($orderCalculation['items'] as $item) {
                 $orderItemsWithPrices[] = [
@@ -120,11 +67,10 @@ class GuestOrderPaymentController extends Controller
                     'quantity'             => $item['quantity'],
                     'price'                => $item['price'],
                     'total'                => $item['total'],
-                    'special_instructions' => null, // Can be extended
+                    'special_instructions' => null,
                 ];
             }
 
-            // Create payment record
             $payment = $this->paymentService->createOrderPayment([
                 'amount'    => $orderCalculation['total'],
                 'first_name' => $validated['first_name'],
@@ -136,15 +82,13 @@ class GuestOrderPaymentController extends Controller
                 'metadata'  => [
                     'type'        => 'order',
                     'room_id'     => $validated['room_id'],
-                    'items'       => $orderItemsWithPrices, //  Items with prices
+                    'items'       => $orderItemsWithPrices,
                     'notes'       => $validated['notes'] ?? null,
                     'calculation' => $orderCalculation,
                 ],
             ]);
 
-            // Initialize payment with Chapa
-            // IMPORTANT: Chapa has strict 16-character limit on title
-            $title = 'Order Payment'; // 14 characters - safe for Chapa
+            $title = 'Order Payment';
             
             $chapaResponse = $this->chapaService->initialize([
                 'amount'       => $payment->amount,
@@ -155,7 +99,6 @@ class GuestOrderPaymentController extends Controller
                 'phone'        => $payment->phone,
                 'tx_ref'       => $payment->tx_ref,
                 'callback_url' => config('chapa.callback_url'),
-                // Use order-specific return URL
                 'return_url'   => config('chapa.order_return_url', config('app.frontend_url') . '/order/payment/success'),
                 'title'        => $title,
                 'description'  => sprintf(
@@ -165,7 +108,6 @@ class GuestOrderPaymentController extends Controller
                 ),
             ]);
 
-            // Handle initialization failure
             if (!$chapaResponse['success']) {
                 Log::error('Chapa Initialize Failed for Order', [
                     'payment_id' => $payment->id,
@@ -184,7 +126,6 @@ class GuestOrderPaymentController extends Controller
                 ], 400);
             }
 
-            // Update payment with checkout URL
             $checkoutUrl = $this->chapaService->getCheckoutUrl($chapaResponse);
             $payment->markAsInitialized($checkoutUrl);
 
@@ -196,7 +137,6 @@ class GuestOrderPaymentController extends Controller
                 'item_count'  => count($validated['items']),
             ]);
 
-            // Return response
             return response()->json([
                 'success'       => true,
                 'message'       => 'Payment initialized successfully',
@@ -222,7 +162,6 @@ class GuestOrderPaymentController extends Controller
                 'trace'   => $e->getTraceAsString(),
             ]);
 
-            // Return detailed error in development mode
             $errorMessage = 'An error occurred while initializing payment';
             $errorDetails = [];
             
@@ -242,23 +181,9 @@ class GuestOrderPaymentController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Complete Order After Payment
-     * ============================================================================
-     * Called after payment verification
-     * Creates the actual order record in database
-     * Chef dashboard will receive the order
-     * 
-     * Only called by PaymentController after payment is verified
-     * 
-     * @param string $txRef - Transaction reference
-     * @return JsonResponse
-     */
     public function completeOrder(string $txRef): JsonResponse
     {
         try {
-            // Find payment
             $payment = Payment::where('tx_ref', $txRef)->firstOrFail();
 
             if ($payment->order_id && $payment->order) {
@@ -270,7 +195,6 @@ class GuestOrderPaymentController extends Controller
                 ]);
             }
 
-            // Verify payment is verified
             if (!$payment->isVerified()) {
                 return response()->json([
                     'success' => false,
@@ -278,7 +202,6 @@ class GuestOrderPaymentController extends Controller
                 ], 400);
             }
 
-            // Get metadata
             $metadata = $payment->metadata;
 
             if (!$metadata || !isset($metadata['items'])) {
@@ -288,11 +211,9 @@ class GuestOrderPaymentController extends Controller
                 ], 400);
             }
 
-            // Prepare order data
             $calculation = $metadata['calculation'];
             $orderItems = $metadata['items'];
 
-            // Create order
             $result = $this->paymentService->handleOrderPaymentSuccess(
                 $payment,
                 [
@@ -345,23 +266,12 @@ class GuestOrderPaymentController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Calculate Order Total
-     * ============================================================================
-     * Calculates total price for order items
-     * 
-     * @param array $items - Array of order items with menu_item_id and quantity
-     * 
-     * @return array - Price breakdown or error
-     */
     private function calculateOrderTotal(array $items): array
     {
         try {
             $subtotal = 0;
             $itemDetails = [];
 
-            // Calculate subtotal from menu items
             foreach ($items as $item) {
                 $menuItem = MenuItem::findOrFail($item['menu_item_id']);
 
@@ -377,16 +287,12 @@ class GuestOrderPaymentController extends Controller
                 ];
             }
 
-            // Calculate tax (15%)
             $tax = $subtotal * 0.15;
 
-            // Calculate service charge (10%)
             $serviceCharge = $subtotal * 0.10;
 
-            // Apply discount (if any - can be extended)
             $discount = 0;
 
-            // Calculate total (subtotal + tax + service charge - discount)
             $total = $subtotal + $tax + $serviceCharge - $discount;
 
             return [
@@ -411,15 +317,6 @@ class GuestOrderPaymentController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Get Order by Payment
-     * ============================================================================
-     * Retrieve order linked to a payment
-     * 
-     * @param string $txRef - Transaction reference
-     * @return JsonResponse
-     */
     public function getOrderByPayment(string $txRef): JsonResponse
     {
         try {

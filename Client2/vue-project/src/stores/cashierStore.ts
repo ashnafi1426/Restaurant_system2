@@ -12,7 +12,7 @@ interface DashboardStats {
   refund_requests: number
   total_transactions: number
 }
-interface Payment {
+export interface Payment {
   id: string
   tx_ref: string
   chapa_transaction_id?: string
@@ -20,6 +20,8 @@ interface Payment {
   currency: string
   formatted_amount?: string
   customer_name: string
+  first_name?: string
+  last_name?: string
   email: string
   phone?: string
   status: string
@@ -32,9 +34,32 @@ interface Payment {
     name: string
     email: string
   }
+  reservation?: {
+    id?: string
+    booking_reference?: string
+    check_in_date?: string
+    check_out_date?: string
+    number_of_guests?: number
+    room?: {
+      id?: string | number
+      room_number?: string | number
+      floor?: number
+      [key: string]: any
+    }
+    [key: string]: any
+  } | null
+  order?: {
+    id?: string | number
+    order_number?: string
+    status?: string
+    items_count?: number
+    total_amount?: number
+    [key: string]: any
+  } | null
   paid_at?: string
   verified_at?: string
   created_at: string
+  updated_at?: string
 }
 
 interface Pagination {
@@ -47,9 +72,6 @@ interface Pagination {
 }
 
 export const useCashierStore = defineStore('cashier', () => {
-  // ========================================================================
-  // State
-  // ========================================================================
   const dashboardStats = ref<DashboardStats | null>(null)
   const recentPayments = ref<Payment[]>([])
   const pendingPayments = ref<Payment[]>([])
@@ -72,18 +94,12 @@ export const useCashierStore = defineStore('cashier', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  // ========================================================================
-  // Computed
-  // ========================================================================
   const isLoading = computed(() => loading.value)
   const hasError = computed(() => error.value !== null)
   const todayRevenue = computed(() => dashboardStats.value?.today_revenue ?? 0)
   const weeklyRevenue = computed(() => dashboardStats.value?.weekly_revenue ?? 0)
   const monthlyRevenue = computed(() => dashboardStats.value?.monthly_revenue ?? 0)
 
-  // ========================================================================
-  // Dashboard Actions
-  // ========================================================================
   async function fetchDashboardStats() {
     try {
       loading.value = true
@@ -93,8 +109,8 @@ export const useCashierStore = defineStore('cashier', () => {
         dashboardStats.value = response.data
       }
     } catch (err: any) {
+      console.error('[cashierStore] Failed to fetch dashboard stats:', err)
       error.value = err.message || 'Failed to fetch dashboard statistics'
-      console.error('Error fetching dashboard stats:', err)
     } finally {
       loading.value = false
     }
@@ -107,7 +123,7 @@ export const useCashierStore = defineStore('cashier', () => {
         recentPayments.value = response.data
       }
     } catch (err: any) {
-      console.error('Error fetching recent payments:', err)
+      console.error('[cashierStore] Failed to fetch recent payments:', err)
     }
   }
 
@@ -118,7 +134,7 @@ export const useCashierStore = defineStore('cashier', () => {
         pendingPayments.value = response.data
       }
     } catch (err: any) {
-      console.error('Error fetching pending payments:', err)
+      console.error('[cashierStore] Failed to fetch pending payments:', err)
     }
   }
 
@@ -129,7 +145,7 @@ export const useCashierStore = defineStore('cashier', () => {
         recentTransactions.value = response.data
       }
     } catch (err: any) {
-      console.error('Error fetching recent transactions:', err)
+      console.error('[cashierStore] Failed to fetch recent transactions:', err)
     }
   }
 
@@ -140,7 +156,7 @@ export const useCashierStore = defineStore('cashier', () => {
         revenueChartData.value = response.data
       }
     } catch (err: any) {
-      console.error('Error fetching revenue chart:', err)
+      console.error('[cashierStore] Failed to fetch revenue chart:', err)
     }
   }
 
@@ -151,7 +167,7 @@ export const useCashierStore = defineStore('cashier', () => {
         paymentMethodChartData.value = response.data
       }
     } catch (err: any) {
-      console.error('Error fetching payment method chart:', err)
+      console.error('[cashierStore] Failed to fetch payment method chart:', err)
     }
   }
 
@@ -162,7 +178,7 @@ export const useCashierStore = defineStore('cashier', () => {
         refundRequests.value = response.data
       }
     } catch (err: any) {
-      console.error('Error fetching refund requests:', err)
+      console.error('[cashierStore] Failed to fetch refund requests:', err)
     }
   }
 
@@ -183,9 +199,6 @@ export const useCashierStore = defineStore('cashier', () => {
     }
   }
 
-  // ========================================================================
-  // Payments Actions
-  // ========================================================================
   async function fetchPayments(filters?: PaymentFilters) {
     try {
       loading.value = true
@@ -196,8 +209,8 @@ export const useCashierStore = defineStore('cashier', () => {
         pagination.value = response.pagination
       }
     } catch (err: any) {
+      console.error('[cashierStore] Failed to fetch payments:', err)
       error.value = err.message || 'Failed to fetch payments'
-      console.error('Error fetching payments:', err)
     } finally {
       loading.value = false
     }
@@ -212,8 +225,8 @@ export const useCashierStore = defineStore('cashier', () => {
         selectedPayment.value = response.data
       }
     } catch (err: any) {
+      console.error('[cashierStore] Failed to fetch payment details:', err)
       error.value = err.message || 'Failed to fetch payment details'
-      console.error('Error fetching payment:', err)
     } finally {
       loading.value = false
     }
@@ -225,12 +238,10 @@ export const useCashierStore = defineStore('cashier', () => {
       error.value = null
       const response = await cashierService.refundPayment(id)
       if (response.success) {
-        // Update the payment in the list
         const index = payments.value.findIndex((p) => p.id === id)
         if (index !== -1) {
           payments.value[index].status = 'refunded'
         }
-        // Update selected payment
         if (selectedPayment.value?.id === id) {
           selectedPayment.value.status = 'refunded'
         }
@@ -238,17 +249,14 @@ export const useCashierStore = defineStore('cashier', () => {
       }
       return false
     } catch (err: any) {
+      console.error('[cashierStore] Failed to process refund:', err)
       error.value = err.message || 'Failed to process refund'
-      console.error('Error processing refund:', err)
       return false
     } finally {
       loading.value = false
     }
   }
 
-  // ========================================================================
-  // Reports Actions
-  // ========================================================================
   async function fetchRevenueReport(filters?: ReportFilters) {
     try {
       loading.value = true
@@ -256,8 +264,8 @@ export const useCashierStore = defineStore('cashier', () => {
       const response = await cashierService.getRevenueReport(filters)
       return response.success ? response.data : null
     } catch (err: any) {
+      console.error('[cashierStore] Failed to fetch revenue report:', err)
       error.value = err.message || 'Failed to fetch revenue report'
-      console.error('Error fetching revenue report:', err)
       return null
     } finally {
       loading.value = false
@@ -271,8 +279,8 @@ export const useCashierStore = defineStore('cashier', () => {
       const response = await cashierService.getPaymentReport(filters)
       return response.success ? response.data : null
     } catch (err: any) {
+      console.error('[cashierStore] Failed to fetch payment report:', err)
       error.value = err.message || 'Failed to fetch payment report'
-      console.error('Error fetching payment report:', err)
       return null
     } finally {
       loading.value = false
@@ -286,17 +294,14 @@ export const useCashierStore = defineStore('cashier', () => {
       const response = await cashierService.getRefundReport(filters)
       return response.success ? response.data : null
     } catch (err: any) {
+      console.error('[cashierStore] Failed to fetch refund report:', err)
       error.value = err.message || 'Failed to fetch refund report'
-      console.error('Error fetching refund report:', err)
       return null
     } finally {
       loading.value = false
     }
   }
 
-  // ========================================================================
-  // Utility Actions
-  // ========================================================================
   function clearError() {
     error.value = null
   }
@@ -306,7 +311,6 @@ export const useCashierStore = defineStore('cashier', () => {
   }
 
   return {
-    // State
     dashboardStats,
     recentPayments,
     pendingPayments,
@@ -320,14 +324,12 @@ export const useCashierStore = defineStore('cashier', () => {
     loading,
     error,
 
-    // Computed
     isLoading,
     hasError,
     todayRevenue,
     weeklyRevenue,
     monthlyRevenue,
 
-    // Dashboard Actions
     fetchDashboardStats,
     fetchRecentPayments,
     fetchPendingPayments,
@@ -337,17 +339,14 @@ export const useCashierStore = defineStore('cashier', () => {
     fetchRefundRequests,
     loadDashboard,
 
-    // Payments Actions
     fetchPayments,
     fetchPaymentById,
     processRefund,
 
-    // Reports Actions
     fetchRevenueReport,
     fetchPaymentReport,
     fetchRefundReport,
 
-    // Utility Actions
     clearError,
     clearSelectedPayment,
   }

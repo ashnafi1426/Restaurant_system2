@@ -9,24 +9,12 @@ import type {
 } from '@/types/manager'
 
 export const useManagerAnalyticsStore = defineStore('managerAnalytics', () => {
-  /*
-  |--------------------------------------------------------------------------
-  | STATE
-  |--------------------------------------------------------------------------
-  */
-
   const statistics = ref<DashboardStatistics | null>(null)
   const revenueSummary = ref<RevenueSummary | null>(null)
   const occupancySummary = ref<OccupancySummary | null>(null)
   const reservationSummary = ref<ReservationSummary | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
-
-  /*
-  |--------------------------------------------------------------------------
-  | COMPUTED
-  |--------------------------------------------------------------------------
-  */
 
   const safeStatistics = computed(
     () =>
@@ -59,16 +47,11 @@ export const useManagerAnalyticsStore = defineStore('managerAnalytics', () => {
     reservations: reservationSummary.value,
   }))
 
-  /*
-  |--------------------------------------------------------------------------
-  | ACTIONS
-  |--------------------------------------------------------------------------
-  */
-
   async function loadStatistics() {
     try {
       statistics.value = await managerService.getStatistics()
     } catch (err: any) {
+      console.error('[managerAnalyticsStore] Failed to load statistics:', err)
       error.value = err.message
     }
   }
@@ -77,6 +60,7 @@ export const useManagerAnalyticsStore = defineStore('managerAnalytics', () => {
     try {
       revenueSummary.value = await managerService.getRevenueSummary()
     } catch (err: any) {
+      console.error('[managerAnalyticsStore] Failed to load revenue summary:', err)
       error.value = err.message
     }
   }
@@ -85,6 +69,7 @@ export const useManagerAnalyticsStore = defineStore('managerAnalytics', () => {
     try {
       occupancySummary.value = await managerService.getOccupancySummary()
     } catch (err: any) {
+      console.error('[managerAnalyticsStore] Failed to load occupancy summary:', err)
       error.value = err.message
     }
   }
@@ -93,6 +78,7 @@ export const useManagerAnalyticsStore = defineStore('managerAnalytics', () => {
     try {
       reservationSummary.value = await managerService.getReservationSummary()
     } catch (err: any) {
+      console.error('[managerAnalyticsStore] Failed to load reservation summary:', err)
       error.value = err.message
     }
   }

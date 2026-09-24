@@ -1,21 +1,5 @@
 <?php
-
-/*
-|--------------------------------------------------------------------------
-| Namespace
-|--------------------------------------------------------------------------
-|
-| This Request class belongs to the Http\Requests namespace.
-|
-*/
-
 namespace App\Http\Requests;
-
-/*
-|--------------------------------------------------------------------------
-| Imports
-|--------------------------------------------------------------------------
-*/
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -97,12 +81,6 @@ class UpdateUserRequest extends FormRequest
                 }
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | User Status
-            |--------------------------------------------------------------------------
-            */
-
             'is_active' => [
 
                 'required',
@@ -140,12 +118,6 @@ class UpdateUserRequest extends FormRequest
 
         ];
     }
-
-    /**
-     * ------------------------------------------------------------------
-     * Custom attribute names.
-     * ------------------------------------------------------------------
-     */
 
     public function attributes(): array
     {

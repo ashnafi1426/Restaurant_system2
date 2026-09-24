@@ -69,7 +69,6 @@ const selectedWaiterData = computed(() => {
   )
 })
 
-// Format time from ISO string or HH:MM:SS to readable format
 const formatTime = (timeString?: string): string => {
   if (!timeString) return ''
   try {
@@ -90,12 +89,12 @@ const formatTime = (timeString?: string): string => {
       return `${hours}:${minutes} ${ampm}`
     }
     return timeString
-  } catch {
+  } catch (error) {
+    console.error('[AssignWaiterToTableModal] Error formatting time:', error)
     return timeString || ''
   }
 }
 
-// Load Tables from Backend
 const loadTables = async () => {
   try {
     const response = await api.get('/manager/restaurant-tables', { params: { per_page: 100 } })
@@ -109,11 +108,10 @@ const loadTables = async () => {
     }
     tables.value = list.filter((t) => t.is_active !== false)
   } catch (err: any) {
-    console.error('[AssignModal] Error loading tables:', err)
+    console.error('[AssignWaiterToTableModal] Error loading tables:', err)
   }
 }
 
-// Load Waiters from Backend
 const loadWaiters = async () => {
   try {
     const response = await api.get('/manager/waiters')
@@ -125,11 +123,10 @@ const loadWaiters = async () => {
     }
     waiters.value = list
   } catch (err: any) {
-    console.error('[AssignModal] Error loading waiters:', err)
+    console.error('[AssignWaiterToTableModal] Error loading waiters:', err)
   }
 }
 
-// Load Shifts from Backend
 const loadShifts = async () => {
   try {
     const response = await api.get('/manager/shifts')
@@ -145,7 +142,6 @@ const loadShifts = async () => {
         selectedShift.value = list[0].id
       }
     } else {
-      // Fallback default shifts
       shifts.value = [
         { id: 'morning-shift', name: 'Morning', start_time: '06:00', end_time: '14:00' },
         { id: 'afternoon-shift', name: 'Afternoon', start_time: '14:00', end_time: '22:00' },
@@ -155,7 +151,7 @@ const loadShifts = async () => {
       selectedShift.value = shifts.value[0].id
     }
   } catch (err: any) {
-    console.warn('[AssignModal] Could not fetch shifts, using default shifts:', err)
+    console.error('[AssignWaiterToTableModal] Error loading shifts, using fallback:', err)
     shifts.value = [
       { id: 'morning-shift', name: 'Morning', start_time: '06:00', end_time: '14:00' },
       { id: 'afternoon-shift', name: 'Afternoon', start_time: '14:00', end_time: '22:00' },
@@ -211,6 +207,7 @@ const handleSubmit = async () => {
       handleClose()
     }, 1000)
   } catch (err: any) {
+    console.error('[AssignWaiterToTableModal] Error assigning waiter to table:', err)
     error.value =
       err.response?.data?.message ||
       err.response?.data?.error ||
@@ -244,7 +241,6 @@ onMounted(() => {
       <div
         class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col transition-all"
       >
-        <!-- Modal Header -->
         <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-500/20">
@@ -265,16 +261,13 @@ onMounted(() => {
           </button>
         </div>
 
-        <!-- Modal Body / Content -->
         <div class="p-6 overflow-y-auto space-y-5 flex-1">
-          <!-- Loading State -->
           <div v-if="isLoading" class="py-12 text-center space-y-3">
             <Loader2 class="w-8 h-8 text-blue-600 animate-spin mx-auto" />
             <p class="text-xs font-bold text-slate-500">Loading tables & staff roster...</p>
           </div>
 
           <template v-else>
-            <!-- Error Alert -->
             <div
               v-if="error"
               class="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-2xl text-xs font-bold flex items-center gap-2.5"
@@ -283,7 +276,6 @@ onMounted(() => {
               <span>{{ error }}</span>
             </div>
 
-            <!-- Success Alert -->
             <div
               v-if="successMessage"
               class="p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl text-xs font-bold flex items-center gap-2.5"
@@ -292,7 +284,6 @@ onMounted(() => {
               <span>{{ successMessage }}</span>
             </div>
 
-            <!-- Select Table -->
             <div>
               <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                 Select Restaurant Table *
@@ -308,7 +299,6 @@ onMounted(() => {
               </select>
             </div>
 
-            <!-- Select Waiter -->
             <div>
               <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                 Assigned Waitstaff *
@@ -324,9 +314,7 @@ onMounted(() => {
               </select>
             </div>
 
-            <!-- Grid: Shift & Date -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Shift -->
               <div>
                 <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                   Shift Schedule *
@@ -341,7 +329,6 @@ onMounted(() => {
                 </select>
               </div>
 
-              <!-- Date -->
               <div>
                 <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                   Assignment Date *
@@ -354,7 +341,6 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Priority -->
             <div>
               <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                 Coverage Priority
@@ -380,7 +366,6 @@ onMounted(() => {
           </template>
         </div>
 
-        <!-- Modal Footer -->
         <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex-shrink-0">
           <button
             type="button"

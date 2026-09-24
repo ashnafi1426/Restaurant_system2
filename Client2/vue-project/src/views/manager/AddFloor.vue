@@ -200,7 +200,7 @@ onMounted(() => {
           <!-- STAFFING NOTE -->
           <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
             <div class="flex items-start gap-4">
-              <div class="text-3xl">📋</div>
+              <div class="text-3xl"></div>
               <div class="flex-1">
                 <h3 class="font-bold text-slate-900 mb-2">Staff Assignment</h3>
                 <p class="text-sm text-slate-600">After creating this floor, you can assign waiters and staff members from the Floor Assignment page.</p>

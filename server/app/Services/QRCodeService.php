@@ -22,11 +22,10 @@ class QRCodeService
             
             try {
                 $qrCode = QrCode::format('png')
-                    ->size(300)  // 300x300 pixels for good quality
-                    ->errorCorrection('H')  // Highest error correction
+                    ->size(300)
+                    ->errorCorrection('H')
                     ->generate($url);
                 
-                // Save the QR code directly to filesystem
                 file_put_contents($filePath, $qrCode);
                 
                 \Log::info('QR Code saved successfully', [
@@ -36,7 +35,6 @@ class QRCodeService
                 ]);
                 
             } catch (\Exception $generationError) {
-                // If generation fails, try with online API as fallback
                 \Log::warning('Local QR generation failed, trying API', [
                     'error' => $generationError->getMessage(),
                 ]);
@@ -56,7 +54,6 @@ class QRCodeService
                 ]);
             }
             
-            // Return the path for storage retrieval
             return "qr-codes/{$filename}";
             
         } catch (\Exception $e) {

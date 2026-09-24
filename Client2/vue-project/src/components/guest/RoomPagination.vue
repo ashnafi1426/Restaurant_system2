@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
+
 interface PaginationMeta {
   current_page: number
   last_page: number
@@ -57,9 +61,9 @@ function getPageNumbers() {
   >
     <!-- Info Text -->
     <div class="text-sm text-slate-600 order-2 sm:order-1">
-      Showing <span class="font-semibold">{{ props.meta.from }}</span> to
-      <span class="font-semibold">{{ props.meta.to }}</span> of
-      <span class="font-semibold">{{ props.meta.total }}</span> rooms
+      {{ languageStore.t('showing', 'Showing') }} <span class="font-semibold">{{ props.meta.from }}</span> {{ languageStore.t('to', 'to') }}
+      <span class="font-semibold">{{ props.meta.to }}</span> {{ languageStore.t('of', 'of') }}
+      <span class="font-semibold">{{ props.meta.total }}</span> {{ languageStore.t('rooms', 'rooms') }}
     </div>
 
     <!-- Pagination Controls -->
@@ -68,9 +72,9 @@ function getPageNumbers() {
       <button
         @click="goToPage(props.meta.current_page - 1)"
         :disabled="props.meta.current_page === 1"
-        class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
       >
-        ← Prev
+        ← {{ languageStore.t('previous', 'Prev') }}
       </button>
 
       <!-- Page Numbers -->
@@ -81,7 +85,7 @@ function getPageNumbers() {
           @click="page !== '...' && goToPage(page as number)"
           :disabled="page === '...' || page === props.meta.current_page"
           :class="[
-            'px-2.5 sm:px-3.5 py-2 text-sm font-medium rounded-lg transition-all',
+            'px-2.5 sm:px-3.5 py-2 text-sm font-medium rounded-lg transition-all cursor-pointer',
             page === props.meta.current_page
               ? 'bg-amber-500 text-white border border-amber-500'
               : page === '...'
@@ -97,9 +101,9 @@ function getPageNumbers() {
       <button
         @click="goToPage(props.meta.current_page + 1)"
         :disabled="props.meta.current_page === props.meta.last_page"
-        class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
       >
-        Next →
+        {{ languageStore.t('next', 'Next') }} →
       </button>
     </div>
   </div>

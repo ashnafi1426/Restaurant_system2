@@ -21,9 +21,6 @@ class UserDirectPermissionController extends Controller
         $this->authService = $authService;
     }
 
-    /**
-     * Get user's primary role, inherited role permissions, direct permissions, and system permissions catalog.
-     */
     public function getUserPermissions(Request $request, User $user)
     {
         $hotelId = app(\App\Services\TenantContext::class)->getHotelId()
@@ -33,7 +30,6 @@ class UserDirectPermissionController extends Controller
         $activeRoles = $this->authService->getActiveRoles($user, $hotelId);
         $primaryRole = $activeRoles->first();
 
-        // Role permissions
         $rolePermissions = [];
         if ($primaryRole) {
             $rolePermissions = $primaryRole->permissions()
@@ -48,7 +44,6 @@ class UserDirectPermissionController extends Controller
                 ]);
         }
 
-        // Direct user permissions for this hotel
         $directQuery = UserPermission::with('permission', 'grantor')
             ->where('user_id', $user->id);
         if ($hotelId) {
@@ -71,10 +66,8 @@ class UserDirectPermissionController extends Controller
                     && ($up->expires_at === null || $up->expires_at >= now()),
             ]);
 
-        // Effective permission slugs
         $effectivePermissions = $this->authService->getEffectivePermissions($user, $hotelId);
 
-        // System all permissions grouped by module
         $allPermissionsGrouped = Permission::where('is_active', true)
             ->orderBy('module')
             ->orderBy('name')
@@ -120,10 +113,6 @@ class UserDirectPermissionController extends Controller
         ]);
     }
 
-    /**
-     * Assign/sync direct permissions for a specific user.
-     * Keeps primary role unchanged.
-     */
     public function assignDirectPermissions(Request $request, User $user)
     {
         $hotelId = app(\App\Services\TenantContext::class)->getHotelId()
@@ -141,7 +130,6 @@ class UserDirectPermissionController extends Controller
         try {
             $grantorId = $request->user()?->id;
 
-            // Fetch old direct permissions for audit
             $oldPermQuery = UserPermission::where('user_id', $user->id);
             if ($hotelId) {
                 $oldPermQuery->where('hotel_id', $hotelId);
@@ -150,7 +138,6 @@ class UserDirectPermissionController extends Controller
 
             $newPermissionIds = array_unique($validated['permission_ids']);
 
-            // Delete removed direct permissions for this hotel
             $deleteQuery = UserPermission::where('user_id', $user->id)
                 ->whereNotIn('permission_id', $newPermissionIds);
             if ($hotelId) {
@@ -158,7 +145,6 @@ class UserDirectPermissionController extends Controller
             }
             $deleteQuery->delete();
 
-            // Insert or update direct permissions with hotel_id
             foreach ($newPermissionIds as $permId) {
                 UserPermission::updateOrCreate(
                     [
@@ -175,10 +161,8 @@ class UserDirectPermissionController extends Controller
                 );
             }
 
-            // Invalidate authorization cache for this user
             $this->authService->invalidateUserCache($user->id, $hotelId);
 
-            // Audit log
             RbacAuditLog::log(
                 $grantorId,
                 'user.direct_permissions_updated',
@@ -208,9 +192,6 @@ class UserDirectPermissionController extends Controller
         }
     }
 
-    /**
-     * Remove a single direct permission from a user.
-     */
     public function removeDirectPermission(Request $request, User $user, Permission $permission)
     {
         DB::beginTransaction();

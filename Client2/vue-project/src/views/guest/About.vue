@@ -6,7 +6,7 @@ import HotelGallery from '@/components/guest/HotelGallery.vue'
 import MeetOurTeam from '@/components/guest/MeetOurTeam.vue'
 import AwardsSection from '@/components/guest/AwardsSection.vue'
 import WhyChooseUs from '@/components/guest/WhyChooseUs.vue'
-import GuestLayout from '@/layouts/GuestLayout.vue'
+import GuestLayout from '@/Layouts/GuestLayout.vue'
 </script>
 
 <template>

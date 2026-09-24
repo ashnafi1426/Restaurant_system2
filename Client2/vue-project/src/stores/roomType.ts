@@ -17,6 +17,7 @@ export const useRoomTypeStore = defineStore('roomTypes', {
         const res = await roomTypeService.getRoomTypes(params)
         this.roomTypes = res.data.data
       } catch (e) {
+        console.error('[RoomTypeStore] Error fetching room types:', e)
         this.error = 'Failed to load room types'
       } finally {
         this.loading = false

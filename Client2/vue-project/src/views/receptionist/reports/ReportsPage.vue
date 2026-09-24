@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import {
   getReservationReport,
@@ -13,9 +13,14 @@ import {
   type RevenueReportData,
   type CheckInOutReportData
 } from '@/services/receptionReportService'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
-import { ChevronLeft, ChevronRight, Loader2, Calendar, FileText, Download } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Loader2, Calendar, FileText, Download, Building2 } from 'lucide-vue-next'
+
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
 type ReportType = 'reservation' | 'occupancy' | 'guest' | 'revenue' | 'checkinout'
 
@@ -40,13 +45,13 @@ const guestData = ref<GuestReportData | null>(null)
 const revenueData = ref<RevenueReportData | null>(null)
 const checkInOutData = ref<CheckInOutReportData | null>(null)
 
-const reportTabs = [
-  { id: 'reservation', label: 'Reservations', icon: '📅' },
-  { id: 'occupancy', label: 'Occupancy', icon: '🏨' },
-  { id: 'guest', label: 'Guests', icon: '👥' },
-  { id: 'revenue', label: 'Revenue', icon: '💰' },
-  { id: 'checkinout', label: 'Check-In/Out', icon: '🚪' }
-]
+const reportTabs = computed(() => [
+  { id: 'reservation', label: languageStore.t('reservations', 'Reservations'), icon: '📅' },
+  { id: 'occupancy', label: languageStore.t('occupancy', 'Occupancy'), icon: '🏨' },
+  { id: 'guest', label: languageStore.t('guests', 'Guests'), icon: '👥' },
+  { id: 'revenue', label: languageStore.t('revenue', 'Revenue'), icon: '💰' },
+  { id: 'checkinout', label: languageStore.t('check_in_out', 'Check-In/Out'), icon: '🚪' }
+])
 
 // Computed Active Dataset Count
 const activeDataset = computed<any[]>(() => {
@@ -199,7 +204,8 @@ const exportToPDF = async () => {
       revenue: 'Revenue Report',
       checkinout: 'Check-In/Check-Out Report'
     }
-    pdf.text(reportTitles[activeReport.value], 105, 15, { align: 'center' })
+    const hotelTitle = hotelStore.hotelName ? `${hotelStore.hotelName} - ${reportTitles[activeReport.value]}` : reportTitles[activeReport.value]
+    pdf.text(hotelTitle, 105, 15, { align: 'center' })
     
     pdf.setFontSize(10)
     pdf.setTextColor(100, 100, 100)
@@ -239,6 +245,10 @@ const exportToPDF = async () => {
 onMounted(() => {
   loadReportData()
 })
+
+watch(() => hotelStore.hotelId, () => {
+  loadReportData()
+})
 </script>
 
 <template>
@@ -247,14 +257,20 @@ onMounted(() => {
       <!-- Header Banner -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight"> Reception Reports</h1>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Comprehensive hotel occupancy, reservation, and revenue analytics.</p>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{{ languageStore.t('reception_reports', 'Reception Reports') }}</h1>
+            <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+              <Building2 class="w-3 h-3" />
+              {{ hotelStore.hotelName }}
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('reception_reports_desc', 'Comprehensive hotel occupancy, reservation, and revenue analytics.') }}</p>
         </div>
 
         <!-- Date Range Filter & Actions -->
         <div class="flex flex-wrap items-center gap-2.5">
           <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">From:</span>
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ languageStore.t('from_date', 'From:') }}</span>
             <input
               v-model="dateRange.start_date"
               type="date"
@@ -263,7 +279,7 @@ onMounted(() => {
           </div>
 
           <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">To:</span>
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ languageStore.t('to_date', 'To:') }}</span>
             <input
               v-model="dateRange.end_date"
               type="date"
@@ -275,7 +291,7 @@ onMounted(() => {
             @click="applyDateFilter"
             class="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs shadow-md shadow-teal-600/20 transition cursor-pointer"
           >
-            Apply
+            {{ languageStore.t('apply', 'Apply') }}
           </button>
 
           <button
@@ -285,7 +301,7 @@ onMounted(() => {
           >
             <Loader2 v-if="exporting" class="w-4 h-4 animate-spin" />
             <Download v-else class="w-4 h-4" />
-            <span>{{ exporting ? 'Exporting...' : 'Export PDF' }}</span>
+            <span>{{ exporting ? languageStore.t('exporting', 'Exporting...') : languageStore.t('export_pdf', 'Export PDF') }}</span>
           </button>
         </div>
       </div>
@@ -313,7 +329,7 @@ onMounted(() => {
       <!-- Loading State -->
       <div v-if="loading" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-16 text-center space-y-3">
         <Loader2 class="w-8 h-8 text-amber-500 animate-spin mx-auto" />
-        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Loading report data...</p>
+        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ languageStore.t('loading_data', 'Loading report data...') }}</p>
       </div>
 
       <!-- Main Report Content -->
@@ -323,27 +339,27 @@ onMounted(() => {
           <!-- Summary Cards -->
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total</p>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ languageStore.t('total', 'Total') }}</p>
               <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ reservationData.summary.total }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-amber-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Pending</p>
+              <p class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">{{ languageStore.t('pending', 'Pending') }}</p>
               <p class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ reservationData.summary.pending }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-purple-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Confirmed</p>
+              <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">{{ languageStore.t('confirmed', 'Confirmed') }}</p>
               <p class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">{{ reservationData.summary.confirmed }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-teal-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">Checked In</p>
+              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">{{ languageStore.t('checked_in', 'Checked In') }}</p>
               <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">{{ reservationData.summary.checked_in }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-emerald-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Checked Out</p>
+              <p class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">{{ languageStore.t('checked_out', 'Checked Out') }}</p>
               <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ reservationData.summary.checked_out }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-rose-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Cancelled</p>
+              <p class="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">{{ languageStore.t('cancelled', 'Cancelled') }}</p>
               <p class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ reservationData.summary.cancelled }}</p>
             </div>
           </div>
@@ -351,9 +367,9 @@ onMounted(() => {
           <!-- Table Container -->
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
             <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
-              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Daily Reservation Statistics</h3>
+              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('daily_reservation_statistics', 'Daily Reservation Statistics') }}</h3>
               <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
-                {{ totalItems }} Days Logged
+                {{ totalItems }} {{ languageStore.t('days_logged', 'Days Logged') }}
               </span>
             </div>
 
@@ -361,10 +377,10 @@ onMounted(() => {
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                    <th class="px-4 py-3 whitespace-nowrap">Date</th>
-                    <th class="px-4 py-3 whitespace-nowrap">Total</th>
-                    <th class="px-4 py-3 whitespace-nowrap">Pending</th>
-                    <th class="px-4 py-3 whitespace-nowrap">Confirmed</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('date', 'Date') }}</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('total', 'Total') }}</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('pending', 'Pending') }}</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('confirmed', 'Confirmed') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
@@ -384,28 +400,28 @@ onMounted(() => {
         <div v-if="activeReport === 'occupancy' && occupancyData" class="space-y-6">
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Rooms</p>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ languageStore.t('total_rooms', 'Total Rooms') }}</p>
               <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ occupancyData.summary.total_rooms }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-emerald-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Available</p>
+              <p class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">{{ languageStore.t('available', 'Available') }}</p>
               <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ occupancyData.summary.available }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-blue-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Occupied</p>
+              <p class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{{ languageStore.t('occupied', 'Occupied') }}</p>
               <p class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">{{ occupancyData.summary.occupied }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-teal-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">Avg Occupancy Rate</p>
+              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">{{ languageStore.t('avg_occupancy_rate', 'Avg Occupancy Rate') }}</p>
               <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">{{ occupancyData.summary.avg_occupancy_rate }}%</p>
             </div>
           </div>
 
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
             <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
-              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Daily Occupancy Statistics</h3>
+              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('daily_occupancy_statistics', 'Daily Occupancy Statistics') }}</h3>
               <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
-                {{ totalItems }} Days Logged
+                {{ totalItems }} {{ languageStore.t('days_logged', 'Days Logged') }}
               </span>
             </div>
 
@@ -413,10 +429,10 @@ onMounted(() => {
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                    <th class="px-4 py-3 whitespace-nowrap">Date</th>
-                    <th class="px-4 py-3 whitespace-nowrap">Occupied</th>
-                    <th class="px-4 py-3 whitespace-nowrap">Available</th>
-                    <th class="px-4 py-3 whitespace-nowrap">Rate</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('date', 'Date') }}</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('occupied', 'Occupied') }}</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('available', 'Available') }}</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('rate', 'Rate') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
@@ -436,20 +452,20 @@ onMounted(() => {
         <div v-if="activeReport === 'guest' && guestData" class="space-y-6">
           <div class="grid grid-cols-2 gap-4">
             <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Guests</p>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ languageStore.t('total_guests', 'Total Guests') }}</p>
               <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ guestData.summary.total_guests }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-teal-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">New Guests (Period)</p>
+              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">{{ languageStore.t('new_guests_period', 'New Guests (Period)') }}</p>
               <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">{{ guestData.summary.new_guests }}</p>
             </div>
           </div>
 
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
             <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
-              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Top Guests (By Reservations)</h3>
+              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('top_guests_reservations', 'Top Guests (By Reservations)') }}</h3>
               <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
-                {{ totalItems }} Guests
+                {{ totalItems }} {{ languageStore.t('guests', 'Guests') }}
               </span>
             </div>
 
@@ -457,10 +473,10 @@ onMounted(() => {
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                    <th class="px-4 py-3 whitespace-nowrap">Name</th>
-                    <th class="px-4 py-3 whitespace-nowrap">Email</th>
-                    <th class="px-4 py-3 whitespace-nowrap">Phone</th>
-                    <th class="px-4 py-3 whitespace-nowrap">Reservations</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('name', 'Name') }}</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('email', 'Email') }}</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('phone', 'Phone') }}</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('reservations', 'Reservations') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
@@ -480,28 +496,28 @@ onMounted(() => {
         <div v-if="activeReport === 'revenue' && revenueData" class="space-y-6">
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-teal-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">Total Revenue</p>
+              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">{{ languageStore.t('total_revenue', 'Total Revenue') }}</p>
               <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">ETB {{ (revenueData.summary.total_revenue || 0).toLocaleString() }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-blue-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Reservations Revenue</p>
+              <p class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{{ languageStore.t('reservations_revenue', 'Reservations Revenue') }}</p>
               <p class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">ETB {{ (revenueData.summary.reservation_revenue || 0).toLocaleString() }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-purple-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Orders Revenue</p>
+              <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">{{ languageStore.t('orders_revenue', 'Orders Revenue') }}</p>
               <p class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">ETB {{ (revenueData.summary.order_revenue || 0).toLocaleString() }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payment Count</p>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ languageStore.t('payment_count', 'Payment Count') }}</p>
               <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ revenueData.summary.payment_count }}</p>
             </div>
           </div>
 
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
             <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
-              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Daily Revenue Statistics</h3>
+              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('daily_revenue_statistics', 'Daily Revenue Statistics') }}</h3>
               <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
-                {{ totalItems }} Days Logged
+                {{ totalItems }} {{ languageStore.t('days_logged', 'Days Logged') }}
               </span>
             </div>
 
@@ -509,9 +525,9 @@ onMounted(() => {
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                    <th class="px-4 py-3 whitespace-nowrap">Date</th>
-                    <th class="px-4 py-3 whitespace-nowrap">Revenue</th>
-                    <th class="px-4 py-3 whitespace-nowrap">Transactions</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('date', 'Date') }}</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('revenue', 'Revenue') }}</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('transactions', 'Transactions') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
@@ -530,24 +546,24 @@ onMounted(() => {
         <div v-if="activeReport === 'checkinout' && checkInOutData" class="space-y-6">
           <div class="grid grid-cols-3 gap-4">
             <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-teal-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">Total Check-Ins</p>
+              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">{{ languageStore.t('total_checkins', 'Total Check-Ins') }}</p>
               <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">{{ checkInOutData.summary.total_check_ins }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-rose-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Total Check-Outs</p>
+              <p class="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">{{ languageStore.t('total_checkouts', 'Total Check-Outs') }}</p>
               <p class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ checkInOutData.summary.total_check_outs }}</p>
             </div>
             <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-blue-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Active Guests</p>
+              <p class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{{ languageStore.t('active_guests', 'Active Guests') }}</p>
               <p class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">{{ checkInOutData.summary.active_guests }}</p>
             </div>
           </div>
 
           <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
             <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
-              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Daily Check-In / Check-Out Activity</h3>
+              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('daily_checkin_checkout_activity', 'Daily Check-In / Check-Out Activity') }}</h3>
               <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
-                {{ totalItems }} Days Logged
+                {{ totalItems }} {{ languageStore.t('days_logged', 'Days Logged') }}
               </span>
             </div>
 
@@ -555,9 +571,9 @@ onMounted(() => {
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                    <th class="px-4 py-3 whitespace-nowrap">Date</th>
-                    <th class="px-4 py-3 whitespace-nowrap">Check-Ins</th>
-                    <th class="px-4 py-3 whitespace-nowrap">Check-Outs</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('date', 'Date') }}</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('check_ins', 'Check-Ins') }}</th>
+                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('check_outs', 'Check-Outs') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
@@ -580,7 +596,7 @@ onMounted(() => {
           <!-- Left Side: Per Page Selector & Showing Count -->
           <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400">
             <div class="flex items-center gap-2">
-              <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
+              <span class="font-bold text-slate-700 dark:text-slate-300">{{ languageStore.t('items_per_page', 'Items per page:') }}</span>
               <select
                 :value="perPage"
                 @change="changePerPage"
@@ -594,9 +610,9 @@ onMounted(() => {
             </div>
 
             <div class="text-xs font-medium">
-              Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
-              <span class="font-extrabold text-slate-900 dark:text-white">{{ showingTo }}</span> of
-              <span class="font-extrabold text-slate-900 dark:text-white">{{ totalItems }}</span> records
+              {{ languageStore.t('showing', 'Showing') }} <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ totalItems }}</span> {{ languageStore.t('records', 'records') }}
             </div>
           </div>
 
@@ -609,7 +625,7 @@ onMounted(() => {
               title="Previous Page"
             >
               <ChevronLeft class="w-4 h-4" />
-              <span class="hidden sm:inline">Prev</span>
+              <span class="hidden sm:inline">{{ languageStore.t('prev', 'Prev') }}</span>
             </button>
 
             <div class="flex items-center gap-1">
@@ -634,7 +650,7 @@ onMounted(() => {
               class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold"
               title="Next Page"
             >
-              <span class="hidden sm:inline">Next</span>
+              <span class="hidden sm:inline">{{ languageStore.t('next', 'Next') }}</span>
               <ChevronRight class="w-4 h-4" />
             </button>
           </div>

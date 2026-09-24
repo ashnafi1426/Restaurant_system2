@@ -4,22 +4,10 @@ import managerService from '@/services/managerService'
 import type { NotificationItem, RecentActivity } from '@/types/manager'
 
 export const useManagerActivityStore = defineStore('managerActivity', () => {
-  /*
-  |--------------------------------------------------------------------------
-  | STATE
-  |--------------------------------------------------------------------------
-  */
-
   const notifications = ref<NotificationItem[]>([])
   const activities = ref<RecentActivity[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
-
-  /*
-  |--------------------------------------------------------------------------
-  | COMPUTED
-  |--------------------------------------------------------------------------
-  */
 
   const unreadNotifications = computed(() =>
     notifications.value.filter((notification) => !notification.read_at),
@@ -32,18 +20,13 @@ export const useManagerActivityStore = defineStore('managerActivity', () => {
     unreadNotifications: unreadCount.value,
   }))
 
-  /*
-  |--------------------------------------------------------------------------
-  | ACTIONS
-  |--------------------------------------------------------------------------
-  */
-
   async function loadNotifications() {
     try {
       loading.value = true
       error.value = null
       notifications.value = await managerService.getNotifications()
     } catch (err: any) {
+      console.error('[manager/activityStore] Failed to load notifications:', err)
       error.value = err.message
     } finally {
       loading.value = false
@@ -54,6 +37,7 @@ export const useManagerActivityStore = defineStore('managerActivity', () => {
     try {
       activities.value = await managerService.getRecentActivities()
     } catch (err: any) {
+      console.error('[manager/activityStore] Failed to load activities:', err)
       error.value = err.message
     }
   }
@@ -66,6 +50,7 @@ export const useManagerActivityStore = defineStore('managerActivity', () => {
         notification.read_at = new Date().toISOString()
       }
     } catch (err: any) {
+      console.error('[manager/activityStore] Failed to mark notification as read:', err)
       error.value = err.message
       throw err
     }

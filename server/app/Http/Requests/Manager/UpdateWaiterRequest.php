@@ -5,25 +5,13 @@ namespace App\Http\Requests\Manager;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * UpdateWaiterRequest
- * 
- * Validates waiter update form data from manager
- * Allows partial updates to waiter profile
- */
 class UpdateWaiterRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return auth()->check() && auth()->user()->role === 'manager';
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
         $waiterId = $this->route('waiter') ?? $this->route('id');
@@ -62,9 +50,6 @@ class UpdateWaiterRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get the error messages for the defined validation rules.
-     */
     public function messages(): array
     {
         return [
@@ -79,9 +64,6 @@ class UpdateWaiterRequest extends FormRequest
         ];
     }
 
-    /**
-     * Prepare the data for validation.
-     */
     protected function prepareForValidation(): void
     {
         if ($this->has('employment_type')) {
@@ -103,9 +85,6 @@ class UpdateWaiterRequest extends FormRequest
         }
     }
 
-    /**
-     * Get the data for updating waiter
-     */
     public function getWaiterData(): array
     {
         return $this->only([

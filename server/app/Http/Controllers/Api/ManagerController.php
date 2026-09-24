@@ -32,6 +32,7 @@ class ManagerController extends Controller
         $this->service = $service;
         $this->dashboardService = $dashboardService;
     }
+
     public function dashboard(Request $request): JsonResponse
     {
         $dashboard = $this->dashboardService->completeDashboard();
@@ -40,6 +41,7 @@ class ManagerController extends Controller
             'data' => $dashboard,
         ]);
     }
+
     public function statistics(): JsonResponse
     {
         return response()->json([
@@ -64,6 +66,7 @@ class ManagerController extends Controller
             'data' => $this->dashboardService->revenueChart($period),
         ]);
     }
+
     public function occupancySummary(): JsonResponse
     {
         return response()->json([
@@ -153,7 +156,6 @@ class ManagerController extends Controller
                 'status' => 'required|in:active,inactive,on_break',
                 'shift' => 'required|in:morning,afternoon,evening,night',
                 'experience_level' => 'required|in:junior,senior,head',
-                // New user fields
                 'first_name' => 'nullable|string|max:255',
                 'last_name' => 'nullable|string|max:255',
                 'email' => 'nullable|email|unique:users,email',
@@ -161,7 +163,6 @@ class ManagerController extends Controller
                 'password' => 'nullable|string|min:8',
             ]);
 
-            // If user_id is not provided, create a new user
             if (empty($validated['user_id'])) {
                 if (!$validated['first_name'] || !$validated['last_name'] || 
                     !$validated['email'] || !$validated['password']) {
@@ -246,12 +247,6 @@ class ManagerController extends Controller
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Notifications
-    |--------------------------------------------------------------------------
-    */
-
     public function notifications()
     {
         return ManagerNotificationResource::collection(
@@ -314,16 +309,12 @@ class ManagerController extends Controller
         );
     }
 
-    
-
     public function dashboardSettings(Request $request)
     {
         return new ManagerDashboardSettingResource(
-
             $this->service->dashboardSettings(
                 $request->user()->id
             )
-
         );
     }
 
@@ -342,18 +333,10 @@ class ManagerController extends Controller
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Announcements
-    |--------------------------------------------------------------------------
-    */
-
     public function announcements()
     {
         return ManagerAnnouncementResource::collection(
-
             $this->service->announcements()
-
         );
     }
 
@@ -399,28 +382,17 @@ class ManagerController extends Controller
         ]);
     }
 
-    
     public function reports()
     {
         return ManagerReportResource::collection(
-
             $this->service->reports()
-
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Activity Logs
-    |--------------------------------------------------------------------------
-    */
 
     public function activityLogs()
     {
         return ManagerActivityLogResource::collection(
-
             $this->service->activityLogs()
-
         );
     }
 }

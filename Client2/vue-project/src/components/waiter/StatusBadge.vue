@@ -7,6 +7,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { AssignmentStatus } from '@/types/waiter'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
 
 const props = defineProps<{
   status: AssignmentStatus
@@ -29,14 +32,14 @@ const statusClass = computed(() => {
 
 const statusLabel = computed(() => {
   const labelMap: any = {
-    pending: 'Pending',
-    accepted: 'Accepted',
-    rejected: 'Rejected',
-    picked_up: 'Picked Up',
-    on_delivery: 'On Delivery',
-    delivered: 'Delivered',
-    failed: 'Failed',
-    cancelled: 'Cancelled',
+    pending: languageStore.t('pending', 'Pending'),
+    accepted: languageStore.t('accepted', 'Accepted'),
+    rejected: languageStore.t('rejected', 'Rejected'),
+    picked_up: languageStore.t('picked_up', 'Picked Up'),
+    on_delivery: languageStore.t('on_delivery', 'On Delivery'),
+    delivered: languageStore.t('delivered', 'Delivered'),
+    failed: languageStore.t('failed', 'Failed'),
+    cancelled: languageStore.t('cancelled', 'Cancelled'),
   }
   return labelMap[props.status] || props.status
 })

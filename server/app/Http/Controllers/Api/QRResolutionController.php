@@ -9,19 +9,13 @@ use Illuminate\Http\JsonResponse;
 
 class QRResolutionController extends Controller
 {
-    /**
-     * Resolve QR token and return context information
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function resolveQRToken(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'qr_token' => 'required|string|min:1|max:100',
         ]);
 
-        $qrToken = $validated['qr_token']; // Don't uppercase if it contains dashes
+        $qrToken = $validated['qr_token'];
 
         $result = QRResolutionService::resolveQRToken($qrToken);
 
@@ -40,15 +34,8 @@ class QRResolutionController extends Controller
         ], 200);
     }
 
-    /**
-     * Resolve QR token from URL parameter
-     * 
-     * @param string $qrToken
-     * @return JsonResponse
-     */
     public function resolveFromUrl(string $qrToken): JsonResponse
     {
-        // Don't uppercase if it contains dashes (legacy format)
         $result = QRResolutionService::resolveQRToken($qrToken);
 
         if (!$result['success']) {
@@ -66,12 +53,6 @@ class QRResolutionController extends Controller
         ], 200);
     }
 
-    /**
-     * Check if QR token is valid and active (lightweight check)
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function validateQRToken(Request $request): JsonResponse
     {
         $validated = $request->validate([

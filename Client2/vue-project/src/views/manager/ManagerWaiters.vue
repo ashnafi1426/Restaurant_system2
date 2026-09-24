@@ -22,6 +22,7 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreVertical,
+  Loader2,
 } from 'lucide-vue-next'
 
 const waiterStore = useManagerWaiterStore()
@@ -223,6 +224,7 @@ const handleDeleteWaiter = async (waiterId: string) => {
       }, 4000)
       await refreshData()
     } catch (err: any) {
+      console.error('[ManagerWaiters] Failed to delete waiter:', err)
       alert(err.message || 'Failed to delete waiter.')
     }
   }
@@ -298,15 +300,6 @@ onUnmounted(() => {
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage service staff, shift rosters, and floor assignments.</p>
           </div>
         </div>
-
-        <button
-          @click="openAddModal"
-          type="button"
-          class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] text-white text-xs sm:text-sm font-bold rounded-xl transition shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
-        >
-          <UserPlus class="w-4 h-4" />
-          <span>Register New Waiter</span>
-        </button>
       </div>
 
       <!-- KPI Stats Cards Grid -->
@@ -422,10 +415,10 @@ onUnmounted(() => {
           <button
             type="button"
             @click="openAddModal"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold shadow-md shadow-blue-600/25 transition active:scale-98 cursor-pointer flex-shrink-0"
           >
-            <UserPlus class="w-4 h-4" />
-            <span>Add Waiter</span>
+            <UserPlus class="w-4 h-4 text-white" />
+            <span class="text-white">Add Waiter</span>
           </button>
         </div>
       </div>
@@ -526,11 +519,23 @@ onUnmounted(() => {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <tr
-                v-for="waiter in paginatedWaiters"
-                :key="waiter.id"
-                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
-              >
+              <!-- Loading Spinner State -->
+              <tr v-if="waiterStore.loading">
+                <td colspan="6" class="px-6 py-20 text-center">
+                  <div class="flex flex-col items-center justify-center gap-3">
+                    <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Loading waiters...</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Data Rows -->
+              <template v-else>
+                <tr
+                  v-for="waiter in paginatedWaiters"
+                  :key="waiter.id"
+                  class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+                >
                 <!-- Staff Avatar & Name -->
                 <td class="py-3 px-4 pl-5 whitespace-nowrap">
                   <div class="flex items-center gap-3">
@@ -600,12 +605,18 @@ onUnmounted(() => {
                   No waiter staff found matching your filters.
                 </td>
               </tr>
-            </tbody>
-          </table>
-        </div>
+            </template>
+          </tbody>
+        </table>
+      </div>
 
-        <!-- Mobile Card View -->
-        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+      <!-- Mobile Card View -->
+      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+        <div v-if="waiterStore.loading" class="py-16 text-center flex flex-col items-center justify-center gap-3">
+          <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Loading waiters...</span>
+        </div>
+        <template v-else>
           <div
             v-for="waiter in paginatedWaiters"
             :key="waiter.id"
@@ -634,7 +645,8 @@ onUnmounted(() => {
               </div>
             </div>
           </div>
-        </div>
+        </template>
+      </div>
 
         <!-- Pagination Footer -->
         <div

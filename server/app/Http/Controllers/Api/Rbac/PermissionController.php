@@ -18,9 +18,6 @@ class PermissionController extends Controller
         $this->authService = $authService;
     }
 
-    /**
-     * Display a listing of all permissions, grouped by module.
-     */
     public function index()
     {
         $permissions = Permission::orderBy('module')->orderBy('name')->get();
@@ -34,9 +31,6 @@ class PermissionController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created permission dynamically.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -99,9 +93,6 @@ class PermissionController extends Controller
         ], 201);
     }
 
-    /**
-     * Display the specified permission.
-     */
     public function show(Permission $permission)
     {
         return response()->json([
@@ -110,9 +101,6 @@ class PermissionController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified permission.
-     */
     public function update(Request $request, Permission $permission)
     {
         $validated = $request->validate([
@@ -169,12 +157,8 @@ class PermissionController extends Controller
         ]);
     }
 
-    /**
-     * Deactivate or delete permission safely.
-     */
     public function destroy(Request $request, Permission $permission)
     {
-        // Safe deactivation preferred over deletion if assigned to roles
         if ($permission->roles()->count() > 0) {
             $permission->update(['is_active' => false]);
             \Illuminate\Support\Facades\Cache::flush();

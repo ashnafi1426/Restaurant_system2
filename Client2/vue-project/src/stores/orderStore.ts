@@ -71,7 +71,6 @@ export const useOrderStore = defineStore('order', () => {
     }
     loading.value = true
     try {
-      // Sanitize query params: strip empty strings, null, or undefined
       const cleanParams: Record<string, any> = {}
       for (const [key, value] of Object.entries(filters.value)) {
         if (value !== '' && value !== null && value !== undefined) {
@@ -95,7 +94,6 @@ export const useOrderStore = defineStore('order', () => {
         lastPage.value = Math.ceil(total.value / (filters.value.per_page || 15)) || 1
       }
 
-      // Check if backend returned statistics in payload
       const serverStats = response.data?.statistics || response.statistics || rawData.statistics
       if (serverStats) {
         statistics.value = {
@@ -110,8 +108,8 @@ export const useOrderStore = defineStore('order', () => {
       } else {
         calculateStatistics()
       }
-    } catch (err) {
-      console.error('Failed to fetch orders:', err)
+    } catch (err: any) {
+      console.error('[orderStore] Failed to fetch orders:', err)
     } finally {
       loading.value = false
     }
@@ -134,9 +132,6 @@ export const useOrderStore = defineStore('order', () => {
   async function refresh(): Promise<void> {
     await fetchOrders()
   }
-  /**
-   * Calculate dashboard statistics.
-   */
   function calculateStatistics(): void {
     statistics.value.total_orders = orders.value.length
 
@@ -253,5 +248,6 @@ export const useOrderStore = defineStore('order', () => {
 
     deleteOrder,
     changeStatus,
+    updateStatus: changeStatus,
   }
 })

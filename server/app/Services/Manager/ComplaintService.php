@@ -17,6 +17,7 @@ class ComplaintService
             return $complaint;
         });
     }
+
     public function getComplaints($filters = [], $perPage = 15)
     {
         $query = ComplaintTicket::query();
@@ -24,22 +25,18 @@ class ComplaintService
             $query->where('status', $filters['status']);
         }
 
-        // Filter by severity
         if (!empty($filters['severity'])) {
             $query->where('severity', $filters['severity']);
         }
 
-        // Filter by type
         if (!empty($filters['type'])) {
             $query->where('type', $filters['type']);
         }
 
-        // Filter by department
         if (!empty($filters['department'])) {
             $query->where('department', $filters['department']);
         }
 
-        // Filter by date range
         if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
             $query->whereBetween('created_at', [
                 $filters['start_date'],
@@ -47,23 +44,23 @@ class ComplaintService
             ]);
         }
 
-        // Search in description
         if (!empty($filters['search'])) {
             $query->where('description', 'like', '%' . $filters['search'] . '%')
                   ->orWhere('ticket_number', 'like', '%' . $filters['search'] . '%');
         }
 
-        // Sort
         $sortBy = $filters['sort_by'] ?? 'created_at';
         $sortOrder = $filters['sort_order'] ?? 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
         return $query->with('guest', 'manager', 'assignedStaff')->paginate($perPage);
     }
+
     public function getComplaint($id): ComplaintTicket
     {
         return ComplaintTicket::with('guest', 'manager', 'assignedStaff')->findOrFail($id);
     }
+
     public function assignComplaint($complaintId, $staffId): ComplaintTicket
     {
         return DB::transaction(function () use ($complaintId, $staffId) {
@@ -80,13 +77,13 @@ class ComplaintService
             return $complaint;
         });
     }
+
     public function escalateComplaint($complaintId): ComplaintTicket
     {
         return DB::transaction(function () use ($complaintId) {
             $complaint = ComplaintTicket::findOrFail($complaintId);
             $complaint->escalate();
 
-            // Send escalation notification
             ManagerNotification::create([
                 'manager_id' => $complaint->manager_id ?? auth()->id(),
                 'type' => 'complaint_escalated',
@@ -97,7 +94,6 @@ class ComplaintService
                 'related_type' => 'complaint',
             ]);
 
-            // Log audit
             \App\Models\ManagerAuditLog::create([
                 'manager_id' => auth()->id(),
                 'action' => 'escalate_complaint',
@@ -109,6 +105,7 @@ class ComplaintService
             return $complaint;
         });
     }
+
     public function resolveComplaint($complaintId, $notes): ComplaintTicket
     {
         return DB::transaction(function () use ($complaintId, $notes) {
@@ -125,6 +122,7 @@ class ComplaintService
             return $complaint;
         });
     }
+
     public function getStatistics(): array
     {
         $today = Carbon::today();
@@ -140,7 +138,8 @@ class ComplaintService
             'avg_resolution_time' => $this->getAverageResolutionTime(),
         ];
     }
-     public function getComplaintsByType(): array
+
+    public function getComplaintsByType(): array
     {
         return DB::table('complaint_tickets')
             ->select('type', DB::raw('COUNT(*) as count'))
@@ -149,6 +148,7 @@ class ComplaintService
             ->get()
             ->toArray();
     }
+
     public function getComplaintsBySeverity(): array
     {
         return DB::table('complaint_tickets')
@@ -158,6 +158,7 @@ class ComplaintService
             ->get()
             ->toArray();
     }
+
     public function getDepartmentPerformance(): array
     {
         return DB::table('complaint_tickets')
@@ -168,6 +169,7 @@ class ComplaintService
             ->get()
             ->toArray();
     }
+
     private function getAverageResolutionTime(): ?float
     {
         $avgTime = DB::table('complaint_tickets')
@@ -177,6 +179,7 @@ class ComplaintService
 
         return $avgTime ? round($avgTime, 2) : null;
     }
+
     private function sendComplaintNotification(ComplaintTicket $complaint): void
     {
         $priority = match ($complaint->severity) {
@@ -195,6 +198,7 @@ class ComplaintService
             'related_type' => 'complaint',
         ]);
     }
+
     public function generateComplaintReport($startDate, $endDate): array
     {
         $complaints = ComplaintTicket::whereBetween('created_at', [$startDate, $endDate])->get();
@@ -214,6 +218,7 @@ class ComplaintService
             'avg_satisfaction' => $complaints->whereNotNull('satisfaction_rating')->avg('satisfaction_rating'),
         ];
     }
+
     private function calculateAverageResolutionTime($complaints): float
     {
         $resolved = $complaints->where('status', 'resolved')->filter(function ($c) {

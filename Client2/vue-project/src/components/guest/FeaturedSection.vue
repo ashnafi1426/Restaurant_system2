@@ -38,7 +38,6 @@ const getImageUrl = (imagePath?: string | null) => {
 
 <template>
   <div v-if="featuredItems.length > 0" class="mb-12">
-    <!-- Section Header -->
     <div class="flex items-center gap-3 mb-6">
       <h2 class="text-2xl font-bold text-gray-900">⭐ Chef's Recommendations</h2>
       <span class="text-sm font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
@@ -46,14 +45,12 @@ const getImageUrl = (imagePath?: string | null) => {
       </span>
     </div>
 
-    <!-- Featured Grid -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div
         v-for="item in featuredItems"
         :key="item.id"
         class="relative group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300"
       >
-        <!-- Image -->
         <div class="relative h-48 overflow-hidden bg-gray-100">
           <img
             :src="getImageUrl(item.image)"
@@ -61,14 +58,12 @@ const getImageUrl = (imagePath?: string | null) => {
             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
 
-          <!-- Badge -->
           <span
             class="absolute top-3 right-3 bg-red-500 text-white font-bold px-3 py-1 rounded-full text-sm"
           >
             {{ item.badge }}
           </span>
 
-          <!-- Overlay -->
           <div
             class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100"
           >
@@ -81,14 +76,12 @@ const getImageUrl = (imagePath?: string | null) => {
           </div>
         </div>
 
-        <!-- Content -->
         <div class="p-4">
           <h3 class="font-bold text-lg text-gray-900 mb-1">{{ item.name }}</h3>
           <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{ item.description }}</p>
 
-          <!-- Footer -->
           <div class="flex justify-between items-center">
-            <span class="text-2xl font-bold text-teal-700">{{ item.price }} ETB</span>
+            <span class="text-2xl font-bold text-teal-700">{{ (item.total_price != null ? Number(item.total_price).toFixed(2) : Number(item.price).toFixed(2)) }} ETB</span>
             <button
               @click="emit('add-to-cart', item)"
               class="lg:hidden bg-teal-600 text-white px-3 py-1 rounded-lg font-semibold text-sm hover:bg-teal-700"

@@ -1,8 +1,3 @@
-/**
- * Review Service
- * Handles all review-related API calls
- */
-
 import axios from './axios'
 import type {
   Review,
@@ -19,21 +14,15 @@ import type {
   PaginatedReviews,
 } from '@/types/review'
 
-/**
- * Review Submission
- */
 export const createReview = async (data: CreateReviewRequest): Promise<Review> => {
-  // Try guest endpoint first (for QR menu)
   try {
     const response = await axios.post(`/guest-reviews`, data)
     return response.data.data || response.data
   } catch (guestError: any) {
-    // If guest endpoint fails, try authenticated endpoint
+    console.warn('[ReviewService] /guest-reviews failed, trying /reviews fallback:', guestError)
     if (guestError.response?.status === 422 || guestError.response?.status === 500) {
-      // If validation or server error, don't retry
       throw guestError
     }
-    // Otherwise try authenticated endpoint
     const response = await axios.post(`/reviews`, data)
     return response.data.data || response.data
   }
@@ -53,17 +42,11 @@ export const deleteReview = async (id: string): Promise<void> => {
   await axios.delete(`/reviews/${id}`)
 }
 
-/**
- * Eligible Items
- */
 export const getEligibleItems = async (guestId: string): Promise<EligibleMenuItem[]> => {
   const response = await axios.get(`/guests/${guestId}/eligible-items`)
   return response.data.data
 }
 
-/**
- * Public Reviews
- */
 export const getPublicReviews = async (
   menuItemId: string,
   page: number = 1,
@@ -80,9 +63,6 @@ export const getPublicReviews = async (
   return response.data
 }
 
-/**
- * Moderation
- */
 export const listReviewsForModeration = async (
   status?: 'pending' | 'approved' | 'rejected',
   page: number = 1,
@@ -112,9 +92,6 @@ export const deleteReviewAsAdmin = async (reviewId: string): Promise<void> => {
   await axios.delete(`/admin/reviews/${reviewId}`)
 }
 
-/**
- * Management Responses
- */
 export const createResponse = async (
   reviewId: string,
   data: CreateResponseRequest
@@ -135,9 +112,6 @@ export const deleteResponse = async (responseId: string): Promise<void> => {
   await axios.delete(`/admin/responses/${responseId}`)
 }
 
-/**
- * Helpfulness Voting
- */
 export const voteHelpful = async (
   reviewId: string,
   data: Partial<VoteRequest>
@@ -160,9 +134,6 @@ export const voteNotHelpful = async (
   return response.data.data
 }
 
-/**
- * Notifications
- */
 export const getReviewNotifications = async (
   page: number = 1,
   perPage: number = 10
@@ -185,22 +156,17 @@ export const markNotificationAsRead = async (notificationId: string): Promise<vo
   await axios.post(`/notifications/${notificationId}/read`)
 }
 
-/**
- * Analytics
- */
 export const getMenuItemStats = async (menuItemId: string): Promise<ReviewStats> => {
   try {
-    // Try public endpoint first (no auth needed)
     const response = await axios.get(`/menu-items/${menuItemId}/review-stats`)
     return response.data
-  } catch (error) {
-    // Fallback to admin endpoint if public endpoint doesn't exist
+  } catch (err: any) {
+    console.warn('[ReviewService] Main review stats endpoint failed, trying admin analytics fallback:', err)
     try {
       const response = await axios.get(`/admin/analytics/menu-items/${menuItemId}/review-stats`)
       return response.data
-    } catch (fallbackError) {
-      console.error('Failed to load review stats:', fallbackError)
-      // Return default stats if both fail
+    } catch (fallbackErr: any) {
+      console.warn('[ReviewService] Admin analytics fallback failed, returning default stats:', fallbackErr)
       return {
         menu_item_id: menuItemId,
         total_reviews: 0,
@@ -250,37 +216,24 @@ export const getReviewTrends = async (period: 'daily' | 'weekly' | 'monthly' = '
 }
 
 export default {
-  // Guest Review Operations
   createReview,
   getReview,
   updateReview,
   deleteReview,
   getEligibleItems,
-
-  // Public Reviews
   getPublicReviews,
-
-  // Moderation
   listReviewsForModeration,
   approveReview,
   rejectReview,
   deleteReviewAsAdmin,
-
-  // Management Responses
   createResponse,
   updateResponse,
   deleteResponse,
-
-  // Voting
   voteHelpful,
   voteNotHelpful,
-
-  // Notifications
   getReviewNotifications,
   getUnreadNotificationCount,
   markNotificationAsRead,
-
-  // Analytics
   getMenuItemStats,
   getTopRatedItems,
   getLowestRatedItems,

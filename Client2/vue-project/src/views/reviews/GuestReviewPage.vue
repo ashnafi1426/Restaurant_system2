@@ -3,8 +3,8 @@
     <div class="max-w-6xl mx-auto">
       <!-- Header -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">My Reviews</h1>
-        <p class="text-gray-600">Manage your menu item reviews and see how your feedback helps</p>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ languageStore.t('my_reviews', 'My Reviews') }}</h1>
+        <p class="text-gray-600">{{ languageStore.t('manage_reviews_and_account', 'Manage your menu item reviews and see how your feedback helps') }}</p>
       </div>
 
       <!-- Tabs -->
@@ -12,24 +12,24 @@
         <button
           @click="activeTab = 'write'"
           :class="[
-            'px-4 py-2 font-semibold border-b-2 transition-colors',
+            'px-4 py-2 font-semibold border-b-2 transition-colors cursor-pointer',
             activeTab === 'write'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-600 hover:text-gray-900'
           ]"
         >
-          Write a Review
+          {{ languageStore.t('write_review', 'Write a Review') }}
         </button>
         <button
           @click="activeTab = 'my-reviews'"
           :class="[
-            'px-4 py-2 font-semibold border-b-2 transition-colors',
+            'px-4 py-2 font-semibold border-b-2 transition-colors cursor-pointer',
             activeTab === 'my-reviews'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-600 hover:text-gray-900'
           ]"
         >
-          My Reviews ({{ guestReviews.length }})
+          {{ languageStore.t('my_reviews', 'My Reviews') }} ({{ guestReviews.length }})
         </button>
       </div>
 
@@ -44,9 +44,9 @@
         <div v-else class="space-y-4">
           <button
             @click="selectedItem = null"
-            class="text-blue-600 hover:text-blue-700 font-semibold text-sm"
+            class="text-blue-600 hover:text-blue-700 font-semibold text-sm cursor-pointer"
           >
-            ← Back to Items
+            ← {{ languageStore.t('back_to_items', 'Back to Items') }}
           </button>
           <ReviewSubmissionForm
             :menu-item="selectedItem"
@@ -65,7 +65,7 @@
           <div v-for="i in 3" :key="i" class="animate-pulse h-32 bg-gray-200 rounded"></div>
         </div>
         <div v-else-if="guestReviews.length === 0" class="text-center py-12 bg-white rounded-lg border border-gray-200">
-          <p class="text-gray-600 text-lg">You haven't written any reviews yet.</p>
+          <p class="text-gray-600 text-lg">{{ languageStore.t('no_reviews_written_yet', "You haven't written any reviews yet.") }}</p>
         </div>
         <div v-else class="space-y-4">
           <div v-for="review in guestReviews" :key="review.id" class="bg-white rounded-lg border border-gray-200 p-6">
@@ -81,7 +81,7 @@
                 review.status === 'approved' ? 'bg-green-100 text-green-800' :
                 'bg-red-100 text-red-800'
               ]">
-                {{ review.status }}
+                {{ languageStore.t(review.status, review.status) }}
               </span>
             </div>
 
@@ -95,7 +95,7 @@
 
             <!-- Management Response -->
             <div v-if="review.response" class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
-              <p class="text-sm font-semibold text-blue-900 mb-2">Response from Management</p>
+              <p class="text-sm font-semibold text-blue-900 mb-2">{{ languageStore.t('reply_from_management', 'Response from Management') }}</p>
               <p class="text-sm text-gray-700">{{ review.response.response_text }}</p>
             </div>
 
@@ -104,15 +104,15 @@
               <button
                 @click="editingReviewId = review.id"
                 :disabled="review.status !== 'pending'"
-                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold rounded transition-colors"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold rounded transition-colors cursor-pointer"
               >
-                Edit
+                {{ languageStore.t('edit', 'Edit') }}
               </button>
               <button
                 @click="deleteReview(review.id)"
-                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded transition-colors"
+                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded transition-colors cursor-pointer"
               >
-                Delete
+                {{ languageStore.t('delete', 'Delete') }}
               </button>
             </div>
           </div>
@@ -136,6 +136,9 @@ import { useAuthStore } from '@/stores/auth'
 import ReviewSubmissionForm from '@/components/reviews/ReviewSubmissionForm.vue'
 import EligibleItemsList from '@/components/reviews/EligibleItemsList.vue'
 import { EligibleMenuItem } from '@/types/review'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
 
 const reviewStore = useReviewStore()
 const authStore = useAuthStore()

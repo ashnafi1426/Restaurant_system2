@@ -12,11 +12,6 @@ use App\Models\ManagerNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * Manager Activity & Notifications Controller
- * 
- * Handles activity logs and notifications
- */
 class ActivityController extends Controller
 {
     protected ManagerService $service;
@@ -26,9 +21,6 @@ class ActivityController extends Controller
         $this->service = $service;
     }
 
-    /**
-     * Get recent activities
-     */
     public function activities(Request $request): JsonResponse
     {
         try {
@@ -46,9 +38,6 @@ class ActivityController extends Controller
         }
     }
 
-    /**
-     * Get all notifications
-     */
     public function notifications(Request $request)
     {
         return ManagerNotificationResource::collection(
@@ -56,9 +45,6 @@ class ActivityController extends Controller
         );
     }
 
-    /**
-     * Create new notification
-     */
     public function storeNotification(StoreManagerNotificationRequest $request)
     {
         $notification = $this->service->createNotification(
@@ -68,9 +54,6 @@ class ActivityController extends Controller
         return new ManagerNotificationResource($notification);
     }
 
-    /**
-     * Update notification
-     */
     public function updateNotification(
         UpdateManagerNotificationRequest $request,
         ManagerNotification $notification
@@ -84,9 +67,6 @@ class ActivityController extends Controller
         return new ManagerNotificationResource($notification);
     }
 
-    /**
-     * Delete notification
-     */
     public function destroyNotification(
         ManagerNotification $notification
     ): JsonResponse
@@ -99,9 +79,6 @@ class ActivityController extends Controller
         ]);
     }
 
-    /**
-     * Mark notification as read
-     */
     public function markAsRead(ManagerNotification $notification)
     {
         $notification = $this->service->markAsRead($notification);

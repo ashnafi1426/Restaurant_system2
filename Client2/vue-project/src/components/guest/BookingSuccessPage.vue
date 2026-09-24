@@ -96,12 +96,10 @@ function downloadVoucher() {
       class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto min-h-screen"
       @click.self="emit('close')"
     >
-      <!-- Success Card -->
       <div
         class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
         :class="showContent ? 'animate-scale-in' : 'opacity-0 scale-95'"
       >
-        <!-- Close Button -->
         <button
           @click="emit('close')"
           class="absolute top-3 right-3 z-10 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-lg transition-colors"
@@ -109,7 +107,6 @@ function downloadVoucher() {
           <X class="w-5 h-5" />
         </button>
 
-        <!-- Success Header -->
         <div class="text-center px-6 pt-8 pb-6 border-b border-gray-100">
           <div
             class="inline-flex items-center justify-center w-16 h-16 bg-emerald-50 rounded-full mb-4 relative"
@@ -123,9 +120,7 @@ function downloadVoucher() {
             Your reservation is complete and waiting up to reception approved
           </p>
         </div>
-        <!-- Booking Details -->
         <div class="px-6 py-5 space-y-4 flex-1 overflow-y-auto">
-          <!-- Hotel & Reference -->
           <div class="grid grid-cols-2 gap-4">
             <div>
               <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Hotel</p>
@@ -154,7 +149,6 @@ function downloadVoucher() {
             </div>
           </div>
 
-          <!-- Guest Details -->
           <div class="bg-gray-50 rounded-xl p-4 space-y-3">
             <div class="flex justify-between text-sm">
               <span class="text-gray-500">Guest Name</span>
@@ -184,7 +178,6 @@ function downloadVoucher() {
             </div>
           </div>
 
-          <!-- Special Requests -->
           <div
             v-if="booking.special_requests"
             class="bg-amber-50 rounded-xl p-3 border border-amber-200"
@@ -196,7 +189,6 @@ function downloadVoucher() {
             <p class="text-sm text-amber-800">{{ booking.special_requests }}</p>
           </div>
 
-          <!-- Confirmation Message -->
           <div class="bg-emerald-50 rounded-xl p-3 border border-emerald-200">
             <div class="flex items-start gap-2.5">
               <Mail class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
@@ -210,9 +202,7 @@ function downloadVoucher() {
           </div>
         </div>
 
-        <!-- Actions -->
         <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 space-y-2.5">
-          <!-- WhatsApp Button -->
           <button
             @click="shareViaWhatsApp"
             class="w-full px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40"
@@ -224,7 +214,6 @@ function downloadVoucher() {
             Tap to open WhatsApp → Share with reception to confirm
           </p>
 
-          <!-- Secondary Actions -->
           <div class="grid grid-cols-2 gap-2">
             <button
               @click="downloadVoucher"
@@ -263,7 +252,6 @@ function downloadVoucher() {
   animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-/* Scrollbar */
 .overflow-y-auto::-webkit-scrollbar {
   width: 3px;
 }

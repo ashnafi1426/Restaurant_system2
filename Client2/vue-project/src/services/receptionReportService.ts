@@ -100,9 +100,6 @@ export interface CheckInOutReportData {
   }
 }
 
-/**
- * Get reservation report with date range filter
- */
 export async function getReservationReport(dateRange: DateRange = {}) {
   try {
     const response = await api.get<{ success: boolean; data: ReservationReportData }>(
@@ -111,14 +108,11 @@ export async function getReservationReport(dateRange: DateRange = {}) {
     )
     return response.data
   } catch (error: any) {
-    console.error(' [REPORT SERVICE] Failed to fetch reservation report:', error)
+    console.error('[ReceptionReportService] Error fetching reservation report:', error)
     throw error
   }
 }
 
-/**
- * Get occupancy report with date range filter
- */
 export async function getOccupancyReport(dateRange: DateRange = {}) {
   try {
     const response = await api.get<{ success: boolean; data: OccupancyReportData }>(
@@ -127,14 +121,11 @@ export async function getOccupancyReport(dateRange: DateRange = {}) {
     )
     return response.data
   } catch (error: any) {
-    console.error(' [REPORT SERVICE] Failed to fetch occupancy report:', error)
+    console.error('[ReceptionReportService] Error fetching occupancy report:', error)
     throw error
   }
 }
 
-/**
- * Get guest report with date range filter
- */
 export async function getGuestReport(dateRange: DateRange = {}) {
   try {
     const response = await api.get<{ success: boolean; data: GuestReportData }>(
@@ -143,14 +134,11 @@ export async function getGuestReport(dateRange: DateRange = {}) {
     )
     return response.data
   } catch (error: any) {
-    console.error(' [REPORT SERVICE] Failed to fetch guest report:', error)
+    console.error('[ReceptionReportService] Error fetching guest report:', error)
     throw error
   }
 }
 
-/**
- * Get revenue report with date range filter
- */
 export async function getRevenueReport(dateRange: DateRange = {}) {
   try {
     const response = await api.get<{ success: boolean; data: RevenueReportData }>(
@@ -159,14 +147,11 @@ export async function getRevenueReport(dateRange: DateRange = {}) {
     )
     return response.data
   } catch (error: any) {
-    console.error(' [REPORT SERVICE] Failed to fetch revenue report:', error)
+    console.error('[ReceptionReportService] Error fetching revenue report:', error)
     throw error
   }
 }
 
-/**
- * Get check-in/check-out report with date range filter
- */
 export async function getCheckInOutReport(dateRange: DateRange = {}) {
   try {
     const response = await api.get<{ success: boolean; data: CheckInOutReportData }>(
@@ -175,7 +160,7 @@ export async function getCheckInOutReport(dateRange: DateRange = {}) {
     )
     return response.data
   } catch (error: any) {
-    console.error(' [REPORT SERVICE] Failed to fetch check-in/out report:', error)
+    console.error('[ReceptionReportService] Error fetching check-in/out report:', error)
     throw error
   }
 }

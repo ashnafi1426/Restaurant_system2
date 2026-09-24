@@ -1,6 +1,5 @@
 import axios from 'axios'
 
-// Create axios instance for authenticated requests
 export const axiosInstance = axios.create({
   baseURL: 'http://127.0.0.1:8000/api',
   headers: {
@@ -9,7 +8,30 @@ export const axiosInstance = axios.create({
   timeout: 30000,
 })
 
-// Add request interceptor for authenticated requests
+const resolveHotelId = (): string | null => {
+  const currentHotelRaw = localStorage.getItem('current_hotel')
+  if (currentHotelRaw) {
+    try {
+      const currentHotel = JSON.parse(currentHotelRaw)
+      if (currentHotel?.id) return String(currentHotel.id)
+    } catch (e) {
+      console.error('[Axios] Error parsing current_hotel from storage:', e)
+    }
+  }
+  const hotelIdRaw = localStorage.getItem('hotel_id')
+  if (hotelIdRaw) return String(hotelIdRaw)
+  const userRaw = localStorage.getItem('user')
+  if (userRaw) {
+    try {
+      const user = JSON.parse(userRaw)
+      if (user?.hotel_id) return String(user.hotel_id)
+    } catch (e) {
+      console.error('[Axios] Error parsing user from storage:', e)
+    }
+  }
+  return null
+}
+
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
@@ -17,16 +39,9 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
 
-    const currentHotelRaw = localStorage.getItem('current_hotel')
-    if (currentHotelRaw) {
-      try {
-        const currentHotel = JSON.parse(currentHotelRaw)
-        if (currentHotel?.id) {
-          config.headers['X-Hotel-ID'] = currentHotel.id
-        }
-      } catch (e) {
-        // ignore JSON parse error
-      }
+    const hotelId = resolveHotelId()
+    if (hotelId) {
+      config.headers['X-Hotel-ID'] = hotelId
     }
 
     return config
@@ -36,14 +51,11 @@ axiosInstance.interceptors.request.use(
   }
 )
 
-// Add response interceptor
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Don't redirect to login for guest-reviews endpoint (guests can't login)
     if (error.response?.status === 401) {
       const url = error.config?.url || ''
-      // Only redirect for authenticated endpoints, not guest endpoints
       if (!url.includes('/guest-reviews') && !url.includes('/review-stats')) {
         localStorage.removeItem('token')
         localStorage.removeItem('user')
@@ -54,7 +66,6 @@ axiosInstance.interceptors.response.use(
   }
 )
 
-// Create axios instance for public requests (no auth needed)
 export const publicAxios = axios.create({
   baseURL: 'http://127.0.0.1:8000/api',
   headers: {
@@ -62,5 +73,18 @@ export const publicAxios = axios.create({
   },
   timeout: 30000,
 })
+
+publicAxios.interceptors.request.use(
+  (config) => {
+    const hotelId = resolveHotelId()
+    if (hotelId) {
+      config.headers['X-Hotel-ID'] = hotelId
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
 
 export default axiosInstance

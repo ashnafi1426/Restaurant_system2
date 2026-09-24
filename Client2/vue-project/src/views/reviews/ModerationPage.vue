@@ -22,12 +22,13 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import ModerationDashboard from '@/components/reviews/ModerationDashboard.vue'
 
 const authStore = useAuthStore()
 
-const isManager = authStore.isManager || authStore.isAdmin
+const isManager = computed(() => authStore.can('reviews.moderate') || authStore.hasAnyRole(['manager', 'admin']))
 </script>
 
 <style scoped>

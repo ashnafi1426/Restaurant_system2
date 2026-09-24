@@ -21,9 +21,6 @@ class UserRoleController extends Controller
         $this->authService = $authService;
     }
 
-    /**
-     * Resolve the authorized hotel ID for this request.
-     */
     protected function resolveHotelId(Request $request): ?string
     {
         $hotelId = app(TenantContext::class)->getHotelId()
@@ -45,9 +42,6 @@ class UserRoleController extends Controller
         return $hotelId;
     }
 
-    /**
-     * Get user list with assigned roles strictly for the current hotel.
-     */
     public function index(Request $request)
     {
         $hotelId = $this->resolveHotelId($request);
@@ -82,7 +76,6 @@ class UserRoleController extends Controller
             $activeRoles = $this->authService->getActiveRoles($u, $hotelId);
             $primaryRoleModel = $activeRoles->first();
 
-            // Direct permissions for this hotel
             $directQuery = \App\Models\UserPermission::where('user_id', $u->id);
             if ($hotelId) {
                 $directQuery->where(function ($q) use ($hotelId) {
@@ -91,7 +84,6 @@ class UserRoleController extends Controller
             }
             $directPermissions = $directQuery->get();
 
-            // Hotel membership info
             $membership = $u->hotelMemberships->first();
             $membershipRoleStr = $membership?->role ?: $u->role;
 
@@ -126,9 +118,6 @@ class UserRoleController extends Controller
         ]);
     }
 
-    /**
-     * Get roles for a specific user within the active hotel.
-     */
     public function getUserRoles(Request $request, User $user)
     {
         $hotelId = $this->resolveHotelId($request);
@@ -152,9 +141,6 @@ class UserRoleController extends Controller
         ]);
     }
 
-    /**
-     * Assign roles to a user strictly within the current hotel tenant.
-     */
     public function assignRoles(Request $request, User $user)
     {
         $hotelId = $this->resolveHotelId($request);
@@ -167,7 +153,6 @@ class UserRoleController extends Controller
             ], 403);
         }
 
-        // 1. Verify target user belongs to this hotel
         if ($hotelId && !$user->belongsToHotel($hotelId)) {
             return response()->json([
                 'success' => false,
@@ -181,7 +166,6 @@ class UserRoleController extends Controller
             'primary_role_id' => 'nullable|exists:roles,id',
         ]);
 
-        // 2. Enforce strict tenant boundary: All assigned roles MUST belong to this hotel!
         if ($hotelId) {
             $crossTenantRoles = Role::withoutTenant()
                 ->whereIn('id', $validated['role_ids'])
@@ -196,7 +180,6 @@ class UserRoleController extends Controller
             }
         }
 
-        // Last Admin Check within this hotel
         if ($hotelId) {
             $adminRole = Role::withoutTenant()->where('hotel_id', $hotelId)->where('slug', 'admin')->first();
             if ($adminRole && $user->belongsToHotel($hotelId)) {
@@ -218,7 +201,6 @@ class UserRoleController extends Controller
             $primaryRoleId = $validated['primary_role_id'] ?? $validated['role_ids'][0];
             $primaryRoleModel = Role::withoutTenant()->find($primaryRoleId);
 
-            // Sync user_roles for this hotel
             if ($hotelId) {
                 DB::table('user_roles')
                     ->where('hotel_id', $hotelId)
@@ -238,7 +220,6 @@ class UserRoleController extends Controller
                 }
                 DB::table('user_roles')->insert($inserts);
 
-                // Update hotel_users membership with primary role ID and slug
                 if ($primaryRoleModel) {
                     HotelUser::where('hotel_id', $hotelId)
                         ->where('user_id', $user->id)
@@ -277,9 +258,6 @@ class UserRoleController extends Controller
         }
     }
 
-    /**
-     * Remove a role from a user within the active hotel.
-     */
     public function removeRole(Request $request, User $user, Role $role)
     {
         $hotelId = $this->resolveHotelId($request);
@@ -298,7 +276,6 @@ class UserRoleController extends Controller
             ], 403);
         }
 
-        // Last Admin Check
         if ($role->slug === 'admin' && $hotelId) {
             $adminCount = HotelUser::where('hotel_id', $hotelId)->where('role', 'admin')->where('is_active', true)->count();
             if ($adminCount <= 1) {

@@ -5,25 +5,13 @@ namespace App\Http\Requests\Manager;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * RegisterWaiterRequest
- * 
- * Validates waiter registration form data from manager
- * Ensures email uniqueness and password confirmation
- */
 class RegisterWaiterRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return auth()->check() && auth()->user()->role === 'manager';
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
         return [
@@ -49,9 +37,6 @@ class RegisterWaiterRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get the error messages for the defined validation rules.
-     */
     public function messages(): array
     {
         return [
@@ -70,9 +55,6 @@ class RegisterWaiterRequest extends FormRequest
         ];
     }
 
-    /**
-     * Prepare the data for validation.
-     */
     protected function prepareForValidation(): void
     {
         $this->merge([
@@ -80,9 +62,6 @@ class RegisterWaiterRequest extends FormRequest
         ]);
     }
 
-    /**
-     * Get the data for creating waiter
-     */
     public function getWaiterData(): array
     {
         return $this->only([

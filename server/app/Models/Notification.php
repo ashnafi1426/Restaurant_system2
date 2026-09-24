@@ -47,41 +47,26 @@ class Notification extends Model
         });
     }
 
-    /**
-     * Get the user that owns this notification
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the reservation associated with this notification
-     */
     public function reservation(): BelongsTo
     {
         return $this->belongsTo(Reservation::class);
     }
 
-    /**
-     * Scope to get unread notifications
-     */
     public function scopeUnread($query)
     {
         return $query->where('read', false);
     }
 
-    /**
-     * Scope to get notifications by type
-     */
     public function scopeByType($query, $type)
     {
         return $query->where('type', $type);
     }
 
-    /**
-     * Scope to get recent notifications
-     */
     public function scopeRecent($query, $days = 7)
     {
         return $query->where('created_at', '>=', now()->subDays($days));

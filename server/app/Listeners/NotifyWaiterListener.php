@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 use Exception;
+
 class NotifyWaiterListener implements ShouldQueue
 {
     use InteractsWithQueue;
@@ -21,7 +22,6 @@ class NotifyWaiterListener implements ShouldQueue
             $delivery = $event->delivery;
             $order = $delivery->order;
             
-            // Build items list for notification message
             $itemsList = $order->orderItems
                 ->map(fn ($item) => "{$item->quantity}x {$item->menuItem->name}")
                 ->implode(', ');
@@ -38,13 +38,12 @@ class NotifyWaiterListener implements ShouldQueue
                 'assignment_type' => $event->assignmentType,
             ]);
 
-            // STEP 16: Create WaiterNotification record
             $notification = WaiterNotification::create([
                 'waiter_id' => $event->waiterId,
                 'delivery_task_id' => $event->deliveryId,
                 'order_id' => $event->orderId,
                 'type' => 'delivery_assigned',
-                'title' => "🍽️ New Delivery: Order #{$order->order_number}",
+                'title' => "New Delivery: Order #{$order->order_number}",
                 'message' => "Room {$roomNumber} — {$guestName}\nItems: {$itemsList}\n\nReady for pickup!",
                 'data' => json_encode([
                     'delivery_id' => $event->deliveryId,
@@ -79,12 +78,6 @@ class NotifyWaiterListener implements ShouldQueue
         }
     }
 
-    /**
-     * Handle DeliveryReassignedEvent
-     *
-     * @param DeliveryReassignedEvent $event
-     * @return void
-     */
     public function handleDeliveryReassigned(DeliveryReassignedEvent $event): void
     {
         try {
@@ -94,7 +87,6 @@ class NotifyWaiterListener implements ShouldQueue
                 'delivery_id' => $event->deliveryId,
             ]);
 
-            // Notify new waiter
             $newNotification = WaiterNotification::create([
                 'waiter_id' => $event->newWaiterId,
                 'delivery_id' => $event->deliveryId,
@@ -111,7 +103,6 @@ class NotifyWaiterListener implements ShouldQueue
                 'read_at' => null,
             ]);
 
-            // Notify previous waiter that delivery was removed
             if ($event->previousWaiterId) {
                 $previousNotification = WaiterNotification::create([
                     'waiter_id' => $event->previousWaiterId,
@@ -129,7 +120,6 @@ class NotifyWaiterListener implements ShouldQueue
                 ]);
             }
 
-            // Broadcast notifications
             \Illuminate\Support\Facades\Broadcast::channel("waiter.{$event->newWaiterId}")
                 ->send([
                     'type' => 'delivery_reassigned',

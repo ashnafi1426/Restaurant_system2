@@ -1,16 +1,22 @@
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 transition-colors duration-200">
+    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 transition-colors duration-200 font-sans">
       <div class="max-w-7xl mx-auto space-y-6">
         <!-- Header -->
         <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm dark:shadow-2xl">
           <div class="flex items-center gap-3">
             <div class="p-3 bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-500/30 shadow-sm">
-              <span class="material-symbols-rounded text-2xl">task_alt</span>
+              <CheckCheck class="w-6 h-6" />
             </div>
             <div>
-              <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Completed Orders</h1>
-              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">View your delivered order history, room numbers, and customer details</p>
+              <div class="flex items-center gap-2">
+                <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ languageStore.t('completed_orders', 'Completed Orders') }}</h1>
+                <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+                  <Building2 class="w-3 h-3" />
+                  {{ hotelStore.hotelName }}
+                </span>
+              </div>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('completed_orders_desc', 'View your delivered order history, room numbers, and customer details') }}</p>
             </div>
           </div>
         </div>
@@ -21,15 +27,15 @@
             <div class="inline-block relative w-12 h-12 mb-3">
               <div class="absolute inset-0 rounded-full border-4 border-emerald-500/20 border-t-emerald-600 dark:border-t-emerald-400 animate-spin"></div>
             </div>
-            <p class="text-slate-600 dark:text-slate-400 text-sm font-medium">Loading completed orders...</p>
+            <p class="text-slate-600 dark:text-slate-400 text-sm font-medium">{{ languageStore.t('loading_completed_orders', 'Loading completed orders...') }}</p>
           </div>
         </div>
 
         <!-- Empty State -->
         <div v-else-if="completed.length === 0" class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center">
-          <span class="material-symbols-rounded text-5xl block mb-2 text-slate-400 dark:text-slate-600">check_box_outline_blank</span>
-          <p class="text-slate-700 dark:text-slate-300 text-lg font-bold">No completed orders yet</p>
-          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Your completed deliveries will appear here</p>
+          <Inbox class="w-12 h-12 text-slate-400 dark:text-slate-600 mx-auto mb-2" />
+          <p class="text-slate-700 dark:text-slate-300 text-lg font-bold">{{ languageStore.t('no_completed_orders_yet', 'No completed orders yet') }}</p>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">{{ languageStore.t('completed_deliveries_appear_here', 'Your completed deliveries will appear here') }}</p>
         </div>
 
         <!-- Completed Orders Table -->
@@ -38,18 +44,18 @@
             <table class="w-full">
               <thead class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800">
                 <tr>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Order ID</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Room</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Guest</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Completed</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Delivery Time</th>
-                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Remarks</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('order_id', 'Order ID') }}</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('room', 'Room') }}</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('guest', 'Guest') }}</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('completed', 'Completed') }}</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('delivery_time', 'Delivery Time') }}</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('remarks', 'Remarks') }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
                 <tr v-for="order in paginatedCompleted" :key="order.id" class="hover:bg-slate-50 dark:hover:bg-slate-950/50 transition">
                   <td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">
-                    #{{ order.order_number || order.order_id || order.id.substring(0,8) }}
+                    #{{ order.order_number || order.order_id || String(order.id).substring(0,8) }}
                   </td>
                   <td class="px-6 py-4 text-sm">
                     <span class="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded-md text-xs font-bold">
@@ -57,19 +63,19 @@
                     </span>
                   </td>
                   <td class="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {{ order.guest_name || 'Guest' }}
+                    {{ order.guest_name || languageStore.t('guest', 'Guest') }}
                   </td>
                   <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
                     {{ formatDateTime(order.delivered_at || order.created_at) }}
                   </td>
                   <td class="px-6 py-4 text-sm">
                     <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-lg text-xs font-bold inline-flex items-center gap-1">
-                      <span class="material-symbols-rounded text-xs">timer</span>
-                      {{ formatDuration(order.delivery_time_minutes || order.delivery_time) }} min
+                      <Timer class="w-3.5 h-3.5" />
+                      {{ formatDuration(order.delivery_time_minutes || order.delivery_time) }} {{ languageStore.t('min', 'min') }}
                     </span>
                   </td>
                   <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-                    {{ order.remarks || 'None' }}
+                    {{ order.remarks || '—' }}
                   </td>
                 </tr>
               </tbody>
@@ -80,11 +86,11 @@
           <div class="bg-slate-50 dark:bg-slate-950/60 px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
               <div class="flex items-center gap-1.5">
-                <label class="font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">Per page:</label>
+                <label class="font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">{{ languageStore.t('per_page', 'Per page:') }}</label>
                 <select
                   v-model="itemsPerPage"
                   @change="currentPage = 1"
-                  class="px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs"
+                  class="px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs outline-none"
                 >
                   <option :value="5">5</option>
                   <option :value="10">10</option>
@@ -93,16 +99,16 @@
                 </select>
               </div>
               <span>
-                Showing {{ completed.length > 0 ? startIndex + 1 : 0 }} to {{ Math.min(endIndex, completed.length) }} of {{ completed.length }} entries
+                {{ languageStore.t('showing', 'Showing') }} {{ completed.length > 0 ? startIndex + 1 : 0 }} {{ languageStore.t('to', 'to') }} {{ Math.min(endIndex, completed.length) }} {{ languageStore.t('of', 'of') }} {{ completed.length }}
               </span>
             </div>
             <div class="flex gap-2 items-center">
               <button
                 @click="previousPage"
                 :disabled="currentPage === 1"
-                class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs transition"
+                class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs transition cursor-pointer"
               >
-                ← Previous
+                ← {{ languageStore.t('previous', 'Previous') }}
               </button>
               <div class="flex items-center gap-1">
                 <template v-for="(page, index) in visiblePages" :key="index">
@@ -111,7 +117,7 @@
                     v-else
                     @click="goToPage(Number(page))"
                     :class="page === currentPage ? 'bg-indigo-600 text-white shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'"
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
                   >
                     {{ page }}
                   </button>
@@ -120,9 +126,9 @@
               <button
                 @click="nextPage"
                 :disabled="currentPage === totalPages || totalPages === 0"
-                class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs transition"
+                class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-semibold shadow-xs transition cursor-pointer"
               >
-                Next →
+                {{ languageStore.t('next', 'Next') }} →
               </button>
             </div>
           </div>
@@ -133,9 +139,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import waiterService from '@/services/waiterService'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
+import { Building2, CheckCheck, Inbox, Timer } from 'lucide-vue-next'
+
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
 const loading = ref(true)
 const completed = ref<any[]>([])
@@ -169,7 +181,7 @@ const visiblePages = computed(() => {
 })
 
 const formatDateTime = (date: string) => {
-  if (!date) return 'N/A'
+  if (!date) return '—'
   try {
     const dateObj = new Date(date)
     return dateObj.toLocaleString('en-US', {
@@ -181,6 +193,7 @@ const formatDateTime = (date: string) => {
       hour12: true,
     })
   } catch (e) {
+    console.error('[CompletedOrders] Error formatting date:', e)
     return date
   }
 }
@@ -204,13 +217,10 @@ const goToPage = (page: number) => {
   currentPage.value = page
 }
 
-onMounted(async () => {
+const loadData = async () => {
   try {
     loading.value = true
-    console.log('[CompletedOrders] Loading completed orders...')
-    
     const data = await waiterService.getCompletedDeliveries(100)
-    console.log('[CompletedOrders] Completed:', data)
     completed.value = data || []
     currentPage.value = 1
   } catch (err: any) {
@@ -219,7 +229,11 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadData)
+
+watch(() => hotelStore.hotelId, loadData)
 </script>
 
 <style scoped>

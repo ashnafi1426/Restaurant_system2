@@ -25,25 +25,16 @@ class Administrator extends Model
         'hire_date' => 'date',
     ];
 
-    /**
-     * Get the user associated with this administrator
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id', 'id');
     }
 
-    /**
-     * Check if administrator is active
-     */
     public function isActive(): bool
     {
         return $this->status === 'active';
     }
 
-    /**
-     * Scope to get active administrators
-     */
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

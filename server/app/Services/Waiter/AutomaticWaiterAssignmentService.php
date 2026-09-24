@@ -39,7 +39,6 @@ class AutomaticWaiterAssignmentService
             }
 
             return DB::transaction(function () use ($order) {
-                // Determine if this is room service or walk-in (table) order
                 $isWalkIn = $order->order_type === 'walk_in' && $order->table_id;
                 
                 if ($isWalkIn) {
@@ -57,12 +56,8 @@ class AutomaticWaiterAssignmentService
         }
     }
 
-    /**
-     * Assign waiter for room service orders (hotel rooms)
-     */
     private function assignRoomServiceOrder(Order $order): array
     {
-        // STEP 2: Determine destination (room → floor)
         $floor = $this->floorResolver->resolveForRoom($order->room);
         if (!$floor) {
             $floor = $this->resolveFallbackFloor();
@@ -72,7 +67,6 @@ class AutomaticWaiterAssignmentService
             }
         }
 
-        // STEP 3: Find active shift
         $shift = $this->shiftResolver->getCurrentShift();
         if (!$shift) {
             $shift = $this->resolveFallbackShift();
@@ -82,7 +76,6 @@ class AutomaticWaiterAssignmentService
             }
         }
 
-        // STEP 4-7: Find best waiter using enhanced selection engine
         $waiter = $this->selectionEngine->selectBestWaiter($floor, $shift);
 
         if (!$waiter) {
@@ -90,10 +83,8 @@ class AutomaticWaiterAssignmentService
             return $this->waitingResponse($task, 'No available waiter');
         }
 
-        // STEP 8-14: Transaction-safe assignment
         $task = $this->workloadService->assignDelivery($order, $waiter, $floor);
 
-        // STEP 15-16: Notify waiter
         $this->notificationService->notifyAssignment($task, $waiter);
 
         Log::info(' [ASSIGNMENT SERVICE] Room service order assigned successfully', [
@@ -110,9 +101,6 @@ class AutomaticWaiterAssignmentService
         return $this->successResponse($task, 'Room service delivery successfully assigned');
     }
 
-    /**
-     * Assign waiter for walk-in orders (restaurant tables)
-     */
     private function assignWalkInOrder(Order $order): array
     {
         $table = $order->table;
@@ -122,7 +110,6 @@ class AutomaticWaiterAssignmentService
             return $this->waitingResponse($task, 'Table not found');
         }
 
-        // Find active shift
         $shift = $this->shiftResolver->getCurrentShift();
         if (!$shift) {
             $shift = $this->resolveFallbackShift();
@@ -132,7 +119,6 @@ class AutomaticWaiterAssignmentService
             }
         }
 
-        // Find waiter assigned to this table
         $waiter = $this->selectionEngine->selectWaiterForTable($table, $shift);
 
         if (!$waiter) {
@@ -140,10 +126,8 @@ class AutomaticWaiterAssignmentService
             return $this->waitingResponse($task, 'No waiter assigned to table');
         }
 
-        // Create delivery task for walk-in order
         $task = $this->workloadService->assignTableDelivery($order, $waiter, $table);
 
-        // Notify waiter
         $this->notificationService->notifyAssignment($task, $waiter);
 
         Log::info(' [ASSIGNMENT SERVICE] Walk-in order assigned successfully', [
@@ -202,13 +186,8 @@ class AutomaticWaiterAssignmentService
         ];
     }
 
-    /**
-     * Get delivery metrics for a given date or all time
-     * If no date provided or date is today, returns all deliveries
-     */
     public function getDeliveryMetrics(?\DateTime $date = null): array
     {
-        // Query all deliveries (not just today's) to show complete historical data
         $deliveries = DeliveryTask::all();
 
         $total_deliveries = $deliveries->count();

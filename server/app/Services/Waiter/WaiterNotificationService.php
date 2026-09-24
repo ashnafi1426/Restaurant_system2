@@ -17,6 +17,7 @@ class WaiterNotificationService
             'data' => $data,
         ]);
     }
+
     public function notifyOrderAssignment(User $waiter, $assignment)
     {
         return $this->send(
@@ -31,6 +32,7 @@ class WaiterNotificationService
             ]
         );
     }
+
     public function notifyOrderReady(User $waiter, $assignment)
     {
         return $this->send(
@@ -45,6 +47,7 @@ class WaiterNotificationService
             ]
         );
     }
+
     public function notifyDeliveryStarted(User $waiter, $assignment)
     {
         return $this->send(
@@ -58,6 +61,7 @@ class WaiterNotificationService
             ]
         );
     }
+
     public function notifyDeliveryCompleted(User $waiter, $assignment)
     {
         return $this->send(
@@ -72,6 +76,7 @@ class WaiterNotificationService
             ]
         );
     }
+
     public function notifyDeliveryFailed(User $waiter, $assignment, $reason = null)
     {
         return $this->send(
@@ -86,6 +91,7 @@ class WaiterNotificationService
             ]
         );
     }
+
     public function notifyAssignmentRejected(User $waiter, $assignment, $reason = null)
     {
         return $this->send(
@@ -100,6 +106,7 @@ class WaiterNotificationService
             ]
         );
     }
+
     public function notifyHighPriorityOrder(User $waiter, $assignment)
     {
         return $this->send(
@@ -114,6 +121,7 @@ class WaiterNotificationService
             ]
         );
     }
+
     public function notifyShiftReminder(User $waiter, string $shift, \DateTime $startTime)
     {
         return $this->send(
@@ -127,12 +135,13 @@ class WaiterNotificationService
             ]
         );
     }
+
     public function notifyPerformanceMilestone(User $waiter, int $deliveries, float $rating)
     {
         return $this->send(
             $waiter,
             'performance_milestone',
-            '🎉 Great Performance!',
+            'Great Performance!',
             "You've completed {$deliveries} deliveries with an excellent rating of {$rating}/5!",
             [
                 'deliveries' => $deliveries,
@@ -140,20 +149,24 @@ class WaiterNotificationService
             ]
         );
     }
+
     public function notifySystem(User $waiter, string $title, string $message, ?array $data = null)
     {
         return $this->send($waiter, 'system', $title, $message, $data);
     }
+
     public function getUnreadCount(User $user): int
     {
         return WaiterNotification::where('user_id', $user->id)
             ->where('is_read', false)
             ->count();
     }
+
     public function markAsRead(WaiterNotification $notification): bool
     {
         return $notification->markAsRead();
     }
+
     public function markAllAsRead(User $user): void
     {
         WaiterNotification::where('user_id', $user->id)
@@ -163,6 +176,7 @@ class WaiterNotificationService
                 'read_at' => now(),
             ]);
     }
+
     public function deleteOldNotifications($days = 30): void
     {
         WaiterNotification::where('created_at', '<', now()->subDays($days))

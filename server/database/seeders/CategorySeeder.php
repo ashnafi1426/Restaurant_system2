@@ -17,7 +17,7 @@ class CategorySeeder extends Seeder
             [
                 'name' => 'Breakfast',
                 'slug' => 'breakfast',
-                'icon' => '☀️',
+                'icon' => '',
                 'description' => 'Morning delicacies to start your day',
                 'display_order' => 1,
                 'is_active' => true,

@@ -21,12 +21,12 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Services\ActivationService;
 use App\Mail\HotelAdminPasswordMail;
-
+use App\Services\TenantRoleService;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Role;
 class PlatformHotelController extends Controller
 {
-    /**
-     * Platform Dashboard Statistics
-     */
     public function statistics(): JsonResponse
     {
         $totalHotels = Hotel::count();
@@ -44,8 +44,6 @@ class PlatformHotelController extends Controller
         $totalOrders = Order::withoutTenant()->count();
         $totalPayments = Payment::withoutTenant()->count();
         $totalRevenue = (float) Payment::withoutTenant()->sum('amount');
-
-        // Recent 5 hotels
         $recentHotels = Hotel::with(['users' => function ($q) {
             $q->wherePivot('role', 'admin');
         }])
@@ -63,9 +61,7 @@ class PlatformHotelController extends Controller
                 'admin' => $h->users->first() ? ($h->users->first()->first_name . ' ' . $h->users->first()->last_name) : 'Unassigned',
                 'created_at' => $h->created_at->format('Y-m-d'),
             ];
-        });
-
-        // Top 5 hotels by reservation volume
+            });
         $topHotels = Hotel::take(5)->get()->map(function ($h) {
             return [
                 'name' => $h->name,
@@ -75,7 +71,6 @@ class PlatformHotelController extends Controller
                 'revenue' => (float) Payment::withoutTenant()->where('hotel_id', $h->id)->sum('amount'),
             ];
         });
-
         return response()->json([
             'success' => true,
             'data' => [
@@ -97,10 +92,6 @@ class PlatformHotelController extends Controller
             ],
         ]);
     }
-
-    /**
-     * List all hotels with search and status filtering
-     */
     public function index(Request $request): JsonResponse
     {
         $query = Hotel::query();
@@ -114,22 +105,17 @@ class PlatformHotelController extends Controller
                   ->orWhere('email', 'like', "%{$search}%");
             });
         }
-
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }
-
         if ($request->filled('city')) {
             $query->where('city', $request->input('city'));
         }
-
         $hotels = $query->with(['users' => function ($q) {
             $q->wherePivot('role', 'admin');
         }])
         ->latest()
-        ->paginate($request->integer('per_page', 15));
-
-        // Append counts
+            ->paginate($request->integer('per_page', 15));
         $hotels->getCollection()->transform(function ($hotel) {
             $hotelData = $hotel->toArray();
             $hotelData['rooms_count'] = Room::withoutTenant()->where('hotel_id', $hotel->id)->count();
@@ -146,10 +132,6 @@ class PlatformHotelController extends Controller
             'data' => $hotels,
         ]);
     }
-
-    /**
-     * Create a new hotel + optionally onboard the initial Hotel Admin
-     */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -170,7 +152,6 @@ class PlatformHotelController extends Controller
             'admin_last_name' => 'required_with:admin_email|nullable|string|max:100',
             'admin_password' => 'nullable|string|min:8',
         ]);
-
         $hotel = Hotel::create([
             'id' => (string) Str::uuid(),
             'name' => $validated['name'],
@@ -185,8 +166,6 @@ class PlatformHotelController extends Controller
             'currency' => $validated['currency'] ?? 'ETB',
             'status' => $validated['status'] ?? Hotel::STATUS_ACTIVE,
         ]);
-
-        // Handle Hotel Admin assignment or creation
         $adminUser = null;
         $generatedPassword = null;
         if (!empty($validated['admin_user_id'])) {
@@ -211,12 +190,10 @@ class PlatformHotelController extends Controller
             }
         }
 
-        // Automatically provision independent tenant roles and permissions for this hotel
-        $tenantRoleService = app(\App\Services\TenantRoleService::class);
+        $tenantRoleService = app(TenantRoleService::class);
         $tenantRoleService->provisionRolesForHotel($hotel);
-
         if ($adminUser) {
-            $adminRole = \App\Models\Role::withoutTenant()
+            $adminRole = Role::withoutTenant()
                 ->where('hotel_id', $hotel->id)
                 ->where('slug', 'admin')
                 ->first();
@@ -232,7 +209,7 @@ class PlatformHotelController extends Controller
             ]);
 
             if ($adminRole) {
-                \Illuminate\Support\Facades\DB::table('user_roles')->updateOrInsert(
+                DB::table('user_roles')->updateOrInsert(
                     [
                         'hotel_id' => $hotel->id,
                         'user_id' => $adminUser->id,
@@ -247,11 +224,10 @@ class PlatformHotelController extends Controller
             }
         }
 
-        // Audit Log
         AuditLog::record(
             'create_hotel',
             $hotel->id,
-            auth()->id(),
+            Auth::id(),
             'hotels',
             $hotel->id,
             ['name' => $hotel->name, 'slug' => $hotel->slug, 'admin' => $adminUser?->email]
@@ -269,10 +245,6 @@ class PlatformHotelController extends Controller
             ] : null,
         ], 201);
     }
-
-    /**
-     * Get complete details of a hotel
-     */
     public function show(string $id): JsonResponse
     {
         $hotel = Hotel::findOrFail($id);
@@ -311,10 +283,6 @@ class PlatformHotelController extends Controller
             ]),
         ]);
     }
-
-    /**
-     * Update hotel information
-     */
     public function update(Request $request, string $id): JsonResponse
     {
         $hotel = Hotel::findOrFail($id);
@@ -335,18 +303,13 @@ class PlatformHotelController extends Controller
 
         $hotel->update($validated);
 
-        AuditLog::record('update_hotel', $hotel->id, auth()->id(), 'hotels', $hotel->id, $validated);
-
+        AuditLog::record('update_hotel', $hotel->id, Auth::id(), 'hotels', $hotel->id, $validated);
         return response()->json([
             'success' => true,
             'message' => 'Hotel updated successfully',
             'data' => $hotel,
         ]);
     }
-
-    /**
-     * Update status (Active, Inactive, Suspended)
-     */
     public function updateStatus(Request $request, string $id): JsonResponse
     {
         $hotel = Hotel::findOrFail($id);
@@ -361,7 +324,7 @@ class PlatformHotelController extends Controller
         AuditLog::record(
             "hotel_status_changed_to_{$validated['status']}",
             $hotel->id,
-            auth()->id(),
+            Auth::id(),
             'hotels',
             $hotel->id,
             ['old_status' => $oldStatus, 'new_status' => $validated['status']]
@@ -373,16 +336,12 @@ class PlatformHotelController extends Controller
             'data' => $hotel,
         ]);
     }
-
-    /**
-     * Archive hotel (Preserves all historical records safely)
-     */
     public function archive(string $id): JsonResponse
     {
         $hotel = Hotel::findOrFail($id);
         $hotel->update(['status' => Hotel::STATUS_ARCHIVED]);
 
-        AuditLog::record('archive_hotel', $hotel->id, auth()->id(), 'hotels', $hotel->id, [
+        AuditLog::record('archive_hotel', $hotel->id, Auth::id(), 'hotels', $hotel->id, [
             'name' => $hotel->name,
             'archived_at' => now()->toIso8601String(),
         ]);
@@ -393,10 +352,6 @@ class PlatformHotelController extends Controller
             'data' => $hotel,
         ]);
     }
-
-    /**
-     * Delete hotel permanently (requires typing exact hotel name to prevent accidental loss)
-     */
     public function destroy(Request $request, string $id): JsonResponse
     {
         $hotel = Hotel::findOrFail($id);
@@ -412,7 +367,7 @@ class PlatformHotelController extends Controller
             ], 422);
         }
 
-        AuditLog::record('delete_hotel', $hotel->id, auth()->id(), 'hotels', $hotel->id, [
+        AuditLog::record('delete_hotel', $hotel->id, Auth::id(), 'hotels', $hotel->id, [
             'name' => $hotel->name,
             'deleted_at' => now()->toIso8601String(),
         ]);
@@ -424,10 +379,6 @@ class PlatformHotelController extends Controller
             'message' => "Hotel {$hotel->name} has been deleted permanently.",
         ]);
     }
-
-    /**
-     * List all Hotel Admins across all hotels
-     */
     public function allAdmins(Request $request): JsonResponse
     {
         $query = HotelUser::with(['user', 'hotel'])
@@ -453,10 +404,6 @@ class PlatformHotelController extends Controller
             'data' => $admins,
         ]);
     }
-
-    /**
-     * List admins for a specific hotel
-     */
     public function getAdmins(string $id): JsonResponse
     {
         $hotel = Hotel::findOrFail($id);
@@ -488,14 +435,9 @@ class PlatformHotelController extends Controller
             'data' => $admins,
         ]);
     }
-
-    /**
-     * Assign or create a dedicated Hotel Admin for a specific hotel
-     */
     public function assignAdmin(Request $request, string $id): JsonResponse
     {
         $hotel = Hotel::findOrFail($id);
-
         $validated = $request->validate([
             'user_id' => 'nullable|uuid|exists:users,id',
             'email' => 'required_without:user_id|nullable|email',
@@ -533,7 +475,6 @@ class PlatformHotelController extends Controller
                 'message' => 'Unable to determine user to assign as admin.',
             ], 422);
         }
-
         $membership = HotelUser::updateOrCreate(
             ['hotel_id' => $hotel->id, 'user_id' => $user->id],
             [
@@ -546,7 +487,7 @@ class PlatformHotelController extends Controller
         AuditLog::record(
             'assign_hotel_admin',
             $hotel->id,
-            auth()->id(),
+            Auth::id(),
             'hotel_users',
             $membership->id,
             ['user_email' => $user->email, 'hotel_name' => $hotel->name]
@@ -565,10 +506,6 @@ class PlatformHotelController extends Controller
             ],
         ], 200);
     }
-
-    /**
-     * Remove a Hotel Admin from a hotel
-     */
     public function removeAdmin(string $id, string $userId): JsonResponse
     {
         $hotel = Hotel::findOrFail($id);
@@ -589,7 +526,7 @@ class PlatformHotelController extends Controller
         AuditLog::record(
             'remove_hotel_admin',
             $hotel->id,
-            auth()->id(),
+            Auth::id(),
             'hotel_users',
             $userId,
             ['hotel_name' => $hotel->name]
@@ -600,10 +537,6 @@ class PlatformHotelController extends Controller
             'message' => 'Admin privileges removed for this hotel successfully.',
         ]);
     }
-
-    /**
-     * Create a new Hotel Admin with system-generated password (immediate login + required update)
-     */
     public function createHotelAdmin(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -617,8 +550,6 @@ class PlatformHotelController extends Controller
         ]);
 
         $hotel = Hotel::findOrFail($validated['hotel_id']);
-
-        // Generate strong, readable temporary password (e.g. Adm#4819!xK)
         $temporaryPassword = 'Adm#' . rand(1000, 9999) . '!' . Str::random(3);
 
         $user = User::create([
@@ -647,7 +578,7 @@ class PlatformHotelController extends Controller
         AuditLog::record(
             'create_hotel_admin_system_generated_password',
             $hotel->id,
-            auth()->id(),
+            Auth::id(),
             'hotel_users',
             $membership->id,
             [
@@ -690,10 +621,6 @@ class PlatformHotelController extends Controller
             ],
         ], 201);
     }
-
-    /**
-     * Reset Hotel Admin password with a new system-generated temporary password and send email
-     */
     public function resetAdminPassword(Request $request, string $userId): JsonResponse
     {
         $user = User::findOrFail($userId);
@@ -711,13 +638,13 @@ class PlatformHotelController extends Controller
             Mail::to($user->email)->send(new HotelAdminPasswordMail($user, $newTempPassword, $hotel, true));
             $emailSent = true;
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning("Could not send reset credentials email to {$user->email}: " . $e->getMessage());
+            Log::warning("Could not send reset credentials email to {$user->email}: " . $e->getMessage());
         }
 
         AuditLog::record(
             'admin_password_reset_system_generated',
             null,
-            auth()->id(),
+            Auth::id(),
             'users',
             $user->id,
             ['email' => $user->email, 'email_sent' => $emailSent]
@@ -732,17 +659,11 @@ class PlatformHotelController extends Controller
         ]);
     }
 
-    /**
-     * Explicitly resend Hotel Admin credentials by email
-     */
     public function resendAdminPassword(Request $request, string $userId): JsonResponse
     {
         return $this->resetAdminPassword($request, $userId);
     }
 
-    /**
-     * Toggle active status of a hotel admin membership
-     */
     public function toggleAdminStatus(string $membershipId): JsonResponse
     {
         $membership = HotelUser::with(['user', 'hotel'])->findOrFail($membershipId);
@@ -752,7 +673,7 @@ class PlatformHotelController extends Controller
         AuditLog::record(
             'toggle_hotel_admin_status',
             $membership->hotel_id,
-            auth()->id(),
+            Auth::id(),
             'hotel_users',
             $membership->id,
             ['is_active' => $membership->is_active]
@@ -764,10 +685,6 @@ class PlatformHotelController extends Controller
             'data' => $membership,
         ]);
     }
-
-    /**
-     * Controlled Super Admin: Enter "View Hotel" Mode
-     */
     public function enterViewMode(Request $request, string $id): JsonResponse
     {
         $hotel = Hotel::findOrFail($id);
@@ -775,12 +692,12 @@ class PlatformHotelController extends Controller
         AuditLog::record(
             'platform_admin_view_hotel_mode_entered',
             $hotel->id,
-            auth()->id(),
+            Auth::id(),
             'hotels',
             $hotel->id,
             [
-                'admin_id' => auth()->id(),
-                'admin_email' => auth()->user()?->email,
+                'admin_id' => Auth::id(),
+                'admin_email' => Auth::user()?->email,
                 'hotel_name' => $hotel->name,
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
@@ -802,19 +719,15 @@ class PlatformHotelController extends Controller
             ],
         ]);
     }
-
-    /**
-     * Exit "View Hotel" Mode
-     */
     public function exitViewMode(Request $request): JsonResponse
     {
         AuditLog::record(
             'platform_admin_exit_view_mode',
             null,
-            auth()->id(),
+            Auth::id(),
             'hotels',
             null,
-            ['admin_id' => auth()->id(), 'timestamp' => now()->toIso8601String()]
+            ['admin_id' => Auth::id(), 'timestamp' => now()->toIso8601String()]
         );
 
         return response()->json([
@@ -822,10 +735,6 @@ class PlatformHotelController extends Controller
             'message' => 'Exited Super Admin View Mode.',
         ]);
     }
-
-    /**
-     * Platform-wide users list
-     */
     public function allUsers(Request $request): JsonResponse
     {
         $query = User::with('hotels');
@@ -857,10 +766,6 @@ class PlatformHotelController extends Controller
             'data' => $users,
         ]);
     }
-
-    /**
-     * Platform Audit Logs
-     */
     public function auditLogs(Request $request): JsonResponse
     {
         $query = AuditLog::with(['user', 'hotel'])->latest('created_at');
@@ -880,10 +785,6 @@ class PlatformHotelController extends Controller
             'data' => $logs,
         ]);
     }
-
-    /**
-     * Get Platform Settings
-     */
     public function getSettings(): JsonResponse
     {
         $settings = PlatformSetting::all()->pluck('value', 'key');
@@ -893,10 +794,6 @@ class PlatformHotelController extends Controller
             'data' => $settings,
         ]);
     }
-
-    /**
-     * Update Platform Settings
-     */
     public function updateSettings(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -914,7 +811,7 @@ class PlatformHotelController extends Controller
             }
         }
 
-        AuditLog::record('update_platform_settings', null, auth()->id(), 'platform_settings', null, $validated);
+        AuditLog::record('update_platform_settings', null, Auth::id(), 'platform_settings', null, $validated);
 
         return response()->json([
             'success' => true,

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useManagerRevenueStore } from '@/stores/manager/revenueStore'
+import { useLanguageStore } from '@/stores/language'
 import RevenueOverview from '@/components/manager/RevenueOverview.vue'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
 import { Wallet } from 'lucide-vue-next'
 
 const revenueStore = useManagerRevenueStore()
+const languageStore = useLanguageStore()
 
 onMounted(async () => {
   await revenueStore.loadSummary()
@@ -27,8 +29,8 @@ function formatCurrency(value: number) {
       <div class="mb-6 md:mb-8 border-b border-slate-200/60 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-lg p-4 md:p-6 transition-colors duration-300">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Finance & Revenue</h1>
-            <p class="text-sm md:text-base text-slate-600 dark:text-slate-400">Complete financial overview and analysis</p>
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">{{ languageStore.t('finance_revenue', 'Finance & Revenue') }}</h1>
+            <p class="text-sm md:text-base text-slate-600 dark:text-slate-400">{{ languageStore.t('complete_financial_overview', 'Complete financial overview and analysis') }}</p>
           </div>
           <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900 dark:to-blue-800 rounded-xl flex items-center justify-center">
             <Wallet class="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -49,7 +51,7 @@ function formatCurrency(value: number) {
               </svg>
             </div>
           </div>
-          <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm mt-4">Loading financial data...</p>
+          <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm mt-4">{{ languageStore.t('loading_financial_data', 'Loading financial data...') }}</p>
         </div>
       </div>
 
@@ -67,33 +69,33 @@ function formatCurrency(value: number) {
         <!-- Financial Summary -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">Income Statement</h2>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">{{ languageStore.t('income_statement', 'Income Statement') }}</h2>
             <div class="space-y-4">
               <div class="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700">
-                <span class="text-slate-600 dark:text-slate-400">Total Revenue</span>
+                <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('total_revenue', 'Total Revenue') }}</span>
                 <span class="font-bold text-slate-900 dark:text-slate-100">{{ formatCurrency(revenueStore.revenueSummary?.thisMonth ?? 0) }}</span>
               </div>
               <div class="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700">
-                <span class="text-slate-600 dark:text-slate-400">Operating Expenses</span>
+                <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('operating_expenses', 'Operating Expenses') }}</span>
                 <span class="font-bold text-red-600 dark:text-red-400">-{{ formatCurrency(15000) }}</span>
               </div>
               <div class="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700">
-                <span class="text-slate-600 dark:text-slate-400">Staff Costs</span>
+                <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('staff_costs', 'Staff Costs') }}</span>
                 <span class="font-bold text-red-600 dark:text-red-400">-{{ formatCurrency(8000) }}</span>
               </div>
               <div class="flex justify-between items-center text-lg">
-                <span class="font-bold text-slate-900 dark:text-slate-100">Net Profit</span>
+                <span class="font-bold text-slate-900 dark:text-slate-100">{{ languageStore.t('net_profit', 'Net Profit') }}</span>
                 <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(revenueStore.revenueSummary?.thisMonth ?? 0 - 23000) }}</span>
               </div>
             </div>
           </div>
 
           <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">Key Metrics</h2>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">{{ languageStore.t('key_metrics', 'Key Metrics') }}</h2>
             <div class="space-y-4">
               <div>
                 <div class="flex justify-between mb-2">
-                  <span class="text-slate-600 dark:text-slate-400">Profit Margin</span>
+                  <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('profit_margin', 'Profit Margin') }}</span>
                   <span class="font-bold text-slate-900 dark:text-slate-100">42%</span>
                 </div>
                 <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -102,7 +104,7 @@ function formatCurrency(value: number) {
               </div>
               <div>
                 <div class="flex justify-between mb-2">
-                  <span class="text-slate-600 dark:text-slate-400">Operating Ratio</span>
+                  <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('operating_ratio', 'Operating Ratio') }}</span>
                   <span class="font-bold text-slate-900 dark:text-slate-100">58%</span>
                 </div>
                 <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -111,7 +113,7 @@ function formatCurrency(value: number) {
               </div>
               <div>
                 <div class="flex justify-between mb-2">
-                  <span class="text-slate-600 dark:text-slate-400">Growth Rate</span>
+                  <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('growth_rate', 'Growth Rate') }}</span>
                   <span class="font-bold text-emerald-600 dark:text-emerald-400">+15%</span>
                 </div>
                 <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -124,12 +126,12 @@ function formatCurrency(value: number) {
 
         <!-- Expense Breakdown -->
         <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">Expense Breakdown</h2>
+          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">{{ languageStore.t('expense_breakdown', 'Expense Breakdown') }}</h2>
           <div class="space-y-3">
             <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
               <div class="flex items-center gap-3">
                 <div class="w-3 h-3 rounded-full bg-red-500 dark:bg-red-400"></div>
-                <span class="text-slate-900 dark:text-slate-100">Staff Salaries</span>
+                <span class="text-slate-900 dark:text-slate-100">{{ languageStore.t('staff_salaries', 'Staff Salaries') }}</span>
               </div>
               <div class="text-right">
                 <p class="font-bold text-slate-900 dark:text-slate-100">8,000 ETB</p>
@@ -139,7 +141,7 @@ function formatCurrency(value: number) {
             <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
               <div class="flex items-center gap-3">
                 <div class="w-3 h-3 rounded-full bg-blue-500 dark:bg-blue-400"></div>
-                <span class="text-slate-900 dark:text-slate-100">Utilities</span>
+                <span class="text-slate-900 dark:text-slate-100">{{ languageStore.t('utilities', 'Utilities') }}</span>
               </div>
               <div class="text-right">
                 <p class="font-bold text-slate-900 dark:text-slate-100">4,500 ETB</p>
@@ -149,7 +151,7 @@ function formatCurrency(value: number) {
             <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
               <div class="flex items-center gap-3">
                 <div class="w-3 h-3 rounded-full bg-amber-500 dark:bg-amber-400"></div>
-                <span class="text-slate-900 dark:text-slate-100">Inventory & Supplies</span>
+                <span class="text-slate-900 dark:text-slate-100">{{ languageStore.t('inventory_supplies', 'Inventory & Supplies') }}</span>
               </div>
               <div class="text-right">
                 <p class="font-bold text-slate-900 dark:text-slate-100">3,500 ETB</p>
@@ -159,7 +161,7 @@ function formatCurrency(value: number) {
             <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
               <div class="flex items-center gap-3">
                 <div class="w-3 h-3 rounded-full bg-purple-500 dark:bg-purple-400"></div>
-                <span class="text-slate-900 dark:text-slate-100">Maintenance & Repairs</span>
+                <span class="text-slate-900 dark:text-slate-100">{{ languageStore.t('maintenance_repairs', 'Maintenance & Repairs') }}</span>
               </div>
               <div class="text-right">
                 <p class="font-bold text-slate-900 dark:text-slate-100">2,000 ETB</p>

@@ -7,18 +7,11 @@ use App\Services\QRResolutionService;
 
 class QRTokenValidation extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        // Guest endpoints - no user authentication required
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
         return [
@@ -26,7 +19,6 @@ class QRTokenValidation extends FormRequest
                 'required',
                 'string',
                 function ($attribute, $value, $fail) {
-                    // Validate QR token exists and is valid
                     $resolution = QRResolutionService::resolveQRToken($value);
                     if (!$resolution['success']) {
                         $fail($resolution['message'] ?? 'The QR token is invalid or expired.');
@@ -36,9 +28,6 @@ class QRTokenValidation extends FormRequest
         ];
     }
 
-    /**
-     * Get custom messages for validation errors.
-     */
     public function messages(): array
     {
         return [
@@ -47,12 +36,8 @@ class QRTokenValidation extends FormRequest
         ];
     }
 
-    /**
-     * Prepare the data for validation.
-     */
     protected function prepareForValidation(): void
     {
-        // Support QR token from multiple sources
         $qrToken = $this->input('qr_token') 
             ?? $this->query('qr_token')
             ?? $this->json('qr_token')
@@ -63,18 +48,12 @@ class QRTokenValidation extends FormRequest
         }
     }
 
-    /**
-     * Get the QR resolution data for the validated token.
-     */
     public function getQRResolution(): array
     {
         $resolution = QRResolutionService::resolveQRToken($this->input('qr_token'));
         return $resolution['data'] ?? [];
     }
 
-    /**
-     * Get the hotel ID from the QR token.
-     */
     public function getHotelId(): ?string
     {
         return $this->getQRResolution()['hotel_id'] ?? null;

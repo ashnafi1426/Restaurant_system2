@@ -47,9 +47,6 @@ export interface TableAssignmentStats {
 }
 
 class TableAssignmentService {
-  /**
-   * Get all table assignments with filters
-   */
   async getAssignments(params?: {
     date?: string
     waiter_id?: number
@@ -64,22 +61,16 @@ class TableAssignmentService {
     return response.data
   }
 
-  /**
-   * Get today's active assignments
-   */
   async getTodayAssignments(): Promise<TableAssignment[]> {
     try {
       const response = await api.get('/manager/table-assignments/today')
       return response.data.data || []
     } catch (error: any) {
-      console.warn('Failed to fetch today assignments:', error.message)
+      console.error('[TableAssignmentService] Error fetching today assignments:', error)
       return []
     }
   }
 
-  /**
-   * Assign waiters to tables (batch)
-   */
   async assignWaitersToTables(assignments: Array<{
     waiter_id: number
     table_id: string
@@ -87,19 +78,12 @@ class TableAssignmentService {
     assignment_date: string
     priority: 'primary' | 'secondary' | 'backup'
   }>): Promise<any> {
-    console.log('[TableAssignmentService] Assigning waiters to tables:', assignments)
-    
     const response = await api.post('/manager/table-assignments', {
       assignments,
     })
-    
-    console.log('[TableAssignmentService] API Response:', response.data)
     return response.data
   }
 
-  /**
-   * Update assignment
-   */
   async updateAssignment(
     assignmentId: string,
     data: {
@@ -114,16 +98,10 @@ class TableAssignmentService {
     return response.data.data
   }
 
-  /**
-   * Delete assignment
-   */
   async deleteAssignment(assignmentId: string): Promise<void> {
     await api.delete(`/manager/table-assignments/${assignmentId}`)
   }
 
-  /**
-   * Get assignment statistics
-   */
   async getAssignmentStats(date?: string): Promise<TableAssignmentStats> {
     try {
       const response = await api.get('/manager/table-assignments/stats', {
@@ -131,10 +109,10 @@ class TableAssignmentService {
       })
       return response.data.data
     } catch (error: any) {
-      console.warn('[TableAssignmentService] Stats endpoint failed:', error.message)
+      console.error('[TableAssignmentService] Error fetching assignment stats:', error)
       return {
         total_assignments: 0,
-        total_tables: 0,
+        total_floors: 0,
         total_waiters: 0,
         primary_assignments: 0,
         secondary_assignments: 0,
@@ -144,14 +122,12 @@ class TableAssignmentService {
     }
   }
 
-  /**
-   * Get assigned waiter for a table
-   */
   async getAssignedWaiterForTable(tableId: string): Promise<TableAssignment | null> {
     try {
       const response = await api.get(`/manager/table-assignments/table/${tableId}/assigned-waiter`)
       return response.data.data
     } catch (error: any) {
+      console.error('[TableAssignmentService] Error fetching assigned waiter for table:', error)
       if (error.response?.status === 404) {
         return null
       }
@@ -159,9 +135,6 @@ class TableAssignmentService {
     }
   }
 
-  /**
-   * Get tables assigned to a waiter
-   */
   async getWaiterTables(waiterId: number, date?: string): Promise<TableAssignment[]> {
     try {
       const response = await api.get(`/manager/table-assignments/waiter/${waiterId}/tables`, {
@@ -169,7 +142,7 @@ class TableAssignmentService {
       })
       return response.data.data || []
     } catch (error: any) {
-      console.error('[TableAssignmentService] Error fetching waiter tables:', error.message)
+      console.error('[TableAssignmentService] Error fetching waiter tables:', error)
       return []
     }
   }

@@ -1,11 +1,8 @@
 <template>
   <div class="success-container min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-12 flex items-center justify-center">
-    <!-- Main Success Card -->
     <div class="max-w-2xl w-full mx-auto px-4">
       <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
-        <!-- Success Header -->
         <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-12 text-center transition-all duration-500" :class="showHeader ? 'opacity-100 scale-100' : 'opacity-0 scale-95'">
-          <!-- Success Icon -->
           <div class="flex justify-center mb-6">
             <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center animate-pulse-success">
               <svg
@@ -28,9 +25,7 @@
           </p>
         </div>
 
-        <!-- Content -->
         <div class="p-8">
-          <!-- Success Message -->
           <div class="mb-8 text-center transition-all duration-500" :class="showHeader ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
             <h2 class="text-2xl font-semibold text-slate-900 mb-3">
               Thank you for your order
@@ -40,7 +35,6 @@
             </p>
           </div>
 
-          <!-- Success Alert -->
           <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-8 transition-all duration-500" :class="showSuccess ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
             <div class="flex items-start gap-3">
               <svg
@@ -63,15 +57,12 @@
             </div>
           </div>
 
-          <!-- Order Details -->
           <div v-if="orderData" class="space-y-6 transition-all duration-500" :class="showDetails ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
-            <!-- Order Confirmation Section Header -->
             <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
               <h3 class="font-bold text-green-900 text-lg mb-2">✓ ORDER CONFIRMED</h3>
               <p class="text-green-700 text-sm">Your order is being prepared by our kitchen</p>
             </div>
 
-            <!-- Order Details -->
             <div class="border-b pb-6">
               <h3 class="font-semibold text-slate-900 mb-4 flex items-center gap-2">
                 <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -80,7 +71,6 @@
                 Order Details
               </h3>
               <div class="grid grid-cols-2 gap-4">
-                <!-- Order Reference -->
                 <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
                   <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Order Number</p>
                   <p class="text-slate-900 font-mono text-sm font-bold break-all">
@@ -88,7 +78,6 @@
                   </p>
                 </div>
 
-                <!-- Status -->
                 <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
                   <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Status</p>
                   <span class="inline-block px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-bold">
@@ -96,7 +85,6 @@
                   </span>
                 </div>
 
-                <!-- Room or Table -->
                 <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
                   <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">
                     {{ orderData?.is_walk_in ? 'Table Number' : 'Room Number' }}
@@ -106,7 +94,6 @@
                   </p>
                 </div>
 
-                <!-- Estimated Time -->
                 <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
                   <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Estimated Delivery</p>
                   <p class="text-slate-900 font-medium text-base">
@@ -116,7 +103,6 @@
               </div>
             </div>
 
-            <!-- Order Items -->
             <div class="border-b pb-6">
               <h3 class="font-semibold text-slate-900 mb-4 flex items-center gap-2">
                 <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
@@ -140,7 +126,6 @@
               </div>
             </div>
 
-            <!-- Payment Information -->
             <div class="border-b pb-6 transition-all duration-500" :class="showPayment ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
               <h3 class="font-semibold text-slate-900 mb-4 flex items-center gap-2">
                 <svg class="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
@@ -149,7 +134,6 @@
                 Payment Information
               </h3>
               <div class="grid grid-cols-1 gap-4">
-                <!-- Transaction Reference -->
                 <div class="bg-orange-50 rounded-lg p-5 border border-orange-200">
                   <p class="text-orange-600 text-xs font-semibold uppercase tracking-wide mb-2">Transaction Reference</p>
                   <p class="text-slate-900 font-mono text-sm break-all font-bold bg-white rounded px-3 py-2">
@@ -157,7 +141,6 @@
                   </p>
                 </div>
 
-                <!-- Price Breakdown -->
                 <div class="bg-slate-50 rounded-lg p-5 border border-slate-200 space-y-2">
                   <div class="flex justify-between text-sm">
                     <span class="text-slate-600">Subtotal:</span>
@@ -173,7 +156,6 @@
                   </div>
                 </div>
 
-                <!-- Amount Paid - Prominent -->
                 <div class="bg-gradient-to-r from-orange-100 to-amber-100 rounded-lg p-6 border-2 border-orange-300">
                   <p class="text-orange-600 text-xs font-semibold uppercase tracking-wider mb-3">Total Amount Paid</p>
                   <div class="flex items-baseline justify-between">
@@ -184,7 +166,6 @@
                   <p class="text-orange-700 text-sm mt-2 font-medium">✓ Payment Confirmed and Secure</p>
                 </div>
 
-                <!-- Payment Details Grid -->
                 <div class="grid grid-cols-2 gap-4">
                   <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
                     <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Payment Gateway</p>
@@ -211,7 +192,6 @@
             </div>
           </div>
 
-          <!-- What's Next -->
           <div class="mb-8 transition-all duration-500" :class="showNextSteps ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
             <h3 class="font-semibold text-slate-900 mb-4 flex items-center gap-2">
               <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
@@ -259,7 +239,6 @@
             </div>
           </div>
 
-          <!-- Info Box -->
           <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-5 border-2 border-blue-300 mb-8 transition-all duration-500" :class="showNextSteps ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
             <h4 class="font-bold text-blue-900 mb-4 flex items-center gap-2 text-lg">
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -287,7 +266,6 @@
             </ul>
           </div>
 
-          <!-- Action Buttons -->
           <div class="space-y-3 transition-all duration-500" :class="showButtons ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
             <button
               @click="downloadReceipt"
@@ -310,7 +288,7 @@
               @click="goToMenu"
               class="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
             >
-              🍽️ Order More Food
+              Order More Food
             </button>
             <button
               @click="goHome"
@@ -322,7 +300,6 @@
         </div>
       </div>
 
-      <!-- Footer -->
       <div class="mt-6 text-center text-slate-600 text-sm">
         <p>Thank you for ordering from our restaurant!</p>
       </div>
@@ -335,23 +312,14 @@ import { onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { generateAndDownloadReceipt } from '@/services/receiptService'
 
-// ============================================================================
-// Setup
-// ============================================================================
-
 const router = useRouter()
 const route = useRoute()
-
-// ============================================================================
-// State
-// ============================================================================
 
 const txRef = ref<string>('')
 const orderData = ref<any>(null)
 const roomNumber = ref<string>('')
 const isLoading = ref(false)
 
-// Reveal animation states
 const showHeader = ref(false)
 const showSuccess = ref(false)
 const showDetails = ref(false)
@@ -359,24 +327,9 @@ const showPayment = ref(false)
 const showNextSteps = ref(false)
 const showButtons = ref(false)
 
-// ============================================================================
-// Lifecycle
-// ============================================================================
-
 onMounted(async () => {
-  console.clear()
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-  console.log('🎉 [ORDER PAYMENT SUCCESS] PAGE MOUNTED AT:', new Date().toLocaleTimeString())
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-  
-  // Get tx_ref from URL first
   txRef.value = route.query.tx_ref as string
-  console.log('📋 [ORDER PAYMENT SUCCESS] TX Ref from URL:', txRef.value)
 
-  // Try to get order data from storage FIRST
-  console.log('📦 [ORDER PAYMENT SUCCESS] Reading from sessionStorage...')
-  
-  // Check for walk-in payment data first
   const walkInData = sessionStorage.getItem('walk_in_payment_data')
   const isWalkInOrder = !!walkInData
   
@@ -386,20 +339,16 @@ onMounted(async () => {
       orderData.value = {
         ...data,
         is_walk_in: true,
-        room_number: null, // Walk-in orders don't have room
+        room_number: null,
       }
-      console.log(' [WALK-IN] Got walk-in payment data from sessionStorage:', orderData.value)
       
-      // If tx_ref not in URL, get it from stored data
       if (!txRef.value && data.tx_ref) {
         txRef.value = data.tx_ref
-        console.log('📋 [WALK-IN] TX Ref from sessionStorage:', txRef.value)
       }
     } catch (error) {
-      console.error(' [WALK-IN] Failed to parse walk-in data:', error)
+      console.error('[OrderPaymentSuccess] Error parsing walk-in data:', error)
     }
   } else {
-    // Check for room service order data
     const roomServiceData = sessionStorage.getItem('order_payment_data')
     if (roomServiceData) {
       try {
@@ -409,31 +358,18 @@ onMounted(async () => {
           is_walk_in: false,
         }
         roomNumber.value = data.room_number || 'N/A'
-        console.log(' [ROOM SERVICE] Got room service payment data from sessionStorage:', orderData.value)
         
-        // If tx_ref not in URL, get it from stored data
         if (!txRef.value && data.tx_ref) {
           txRef.value = data.tx_ref
-          console.log('📋 [ROOM SERVICE] TX Ref from sessionStorage:', txRef.value)
         }
       } catch (error) {
-        console.error(' [ROOM SERVICE] Failed to parse room service data:', error)
+        console.error('[OrderPaymentSuccess] Error parsing room service data:', error)
       }
     }
   }
 
-  // ============================================================================
-  // 🔥 CRITICAL: VERIFY PAYMENT AND COMPLETE ORDER IN DATABASE
-  // ============================================================================
-  console.log('🔍 [ORDER TYPE] Is walk-in order?', isWalkInOrder)
-  
   if (txRef.value) {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    console.log('🔥 [CRITICAL] VERIFYING PAYMENT AND COMPLETING ORDER...')
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-    
     try {
-      // Step 1: Verify payment
       const verifyResponse = await fetch(
         `http://127.0.0.1:8000/api/payments/verify/${txRef.value}`,
         {
@@ -446,19 +382,13 @@ onMounted(async () => {
       )
 
       const verifyData = await verifyResponse.json()
-      console.log('📡 [VERIFY] Response received:', verifyData)
 
       if (verifyResponse.ok && verifyData.success) {
-        console.log(' [ORDER PAYMENT SUCCESS] Payment verified, now completing order...')
-
-        // Step 2: Complete order based on order type
         let completeEndpoint = ''
         if (isWalkInOrder) {
           completeEndpoint = `http://127.0.0.1:8000/api/walk-in-payments/complete/${txRef.value}`
-          console.log('🍽️ [WALK-IN] Using walk-in order completion endpoint')
         } else {
           completeEndpoint = `http://127.0.0.1:8000/api/order-payments/complete/${txRef.value}`
-          console.log('🏨 [ROOM SERVICE] Using room service order completion endpoint')
         }
 
         const completeResponse = await fetch(completeEndpoint, {
@@ -469,27 +399,21 @@ onMounted(async () => {
         })
 
         const completeData = await completeResponse.json()
-        console.log('📡 [ORDER COMPLETE] Response received:', completeData)
 
         if (completeResponse.ok && completeData.success) {
-          console.log(' [ORDER CREATED] Order created in database and sent to chef!')
-          console.log('📦 [ORDER CREATED] Payment data:', completeData.payment)
-          
           if (completeData.order) {
-            // Update order data based on order type
             if (isWalkInOrder) {
               const walkInPaymentData = JSON.parse(walkInData)
               orderData.value = {
                 ...orderData.value,
                 order_number: completeData.order.order_number,
                 table_number: walkInPaymentData.table_number,
-                room_number: null, // Walk-in orders don't have room
+                room_number: null,
                 estimated_time: completeData.order.estimated_time || 30,
                 items: walkInPaymentData.items || orderData.value?.items || [],
                 calculation: walkInPaymentData.calculation || orderData.value?.calculation,
                 is_walk_in: true,
               }
-              console.log('🍽️ [WALK-IN] Order data updated for table:', walkInPaymentData.table_number)
             } else {
               orderData.value = {
                 ...orderData.value,
@@ -504,29 +428,15 @@ onMounted(async () => {
                 calculation: orderData.value?.calculation,
                 is_walk_in: false,
               }
-              console.log('🏨 [ROOM SERVICE] Order data updated for room:', orderData.value.room_number)
             }
           }
-        } else {
-          console.error(' [ORDER COMPLETE FAILED] Order completion failed:', completeData.message)
-          console.warn(' Order may not have been created in database')
         }
-      } else {
-        console.error(' [VERIFY FAILED] Payment verification failed:', verifyData.message)
-        console.warn(' Order may not have been created in database')
       }
     } catch (error) {
-      console.error(' [VERIFY ERROR] Failed to verify payment:', error)
-      console.warn(' Order may not have been created in database')
+      console.error('[OrderPaymentSuccess] Error verifying payment:', error)
     }
-  } else {
-    console.error(' [CRITICAL ERROR] No transaction reference found!')
-    console.error(' Cannot verify payment or create order')
   }
 
-  // Show sections with staggered animation
-  console.log('🎬 [ORDER PAYMENT SUCCESS] Starting animations...')
-  
   setTimeout(() => {
     showHeader.value = true
   }, 200)
@@ -549,28 +459,17 @@ onMounted(async () => {
 
   setTimeout(() => {
     showButtons.value = true
-    console.log(' [ORDER PAYMENT SUCCESS] All sections visible')
   }, 1200)
 
-  // Fetch order details in background (after verification completes)
   if (txRef.value) {
     setTimeout(() => {
       fetchOrderDetails()
-    }, 2000) // Increased delay to allow verification to complete
+    }, 2000)
   }
 })
 
-// ============================================================================
-// Methods
-// ============================================================================
-
-/**
- * Fetch order details from backend
- */
 async function fetchOrderDetails(): Promise<void> {
   try {
-    console.log('📡 [ORDER PAYMENT SUCCESS] Fetching order details...')
-    
     const response = await fetch(
       `http://127.0.0.1:8000/api/order-payments/${txRef.value}`,
       {
@@ -582,8 +481,6 @@ async function fetchOrderDetails(): Promise<void> {
 
     if (response.ok) {
       const data = await response.json()
-      console.log(' [ORDER PAYMENT SUCCESS] Order details fetched:', data)
-      
       if (data.success && data.order) {
         orderData.value = {
           ...orderData.value,
@@ -594,62 +491,35 @@ async function fetchOrderDetails(): Promise<void> {
           calculation: data.payment?.metadata?.calculation,
         }
       }
-    } else {
-      console.warn('[ORDER PAYMENT SUCCESS] Failed to fetch order details')
     }
   } catch (error) {
-    console.error('[ORDER PAYMENT SUCCESS] Error fetching order details:', error)
+    console.error('[OrderPaymentSuccess] Error fetching order details:', error)
   }
 }
 
-/**
- * Format price for display
- */
 function formatPrice(price: number): string {
   return `$${price.toFixed(2)}`
 }
 
-/**
- * Download order receipt (PDF)
- */
 async function downloadReceipt(): Promise<void> {
-  console.log('📥 [ORDER RECEIPT] Receipt download requested')
-  console.log('📦 [ORDER RECEIPT] Current order data:', orderData.value)
-  console.log('📋 [ORDER RECEIPT] Current tx_ref:', txRef.value)
-  
   if (!orderData.value) {
-    console.error(' [ORDER RECEIPT] No order data available')
     alert('Error: Order details not found. Please refresh the page and try again.')
     return
   }
 
-  // tx_ref is preferred but not required - we can use order_number as fallback
   const referenceId = txRef.value || orderData.value.tx_ref || 'ORDER-' + Date.now()
-  console.log('📋 [ORDER RECEIPT] Using reference ID:', referenceId)
 
   try {
-    console.log('💾 [ORDER RECEIPT] Starting receipt generation...')
-    console.log(' [ORDER RECEIPT] Data being sent to receipt service:', {
-      order_reference: orderData.value.order_number || 'ORD-' + referenceId.substring(0, 8).toUpperCase(),
-      room_number: orderData.value.room_number || roomNumber.value,
-      items: orderData.value.items,
-      calculation: orderData.value.calculation,
-      tx_ref: referenceId,
-    })
-    
     isLoading.value = true
     
-    // Build receipt data for order (different from booking receipt)
     await generateAndDownloadReceipt({
-      // Use order_number as booking_reference for consistency with receiptService
       booking_reference: orderData.value.order_number || 'ORD-' + referenceId.substring(0, 8).toUpperCase(),
       first_name: 'Room',
       last_name: orderData.value.room_number || roomNumber.value || 'Guest',
       email: orderData.value.email || 'guest@hotel.com',
       phone: orderData.value.phone || 'N/A',
-      // For orders, we use special fields
-      check_in_date: new Date().toISOString().split('T')[0], // Order date
-      check_out_date: new Date().toISOString().split('T')[0], // Same as order date
+      check_in_date: new Date().toISOString().split('T')[0],
+      check_out_date: new Date().toISOString().split('T')[0],
       room_number: orderData.value.room_number || roomNumber.value || 'TBD',
       number_of_guests: 1,
       total_amount: orderData.value.calculation?.total || 0,
@@ -659,21 +529,14 @@ async function downloadReceipt(): Promise<void> {
       payment_date: new Date().toISOString(),
       special_requests: `Order Items:\n${orderData.value.items?.map((item: any) => `• ${item.name} x${item.quantity} - ${formatPrice(item.total)}`).join('\n') || 'N/A'}`,
     })
-    
-    console.log(' [ORDER RECEIPT] Receipt generated and downloaded successfully!')
   } catch (error: any) {
-    console.error(' [ORDER RECEIPT] Error downloading receipt:', error)
-    console.error(' [ORDER RECEIPT] Error message:', error.message)
-    console.error(' [ORDER RECEIPT] Error stack:', error.stack)
+    console.error('[OrderPaymentSuccess] Failed to generate receipt:', error)
     alert('Failed to generate receipt: ' + error.message)
   } finally {
     isLoading.value = false
   }
 }
 
-/**
- * Go to menu page
- */
 function goToMenu(): void {
   const qrToken = orderData.value?.qr_token
   if (qrToken) {
@@ -683,12 +546,9 @@ function goToMenu(): void {
   }
 }
 
-/**
- * Go to home page
- */
 function goHome(): void {
   sessionStorage.removeItem('order_payment_data')
-  sessionStorage.removeItem('walk_in_payment_data') // Clear walk-in data
+  sessionStorage.removeItem('walk_in_payment_data')
   router.push('/')
 }
 </script>

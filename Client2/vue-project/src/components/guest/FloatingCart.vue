@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useLanguageStore } from '@/stores/language'
 
 interface CartItem {
   id?: string
@@ -21,13 +22,14 @@ const props = withDefaults(defineProps<Props>(), {
   total: 0,
 })
 
+const languageStore = useLanguageStore()
+
 const emit = defineEmits<{
   (e: 'open-cart'): void
   (e: 'open'): void
 }>()
 
 const totalItems = computed(() => {
-  // Use count if provided, otherwise calculate from items
   if (props.count > 0) {
     return props.count
   }
@@ -55,7 +57,6 @@ const isVisible = computed(() => {
 })
 
 const openCart = () => {
-  // Emit both events for compatibility
   emit('open-cart')
   emit('open')
 }
@@ -72,15 +73,9 @@ const openCart = () => {
   >
     <div v-if="isVisible" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-lg">
       <div class="rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 shadow-2xl overflow-hidden">
-        <!-- Button -->
-
         <button @click="openCart" class="w-full px-6 py-5 text-white">
           <div class="flex items-center justify-between">
-            <!-- Left -->
-
             <div class="flex items-center gap-4">
-              <!-- Cart -->
-
               <div class="relative">
                 <div class="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
                   <svg
@@ -99,8 +94,6 @@ const openCart = () => {
                   </svg>
                 </div>
 
-                <!-- Badge -->
-
                 <div
                   class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center"
                 >
@@ -108,38 +101,27 @@ const openCart = () => {
                 </div>
               </div>
 
-              <!-- Info -->
-
               <div class="text-left">
                 <h3 class="text-lg font-bold">
                   {{ totalItems }}
-
-                  {{ totalItems === 1 ? 'Item' : 'Items' }}
+                  {{ totalItems === 1 ? languageStore.t('item', 'Item') : languageStore.t('items', 'Items') }}
                 </h3>
 
-                <p class="text-sm text-teal-100">Ready for checkout</p>
+                <p class="text-sm text-teal-100">{{ languageStore.t('ready_for_checkout', 'Ready for checkout') }}</p>
               </div>
             </div>
 
-            <!-- Right -->
-
             <div class="text-right">
-              <p class="text-sm text-teal-100">Total</p>
+              <p class="text-sm text-teal-100">{{ languageStore.t('total', 'Total') }}</p>
 
               <h2 class="text-2xl font-bold">
                 {{ formattedTotal }}
-
                 ETB
               </h2>
             </div>
           </div>
 
-          <!-- Continue in Part 8.2 -->
-          <!-- Bottom Section -->
-
           <div class="mt-5 flex items-center justify-between border-t border-white/20 pt-4">
-            <!-- Room Service -->
-
             <div class="flex items-center gap-2 text-sm text-teal-100">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -156,13 +138,11 @@ const openCart = () => {
                 />
               </svg>
 
-              <span> Room Service Available </span>
+              <span>{{ languageStore.t('room_service', 'Room Service') }}</span>
             </div>
 
-            <!-- View Cart -->
-
             <div class="flex items-center gap-2 font-semibold">
-              <span> View Cart </span>
+              <span>{{ languageStore.t('view_cart', 'View Cart') }}</span>
 
               <svg
                 xmlns="http://www.w3.org/2000/svg"

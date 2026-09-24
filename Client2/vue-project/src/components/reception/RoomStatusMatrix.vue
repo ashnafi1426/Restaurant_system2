@@ -69,7 +69,6 @@ const getRoomBadgeClass = (status: string) => {
 
 <template>
   <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
-    <!-- Header -->
     <div class="flex items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800 flex-wrap">
       <div class="flex items-center gap-2.5">
         <div class="w-8 h-8 rounded-xl bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-sm">
@@ -81,7 +80,6 @@ const getRoomBadgeClass = (status: string) => {
         </div>
       </div>
 
-      <!-- Quick Filter Pills -->
       <div class="flex items-center gap-1.5 flex-wrap">
         <button
           @click="activeFilter = 'all'"
@@ -119,7 +117,6 @@ const getRoomBadgeClass = (status: string) => {
       </div>
     </div>
 
-    <!-- Room Grid -->
     <div
       v-if="filteredRooms.length > 0"
       class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-3 my-4"
@@ -147,7 +144,6 @@ const getRoomBadgeClass = (status: string) => {
       </div>
     </div>
 
-    <!-- Empty State -->
     <div v-else class="text-center py-8">
       <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">No rooms match filter: {{ activeFilter }}</p>
     </div>

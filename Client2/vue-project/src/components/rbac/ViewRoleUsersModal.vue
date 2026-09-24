@@ -34,7 +34,6 @@ const roleUsers = computed(() => {
   const roleId = props.role.id
 
   return props.users.filter(user => {
-    // Check if user has role in their roles array or primary role
     const matchesRoleId = user.roles && user.roles.some(r => r.id === roleId)
     const matchesSlug = (user.primary_role_slug || '').toLowerCase() === roleSlug ||
       (user.legacy_role || '').toLowerCase() === roleSlug
@@ -57,13 +56,10 @@ const filteredUsers = computed(() => {
 <template>
   <Teleport to="body">
     <div v-if="show" class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-hidden">
-      <!-- Backdrop -->
       <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity" @click="emit('close')"></div>
 
-      <!-- Modal Window -->
       <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in duration-150">
       
-      <!-- Modal Header -->
       <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs">
         <div class="flex items-center gap-3.5">
           <div class="p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 shadow-xs">
@@ -87,9 +83,7 @@ const filteredUsers = computed(() => {
         </button>
       </div>
 
-      <!-- Modal Body -->
       <div class="flex-1 overflow-y-auto p-6 space-y-4">
-        <!-- Search & Info Bar -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div class="relative flex-1">
             <Search class="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
@@ -106,13 +100,11 @@ const filteredUsers = computed(() => {
           </div>
         </div>
 
-        <!-- Loading State -->
         <div v-if="loading" class="py-12 text-center">
           <Loader2 class="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-2" />
           <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Fetching assigned user accounts...</p>
         </div>
 
-        <!-- Empty State -->
         <div v-else-if="filteredUsers.length === 0" class="py-12 text-center bg-slate-50/50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800">
           <UserX class="w-10 h-10 text-slate-400 mx-auto mb-2 opacity-50" />
           <p class="text-sm font-bold text-slate-700 dark:text-slate-300">
@@ -123,7 +115,6 @@ const filteredUsers = computed(() => {
           </p>
         </div>
 
-        <!-- Users List -->
         <div v-else class="space-y-2.5">
           <div
             v-for="u in filteredUsers"
@@ -170,7 +161,6 @@ const filteredUsers = computed(() => {
         </div>
       </div>
 
-      <!-- Modal Footer -->
       <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs">
         <button
           @click="emit('navigate-user-roles')"

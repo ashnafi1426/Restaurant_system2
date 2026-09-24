@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import DashboardLayout from '../../../Layouts/DashboardLayout.vue'
 import { rbacService } from '../../../services/rbacService'
 import { useHotelStore } from '../../../stores/hotelStore'
+import { useAuthStore } from '@/stores/auth'
 import type { RbacUserSummary, Role } from '../../../types/rbacTypes'
 import {
   Users,
@@ -23,17 +24,37 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
-  MoreVertical
+  MoreVertical,
+  Loader2,
+  Minimize2,
+  Maximize2,
+  RotateCcw,
+  X
 } from 'lucide-vue-next'
 
 const userSummaries = ref<RbacUserSummary[]>([])
 const roles = ref<Role[]>([])
 const loading = ref(true)
+const isFilterOpen = ref(false)
+const isFullscreen = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 const searchFilter = ref('')
 const roleFilter = ref('all')
 const openActionMenuId = ref<number | null>(null)
+
+const toggleFilter = () => {
+  isFilterOpen.value = !isFilterOpen.value
+}
+
+const toggleFullscreen = () => {
+  isFullscreen.value = !isFullscreen.value
+}
+
+const resetFilters = () => {
+  searchFilter.value = ''
+  roleFilter.value = 'all'
+}
 
 // Pagination state
 const currentPage = ref(1)
@@ -74,6 +95,7 @@ const fetchData = async () => {
     userSummaries.value = usersData
     roles.value = rolesData
   } catch (err: any) {
+    console.error('[UserRoleAssignment] Fetch data error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to load user access data.'
   } finally {
     loading.value = false
@@ -206,6 +228,7 @@ const handleSaveUserRoles = async () => {
     await fetchData()
     setTimeout(() => { successMessage.value = '' }, 3500)
   } catch (err: any) {
+    console.error('[UserRoleAssignment] Save roles error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to assign user roles.'
   } finally {
     loading.value = false
@@ -227,6 +250,7 @@ const openAccessModal = async (user: RbacUserSummary) => {
     // Initialize selected direct permission IDs
     selectedDirectPermissionIds.value = data.direct_permissions.map((dp: any) => dp.permission_id)
   } catch (err: any) {
+    console.error('[UserRoleAssignment] Open access modal error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to load user access details.'
     showAccessModal.value = false
   } finally {
@@ -357,9 +381,11 @@ const handleSaveAccessPermissions = async () => {
     showAccessModal.value = false
     const authStore = useAuthStore()
     await authStore.fetchCurrentUser()
+    window.dispatchEvent(new CustomEvent('permissions-updated'))
     await fetchData()
     setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
+    console.error('[UserRoleAssignment] Save permissions error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to save direct permissions.'
   } finally {
     accessLoading.value = false
@@ -409,34 +435,108 @@ const handleSaveAccessPermissions = async () => {
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Filters Header -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
-        <div class="relative w-full sm:w-80">
-          <Search class="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
-          <input
-            v-model="searchFilter"
-            type="text"
-            placeholder="Search employee by name, email, or role..."
-            class="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-medium"
-          />
+      <!-- Top Bar Toolbar -->
+      <div
+        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+      >
+        <!-- Left: Search & Filter Toggle -->
+        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
+          <!-- Search Input -->
+          <div class="relative flex-1">
+            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <input
+              v-model="searchFilter"
+              type="text"
+              placeholder="Search staff by name, email, phone, role..."
+              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none font-medium"
+            />
+          </div>
+
+          <!-- Filter Toggle Button -->
+          <button
+            type="button"
+            @click="toggleFilter"
+            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            :class="[
+              isFilterOpen
+                ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+            ]"
+          >
+            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
+            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+          </button>
         </div>
 
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-          <Filter class="w-4 h-4 text-slate-400" />
-          <select
-            v-model="roleFilter"
-            class="px-3 py-2 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-bold"
+        <!-- Right: Action Buttons -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <!-- Refresh Button -->
+          <button
+            type="button"
+            @click="fetchData"
+            :disabled="loading"
+            title="Refresh"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
           >
-            <option value="all">All Primary Roles</option>
-            <option value="admin">Admin</option>
-            <option value="manager">Manager</option>
-            <option value="receptionist">Receptionist</option>
-            <option value="waiter">Waiter</option>
-            <option value="chef">Chef</option>
-            <option value="cashier">Cashier</option>
-          </select>
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+          </button>
+
+          <!-- Fullscreen Toggle -->
+          <button
+            type="button"
+            @click="toggleFullscreen"
+            title="Toggle Fullscreen"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+          >
+            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+          </button>
         </div>
       </div>
+
+      <!-- Expandable Filter Panel -->
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="transform -translate-y-2 opacity-0 scale-98"
+        enter-to-class="transform translate-y-0 opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="transform translate-y-0 opacity-100 scale-100"
+        leave-to-class="transform -translate-y-2 opacity-0 scale-98"
+      >
+        <div
+          v-if="isFilterOpen"
+          class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
+        >
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+            <!-- Role Filter -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Staff Role
+              </label>
+              <select
+                v-model="roleFilter"
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
+              >
+                <option value="all">All Roles</option>
+                <option v-for="r in roles" :key="r.id" :value="r.slug || r.name">
+                  {{ r.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Reset Filters -->
+            <div class="flex items-end">
+              <button
+                type="button"
+                @click="resetFilters"
+                class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer h-[38px]"
+              >
+                <RotateCcw class="w-3.5 h-3.5" />
+                <span>Reset Filters</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
 
       <!-- Staff Table -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
@@ -452,78 +552,94 @@ const handleSaveAccessPermissions = async () => {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-              <tr v-for="user in paginatedUsers" :key="user.id" class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
-                <!-- Staff Member -->
-                <td class="px-3 py-2.5 whitespace-nowrap">
-                  <div class="flex items-center gap-2 max-w-[180px]">
-                    <div class="w-6 h-6 rounded-full bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20 font-black text-[10px] flex items-center justify-center flex-shrink-0">
-                      {{ (user.full_name?.[0] || 'S').toUpperCase() }}
+              <!-- Loading Spinner State -->
+              <tr v-if="loading">
+                <td colspan="5" class="px-6 py-20 text-center">
+                  <div class="flex flex-col items-center justify-center gap-3">
+                    <Loader2 class="w-8 h-8 text-amber-600 dark:text-amber-400 animate-spin" />
+                    <div class="space-y-0.5">
+                      <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200">Loading Staff Roles...</p>
+                      <p class="text-[11px] text-slate-500 dark:text-slate-400">Fetching permissions and access configurations</p>
                     </div>
-                    <div class="min-w-0 flex-1">
-                      <div class="font-extrabold text-slate-900 dark:text-white text-xs truncate">
-                        {{ user.full_name }}
-                      </div>
-                      <div class="text-[9px] text-slate-500 dark:text-slate-400 truncate">
-                        {{ user.email }}
-                      </div>
-                    </div>
-                  </div>
-                </td>
-
-                <!-- Primary Role Badge -->
-                <td class="px-3 py-2.5 whitespace-nowrap">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 uppercase tracking-wider">
-                    <Users class="w-3 h-3 text-amber-500" />
-                    {{ user.primary_role_name || user.legacy_role || 'Staff' }}
-                  </span>
-                </td>
-
-                <!-- Direct Permissions Badge -->
-                <td class="px-3 py-2.5 whitespace-nowrap">
-                  <div v-if="user.direct_permissions_count && user.direct_permissions_count > 0" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-300 font-extrabold text-[10px]">
-                    <Sparkles class="w-3 h-3 text-blue-500" />
-                    <span>+{{ user.direct_permissions_count }} direct</span>
-                  </div>
-                  <span v-else class="text-[10px] text-slate-400 font-medium">Standard role</span>
-                </td>
-
-                <!-- Effective Permissions Count -->
-                <td class="px-3 py-2.5 text-center whitespace-nowrap font-bold text-emerald-600 dark:text-emerald-400">
-                  <span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-extrabold">
-                    {{ user.effective_permissions_count }} permissions
-                  </span>
-                </td>
-
-                <!-- Actions -->
-                <td class="px-3 py-2.5 text-right whitespace-nowrap pr-4">
-                  <div class="flex items-center justify-end gap-1.5">
-                    <button
-                      @click="openAccessModal(user)"
-                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shadow-sm transition cursor-pointer"
-                      title="Manage Direct Permissions"
-                    >
-                      <Key class="w-3 h-3" />
-                      <span>Manage Access</span>
-                    </button>
-
-                    <button
-                      @click="openAssignModal(user)"
-                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-[11px] transition cursor-pointer border border-slate-200 dark:border-slate-700"
-                      title="Change Primary/Secondary Role"
-                    >
-                      <Edit2 class="w-3 h-3" />
-                      <span>Roles</span>
-                    </button>
                   </div>
                 </td>
               </tr>
 
-              <!-- Empty State -->
-              <tr v-if="filteredUsers.length === 0">
-                <td colspan="5" class="p-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  No staff members match your search query or role filter.
-                </td>
-              </tr>
+              <!-- Data Rows -->
+              <template v-else>
+                <tr v-for="user in paginatedUsers" :key="user.id" class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                  <!-- Staff Member -->
+                  <td class="px-3 py-2.5 whitespace-nowrap">
+                    <div class="flex items-center gap-2 max-w-[180px]">
+                      <div class="w-6 h-6 rounded-full bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20 font-black text-[10px] flex items-center justify-center flex-shrink-0">
+                        {{ (user.full_name?.[0] || 'S').toUpperCase() }}
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="font-extrabold text-slate-900 dark:text-white text-xs truncate">
+                          {{ user.full_name }}
+                        </div>
+                        <div class="text-[9px] text-slate-500 dark:text-slate-400 truncate">
+                          {{ user.email }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Primary Role Badge -->
+                  <td class="px-3 py-2.5 whitespace-nowrap">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 uppercase tracking-wider">
+                      <Users class="w-3 h-3 text-amber-500" />
+                      {{ user.primary_role_name || user.legacy_role || 'Staff' }}
+                    </span>
+                  </td>
+
+                  <!-- Direct Permissions Badge -->
+                  <td class="px-3 py-2.5 whitespace-nowrap">
+                    <div v-if="user.direct_permissions_count && user.direct_permissions_count > 0" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-300 font-extrabold text-[10px]">
+                      <Sparkles class="w-3 h-3 text-blue-500" />
+                      <span>+{{ user.direct_permissions_count }} direct</span>
+                    </div>
+                    <span v-else class="text-[10px] text-slate-400 font-medium">Standard role</span>
+                  </td>
+
+                  <!-- Effective Permissions Count -->
+                  <td class="px-3 py-2.5 text-center whitespace-nowrap font-bold text-emerald-600 dark:text-emerald-400">
+                    <span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-extrabold">
+                      {{ user.effective_permissions_count }} permissions
+                    </span>
+                  </td>
+
+                  <!-- Actions -->
+                  <td class="px-3 py-2.5 text-right whitespace-nowrap pr-4">
+                    <div class="flex items-center justify-end gap-1.5">
+                      <button
+                        @click="openAccessModal(user)"
+                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shadow-sm transition cursor-pointer"
+                        title="Manage Direct Permissions"
+                      >
+                        <Key class="w-3 h-3" />
+                        <span>Manage Access</span>
+                      </button>
+
+                      <button
+                        @click="openAssignModal(user)"
+                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-[11px] transition cursor-pointer border border-slate-200 dark:border-slate-700"
+                        title="Change Primary/Secondary Role"
+                      >
+                        <Edit2 class="w-3 h-3" />
+                        <span>Roles</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Empty State -->
+                <tr v-if="filteredUsers.length === 0">
+                  <td colspan="5" class="p-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                    No staff members match your search query or role filter.
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </table>
         </div>

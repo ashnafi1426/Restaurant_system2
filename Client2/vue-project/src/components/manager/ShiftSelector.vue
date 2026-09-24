@@ -58,7 +58,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
 })
 
-const emit = defineEmits<{
+defineEmits<{
   'update:modelValue': [value: string | number]
 }>()
 
@@ -68,9 +68,7 @@ const shifts = ref<Shift[]>([])
 
 const selectedShift = computed({
   get: () => props.modelValue,
-  set: (value) => {
-    // Value updates through emit
-  },
+  set: () => {},
 })
 
 const selectedShiftDetails = computed(() => {
@@ -85,15 +83,14 @@ async function loadShifts() {
   loading.value = true
   error.value = ''
   try {
-    // Mock data
     shifts.value = [
       { id: 1, name: 'Morning', start_time: '06:00 AM', end_time: '02:00 PM', status: 'active' },
       { id: 2, name: 'Afternoon', start_time: '02:00 PM', end_time: '10:00 PM', status: 'active' },
       { id: 3, name: 'Night', start_time: '10:00 PM', end_time: '06:00 AM', status: 'active' },
     ]
-  } catch (err) {
+  } catch (err: any) {
+    console.error('[ShiftSelector] Error loading shifts:', err)
     error.value = 'Failed to load shifts'
-    console.error('Error loading shifts:', err)
   } finally {
     loading.value = false
   }

@@ -1,17 +1,12 @@
-// ================================================
-// MANAGER MODULE TYPES
-// Hotel Management System
-// ================================================
-
 export type ReservationStatus = 'pending' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled'
 
-export type OrderStatus = 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+export type OrderStatus = 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivered' | 'completed' | 'cancelled'
 
 export type RoomStatus = 'available' | 'occupied' | 'reserved' | 'cleaning' | 'maintenance'
 
 export type StaffStatus = 'active' | 'off_duty' | 'leave'
 
-export type WaiterStatus = 'active' | 'break' | 'inactive'
+export type WaiterStatus = 'active' | 'break' | 'inactive' | 'available' | 'offline' | 'busy'
 
 export type DeliveryStatus = 'waiting' | 'assigned' | 'delivering' | 'completed'
 
@@ -20,37 +15,30 @@ export type HousekeepingStatus = 'pending' | 'in_progress' | 'completed'
 export type LaundryStatus = 'pending' | 'in_progress' | 'completed'
 
 export interface DashboardStatistics {
-  // Reception Monitoring (5 Key Metrics)
   totalReservations: number
   todayCheckIns: number
   todayCheckOuts: number
   availableRooms: number
   occupiedRooms: number
 
-  // Room Statistics
   totalRooms: number
   reservedRooms: number
   maintenanceRooms: number
 
-  // Guest Statistics
   totalGuests: number
   checkedInGuests: number
   guestCheckouts: number
 
-  // Order Statistics
   pendingOrders: number
   preparingOrders: number
   completedOrders: number
 
-  // Operational Statistics
   pendingLaundry: number
   pendingHousekeeping: number
 
-  // Staff Statistics
   activeStaff: number
   pendingTasks: number
 
-  // Revenue
   todayRevenue: number
   monthlyRevenue: number
 }
@@ -100,6 +88,8 @@ export interface OrderSummary {
   status: OrderStatus
   estimatedTime?: number
   orderedAt?: string
+  orderNumber?: string
+  itemCount?: number
 }
 
 export interface RoomServiceDelivery {

@@ -11,15 +11,12 @@
         :key="floor.id"
         class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
       >
-        <!-- Floor Header -->
         <div class="mb-4 pb-3 border-b">
           <h4 class="font-semibold text-gray-900">{{ floor.name }}</h4>
           <p class="text-xs text-gray-500">Floor {{ floor.floor_number }}</p>
         </div>
 
-        <!-- Assignments -->
         <div class="space-y-2">
-          <!-- Primary Assignment -->
           <div class="rounded bg-blue-50 p-2">
             <p class="text-xs font-medium text-gray-600 mb-1">Primary</p>
             <div v-if="getAssignment(floor.id, 'primary')" class="flex items-center justify-between">
@@ -31,7 +28,6 @@
             <p v-else class="text-sm text-gray-500 italic">Unassigned</p>
           </div>
 
-          <!-- Secondary Assignment -->
           <div class="rounded bg-yellow-50 p-2">
             <p class="text-xs font-medium text-gray-600 mb-1">Secondary</p>
             <div v-if="getAssignment(floor.id, 'secondary')" class="flex items-center justify-between">
@@ -43,7 +39,6 @@
             <p v-else class="text-sm text-gray-500 italic">Unassigned</p>
           </div>
 
-          <!-- Backup Assignment -->
           <div class="rounded bg-red-50 p-2">
             <p class="text-xs font-medium text-gray-600 mb-1">Backup</p>
             <div v-if="getAssignment(floor.id, 'backup')" class="flex items-center justify-between">
@@ -56,7 +51,6 @@
           </div>
         </div>
 
-        <!-- Actions -->
         <div class="mt-4 flex gap-2">
           <button
             @click="$emit('edit', floor.id)"
@@ -74,7 +68,6 @@
       </div>
     </div>
 
-    <!-- Summary Stats -->
     <div v-if="assignments.length > 0" class="mt-6 grid gap-4 md:grid-cols-4">
       <div class="rounded-lg bg-gradient-to-br from-green-50 to-green-100 p-4 border border-green-200">
         <p class="text-sm text-gray-600">Total Assignments</p>

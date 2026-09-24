@@ -12,25 +12,13 @@ use Throwable;
 
 class DeliveryWorkloadService
 {
-    /**
-     * Resolve the UUID of the first administrator/manager user.
-     * Used as the 'assigned_by' actor for automatic system assignments.
-     */
     private function resolveSystemAssignedBy(): ?string
     {
         return User::whereIn('role', ['admin', 'administrator', 'manager'])
             ->orderBy('created_at', 'asc')
             ->value('id');
     }
-    /**
-     * Safely create the DeliveryTask and increment waiter capacity.
-     * Assumes it's being called within a database transaction.
-     * 
-     * IMPORTANT: Automatic assignments are created with status='accepted'
-     * This means they immediately appear in waiter's "Ready for Pickup" page
-     * The system has already verified the waiter is available and best fit
-     * No need for waiter to explicitly accept automatic system assignments
-     */
+
     public function assignDelivery(Order $order, Waiter $waiter, ?HotelFloor $floor): DeliveryTask
     {
         try {
@@ -47,7 +35,6 @@ class DeliveryWorkloadService
                 'accepted_at'     => now(),
             ]);
 
-            // Atomically increment orders and update last_assigned_at
             $waiter->incrementOrders();
             $waiter->update(['last_assigned_at' => now()]);
 
@@ -71,10 +58,6 @@ class DeliveryWorkloadService
         }
     }
 
-    /**
-     * Assign delivery for walk-in table orders
-     * Same as assignDelivery but includes table_id
-     */
     public function assignTableDelivery(Order $order, Waiter $waiter, $table): DeliveryTask
     {
         try {
@@ -90,7 +73,6 @@ class DeliveryWorkloadService
                 'accepted_at'     => now(),
             ]);
 
-            // Atomically increment orders and update last_assigned_at
             $waiter->incrementOrders();
             $waiter->update(['last_assigned_at' => now()]);
 
@@ -118,9 +100,6 @@ class DeliveryWorkloadService
         }
     }
 
-    /**
-     * Create a pending delivery when no waiter is available.
-     */
     public function createWaitingDelivery(Order $order, ?HotelFloor $floor, string $reason): DeliveryTask
     {
         try {

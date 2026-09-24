@@ -15,9 +15,6 @@ class NewUserCreated extends Mailable
     public string $temporaryPassword;
     public string $loginUrl;
 
-    /**
-     * Create a new message instance.
-     */
     public function __construct(User $user, string $temporaryPassword)
     {
         $this->user = $user;
@@ -25,9 +22,6 @@ class NewUserCreated extends Mailable
         $this->loginUrl = config('app.frontend_url') . '/login';
     }
 
-    /**
-     * Build the message.
-     */
     public function build()
     {
         return $this->subject('Your Account Has Been Created - ' . config('app.name'))

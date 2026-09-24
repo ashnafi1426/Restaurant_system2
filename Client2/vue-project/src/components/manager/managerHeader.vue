@@ -1,23 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-
 import { Bell, CalendarDays, Building2, CheckCircle2 } from 'lucide-vue-next'
-
-/*
-|--------------------------------------------------------------------------
-| State
-|--------------------------------------------------------------------------
-*/
 
 const currentTime = ref(new Date())
 
 let timer: number
-
-/*
-|--------------------------------------------------------------------------
-| Update Time
-|--------------------------------------------------------------------------
-*/
 
 const updateTime = () => {
   currentTime.value = new Date()
@@ -30,12 +17,6 @@ onMounted(() => {
 onUnmounted(() => {
   clearInterval(timer)
 })
-
-/*
-|--------------------------------------------------------------------------
-| Computed
-|--------------------------------------------------------------------------
-*/
 
 const formattedDate = computed(() => {
   return currentTime.value.toLocaleDateString('en-US', {
@@ -57,8 +38,6 @@ const formattedTime = computed(() => {
 <template>
   <section class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-      <!-- LEFT -->
-
       <div class="flex items-start gap-5">
         <div
           class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg"
@@ -68,18 +47,14 @@ const formattedTime = computed(() => {
 
         <div>
           <h1 class="text-2xl font-bold text-slate-900">Good Morning, Manager</h1>
-
           <p class="mt-1 text-slate-500">Royal Horizon Hotel Management</p>
 
           <div class="flex items-center gap-2 mt-3 text-sm text-slate-600">
             <CalendarDays class="w-4 h-4" />
-
             <span>
               {{ formattedDate }}
             </span>
-
             <span> • </span>
-
             <span>
               {{ formattedTime }}
             </span>
@@ -87,11 +62,7 @@ const formattedTime = computed(() => {
         </div>
       </div>
 
-      <!-- RIGHT -->
-
       <div class="flex items-center gap-4">
-        <!-- Hotel Status -->
-
         <div
           class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-emerald-50 border border-emerald-200"
         >
@@ -101,18 +72,14 @@ const formattedTime = computed(() => {
 
           <div>
             <p class="text-xs text-emerald-700 font-medium">Hotel Status</p>
-
             <p class="font-bold text-emerald-800">Operational</p>
           </div>
         </div>
-
-        <!-- Notification -->
 
         <button
           class="relative w-12 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition"
         >
           <Bell class="w-5 h-5 text-slate-700" />
-
           <span
             class="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full border-2 border-white"
           >

@@ -11,8 +11,21 @@ export interface MenuItem {
   image_url?: string
   price: number
   formatted_price?: string
+  base_price?: number
+  tax_amount?: number
+  total_price?: number
+  formatted_total_price?: string
   category: string
   is_available: boolean
+  tax_rate_id?: string | null
+  tax_included?: boolean
+  tax_rate?: {
+    id: string
+    name: string
+    code: string
+    rate: number
+    type: string
+  } | null
   dietary_tags?: string[]
   status?: string
   created_at?: string
@@ -32,12 +45,11 @@ export interface MenuStatistics {
 
 export interface MenuPagination {
   current_page: number
-
   last_page: number
-
   per_page: number
-
   total: number
+  from?: number
+  to?: number
 }
 
 export interface MenuPaginatedResponse {

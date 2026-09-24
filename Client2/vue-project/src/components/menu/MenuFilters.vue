@@ -15,7 +15,7 @@
         :value="search"
         @input="$emit('update:search', ($event.target as HTMLInputElement).value)"
         type="text"
-        placeholder="Search dish..."
+        :placeholder="languageStore.t('search_dish_placeholder', 'Search dish...')"
         class="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 transition-colors"
       />
     </div>
@@ -32,7 +32,7 @@
         @change="$emit('update:category', ($event.target as HTMLSelectElement).value)"
         class="flex-1 px-2 sm:px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm bg-white text-slate-600 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 transition-colors cursor-pointer"
       >
-        <option value="">All Categories</option>
+        <option value="">{{ languageStore.t('all_categories', 'All Categories') }}</option>
         <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
       </select>
     </div>
@@ -49,17 +49,17 @@
         @change="$emit('update:status', ($event.target as HTMLSelectElement).value)"
         class="flex-1 px-2 sm:px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm bg-white text-slate-600 focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 transition-colors cursor-pointer"
       >
-        <option value="">All Status</option>
-        <option value="available">Available</option>
-        <option value="unavailable">Out of Stock</option>
+        <option value="">{{ languageStore.t('all_status', 'All Status') }}</option>
+        <option value="available">{{ languageStore.t('available', 'Available') }}</option>
+        <option value="unavailable">{{ languageStore.t('out_of_stock', 'Out of Stock') }}</option>
       </select>
     </div>
 
     <!-- Refresh Button -->
     <button
       @click="$emit('refresh')"
-      class="px-2 sm:px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition-colors min-h-10 w-10 sm:w-auto flex items-center justify-center"
-      title="Refresh filters"
+      class="px-2 sm:px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition-colors min-h-10 w-10 sm:w-auto flex items-center justify-center cursor-pointer"
+      :title="languageStore.t('refresh_filters', 'Refresh')"
     >
       <v-icon size="16" sm:size="18">mdi-refresh</v-icon>
     </button>
@@ -68,8 +68,8 @@
     <button
       v-if="search || category || status"
       @click="$emit('clear')"
-      class="px-2 sm:px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition-colors min-h-10 w-10 sm:w-auto flex items-center justify-center"
-      title="Clear all filters"
+      class="px-2 sm:px-3 py-2 sm:py-2.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition-colors min-h-10 w-10 sm:w-auto flex items-center justify-center cursor-pointer"
+      :title="languageStore.t('clear_all_filters', 'Clear all filters')"
     >
       <v-icon size="16" sm:size="18">mdi-close-circle</v-icon>
     </button>
@@ -77,6 +77,10 @@
 </template>
 
 <script setup lang="ts">
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
+
 defineProps<{
   search: string
   category: string

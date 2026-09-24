@@ -71,6 +71,7 @@ const fetchPermissions = async () => {
     const res = await rbacService.getPermissions()
     permissions.value = res.data || []
   } catch (err: any) {
+    console.error('[Permissions] Fetch error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to load permissions catalog.'
   } finally {
     loading.value = false
@@ -421,6 +422,7 @@ const handleDeletePermission = async (perm: Permission) => {
     await fetchPermissions()
     setTimeout(() => { successMessage.value = '' }, 3500)
   } catch (err: any) {
+    console.error('[Permissions] Delete error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to delete permission.'
   } finally {
     loading.value = false

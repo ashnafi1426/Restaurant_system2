@@ -13,7 +13,6 @@ import type {
 } from '@/types/waiter'
 
 export const useWaiterStore = defineStore('waiter', () => {
-  // State with proper initialization
   const dashboard = ref<WaiterDashboard | null>({
     today_stats: {
       total_assignments: 0,
@@ -45,22 +44,17 @@ export const useWaiterStore = defineStore('waiter', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
-  // Computed
   const hasPendingAssignments = computed(() => quickStats.value.pending > 0)
   const hasActiveDeliveries = computed(() => quickStats.value.active > 0)
 
-  // Actions
   const fetchDashboard = async () => {
     isLoading.value = true
     error.value = null
     try {
-      console.log(' [STORE] fetchDashboard called')
       dashboard.value = await waiterService.getDashboard()
-      console.log(' [STORE] Dashboard received:', dashboard.value)
     } catch (err: any) {
+      console.error('[WaiterStore] Error fetching dashboard:', err)
       error.value = err.message || 'Failed to fetch dashboard'
-      console.error(' [STORE] Dashboard fetch error:', err)
-      // Set default data to prevent blank screens
       dashboard.value = {
         today_stats: {
           total_assignments: 0,
@@ -84,32 +78,21 @@ export const useWaiterStore = defineStore('waiter', () => {
 
   const fetchQuickStats = async () => {
     try {
-      console.log(' [STORE] fetchQuickStats called')
-      console.log('📋 [STORE] Current user from auth:', {
-        id: useAuthStore().user?.id,
-        email: useAuthStore().user?.email,
-        role: useAuthStore().user?.role,
-      })
-
       quickStats.value = await waiterService.getQuickStats()
-      console.log(' [STORE] Quick stats received:', quickStats.value)
     } catch (err: any) {
-      console.error(' [STORE] Quick stats fetch error:', err)
+      console.error('[WaiterStore] Error fetching quick stats:', err)
     }
   }
 
   const fetchAssignments = async (params: any = {}) => {
-    console.log(' [STORE] fetchAssignments called with params:', params)
     isLoading.value = true
     error.value = null
     try {
       const result = await waiterService.getAssignments(params)
-      console.log(' [STORE] Assignments received:', result)
       assignments.value = result.data
-      console.log(' [STORE] Total assignments in store:', assignments.value.length)
     } catch (err: any) {
+      console.error('[WaiterStore] Error fetching assignments:', err)
       error.value = err.message || 'Failed to fetch assignments'
-      console.error(' [STORE] Assignments fetch error:', err)
     } finally {
       isLoading.value = false
     }
@@ -119,7 +102,7 @@ export const useWaiterStore = defineStore('waiter', () => {
     try {
       assignments.value = await waiterService.getPendingAssignments()
     } catch (err: any) {
-      console.error('Pending assignments fetch error:', err)
+      console.error('[WaiterStore] Error fetching pending assignments:', err)
     }
   }
 
@@ -127,19 +110,17 @@ export const useWaiterStore = defineStore('waiter', () => {
     try {
       assignments.value = await waiterService.getActiveAssignments()
     } catch (err: any) {
-      console.error('Active assignments fetch error:', err)
+      console.error('[WaiterStore] Error fetching active assignments:', err)
     }
   }
 
   const fetchReadyForPickup = async () => {
-    console.log(' [STORE] fetchReadyForPickup called')
     isLoading.value = true
     error.value = null
     try {
       assignments.value = await waiterService.getReadyForPickup()
-      console.log(' [STORE] Ready for pickup received:', assignments.value.length, 'items')
     } catch (err: any) {
-      console.error(' [STORE] Ready for pickup fetch error:', err)
+      console.error('[WaiterStore] Error fetching ready orders:', err)
       error.value = err.message || 'Failed to fetch ready orders'
       assignments.value = []
     } finally {
@@ -148,14 +129,12 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const fetchPendingPickupOrders = async () => {
-    console.log(' [STORE] fetchPendingPickupOrders called')
     isLoading.value = true
     error.value = null
     try {
       assignments.value = await waiterService.getPendingPickupOrders()
-      console.log(' [STORE] Pending pickup orders received:', assignments.value.length, 'items')
     } catch (err: any) {
-      console.error(' [STORE] Pending pickup orders fetch error:', err)
+      console.error('[WaiterStore] Error fetching pending pickup orders:', err)
       error.value = err.message || 'Failed to fetch pending pickup orders'
       assignments.value = []
     } finally {
@@ -163,25 +142,15 @@ export const useWaiterStore = defineStore('waiter', () => {
     }
   }
 
-  // Merged method for ReadyPickup page that loads both ready and pending
   const fetchKitchenOrders = async () => {
-    console.log(' [STORE] fetchKitchenOrders called (merged ready + pending)')
     isLoading.value = true
     error.value = null
     try {
-      console.log('📋 [STORE] Fetching ready orders...')
       const readyOrders = await waiterService.getReadyForPickup()
-      console.log(' [STORE] Ready orders received:', readyOrders.length, 'items')
-
-      console.log('📋 [STORE] Fetching pending orders...')
       const pendingOrders = await waiterService.getPendingPickupOrders()
-      console.log(' [STORE] Pending orders received:', pendingOrders.length, 'items')
-
-      // Merge results into assignments array
       assignments.value = [...readyOrders, ...pendingOrders]
-      console.log(' [STORE] Total kitchen orders:', assignments.value.length)
     } catch (err: any) {
-      console.error(' [STORE] Kitchen orders fetch error:', err)
+      console.error('[WaiterStore] Error fetching kitchen orders:', err)
       error.value = err.message || 'Failed to fetch kitchen orders'
       assignments.value = []
     } finally {
@@ -190,14 +159,12 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const fetchOnDelivery = async () => {
-    console.log(' [STORE] fetchOnDelivery called')
     isLoading.value = true
     error.value = null
     try {
       assignments.value = await waiterService.getOnDelivery()
-      console.log(' [STORE] On delivery assignments received:', assignments.value.length, 'items')
     } catch (err: any) {
-      console.error(' [STORE] On delivery fetch error:', err)
+      console.error('[WaiterStore] Error fetching on-delivery orders:', err)
       error.value = err.message || 'Failed to fetch on-delivery orders'
       assignments.value = []
     } finally {
@@ -206,14 +173,12 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const fetchCompletedDeliveries = async () => {
-    console.log(' [STORE] fetchCompletedDeliveries called')
     isLoading.value = true
     error.value = null
     try {
       assignments.value = await waiterService.getCompletedDeliveries()
-      console.log(' [STORE] Completed deliveries received:', assignments.value.length, 'items')
     } catch (err: any) {
-      console.error(' [STORE] Completed deliveries fetch error:', err)
+      console.error('[WaiterStore] Error fetching completed deliveries:', err)
       error.value = err.message || 'Failed to fetch completed deliveries'
       assignments.value = []
     } finally {
@@ -222,14 +187,12 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const fetchFailedDeliveries = async () => {
-    console.log(' [STORE] fetchFailedDeliveries called')
     isLoading.value = true
     error.value = null
     try {
       assignments.value = await waiterService.getFailedDeliveries()
-      console.log(' [STORE] Failed deliveries received:', assignments.value.length, 'items')
     } catch (err: any) {
-      console.error(' [STORE] Failed deliveries fetch error:', err)
+      console.error('[WaiterStore] Error fetching failed deliveries:', err)
       error.value = err.message || 'Failed to fetch failed deliveries'
       assignments.value = []
     } finally {
@@ -241,7 +204,7 @@ export const useWaiterStore = defineStore('waiter', () => {
     try {
       profile.value = await waiterService.getProfile()
     } catch (err: any) {
-      console.error('Profile fetch error:', err)
+      console.error('[WaiterStore] Error fetching profile:', err)
     }
   }
 
@@ -249,20 +212,18 @@ export const useWaiterStore = defineStore('waiter', () => {
     try {
       performance.value = await waiterService.getPerformance()
     } catch (err: any) {
-      console.error('Performance fetch error:', err)
+      console.error('[WaiterStore] Error fetching performance:', err)
     }
   }
 
   const fetchHistory = async (params: any = {}) => {
-    console.log(' [STORE] fetchHistory called with params:', params)
     isLoading.value = true
     error.value = null
     try {
       const result = await waiterService.getHistory(params)
       deliveryHistory.value = result.data
-      console.log(' [STORE] Delivery history received:', deliveryHistory.value.length, 'items')
     } catch (err: any) {
-      console.error(' [STORE] History fetch error:', err)
+      console.error('[WaiterStore] Error fetching history:', err)
       error.value = err.message || 'Failed to fetch delivery history'
       deliveryHistory.value = []
     } finally {
@@ -271,7 +232,6 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const acceptAssignment = async (id: string) => {
-    // Validate assignment exists and is in pending status
     const assignment = assignments.value.find(a => a.id === id)
     if (!assignment) {
       error.value = 'Assignment not found'
@@ -289,8 +249,8 @@ export const useWaiterStore = defineStore('waiter', () => {
       await Promise.all([fetchDashboard(), fetchAssignments()])
       return true
     } catch (err: any) {
+      console.error('[WaiterStore] Error accepting assignment:', err)
       error.value = err.message || 'Failed to accept assignment'
-      console.error('Accept assignment error:', err)
       return false
     } finally {
       isLoading.value = false
@@ -298,7 +258,6 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const rejectAssignment = async (id: string, reason?: string) => {
-    // Validate assignment exists and is in pending status
     const assignment = assignments.value.find(a => a.id === id)
     if (!assignment) {
       error.value = 'Assignment not found'
@@ -316,8 +275,8 @@ export const useWaiterStore = defineStore('waiter', () => {
       await Promise.all([fetchDashboard(), fetchAssignments()])
       return true
     } catch (err: any) {
+      console.error('[WaiterStore] Error rejecting assignment:', err)
       error.value = err.message || 'Failed to reject assignment'
-      console.error('Reject assignment error:', err)
       return false
     } finally {
       isLoading.value = false
@@ -332,8 +291,8 @@ export const useWaiterStore = defineStore('waiter', () => {
       await fetchDashboard()
       return true
     } catch (err: any) {
+      console.error('[WaiterStore] Error picking up order:', err)
       error.value = err.message || 'Failed to pickup order'
-      console.error('Pickup order error:', err)
       return false
     } finally {
       isLoading.value = false
@@ -348,8 +307,8 @@ export const useWaiterStore = defineStore('waiter', () => {
       await fetchDashboard()
       return true
     } catch (err: any) {
+      console.error('[WaiterStore] Error starting delivery:', err)
       error.value = err.message || 'Failed to start delivery'
-      console.error('Start delivery error:', err)
       return false
     } finally {
       isLoading.value = false
@@ -364,8 +323,8 @@ export const useWaiterStore = defineStore('waiter', () => {
       await fetchDashboard()
       return true
     } catch (err: any) {
+      console.error('[WaiterStore] Error delivering order:', err)
       error.value = err.message || 'Failed to deliver order'
-      console.error('Deliver order error:', err)
       return false
     } finally {
       isLoading.value = false
@@ -380,8 +339,8 @@ export const useWaiterStore = defineStore('waiter', () => {
       await fetchDashboard()
       return true
     } catch (err: any) {
+      console.error('[WaiterStore] Error failing delivery:', err)
       error.value = err.message || 'Failed to mark delivery as failed'
-      console.error('Fail delivery error:', err)
       return false
     } finally {
       isLoading.value = false
@@ -395,8 +354,8 @@ export const useWaiterStore = defineStore('waiter', () => {
       profile.value = await waiterService.updateProfile(data)
       return true
     } catch (err: any) {
+      console.error('[WaiterStore] Error updating profile:', err)
       error.value = err.message || 'Failed to update profile'
-      console.error('Update profile error:', err)
       return false
     } finally {
       isLoading.value = false
@@ -413,7 +372,7 @@ export const useWaiterStore = defineStore('waiter', () => {
       link.click()
       URL.revokeObjectURL(url)
     } catch (err: any) {
-      console.error('Export history error:', err)
+      console.error('[WaiterStore] Error exporting history:', err)
     }
   }
 
@@ -427,7 +386,6 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   return {
-    // State
     dashboard,
     assignments,
     currentAssignment,
@@ -438,11 +396,9 @@ export const useWaiterStore = defineStore('waiter', () => {
     isLoading,
     error,
 
-    // Computed
     hasPendingAssignments,
     hasActiveDeliveries,
 
-    // Actions
     fetchDashboard,
     fetchQuickStats,
     fetchAssignments,

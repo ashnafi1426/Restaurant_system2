@@ -1,8 +1,11 @@
 export type RoomStatus = 'available' | 'occupied' | 'reserved' | 'maintenance'
 export interface Room {
   id: string
+  hotel_id?: string | number
   room_number: string
   room_type_id: number
+  capacity?: number
+  price_per_night?: number | string
   room_type?: {
     id?: string
     name: string

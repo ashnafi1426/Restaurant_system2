@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { reactive, watch, ref, onMounted } from 'vue'
 import { rbacService } from '../../services/rbacService'
+import { useLanguageStore } from '@/stores/language'
 import type { Role } from '../../types/rbacTypes'
 
 interface UserFormProps {
@@ -25,6 +26,7 @@ const props = withDefaults(defineProps<UserFormProps>(), {
 })
 
 const emit = defineEmits(['submit'])
+const languageStore = useLanguageStore()
 
 const availableRoles = ref<Role[]>([])
 
@@ -34,8 +36,8 @@ onMounted(async () => {
     if (Array.isArray(data) && data.length > 0) {
       availableRoles.value = data
     }
-  } catch (e) {
-    console.warn('[UserForm] Could not fetch dynamic roles:', e)
+  } catch (error) {
+    console.error('[UserForm] Failed to load roles:', error)
   }
 })
 
@@ -58,7 +60,6 @@ const populateForm = (data: any) => {
   form.is_active = data.is_active ?? true
 }
 
-// Watch for changes in initial data (for edit mode)
 watch(
   () => props.initialData,
   (newData) => {
@@ -78,17 +79,16 @@ const getFieldError = (fieldName: string): string | null => {
 
 <template>
   <form @submit.prevent="saveUser" class="space-y-4 sm:space-y-5 md:space-y-6">
-    <!-- First and Last Name -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
       <div>
         <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900">
-          First Name <span class="text-red-500">*</span>
+          {{ languageStore.t('first_name', 'First Name') }} <span class="text-red-500">*</span>
         </label>
         <input
           v-model="form.first_name"
           type="text"
           required
-          placeholder="Enter first name"
+          :placeholder="languageStore.t('first_name', 'Enter first name')"
           :class="[
             'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
             getFieldError('first_name') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
@@ -105,13 +105,13 @@ const getFieldError = (fieldName: string): string | null => {
 
       <div>
         <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900">
-          Last Name <span class="text-red-500">*</span>
+          {{ languageStore.t('last_name', 'Last Name') }} <span class="text-red-500">*</span>
         </label>
         <input
           v-model="form.last_name"
           type="text"
           required
-          placeholder="Enter last name"
+          :placeholder="languageStore.t('last_name', 'Enter last name')"
           :class="[
             'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
             getFieldError('last_name') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
@@ -127,16 +127,15 @@ const getFieldError = (fieldName: string): string | null => {
       </div>
     </div>
 
-    <!-- Email -->
     <div>
       <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900">
-        Email <span class="text-red-500">*</span>
+        {{ languageStore.t('email', 'Email') }} <span class="text-red-500">*</span>
       </label>
       <input
         v-model="form.email"
         type="email"
         required
-        placeholder="Enter email address"
+        :placeholder="languageStore.t('email', 'Enter email address')"
         :class="[
           'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
           getFieldError('email') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
@@ -148,15 +147,14 @@ const getFieldError = (fieldName: string): string | null => {
       </p>
     </div>
 
-    <!-- Phone -->
     <div>
       <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900">
-        Phone <span class="text-slate-400 text-xs">(Optional)</span>
+        {{ languageStore.t('phone', 'Phone') }} <span class="text-slate-400 text-xs">({{ languageStore.t('optional', 'Optional') }})</span>
       </label>
       <input
         v-model="form.phone"
         type="tel"
-        placeholder="Enter phone number"
+        placeholder="+251 XXX XXX XXX"
         :class="[
           'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
           getFieldError('phone') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
@@ -168,14 +166,9 @@ const getFieldError = (fieldName: string): string | null => {
       </p>
     </div>
 
-    
-
-
-
-    <!-- Role -->
     <div>
       <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900">
-        Role <span class="text-red-500">*</span>
+        {{ languageStore.t('role', 'Role') }} <span class="text-red-500">*</span>
       </label>
       <select
         v-model="form.role"
@@ -186,7 +179,7 @@ const getFieldError = (fieldName: string): string | null => {
         ]"
         :disabled="loading"
       >
-        <option value="">-- Select Role --</option>
+        <option value="">-- {{ languageStore.t('select_role', 'Select Role') }} --</option>
         <template v-if="availableRoles.length > 0">
           <option v-for="r in availableRoles" :key="r.id" :value="r.slug || r.name.toLowerCase()">
             {{ r.name }}
@@ -206,7 +199,6 @@ const getFieldError = (fieldName: string): string | null => {
       </p>
     </div>
 
-    <!-- Active Status Checkbox -->
     <div
       class="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-lg"
     >
@@ -222,27 +214,26 @@ const getFieldError = (fieldName: string): string | null => {
           for="active-checkbox"
           class="text-xs sm:text-sm font-semibold text-slate-900 cursor-pointer"
         >
-          Active User
+          {{ languageStore.t('active_user', 'Active User') }}
         </label>
-        <p class="text-xs text-slate-500 mt-0.5">Inactive users cannot log in to the system</p>
+        <p class="text-xs text-slate-500 mt-0.5">{{ languageStore.t('inactive_user_hint', 'Inactive users cannot log in to the system') }}</p>
       </div>
     </div>
 
-    <!-- Submit Button -->
     <button
       type="submit"
       :disabled="loading"
       :class="[
-        'w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium transition-colors duration-200 text-xs sm:text-sm',
+        'w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium transition-colors duration-200 text-xs sm:text-sm cursor-pointer',
         loading
           ? 'bg-slate-300 cursor-not-allowed text-slate-600'
           : 'bg-blue-600 hover:bg-blue-700 text-white',
       ]"
     >
       <span v-if="loading" class="inline-flex items-center gap-2">
-        <span class="animate-spin">⌛</span> Saving...
+        <span class="animate-spin">⌛</span> {{ languageStore.t('saving', 'Saving...') }}
       </span>
-      <span v-else>💾 Save User</span>
+      <span v-else>💾 {{ languageStore.t('save_user', 'Save User') }}</span>
     </button>
   </form>
 </template>

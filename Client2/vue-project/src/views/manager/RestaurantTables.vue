@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRestaurantTableStore } from '@/stores/restaurantTableStore'
+import { useLanguageStore } from '@/stores/language'
 import { storeToRefs } from 'pinia'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import RestaurantTableFormModal from '@/components/manager/RestaurantTableFormModal.vue'
@@ -29,6 +30,7 @@ import {
 } from 'lucide-vue-next'
 
 const tableStore = useRestaurantTableStore()
+const languageStore = useLanguageStore()
 const { tables, statistics, pagination, loading } = storeToRefs(tableStore)
 
 const isFilterOpen = ref(false)
@@ -144,7 +146,8 @@ const regenerateQRCode = async (tableId: string) => {
       const updatedTable = await tableStore.fetchTableById(tableId)
       selectedTable.value = updatedTable
       alert('QR code regenerated successfully!')
-    } catch {
+    } catch (err: any) {
+      console.error('[RestaurantTables] Error regenerating QR code:', err)
       alert('Failed to regenerate QR code')
     }
   }
@@ -167,7 +170,8 @@ const handleDelete = async () => {
     closeDeleteModal()
     tableStore.fetchTables()
     tableStore.fetchStatistics()
-  } catch {
+  } catch (err: any) {
+    console.error('[RestaurantTables] Error deleting table:', err)
     alert('Failed to delete table')
   }
 }
@@ -211,18 +215,14 @@ onMounted(() => {
             <UtensilsCrossed class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Restaurant Tables</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage dining tables, seating capacity, QR codes, and occupancy status.</p>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+              {{ languageStore.t('restaurant_tables', 'Restaurant Tables') }}
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{ languageStore.t('manage_dining_tables_desc', 'Manage dining tables, seating capacity, QR codes, and occupancy status.') }}
+            </p>
           </div>
         </div>
-
-        <button
-          @click="openCreateModal"
-          class="bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-blue-600/20 transition cursor-pointer flex items-center justify-center gap-2"
-        >
-          <Plus class="w-4 h-4" />
-          <span>Create Table</span>
-        </button>
       </div>
 
       <!-- Statistics Cards Grid -->
@@ -230,7 +230,9 @@ onMounted(() => {
         <!-- Total -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('total', 'Total') }}
+            </p>
             <h2 class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ statistics.total }}</h2>
           </div>
           <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
@@ -241,7 +243,9 @@ onMounted(() => {
         <!-- Available -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Available</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('Available', 'Available') }}
+            </p>
             <h2 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ statistics.available }}</h2>
           </div>
           <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -252,7 +256,9 @@ onMounted(() => {
         <!-- Occupied -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Occupied</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('Occupied', 'Occupied') }}
+            </p>
             <h2 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ statistics.occupied }}</h2>
           </div>
           <div class="p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
@@ -263,7 +269,9 @@ onMounted(() => {
         <!-- Reserved -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Reserved</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('Reserved', 'Reserved') }}
+            </p>
             <h2 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ statistics.reserved || 0 }}</h2>
           </div>
           <div class="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
@@ -274,7 +282,9 @@ onMounted(() => {
         <!-- Cleaning -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cleaning</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('Cleaning', 'Cleaning') }}
+            </p>
             <h2 class="text-2xl font-black text-sky-600 dark:text-sky-400 mt-1">{{ statistics.cleaning || 0 }}</h2>
           </div>
           <div class="p-2.5 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
@@ -285,7 +295,9 @@ onMounted(() => {
         <!-- Out of Service -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Service Off</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('Maintenance', 'Service Off') }}
+            </p>
             <h2 class="text-2xl font-black text-slate-500 dark:text-slate-400 mt-1">{{ statistics.out_of_service || 0 }}</h2>
           </div>
           <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500">
@@ -307,7 +319,7 @@ onMounted(() => {
               v-model="searchQuery"
               @input="handleSearchChange"
               type="text"
-              placeholder="Search by table number, name, or location..."
+              :placeholder="languageStore.t('search_tables_placeholder', 'Search by table number, name, or location...')"
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
@@ -324,7 +336,7 @@ onMounted(() => {
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+            <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
           </button>
         </div>
 
@@ -335,7 +347,7 @@ onMounted(() => {
             type="button"
             @click="refreshData"
             :disabled="loading"
-            title="Refresh"
+            :title="languageStore.t('refresh', 'Refresh')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
@@ -345,7 +357,7 @@ onMounted(() => {
           <button
             type="button"
             @click="toggleFullscreen"
-            title="Toggle Fullscreen"
+            :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
@@ -355,10 +367,10 @@ onMounted(() => {
           <button
             type="button"
             @click="openCreateModal"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold shadow-md shadow-blue-600/25 transition active:scale-98 cursor-pointer flex-shrink-0"
           >
-            <Plus class="w-4 h-4" />
-            <span>Add Table</span>
+            <Plus class="w-4 h-4 text-white" />
+            <span class="text-white">{{ languageStore.t('add_table', 'Add Table') }}</span>
           </button>
         </div>
       </div>
@@ -380,35 +392,35 @@ onMounted(() => {
             <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Table Status
+                {{ languageStore.t('Status', 'Table Status') }}
               </label>
               <select
                 v-model="statusFilter"
                 @change="handleFilterChange"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="">All Statuses</option>
-                <option value="available">Available</option>
-                <option value="occupied">Occupied</option>
-                <option value="reserved">Reserved</option>
-                <option value="cleaning">Cleaning</option>
-                <option value="out_of_service">Out of Service</option>
+                <option value="">{{ languageStore.t('all_statuses', 'All Statuses') }}</option>
+                <option value="available">{{ languageStore.t('Available', 'Available') }}</option>
+                <option value="occupied">{{ languageStore.t('Occupied', 'Occupied') }}</option>
+                <option value="reserved">{{ languageStore.t('Reserved', 'Reserved') }}</option>
+                <option value="cleaning">{{ languageStore.t('Cleaning', 'Cleaning') }}</option>
+                <option value="out_of_service">{{ languageStore.t('Maintenance', 'Out of Service') }}</option>
               </select>
             </div>
 
             <!-- Active Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Activation State
+                {{ languageStore.t('activation', 'Activation State') }}
               </label>
               <select
                 v-model="activeFilter"
                 @change="handleFilterChange"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option :value="null">All Tables</option>
-                <option :value="true">Active Only</option>
-                <option :value="false">Inactive</option>
+                <option :value="null">{{ languageStore.t('All', 'All Tables') }}</option>
+                <option :value="true">{{ languageStore.t('Active', 'Active Only') }}</option>
+                <option :value="false">{{ languageStore.t('Inactive', 'Inactive') }}</option>
               </select>
             </div>
 
@@ -420,7 +432,7 @@ onMounted(() => {
                 class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
               >
                 <RotateCcw class="w-3.5 h-3.5" />
-                <span>Reset Filters</span>
+                <span>{{ languageStore.t('reset_filters', 'Reset Filters') }}</span>
               </button>
             </div>
           </div>
@@ -434,22 +446,34 @@ onMounted(() => {
           <table class="w-full text-left border-collapse">
             <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">Table #</th>
-                <th class="py-3 px-4 whitespace-nowrap">Table Name</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">Capacity</th>
-                <th class="py-3 px-4 whitespace-nowrap">Location / Floor</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">Active</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">QR Code</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Actions</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('table_number', 'Table #') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('table', 'Table Name') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('Capacity', 'Capacity') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('Floor', 'Location / Floor') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('Status', 'Status') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('Active', 'Active') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">QR</th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('Actions', 'Actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <tr
-                v-for="table in tables"
-                :key="table.id"
-                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
-              >
+              <!-- Loading Spinner State -->
+              <tr v-if="loading">
+                <td colspan="8" class="px-6 py-20 text-center">
+                  <div class="flex flex-col items-center justify-center gap-3">
+                    <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('Loading...', 'Loading restaurant tables...') }}</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Data Rows -->
+              <template v-else>
+                <tr
+                  v-for="table in tables"
+                  :key="table.id"
+                  class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+                >
                 <!-- Table Number -->
                 <td class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-black text-slate-900 dark:text-white text-xs sm:text-sm">
                   {{ table.table_number }}
@@ -464,13 +488,13 @@ onMounted(() => {
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-bold text-xs text-slate-700 dark:text-slate-300">
                     <Users class="w-3 h-3 text-slate-400" />
-                    {{ table.capacity }} Seats
+                    {{ table.capacity }} {{ languageStore.t('capacity', 'Seats') }}
                   </span>
                 </td>
 
                 <!-- Location -->
                 <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-medium">
-                  {{ table.location_description || (table.floor ? `Floor ${table.floor}` : 'Main Dining Area') }}
+                  {{ table.location_description || (table.floor ? `${languageStore.t('Floor', 'Floor')} ${table.floor}` : languageStore.t('Main Dining Area', 'Main Dining Area')) }}
                 </td>
 
                 <!-- Status -->
@@ -479,7 +503,7 @@ onMounted(() => {
                     class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
                     :class="getStatusBadgeClass(table.status)"
                   >
-                    {{ (table.status || 'available').replace('_', ' ') }}
+                    {{ languageStore.t(table.status || 'available', (table.status || 'available').replace('_', ' ')) }}
                   </span>
                 </td>
 
@@ -489,7 +513,7 @@ onMounted(() => {
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold"
                     :class="table.is_active ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-100 text-slate-500'"
                   >
-                    {{ table.is_active ? 'Active' : 'Inactive' }}
+                    {{ table.is_active ? languageStore.t('Active', 'Active') : languageStore.t('Inactive', 'Inactive') }}
                   </span>
                 </td>
 
@@ -497,8 +521,8 @@ onMounted(() => {
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <button
                     @click="viewQRCode(table)"
-                    class="p-1.5 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition"
-                    title="View QR Code"
+                    class="p-1.5 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition cursor-pointer"
+                    :title="languageStore.t('view_qr_code', 'View QR Code')"
                   >
                     <QrCode class="w-4 h-4" />
                   </button>
@@ -509,15 +533,15 @@ onMounted(() => {
                   <div class="flex items-center justify-end gap-1">
                     <button
                       @click="editTable(table)"
-                      class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition"
-                      title="Edit Table"
+                      class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
+                      :title="languageStore.t('Edit', 'Edit Table')"
                     >
                       <Edit class="w-3.5 h-3.5" />
                     </button>
                     <button
                       @click="confirmDelete(table)"
-                      class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition"
-                      title="Delete Table"
+                      class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
+                      :title="languageStore.t('Delete', 'Delete Table')"
                     >
                       <Trash2 class="w-3.5 h-3.5" />
                     </button>
@@ -528,15 +552,21 @@ onMounted(() => {
               <!-- Empty State -->
               <tr v-if="tables.length === 0">
                 <td colspan="8" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  No restaurant tables found.
+                  {{ languageStore.t('no_items_found', 'No restaurant tables found.') }}
                 </td>
               </tr>
-            </tbody>
-          </table>
-        </div>
+            </template>
+          </tbody>
+        </table>
+      </div>
 
-        <!-- Mobile Card View -->
-        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+      <!-- Mobile Card View -->
+      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+        <div v-if="loading" class="py-16 text-center flex flex-col items-center justify-center gap-3">
+          <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('Loading...', 'Loading restaurant tables...') }}</span>
+        </div>
+        <template v-else>
           <div
             v-for="table in tables"
             :key="table.id"
@@ -544,24 +574,25 @@ onMounted(() => {
           >
             <div class="flex items-center justify-between">
               <span class="font-bold text-slate-900 dark:text-white text-sm">
-                Table {{ table.table_number }}
+                {{ languageStore.t('table', 'Table') }} {{ table.table_number }}
               </span>
               <span
                 class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
                 :class="getStatusBadgeClass(table.status)"
               >
-                {{ table.status }}
+                {{ languageStore.t(table.status, table.status) }}
               </span>
             </div>
             <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-              <span>{{ table.capacity }} Seats</span>
+              <span>{{ table.capacity }} {{ languageStore.t('capacity', 'Seats') }}</span>
               <div class="flex gap-2">
-                <button @click="viewQRCode(table)" class="text-blue-600 font-bold">QR</button>
-                <button @click="editTable(table)" class="text-amber-600 font-bold">Edit</button>
+                <button @click="viewQRCode(table)" class="text-blue-600 font-bold cursor-pointer">QR</button>
+                <button @click="editTable(table)" class="text-amber-600 font-bold cursor-pointer">{{ languageStore.t('Edit', 'Edit') }}</button>
               </div>
             </div>
           </div>
-        </div>
+        </template>
+      </div>
 
         <!-- Pagination Footer -->
         <div
@@ -569,14 +600,14 @@ onMounted(() => {
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            Showing <span class="font-bold text-slate-900 dark:text-white">{{ pagination.from || 1 }}</span> to
-            <span class="font-bold text-slate-900 dark:text-white">{{ pagination.to || tables.length }}</span> of
-            <span class="font-bold text-slate-900 dark:text-white">{{ pagination.total }}</span> tables
+            {{ languageStore.t('Showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ pagination.from || 1 }}</span> {{ languageStore.t('to', 'to') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ pagination.to || tables.length }}</span> {{ languageStore.t('of', 'of') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ pagination.total }}</span> {{ languageStore.t('restaurant_tables', 'tables') }}
           </div>
 
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
               <select
                 :value="localPerPage"
                 @change="changePerPage"
@@ -641,7 +672,7 @@ onMounted(() => {
           >
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-md w-full p-6 space-y-4">
               <div class="flex items-center justify-between">
-                <h3 class="text-base font-black text-slate-900 dark:text-white">QR Code - Table {{ selectedTable.table_number }}</h3>
+                <h3 class="text-base font-black text-slate-900 dark:text-white">QR Code - {{ languageStore.t('table', 'Table') }} {{ selectedTable.table_number }}</h3>
                 <button
                   @click="closeQRModal"
                   class="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
@@ -666,19 +697,19 @@ onMounted(() => {
                     class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 transition cursor-pointer flex items-center justify-center gap-2"
                   >
                     <Download class="w-4 h-4" />
-                    <span>Download</span>
+                    <span>{{ languageStore.t('download', 'Download') }}</span>
                   </button>
                   <button
                     @click="regenerateQRCode(selectedTable.id)"
                     class="flex-1 px-4 py-2 bg-amber-500 text-slate-950 rounded-xl font-bold text-xs hover:bg-amber-600 transition cursor-pointer flex items-center justify-center gap-2"
                   >
                     <RefreshCw class="w-4 h-4" />
-                    <span>Regenerate</span>
+                    <span>{{ languageStore.t('regenerate', 'Regenerate') }}</span>
                   </button>
                 </div>
               </div>
               <div v-else class="text-center text-slate-500 text-xs py-8 font-bold">
-                No QR code available
+                {{ languageStore.t('no_qr_available', 'No QR code available') }}
               </div>
             </div>
           </div>
@@ -698,9 +729,9 @@ onMounted(() => {
                 <div class="w-12 h-12 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-2xl flex items-center justify-center mx-auto">
                   <AlertCircle class="w-6 h-6" />
                 </div>
-                <h3 class="text-base font-black text-slate-900 dark:text-white">Delete Table?</h3>
+                <h3 class="text-base font-black text-slate-900 dark:text-white">{{ languageStore.t('delete_room', 'Delete Table?') }}</h3>
                 <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                  Are you sure you want to delete <strong class="text-slate-900 dark:text-white">Table {{ selectedTable?.table_number }}</strong>?
+                  {{ languageStore.t('delete_room_confirm', 'Are you sure you want to delete this table?') }}
                 </p>
               </div>
               <div class="flex gap-3 pt-2">
@@ -708,13 +739,13 @@ onMounted(() => {
                   @click="closeDeleteModal"
                   class="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                 >
-                  Cancel
+                  {{ languageStore.t('Cancel', 'Cancel') }}
                 </button>
                 <button
                   @click="handleDelete"
                   class="flex-1 px-4 py-2 bg-rose-600 text-white rounded-xl font-bold text-xs hover:bg-rose-700 transition cursor-pointer"
                 >
-                  Delete
+                  {{ languageStore.t('Delete', 'Delete') }}
                 </button>
               </div>
             </div>

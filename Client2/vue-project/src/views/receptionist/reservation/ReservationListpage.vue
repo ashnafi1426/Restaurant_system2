@@ -27,10 +27,14 @@ import {
   Clock,
   DollarSign,
   UserCheck,
+  Building2,
+  Loader2,
 } from 'lucide-vue-next'
 
 import { useReservationStore } from '@/stores/reservationStore'
 import { useGuestStore } from '@/stores/guestStore'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
 import roomService from '@/services/roomService'
 import { roomTypeService } from '@/services/roomtypeService'
 import type { Reservation, ReservationFilter as FilterType } from '@/types/reservation'
@@ -38,6 +42,8 @@ import type { Reservation, ReservationFilter as FilterType } from '@/types/reser
 const router = useRouter()
 const store = useReservationStore()
 const guestStore = useGuestStore()
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
@@ -277,6 +283,7 @@ const deleteReservation = async () => {
     await loadReservations()
     showToast('Reservation deleted successfully')
   } catch (error) {
+    console.error('[ReservationList] Error deleting reservation:', error)
     showToast('Failed to delete reservation')
   }
 }
@@ -287,6 +294,7 @@ const confirmReservation = async (reservation: Reservation) => {
     await loadReservations()
     showToast('Reservation confirmed!')
   } catch (error) {
+    console.error('[ReservationList] Error confirming reservation:', error)
     showToast('Failed to confirm reservation')
   }
 }
@@ -297,6 +305,7 @@ const checkIn = async (reservation: Reservation) => {
     await loadReservations()
     showToast('Guest checked in successfully!')
   } catch (error) {
+    console.error('[ReservationList] Error checking in guest:', error)
     showToast('Failed to check in guest')
   }
 }
@@ -307,6 +316,7 @@ const checkOut = async (reservation: Reservation) => {
     await loadReservations()
     showToast('Guest checked out successfully!')
   } catch (error) {
+    console.error('[ReservationList] Error checking out guest:', error)
     showToast('Failed to check out guest')
   }
 }
@@ -317,6 +327,7 @@ const cancelReservation = async (reservation: Reservation) => {
     await loadReservations()
     showToast('Reservation cancelled')
   } catch (error) {
+    console.error('[ReservationList] Error cancelling reservation:', error)
     showToast('Failed to cancel reservation')
   }
 }
@@ -330,18 +341,18 @@ const formatDate = (date: string) => {
       day: 'numeric',
       year: 'numeric',
     })
-  } catch {
+  } catch (error) {
+    console.error('[ReservationList] Error formatting date:', error)
     return date
   }
 }
 
+const currency = computed(() => hotelStore.currentHotel?.currency || 'ETB')
+
 const formatCurrency = (amount: number | string) => {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount
-  if (isNaN(num)) return '$0.00'
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(num)
+  if (isNaN(num)) return `0.00 ${currency.value}`
+  return `${num.toFixed(2)} ${currency.value}`
 }
 
 const getStatusBadgeClass = (status: string) => {
@@ -361,8 +372,23 @@ const getStatusBadgeClass = (status: string) => {
   }
 }
 
-onMounted(async () => {
+const getRoomTypeName = (room?: any): string => {
+  if (!room || !room.room_type) return ''
+  if (typeof room.room_type === 'string') return room.room_type
+  if (typeof room.room_type === 'object' && room.room_type.name) return room.room_type.name
+  return ''
+}
+
+const reloadAll = async () => {
   await Promise.all([loadReservations(), loadRoomTypesAndRooms()])
+}
+
+onMounted(async () => {
+  await reloadAll()
+})
+
+watch(() => hotelStore.hotelId, async () => {
+  await reloadAll()
 })
 </script>
 
@@ -385,8 +411,14 @@ onMounted(async () => {
             <Calendar class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Reservations</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage hotel reservations, check-ins, and guest stays.</p>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{{ languageStore.t('Reservations', 'Reservations') }}</h1>
+              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+                <Building2 class="w-3 h-3" />
+                {{ hotelStore.hotelName }}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('manage_reservations_desc', 'Manage hotel reservations, check-ins, and guest stays.') }}</p>
           </div>
         </div>
       </div>
@@ -396,7 +428,7 @@ onMounted(async () => {
         <!-- Total -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Bookings</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('Total Bookings', 'Total Bookings') }}</p>
             <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ totalReservations }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -407,7 +439,7 @@ onMounted(async () => {
         <!-- Pending -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('pending', 'Pending') }}</p>
             <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ pendingCount }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
@@ -418,7 +450,7 @@ onMounted(async () => {
         <!-- Confirmed -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Confirmed</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('confirmed', 'Confirmed') }}</p>
             <h3 class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">{{ confirmedCount }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -429,7 +461,7 @@ onMounted(async () => {
         <!-- Checked In -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Checked In</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('checked_in', 'Checked In') }}</p>
             <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ checkedInCount }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -450,7 +482,7 @@ onMounted(async () => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search by guest name, reservation #, room, email..."
+              :placeholder="languageStore.t('search_reservations_ph', 'Search by guest name, reservation #, room, email...')"
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
@@ -467,7 +499,7 @@ onMounted(async () => {
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+            <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
           </button>
         </div>
 
@@ -478,7 +510,7 @@ onMounted(async () => {
             type="button"
             @click="handleRefresh"
             :disabled="store.loading"
-            title="Refresh"
+            :title="languageStore.t('refresh', 'Refresh')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.loading }" />
@@ -488,7 +520,7 @@ onMounted(async () => {
           <button
             type="button"
             @click="toggleFullscreen"
-            title="Toggle Fullscreen"
+            :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
@@ -513,31 +545,31 @@ onMounted(async () => {
             <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Reservation Status
+                {{ languageStore.t('Reservation Status', 'Reservation Status') }}
               </label>
               <select
                 v-model="filterStatus"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="checked_in">Checked In</option>
-                <option value="checked_out">Checked Out</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="">{{ languageStore.t('All Statuses', 'All Statuses') }}</option>
+                <option value="pending">{{ languageStore.t('pending', 'Pending') }}</option>
+                <option value="confirmed">{{ languageStore.t('confirmed', 'Confirmed') }}</option>
+                <option value="checked_in">{{ languageStore.t('checked_in', 'Checked In') }}</option>
+                <option value="checked_out">{{ languageStore.t('checked_out', 'Checked Out') }}</option>
+                <option value="cancelled">{{ languageStore.t('cancelled', 'Cancelled') }}</option>
               </select>
             </div>
 
             <!-- Room Type Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Room Type
+                {{ languageStore.t('Room Type', 'Room Type') }}
               </label>
               <select
                 v-model="filterRoomTypeId"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="">All Room Types</option>
+                <option value="">{{ languageStore.t('All Room Types', 'All Room Types') }}</option>
                 <option v-for="type in roomTypes" :key="type.id" :value="type.id">
                   {{ type.name }}
                 </option>
@@ -547,7 +579,7 @@ onMounted(async () => {
             <!-- Check-in Date -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Check-in Date
+                {{ languageStore.t('Check-in Date', 'Check-in Date') }}
               </label>
               <input
                 v-model="filterCheckInDate"
@@ -560,7 +592,7 @@ onMounted(async () => {
             <div class="flex items-end gap-2">
               <div class="flex-1">
                 <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                  Check-out Date
+                  {{ languageStore.t('Check-out Date', 'Check-out Date') }}
                 </label>
                 <input
                   v-model="filterCheckOutDate"
@@ -573,10 +605,10 @@ onMounted(async () => {
                 type="button"
                 @click="handleResetFilters"
                 class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer flex-shrink-0 h-[38px]"
-                title="Reset Filters"
+                :title="languageStore.t('reset_filters', 'Reset Filters')"
               >
                 <RotateCcw class="w-3.5 h-3.5" />
-                <span class="hidden sm:inline">Reset</span>
+                <span class="hidden sm:inline">{{ languageStore.t('Reset', 'Reset') }}</span>
               </button>
             </div>
           </div>
@@ -590,20 +622,32 @@ onMounted(async () => {
           <table class="w-full text-left border-collapse">
             <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">Guest & Booking #</th>
-                <th class="py-3 px-4 whitespace-nowrap">Room</th>
-                <th class="py-3 px-4 whitespace-nowrap">Stay Dates</th>
-                <th class="py-3 px-4 whitespace-nowrap">Total / Guests</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Actions</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('Guest & Booking #', 'Guest & Booking #') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('room', 'Room') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('Stay Dates', 'Stay Dates') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('Total / Guests', 'Total / Guests') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('Status', 'Status') }}</th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('Actions', 'Actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <tr
-                v-for="reservation in paginatedReservations"
-                :key="reservation.id"
-                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
-              >
+              <!-- Loading Spinner State -->
+              <tr v-if="store.loading">
+                <td colspan="6" class="px-6 py-20 text-center">
+                  <div class="flex flex-col items-center justify-center gap-3">
+                    <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_reservations_data', 'Loading reservations...') }}</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Data Rows -->
+              <template v-else>
+                <tr
+                  v-for="reservation in paginatedReservations"
+                  :key="reservation.id"
+                  class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+                >
                 <!-- Guest & Booking # -->
                 <td class="py-3 px-4 pl-5 whitespace-nowrap">
                   <div class="flex items-center gap-2.5">
@@ -627,8 +671,8 @@ onMounted(async () => {
                     <span class="font-black text-slate-900 dark:text-white font-mono text-xs sm:text-sm">
                       Room {{ reservation.room?.room_number || 'TBD' }}
                     </span>
-                    <span v-if="reservation.room?.room_type?.name" class="text-[10px] text-slate-400 font-medium">
-                      ({{ reservation.room.room_type.name }})
+                    <span v-if="getRoomTypeName(reservation.room)" class="text-[10px] text-slate-400 font-medium">
+                      ({{ getRoomTypeName(reservation.room) }})
                     </span>
                   </div>
                 </td>
@@ -639,7 +683,7 @@ onMounted(async () => {
                     {{ formatDate(reservation.check_in_date) }} → {{ formatDate(reservation.check_out_date) }}
                   </div>
                   <div class="text-[10px] text-slate-400 font-medium">
-                    {{ reservation.adults_count || 1 }} Adults, {{ reservation.children_count || 0 }} Kids
+                    {{ reservation.adults_count || 1 }} {{ languageStore.t('Adults', 'Adults') }}, {{ reservation.children_count || 0 }} {{ languageStore.t('Kids', 'Kids') }}
                   </div>
                 </td>
 
@@ -671,7 +715,7 @@ onMounted(async () => {
                       v-if="reservation.status === 'pending'"
                       @click="confirmReservation(reservation)"
                       class="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition cursor-pointer"
-                      title="Confirm Reservation"
+                      :title="languageStore.t('Confirm Reservation', 'Confirm Reservation')"
                     >
                       <CheckCircle2 class="w-3.5 h-3.5" />
                     </button>
@@ -681,7 +725,7 @@ onMounted(async () => {
                       v-if="reservation.status === 'confirmed'"
                       @click="checkIn(reservation)"
                       class="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition cursor-pointer"
-                      title="Check In Guest"
+                      :title="languageStore.t('Check In Guest', 'Check In Guest')"
                     >
                       <LogIn class="w-3.5 h-3.5" />
                     </button>
@@ -691,7 +735,7 @@ onMounted(async () => {
                       v-if="reservation.status === 'checked_in'"
                       @click="checkOut(reservation)"
                       class="p-1.5 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg transition cursor-pointer"
-                      title="Check Out Guest"
+                      :title="languageStore.t('Check Out Guest', 'Check Out Guest')"
                     >
                       <LogOut class="w-3.5 h-3.5" />
                     </button>
@@ -700,7 +744,7 @@ onMounted(async () => {
                     <button
                       @click="viewReservation(reservation)"
                       class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
-                      title="View Details"
+                      :title="languageStore.t('View Details', 'View Details')"
                     >
                       <Eye class="w-3.5 h-3.5" />
                     </button>
@@ -709,7 +753,7 @@ onMounted(async () => {
                     <button
                       @click="editReservation(reservation)"
                       class="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition cursor-pointer"
-                      title="Edit Reservation"
+                      :title="languageStore.t('Edit Reservation', 'Edit Reservation')"
                     >
                       <Edit class="w-3.5 h-3.5" />
                     </button>
@@ -718,7 +762,7 @@ onMounted(async () => {
                     <button
                       @click="confirmDelete(reservation)"
                       class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
-                      title="Delete Reservation"
+                      :title="languageStore.t('Delete Reservation', 'Delete Reservation')"
                     >
                       <Trash2 class="w-3.5 h-3.5" />
                     </button>
@@ -729,15 +773,21 @@ onMounted(async () => {
               <!-- Empty State -->
               <tr v-if="paginatedReservations.length === 0">
                 <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  No reservations found matching your criteria.
+                  {{ languageStore.t('no_reservations_found', 'No reservations found matching your criteria.') }}
                 </td>
               </tr>
-            </tbody>
-          </table>
-        </div>
+            </template>
+          </tbody>
+        </table>
+      </div>
 
-        <!-- Mobile View -->
-        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+      <!-- Mobile View -->
+      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+        <div v-if="store.loading" class="py-16 text-center flex flex-col items-center justify-center gap-3">
+          <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_reservations_data', 'Loading reservations...') }}</span>
+        </div>
+        <template v-else>
           <div
             v-for="reservation in paginatedReservations"
             :key="reservation.id"
@@ -759,12 +809,13 @@ onMounted(async () => {
               <span>{{ formatDate(reservation.check_in_date) }}</span>
             </div>
             <div class="flex items-center justify-end gap-3 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs font-bold">
-              <button @click="viewReservation(reservation)" class="text-blue-600">View</button>
-              <button @click="editReservation(reservation)" class="text-amber-600">Edit</button>
-              <button @click="confirmDelete(reservation)" class="text-rose-600">Delete</button>
+              <button @click="viewReservation(reservation)" class="text-blue-600">{{ languageStore.t('View', 'View') }}</button>
+              <button @click="editReservation(reservation)" class="text-amber-600">{{ languageStore.t('Edit', 'Edit') }}</button>
+              <button @click="confirmDelete(reservation)" class="text-rose-600">{{ languageStore.t('Delete', 'Delete') }}</button>
             </div>
           </div>
-        </div>
+        </template>
+      </div>
 
         <!-- Pagination Footer -->
         <div
@@ -772,14 +823,14 @@ onMounted(async () => {
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            Showing <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
-            <span class="font-bold text-slate-900 dark:text-white">{{ totalReservations }}</span> reservations
+            {{ languageStore.t('Showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ totalReservations }}</span> {{ languageStore.t('reservations', 'reservations') }}
           </div>
 
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('Per page:', 'Per page:') }}</span>
               <select
                 :value="perPage"
                 @change="changePerPage"

@@ -21,16 +21,23 @@ class MenuItem extends Model
         'category',
         'category_id',
         'price',
+        'tax_rate_id',
+        'tax_included',
         'image',
         'is_available',
     ];
     protected $casts = [
         'price' => 'decimal:2',
+        'tax_included' => 'boolean',
         'is_available' => 'boolean',
     ];
     public function categoryRelation()
     {
         return $this->belongsTo(Category::class, 'category_id');
+    }
+    public function taxRate()
+    {
+        return $this->belongsTo(TaxRate::class, 'tax_rate_id');
     }
     public function scopeAvailable($query)
     {
@@ -57,42 +64,27 @@ class MenuItem extends Model
             : 'Unavailable';
     }
 
-    /**
-     * Menu item has many reviews
-     */
     public function reviews()
     {
         return $this->hasMany(MenuItemReview::class, 'menu_item_id');
     }
 
-    /**
-     * Get only approved reviews
-     */
     public function approvedReviews()
     {
         return $this->reviews()->approved();
     }
 
-    /**
-     * Get average rating
-     */
     public function getAverageRatingAttribute(): ?float
     {
         $avg = $this->approvedReviews()->avg('rating');
         return $avg ? round($avg, 1) : null;
     }
 
-    /**
-     * Get review count
-     */
     public function getReviewCountAttribute(): int
     {
         return $this->approvedReviews()->count();
     }
 
-    /**
-     * Get rating distribution
-     */
     public function getRatingDistributionAttribute(): array
     {
         $distribution = [];

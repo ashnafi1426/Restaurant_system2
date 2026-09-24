@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import type { User } from '@/types/user'
+import { useLanguageStore } from '@/stores/language'
 import {
   Search,
   Filter,
@@ -25,6 +26,8 @@ const props = defineProps<{
   loading?: boolean
 }>()
 
+const languageStore = useLanguageStore()
+
 const emit = defineEmits<{
   (e: 'view', user: User): void
   (e: 'edit', user: User): void
@@ -37,7 +40,6 @@ const activeMenu = ref<string | null>(null)
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
 
-// Filter states
 const search = ref('')
 const roleFilter = ref('')
 const statusFilter = ref('')
@@ -45,7 +47,6 @@ const statusFilter = ref('')
 const currentPage = ref(1)
 const perPage = ref(10)
 
-// Filtered list
 const filteredList = computed(() => {
   let list = props.users || []
 
@@ -196,24 +197,20 @@ onBeforeUnmount(() => {
     class="space-y-3 font-sans w-full"
     :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
   >
-    <!-- Top Bar Toolbar -->
     <div
       class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
     >
-      <!-- Left: Search & Filter Toggle -->
       <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-        <!-- Search Input -->
         <div class="relative flex-1">
           <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             v-model="search"
             type="text"
-            placeholder="Search staff by name, email, phone, role..."
+            :placeholder="languageStore.t('search_users_placeholder', 'Search staff by name, email, phone, role...')"
             class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
           />
         </div>
 
-        <!-- Filter Toggle Button -->
         <button
           type="button"
           @click="toggleFilter"
@@ -225,46 +222,41 @@ onBeforeUnmount(() => {
           ]"
         >
           <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-          <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+          <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
         </button>
       </div>
 
-      <!-- Right: Action Buttons -->
       <div class="flex items-center gap-2 sm:gap-2.5">
-        <!-- Refresh Button -->
         <button
           type="button"
           @click="emit('refresh')"
           :disabled="loading"
-          title="Refresh"
+          :title="languageStore.t('refresh', 'Refresh')"
           class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
         >
           <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
         </button>
 
-        <!-- Fullscreen Toggle -->
         <button
           type="button"
           @click="toggleFullscreen"
-          title="Toggle Fullscreen"
+          :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
           class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
         >
           <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
         </button>
 
-        <!-- Create User Primary Button -->
         <button
           type="button"
           @click="emit('create')"
           class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0"
         >
           <Plus class="w-4 h-4" />
-          <span>Create User</span>
+          <span>{{ languageStore.t('create_user', 'Create User') }}</span>
         </button>
       </div>
     </div>
 
-    <!-- Expandable Filter Panel -->
     <Transition
       enter-active-class="transition duration-200 ease-out"
       enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -278,41 +270,38 @@ onBeforeUnmount(() => {
         class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
       >
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
-          <!-- Role Filter -->
           <div>
             <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-              Staff Role
+              {{ languageStore.t('Role', 'Staff Role') }}
             </label>
             <select
               v-model="roleFilter"
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
             >
-              <option value="">All Roles</option>
-              <option value="admin">Administrator</option>
-              <option value="manager">Manager</option>
-              <option value="receptionist">Receptionist</option>
-              <option value="waiter">Waiter</option>
-              <option value="chef">Chef / Kitchen</option>
-              <option value="staff">Staff</option>
+              <option value="">{{ languageStore.t('All', 'All Roles') }}</option>
+              <option value="admin">{{ languageStore.t('admin', 'Administrator') }}</option>
+              <option value="manager">{{ languageStore.t('manager', 'Manager') }}</option>
+              <option value="receptionist">{{ languageStore.t('receptionist', 'Receptionist') }}</option>
+              <option value="waiter">{{ languageStore.t('waiter', 'Waiter') }}</option>
+              <option value="chef">{{ languageStore.t('chef', 'Chef / Kitchen') }}</option>
+              <option value="staff">{{ languageStore.t('Staff', 'Staff') }}</option>
             </select>
           </div>
 
-          <!-- Status Filter -->
           <div>
             <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-              Account Status
+              {{ languageStore.t('Status', 'Account Status') }}
             </label>
             <select
               v-model="statusFilter"
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
             >
-              <option value="">All Statuses</option>
-              <option value="active">Active Accounts</option>
-              <option value="inactive">Inactive Accounts</option>
+              <option value="">{{ languageStore.t('all_statuses', 'All Statuses') }}</option>
+              <option value="active">{{ languageStore.t('active_accounts', 'Active Accounts') }}</option>
+              <option value="inactive">{{ languageStore.t('inactive_accounts', 'Inactive Accounts') }}</option>
             </select>
           </div>
 
-          <!-- Reset Filter -->
           <div class="flex items-end">
             <button
               type="button"
@@ -320,39 +309,35 @@ onBeforeUnmount(() => {
               class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
             >
               <RotateCcw class="w-3.5 h-3.5" />
-              <span>Reset Filters</span>
+              <span>{{ languageStore.t('reset_filters', 'Reset Filters') }}</span>
             </button>
           </div>
         </div>
       </div>
     </Transition>
 
-    <!-- Table Container -->
     <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full min-h-[220px]">
-      <!-- Loading State Spinner -->
       <div v-if="loading" class="py-20 px-4 text-center flex flex-col items-center justify-center space-y-3">
         <div class="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/50 shadow-xs">
           <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
         </div>
         <div>
-          <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Loading staff accounts...</p>
-          <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Please wait while fetching user data</p>
+          <p class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ languageStore.t('Loading...', 'Loading staff accounts...') }}</p>
+          <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{{ languageStore.t('please_wait', 'Please wait while fetching user data') }}</p>
         </div>
       </div>
 
-      <!-- Loaded Content -->
       <template v-else>
-        <!-- Desktop & Tablet Table View -->
         <div class="hidden md:block overflow-x-auto w-full">
         <table class="w-full text-left border-collapse">
           <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
             <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-              <th class="px-3 py-3 pl-5 whitespace-nowrap">Staff Name</th>
-              <th class="px-3 py-3 whitespace-nowrap">Email</th>
-              <th class="px-3 py-3 whitespace-nowrap">Phone</th>
-              <th class="px-3 py-3 whitespace-nowrap">Role</th>
-              <th class="px-3 py-3 text-center whitespace-nowrap">Status</th>
-              <th class="px-3 py-3 text-right pr-5 whitespace-nowrap">Actions</th>
+              <th class="px-3 py-3 pl-5 whitespace-nowrap">{{ languageStore.t('full_name', 'Staff Name') }}</th>
+              <th class="px-3 py-3 whitespace-nowrap">{{ languageStore.t('email_address', 'Email') }}</th>
+              <th class="px-3 py-3 whitespace-nowrap">{{ languageStore.t('phone_number', 'Phone') }}</th>
+              <th class="px-3 py-3 whitespace-nowrap">{{ languageStore.t('Role', 'Role') }}</th>
+              <th class="px-3 py-3 text-center whitespace-nowrap">{{ languageStore.t('Status', 'Status') }}</th>
+              <th class="px-3 py-3 text-right pr-5 whitespace-nowrap">{{ languageStore.t('Actions', 'Actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
@@ -361,7 +346,6 @@ onBeforeUnmount(() => {
               :key="user.id"
               class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
             >
-              <!-- Name -->
               <td class="px-3 py-3 pl-5 whitespace-nowrap">
                 <div class="flex items-center gap-2 max-w-[180px]">
                   <div class="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center justify-center flex-shrink-0">
@@ -375,58 +359,52 @@ onBeforeUnmount(() => {
                 </div>
               </td>
 
-              <!-- Email -->
               <td class="px-3 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 font-medium">
                 {{ user.email }}
               </td>
 
-              <!-- Phone -->
               <td class="px-3 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">
                 {{ user.phone || '-' }}
               </td>
 
-              <!-- Role Badge -->
               <td class="px-3 py-3 whitespace-nowrap">
                 <span
                   class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold border uppercase tracking-wider"
                   :class="getRoleBadgeClass(user.role)"
                 >
                   <Shield class="w-3 h-3" />
-                  {{ user.role || 'Staff' }}
+                  {{ languageStore.t(user.role, user.role || 'Staff') }}
                 </span>
               </td>
 
-              <!-- Status -->
               <td class="px-3 py-3 text-center whitespace-nowrap">
                 <span
                   v-if="user.is_active"
                   class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                 >
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Active
+                  {{ languageStore.t('Active', 'Active') }}
                 </span>
                 <span
                   v-else
                   class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
                 >
                   <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                  Inactive
+                  {{ languageStore.t('Inactive', 'Inactive') }}
                 </span>
               </td>
 
-              <!-- Actions Menu -->
               <td class="px-3 py-3 text-right whitespace-nowrap pr-5 relative" @click.stop>
                 <div class="relative inline-block text-left">
                   <button
                     @click="toggleMenu(String(user.id), $event)"
                     class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                     :class="{ 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white': activeMenu === String(user.id) }"
-                    title="Actions"
+                    :title="languageStore.t('Actions', 'Actions')"
                   >
                     <MoreVertical class="w-4 h-4" />
                   </button>
 
-                  <!-- Dropdown Menu Popup -->
                   <transition
                     enter-active-class="transition duration-100 ease-out"
                     leave-active-class="transition duration-75 ease-in"
@@ -444,7 +422,7 @@ onBeforeUnmount(() => {
                         class="flex w-full items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                       >
                         <Eye class="w-3.5 h-3.5 text-blue-500" />
-                        <span>View</span>
+                        <span>{{ languageStore.t('View', 'View') }}</span>
                       </button>
 
                       <button
@@ -452,7 +430,7 @@ onBeforeUnmount(() => {
                         class="flex w-full items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition cursor-pointer"
                       >
                         <Edit class="w-3.5 h-3.5 text-amber-500" />
-                        <span>Edit</span>
+                        <span>{{ languageStore.t('Edit', 'Edit') }}</span>
                       </button>
 
                       <div class="border-t border-slate-100 dark:border-slate-800 my-0.5"></div>
@@ -462,7 +440,7 @@ onBeforeUnmount(() => {
                         class="flex w-full items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer"
                       >
                         <Trash2 class="w-3.5 h-3.5 text-rose-500" />
-                        <span>Delete</span>
+                        <span>{{ languageStore.t('Delete', 'Delete') }}</span>
                       </button>
                     </div>
                   </transition>
@@ -470,23 +448,21 @@ onBeforeUnmount(() => {
               </td>
             </tr>
 
-            <!-- Empty State -->
             <tr v-if="paginatedUsers.length === 0">
               <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                No users match your current search or filter criteria.
+                {{ languageStore.t('no_users_match', 'No users match your current search or filter criteria.') }}
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Mobile View -->
       <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
         <div
           v-if="paginatedUsers.length === 0"
           class="p-8 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
         >
-          No users match your current search or filter criteria.
+          {{ languageStore.t('no_users_match', 'No users match your current search or filter criteria.') }}
         </div>
         <div
           v-else
@@ -502,7 +478,7 @@ onBeforeUnmount(() => {
               class="px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase"
               :class="getRoleBadgeClass(user.role)"
             >
-              {{ user.role }}
+              {{ languageStore.t(user.role, user.role) }}
             </span>
           </div>
 
@@ -513,40 +489,39 @@ onBeforeUnmount(() => {
           <div class="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             <button
               @click="handleView(user)"
-              class="flex-1 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg"
+              class="flex-1 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer"
             >
-              View
+              {{ languageStore.t('View', 'View') }}
             </button>
             <button
               @click="handleEdit(user)"
-              class="flex-1 py-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-lg"
+              class="flex-1 py-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-lg cursor-pointer"
             >
-              Edit
+              {{ languageStore.t('Edit', 'Edit') }}
             </button>
             <button
               @click="handleDelete(user)"
-              class="flex-1 py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 rounded-lg"
+              class="flex-1 py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 rounded-lg cursor-pointer"
             >
-              Delete
+              {{ languageStore.t('Delete', 'Delete') }}
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Pagination Footer -->
       <div
         v-if="total > 0"
         class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
       >
         <div class="text-slate-500 dark:text-slate-400 font-medium">
-          Showing <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
-          <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
-          <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> staff users
+          {{ languageStore.t('Showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
+          <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
+          <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> {{ languageStore.t('records', 'records') }}
         </div>
 
         <div class="flex items-center gap-2 sm:gap-3">
           <div class="flex items-center gap-1.5">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
+            <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
             <select
               :value="perPage"
               @change="changePerPage"

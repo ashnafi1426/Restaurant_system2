@@ -25,29 +25,19 @@ const estimatedTotal = computed(() => {
   return totalNights.value * availability.pricePerNight
 })
 
-function checkAvailability() {
-  console.log('Checking availability...', availability)
-
-  // Later:
-  // GET /api/public/rooms/availability
-}
+function checkAvailability() {}
 </script>
 
 <template>
   <section class="rounded-3xl bg-white p-8 shadow-xl">
-    <!-- Header -->
     <div class="mb-8">
       <h2 class="text-3xl font-bold text-slate-900">Room Availability</h2>
-
       <p class="mt-2 text-slate-500">Select your stay dates to check room availability.</p>
     </div>
 
-    <!-- Form -->
     <div class="grid gap-6 lg:grid-cols-4">
-      <!-- Check In -->
       <div>
         <label class="mb-2 block font-medium text-slate-700"> Check In </label>
-
         <input
           v-model="availability.checkIn"
           type="date"
@@ -55,10 +45,8 @@ function checkAvailability() {
         />
       </div>
 
-      <!-- Check Out -->
       <div>
         <label class="mb-2 block font-medium text-slate-700"> Check Out </label>
-
         <input
           v-model="availability.checkOut"
           type="date"
@@ -66,10 +54,8 @@ function checkAvailability() {
         />
       </div>
 
-      <!-- Adults -->
       <div>
         <label class="mb-2 block font-medium text-slate-700"> Adults </label>
-
         <select
           v-model="availability.adults"
           class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-amber-500 focus:outline-none"
@@ -81,10 +67,8 @@ function checkAvailability() {
         </select>
       </div>
 
-      <!-- Children -->
       <div>
         <label class="mb-2 block font-medium text-slate-700"> Children </label>
-
         <select
           v-model="availability.children"
           class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-amber-500 focus:outline-none"
@@ -97,7 +81,6 @@ function checkAvailability() {
       </div>
     </div>
 
-    <!-- Button -->
     <div class="mt-8">
       <button
         @click="checkAvailability"
@@ -107,14 +90,12 @@ function checkAvailability() {
       </button>
     </div>
 
-    <!-- Summary -->
     <div class="mt-10 rounded-2xl bg-slate-50 p-8">
       <h3 class="text-2xl font-bold text-slate-900">Booking Summary</h3>
 
       <div class="mt-6 grid gap-6 md:grid-cols-2">
         <div>
           <p class="text-slate-500">Available Rooms</p>
-
           <h4 class="mt-2 text-3xl font-bold text-green-600">
             {{ availability.availableRooms }}
           </h4>
@@ -122,13 +103,11 @@ function checkAvailability() {
 
         <div>
           <p class="text-slate-500">Price Per Night</p>
-
           <h4 class="mt-2 text-3xl font-bold text-amber-600">${{ availability.pricePerNight }}</h4>
         </div>
 
         <div>
           <p class="text-slate-500">Total Nights</p>
-
           <h4 class="mt-2 text-3xl font-bold">
             {{ totalNights }}
           </h4>
@@ -136,7 +115,6 @@ function checkAvailability() {
 
         <div>
           <p class="text-slate-500">Estimated Total</p>
-
           <h4 class="mt-2 text-3xl font-bold text-amber-600">${{ estimatedTotal }}</h4>
         </div>
       </div>

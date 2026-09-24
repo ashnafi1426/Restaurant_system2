@@ -15,17 +15,11 @@ class AssignmentStrategy
         private WaiterAvailabilityService $availabilityService
     ) {}
 
-    /**
-     * Find the best available waiter for a given floor and shift.
-     * Strategy: Primary -> Secondary -> Backup -> Any Available Hotel-wide
-     * Availability check: active status + available/busy (not offline/break) + has capacity
-     */
     public function findBestWaiter(HotelFloor $floor, HotelShift $shift): ?Waiter
     {
         try {
             $priorities = ['primary', 'secondary', 'backup'];
 
-            // TIER 1-3: Floor-specific + shift-specific priority search
             foreach ($priorities as $priority) {
                 $waiter = $this->findAssignedWaiter($floor->id, $shift->id, $priority);
                 if ($waiter && $this->availabilityService->isAvailable($waiter)) {
@@ -38,16 +32,12 @@ class AssignmentStrategy
                 }
             }
 
-            // TIER 4: Hotel-wide fallback — any active waiter with capacity
-            // NOTE: We check 'active' status but allow any availability that isn't
-            // permanently offline, to handle waiters whose flag wasn't updated.
             $fallbackWaiter = Waiter::where('status', 'active')
                 ->where(function ($q) {
                     $q->where('availability', 'available')
-                      ->orWhere('availability', 'busy'); // busy but still below max
+                      ->orWhere('availability', 'busy');
                 })
                 ->where(function ($q) {
-                    // maximum_orders = 0 means unlimited; otherwise must be under cap
                     $q->where('maximum_orders', 0)
                       ->orWhereRaw('current_orders < maximum_orders');
                 })
@@ -64,8 +54,6 @@ class AssignmentStrategy
                 return $fallbackWaiter;
             }
 
-            // TIER 5: Absolute last-resort — ANY active waiter regardless of availability/capacity
-            // This catches waiters stuck in 'offline' state due to default DB values
             $lastResortWaiter = Waiter::where('status', 'active')
                 ->orderBy('current_orders', 'asc')
                 ->first();
@@ -81,7 +69,6 @@ class AssignmentStrategy
                 return $lastResortWaiter;
             }
 
-            // Count total active waiters for a clearer diagnostic
             $totalActive = Waiter::where('status', 'active')->count();
             Log::warning('No Waiter Available — Assignment Failed', [
                 'floor_id'      => $floor->id,

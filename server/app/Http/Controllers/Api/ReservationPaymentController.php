@@ -15,23 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-/**
- * ============================================================================
- * ReservationPaymentController
- * ============================================================================
- * Handles payment flow for hotel reservations
- * 
- * Payment Flow:
- * 1. Calculate reservation price based on room and dates
- * 2. Initialize payment with customer details
- * 3. Redirect customer to Chapa checkout
- * 4. Verify payment after customer returns
- * 5. Create reservation only after payment verification
- * 6. Return confirmation to customer
- * 
- * Reservation is NEVER created before successful payment verification
- * ============================================================================
- */
+
 class ReservationPaymentController extends Controller
 {
     protected PaymentService $paymentService;
@@ -45,29 +29,6 @@ class ReservationPaymentController extends Controller
         $this->chapaService = $chapaService;
     }
 
-    /**
-     * ============================================================================
-     * Initialize Reservation Payment
-     * ============================================================================
-     * Calculates total reservation cost and initializes payment
-     * 
-     * Request Body:
-     * {
-     *   "room_id": "uuid",
-     *   "guest_id": "uuid",
-     *   "check_in_date": "2026-08-15",
-     *   "check_out_date": "2026-08-20",
-     *   "number_of_guests": 2,
-     *   "special_requests": "...",
-     *   "first_name": "John",
-     *   "last_name": "Doe",
-     *   "email": "john@example.com",
-     *   "phone": "+251912345678"
-     * }
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function initializePayment(Request $request): JsonResponse
     {
         try {
@@ -75,7 +36,6 @@ class ReservationPaymentController extends Controller
                 'request_data' => $request->all(),
             ]);
 
-            // Validate request with less strict email validation for now
             $validated = $request->validate([
                 'room_id'          => 'required|exists:rooms,id',
                 'guest_id'         => 'nullable|exists:guests,id',
@@ -85,9 +45,8 @@ class ReservationPaymentController extends Controller
                 'special_requests' => 'nullable|string',
                 'first_name'       => 'required|string|max:255',
                 'last_name'        => 'required|string|max:255',
-                'email'            => 'required|email',  // Basic email validation
+                'email'            => 'required|email',
                 'phone'            => 'required|string|max:20',
-                // Additional services
                 'include_breakfast' => 'nullable|boolean',
                 'include_dinner'    => 'nullable|boolean',
                 'include_spa'       => 'nullable|boolean',
@@ -95,10 +54,8 @@ class ReservationPaymentController extends Controller
 
             Log::info('Validation Passed');
 
-            // Sanitize email - remove any whitespace, ensure lowercase
             $validated['email'] = trim(strtolower($validated['email']));
             
-            // Validate email format more strictly
             if (!filter_var($validated['email'], FILTER_VALIDATE_EMAIL)) {
                 Log::error('Invalid email format', ['email' => $validated['email']]);
                 return response()->json([
@@ -107,30 +64,22 @@ class ReservationPaymentController extends Controller
                 ], 422);
             }
             
-            // Sanitize phone - must be proper international format
-            // Chapa requires format like +251912345678 or 0912345678
             $phone = $validated['phone'];
             
-            // Remove all non-digit characters except leading +
             if (strpos($phone, '+') === 0) {
-                // Keep the + if it's at the start
                 $phone = '+' . preg_replace('/[^0-9]/', '', substr($phone, 1));
             } else {
-                // Remove all non-digit characters
                 $phone = preg_replace('/[^0-9]/', '', $phone);
                 
-                // Add country code if not present
                 if (!str_starts_with($phone, '251') && !str_starts_with($phone, '0')) {
                     $phone = '+251' . $phone;
                 } elseif (str_starts_with($phone, '0')) {
-                    // Replace leading 0 with country code
                     $phone = '+251' . substr($phone, 1);
                 } else {
                     $phone = '+' . $phone;
                 }
             }
             
-            // Validate phone length (Ethiopian phone numbers should be 12 digits with +251)
             $digitsOnly = preg_replace('/[^0-9]/', '', $phone);
             if (strlen($digitsOnly) < 9 || strlen($digitsOnly) > 12) {
                 Log::error('Invalid phone number length', [
@@ -152,7 +101,6 @@ class ReservationPaymentController extends Controller
                 'phone_original' => $request->input('phone'),
             ]);
 
-            // Get room details
             Log::info('Looking up room', ['room_id' => $validated['room_id']]);
             $room = Room::with('roomType')->findOrFail($validated['room_id']);
             Log::info('Room Found', [
@@ -161,7 +109,6 @@ class ReservationPaymentController extends Controller
                 'has_room_number' => isset($room->room_number),
             ]);
 
-            // Enforce room active and not in maintenance
             if ($room->status === 'maintenance' || !$room->is_active) {
                 return response()->json([
                     'success' => false,
@@ -169,7 +116,6 @@ class ReservationPaymentController extends Controller
                 ], 422);
             }
 
-            // Enforce room capacity
             $capacity = $room->roomType?->capacity ?? 2;
             if ((int)$validated['number_of_guests'] > $capacity) {
                 return response()->json([
@@ -178,7 +124,6 @@ class ReservationPaymentController extends Controller
                 ], 422);
             }
 
-            // Enforce date overlap availability strictly within this hotel
             $hasConflict = Reservation::where('hotel_id', $room->hotel_id)
                 ->where('room_id', $room->id)
                 ->whereNotIn('status', ['cancelled', 'checked_out'])
@@ -195,7 +140,6 @@ class ReservationPaymentController extends Controller
                 ], 422);
             }
 
-            // Get or create guest details
             if (!empty($validated['guest_id'])) {
                 Log::info('Looking up guest', ['guest_id' => $validated['guest_id']]);
                 $guest = Guest::withoutTenant()->findOrFail($validated['guest_id']);
@@ -219,7 +163,6 @@ class ReservationPaymentController extends Controller
             $validated['guest_id'] = $guest->id;
             Log::info('Guest Found or Created', ['guest_id' => $guest->id]);
 
-            // Calculate reservation price
             Log::info('Calculating price');
             $priceBreakdown = $this->calculateReservationPrice(
                 $room,
@@ -231,7 +174,6 @@ class ReservationPaymentController extends Controller
             );
             Log::info('Price Calculated', ['breakdown' => $priceBreakdown]);
             
-            // Prepare metadata with hotel_id
             $metadata = [
                 'type'             => 'reservation',
                 'hotel_id'         => $room->hotel_id,
@@ -246,7 +188,6 @@ class ReservationPaymentController extends Controller
                 'price_breakdown'  => $priceBreakdown,
             ];
 
-            // Create payment record with hotel_id
             Log::info('Creating payment record');
             $payment = $this->paymentService->createReservationPayment([
                 'hotel_id'   => $room->hotel_id,
@@ -260,9 +201,6 @@ class ReservationPaymentController extends Controller
             ]);
             Log::info('Payment Record Created', ['payment_id' => $payment->id]);
 
-            // Build description safely
-            // Chapa allows only: letters, numbers, hyphens, underscores, spaces, and dots
-            // Remove parentheses and other special characters
             $roomNumber = $room->room_number ?? 'N/A';
             $rawDescription = sprintf(
                 '%s - %s - Room %s',
@@ -271,21 +209,18 @@ class ReservationPaymentController extends Controller
                 $roomNumber
             );
             
-            // Sanitize description - remove any characters not allowed by Chapa
             $description = preg_replace('/[^a-zA-Z0-9\-_\s\.]/', '', $rawDescription);
             Log::info('Payment Description', [
                 'raw' => $rawDescription,
                 'sanitized' => $description,
             ]);
 
-            // Initialize payment with Chapa
             Log::info('Calling Chapa Initialize', [
                 'amount' => $payment->amount,
                 'email' => $payment->email,
                 'tx_ref' => $payment->tx_ref,
             ]);
             
-            // Build return URL with tx_ref parameter so Chapa passes it back
             $returnUrl = config('chapa.return_url') . '?tx_ref=' . urlencode($payment->tx_ref);
             
             $chapaResponse = $this->chapaService->initialize([
@@ -306,7 +241,6 @@ class ReservationPaymentController extends Controller
                 'success' => $chapaResponse['success'] ?? false,
             ]);
 
-            // Handle initialization failure
             if (!($chapaResponse['success'] ?? false)) {
                 $errorMessage = $chapaResponse['message'] ?? 'Unknown error';
                 $errorDetails = $chapaResponse['errors'] ?? $chapaResponse;
@@ -335,7 +269,6 @@ class ReservationPaymentController extends Controller
                 ], 400);
             }
 
-            // Update payment with checkout URL
             Log::info('Extracting checkout URL');
             $checkoutUrl = $this->chapaService->getCheckoutUrl($chapaResponse);
             
@@ -366,7 +299,6 @@ class ReservationPaymentController extends Controller
                 'amount'      => $payment->amount,
             ]);
 
-            // Return response
             return response()->json([
                 'success'       => true,
                 'message'       => 'Payment initialized successfully',
@@ -423,24 +355,11 @@ class ReservationPaymentController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Complete Reservation After Payment
-     * ============================================================================
-     * Called after payment verification
-     * Creates the actual reservation record
-     * 
-     * Only called by PaymentController after payment is verified
-     * 
-     * @param string $txRef - Transaction reference
-     * @return JsonResponse
-     */
     public function completeReservation(string $txRef): JsonResponse
     {
         try {
-            Log::info('🔄 [COMPLETE] Starting reservation completion', ['tx_ref' => $txRef]);
+            Log::info(' [COMPLETE] Starting reservation completion', ['tx_ref' => $txRef]);
             
-            // Find payment
             $payment = Payment::where('tx_ref', $txRef)->firstOrFail();
 
             Log::info(' [COMPLETE] Payment found', [
@@ -449,7 +368,6 @@ class ReservationPaymentController extends Controller
                 'amount' => $payment->amount,
             ]);
 
-            // Verify payment is verified
             if (!$payment->isVerified()) {
                 Log::warning(' [COMPLETE] Payment not verified', [
                     'payment_id' => $payment->id,
@@ -462,7 +380,6 @@ class ReservationPaymentController extends Controller
                 ], 400);
             }
 
-            // Get metadata
             $metadata = $payment->metadata;
 
             if (!$metadata || !isset($metadata['room_id'])) {
@@ -478,14 +395,13 @@ class ReservationPaymentController extends Controller
                 ], 400);
             }
 
-            Log::info('📋 [COMPLETE] Creating reservation with data', [
+            Log::info(' [COMPLETE] Creating reservation with data', [
                 'guest_id' => $payment->guest_id,
                 'room_id' => $metadata['room_id'],
                 'check_in' => $metadata['check_in_date'],
                 'check_out' => $metadata['check_out_date'],
             ]);
 
-            // Create reservation
             $result = $this->paymentService->handleReservationPaymentSuccess(
                 $payment,
                 [
@@ -511,7 +427,6 @@ class ReservationPaymentController extends Controller
 
             $reservation = $result['reservation'];
             
-            // Load relationships
             $reservation->load(['guest', 'room']);
             
             Log::info(' [COMPLETE] Reservation Created Successfully', [
@@ -521,36 +436,22 @@ class ReservationPaymentController extends Controller
                 'total_amount'     => $reservation->total_amount,
             ]);
 
-            // Build comprehensive reservation data for frontend
             $reservationData = [
-                // Booking info
                 'id' => $reservation->id,
                 'booking_reference' => $reservation->booking_reference,
                 'status' => $reservation->status,
-                
-                // Dates
                 'check_in_date' => $reservation->check_in_date ? $reservation->check_in_date->toDateString() : null,
                 'check_out_date' => $reservation->check_out_date ? $reservation->check_out_date->toDateString() : null,
-                
-                // Guest info (for receipt) - Use payment data as source of truth
                 'first_name' => $payment->first_name,
                 'last_name' => $payment->last_name,
                 'email' => $payment->email,
                 'phone' => $payment->phone,
-                
-                // Room info
                 'room_id' => $reservation->room_id,
                 'room_number' => $reservation->room ? $reservation->room->room_number : 'TBD',
-                
-                // Booking details
                 'number_of_guests' => $reservation->number_of_guests,
                 'special_requests' => $reservation->special_requests,
-                
-                // Payment info - ⭐ CRITICAL for receipt
-                'total_amount' => (float) $reservation->total_amount, // ← THIS FIXES THE 0 ETB ISSUE!
+                'total_amount' => (float) $reservation->total_amount,
                 'currency' => 'ETB',
-                
-                // Timestamps
                 'created_at' => $reservation->created_at?->toIso8601String(),
                 'updated_at' => $reservation->updated_at?->toIso8601String(),
             ];
@@ -592,21 +493,6 @@ class ReservationPaymentController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Calculate Reservation Price
-     * ============================================================================
-     * Calculates total price for reservation based on room, dates, and services
-     * 
-     * @param Room $room
-     * @param string $checkInDate
-     * @param string $checkOutDate
-     * @param bool $includeBreakfast
-     * @param bool $includeDinner
-     * @param bool $includeSpa
-     * 
-     * @return array - Price breakdown
-     */
     private function calculateReservationPrice(
         Room $room,
         string $checkInDate,
@@ -615,7 +501,6 @@ class ReservationPaymentController extends Controller
         bool $includeDinner = false,
         bool $includeSpa = false
     ): array {
-        // Calculate number of nights
         $checkIn = new \DateTime($checkInDate);
         $checkOut = new \DateTime($checkOutDate);
         $numberOfNights = $checkOut->diff($checkIn)->days;
@@ -624,16 +509,13 @@ class ReservationPaymentController extends Controller
             $numberOfNights = 1;
         }
 
-        // Get room price (use room_type price if available)
         $pricePerNight = $room->roomType?->base_price_per_night ?? $room->price ?? 0;
 
-        // Calculate room subtotal
         $roomSubtotal = $pricePerNight * $numberOfNights;
 
-        // Calculate service charges (per night)
-        $breakfastPerNight = 0;  // Breakfast is FREE
-        $dinnerPerNight = 45;    // 45 ETB per night
-        $spaPerNight = 35;       // 35 ETB per night
+        $breakfastPerNight = 0;
+        $dinnerPerNight = 45;
+        $spaPerNight = 35;
 
         $servicesTotal = 0;
         $servicesBreakdown = [];
@@ -668,13 +550,8 @@ class ReservationPaymentController extends Controller
             ];
         }
 
-        // Calculate subtotal (room + services)
         $subtotal = $roomSubtotal + $servicesTotal;
-        
-        // Calculate tax (15% on subtotal)
         $tax = $subtotal * 0.15;
-        
-        // Calculate total
         $total = $subtotal + $tax;
 
         return [
@@ -689,15 +566,6 @@ class ReservationPaymentController extends Controller
         ];
     }
 
-    /**
-     * ============================================================================
-     * Get Reservation by Payment
-     * ============================================================================
-     * Retrieve reservation linked to a payment
-     * 
-     * @param string $txRef - Transaction reference
-     * @return JsonResponse
-     */
     public function getReservationByPayment(string $txRef): JsonResponse
     {
         try {
@@ -729,7 +597,7 @@ class ReservationPaymentController extends Controller
             $guest = $reservation->guest;
             $room = $reservation->room;
 
-            Log::info('📋 [RECEIPT API] Reservation data retrieved', [
+            Log::info(' [RECEIPT API] Reservation data retrieved', [
                 'reservation_id' => $reservation->id,
                 'booking_reference' => $reservation->booking_reference,
                 'total_amount' => $reservation->total_amount,
@@ -737,36 +605,22 @@ class ReservationPaymentController extends Controller
                 'has_room' => !is_null($room),
             ]);
 
-            // Build comprehensive reservation data for frontend
             $reservationData = [
-                // Booking info
                 'id' => $reservation->id,
                 'booking_reference' => $reservation->booking_reference,
                 'status' => $reservation->status,
-                
-                // Dates
                 'check_in_date' => $reservation->check_in_date ? $reservation->check_in_date->toDateString() : null,
                 'check_out_date' => $reservation->check_out_date ? $reservation->check_out_date->toDateString() : null,
-                
-                // Guest info (for receipt)
-                'first_name' => $payment->first_name, // Use payment data (always has it)
+                'first_name' => $payment->first_name,
                 'last_name' => $payment->last_name,
                 'email' => $payment->email,
                 'phone' => $payment->phone,
-                
-                // Room info
                 'room_id' => $reservation->room_id,
                 'room_number' => $room ? $room->room_number : 'TBD',
-                
-                // Booking details
                 'number_of_guests' => $reservation->number_of_guests,
                 'special_requests' => $reservation->special_requests,
-                
-                // Payment info - ⭐ CRITICAL for receipt
-                'total_amount' => (float) $reservation->total_amount, // ← THIS FIXES THE 0 ETB ISSUE!
+                'total_amount' => (float) $reservation->total_amount,
                 'currency' => 'ETB',
-                
-                // Timestamps
                 'created_at' => $reservation->created_at?->toIso8601String(),
                 'updated_at' => $reservation->updated_at?->toIso8601String(),
             ];

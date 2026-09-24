@@ -40,9 +40,6 @@ class UserPermission extends Model
         return $this->belongsTo(User::class, 'granted_by');
     }
 
-    /**
-     * Scope to filter active direct permissions.
-     */
     public function scopeActive($query)
     {
         $now = now();

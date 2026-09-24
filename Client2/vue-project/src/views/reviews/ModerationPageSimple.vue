@@ -2,8 +2,8 @@
   <DashboardLayout>
     <template #header>
       <div class="mb-6">
-        <h1 class="text-3xl font-bold text-slate-900 mb-2">Review Moderation</h1>
-        <p class="text-slate-600">Review and approve pending guest reviews ({{ pendingReviews.length }} pending)</p>
+        <h1 class="text-3xl font-bold text-slate-900 mb-2">{{ languageStore.t('review_moderation_dashboard', 'Review Moderation') }}</h1>
+        <p class="text-slate-600">{{ languageStore.t('review_moderation_subtitle', 'Review and approve pending guest reviews') }} ({{ pendingReviews.length }} {{ languageStore.t('pending', 'pending') }})</p>
       </div>
     </template>
 
@@ -39,7 +39,7 @@
             </div>
             <span class="px-3 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold whitespace-nowrap ml-4 flex items-center gap-2">
               <Clock :size="16" />
-              {{ review.status || 'pending' }}
+              {{ languageStore.t(review.status || 'pending', review.status || 'pending') }}
             </span>
           </div>
 
@@ -48,7 +48,7 @@
             <div class="flex gap-0.5">
               <Star v-for="i in 5" :key="i" :size="20" :class="i <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'" />
             </div>
-            <span class="text-sm font-semibold text-slate-700">{{ review.rating }}/5 Rating</span>
+            <span class="text-sm font-semibold text-slate-700">{{ review.rating }}/5 {{ languageStore.t('rating', 'Rating') }}</span>
           </div>
 
           <!-- Review Text -->
@@ -64,20 +64,20 @@
             <button
               @click="handleApproveReview(review.id)"
               :disabled="approving === review.id"
-              class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors"
+              class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors cursor-pointer"
             >
               <CheckCircle v-if="approving !== review.id" :size="18" />
               <Loader v-else :size="18" class="animate-spin" />
-              {{ approving === review.id ? 'Approving...' : 'Approve' }}
+              {{ approving === review.id ? languageStore.t('approving', 'Approving...') : languageStore.t('approve', 'Approve') }}
             </button>
             <button
               @click="handleRejectReview(review.id)"
               :disabled="rejecting === review.id"
-              class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors"
+              class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors cursor-pointer"
             >
               <XCircle v-if="rejecting !== review.id" :size="18" />
               <Loader v-else :size="18" class="animate-spin" />
-              {{ rejecting === review.id ? 'Rejecting...' : 'Reject' }}
+              {{ rejecting === review.id ? languageStore.t('rejecting', 'Rejecting...') : languageStore.t('reject', 'Reject') }}
             </button>
           </div>
         </div>
@@ -87,14 +87,14 @@
       <div v-else class="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
         <div class="text-center py-16">
           <CheckCircle :size="64" class="mx-auto text-green-500 mb-4 opacity-50" />
-          <p class="text-slate-900 mb-2 text-2xl font-bold">No pending reviews to moderate!</p>
-          <p class="text-slate-600 mb-8 text-lg">All reviews have been processed successfully.</p>
+          <p class="text-slate-900 mb-2 text-2xl font-bold">{{ languageStore.t('no_pending_reviews', 'No pending reviews to moderate!') }}</p>
+          <p class="text-slate-600 mb-8 text-lg">{{ languageStore.t('all_reviews_processed', 'All reviews have been processed successfully.') }}</p>
           <router-link
             to="/reviews/analytics"
             class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
           >
             <BarChart3 :size="20" />
-            View Analytics
+            {{ languageStore.t('view_analytics', 'View Analytics') }}
           </router-link>
         </div>
       </div>
@@ -106,6 +106,7 @@
 import { ref, onMounted } from 'vue'
 import { useReviewStore } from '@/stores/reviewStore'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import { useLanguageStore } from '@/stores/language'
 import {
   Star,
   Clock,
@@ -120,6 +121,7 @@ import {
 } from 'lucide-vue-next'
 
 const reviewStore = useReviewStore()
+const languageStore = useLanguageStore()
 const loading = ref(false)
 const approving = ref<string | null>(null)
 const rejecting = ref<string | null>(null)

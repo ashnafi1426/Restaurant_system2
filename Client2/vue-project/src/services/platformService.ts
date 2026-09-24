@@ -69,7 +69,7 @@ export interface CreateHotelPayload {
   logo?: string
   timezone?: string
   currency?: string
-  status?: 'active' | 'inactive' | 'suspended'
+  status?: 'active' | 'inactive' | 'suspended' | 'archived'
   admin_user_id?: string
   admin_email?: string
   admin_first_name?: string

@@ -1,6 +1,5 @@
 <template>
   <div class="manager-analytics-widget bg-white rounded-lg shadow p-6">
-    <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
         <h3 class="text-lg font-bold text-gray-900"> Review Analytics</h3>
@@ -14,9 +13,7 @@
       </router-link>
     </div>
 
-    <!-- Stats Grid -->
     <div class="grid grid-cols-2 gap-4 mb-6">
-      <!-- Overall Rating -->
       <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-lg border border-yellow-200">
         <p class="text-xs text-gray-600 mb-2">Overall Rating</p>
         <div class="flex items-end gap-2">
@@ -26,7 +23,6 @@
         <p class="text-xs text-gray-600 mt-2">{{ totalReviews }} reviews</p>
       </div>
 
-      <!-- Top Item -->
       <div class="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
         <p class="text-xs text-gray-600 mb-2">Top Rated Item</p>
         <p class="text-sm font-semibold text-gray-900 truncate">{{ topItem?.name || 'N/A' }}</p>
@@ -36,14 +32,12 @@
         </div>
       </div>
 
-      <!-- Response Rate -->
       <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
         <p class="text-xs text-gray-600 mb-2">Response Rate</p>
         <p class="text-3xl font-bold text-blue-600">{{ responseRate }}%</p>
         <p class="text-xs text-gray-600 mt-2">Responded reviews</p>
       </div>
 
-      <!-- Lowest Item -->
       <div class="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg border border-red-200">
         <p class="text-xs text-gray-600 mb-2">Needs Attention</p>
         <p class="text-sm font-semibold text-gray-900 truncate">{{ lowestItem?.name || 'N/A' }}</p>
@@ -54,7 +48,6 @@
       </div>
     </div>
 
-    <!-- Trends Chart -->
     <div class="border-t pt-4">
       <div class="flex items-center justify-between mb-3">
         <p class="text-sm font-semibold text-gray-900">Review Trends</p>
@@ -64,7 +57,7 @@
             :key="period"
             @click="selectedPeriod = period as any"
             :class="[
-              'px-2 py-1 text-xs font-semibold rounded transition-colors',
+              'px-2 py-1 text-xs font-semibold rounded-transition-colors',
               selectedPeriod === period
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -75,7 +68,6 @@
         </div>
       </div>
 
-      <!-- Simple Trend Chart -->
       <div v-if="trends.length > 0" class="space-y-2">
         <div v-for="(trend, index) in trends.slice(0, 5)" :key="index" class="flex items-center gap-2">
           <span class="text-xs w-12 text-gray-600">{{ trend.date }}</span>
@@ -94,7 +86,6 @@
       </div>
     </div>
 
-    <!-- Action Buttons -->
     <div class="flex gap-2 mt-6 pt-6 border-t">
       <router-link
         to="/reviews/analytics"
@@ -141,17 +132,15 @@ const loadData = async () => {
     lowestItems.value = lowest
     trends.value = trendData
 
-    // Calculate totals
     totalReviews.value = top.reduce((sum, item) => sum + item.review_count, 0)
     if (top.length > 0) {
       const avgSum = top.reduce((sum, item) => sum + item.average_rating, 0)
       overallRating.value = (avgSum / top.length).toFixed(1)
     }
 
-    // Estimate response rate
-    responseRate.value = Math.floor(Math.random() * 40) + 60 // 60-100%
+    responseRate.value = Math.floor(Math.random() * 40) + 60
   } catch (error) {
-    console.error('Failed to load analytics data:', error)
+    console.error('[ManagerAnalyticsWidget] Error loading analytics data:', error)
   }
 }
 
@@ -161,7 +150,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.manager-analytics-widget {
-  /* Widget styles */
-}
 </style>

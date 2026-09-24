@@ -66,7 +66,6 @@ class KitchenService
         
         $results = $query->latest('order_time')->get();
 
-        // Self-heal: If any order in the active hotel has null hotel_id, backfill it
         if ($hotelId) {
             foreach ($results as $order) {
                 if (empty($order->hotel_id)) {
@@ -75,7 +74,7 @@ class KitchenService
             }
         }
         
-        Log::info("📋 [KITCHEN SERVICE] Orders Query", [
+        Log::info(" [KITCHEN SERVICE] Orders Query", [
             'status' => $status,
             'hotel_id' => $hotelId,
             'user_role' => $authUser->role ?? 'no-auth',
@@ -93,7 +92,6 @@ class KitchenService
             'reservation',
             'orderItems',
             'orderItems.menuItem',
-            //  REMOVED: 'chef' relationship doesn't exist
         ]);
     }
     protected function validateStatusTransition(
@@ -116,7 +114,6 @@ class KitchenService
             'current_status' => $order->status,
         ]);
 
-        // If already preparing, just return it
         if ($order->status === Order::STATUS_PREPARING) {
             return $this->loadOrderRelations($order);
         }
@@ -151,30 +148,25 @@ class KitchenService
         if (!in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PREPARING])) {
             throw new \Exception("Order must be 'pending' or 'preparing' before marking ready.");
         }
-        // STEP 2: Update order status to READY
         $order->update(['status' => Order::STATUS_READY]);
         Log::info('Order Status Updated', [
             'order_id' => $order->id,
             'new_status' => $order->status,
         ]);
 
-        // STEP 3: Load order with relationships
         $order = $this->loadOrderRelations($order->fresh());
 
-        // STEP 4: DISPATCH EVENT - Listener will handle waiter assignment
         \App\Events\OrderReadyEvent::dispatch($order);
         Log::info('Order Ready Event Dispatched', [
             'order_id' => $order->id,
         ]);
 
-        // STEP 5: Notify chef that order is ready
         $this->notifyChefs(
             'order',
             'Order Ready for Pickup',
             "Order #{$order->order_number} is ready - waiter will pick it up"
         );
 
-        // STEP 6: Return updated order
         $freshOrder = $this->loadOrderRelations($order->fresh());
         Log::info('Order Ready Completed', [
             'order_id' => $freshOrder->id,
@@ -194,13 +186,11 @@ class KitchenService
             Order::STATUS_READY
         );
 
-        // Update order status first
         $order->update([
             'status' => Order::STATUS_SERVED,
             'served_at' => now(),
         ]);
 
-        // Refresh the order with new status
         $order->refresh();
 
         Log::info('Order Served Status Updated', [
@@ -208,18 +198,15 @@ class KitchenService
             'new_status' => $order->status,
         ]);
 
-        // Notify chef that order is served
         $this->notifyChefs(
             'order',
             'Order Completed',
             "Order #{$order->order_number} has been served"
         );
 
-        // Create restaurant charge (this method has its own transaction)
         try {
             $this->restaurantChargeService->createFromOrder($order);
         } catch (\Exception $e) {
-            // Log the error but don't fail the served status update
             Log::warning("Restaurant Charge Creation Failed: {$e->getMessage()}", [
                 'order_id' => $order->id,
             ]);

@@ -28,7 +28,7 @@ class HousekeepingTask extends Model
         'completed_time' => 'datetime',
     ];
 
-    protected $keyType = 'string'; // For UUID
+    protected $keyType = 'string';
     public $incrementing = false;
 
     public function room()

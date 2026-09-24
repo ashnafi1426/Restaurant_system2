@@ -14,14 +14,8 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     */
     public function __construct(protected orderService $orderService) {}
 
-    /**
-     * Display a listing of orders.
-     */
     public function index(Request $request): OrderCollection
     {
         $filters = $request->only(['search', 'status', 'payment_type', 'date_from', 'date_to']);
@@ -34,10 +28,10 @@ class OrderController extends Controller
             'statistics' => $statistics,
         ]);
     }
+
     public function store(
         StoreOrderRequest $request
     ): JsonResponse {
-
         $order = $this->orderService->create(
             $request->validated()
         );
@@ -49,9 +43,6 @@ class OrderController extends Controller
         ], 201);
     }
 
-    /**
-     * Display the specified order.
-     */
     public function show(string $id): OrderResource
     {
         $order = $this->orderService->show($id);
@@ -59,14 +50,10 @@ class OrderController extends Controller
         return new OrderResource($order);
     }
 
-    /**
-     * Update the specified order.
-     */
     public function update(
         UpdateOrderRequest $request,
         string $id
     ): JsonResponse {
-
         $order = $this->orderService->update(
             $id,
             $request->validated()
@@ -79,9 +66,6 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * Cancel an order.
-     */
     public function destroy(string $id): JsonResponse
     {
         $this->orderService->cancel($id);
@@ -92,14 +76,10 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * Change order status.
-     */
     public function changeStatus(
         Request $request,
         string $id
     ): JsonResponse {
-
         $request->validate([
             'status' => [
                 'required',

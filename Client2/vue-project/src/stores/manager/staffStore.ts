@@ -4,21 +4,9 @@ import managerService from '@/services/managerService'
 import type { StaffSummary } from '@/types/manager'
 
 export const useManagerStaffStore = defineStore('managerStaff', () => {
-  /*
-  |--------------------------------------------------------------------------
-  | STATE
-  |--------------------------------------------------------------------------
-  */
-
   const staff = ref<StaffSummary[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
-
-  /*
-  |--------------------------------------------------------------------------
-  | COMPUTED
-  |--------------------------------------------------------------------------
-  */
 
   const availableStaffCount = computed(
     () => staff.value.filter((employee) => employee.status === 'active').length,
@@ -30,18 +18,13 @@ export const useManagerStaffStore = defineStore('managerStaff', () => {
     inactive: staff.value.filter((s) => s.status === 'inactive').length,
   }))
 
-  /*
-  |--------------------------------------------------------------------------
-  | ACTIONS
-  |--------------------------------------------------------------------------
-  */
-
   async function load() {
     try {
       loading.value = true
       error.value = null
       staff.value = await managerService.getStaff()
     } catch (err: any) {
+      console.error('[manager/staffStore] Failed to load staff:', err)
       error.value = err.message
     } finally {
       loading.value = false

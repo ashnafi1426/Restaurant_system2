@@ -15,7 +15,7 @@
           @focus="showSuggestions = true"
           @blur="handleBlur"
           type="text"
-          :placeholder="placeholder"
+          :placeholder="props.placeholder && props.placeholder !== 'Search delicious meals, drinks, and desserts...' ? props.placeholder : languageStore.t('search_placeholder', 'Search delicious meals, drinks, and desserts...')"
           class="w-full pl-11 pr-10 py-2.5 bg-transparent outline-none text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium"
         />
 
@@ -53,7 +53,7 @@
                 </p>
               </div>
               <span class="text-xs font-black text-[#c29353]">
-                ETB {{ (item.price || 0).toLocaleString() }}
+                ETB {{ ((item.total_price != null ? item.total_price : item.price) || 0).toLocaleString() }}
               </span>
             </button>
           </div>
@@ -65,7 +65,7 @@
           >
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
               <Clock class="w-3.5 h-3.5 text-[#c29353]" />
-              Recent Searches
+              {{ languageStore.t('recent_searches', 'Recent Searches') }}
             </p>
             <div class="flex flex-wrap gap-2">
               <button
@@ -87,6 +87,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Search, X, Clock } from 'lucide-vue-next'
+import { useLanguageStore } from '@/stores/language'
 
 interface Props {
   placeholder?: string
@@ -97,6 +98,8 @@ const props = withDefaults(defineProps<Props>(), {
   placeholder: 'Search delicious meals, drinks, and desserts...',
   menuItems: () => [],
 })
+
+const languageStore = useLanguageStore()
 
 const searchQuery = ref('')
 const showSuggestions = ref(false)

@@ -1,12 +1,11 @@
 <template>
   <div class="review-submission-form">
     <div class="form-header mb-4">
-      <h3 class="text-xl font-bold">Submit Your Review</h3>
-      <p class="text-gray-600 text-sm mt-1">Share your experience with other guests</p>
+      <h3 class="text-xl font-bold">{{ languageStore.t('submit_your_review', 'Submit Your Review') }}</h3>
+      <p class="text-gray-600 text-sm mt-1">{{ languageStore.t('share_experience_desc', 'Share your experience with other guests') }}</p>
     </div>
 
     <form @submit.prevent="submitReview" class="space-y-4">
-      <!-- Menu Item Display -->
       <div v-if="menuItem" class="bg-gray-50 p-4 rounded-lg mb-4">
         <div class="flex items-center gap-3">
           <img 
@@ -23,60 +22,56 @@
         </div>
       </div>
 
-      <!-- Rating -->
       <div class="form-group">
-        <label class="block text-sm font-semibold mb-2">Rating *</label>
+        <label class="block text-sm font-semibold mb-2">{{ languageStore.t('rating', 'Rating') }} *</label>
         <div class="flex gap-2">
           <button
             v-for="star in 5"
             :key="star"
             type="button"
             @click="form.rating = star"
-            class="text-3xl transition-colors"
+            class="text-3xl transition-colors cursor-pointer"
             :class="star <= form.rating ? 'text-yellow-400' : 'text-gray-300'"
           >
             ★
           </button>
         </div>
-        <span v-if="form.rating" class="text-sm text-gray-600 ml-2">{{ form.rating }} out of 5</span>
+        <span v-if="form.rating" class="text-sm text-gray-600 ml-2">{{ form.rating }} {{ languageStore.t('out_of_5', 'out of 5') }}</span>
       </div>
 
-      <!-- Review Text -->
       <div class="form-group">
-        <label for="reviewText" class="block text-sm font-semibold mb-2">Your Review</label>
+        <label for="reviewText" class="block text-sm font-semibold mb-2">{{ languageStore.t('your_review', 'Your Review') }}</label>
         <textarea
           id="reviewText"
           v-model="form.review_text"
-          placeholder="Share your thoughts about this menu item... (optional)"
+          :placeholder="languageStore.t('review_placeholder', 'Share your thoughts about this menu item... (optional)')"
           rows="4"
           maxlength="1000"
           class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <div class="text-xs text-gray-500 mt-1">
-          {{ form.review_text?.length || 0 }} / 1000 characters
+          {{ form.review_text?.length || 0 }} / 1000 {{ languageStore.t('characters', 'characters') }}
         </div>
       </div>
 
-      <!-- Actions -->
       <div class="flex gap-2 pt-4">
         <button
           type="submit"
           :disabled="!form.rating || loading"
-          class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+          class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer"
         >
-          <span v-if="!loading">Submit Review</span>
-          <span v-else>Submitting...</span>
+          <span v-if="!loading">{{ languageStore.t('submit_review', 'Submit Review') }}</span>
+          <span v-else>{{ languageStore.t('submitting', 'Submitting...') }}</span>
         </button>
         <button
           type="button"
           @click="$emit('cancel')"
-          class="px-4 py-2 border border-gray-300 hover:bg-gray-50 font-semibold rounded-lg transition-colors"
+          class="px-4 py-2 border border-gray-300 hover:bg-gray-50 font-semibold rounded-lg transition-colors cursor-pointer"
         >
-          Cancel
+          {{ languageStore.t('cancel', 'Cancel') }}
         </button>
       </div>
 
-      <!-- Error Message -->
       <div v-if="errorMessage" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
         {{ errorMessage }}
       </div>
@@ -89,6 +84,7 @@ import { ref, watch } from 'vue'
 import reviewService from '@/services/reviewService'
 import { MenuItem } from '@/types/menu'
 import { CreateReviewRequest } from '@/types/review'
+import { useLanguageStore } from '@/stores/language'
 
 interface Props {
   menuItem?: MenuItem
@@ -105,6 +101,7 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+const languageStore = useLanguageStore()
 
 const form = ref<CreateReviewRequest>({
   guest_id: props.guestId,
@@ -134,6 +131,7 @@ const submitReview = async () => {
     const result = await reviewService.createReview(form.value)
     emit('success', result)
   } catch (error: any) {
+    console.error('[ReviewSubmissionForm] Failed to submit review:', error)
     errorMessage.value = error.response?.data?.message || 'Failed to submit review'
     emit('error', errorMessage.value)
   } finally {
@@ -142,7 +140,6 @@ const submitReview = async () => {
 }
 
 watch(() => props.menuItem, (newVal) => {
-  // Update when menu item changes
 }, { deep: true })
 </script>
 

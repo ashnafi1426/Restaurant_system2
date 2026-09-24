@@ -22,7 +22,6 @@ class ChapaService
     public function initialize(array $data): array
     {
         try {
-            // Ensure title doesn't exceed 16 characters (Chapa limitation)
             $title = $data['title'] ?? 'Hotel Payment';
             if (strlen($title) > 16) {
                 $title = substr($title, 0, 16);
@@ -31,9 +30,7 @@ class ChapaService
                     'truncated' => $title,
                 ]);
             }
-            
-            // Ensure all required fields are present and properly formatted
-            $payload = [
+              $payload = [
                 'amount'       => (int)$data['amount'],
                 'currency'     => $data['currency'] ?? 'ETB',
                 'email'        => (string)$data['email'],
@@ -63,11 +60,9 @@ class ChapaService
                 'has_secret' => !empty($this->secretKey),
             ]);
 
-            // Build the request with SSL verification disabled for development
-            // In production, ensure proper SSL certificate is installed
             $response = Http::withToken($this->secretKey)
                 ->acceptJson()
-                ->withoutVerifying() // Disable SSL verification for development
+                ->withoutVerifying()
                 ->post("{$this->baseUrl}/transaction/initialize", $payload);
 
             Log::info('Chapa Raw Response', [
@@ -79,7 +74,6 @@ class ChapaService
             if ($response->successful()) {
                 $jsonResponse = $response->json();
                 
-                // Check if Chapa returned success status
                 if (isset($jsonResponse['status']) && $jsonResponse['status'] === 'success') {
                     Log::info('Chapa Initialize Success', [
                         'has_checkout_url' => isset($jsonResponse['data']['checkout_url']),
@@ -92,7 +86,6 @@ class ChapaService
                     ];
                 }
                 
-                // If successful HTTP status but not success status in response
                 Log::warning('Chapa HTTP 200 but status not success', [
                     'response_status' => $jsonResponse['status'] ?? null,
                     'message' => $jsonResponse['message'] ?? null,
@@ -105,7 +98,6 @@ class ChapaService
                 ];
             }
 
-            // Non-2xx response
             $jsonResponse = $response->json();
             Log::error('Chapa HTTP Error Response', [
                 'status' => $response->status(),
@@ -126,8 +118,6 @@ class ChapaService
                 'trace'   => $e->getTraceAsString(),
             ]);
 
-            // If running locally and external Chapa service cannot be reached (e.g. offline/DNS issue),
-            // provide a seamless development fallback so local development and testing flows work
             if (config('app.env') === 'local' && (str_contains($e->getMessage(), 'Could not resolve host') || str_contains($e->getMessage(), 'Connection refused') || str_contains($e->getMessage(), 'cURL error'))) {
                 Log::warning(' [CHAPA MOCK] External Chapa gateway unreachable in local environment. Generating local development mock checkout URL.');
                 $returnUrl = $data['return_url'] ?? (config('chapa.return_url') . '?tx_ref=' . urlencode($data['tx_ref']));
@@ -155,7 +145,7 @@ class ChapaService
 
             $response = Http::withToken($this->secretKey)
                 ->acceptJson()
-                ->withoutVerifying() // Disable SSL verification for development
+                ->withoutVerifying()
                 ->get($this->baseUrl . "/transaction/verify/{$txRef}");
 
             Log::info('Chapa Verify Response', [
@@ -220,14 +210,8 @@ class ChapaService
         }
     }
 
-    /**
-     * ---------------------------------------------------------
-     * Get Checkout URL
-     * ---------------------------------------------------------
-     */
     public function getCheckoutUrl(array $initializeResponse): ?string
     {
-        // Handle both possible response structures
         if (isset($initializeResponse['data']['checkout_url'])) {
             return $initializeResponse['data']['checkout_url'];
         }
@@ -239,11 +223,6 @@ class ChapaService
         return null;
     }
 
-    /**
-     * ---------------------------------------------------------
-     * Check Successful Payment
-     * ---------------------------------------------------------
-     */
     public function isSuccessful(array $verifyResponse): bool
     {
         return
@@ -255,11 +234,6 @@ class ChapaService
             $verifyResponse['data']['status'] === 'success';
     }
 
-    /**
-     * ---------------------------------------------------------
-     * Get Transaction ID
-     * ---------------------------------------------------------
-     */
     public function getTransactionId(array $verifyResponse): ?string
     {
         return
@@ -271,11 +245,6 @@ class ChapaService
             null;
     }
 
-    /**
-     * ---------------------------------------------------------
-     * Get Payment Method
-     * ---------------------------------------------------------
-     */
     public function getPaymentMethod(array $verifyResponse): ?string
     {
         return
@@ -287,11 +256,6 @@ class ChapaService
             null;
     }
 
-    /**
-     * ---------------------------------------------------------
-     * Get Paid Amount
-     * ---------------------------------------------------------
-     */
     public function getAmount(array $verifyResponse): ?float
     {
         return
@@ -303,11 +267,6 @@ class ChapaService
             null;
     }
 
-    /**
-     * ---------------------------------------------------------
-     * Get Currency
-     * ---------------------------------------------------------
-     */
     public function getCurrency(array $verifyResponse): ?string
     {
         return

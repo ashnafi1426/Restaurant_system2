@@ -16,19 +16,8 @@ import { useOrderStore } from '@/stores/orderStore'
 
 import type { Order, OrderFilters as OrderFilterType } from '@/types/order'
 
-/*
-|--------------------------------------------------------------------------
-| Router
-|--------------------------------------------------------------------------
-*/
-
 const router = useRouter()
 
-/*
-|--------------------------------------------------------------------------
-| Store
-|--------------------------------------------------------------------------
-*/
 
 const orderStore = useOrderStore()
 
@@ -52,12 +41,6 @@ const filters = ref<OrderFilterType>({
   page: 1,
   per_page: 15,
 })
-
-/*
-|--------------------------------------------------------------------------
-| Computed Properties with Default Values
-|--------------------------------------------------------------------------
-*/
 
 const currentPage = computed(() => orderStore.currentPage || 1)
 const lastPage = computed(() => orderStore.lastPage || 1)
@@ -159,7 +142,7 @@ function closeDialogs() {
 async function updateStatus(status: string) {
   if (!selectedOrder.value) return
 
-  await orderStore.updateStatus(selectedOrder.value.id, status)
+  await (orderStore.changeStatus as any)(selectedOrder.value.id, status)
 
   closeDialogs()
   loadOrders()

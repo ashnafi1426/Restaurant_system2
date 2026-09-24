@@ -13,12 +13,8 @@ export const useRoomStore = defineStore('rooms', {
       this.loading = true
       this.error = null
       try {
-        console.log(' [ROOM STORE] Fetching rooms with params:', params)
         const response = await roomService.getRooms(params)
-        console.log('📡 [ROOM STORE] Full API response:', response)
-        console.log('[ROOM STORE] response.data:', response.data)
 
-        // Handle string responses if backend output PHP notices before JSON
         let responseData = response.data
         if (typeof responseData === 'string') {
           const jsonStart = responseData.indexOf('{')
@@ -33,62 +29,23 @@ export const useRoomStore = defineStore('rooms', {
             try {
               responseData = JSON.parse(responseData.slice(startIdx))
             } catch (e) {
-              console.error(' [ROOM STORE] Failed to parse JSON from string response:', e)
+              console.error('[RoomStore] Error parsing JSON string:', e)
             }
           }
         }
 
-        // Handle paginated response from Laravel
         let roomsData = responseData
 
-        // Check if response is paginated (has 'data' key from pagination)
         if (responseData && responseData.data && Array.isArray(responseData.data)) {
-          console.log('📋 [ROOM STORE] Detected paginated response')
           roomsData = responseData.data
         }
-        // Check if response.data is directly the rooms array
         else if (Array.isArray(responseData)) {
-          console.log('📋 [ROOM STORE] Detected direct array response')
           roomsData = responseData
         }
 
-        console.log('[ROOM STORE] Final rooms data:', roomsData)
-        console.log(
-          ' [ROOM STORE] Number of rooms:',
-          Array.isArray(roomsData) ? roomsData.length : 'NOT AN ARRAY',
-        )
-
-        if (Array.isArray(roomsData) && roomsData.length > 0) {
-          console.log('[ROOM STORE] First room:', roomsData[0])
-          console.log('🆔 [ROOM STORE] First room ID:', roomsData[0].id)
-          console.log('📍 [ROOM STORE] First room number:', roomsData[0].room_number)
-          console.log('📍 [ROOM STORE] First room type:', roomsData[0].room_type)
-          console.log('📍 [ROOM STORE] First room type name:', roomsData[0].room_type?.name)
-
-          // Verify each room has required data
-          roomsData.forEach((room: any, index: number) => {
-            if (!room.room_number) {
-              console.warn(`[ROOM STORE] Room ${index} has no room_number!`, room)
-            }
-            if (!room.room_type) {
-              console.warn(
-                `[ROOM STORE] Room ${index} (${room.room_number}) has no room_type!`,
-                room,
-              )
-            } else {
-              console.log(
-                `✓ [ROOM STORE] Room ${index} (${room.room_number}) room_type:`,
-                room.room_type.name,
-              )
-            }
-          })
-        } else {
-          console.warn('[ROOM STORE] No rooms returned or not an array!')
-        }
-
         this.rooms = Array.isArray(roomsData) ? roomsData : []
-        console.log(' [ROOM STORE] Rooms assigned, current rooms:', this.rooms)
       } catch (error: any) {
+        console.error('[RoomStore] Error fetching rooms:', error)
         const statusCode = error.response?.status
         const message = error.response?.data?.message || error.message
 
@@ -101,7 +58,6 @@ export const useRoomStore = defineStore('rooms', {
         } else {
           this.error = ` Error fetching rooms: ${message}`
         }
-        console.error(' [ROOM STORE] Error fetching rooms:', error)
         this.rooms = []
         throw error
       } finally {
@@ -113,9 +69,7 @@ export const useRoomStore = defineStore('rooms', {
       this.loading = true
       this.error = null
       try {
-        console.log('[ROOM STORE] Searching rooms with term:', searchTerm)
         const response = await roomService.searchRooms(searchTerm, params)
-        console.log('📡 [ROOM STORE] Search response:', response)
 
         let responseData = response.data
         if (typeof responseData === 'string') {
@@ -131,7 +85,7 @@ export const useRoomStore = defineStore('rooms', {
             try {
               responseData = JSON.parse(responseData.slice(startIdx))
             } catch (e) {
-              console.error(' [ROOM STORE] Failed to parse JSON from search response:', e)
+              console.error('[RoomStore] Error parsing search JSON string:', e)
             }
           }
         }
@@ -139,15 +93,10 @@ export const useRoomStore = defineStore('rooms', {
         const rawData = responseData?.data || responseData
         const roomsData = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : [])
         this.rooms = roomsData
-        console.log(
-          '[ROOM STORE] Search found:',
-          Array.isArray(roomsData) ? roomsData.length : 0,
-          'rooms',
-        )
       } catch (error: any) {
+        console.error('[RoomStore] Error searching rooms:', error)
         const message = error.response?.data?.message || error.message
         this.error = ` Error searching rooms: ${message}`
-        console.error('[ROOM STORE] Error searching rooms:', error)
         this.rooms = []
         throw error
       } finally {
@@ -160,8 +109,8 @@ export const useRoomStore = defineStore('rooms', {
         await roomService.createRoom(room)
         await this.fetchRooms()
       } catch (error: any) {
+        console.error('[RoomStore] Error creating room:', error)
         this.error = 'Failed to create room'
-        console.error('Error creating room:', error)
         throw error
       }
     },
@@ -171,8 +120,8 @@ export const useRoomStore = defineStore('rooms', {
         await roomService.updateRoom(id, room)
         await this.fetchRooms()
       } catch (error: any) {
+        console.error('[RoomStore] Error updating room:', error)
         this.error = 'Failed to update room'
-        console.error('Error updating room:', error)
         throw error
       }
     },
@@ -182,8 +131,8 @@ export const useRoomStore = defineStore('rooms', {
         await roomService.deleteRoom(id)
         await this.fetchRooms()
       } catch (error: any) {
+        console.error('[RoomStore] Error deleting room:', error)
         this.error = 'Failed to delete room'
-        console.error('Error deleting room:', error)
         throw error
       }
     },

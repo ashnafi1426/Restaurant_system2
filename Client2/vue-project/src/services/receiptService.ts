@@ -18,29 +18,19 @@ export interface ReceiptData {
   special_requests?: string
 }
 
-/**
- * Generate and download receipt as PDF (Direct PDF generation - no html2canvas)
- */
 export async function generateAndDownloadReceipt(data: ReceiptData): Promise<void> {
   try {
-    console.log('📄 [RECEIPT] Generating receipt PDF...')
-    console.log('📦 [RECEIPT] Receipt data:', data)
-
-    // Create PDF
-    console.log('📝 [RECEIPT] Creating PDF document...')
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
     })
 
-    // Setup
     const pageWidth = pdf.internal.pageSize.getWidth()
     const margin = 15
     const contentWidth = pageWidth - 2 * margin
     let yPosition = margin
 
-    // Helper function to add text
     const addText = (text: string, size: number, bold: boolean = false, color: [number, number, number] = [0, 0, 0]) => {
       pdf.setFontSize(size)
       pdf.setFont('helvetica', bold ? 'bold' : 'normal')
@@ -51,7 +41,7 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
     }
 
     const addLine = () => {
-      pdf.setDrawColor(16, 185, 129) // Green color
+      pdf.setDrawColor(16, 185, 129)
       pdf.line(margin, yPosition, pageWidth - margin, yPosition)
       yPosition += 5
     }
@@ -64,7 +54,6 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
       yPosition += 7
     }
 
-    // --- HEADER ---
     pdf.setFontSize(24)
     pdf.setFont('helvetica', 'bold')
     pdf.setTextColor(16, 185, 129)
@@ -80,7 +69,6 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
     addLine()
     yPosition += 3
 
-    // --- HOTEL INFO ---
     addSection('HOTEL INFORMATION')
     addText('Royal Horizon Hotel', 11, true)
     addText('Addis Ababa, Ethiopia', 9)
@@ -88,7 +76,6 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
     addText('✉️ info@royalhorizon.com', 9)
     yPosition += 5
 
-    // --- GUEST INFO ---
     addSection('GUEST INFORMATION')
     addText(`Name: ${data.first_name || 'Guest'} ${data.last_name || ''}`, 9)
     addText(`Email: ${data.email || 'N/A'}`, 9)
@@ -96,7 +83,6 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
     addText(`Guests: ${data.number_of_guests || 1}`, 9)
     yPosition += 5
 
-    // --- BOOKING DETAILS ---
     addSection('BOOKING DETAILS')
     addText(`Reference: ${data.booking_reference || 'REF-' + (data.tx_ref?.substring(0, 8) || 'N/A').toUpperCase()}`, 9)
 
@@ -125,19 +111,17 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
     }
     yPosition += 5
 
-    // --- PAYMENT SUMMARY ---
     addSection('PAYMENT SUMMARY')
     addText(`Transaction Reference: ${data.tx_ref || 'N/A'}`, 9)
     yPosition += 3
 
     pdf.setFontSize(16)
     pdf.setFont('helvetica', 'bold')
-    pdf.setTextColor(217, 119, 6) // Orange
+    pdf.setTextColor(217, 119, 6)
     const amountText = `${data.total_amount || '0'} ${data.currency || 'ETB'}`
     pdf.text(`TOTAL AMOUNT PAID: ${amountText}`, pageWidth / 2, yPosition, { align: 'center' })
     yPosition += 12
 
-    // --- TERMS ---
     addSection('TERMS & CONDITIONS')
     pdf.setFontSize(8)
     pdf.setFont('helvetica', 'normal')
@@ -159,7 +143,6 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
 
     yPosition += 5
 
-    // --- FOOTER ---
     pdf.setFontSize(10)
     pdf.setFont('helvetica', 'bold')
     pdf.setTextColor(16, 185, 129)
@@ -181,18 +164,10 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
     })
     pdf.text(`Generated on ${now}`, pageWidth / 2, yPosition, { align: 'center' })
 
-    // Save the PDF
     const fileName = `Receipt_${data.booking_reference || data.tx_ref?.substring(0, 8) || 'Payment'}_${new Date().toISOString().split('T')[0]}.pdf`
-    console.log(`💾 [RECEIPT] Downloading receipt as ${fileName}...`)
     pdf.save(fileName)
-
-    console.log(' [RECEIPT] Receipt downloaded successfully!')
   } catch (error: any) {
-    console.error(' [RECEIPT] Error generating receipt:', error)
-    console.error(' [RECEIPT] Error details:', {
-      message: error.message,
-      stack: error.stack,
-    })
+    console.error('[ReceiptService] Error generating receipt:', error)
     throw new Error(`Failed to generate receipt: ${error.message}`)
   }
 }

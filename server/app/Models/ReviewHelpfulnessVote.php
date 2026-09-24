@@ -26,20 +26,8 @@ class ReviewHelpfulnessVote extends Model
         'created_at' => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Vote Type Constants
-    |--------------------------------------------------------------------------
-    */
-
     public const VOTE_HELPFUL = 'helpful';
     public const VOTE_NOT_HELPFUL = 'not_helpful';
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
 
     public function review()
     {

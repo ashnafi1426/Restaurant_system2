@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+  <div class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4 font-sans">
     <div class="w-full max-w-md">
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
         <!-- Header -->
@@ -10,10 +10,10 @@
             </svg>
           </div>
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Forgot Password?
+            {{ languageStore.t('forgot_password_title', 'Forgot Password?') }}
           </h1>
           <p class="text-gray-600 dark:text-gray-400 text-sm">
-            No worries! Enter your email and we'll send you reset instructions.
+            {{ languageStore.t('forgot_password_desc', "No worries! Enter your email and we'll send you reset instructions.") }}
           </p>
         </div>
 
@@ -25,13 +25,13 @@
             </svg>
             <div class="flex-1">
               <h3 class="text-sm font-semibold text-green-800 dark:text-green-200 mb-1">
-                Email Sent!
+                {{ languageStore.t('email_sent_title', 'Email Sent!') }}
               </h3>
               <p class="text-sm text-green-700 dark:text-green-300">
                 {{ successMessage }}
               </p>
               <p class="text-xs text-green-600 dark:text-green-400 mt-2">
-                Check your spam folder if you don't see it in a few minutes.
+                {{ languageStore.t('check_spam_folder', "Check your spam folder if you don't see it in a few minutes.") }}
               </p>
             </div>
           </div>
@@ -59,7 +59,7 @@
             </svg>
             <div class="flex-1">
               <h3 class="text-sm font-semibold text-yellow-800 dark:text-yellow-200 mb-1">
-                Account Not Activated
+                {{ languageStore.t('account_not_activated', 'Account Not Activated') }}
               </h3>
               <p class="text-sm text-yellow-700 dark:text-yellow-300">
                 {{ errorMessage }}
@@ -73,14 +73,14 @@
           <!-- Email Input -->
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Email Address
+              {{ languageStore.t('email', 'Email Address') }}
             </label>
             <input
               id="email"
               v-model="email"
               type="email"
               required
-              placeholder="Enter your email"
+              :placeholder="languageStore.t('enter_email', 'Enter your email')"
               class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-colors"
               :disabled="sending"
             />
@@ -90,16 +90,16 @@
           <button
             type="submit"
             :disabled="sending || !email"
-            class="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
+            class="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 cursor-pointer"
           >
             <span v-if="sending" class="flex items-center justify-center">
               <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Sending...
+              {{ languageStore.t('sending', 'Sending...') }}
             </span>
-            <span v-else>Send Reset Link</span>
+            <span v-else>{{ languageStore.t('send_reset_link', 'Send Reset Link') }}</span>
           </button>
         </form>
 
@@ -112,16 +112,16 @@
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Back to Login
+            {{ languageStore.t('back_to_login', 'Back to Login') }}
           </router-link>
         </div>
 
         <!-- Help Text -->
         <div class="mt-8 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
           <p class="text-xs text-gray-600 dark:text-gray-400 text-center">
-            <strong>Need help?</strong> Contact support at 
-            <a href="mailto:support@executivehorizon.com" class="text-purple-600 dark:text-purple-400 hover:underline">
-              support@executivehorizon.com
+            <strong>{{ languageStore.t('need_help', 'Need help?') }}</strong> Contact support at 
+            <a href="mailto:support@grandhorizon.com" class="text-purple-600 dark:text-purple-400 hover:underline">
+              support@grandhorizon.com
             </a>
           </p>
         </div>
@@ -133,8 +133,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { usePasswordResetStore } from '../stores/passwordResetStore'
+import { useLanguageStore } from '@/stores/language'
 
 const passwordResetStore = usePasswordResetStore()
+const languageStore = useLanguageStore()
 
 const email = ref('')
 const successMessage = ref('')

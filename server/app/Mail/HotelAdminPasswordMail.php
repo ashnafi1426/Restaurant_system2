@@ -17,9 +17,6 @@ class HotelAdminPasswordMail extends Mailable
     public ?Hotel $hotel;
     public bool $isResend;
 
-    /**
-     * Create a new message instance.
-     */
     public function __construct(User $user, string $temporaryPassword, ?Hotel $hotel = null, bool $isResend = false)
     {
         $this->user = $user;
@@ -28,9 +25,6 @@ class HotelAdminPasswordMail extends Mailable
         $this->isResend = $isResend;
     }
 
-    /**
-     * Build the message.
-     */
     public function build()
     {
         $hotelName = $this->hotel?->name ?? 'Hotel Management System';

@@ -60,14 +60,12 @@
   background-color: #1a1a1a;
   color: white;
   padding: 3rem 1rem 1.5rem;
-  /* Mobile base */
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
 }
-
 .footer-content {
   display: grid;
   grid-template-columns: 1fr;
@@ -77,7 +75,6 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Small mobile (sm:640px) */
 @media (min-width: 640px) {
   .footer {
     padding: 4rem 1.5rem 2rem;
@@ -91,7 +88,6 @@
   }
 }
 
-/* Tablet (md:768px) */
 @media (min-width: 768px) {
   .footer {
     padding: 5rem 2rem 2.5rem;
@@ -105,7 +101,6 @@
   }
 }
 
-/* Desktop (lg:1024px) */
 @media (min-width: 1024px) {
   .footer {
     padding: 6rem 2.5rem 3rem;

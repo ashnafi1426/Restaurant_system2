@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useManagerOperationsStore } from '@/stores/manager/operationsStore'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
 import RestaurantMonitor from '@/components/manager/RestaurantMonitor.vue'
 import RoomServiceMonitor from '@/components/manager/RoomServiceMonitor.vue'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
@@ -19,9 +21,12 @@ import {
   Maximize2,
   Minimize2,
   RotateCcw,
+  Building2,
 } from 'lucide-vue-next'
 
 const operationsStore = useManagerOperationsStore()
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
@@ -48,6 +53,10 @@ const refreshData = async () => {
 onMounted(async () => {
   await operationsStore.initialize()
 })
+
+watch(() => hotelStore.hotelId, async () => {
+  await operationsStore.initialize()
+})
 </script>
 
 <template>
@@ -63,15 +72,21 @@ onMounted(async () => {
             <Activity class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Daily Operations</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Real-time live monitoring of dining rooms, kitchen queues, and room service deliveries.</p>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{{ languageStore.t('daily_operations', 'Daily Operations') }}</h1>
+              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+                <Building2 class="w-3 h-3" />
+                {{ hotelStore.hotelName }}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('live_monitoring_subtitle', 'Real-time live monitoring of dining rooms, kitchen queues, and room service deliveries.') }}</p>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
           <div class="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs sm:text-sm flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Live System Active</span>
+            <span>{{ languageStore.t('live_system_active', 'Live System Active') }}</span>
           </div>
         </div>
       </div>
@@ -81,7 +96,7 @@ onMounted(async () => {
         <!-- Pending Orders -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Orders</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('pending_orders', 'Pending Orders') }}</p>
             <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ operationsStore.pendingOrders?.length || 0 }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
@@ -92,7 +107,7 @@ onMounted(async () => {
         <!-- Preparing Orders -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kitchen Prep</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('kitchen_prep', 'Kitchen Prep') }}</p>
             <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ operationsStore.preparingOrders?.length || 0 }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
@@ -103,7 +118,7 @@ onMounted(async () => {
         <!-- Active Deliveries -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Deliveries</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('active_deliveries', 'Active Deliveries') }}</p>
             <h3 class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">{{ operationsStore.activeDeliveries?.length || 0 }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -114,7 +129,7 @@ onMounted(async () => {
         <!-- Pending Laundry -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Laundry</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('pending_laundry', 'Pending Laundry') }}</p>
             <h3 class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">{{ operationsStore.pendingLaundry?.length || 0 }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
@@ -135,7 +150,7 @@ onMounted(async () => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search live operations, orders, or rooms..."
+              :placeholder="languageStore.t('search_operations_placeholder', 'Search live operations, orders, or rooms...')"
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
@@ -152,7 +167,7 @@ onMounted(async () => {
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+            <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
           </button>
         </div>
 
@@ -163,7 +178,7 @@ onMounted(async () => {
             type="button"
             @click="refreshData"
             :disabled="operationsStore.loading"
-            title="Refresh"
+            :title="languageStore.t('refresh', 'Refresh')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': operationsStore.loading }" />
@@ -173,7 +188,7 @@ onMounted(async () => {
           <button
             type="button"
             @click="toggleFullscreen"
-            title="Toggle Fullscreen"
+            :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
@@ -198,16 +213,16 @@ onMounted(async () => {
             <!-- Department Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Department Focus
+                {{ languageStore.t('department_focus', 'Department Focus') }}
               </label>
               <select
                 v-model="selectedDepartment"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="all">All Departments</option>
-                <option value="dining">Restaurant Dining Room</option>
-                <option value="room_service">Room Service Deliveries</option>
-                <option value="laundry">Laundry Operations</option>
+                <option value="all">{{ languageStore.t('all_departments', 'All Departments') }}</option>
+                <option value="dining">{{ languageStore.t('restaurant_dining_room', 'Restaurant Dining Room') }}</option>
+                <option value="room_service">{{ languageStore.t('room_service_deliveries', 'Room Service Deliveries') }}</option>
+                <option value="laundry">{{ languageStore.t('laundry_operations', 'Laundry Operations') }}</option>
               </select>
             </div>
 
@@ -219,7 +234,7 @@ onMounted(async () => {
                 class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
               >
                 <RotateCcw class="w-3.5 h-3.5" />
-                <span>Reset Filters</span>
+                <span>{{ languageStore.t('reset_filters', 'Reset Filters') }}</span>
               </button>
             </div>
           </div>
@@ -229,7 +244,7 @@ onMounted(async () => {
       <!-- Loading State -->
       <div v-if="operationsStore.loading" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-16 text-center space-y-3">
         <Loader2 class="w-8 h-8 text-blue-500 animate-spin mx-auto" />
-        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Updating live operations feed...</p>
+        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ languageStore.t('updating_operations_feed', 'Updating live operations feed...') }}</p>
       </div>
 
       <!-- Error State -->

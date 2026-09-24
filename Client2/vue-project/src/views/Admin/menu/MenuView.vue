@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import DashboardLayout from '@/layouts/DashboardLayout.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import MenuStats from '@/components/menu/MenuStats.vue'
 import MenuTable from '@/components/menu/MenuTable.vue'
 import { useMenuStore } from '@/stores/menuStore'
@@ -54,6 +54,7 @@ async function deleteMenu(item: MenuItem) {
     await store.deleteMenuItem(item.id)
     await refreshPage()
   } catch (error: any) {
+    console.error('[MenuView] Error deleting menu item:', error)
     alert(error.response?.data?.message || 'Failed to delete menu item')
   }
 }
@@ -63,6 +64,7 @@ async function toggleAvailability(item: MenuItem) {
     await store.toggleAvailability(item.id)
     await refreshPage()
   } catch (error: any) {
+    console.error('[MenuView] Error updating availability:', error)
     alert(error.response?.data?.message || 'Failed to update availability')
   }
 }
@@ -117,11 +119,15 @@ const filteredMenuItems = computed(() => {
   }
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase().trim()
-    list = list.filter((i) =>
-      (i.name || '').toLowerCase().includes(q) ||
-      (i.description || '').toLowerCase().includes(q) ||
-      (typeof i.category === 'string' ? i.category : i.category?.name || '').toLowerCase().includes(q)
-    )
+    list = list.filter((i) => {
+      const cat: any = i.category
+      const catName = typeof cat === 'object' ? (cat?.name || '') : String(cat || '')
+      return (
+        (i.name || '').toLowerCase().includes(q) ||
+        (i.description || '').toLowerCase().includes(q) ||
+        catName.toLowerCase().includes(q)
+      )
+    })
   }
   return list
 })

@@ -1,7 +1,3 @@
-/**
- * Restaurant Table Types
- */
-
 export interface RestaurantTable {
   id: string
   table_number: string
@@ -77,6 +73,6 @@ export interface PaginatedTablesResponse {
 export interface OrderContext {
   type: 'room' | 'table'
   id: string
-  displayName: string // e.g., "Room 101" or "Table 5"
+  displayName: string
   paymentOptions: Array<{ value: string; label: string }>
 }

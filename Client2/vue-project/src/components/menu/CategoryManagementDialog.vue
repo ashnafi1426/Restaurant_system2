@@ -23,7 +23,6 @@ const emit = defineEmits<{
   (e: 'category-created'): void
 }>()
 
-// State
 const categories = ref<Category[]>([])
 const isLoading = ref(false)
 const showAddForm = ref(false)
@@ -31,27 +30,24 @@ const editingId = ref<string | null>(null)
 const formData = ref({
   name: '',
   description: '',
-  icon: '🍽️',
+  icon: '',
   display_order: 0,
   is_active: true,
 })
 
-// Common Emojis for categories
-const commonEmojis = ['☀️', '🍔', '🍲', '🍕', '🍝', '🍰', '🍹', '🥗', '🍜', '🥘', '🍱', '🥗', '🍛']
+const commonEmojis = ['', '🍔', '🍲', '🍕', '🍝', '🍰', '🍹', '🥗', '🍜', '🥘', '🍱', '🥗', '🍛']
 
-// Computed
 const isEditing = computed(() => editingId.value !== null)
 const formTitle = computed(() => (isEditing.value ? 'Edit Category' : 'Add New Category'))
 const submitButtonText = computed(() => (isEditing.value ? 'Update Category' : 'Create Category'))
 
-// Methods
 async function loadCategories() {
   isLoading.value = true
   try {
     const response = await categoryService.getCategories()
     categories.value = response.data.data || []
   } catch (error) {
-    console.error('Failed to load categories:', error)
+    console.error('[CategoryManagementDialog] Failed to load categories:', error)
     alert('Failed to load categories')
   } finally {
     isLoading.value = false
@@ -62,7 +58,7 @@ function resetForm() {
   formData.value = {
     name: '',
     description: '',
-    icon: '🍽️',
+    icon: '',
     display_order: categories.value.length,
     is_active: true,
   }
@@ -73,7 +69,7 @@ function editCategory(category: Category) {
   formData.value = {
     name: category.name,
     description: category.description || '',
-    icon: category.icon || '🍽️',
+    icon: category.icon || '',
     display_order: category.display_order,
     is_active: category.is_active,
   }
@@ -89,11 +85,9 @@ async function submitForm() {
 
   try {
     if (isEditing.value) {
-      // Update category
       await categoryService.updateCategory(editingId.value!, formData.value)
       alert('Category updated successfully!')
     } else {
-      // Create new category
       await categoryService.createCategory(formData.value)
       alert('Category created successfully!')
       emit('category-created')
@@ -103,9 +97,9 @@ async function submitForm() {
     showAddForm.value = false
     resetForm()
   } catch (error: any) {
+    console.error('[CategoryManagementDialog] Failed to save category:', error)
     const message = error.response?.data?.message || 'Failed to save category'
     alert(message)
-    console.error(error)
   }
 }
 
@@ -119,9 +113,9 @@ async function deleteCategory(id: string, name: string) {
     alert('Category deleted successfully!')
     await loadCategories()
   } catch (error: any) {
+    console.error('[CategoryManagementDialog] Failed to delete category:', error)
     const message = error.response?.data?.message || 'Failed to delete category'
     alert(message)
-    console.error(error)
   }
 }
 
@@ -131,9 +125,9 @@ async function toggleActive(category: Category) {
     category.is_active = !category.is_active
     alert(category.is_active ? 'Category activated!' : 'Category deactivated!')
   } catch (error: any) {
+    console.error('[CategoryManagementDialog] Failed to toggle category:', error)
     const message = error.response?.data?.message || 'Failed to toggle category'
     alert(message)
-    console.error(error)
   }
 }
 
@@ -153,7 +147,6 @@ function openAddForm() {
   resetForm()
 }
 
-// Lifecycle
 onMounted(() => {
   if (props.modelValue) {
     loadCategories()
@@ -172,7 +165,6 @@ onMounted(() => {
         <div
           class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
         >
-          <!-- Header -->
           <div
             class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between"
           >
@@ -192,10 +184,8 @@ onMounted(() => {
             </button>
           </div>
 
-          <!-- Main Content -->
           <div class="flex-1 overflow-y-auto">
             <div class="p-6">
-              <!-- Add Form -->
               <div
                 v-if="showAddForm"
                 class="mb-8 p-4 bg-indigo-50 rounded-lg border border-indigo-200"
@@ -280,9 +270,7 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- Categories List -->
               <div v-if="!showAddForm">
-                <!-- Add Button -->
                 <button
                   @click="openAddForm"
                   class="mb-6 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition flex items-center gap-2"
@@ -298,14 +286,12 @@ onMounted(() => {
                   Add New Category
                 </button>
 
-                <!-- Loading State -->
                 <div v-if="isLoading" class="flex justify-center py-8">
                   <div
                     class="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"
                   ></div>
                 </div>
 
-                <!-- Categories Table -->
                 <div v-else-if="categories.length > 0" class="overflow-x-auto">
                   <table class="w-full border-collapse">
                     <thead>
@@ -384,7 +370,6 @@ onMounted(() => {
                   </table>
                 </div>
 
-                <!-- Empty State -->
                 <div v-else class="text-center py-8">
                   <span class="text-4xl block mb-3">📭</span>
                   <p class="text-gray-600 font-semibold">

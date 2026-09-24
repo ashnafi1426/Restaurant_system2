@@ -20,12 +20,12 @@ class DashboardService
             ?: app(TenantContext::class)->getHotelId()
             ?: (auth()->check() && !auth()->user()->isPlatformAdmin() ? auth()->user()->hotel_id : null);
     }
+
     public function getDashboardStats(): array
     {
         $hotelId = $this->getHotelId();
         $today = Carbon::today();
 
-        // 1. Room / Reception Metrics
         $roomQuery = Room::withoutGlobalScopes();
         if ($hotelId) {
             $roomQuery->where('hotel_id', $hotelId);
@@ -43,12 +43,10 @@ class DashboardService
         $todayCheckIns = (clone $resQuery)->whereDate('check_in_date', $today)->count();
         $todayCheckOuts = (clone $resQuery)->whereDate('check_out_date', $today)->count();
 
-        // 2. Occupancy Metrics
         $occupancyRate = $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100, 1) : 0;
         $checkedInGuests = $occupiedRooms;
         $checkedOutGuests = $todayCheckOuts;
 
-        // 3. Revenue Metrics
         $dailyRevenue = 0;
         $weeklyRevenue = 0;
         $monthlyRevenue = 0;
@@ -63,13 +61,11 @@ class DashboardService
             $weeklyRevenue = (float) (clone $payQuery)->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('amount');
             $monthlyRevenue = (float) (clone $payQuery)->whereMonth('created_at', Carbon::now()->month)->sum('amount');
         } catch (\Throwable $e) {
-            // Fallback estimation from reservations
             $dailyRevenue = (float) ((clone $resQuery)->whereDate('created_at', $today)->sum('total_amount') ?: 0);
             $weeklyRevenue = $dailyRevenue * 6;
             $monthlyRevenue = $dailyRevenue * 25;
         }
 
-        // 4. Food Orders
         $orderQuery = Order::withoutGlobalScopes();
         if ($hotelId && \Illuminate\Support\Facades\Schema::hasColumn('orders', 'hotel_id')) {
             $orderQuery->where('hotel_id', $hotelId);
@@ -80,12 +76,11 @@ class DashboardService
         $cancelledOrders = (clone $orderQuery)->where('status', 'cancelled')->count();
         $deliveryInProgress = (clone $orderQuery)->whereIn('status', ['preparing', 'ready', 'on_delivery'])->count();
 
-        // 5. Kitchen Metrics
         $kitchenQuery = (clone $orderQuery);
         $readyOrders = (clone $kitchenQuery)->where('status', 'ready')->count();
         $preparingOrders = (clone $kitchenQuery)->where('status', 'preparing')->count();
         $delayedOrders = 0;
-        // 6. Waiter Metrics
+
         $waiterCount = 0;
         $activeWaiters = 0;
         if ($hotelId) {
@@ -154,9 +149,6 @@ class DashboardService
         ];
     }
 
-    /**
-     * Get daily stats for trend graphs.
-     */
     public function getDailyStats(int $days = 7): array
     {
         $hotelId = $this->getHotelId();
@@ -198,9 +190,6 @@ class DashboardService
         return $trends;
     }
 
-    /**
-     * Get top selling menu items.
-     */
     public function getTopSellingItems(int $limit = 5): array
     {
         $hotelId = $this->getHotelId();
@@ -222,9 +211,6 @@ class DashboardService
         })->toArray();
     }
 
-    /**
-     * Get performance summary for manager.
-     */
     public function getPerformanceSummary(): array
     {
         return [

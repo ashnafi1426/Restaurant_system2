@@ -4,23 +4,11 @@ import managerService from '@/services/managerService'
 import type { OccupancySummary, OccupancyChartItem, ReservationSummary } from '@/types/manager'
 
 export const useManagerOccupancyStore = defineStore('managerOccupancy', () => {
-  /*
-  |--------------------------------------------------------------------------
-  | STATE
-  |--------------------------------------------------------------------------
-  */
-
   const occupancySummary = ref<OccupancySummary | null>(null)
   const occupancyChart = ref<OccupancyChartItem[]>([])
   const reservationSummary = ref<ReservationSummary | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
-
-  /*
-  |--------------------------------------------------------------------------
-  | COMPUTED
-  |--------------------------------------------------------------------------
-  */
 
   const occupancy = computed(
     () =>
@@ -42,18 +30,13 @@ export const useManagerOccupancyStore = defineStore('managerOccupancy', () => {
     todayCheckOuts: 0,
   }))
 
-  /*
-  |--------------------------------------------------------------------------
-  | ACTIONS
-  |--------------------------------------------------------------------------
-  */
-
   async function loadSummary() {
     try {
       loading.value = true
       error.value = null
       occupancySummary.value = await managerService.getOccupancySummary()
     } catch (err: any) {
+      console.error('[manager/occupancyStore] Failed to load occupancy summary:', err)
       error.value = err.message
     } finally {
       loading.value = false
@@ -64,6 +47,7 @@ export const useManagerOccupancyStore = defineStore('managerOccupancy', () => {
     try {
       occupancyChart.value = await managerService.getOccupancyChart()
     } catch (err: any) {
+      console.error('[manager/occupancyStore] Failed to load occupancy chart:', err)
       error.value = err.message
     }
   }
@@ -72,6 +56,7 @@ export const useManagerOccupancyStore = defineStore('managerOccupancy', () => {
     try {
       reservationSummary.value = await managerService.getReservationSummary()
     } catch (err: any) {
+      console.error('[manager/occupancyStore] Failed to load reservation summary:', err)
       error.value = err.message
     }
   }

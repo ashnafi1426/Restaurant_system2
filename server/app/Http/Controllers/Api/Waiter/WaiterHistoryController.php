@@ -25,10 +25,6 @@ class WaiterHistoryController extends Controller
         $this->assignmentService = $assignmentService;
     }
 
-    /**
-     * Get delivery history
-     * GET /api/waiter/history
-     */
     public function getHistory(Request $request): JsonResponse
     {
         try {
@@ -72,10 +68,6 @@ class WaiterHistoryController extends Controller
         }
     }
 
-    /**
-     * Get performance history
-     * GET /api/waiter/performance-history
-     */
     public function getPerformanceHistory(Request $request): JsonResponse
     {
         try {
@@ -125,10 +117,6 @@ class WaiterHistoryController extends Controller
         }
     }
 
-    /**
-     * Get aggregated performance report
-     * GET /api/waiter/report/performance
-     */
     public function getPerformanceReport(Request $request): JsonResponse
     {
         try {
@@ -168,10 +156,6 @@ class WaiterHistoryController extends Controller
         }
     }
 
-    /**
-     * Get performance trend (7 days)
-     * GET /api/waiter/report/trend
-     */
     public function getPerformanceTrend(Request $request): JsonResponse
     {
         try {
@@ -200,10 +184,6 @@ class WaiterHistoryController extends Controller
         }
     }
 
-    /**
-     * Get delivery time distribution
-     * GET /api/waiter/report/delivery-time-distribution
-     */
     public function getDeliveryTimeDistribution(Request $request): JsonResponse
     {
         try {
@@ -231,10 +211,6 @@ class WaiterHistoryController extends Controller
         }
     }
 
-    /**
-     * Get monthly average performance
-     * GET /api/waiter/report/monthly-average
-     */
     public function getMonthlyAverage(Request $request): JsonResponse
     {
         try {
@@ -262,10 +238,6 @@ class WaiterHistoryController extends Controller
         }
     }
 
-    /**
-     * Get statistics
-     * GET /api/waiter/stats
-     */
     public function getStatistics(): JsonResponse
     {
         try {
@@ -291,10 +263,6 @@ class WaiterHistoryController extends Controller
         }
     }
 
-    /**
-     * Export history as CSV
-     * GET /api/waiter/history/export
-     */
     public function exportHistory(Request $request)
     {
         try {
@@ -314,7 +282,6 @@ class WaiterHistoryController extends Controller
                 'sort_order' => $request->query('sort_order', 'desc'),
             ];
 
-            // Get all records without pagination
             $history = $this->assignmentService->getDeliveryHistory($waiterId, $filters, 1000);
 
             $csv = "Date,Action,Order ID,Description\n";
@@ -334,10 +301,6 @@ class WaiterHistoryController extends Controller
         }
     }
 
-    /**
-     * Export performance report as CSV
-     * GET /api/waiter/report/performance/export
-     */
     public function exportPerformanceReport(Request $request)
     {
         try {

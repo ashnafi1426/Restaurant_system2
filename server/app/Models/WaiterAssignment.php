@@ -5,14 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Traits\BelongsToTenant;
 
 class WaiterAssignment extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
     protected $table = 'waiter_assignments';
-
     protected $fillable = [
+        'hotel_id',
         'waiter_id',
         'order_id',
         'assigned_by',
@@ -27,7 +28,6 @@ class WaiterAssignment extends Model
         'failure_reason',
         'remarks',
     ];
-
     protected $casts = [
         'assigned_at' => 'datetime',
         'accepted_at' => 'datetime',
@@ -45,17 +45,11 @@ class WaiterAssignment extends Model
         return $this->belongsTo(Order::class, 'order_id');
     }
 
-    /**
-     * Get who assigned this
-     */
     public function assignedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_by');
     }
 
-    /**
-     * Accept assignment
-     */
     public function accept(): void
     {
         $this->update([
@@ -64,9 +58,6 @@ class WaiterAssignment extends Model
         ]);
     }
 
-    /**
-     * Reject assignment
-     */
     public function reject(?string $reason = null): void
     {
         $this->update([
@@ -76,9 +67,6 @@ class WaiterAssignment extends Model
         ]);
     }
 
-    /**
-     * Mark as picked up
-     */
     public function pickup(): void
     {
         $this->update([
@@ -87,9 +75,6 @@ class WaiterAssignment extends Model
         ]);
     }
 
-    /**
-     * Start delivery
-     */
     public function startDelivery(): void
     {
         $this->update([
@@ -97,9 +82,6 @@ class WaiterAssignment extends Model
         ]);
     }
 
-    /**
-     * Mark as delivered
-     */
     public function deliver(): void
     {
         $this->update([
@@ -108,9 +90,6 @@ class WaiterAssignment extends Model
         ]);
     }
 
-    /**
-     * Mark as failed
-     */
     public function markFailed(?string $reason = null): void
     {
         $this->update([
@@ -120,9 +99,6 @@ class WaiterAssignment extends Model
         ]);
     }
 
-    /**
-     * Get delivery time in minutes
-     */
     public function getDeliveryTimeMinutes(): ?int
     {
         if (!$this->assigned_at || !$this->delivered_at) {
@@ -131,65 +107,41 @@ class WaiterAssignment extends Model
         return $this->assigned_at->diffInMinutes($this->delivered_at);
     }
 
-    /**
-     * Scope: Get pending assignments
-     */
     public function scopePending($query)
     {
         return $query->where('status', 'pending');
     }
 
-    /**
-     * Scope: Get accepted assignments
-     */
     public function scopeAccepted($query)
     {
         return $query->where('status', 'accepted');
     }
 
-    /**
-     * Scope: Get on delivery assignments
-     */
     public function scopeOnDelivery($query)
     {
         return $query->where('status', 'on_delivery');
     }
 
-    /**
-     * Scope: Get completed assignments
-     */
     public function scopeCompleted($query)
     {
         return $query->where('status', 'delivered');
     }
 
-    /**
-     * Scope: Get failed assignments
-     */
     public function scopeFailed($query)
     {
         return $query->where('status', 'failed');
     }
 
-    /**
-     * Scope: Get assignments for waiter
-     */
     public function scopeForWaiter($query, $waiterId)
     {
         return $query->where('waiter_id', $waiterId);
     }
 
-    /**
-     * Scope: Get today's assignments
-     */
     public function scopeToday($query)
     {
         return $query->whereDate('assigned_at', today());
     }
 
-    /**
-     * Scope: Get active assignments (not completed/failed/rejected)
-     */
     public function scopeActive($query)
     {
         return $query->whereNotIn('status', ['delivered', 'failed', 'rejected', 'cancelled']);

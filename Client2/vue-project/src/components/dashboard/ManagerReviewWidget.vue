@@ -1,9 +1,8 @@
 <template>
   <div class="manager-review-widget bg-white rounded-lg shadow p-6">
-    <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h3 class="text-lg font-bold text-gray-900">📋 Review Moderation</h3>
+        <h3 class="text-lg font-bold text-gray-900"> Review Moderation</h3>
         <p class="text-xs text-gray-500 mt-1">{{ statusMessage }}</p>
       </div>
       <router-link
@@ -14,7 +13,6 @@
       </router-link>
     </div>
 
-    <!-- Quick Stats -->
     <div class="grid grid-cols-3 gap-3 mb-4">
       <div class="text-center p-2 bg-yellow-50 rounded">
         <p class="text-2xl font-bold text-yellow-600">{{ pendingCount }}</p>
@@ -30,7 +28,6 @@
       </div>
     </div>
 
-    <!-- Latest Pending Review -->
     <div v-if="latestPending" class="border-t pt-4">
       <p class="text-sm font-semibold text-gray-900 mb-2">Latest Pending:</p>
       <div class="bg-yellow-50 p-3 rounded-lg">
@@ -67,7 +64,6 @@
       </div>
     </div>
 
-    <!-- Empty State -->
     <div v-else class="text-center py-4">
       <p class="text-gray-600 text-sm">✓ All reviews moderated!</p>
     </div>
@@ -98,19 +94,18 @@ const loadData = async () => {
     pendingReviews.value = (data.data as Review[]) || []
     pendingCount.value = await reviewService.getPendingReviewCount()
 
-    // Get approved and rejected counts
     try {
       const approved = await reviewService.listReviewsForModeration('approved', 1, 1)
       const rejected = await reviewService.listReviewsForModeration('rejected', 1, 1)
       approvedCount.value = approved.total || 0
       rejectedCount.value = rejected.total || 0
-    } catch {
-      // Fallback if totals not available
+    } catch (error) {
+      console.error('[ManagerReviewWidget] Error loading approved/rejected review counts:', error)
       approvedCount.value = 0
       rejectedCount.value = 0
     }
   } catch (error) {
-    console.error('Failed to load review data:', error)
+    console.error('[ManagerReviewWidget] Error loading review data:', error)
   }
 }
 
@@ -122,7 +117,7 @@ const approve = async () => {
     pendingCount.value = Math.max(0, pendingCount.value - 1)
     approvedCount.value++
   } catch (error) {
-    console.error('Failed to approve:', error)
+    console.error('[ManagerReviewWidget] Error approving review:', error)
   }
 }
 
@@ -134,7 +129,7 @@ const reject = async () => {
     pendingCount.value = Math.max(0, pendingCount.value - 1)
     rejectedCount.value++
   } catch (error) {
-    console.error('Failed to reject:', error)
+    console.error('[ManagerReviewWidget] Error rejecting review:', error)
   }
 }
 
@@ -144,7 +139,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.manager-review-widget {
-  /* Widget styles */
-}
 </style>

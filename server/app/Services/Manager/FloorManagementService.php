@@ -6,6 +6,7 @@ use App\Models\HotelFloor;
 use App\Models\WaiterFloorAssignment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+
 class FloorManagementService
 {
     public function createFloor(array $data): HotelFloor
@@ -31,6 +32,7 @@ class FloorManagementService
             throw $e;
         }
     }
+
     public function updateFloor(string $floorId, array $data): HotelFloor
     {
         try {
@@ -49,6 +51,7 @@ class FloorManagementService
             throw $e;
         }
     }
+
     public function deactivateFloor(string $floorId): bool
     {
         try {
@@ -57,7 +60,6 @@ class FloorManagementService
             $floor = HotelFloor::findOrFail($floorId);
             $floor->update(['is_active' => false]);
 
-            // Cancel all assignments for this floor
             WaiterFloorAssignment::where('floor_id', $floorId)
                 ->where('status', '!=', 'completed')
                 ->update(['status' => 'cancelled']);
@@ -73,6 +75,7 @@ class FloorManagementService
             return false;
         }
     }
+
     public function activateFloor(string $floorId): bool
     {
         try {
@@ -86,14 +89,17 @@ class FloorManagementService
             return false;
         }
     }
+
     public function getAllFloors()
     {
         return HotelFloor::orderBy('floor_number', 'asc')->get();
     }
+
     public function getActiveFloors()
     {
         return HotelFloor::active()->orderBy('floor_number', 'asc')->get();
     }
+
     public function getFloorWithAssignments(string $floorId)
     {
         return HotelFloor::with([
@@ -103,6 +109,7 @@ class FloorManagementService
             'waiterAssignments.waiter.user',
         ])->findOrFail($floorId);
     }
+
     public function getFloorWorkload(string $floorId, string $date = null): int
     {
         $date = $date ?? today()->toDateString();
@@ -112,6 +119,7 @@ class FloorManagementService
             ->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery', 'delivered'])
             ->count();
     }
+
     public function getFloorStatistics(string $floorId): array
     {
         $floor = HotelFloor::findOrFail($floorId);
@@ -137,6 +145,7 @@ class FloorManagementService
             'average_delivery_time' => $this->calculateAverageDeliveryTime($todayDeliveries),
         ];
     }
+
     private function calculateAverageDeliveryTime($deliveries): float
     {
         $completedDeliveries = $deliveries->filter(function ($delivery) {

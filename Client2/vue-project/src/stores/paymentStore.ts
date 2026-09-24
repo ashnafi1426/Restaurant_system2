@@ -17,24 +17,19 @@ interface Payment {
 }
 
 export const usePaymentStore = defineStore('payment', () => {
-  // State
   const currentPayment = ref<Payment | null>(null)
   const error = ref<string | null>(null)
   const isInitializing = ref(false)
   const isLoading = ref(false)
   const isVerifying = ref(false)
 
-  // Computed
   const currentCheckoutUrl = computed(() => currentPayment.value?.checkout_url)
   const currentTxRef = computed(() => currentPayment.value?.tx_ref)
   const currentAmount = computed(() => currentPayment.value?.amount)
 
-  // Methods
   function setCurrentPayment(payment: Payment): void {
-    console.log('💾 [PAYMENT STORE] Setting current payment:', payment)
     currentPayment.value = payment
     error.value = null
-    console.log('💾 [PAYMENT STORE] Updated currentCheckoutUrl:', currentCheckoutUrl.value)
   }
 
   function clearCurrentPayment(): void {
@@ -59,19 +54,16 @@ export const usePaymentStore = defineStore('payment', () => {
   }
 
   return {
-    // State
     currentPayment,
     error,
     isInitializing,
     isLoading,
     isVerifying,
 
-    // Computed
     currentCheckoutUrl,
     currentTxRef,
     currentAmount,
 
-    // Methods
     setCurrentPayment,
     clearCurrentPayment,
     setError,

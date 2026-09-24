@@ -16,15 +16,12 @@ export interface ShiftResponse {
 }
 
 export const shiftService = {
-  /**
-   * Get all active shifts
-   */
   async getShifts(): Promise<ShiftResponse> {
     try {
       const response = await axios.get('/api/manager/shifts')
       return response.data
     } catch (error: any) {
-      console.error('Error fetching shifts:', error)
+      console.error('[ShiftService] Error fetching shifts:', error)
       throw error
     }
   }

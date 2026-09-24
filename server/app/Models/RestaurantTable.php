@@ -32,31 +32,21 @@ class RestaurantTable extends Model
         'qr_generated_at' => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Status Constants
-    |--------------------------------------------------------------------------
-    */
     public const STATUS_AVAILABLE = 'available';
     public const STATUS_OCCUPIED = 'occupied';
     public const STATUS_RESERVED = 'reserved';
     public const STATUS_CLEANING = 'cleaning';
     public const STATUS_OUT_OF_SERVICE = 'out_of_service';
 
-    /**
-     * Boot model to auto-generate QR token and code when creating
-     */
     protected static function booted()
     {
         static::creating(function ($table) {
-            // Generate random 8-character token if not set
             if (!$table->qr_token) {
                 $table->qr_token = self::generateUniqueToken();
             }
         });
 
         static::created(function ($table) {
-            // Generate QR code image after table is created
             try {
                 $qrImagePath = self::generateTableQRCode(
                     $table->id,
@@ -85,9 +75,6 @@ class RestaurantTable extends Model
         });
     }
 
-    /**
-     * Generate unique 8-character token
-     */
     public static function generateUniqueToken(): string
     {
         do {
@@ -97,12 +84,8 @@ class RestaurantTable extends Model
         return $token;
     }
 
-    /**
-     * Generate QR code specifically for restaurant tables
-     */
     protected static function generateTableQRCode($tableId, $tableNumber, $qrToken, $baseUrl): string
     {
-        // URL pattern: /restaurant-order/{token} to distinguish from room orders
         $url = "{$baseUrl}/restaurant-order/{$qrToken}";
         
         $storageDir = storage_path('app/public/qr-codes/tables');
@@ -128,7 +111,6 @@ class RestaurantTable extends Model
             ]);
             
         } catch (\Exception $generationError) {
-            // Fallback to online API
             \Log::warning('Local QR generation failed for table, trying API', [
                 'error' => $generationError->getMessage(),
             ]);
@@ -146,43 +128,22 @@ class RestaurantTable extends Model
         return "qr-codes/tables/{$filename}";
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Get orders associated with this table
-     */
     public function orders()
     {
         return $this->hasMany(Order::class, 'table_id');
     }
 
-    /**
-     * Get waiter assignments for this table
-     */
     public function waiterAssignments()
     {
         return $this->hasMany(WaiterTableAssignment::class, 'table_id');
     }
 
-    /**
-     * Get active waiter assignments for this table
-     */
     public function activeAssignments()
     {
         return $this->waiterAssignments()
             ->where('status', WaiterTableAssignment::STATUS_ACTIVE)
             ->whereDate('assignment_date', today());
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Status Helper Methods
-    |--------------------------------------------------------------------------
-    */
 
     public function isAvailable(): bool
     {
@@ -204,15 +165,6 @@ class RestaurantTable extends Model
         return $this->status === self::STATUS_CLEANING || $this->status === self::STATUS_OUT_OF_SERVICE;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Utility Methods
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Get full QR code image URL
-     */
     public function getQRCodeUrlAttribute()
     {
         if (!$this->qr_image_path) {
@@ -221,16 +173,12 @@ class RestaurantTable extends Model
         return url("storage/{$this->qr_image_path}");
     }
 
-    /**
-     * Regenerate QR code for this table
-     */
     public function regenerateQRCode($baseUrl = null): string
     {
         if (!$baseUrl) {
             $baseUrl = config('app.frontend_url', 'http://localhost:5173');
         }
 
-        // Delete old QR code if exists
         if ($this->qr_image_path) {
             $oldPath = storage_path("app/public/{$this->qr_image_path}");
             if (file_exists($oldPath)) {
@@ -238,7 +186,6 @@ class RestaurantTable extends Model
             }
         }
 
-        // Generate new QR code
         $newPath = self::generateTableQRCode(
             $this->id,
             $this->table_number,
@@ -254,9 +201,6 @@ class RestaurantTable extends Model
         return $newPath;
     }
 
-    /**
-     * Scope to search tables by multiple criteria
-     */
     public function scopeSearch($query, $searchTerm)
     {
         if (!$searchTerm) {
@@ -271,17 +215,11 @@ class RestaurantTable extends Model
         });
     }
 
-    /**
-     * Scope for active tables only
-     */
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
 
-    /**
-     * Scope for available tables (available status and active)
-     */
     public function scopeAvailable($query)
     {
         return $query->where('status', self::STATUS_AVAILABLE)

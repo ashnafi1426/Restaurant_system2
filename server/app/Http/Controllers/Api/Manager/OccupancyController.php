@@ -7,11 +7,6 @@ use App\Services\Manager\ManagerDashboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * Manager Occupancy Controller
- * 
- * Handles room occupancy and reservations tracking
- */
 class OccupancyController extends Controller
 {
     protected ManagerDashboardService $dashboardService;
@@ -21,9 +16,6 @@ class OccupancyController extends Controller
         $this->dashboardService = $dashboardService;
     }
 
-    /**
-     * Get occupancy summary
-     */
     public function summary(Request $request): JsonResponse
     {
         try {
@@ -41,9 +33,6 @@ class OccupancyController extends Controller
         }
     }
 
-    /**
-     * Get occupancy chart data
-     */
     public function chart(Request $request): JsonResponse
     {
         try {
@@ -61,9 +50,6 @@ class OccupancyController extends Controller
         }
     }
 
-    /**
-     * Get reservation summary
-     */
     public function reservations(Request $request): JsonResponse
     {
         try {

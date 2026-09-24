@@ -12,23 +12,16 @@ class CategoryController extends Controller
 {
     public function __construct()
     {
-        // Allow unauthenticated access to index method for public QR menu
-        // All other methods are protected by route middleware
     }
 
-    /**
-     * Get all categories (PUBLIC - No authentication required)
-     */
     public function index(Request $request)
     {
         $query = Category::query();
 
-        // Filter by active status
         if ($request->filled('is_active')) {
             $query->where('is_active', filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN));
         }
 
-        // Search by name
         if ($request->filled('search')) {
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
@@ -37,7 +30,6 @@ class CategoryController extends Controller
             });
         }
 
-        // Get with count of menu items
         $categories = $query->withCount('menuItems')->get();
 
         if ($categories->count() < 8) {
@@ -59,15 +51,21 @@ class CategoryController extends Controller
             $categories = Category::orderBy('display_order', 'asc')->orderBy('name', 'asc')->withCount('menuItems')->get();
         }
 
+        $categories->each(function ($cat) {
+            if (!$cat->icon || $cat->icon === 'grid' || $cat->icon === 'menu') {
+                $cat->icon = GuestOrderController::guessCategoryIcon($cat->slug ?: $cat->name);
+            }
+            $cat->name_am = \App\Translations\FrontLang::trans($cat->name, 'am', $cat->name);
+            $cat->name_en = $cat->name;
+            $cat->name_localized = \App\Translations\FrontLang::trans($cat->name, default: $cat->name);
+        });
+
         return response()->json([
             'success' => true,
             'data' => $categories,
         ]);
     }
 
-    /**
-     * Store a new category
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -94,7 +92,7 @@ class CategoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Category created successfully.',
+                'message' => trans_msg('category_created', default: 'Category created successfully.'),
                 'data' => $category,
             ], 201);
 
@@ -109,9 +107,6 @@ class CategoryController extends Controller
         }
     }
 
-    /**
-     * Get a single category
-     */
     public function show(Category $category)
     {
         $category->loadCount('menuItems');
@@ -122,9 +117,6 @@ class CategoryController extends Controller
         ]);
     }
 
-    /**
-     * Update a category
-     */
     public function update(Request $request, Category $category)
     {
         $validated = $request->validate([
@@ -150,7 +142,7 @@ class CategoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Category updated successfully.',
+                'message' => trans_msg('category_updated', default: 'Category updated successfully.'),
                 'data' => $category->fresh()->loadCount('menuItems'),
             ]);
 
@@ -165,15 +157,11 @@ class CategoryController extends Controller
         }
     }
 
-    /**
-     * Delete a category
-     */
     public function destroy(Category $category)
     {
         DB::beginTransaction();
 
         try {
-            // Check if category has menu items
             if ($category->menuItems()->count() > 0) {
                 return response()->json([
                     'success' => false,
@@ -187,7 +175,7 @@ class CategoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Category deleted successfully.',
+                'message' => trans_msg('category_deleted', default: 'Category deleted successfully.'),
             ]);
 
         } catch (\Throwable $e) {
@@ -201,9 +189,6 @@ class CategoryController extends Controller
         }
     }
 
-    /**
-     * Toggle category active status
-     */
     public function toggle(Category $category)
     {
         DB::beginTransaction();
@@ -234,9 +219,6 @@ class CategoryController extends Controller
         }
     }
 
-    /**
-     * Reorder categories
-     */
     public function reorder(Request $request)
     {
         $validated = $request->validate([

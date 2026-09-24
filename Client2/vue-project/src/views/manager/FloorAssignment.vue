@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
 import AddStaffToFloorModal from '@/components/manager/AddStaffToFloorModal.vue'
 import { useFloorAssignmentStore } from '@/stores/manager/floorAssignmentStore'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
 import floorManagementService from '@/services/manager/floorManagementService'
 import {
   Hotel,
@@ -26,10 +28,13 @@ import {
   Minimize2,
   RotateCcw,
   RefreshCw,
+  Building2,
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const assignmentStore = useFloorAssignmentStore()
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
 const isLoading = ref(false)
 const isSaving = ref(false)
@@ -191,7 +196,8 @@ const openAddStaff = (floor: any) => {
 
 const handleStaffAdded = async () => {
   showAddStaffModal.value = false
-  hasChanges.value = true
+  hasChanges.value = false
+  await assignmentStore.fetchTodayAssignments()
   await assignmentStore.fetchAssignments()
   await assignmentStore.fetchStats()
 }
@@ -240,6 +246,10 @@ const saveAssignments = async () => {
 onMounted(() => {
   loadData()
 })
+
+watch(() => hotelStore.hotelId, () => {
+  loadData()
+})
 </script>
 
 <template>
@@ -255,8 +265,18 @@ onMounted(() => {
             <Hotel class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Floor Staff Assignments</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Allocate service staff and floor coverage across building zones.</p>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                {{ languageStore.t('floor_staff_assignments', 'Floor Staff Assignments') }}
+              </h1>
+              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+                <Building2 class="w-3 h-3" />
+                {{ hotelStore.hotelName }}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{ languageStore.t('floor_staff_assignments_desc', 'Allocate service staff and floor coverage across building zones.') }}
+            </p>
           </div>
         </div>
 
@@ -266,7 +286,7 @@ onMounted(() => {
             class="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700"
           >
             <Plus class="w-3.5 h-3.5 stroke-[3]" />
-            <span>Add Floor</span>
+            <span>{{ languageStore.t('add_floor', 'Add Floor') }}</span>
           </router-link>
 
           <button
@@ -275,7 +295,7 @@ onMounted(() => {
             class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-600/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Save class="w-4 h-4" />
-            <span>{{ isSaving ? 'Saving...' : 'Save Assignments' }}</span>
+            <span>{{ isSaving ? languageStore.t('saving', 'Saving...') : languageStore.t('save_assignments', 'Save Assignments') }}</span>
           </button>
         </div>
       </div>
@@ -284,7 +304,9 @@ onMounted(() => {
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Floors</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('total_floors', 'Total Floors') }}
+            </p>
             <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ allFloors.length }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -294,7 +316,9 @@ onMounted(() => {
 
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Staff Assigned</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('staff_assigned', 'Staff Assigned') }}
+            </p>
             <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ stats.assigned }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -304,7 +328,9 @@ onMounted(() => {
 
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Available Waiters</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('available_waiters', 'Available Waiters') }}
+            </p>
             <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ stats.total_waiters }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
@@ -314,7 +340,9 @@ onMounted(() => {
 
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Open Slots</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('open_slots', 'Open Slots') }}
+            </p>
             <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ stats.open_slots }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
@@ -335,7 +363,7 @@ onMounted(() => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search floors by name, number, or assigned staff..."
+              :placeholder="languageStore.t('search_floors_placeholder', 'Search floors by name, number, or assigned staff...')"
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
@@ -352,7 +380,7 @@ onMounted(() => {
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+            <span>{{ isFilterOpen ? languageStore.t('hide_filters', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
           </button>
         </div>
 
@@ -363,7 +391,7 @@ onMounted(() => {
             type="button"
             @click="refreshData"
             :disabled="isLoading"
-            title="Refresh"
+            :title="languageStore.t('refresh', 'Refresh')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
@@ -373,7 +401,7 @@ onMounted(() => {
           <button
             type="button"
             @click="toggleFullscreen"
-            title="Toggle Fullscreen"
+            :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
@@ -398,30 +426,30 @@ onMounted(() => {
             <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Floor Status
+                {{ languageStore.t('floor_status', 'Floor Status') }}
               </label>
               <select
                 v-model="selectedStatus"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="all">All Floors</option>
-                <option value="active">Active Floors</option>
-                <option value="inactive">Inactive Floors</option>
+                <option value="all">{{ languageStore.t('all_floors', 'All Floors') }}</option>
+                <option value="active">{{ languageStore.t('active_floors', 'Active Floors') }}</option>
+                <option value="inactive">{{ languageStore.t('inactive_floors', 'Inactive Floors') }}</option>
               </select>
             </div>
 
             <!-- Staffing Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Staff Coverage
+                {{ languageStore.t('staff_coverage', 'Staff Coverage') }}
               </label>
               <select
                 v-model="selectedStaffing"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="all">All Staffing Levels</option>
-                <option value="staffed">Staff Assigned</option>
-                <option value="unstaffed">Unstaffed Floors</option>
+                <option value="all">{{ languageStore.t('all_staffing_levels', 'All Staffing Levels') }}</option>
+                <option value="staffed">{{ languageStore.t('staff_assigned', 'Staff Assigned') }}</option>
+                <option value="unstaffed">{{ languageStore.t('unstaffed_floors', 'Unstaffed Floors') }}</option>
               </select>
             </div>
 
@@ -433,7 +461,7 @@ onMounted(() => {
                 class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
               >
                 <RotateCcw class="w-3.5 h-3.5" />
-                <span>Reset Filters</span>
+                <span>{{ languageStore.t('reset_filters', 'Reset Filters') }}</span>
               </button>
             </div>
           </div>
@@ -446,24 +474,38 @@ onMounted(() => {
           <table class="w-full text-left border-collapse">
             <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">Floor Zone</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
-                <th class="py-3 px-4 whitespace-nowrap">Assigned Waiters & Staff</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Actions</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('floor_zone', 'Floor Zone') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('status', 'Status') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('assigned_waiters_staff', 'Assigned Waiters & Staff') }}</th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('actions', 'Actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <tr v-if="paginatedFloors.length === 0">
-                <td colspan="4" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  No floors found matching your criteria.
+              <!-- Loading Spinner State -->
+              <tr v-if="isLoading">
+                <td colspan="4" class="px-6 py-20 text-center">
+                  <div class="flex flex-col items-center justify-center gap-3">
+                    <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">
+                      {{ languageStore.t('loading_floor_assignments', 'Loading floor assignments...') }}
+                    </span>
+                  </div>
                 </td>
               </tr>
 
-              <tr
-                v-for="floor in paginatedFloors"
-                :key="floor.id"
-                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
-              >
+              <!-- Data Rows -->
+              <template v-else>
+                <tr v-if="paginatedFloors.length === 0">
+                  <td colspan="4" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                    {{ languageStore.t('no_floors_found', 'No floors found matching your criteria.') }}
+                  </td>
+                </tr>
+
+                <tr
+                  v-for="floor in paginatedFloors"
+                  :key="floor.id"
+                  class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+                >
                 <!-- Floor Zone -->
                 <td class="py-3 px-4 pl-5 whitespace-nowrap">
                   <div class="flex items-center gap-3">
@@ -475,7 +517,7 @@ onMounted(() => {
                         {{ floor.name }}
                       </div>
                       <div class="text-[10px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-wider">
-                        Floor #{{ floor.floor_number }}
+                        {{ languageStore.t('floor', 'Floor') }} #{{ floor.floor_number }}
                       </div>
                     </div>
                   </div>
@@ -491,7 +533,7 @@ onMounted(() => {
                         : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
                     ]"
                   >
-                    {{ floor.is_active ? 'Active' : 'Inactive' }}
+                    {{ floor.is_active ? languageStore.t('active', 'Active') : languageStore.t('inactive', 'Inactive') }}
                   </span>
                 </td>
 
@@ -507,18 +549,20 @@ onMounted(() => {
                         {{ (assignment.waiter?.user?.name || assignment.waiter?.name || 'W')?.[0]?.toUpperCase() }}
                       </div>
                       <span class="font-bold text-slate-900 dark:text-white">
-                        {{ assignment.waiter?.user?.name || assignment.waiter?.name || 'Waiter' }}
+                        {{ assignment.waiter?.user?.name || assignment.waiter?.name || languageStore.t('waiter', 'Waiter') }}
                       </span>
                       <button
                         @click="removeAssignment(assignment.id)"
-                        class="text-slate-400 hover:text-rose-500 p-0.5 transition"
-                        title="Remove Waiter from Floor"
+                        class="text-slate-400 hover:text-rose-500 p-0.5 transition cursor-pointer"
+                        :title="languageStore.t('remove_waiter_floor', 'Remove Waiter from Floor')"
                       >
                         <Trash2 class="w-3 h-3" />
                       </button>
                     </div>
                   </div>
-                  <span v-else class="text-slate-400 italic text-xs">No staff currently assigned</span>
+                  <span v-else class="text-slate-400 italic text-xs">
+                    {{ languageStore.t('no_staff_assigned', 'No staff currently assigned') }}
+                  </span>
                 </td>
 
                 <!-- Actions -->
@@ -528,11 +572,12 @@ onMounted(() => {
                     class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-xs transition cursor-pointer"
                   >
                     <UserPlus class="w-3.5 h-3.5" />
-                    <span>Assign Staff</span>
+                    <span>{{ languageStore.t('assign_staff', 'Assign Staff') }}</span>
                   </button>
                 </td>
               </tr>
-            </tbody>
+            </template>
+          </tbody>
           </table>
         </div>
 
@@ -542,14 +587,14 @@ onMounted(() => {
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            Showing <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
-            <span class="font-bold text-slate-900 dark:text-white">{{ totalFloors }}</span> floors
+            {{ languageStore.t('showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ totalFloors }}</span> {{ languageStore.t('floors', 'floors') }}
           </div>
 
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page') }}:</span>
               <select
                 :value="perPage"
                 @change="changePerPage"
@@ -599,10 +644,12 @@ onMounted(() => {
       <!-- Add Staff Modal -->
       <AddStaffToFloorModal
         v-if="showAddStaffModal && selectedFloorForModal"
+        :is-open="showAddStaffModal"
         :floor-id="selectedFloorForModal.id"
         :floor-name="selectedFloorForModal.name"
         @close="showAddStaffModal = false"
         @success="handleStaffAdded"
+        @assigned="handleStaffAdded"
       />
     </div>
   </DashboardLayout>

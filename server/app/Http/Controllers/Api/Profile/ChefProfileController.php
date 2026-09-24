@@ -11,9 +11,6 @@ use Illuminate\Support\Facades\Storage;
 
 class ChefProfileController extends Controller
 {
-    /**
-     * Ensure all profile columns exist in chefs table
-     */
     private function ensureChefColumns()
     {
         try {
@@ -69,10 +66,6 @@ class ChefProfileController extends Controller
         }
     }
 
-    /**
-     * Get chef profile
-     * GET /api/chef/profile
-     */
     public function getProfile(): JsonResponse
     {
         try {
@@ -85,7 +78,6 @@ class ChefProfileController extends Controller
                     'message' => 'User not authenticated',
                 ], 401);
             }
-
             $user->load('chef');
 
             return response()->json([
@@ -131,10 +123,6 @@ class ChefProfileController extends Controller
         }
     }
 
-    /**
-     * Update chef profile
-     * PUT /api/chef/profile
-     */
     public function updateProfile(Request $request): JsonResponse
     {
         try {
@@ -204,10 +192,6 @@ class ChefProfileController extends Controller
         }
     }
 
-    /**
-     * Upload profile photo
-     * POST /api/chef/profile/photo
-     */
     public function uploadPhoto(Request $request): JsonResponse
     {
         try {
@@ -262,10 +246,6 @@ class ChefProfileController extends Controller
         }
     }
 
-    /**
-     * Change password
-     * POST /api/chef/profile/change-password
-     */
     public function changePassword(Request $request): JsonResponse
     {
         try {
@@ -301,10 +281,6 @@ class ChefProfileController extends Controller
         }
     }
 
-    /**
-     * Get chef statistics
-     * GET /api/chef/profile/stats
-     */
     public function getStats(): JsonResponse
     {
         try {
@@ -372,10 +348,6 @@ class ChefProfileController extends Controller
         }
     }
 
-    /**
-     * Update availability status
-     * POST /api/chef/profile/status
-     */
     public function updateStatus(Request $request): JsonResponse
     {
         try {

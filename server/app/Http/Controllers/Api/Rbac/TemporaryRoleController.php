@@ -20,9 +20,6 @@ class TemporaryRoleController extends Controller
         $this->authService = $authService;
     }
 
-    /**
-     * Display a listing of temporary role assignments.
-     */
     public function index(Request $request)
     {
         $query = TemporaryRoleAssignment::with(['user', 'role', 'assigner']);
@@ -53,9 +50,6 @@ class TemporaryRoleController extends Controller
         ]);
     }
 
-    /**
-     * Create a temporary role assignment for a user.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -103,9 +97,6 @@ class TemporaryRoleController extends Controller
         ], 201);
     }
 
-    /**
-     * Cancel or revoke a temporary role assignment.
-     */
     public function destroy(Request $request, TemporaryRoleAssignment $temporaryRoleAssignment)
     {
         $temporaryRoleAssignment->update(['is_active' => false]);

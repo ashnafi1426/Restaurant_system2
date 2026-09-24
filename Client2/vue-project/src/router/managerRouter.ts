@@ -24,6 +24,7 @@ const managerRoutes: RouteRecordRaw[] = [
     component: ManagerDashboard,
     meta: {
       requiresAuth: true,
+      role: 'manager',
       permission: 'dashboard.view',
       title: 'Manager Dashboard',
     },

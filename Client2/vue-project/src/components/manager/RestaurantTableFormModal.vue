@@ -6,15 +6,12 @@
         @click.self="$emit('close')"
       >
         <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-          <!-- Header -->
           <div class="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-4 text-white">
             <h2 class="text-2xl font-bold">{{ isEdit ? 'Edit Table' : 'Create New Table' }}</h2>
             <p class="text-amber-100 text-sm">{{ isEdit ? 'Update table details' : 'Add a new restaurant table' }}</p>
           </div>
 
-          <!-- Form -->
           <form @submit.prevent="handleSubmit" class="p-6 space-y-4">
-            <!-- Table Number -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Table Number <span class="text-red-500">*</span>
@@ -30,7 +27,6 @@
               <p v-if="errors.table_number" class="text-red-500 text-xs mt-1">{{ errors.table_number }}</p>
             </div>
 
-            <!-- Table Name -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Table Name (Optional)
@@ -43,7 +39,6 @@
               />
             </div>
 
-            <!-- Capacity -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Capacity (Number of Seats)
@@ -58,7 +53,6 @@
               />
             </div>
 
-            <!-- Location -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Location
@@ -77,7 +71,6 @@
               </select>
             </div>
 
-            <!-- Status -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">
                 Status
@@ -94,7 +87,6 @@
               </select>
             </div>
 
-            <!-- Is Active -->
             <div class="flex items-center">
               <input
                 v-model="formData.is_active"
@@ -107,17 +99,14 @@
               </label>
             </div>
 
-            <!-- Error Message -->
             <div v-if="submitError" class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
               {{ submitError }}
             </div>
 
-            <!-- Success Message -->
             <div v-if="submitSuccess" class="bg-green-50 border border-green-200 rounded-lg p-3 text-green-700 text-sm">
               {{ submitSuccess }}
             </div>
 
-            <!-- Actions -->
             <div class="flex gap-3 pt-4 border-t">
               <button
                 type="button"
@@ -161,23 +150,19 @@ import { ref, computed, onMounted } from 'vue'
 import { useRestaurantTableStore } from '@/stores/restaurantTableStore'
 import type { RestaurantTable, CreateTableRequest, UpdateTableRequest } from '@/types/restaurantTable'
 
-// Props
 interface Props {
   table?: RestaurantTable | null
 }
 
 const props = defineProps<Props>()
 
-// Emits
 const emit = defineEmits<{
   close: []
   success: []
 }>()
 
-// Store
 const tableStore = useRestaurantTableStore()
 
-// State
 const formData = ref<CreateTableRequest>({
   table_number: '',
   table_name: null,
@@ -192,16 +177,13 @@ const submitError = ref<string | null>(null)
 const submitSuccess = ref<string | null>(null)
 const submitting = ref(false)
 
-// Computed
 const isEdit = computed(() => !!props.table)
 
-// Methods
 const handleSubmit = async () => {
   errors.value = {}
   submitError.value = null
   submitSuccess.value = null
 
-  // Validate
   if (!formData.value.table_number) {
     errors.value.table_number = 'Table number is required'
     return
@@ -209,42 +191,25 @@ const handleSubmit = async () => {
 
   submitting.value = true
 
-  console.log('📋 Form Data being submitted:', formData.value)
-  console.log('📋 Is Edit mode?', isEdit.value)
-
   try {
     if (isEdit.value && props.table) {
-      // Update
-      console.log('📝 Updating table:', props.table.id)
       await tableStore.updateTable(props.table.id, formData.value as UpdateTableRequest)
       submitSuccess.value = 'Table updated successfully!'
     } else {
-      // Create
-      console.log('➕ Creating new table')
       await tableStore.createTable(formData.value)
       submitSuccess.value = 'Table created successfully!'
     }
 
-    // Close modal after short delay
     setTimeout(() => {
       emit('success')
     }, 1000)
   } catch (error: any) {
-    console.error(' Form submission error:', error)
-    console.error(' Error details:', {
-      message: error.message,
-      errors: error.errors,
-      response: error.response
-    })
-    
+    console.error('[RestaurantTableFormModal] Failed to save table:', error)
     submitError.value = error.message || 'Failed to save table'
 
-    // Handle validation errors
     if (error.errors) {
-      console.error(' Validation errors:', error.errors)
       errors.value = error.errors
       
-      // Build detailed error message from validation errors
       const errorMessages: string[] = []
       Object.entries(error.errors).forEach(([field, messages]) => {
         const msgArray = Array.isArray(messages) ? messages : [messages]
@@ -262,7 +227,6 @@ const handleSubmit = async () => {
   }
 }
 
-// Lifecycle
 onMounted(() => {
   if (props.table) {
     formData.value = {

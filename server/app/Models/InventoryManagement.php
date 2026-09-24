@@ -41,9 +41,6 @@ class InventoryManagement extends Model
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Boot the model
-     */
     protected static function boot()
     {
         parent::boot();
@@ -57,9 +54,6 @@ class InventoryManagement extends Model
         });
     }
 
-    /**
-     * Update inventory status based on quantity
-     */
     public function updateStatus(): void
     {
         if ($this->current_quantity <= 0) {
@@ -73,25 +67,16 @@ class InventoryManagement extends Model
         }
     }
 
-    /**
-     * Check if inventory is low
-     */
     public function isLowStock(): bool
     {
         return in_array($this->status, ['low_stock', 'critical', 'out_of_stock']);
     }
 
-    /**
-     * Get total value of inventory
-     */
     public function getTotalValue(): float
     {
         return $this->current_quantity * $this->unit_cost;
     }
 
-    /**
-     * Record a restock
-     */
     public function restock($quantity): void
     {
         $this->current_quantity += $quantity;
@@ -100,9 +85,6 @@ class InventoryManagement extends Model
         $this->save();
     }
 
-    /**
-     * Record consumption
-     */
     public function consume($quantity): void
     {
         $this->current_quantity = max(0, $this->current_quantity - $quantity);
@@ -110,50 +92,32 @@ class InventoryManagement extends Model
         $this->save();
     }
 
-    /**
-     * Scope: Get low stock items
-     */
     public function scopeLowStock($query)
     {
         return $query->whereIn('status', ['low_stock', 'critical', 'out_of_stock']);
     }
 
-    /**
-     * Scope: Get out of stock items
-     */
     public function scopeOutOfStock($query)
     {
         return $query->where('status', 'out_of_stock');
     }
 
-    /**
-     * Scope: Get items by category
-     */
     public function scopeByCategory($query, $category)
     {
         return $query->where('category', $category);
     }
 
-    /**
-     * Scope: Get items by department
-     */
     public function scopeByDepartment($query, $department)
     {
         return $query->where('department', $department);
     }
 
-    /**
-     * Scope: Get items requiring alert
-     */
     public function scopeNeedsAlert($query)
     {
         return $query->where('is_alert_enabled', true)
             ->lowStock();
     }
 
-    /**
-     * Scope: Get items not alerted recently (avoid duplicate alerts)
-     */
     public function scopeNotRecentlyAlerted($query, $minutes = 60)
     {
         return $query->where(function ($q) {
@@ -162,9 +126,6 @@ class InventoryManagement extends Model
         });
     }
 
-    /**
-     * Mark as alerted
-     */
     public function markAsAlerted(): void
     {
         $this->update(['last_alerted_at' => now()]);

@@ -20,7 +20,6 @@ const emit = defineEmits<{
 
 const isVisible = ref(true)
 
-// Get icon based on notification type
 const getIcon = (type: string) => {
   const icons: Record<string, any> = {
     booking: Bell,
@@ -32,7 +31,6 @@ const getIcon = (type: string) => {
   return icons[type] || Bell
 }
 
-// Get colors based on notification type
 const getColors = (type: string) => {
   const colors: Record<string, object> = {
     booking: {
@@ -82,7 +80,6 @@ const close = () => {
   emit('close')
 }
 
-// Auto close after duration
 onMounted(() => {
   if (props.autoClose) {
     setTimeout(close, props.duration)
@@ -109,10 +106,8 @@ onMounted(() => {
       ]"
     >
       <div class="flex items-start gap-3">
-        <!-- Icon -->
         <Icon :class="['w-5 h-5 flex-shrink-0 mt-0.5', colors.icon]" />
 
-        <!-- Content -->
         <div class="flex-1">
           <h4 class="font-semibold text-sm">
             {{ notification.title }}
@@ -121,7 +116,6 @@ onMounted(() => {
             {{ notification.message }}
           </p>
 
-          <!-- Guest Info -->
           <div
             v-if="notification.guest_name || notification.room_number"
             class="mt-2 flex flex-wrap gap-2"
@@ -141,7 +135,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Close Button -->
         <button @click="close" class="flex-shrink-0 opacity-70 hover:opacity-100 transition">
           <X class="w-5 h-5" />
         </button>

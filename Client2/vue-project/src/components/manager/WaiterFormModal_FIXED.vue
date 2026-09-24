@@ -1,7 +1,6 @@
 <template>
   <div v-if="isOpen" class="modal-overlay" @click.self="close">
     <div class="modal-container">
-      <!-- Modal Header -->
       <div class="modal-header">
         <div class="header-content">
           <div class="header-icon">
@@ -17,12 +16,9 @@
         </button>
       </div>
 
-      <!-- Modal Body with Two Columns -->
       <div class="modal-body">
         <form @submit.prevent="submitForm" class="form-container">
-          <!-- Left Column -->
           <div class="form-column">
-            <!-- Personal Information -->
             <div class="form-section">
               <div class="section-header">
                 <div class="section-icon person-icon">👤</div>
@@ -83,7 +79,6 @@
               </div>
             </div>
 
-            <!-- Credentials -->
             <div class="form-section">
               <div class="section-header">
                 <div class="section-icon lock-icon">🔐</div>
@@ -107,9 +102,7 @@
             </div>
           </div>
 
-          <!-- Right Column -->
           <div class="form-column">
-            <!-- Assignment -->
             <div class="form-section">
               <div class="section-header">
                 <div class="section-icon work-icon">👨‍💼</div>
@@ -134,9 +127,9 @@
                 <select id="shift" v-model="formData.shift" class="form-control" required>
                   <option value="">Select...</option>
                   <option value="morning">🌅 Morning</option>
-                  <option value="afternoon">🌤️ Afternoon</option>
+                  <option value="afternoon"> Afternoon</option>
                   <option value="evening">🌆 Evening</option>
-                  <option value="night">🌙 Night</option>
+                  <option value="night"> Night</option>
                 </select>
                 <span v-if="fieldErrors.shift" class="error">{{ fieldErrors.shift }}</span>
               </div>
@@ -173,7 +166,6 @@
           </div>
         </form>
 
-        <!-- Error Alert -->
         <div v-if="errorMessage" class="alert alert-error">
           <AlertCircle :size="14" />
           <div>
@@ -183,7 +175,6 @@
         </div>
       </div>
 
-      <!-- Modal Footer -->
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" @click="close">Cancel</button>
         <button type="submit" class="btn btn-primary" @click="submitForm" :disabled="submitting">
@@ -301,6 +292,7 @@ const submitForm = async () => {
     emit('submit', submitData)
     close()
   } catch (error: any) {
+    console.error('[WaiterFormModal_FIXED] Form submission error:', error)
     errorMessage.value = error.message || 'Error'
   } finally {
     submitting.value = false
@@ -350,7 +342,6 @@ const close = () => {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Header */
 .modal-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -408,7 +399,6 @@ const close = () => {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Body */
 .modal-body {
   flex: 1;
   overflow-y: auto;
@@ -578,7 +568,6 @@ label {
   font-size: 11px;
 }
 
-/* Footer */
 .modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -638,7 +627,6 @@ label {
   to { transform: rotate(360deg); }
 }
 
-/* Mobile */
 @media (max-width: 768px) {
   .modal-container {
     max-height: 90vh;
@@ -661,7 +649,6 @@ label {
   }
 }
 
-/* Scrollbar */
 .modal-body::-webkit-scrollbar {
   width: 4px;
 }

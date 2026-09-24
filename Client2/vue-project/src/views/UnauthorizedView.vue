@@ -2,9 +2,11 @@
 import { useRouter } from 'vue-router'
 import { ShieldAlert, ArrowLeft, Home } from 'lucide-vue-next'
 import { useAuthStore } from '../stores/auth'
+import { useLanguageStore } from '../stores/language'
 
 const router = useRouter()
 const auth = useAuthStore()
+const languageStore = useLanguageStore()
 
 const goBack = () => {
   router.back()
@@ -13,7 +15,7 @@ const goBack = () => {
 const goHome = () => {
   const role = String(auth.user?.role || '').toLowerCase().trim()
 
-  if (auth.isAdmin || role === 'admin') {
+  if (auth.isPlatformAdmin || auth.hasRole('admin') || role === 'admin') {
     router.push('/admin')
   } else if (role === 'receptionist') {
     router.push('/receptionist')
@@ -52,13 +54,13 @@ const goHome = () => {
 
       <div class="space-y-2">
         <span class="text-xs font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20">
-          403 Access Denied
+          {{ languageStore.t('access_denied_403', '403 Access Denied') }}
         </span>
         <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white pt-2">
-          Unauthorized Access
+          {{ languageStore.t('unauthorized_access', 'Unauthorized Access') }}
         </h1>
         <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-          You do not possess the required permission or scope to access this page or perform this action. Contact system administrator for authorization.
+          {{ languageStore.t('unauthorized_desc', 'You do not possess the required permission or scope to access this page or perform this action. Contact system administrator for authorization.') }}
         </p>
       </div>
 
@@ -68,7 +70,7 @@ const goHome = () => {
           class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold transition cursor-pointer"
         >
           <ArrowLeft class="w-4 h-4" />
-          <span>Go Back</span>
+          <span>{{ languageStore.t('go_back', 'Return to Previous Page') }}</span>
         </button>
 
         <button
@@ -76,7 +78,7 @@ const goHome = () => {
           class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-md shadow-amber-500/20 transition cursor-pointer"
         >
           <Home class="w-4 h-4" />
-          <span>Return to Dashboard</span>
+          <span>{{ languageStore.t('go_to_dashboard', 'Go to Dashboard') }}</span>
         </button>
       </div>
     </div>

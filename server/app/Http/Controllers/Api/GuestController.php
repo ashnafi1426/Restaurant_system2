@@ -9,17 +9,13 @@ use App\Http\Resources\GuestResource;
 use App\Http\Resources\ReservationCollection;
 use App\Models\Guest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class GuestController extends Controller
 {
-    /**
-     * Display a listing of guests.
-     */
     public function index(Request $request)
     {
         $query = Guest::query();
-
-        // Search
         if ($request->filled('search')) {
             $search = trim($request->search);
 
@@ -32,14 +28,10 @@ class GuestController extends Controller
             });
         }
 
-        // Nationality Filter
         if ($request->filled('nationality')) {
             $query->where('nationality', $request->nationality);
         }
-
-        // Latest First
         $query->latest();
-
         $guests = $query->paginate(
             $request->get('per_page', 10)
         );
@@ -47,12 +39,9 @@ class GuestController extends Controller
         return new GuestCollection($guests);
     }
 
-    /**
-     * Store a newly created guest or reuse existing guest if email/passport matches.
-     */
     public function store(GuestRequest $request)
     {
-        return \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+        return DB::transaction(function () use ($request) {
             $validated = $request->validated();
             $existingGuest = null;
 
@@ -65,7 +54,6 @@ class GuestController extends Controller
             }
 
             if ($existingGuest) {
-                // Update existing guest details with any new non-null fields provided
                 $existingGuest->update(array_filter($validated, fn($val) => !is_null($val) && $val !== ''));
                 return response()->json([
                     'message' => 'Existing guest record found and updated successfully.',
@@ -82,9 +70,6 @@ class GuestController extends Controller
         });
     }
 
-    /**
-     * Display the specified guest.
-     */
     public function show(Guest $guest)
     {
         return response()->json([
@@ -92,25 +77,19 @@ class GuestController extends Controller
         ]);
     }
 
-    /**
-     * Get all reservations for a specific guest
-     */
     public function reservations(Guest $guest, Request $request)
     {
         $query = $guest->reservations();
 
-        // Search filter
         if ($request->filled('search')) {
             $search = trim($request->search);
             $query->where('booking_reference', 'LIKE', "%{$search}%");
         }
 
-        // Status filter
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Date range filter
         if ($request->filled('start_date') && $request->filled('end_date')) {
             $query->whereBetween('check_in_date', [
                 $request->start_date,
@@ -128,9 +107,6 @@ class GuestController extends Controller
         return new ReservationCollection($reservations);
     }
 
-    /**
-     * Update the specified guest.
-     */
     public function update(
         GuestRequest $request,
         Guest $guest
@@ -145,9 +121,6 @@ class GuestController extends Controller
         ]);
     }
 
-    /**
-     * Remove the specified guest.
-     */
     public function destroy(Guest $guest)
     {
         $guest->delete();

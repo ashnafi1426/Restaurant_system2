@@ -67,7 +67,7 @@ const addItem = (item: MenuItem) => {
 
     <div v-else-if="items.length === 0" class="py-20">
       <div class="max-w-md mx-auto text-center">
-        <div class="text-7xl">🍽️</div>
+        <div class="text-7xl"></div>
 
         <h2 class="mt-6 text-2xl font-bold text-slate-800">No Menu Items Found</h2>
 

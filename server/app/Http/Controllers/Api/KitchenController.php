@@ -10,11 +10,10 @@ use App\Http\Resources\KitchenOrderResource;
 use App\Models\Order;
 use Throwable;
 
-
 class KitchenController extends Controller
 {
-
     protected KitchenService $kitchenService;
+
     public function __construct(
         KitchenService $kitchenService
     )
@@ -37,7 +36,6 @@ class KitchenController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-
         try {
             $this->resolveTenant($request);
 
@@ -58,73 +56,49 @@ class KitchenController extends Controller
             ]);
 
             return response()->json([
-
                 'success' => true,
-
                 'message' => 'Kitchen orders retrieved successfully.',
-
                 'data' => [
-
                     'pending' =>
                         KitchenOrderResource::collection(
                             $orders['pending']
                         ),
-
-
                     'preparing' =>
                         KitchenOrderResource::collection(
                             $orders['preparing']
                         ),
-
-
                     'ready' =>
                         KitchenOrderResource::collection(
                             $orders['ready']
                         ),
-
-
                     'served' =>
                         KitchenOrderResource::collection(
                             $orders['served']
                         ),
-
                 ]
-
             ]);
-
-
         } catch(Throwable $e){
-
             \Log::error(' [KITCHEN] Orders Error', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
-
                 'success'=>false,
-
                 'message'=>'Failed to load kitchen orders.',
-
                 'error'=>$e->getMessage()
-
             ],500);
-
-
         }
-
     }
+
     public function start(Order $order): JsonResponse
     {
-
         try {
-
             \Log::info('🟢 [KITCHEN] START Action Received', [
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
                 'current_status' => $order->status,
             ]);
-
 
             $updatedOrder =
                 $this
@@ -137,24 +111,15 @@ class KitchenController extends Controller
             ]);
 
             return response()->json([
-
                 'success'=>true,
-
                 'message'=>
                     'Order started preparing successfully.',
-
-
                 'data'=>
                     new KitchenOrderResource(
                         $updatedOrder
                     )
-
             ]);
-
-
-
-        }catch(Throwable $e){
-
+        } catch(Throwable $e){
             \Log::error(' [KITCHEN] START Action Failed', [
                 'order_id' => $order->id ?? 'unknown',
                 'error_message' => $e->getMessage(),
@@ -163,23 +128,15 @@ class KitchenController extends Controller
             ]);
 
             return response()->json([
-
                 'success'=>false,
-
                 'message'=>$e->getMessage()
-
             ],500);
-
-
         }
-
-
     }
+
     public function ready(Order $order): JsonResponse
     {
-
         try {
-
             \Log::info('[KITCHEN] READY Action Received', [
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
@@ -196,48 +153,30 @@ class KitchenController extends Controller
             ]);
 
             return response()->json([
-
                 'success'=>true,
-
                 'message'=>
                     'Order marked as ready.',
-
-
                 'data'=>
                     new KitchenOrderResource(
                         $updatedOrder
                     )
-
-
             ]);
-
-
-
-        }catch(Throwable $e){
-
+        } catch(Throwable $e){
             \Log::error(' [KITCHEN] READY Action Failed', [
                 'order_id' => $order->id ?? 'unknown',
                 'error_message' => $e->getMessage(),
             ]);
 
             return response()->json([
-
                 'success'=>false,
-
                 'message'=>$e->getMessage()
-
             ],500);
-
-
         }
-
-
     }
+
     public function complete(Order $order): JsonResponse
     {
-
         try {
-
             \Log::info('🟢 [KITCHEN] COMPLETE Action Received', [
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
@@ -255,91 +194,46 @@ class KitchenController extends Controller
             ]);
 
             return response()->json([
-
                 'success'=>true,
-
                 'message'=>
                     'Order completed successfully.',
-
-
                 'data'=>
                     new KitchenOrderResource(
                         $updatedOrder
                     )
-
-
             ]);
-        }catch(Throwable $e){
-
+        } catch(Throwable $e){
             \Log::error(' [KITCHEN] COMPLETE Action Failed', [
                 'order_id' => $order->id ?? 'unknown',
                 'error_message' => $e->getMessage(),
             ]);
 
             return response()->json([
-
                 'success'=>false,
-
                 'message'=>$e->getMessage()
-
             ],500);
-
-
         }
-
-
     }
 
-
-
-
-
-
-
-    /**
-     * Kitchen statistics
-     *
-     * GET /api/kitchen/statistics
-     */
     public function statistics(Request $request): JsonResponse
     {
-
         try {
             $this->resolveTenant($request);
-
 
             $statistics =
                 $this
                 ->kitchenService
                 ->statistics(auth()->user());
 
-
-
             return response()->json([
-
                 'success'=>true,
-
                 'data'=>$statistics
-
             ]);
-
-
-
-        }catch(Throwable $e){
-
-
+        } catch(Throwable $e){
             return response()->json([
-
                 'success'=>false,
-
                 'message'=>$e->getMessage()
-
             ],500);
-
-
         }
-
     }
-
-
 }

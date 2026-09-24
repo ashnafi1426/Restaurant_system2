@@ -5,7 +5,7 @@ import HotelFacilitaties from '@/components/guest/HotelFacilitaties.vue'
 import RestaurantSection from '@/components/guest/RestaurantSection.vue'
 import Testimonial from '@/components/guest/Testimonial.vue'
 import ContactSection from '@/components/landing/ContactSection.vue'
-import GuestLayout from '@/layouts/GuestLayout.vue'
+import GuestLayout from '@/Layouts/GuestLayout.vue'
 </script>
 
 <template>

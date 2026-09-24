@@ -1,17 +1,13 @@
 <template>
   <div class="checkout-container min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12">
-    <!-- Main Checkout Card -->
     <div class="max-w-2xl mx-auto px-4">
       <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-        <!-- Header -->
         <div class="bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 px-8 py-6">
           <h1 class="text-3xl font-bold text-white">Payment Checkout</h1>
           <p class="text-amber-100 mt-2">Complete your payment securely</p>
         </div>
 
-        <!-- Content -->
         <div class="p-8">
-          <!-- Error Alert -->
           <div
             v-if="paymentStore.error"
             class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3"
@@ -33,15 +29,12 @@
             </div>
           </div>
 
-          <!-- Payment Form -->
           <form @submit.prevent="submitPayment" class="space-y-6">
-            <!-- Customer Information Section -->
             <div class="border-b pb-6">
               <h2 class="text-lg font-semibold text-slate-900 mb-4">
                 Customer Information
               </h2>
 
-              <!-- Name Fields -->
               <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label class="block text-sm font-medium text-slate-700 mb-2">
@@ -69,7 +62,6 @@
                 </div>
               </div>
 
-              <!-- Email and Phone -->
               <div class="grid grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-slate-700 mb-2">
@@ -98,7 +90,6 @@
               </div>
             </div>
 
-            <!-- Payment Amount Section -->
             <div class="border-b pb-6">
               <h2 class="text-lg font-semibold text-slate-900 mb-4">
                 Payment Amount
@@ -139,7 +130,6 @@
               </div>
             </div>
 
-            <!-- Payment Method Section -->
             <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
               <div class="flex items-start gap-3">
                 <svg
@@ -161,7 +151,6 @@
               </div>
             </div>
 
-            <!-- Submit Button -->
             <div class="pt-4">
               <button
                 type="submit"
@@ -180,7 +169,6 @@
               </button>
             </div>
 
-            <!-- Security Notice -->
             <p class="text-center text-xs text-slate-500">
               🔒 Your payment information is encrypted and secure. We never store your
               credit card details.
@@ -189,7 +177,6 @@
         </div>
       </div>
 
-      <!-- Info Card -->
       <div class="mt-8 bg-white rounded-lg shadow p-6 border-l-4 border-blue-600">
         <h3 class="font-semibold text-slate-900 mb-2">Payment Information</h3>
         <ul class="text-sm text-slate-600 space-y-2">
@@ -221,22 +208,13 @@ import { useRouter, useRoute } from 'vue-router';
 import { usePaymentStore } from '@/stores/paymentStore';
 import paymentService from '@/services/paymentService';
 
-// ============================================================================
-// Setup
-// ============================================================================
-
 const router = useRouter();
 const route = useRoute();
 const paymentStore = usePaymentStore();
 
-// ============================================================================
-// State
-// ============================================================================
-
 const isLoading = ref(true);
 const error = ref<string | null>(null);
 
-// Initialize formData from session storage or with defaults
 const bookingSessionData = JSON.parse(sessionStorage.getItem('booking_session') || '{}');
 
 const formData = ref({
@@ -247,47 +225,20 @@ const formData = ref({
   amount: bookingSessionData.price_breakdown?.total || 0,
 });
 
-// ============================================================================
-// Lifecycle - AUTO REDIRECT TO CHAPA
-// ============================================================================
-
-/**
- * When guest is redirected here from BookingModal:
- * - BookingModal has already initialized payment via API
- * - We receive payment_id and tx_ref as query params
- * - We fetch the payment details to get checkout URL
- * - We display the checkout form with payment details
- * - User clicks "Proceed to Payment" to go to Chapa
- */
 onMounted(async () => {
   try {
     const paymentId = route.query.payment_id as string;
     const txRef = route.query.tx_ref as string;
     let checkoutUrl = route.query.checkout_url as string;
 
-    console.log('💳 [CHECKOUT] Received payment details:');
-    console.log('   - payment_id:', paymentId);
-    console.log('   - tx_ref:', txRef);
-    console.log('   - checkout_url from query:', checkoutUrl);
-
-    // If checkout_url not in query params, try sessionStorage (fallback)
     if (!checkoutUrl) {
       checkoutUrl = sessionStorage.getItem('chapa_checkout_url') || '';
-      console.log('📦 [CHECKOUT] Retrieved checkout_url from sessionStorage:', checkoutUrl);
     }
 
-    // Validate required fields
     if (!txRef) {
       throw new Error('Missing transaction reference. Please try again from the booking form.');
     }
 
-    if (!checkoutUrl) {
-      console.warn(' [CHECKOUT] WARNING: Checkout URL is empty. This may cause payment to fail.');
-    }
-
-    console.log(' [CHECKOUT] Payment information loaded');
-    
-    // Store the payment details
     const payment = {
       id: paymentId || '',
       tx_ref: txRef,
@@ -297,54 +248,31 @@ onMounted(async () => {
     
     paymentStore.setCurrentPayment(payment);
     
-    console.log('💾 [CHECKOUT] Payment stored in paymentStore');
-    console.log('🔗 [CHECKOUT] Stored Checkout URL:', paymentStore.currentCheckoutUrl);
-    
-    // Update formData with payment amount
     formData.value.amount = bookingSessionData?.price_breakdown?.total || 0;
-    
-    console.log(' [CHECKOUT] Form data updated with amount:', formData.value.amount);
     
     isLoading.value = false;
 
   } catch (err: any) {
-    console.error(' [CHECKOUT] Error in onMounted:', err);
+    console.error('[CheckoutPage] Failed to initialize checkout:', err);
     error.value = err.message || 'Failed to process payment';
     isLoading.value = false;
   }
 });
 
-// ============================================================================
-// Submit Payment Handler
-// ============================================================================
-
-/**
- * Handle "Proceed to Payment" button click
- * This should trigger the redirect to Chapa
- */
 function submitPayment(): void {
   try {
-    console.log('💳 [CHECKOUT] Submit Payment clicked');
-    console.log('💾 [CHECKOUT] Current Checkout URL from Store:', paymentStore.currentCheckoutUrl);
-    
-    // Get checkout URL from store
     const checkoutUrl = paymentStore.currentCheckoutUrl;
     
     if (!checkoutUrl) {
       throw new Error('Checkout URL not available. Please try again or refresh the page.');
     }
 
-    console.log('� [CHECKOUT] Redirecting to Chapa checkout at:', checkoutUrl);
     window.location.href = checkoutUrl;
   } catch (err: any) {
-    console.error(' [CHECKOUT] Submit payment error:', err);
+    console.error('[CheckoutPage] Failed to proceed to payment:', err);
     error.value = err.message || 'Failed to proceed to payment';
   }
 }
-
-// ============================================================================
-// Format Helper
-// ============================================================================
 
 function formatAmount(amount: number): string {
   return new Intl.NumberFormat('en-ET', {
@@ -355,7 +283,6 @@ function formatAmount(amount: number): string {
 </script>
 
 <style scoped>
-/* Smooth transitions */
 input:focus {
   @apply shadow-lg;
 }
@@ -364,7 +291,6 @@ button:hover:not(:disabled) {
   @apply shadow-lg;
 }
 
-/* Loading spinner */
 @keyframes spin {
   to {
     transform: rotate(360deg);

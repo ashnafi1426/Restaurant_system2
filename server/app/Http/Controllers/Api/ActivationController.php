@@ -19,17 +19,8 @@ class ActivationController extends Controller
         $this->activationService = $activationService;
     }
 
-    /**
-     * Validate activation token.
-     * 
-     * GET /api/activation/{token}
-     *
-     * @param string $token
-     * @return JsonResponse
-     */
     public function validateToken(string $token): JsonResponse
     {
-        // Rate limiting: 10 attempts per minute per IP
         $key = 'validate-token:' . request()->ip();
         
         if (RateLimiter::tooManyAttempts($key, 10)) {
@@ -64,17 +55,8 @@ class ActivationController extends Controller
         ]);
     }
 
-    /**
-     * Activate user account with password.
-     * 
-     * POST /api/activate-account
-     *
-     * @param ActivateAccountRequest $request
-     * @return JsonResponse
-     */
     public function activateAccount(ActivateAccountRequest $request): JsonResponse
     {
-        // Rate limiting: 5 attempts per minute per IP
         $key = 'activate-account:' . request()->ip();
         
         if (RateLimiter::tooManyAttempts($key, 5)) {
@@ -112,17 +94,8 @@ class ActivationController extends Controller
         ], 200);
     }
 
-    /**
-     * Resend activation email.
-     * 
-     * POST /api/resend-activation
-     *
-     * @param ResendActivationRequest $request
-     * @return JsonResponse
-     */
     public function resendActivation(ResendActivationRequest $request): JsonResponse
     {
-        // Rate limiting: 3 attempts per hour per email
         $key = 'resend-activation:' . $request->email;
         
         if (RateLimiter::tooManyAttempts($key, 3)) {
@@ -135,7 +108,7 @@ class ActivationController extends Controller
             ], 429);
         }
         
-        RateLimiter::hit($key, 3600); // 1 hour
+        RateLimiter::hit($key, 3600);
         
         $result = $this->activationService->resendActivation($request->email);
         
@@ -153,14 +126,6 @@ class ActivationController extends Controller
         ], 200);
     }
 
-    /**
-     * Check activation status for login attempts.
-     * 
-     * POST /api/check-activation-status
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function checkActivationStatus(Request $request): JsonResponse
     {
         $request->validate([

@@ -164,6 +164,17 @@ const saveMatrix = async () => {
     await Promise.all(promises)
     successMessage.value = 'All role permissions updated and synced successfully across the platform!'
     await loadData()
+
+    // Sync auth store immediately so current user's sidebar updates without manual refresh
+    try {
+      const { useAuthStore } = await import('@/stores/auth')
+      const authStore = useAuthStore()
+      await authStore.fetchCurrentUser()
+      window.dispatchEvent(new CustomEvent('permissions-updated'))
+    } catch (authErr) {
+      console.warn('[MATRIX] Auth refresh error:', authErr)
+    }
+
     setTimeout(() => {
       successMessage.value = ''
     }, 4000)

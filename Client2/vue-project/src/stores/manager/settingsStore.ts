@@ -27,23 +27,11 @@ interface Report {
 }
 
 export const useManagerSettingsStore = defineStore('managerSettings', () => {
-  /*
-  |--------------------------------------------------------------------------
-  | STATE
-  |--------------------------------------------------------------------------
-  */
-
   const dashboardSettings = ref<DashboardSetting[]>([])
   const announcements = ref<Announcement[]>([])
   const reports = ref<Report[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
-
-  /*
-  |--------------------------------------------------------------------------
-  | ACTIONS
-  |--------------------------------------------------------------------------
-  */
 
   async function loadDashboardSettings() {
     try {
@@ -51,6 +39,7 @@ export const useManagerSettingsStore = defineStore('managerSettings', () => {
       error.value = null
       dashboardSettings.value = await managerService.getDashboardSettings()
     } catch (err: any) {
+      console.error('[manager/settingsStore] Failed to load dashboard settings:', err)
       error.value = err.message
     } finally {
       loading.value = false
@@ -66,6 +55,7 @@ export const useManagerSettingsStore = defineStore('managerSettings', () => {
       }
       return updated
     } catch (err: any) {
+      console.error('[manager/settingsStore] Failed to update dashboard setting:', err)
       error.value = err.message
       throw err
     }
@@ -75,6 +65,7 @@ export const useManagerSettingsStore = defineStore('managerSettings', () => {
     try {
       announcements.value = await managerService.getAnnouncements()
     } catch (err: any) {
+      console.error('[manager/settingsStore] Failed to load announcements:', err)
       error.value = err.message
     }
   }
@@ -85,6 +76,7 @@ export const useManagerSettingsStore = defineStore('managerSettings', () => {
       announcements.value.unshift(announcement)
       return announcement
     } catch (err: any) {
+      console.error('[manager/settingsStore] Failed to create announcement:', err)
       error.value = err.message
       throw err
     }
@@ -99,6 +91,7 @@ export const useManagerSettingsStore = defineStore('managerSettings', () => {
       }
       return updated
     } catch (err: any) {
+      console.error('[manager/settingsStore] Failed to update announcement:', err)
       error.value = err.message
       throw err
     }
@@ -109,6 +102,7 @@ export const useManagerSettingsStore = defineStore('managerSettings', () => {
       await managerService.deleteAnnouncement(announcementId)
       announcements.value = announcements.value.filter((a) => a.id !== announcementId)
     } catch (err: any) {
+      console.error('[manager/settingsStore] Failed to delete announcement:', err)
       error.value = err.message
       throw err
     }
@@ -118,6 +112,7 @@ export const useManagerSettingsStore = defineStore('managerSettings', () => {
     try {
       reports.value = await managerService.getReports()
     } catch (err: any) {
+      console.error('[manager/settingsStore] Failed to load reports:', err)
       error.value = err.message
     }
   }

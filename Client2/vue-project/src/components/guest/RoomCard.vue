@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useLanguageStore } from '@/stores/language'
 
 interface Room {
   id: string
@@ -27,6 +28,7 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const languageStore = useLanguageStore()
 
 const formattedPrice = computed(() => `$${props.room.price.toFixed(2)}`)
 
@@ -34,7 +36,11 @@ const availabilityClass = computed(() =>
   props.room.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700',
 )
 
-const availabilityText = computed(() => (props.room.available ? 'Available' : 'Fully Booked'))
+const availabilityText = computed(() => 
+  props.room.available 
+    ? languageStore.t('available', 'Available') 
+    : languageStore.t('fully_booked', 'Fully Booked')
+)
 
 function viewDetails() {
   emit('details', props.room)
@@ -70,7 +76,7 @@ function reserveRoom() {
         <span class="text-xl md:text-2xl font-semibold text-white drop-shadow-lg">
           {{ formattedPrice }}
         </span>
-        <span class="text-[9px] font-light text-white/90">/night</span>
+        <span class="text-[9px] font-light text-white/90">{{ languageStore.t('per_night', '/night') }}</span>
       </div>
     </div>
 
@@ -102,26 +108,26 @@ function reserveRoom() {
       <!-- Room Info Grid - Minimized -->
       <div class="grid grid-cols-3 gap-1.5 mb-2 pb-2 border-b border-slate-100">
         <div class="text-center">
-          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">Guests</p>
+          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">{{ languageStore.t('guests', 'Guests') }}</p>
           <p class="text-[11px] font-medium text-slate-900">
             {{ room.capacity }}
           </p>
         </div>
 
         <div class="text-center border-x border-slate-100">
-          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">Size</p>
+          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">{{ languageStore.t('size', 'Size') }}</p>
           <p class="text-[11px] font-medium text-slate-900">{{ room.size }}m²</p>
         </div>
 
         <div class="text-center">
-          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">Bed</p>
+          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">{{ languageStore.t('bed', 'Bed') }}</p>
           <p class="text-[11px] font-medium text-slate-900">{{ room.bed_type }}</p>
         </div>
       </div>
 
       <!-- Amenities - Ultra Compact -->
       <div class="mb-2">
-        <p class="text-[9px] font-light text-slate-700 mb-1">Amenities</p>
+        <p class="text-[9px] font-light text-slate-700 mb-1">{{ languageStore.t('amenities', 'Amenities') }}</p>
         <div class="flex flex-wrap gap-1">
           <span
             v-for="item in room.amenities.slice(0, 3)"
@@ -143,17 +149,17 @@ function reserveRoom() {
       <div class="grid grid-cols-2 gap-1.5 mt-auto">
         <button
           @click="viewDetails"
-          class="rounded-xl border border-slate-300 py-2 text-[10px] font-light text-slate-700 transition-all hover:border-amber-500 hover:bg-amber-50 hover:text-amber-700"
+          class="rounded-xl border border-slate-300 py-2 text-[10px] font-light text-slate-700 transition-all hover:border-amber-500 hover:bg-amber-50 hover:text-amber-700 cursor-pointer"
         >
-          Details
+          {{ languageStore.t('details', 'Details') }}
         </button>
 
         <button
           @click="reserveRoom"
-          class="rounded-xl bg-amber-500 py-2 text-[10px] font-light text-white transition-all hover:bg-amber-600 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-sm"
+          class="rounded-xl bg-amber-500 py-2 text-[10px] font-light text-white transition-all hover:bg-amber-600 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-sm cursor-pointer"
           :disabled="!room.available"
         >
-          Book Now
+          {{ languageStore.t('book_now', 'Book Now') }}
         </button>
       </div>
     </div>

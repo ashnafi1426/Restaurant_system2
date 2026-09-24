@@ -11,7 +11,8 @@ import {
   AlertCircle,
   XCircle,
   UserCheck,
-  Trash2
+  Trash2,
+  Loader2
 } from 'lucide-vue-next'
 
 const tempAssignments = ref<TemporaryRoleAssignment[]>([])
@@ -50,6 +51,7 @@ const fetchData = async () => {
       form.value.role_id = rolesData[0].id
     }
   } catch (err: any) {
+    console.error('[TemporaryRoleAssignment] Fetch data error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to load temporary role assignments.'
   } finally {
     loading.value = false
@@ -85,6 +87,7 @@ const handleCreateTemporaryRole = async () => {
     await fetchData()
     setTimeout(() => { successMessage.value = '' }, 3500)
   } catch (err: any) {
+    console.error('[TemporaryRoleAssignment] Create error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to delegate temporary role.'
   } finally {
     loading.value = false
@@ -101,6 +104,7 @@ const handleRevoke = async (assignment: TemporaryRoleAssignment) => {
     await fetchData()
     setTimeout(() => { successMessage.value = '' }, 3500)
   } catch (err: any) {
+    console.error('[TemporaryRoleAssignment] Revoke error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to revoke temporary role.'
   } finally {
     loading.value = false
@@ -172,45 +176,58 @@ const handleRevoke = async (assignment: TemporaryRoleAssignment) => {
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-            <tr v-for="ta in tempAssignments" :key="ta.id" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-              <td class="p-4 font-extrabold text-slate-900 dark:text-white">
-                {{ ta.user?.full_name || 'N/A' }}
-              </td>
-
-              <td class="p-4">
-                <span class="px-2.5 py-1 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-700 dark:text-purple-300 font-extrabold">
-                  {{ ta.role?.name || ta.role_name || 'Role' }}
-                </span>
-              </td>
-
-              <td class="p-4 font-mono text-slate-600 dark:text-slate-400">
-                {{ new Date(ta.starts_at).toLocaleString() }}
-              </td>
-
-              <td class="p-4 font-mono font-bold text-amber-600 dark:text-amber-400">
-                {{ new Date(ta.expires_at).toLocaleString() }}
-              </td>
-
-              <td class="p-4 text-slate-600 dark:text-slate-400">
-                {{ ta.reason || 'No reason provided' }}
-              </td>
-
-              <td class="p-4 text-right">
-                <button
-                  @click="handleRevoke(ta)"
-                  class="p-2 rounded-xl text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
-                  title="Revoke Delegation"
-                >
-                  <Trash2 class="w-4 h-4" />
-                </button>
+            <!-- Loading Spinner State -->
+            <tr v-if="loading">
+              <td colspan="6" class="px-6 py-16 text-center">
+                <div class="flex flex-col items-center justify-center gap-3">
+                  <Loader2 class="w-8 h-8 text-purple-600 dark:text-purple-400 animate-spin" />
+                  <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Loading temporary delegations...</span>
+                </div>
               </td>
             </tr>
 
-            <tr v-if="tempAssignments.length === 0">
-              <td colspan="6" class="p-8 text-center text-slate-400 font-medium">
-                No active temporary role delegations.
-              </td>
-            </tr>
+            <!-- Data Rows -->
+            <template v-else>
+              <tr v-for="ta in tempAssignments" :key="ta.id" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                <td class="p-4 font-extrabold text-slate-900 dark:text-white">
+                  {{ ta.user?.full_name || 'N/A' }}
+                </td>
+
+                <td class="p-4">
+                  <span class="px-2.5 py-1 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-700 dark:text-purple-300 font-extrabold">
+                    {{ ta.role?.name || ta.role_name || 'Role' }}
+                  </span>
+                </td>
+
+                <td class="p-4 font-mono text-slate-600 dark:text-slate-400">
+                  {{ new Date(ta.starts_at).toLocaleString() }}
+                </td>
+
+                <td class="p-4 font-mono font-bold text-amber-600 dark:text-amber-400">
+                  {{ new Date(ta.expires_at).toLocaleString() }}
+                </td>
+
+                <td class="p-4 text-slate-600 dark:text-slate-400">
+                  {{ ta.reason || 'No reason provided' }}
+                </td>
+
+                <td class="p-4 text-right">
+                  <button
+                    @click="handleRevoke(ta)"
+                    class="p-2 rounded-xl text-rose-500 hover:bg-rose-500/10 transition cursor-pointer"
+                    title="Revoke Delegation"
+                  >
+                    <Trash2 class="w-4 h-4" />
+                  </button>
+                </td>
+              </tr>
+
+              <tr v-if="tempAssignments.length === 0">
+                <td colspan="6" class="p-8 text-center text-slate-400 font-medium">
+                  No active temporary role delegations.
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>

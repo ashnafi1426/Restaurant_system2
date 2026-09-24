@@ -17,6 +17,11 @@ class OrderItem extends Model
         'menu_item_id',
         'quantity',
         'item_price_at_order',
+        'tax_rate_id',
+        'tax_rate',
+        'tax_amount',
+        'subtotal',
+        'total',
         'line_total',
         'notes',
     ];
@@ -24,6 +29,10 @@ class OrderItem extends Model
     protected $casts = [
         'quantity' => 'integer',
         'item_price_at_order' => 'decimal:2',
+        'tax_rate' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'total' => 'decimal:2',
         'line_total' => 'decimal:2',
     ];
 
@@ -35,5 +44,10 @@ class OrderItem extends Model
     public function menuItem(): BelongsTo
     {
         return $this->belongsTo(MenuItem::class);
+    }
+
+    public function taxRate(): BelongsTo
+    {
+        return $this->belongsTo(TaxRate::class, 'tax_rate_id');
     }
 }

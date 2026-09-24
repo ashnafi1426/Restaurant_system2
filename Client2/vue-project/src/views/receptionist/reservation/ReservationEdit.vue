@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import DashboardLayout from '@/layouts/DashboardLayout.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import ReservationForm from '@/components/reservation/ReservationForm.vue'
 
 import { useReservationStore } from '@/stores/reservationStore'
 import { useGuestStore } from '@/stores/guestStore'
 import { useRoomStore } from '@/stores/room'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
 
 import type { Reservation } from '@/types/reservation'
 import type { Guest } from '@/types/guest'
@@ -18,6 +20,8 @@ const router = useRouter()
 const reservationStore = useReservationStore()
 const guestStore = useGuestStore()
 const roomStore = useRoomStore()
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
 const loading = ref(false)
 const loadingData = ref(true)
@@ -34,7 +38,9 @@ const loadReservation = async () => {
     if (reservationStore.reservation) {
       form.value = { ...reservationStore.reservation }
     }
-  } catch (error) {}
+  } catch (error) {
+    console.error('[ReservationEdit] Error loading reservation:', error)
+  }
 }
 
 const loadMeta = async () => {
@@ -42,9 +48,11 @@ const loadMeta = async () => {
     await guestStore.fetchGuests({ per_page: 1000 })
     guests.value = guestStore.guests
 
-    await roomStore.fetchRooms({ per_page: 100 }) // Request all rooms for complete search
+    await roomStore.fetchRooms({ per_page: 100 })
     rooms.value = roomStore.rooms
-  } catch (error) {}
+  } catch (error) {
+    console.error('[ReservationEdit] Error loading meta:', error)
+  }
 }
 
 const submit = async () => {
@@ -59,6 +67,7 @@ const submit = async () => {
 
     router.push('/reservations')
   } catch (error: any) {
+    console.error('[ReservationEdit] Error updating reservation:', error)
   } finally {
     loading.value = false
   }
@@ -75,6 +84,19 @@ onMounted(async () => {
     loadingData.value = false
   }
 })
+
+watch(
+  () => hotelStore.hotelId,
+  async () => {
+    loadingData.value = true
+    try {
+      await loadMeta()
+      await loadReservation()
+    } finally {
+      loadingData.value = false
+    }
+  }
+)
 </script>
 
 <template>
@@ -82,13 +104,13 @@ onMounted(async () => {
     <div class="max-w-3xl mx-auto space-y-6 bg-white dark:bg-slate-900 p-6 rounded-lg">
       <!-- Header -->
       <div>
-        <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Edit Reservation</h1>
-        <p class="text-slate-500 dark:text-slate-400 mt-1">Update reservation details</p>
+        <h1 class="text-2xl font-bold text-slate-800 dark:text-white">{{ languageStore.t('edit_reservation', 'Edit Reservation') }}</h1>
+        <p class="text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('edit_reservation_desc', 'Modify reservation details, room assignment, or dates.') }}</p>
       </div>
 
       <!-- Loading State -->
       <div v-if="loadingData" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg p-4">
-        <p class="text-blue-800 dark:text-blue-200">⏳ Loading reservation data...</p>
+        <p class="text-blue-800 dark:text-blue-200">⏳ {{ languageStore.t('loading_data', 'Loading data...') }}</p>
       </div>
 
       <!-- Form -->
@@ -103,12 +125,12 @@ onMounted(async () => {
 
       <!-- Error State -->
       <div v-else class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50 rounded-lg p-4">
-        <p class="text-red-800 dark:text-red-200">Failed to load reservation</p>
+        <p class="text-red-800 dark:text-red-200">{{ languageStore.t('failed_load_reservation', 'Failed to load reservation') }}</p>
         <button
           @click="router.push('/reservations')"
-          class="mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition"
+          class="mt-3 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition cursor-pointer"
         >
-          Back to Reservations
+          {{ languageStore.t('back_to_reservations', 'Back to Reservations') }}
         </button>
       </div>
     </div>

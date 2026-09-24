@@ -2,6 +2,7 @@
 import { onMounted } from 'vue'
 import { useManagerStore } from '@/stores/managerStore'
 import { useManagerOperationsStore } from '@/stores/manager/operationsStore'
+import { useLanguageStore } from '@/stores/language'
 import RestaurantMonitor from '@/components/manager/RestaurantMonitor.vue'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
 import { 
@@ -12,6 +13,7 @@ import {
 
 const manager = useManagerStore()
 const operationsStore = useManagerOperationsStore()
+const languageStore = useLanguageStore()
 
 // Map food items to appropriate Lucide icons
 const getFoodIcon = (itemName: string, category?: string) => {
@@ -84,8 +86,8 @@ onMounted(async () => {
       <div class="mb-6 md:mb-8 border-b border-slate-200/60 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-lg p-4 md:p-6 transition-colors duration-300">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Food Orders Management</h1>
-            <p class="text-sm md:text-base text-slate-600 dark:text-slate-400">Monitor restaurant and room service orders</p>
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">{{ languageStore.t('food_orders_management', 'Food Orders Management') }}</h1>
+            <p class="text-sm md:text-base text-slate-600 dark:text-slate-400">{{ languageStore.t('monitor_restaurant_room_service', 'Monitor restaurant and room service orders') }}</p>
           </div>
           <div class="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-50 dark:from-orange-900 dark:to-orange-800 rounded-xl flex items-center justify-center">
             <ChefHat class="w-6 h-6 text-orange-600 dark:text-orange-400" />
@@ -106,7 +108,7 @@ onMounted(async () => {
               </svg>
             </div>
           </div>
-          <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm mt-4">Loading order data...</p>
+          <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm mt-4">{{ languageStore.t('loading_order_data', 'Loading order data...') }}</p>
         </div>
       </div>
 
@@ -125,7 +127,7 @@ onMounted(async () => {
           <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">Total Orders</p>
+                <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">{{ languageStore.t('total_orders', 'Total Orders') }}</p>
                 <h3 class="mt-3 text-3xl font-bold text-slate-900 dark:text-slate-100">
                   {{ manager.orders.length }}
                 </h3>
@@ -137,36 +139,36 @@ onMounted(async () => {
           </div>
 
           <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-shadow">
-            <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">Pending</p>
+            <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">{{ languageStore.t('pending', 'Pending') }}</p>
             <h3 class="mt-3 text-3xl font-bold text-amber-600 dark:text-amber-400">
               {{ manager.pendingOrders.length }}
             </h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Awaiting kitchen</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">{{ languageStore.t('awaiting_kitchen', 'Awaiting kitchen') }}</p>
           </div>
 
           <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-shadow">
-            <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">Preparing</p>
+            <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">{{ languageStore.t('preparing', 'Preparing') }}</p>
             <h3 class="mt-3 text-3xl font-bold text-blue-600 dark:text-blue-400">
               {{ manager.preparingOrders.length }}
             </h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">In progress</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">{{ languageStore.t('in_progress', 'In progress') }}</p>
           </div>
 
           <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-shadow">
-            <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">Ready</p>
+            <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">{{ languageStore.t('ready', 'Ready') }}</p>
             <h3 class="mt-3 text-3xl font-bold text-emerald-600 dark:text-emerald-400">
               {{ manager.readyOrders.length }}
             </h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">Ready for delivery</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">{{ languageStore.t('ready_for_delivery', 'Ready for delivery') }}</p>
           </div>
         </div>
 
         <!-- Orders List -->
         <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700 shadow-sm p-6">
-          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">Recent Orders</h2>
+          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">{{ languageStore.t('recent_orders', 'Recent Orders') }}</h2>
           
           <div v-if="manager.orders.length === 0" class="text-center py-12">
-            <p class="text-slate-500 dark:text-slate-400">No orders at this time</p>
+            <p class="text-slate-500 dark:text-slate-400">{{ languageStore.t('no_orders_at_this_time', 'No orders at this time') }}</p>
           </div>
 
           <div v-else class="space-y-4">
@@ -185,19 +187,19 @@ onMounted(async () => {
                     order.status === 'completed' && 'bg-slate-500 dark:bg-slate-600',
                   ]"
                 >
-                  #{{ order.orderNumber.split('-').pop() }}
+                  #{{ (order.orderNumber || order.id || '').split('-').pop() }}
                 </div>
                 <div class="flex-1">
                   <p class="font-semibold text-slate-900 dark:text-slate-100">{{ order.guestName }}</p>
                   <p class="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                    <span>Room {{ order.roomNumber }}</span>
+                    <span>{{ languageStore.t('room', 'Room') }} {{ order.roomNumber }}</span>
                     <span>•</span>
                     <span class="flex items-center gap-1">
                       <UtensilsCrossed :size="14" class="text-orange-600" />
-                      {{ order.itemCount }} items
+                      {{ order.itemCount ?? 1 }} {{ languageStore.t('items', 'items') }}
                     </span>
                     <span>•</span>
-                    <span>{{ order.total }} Birr</span>
+                    <span>{{ order.total }} {{ languageStore.t('currency_birr', 'Birr') }}</span>
                   </p>
                 </div>
               </div>
@@ -212,7 +214,7 @@ onMounted(async () => {
                     order.status === 'completed' && 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300',
                   ]"
                 >
-                  {{ order.status }}
+                  {{ languageStore.t(order.status, order.status) }}
                 </span>
               </div>
             </div>

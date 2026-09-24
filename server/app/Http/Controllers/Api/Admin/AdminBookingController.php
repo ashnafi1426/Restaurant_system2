@@ -18,24 +18,11 @@ class AdminBookingController extends Controller
 {
     protected TenantContext $tenantContext;
 
-    /**
-     * Instantiate the controller with middleware
-     */
     public function __construct(TenantContext $tenantContext)
     {
-        // Require authentication via 'auth:sanctum'
-        // Auto-scoping to authenticated user's hotel via TenantContext
-        $this->middleware('auth:sanctum');
         $this->tenantContext = $tenantContext;
     }
 
-    /**
-     * List reservations with filtering and pagination
-     * GET /admin/bookings
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -55,8 +42,6 @@ class AdminBookingController extends Controller
                 'hotel_id' => $hotelId,
                 'filters' => $request->all(),
             ]);
-
-            // Start query with automatic tenant scoping via BelongsToTenant trait
             $query = Reservation::where('hotel_id', $hotelId)
                 ->with([
                     'guest',
@@ -64,8 +49,6 @@ class AdminBookingController extends Controller
                     'creator',
                     'checkIn',
                 ]);
-
-            // Apply filters
             if ($request->filled('status')) {
                 $query->where('status', strtolower(trim($request->status)));
             }
@@ -89,8 +72,6 @@ class AdminBookingController extends Controller
             if ($request->filled('check_out_date')) {
                 $query->whereDate('check_out_date', '<=', $request->check_out_date);
             }
-
-            // Paginate results
             $perPage = $request->integer('per_page', 15);
             $reservations = $query->latest()->paginate($perPage);
 
@@ -128,13 +109,6 @@ class AdminBookingController extends Controller
         }
     }
 
-    /**
-     * Get full reservation details
-     * GET /admin/bookings/{reservationId}
-     *
-     * @param string $reservationId
-     * @return JsonResponse
-     */
     public function show(string $reservationId): JsonResponse
     {
         try {
@@ -154,8 +128,6 @@ class AdminBookingController extends Controller
                 'reservation_id' => $reservationId,
                 'hotel_id' => $hotelId,
             ]);
-
-            // Fetch reservation with all relationships
             $reservation = Reservation::where('hotel_id', $hotelId)
                 ->where('id', $reservationId)
                 ->with([
@@ -204,14 +176,6 @@ class AdminBookingController extends Controller
         }
     }
 
-    /**
-     * Update reservation details
-     * PUT /admin/bookings/{reservationId}
-     *
-     * @param Request $request
-     * @param string $reservationId
-     * @return JsonResponse
-     */
     public function update(Request $request, string $reservationId): JsonResponse
     {
         try {
@@ -231,8 +195,6 @@ class AdminBookingController extends Controller
                 'reservation_id' => $reservationId,
                 'hotel_id' => $hotelId,
             ]);
-
-            // Validate input
             $validated = $request->validate([
                 'check_in_date' => 'nullable|date|after_or_equal:today',
                 'check_out_date' => 'nullable|date|after:check_in_date',
@@ -240,7 +202,6 @@ class AdminBookingController extends Controller
                 'special_requests' => 'nullable|string|max:500',
             ]);
 
-            // Find reservation with tenant scoping
             $reservation = Reservation::where('hotel_id', $hotelId)
                 ->where('id', $reservationId)
                 ->first();
@@ -259,7 +220,6 @@ class AdminBookingController extends Controller
                 ], 404);
             }
 
-            // Check if room belongs to the same hotel
             if ($request->filled('room_id')) {
                 $room = Room::where('hotel_id', $hotelId)
                     ->where('id', $request->room_id)
@@ -272,8 +232,6 @@ class AdminBookingController extends Controller
                         'message' => 'The selected room does not exist or belongs to a different hotel.',
                     ], 422);
                 }
-
-                // Check room availability for new dates
                 if ($request->filled('check_in_date') || $request->filled('check_out_date')) {
                     $checkInDate = $request->check_in_date ?? $reservation->check_in_date;
                     $checkOutDate = $request->check_out_date ?? $reservation->check_out_date;
@@ -305,8 +263,6 @@ class AdminBookingController extends Controller
                     }
                 }
             }
-
-            // Update reservation
             DB::beginTransaction();
             try {
                 $oldData = $reservation->toArray();
@@ -317,8 +273,6 @@ class AdminBookingController extends Controller
                     'room_id' => $validated['room_id'] ?? $reservation->room_id,
                     'special_requests' => $validated['special_requests'] ?? $reservation->special_requests,
                 ]);
-
-                // Log the modification
                 Log::info('[ADMIN BOOKING] Reservation updated successfully', [
                     'user_id' => $user->id,
                     'reservation_id' => $reservationId,
@@ -331,7 +285,6 @@ class AdminBookingController extends Controller
                 ]);
 
                 DB::commit();
-
                 return response()->json([
                     'success' => true,
                     'message' => 'Reservation updated successfully',
@@ -371,14 +324,6 @@ class AdminBookingController extends Controller
         }
     }
 
-    /**
-     * Cancel/delete reservation
-     * DELETE /admin/bookings/{reservationId}
-     *
-     * @param Request $request
-     * @param string $reservationId
-     * @return JsonResponse
-     */
     public function destroy(Request $request, string $reservationId): JsonResponse
     {
         try {
@@ -398,32 +343,24 @@ class AdminBookingController extends Controller
                 'reservation_id' => $reservationId,
                 'hotel_id' => $hotelId,
             ]);
-
-            // Validate input
             $validated = $request->validate([
                 'reason' => 'nullable|string|max:255',
             ]);
-
-            // Find reservation with tenant scoping
             $reservation = Reservation::where('hotel_id', $hotelId)
                 ->where('id', $reservationId)
                 ->first();
-
             if (!$reservation) {
                 Log::warning('[ADMIN BOOKING] Reservation not found for deletion', [
                     'user_id' => $user->id,
                     'reservation_id' => $reservationId,
                     'hotel_id' => $hotelId,
                 ]);
-
                 return response()->json([
                     'success' => false,
                     'error' => 'Reservation not found',
                     'message' => 'The requested reservation does not exist or you do not have access.',
                 ], 404);
             }
-
-            // Store deletion data for audit
             $deletionData = [
                 'reservation_id' => $reservation->id,
                 'booking_reference' => $reservation->booking_reference,
@@ -437,17 +374,12 @@ class AdminBookingController extends Controller
                 'deletion_reason' => $validated['reason'] ?? null,
                 'deletion_timestamp' => now(),
             ];
-
-            // Soft delete or change status to 'cancelled'
             DB::beginTransaction();
             try {
-                // Update status to cancelled
                 $reservation->update([
                     'status' => 'cancelled',
                     'cancelled_at' => now(),
                 ]);
-
-                // Log deletion with audit information
                 Log::info('[ADMIN BOOKING] Reservation deleted successfully', [
                     'user_id' => $user->id,
                     'reservation_id' => $reservationId,
@@ -456,7 +388,6 @@ class AdminBookingController extends Controller
                 ]);
 
                 DB::commit();
-
                 return response()->json([
                     'success' => true,
                     'message' => 'Reservation cancelled successfully',
@@ -496,12 +427,6 @@ class AdminBookingController extends Controller
         }
     }
 
-    /**
-     * Format reservation for list response
-     *
-     * @param Reservation $reservation
-     * @return array
-     */
     private function formatReservation(Reservation $reservation): array
     {
         return [
@@ -531,12 +456,6 @@ class AdminBookingController extends Controller
         ];
     }
 
-    /**
-     * Format reservation for detail response
-     *
-     * @param Reservation $reservation
-     * @return array
-     */
     private function formatReservationDetail(Reservation $reservation): array
     {
         return [

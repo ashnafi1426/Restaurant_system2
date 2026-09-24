@@ -12,7 +12,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use App\Services\TenantContext;
+use App\Models\Room;
+use App\Models\Guest;
+use App\Models\CheckIn;
+use App\Mail\CheckInConfirmed;
+use App\Mail\ReservationConfirmed;
+use App\Mail\CheckOutNotification;
+use App\Models\User;
+use App\Http\Resources\RoomResource;
+
 class ReservationController extends Controller
 {
     public function index(Request $request)
@@ -38,17 +49,12 @@ class ReservationController extends Controller
                   });
             });
         }
-
-        // Filter by status
         if ($request->filled('status')) {
             $query->where('status', strtolower(trim($request->status)));
         }
-
-        // Filter by room
         if ($request->filled('room_id')) {
             $query->where('room_id', $request->room_id);
         }
-        // Filter by room type (Supports ID, UUID, or Type Name)
         $roomTypeFilter = $request->input('room_type_id') ?: $request->input('room_type');
         if (!empty($roomTypeFilter)) {
             $query->whereHas('room', function ($r) use ($roomTypeFilter) {
@@ -59,19 +65,13 @@ class ReservationController extends Controller
                   });
             });
         }
-
-        // Filter by guest
         if ($request->filled('guest_id')) {
             $query->where('guest_id', $request->guest_id);
         }
-
-        // Filter by check-in date
         $checkInDate = $request->input('check_in_date') ?: $request->input('start_date');
         if (!empty($checkInDate)) {
             $query->whereDate('check_in_date', '>=', $checkInDate);
         }
-
-        // Filter by check-out date
         $checkOutDate = $request->input('check_out_date') ?: $request->input('end_date');
         if (!empty($checkOutDate)) {
             $query->whereDate('check_out_date', '<=', $checkOutDate);
@@ -85,9 +85,10 @@ class ReservationController extends Controller
 
         return new ReservationCollection($reservations);
     }
+
     public function store(StoreReservationRequest $request)
     {
-        $hotelId = \App\Services\TenantContext::id() ?: auth()->user()?->hotel_id;
+        $hotelId = \App\Services\TenantContext::id() ?: Auth::user()?->hotel_id;
         if (!$hotelId) {
             return response()->json([
                 'message' => 'No active hotel tenant found. Please select a hotel before creating a reservation.',
@@ -98,9 +99,7 @@ class ReservationController extends Controller
 
         try {
             $data = $request->validated();
-
-            // 1. Verify Room Ownership and Compatibility
-            $room = \App\Models\Room::where('hotel_id', $hotelId)
+            $room = Room::where('hotel_id', $hotelId)
                 ->with('roomType')
                 ->find($data['room_id']);
 
@@ -117,8 +116,6 @@ class ReservationController extends Controller
                     'errors' => ['room_id' => ['Selected room is under maintenance.']]
                 ], 422);
             }
-
-            // 2. Validate Room Capacity
             $roomCapacity = $room->roomType?->capacity ?? 2;
             if (!empty($data['number_of_guests']) && (int) $data['number_of_guests'] > $roomCapacity) {
                 return response()->json([
@@ -126,8 +123,6 @@ class ReservationController extends Controller
                     'errors' => ['number_of_guests' => ["Room capacity exceeded (maximum {$roomCapacity})."]]
                 ], 422);
             }
-
-            // 3. Strict Date Overlap Availability Check within this Hotel
             $checkIn = $data['check_in_date'];
             $checkOut = $data['check_out_date'];
             $hasConflict = Reservation::where('hotel_id', $hotelId)
@@ -144,11 +139,9 @@ class ReservationController extends Controller
                     'errors' => ['room_id' => ['Room is not available for the chosen date range.']]
                 ], 422);
             }
-
-            // 4. Guest Resolution Scoped Strictly to this Hotel
             $guestId = $data['guest_id'] ?? null;
             if ($guestId) {
-                $guest = \App\Models\Guest::where('hotel_id', $hotelId)->find($guestId);
+                $guest = Guest::where('hotel_id', $hotelId)->find($guestId);
                 if (!$guest) {
                     return response()->json([
                         'message' => 'The specified guest does not belong to this hotel.',
@@ -161,11 +154,11 @@ class ReservationController extends Controller
                 $existingGuest = null;
 
                 if ($email) {
-                    $existingGuest = \App\Models\Guest::where('hotel_id', $hotelId)->where('email', $email)->first();
+                    $existingGuest = Guest::where('hotel_id', $hotelId)->where('email', $email)->first();
                 }
 
                 if (!$existingGuest && $phone) {
-                    $existingGuest = \App\Models\Guest::where('hotel_id', $hotelId)->where('phone', $phone)->first();
+                    $existingGuest = Guest::where('hotel_id', $hotelId)->where('phone', $phone)->first();
                 }
 
                 if ($existingGuest) {
@@ -176,7 +169,7 @@ class ReservationController extends Controller
                         'phone'      => $phone ?? $existingGuest->phone,
                     ]));
                 } else {
-                    $newGuest = \App\Models\Guest::create([
+                    $newGuest = Guest::create([
                         'hotel_id'   => $hotelId,
                         'first_name' => $data['first_name'] ?? 'Guest',
                         'last_name'  => $data['last_name'] ?? 'Booking',
@@ -187,13 +180,10 @@ class ReservationController extends Controller
                 }
             }
 
-            // 5. Calculate Total Amount
             $nights = max(1, (int) (new \Carbon\Carbon($checkIn))->diffInDays(new \Carbon\Carbon($checkOut)));
             $rate = (float) ($room->roomType?->base_price_per_night ?? 0);
             $calculatedTotal = $nights * $rate;
             $totalAmount = $data['total_amount'] ?? $calculatedTotal;
-
-            // 6. Force Hotel ID and Create Reservation
             $reservationData = array_merge($data, [
                 'hotel_id'     => $hotelId,
                 'guest_id'     => $guestId,
@@ -201,11 +191,7 @@ class ReservationController extends Controller
             ]);
 
             $reservation = Reservation::create($reservationData);
-
-            // Load relations for complete reservation data
             $reservation->load(['guest', 'room.roomType', 'creator']);
-
-            // Create notification for receptionist staff of this hotel
             $this->createReservationNotification($reservation);
 
             DB::commit();
@@ -223,9 +209,10 @@ class ReservationController extends Controller
             ], 500);
         }
     }
+
     public function show(Reservation $reservation)
     {
-        $currentHotelId = \App\Services\TenantContext::id() ?: auth()->user()?->hotel_id;
+        $currentHotelId = TenantContext::id() ?: Auth::user()?->hotel_id;
         if ($currentHotelId && $reservation->hotel_id && $reservation->hotel_id !== $currentHotelId) {
             abort(404, 'Reservation not found.');
         }
@@ -238,23 +225,21 @@ class ReservationController extends Controller
 
         return new ReservationResource($reservation);
     }
+
     public function update(
         UpdateReservationRequest $request, Reservation $reservation)
     {
-        $hotelId = \App\Services\TenantContext::id() ?: auth()->user()?->hotel_id;
+        $hotelId = TenantContext::id() ?: Auth::user()?->hotel_id;
         if ($hotelId && $reservation->hotel_id && $reservation->hotel_id !== $hotelId) {
             abort(404, 'Reservation not found.');
         }
-
         $effectiveHotelId = $reservation->hotel_id ?: $hotelId;
         $data = $request->validated();
 
         $roomId = $data['room_id'] ?? $reservation->room_id;
         $checkIn = $data['check_in_date'] ?? $reservation->check_in_date;
         $checkOut = $data['check_out_date'] ?? $reservation->check_out_date;
-
-        // Verify Room Ownership in this Hotel
-        $room = \App\Models\Room::where('hotel_id', $effectiveHotelId)
+        $room = Room::where('hotel_id', $effectiveHotelId)
             ->with('roomType')
             ->find($roomId);
 
@@ -264,8 +249,6 @@ class ReservationController extends Controller
                 'errors' => ['room_id' => ['The selected room does not exist in this hotel.']]
             ], 422);
         }
-
-        // Validate Capacity if specified
         if (!empty($data['number_of_guests']) && $room->roomType) {
             if ((int) $data['number_of_guests'] > $room->roomType->capacity) {
                 return response()->json([
@@ -274,8 +257,6 @@ class ReservationController extends Controller
                 ], 422);
             }
         }
-
-        // Overlap Availability Check (excluding current reservation)
         if (($data['status'] ?? $reservation->status) !== 'cancelled') {
             $hasConflict = Reservation::where('hotel_id', $effectiveHotelId)
                 ->where('room_id', $roomId)
@@ -309,44 +290,34 @@ class ReservationController extends Controller
             )
         ]);
     }
+
     public function destroy(Reservation $reservation)
     {
         try {
-            Log::info('🗑️ [RESERVATION DELETE] Starting deletion process', [
+            Log::info('[RESERVATION DELETE] Starting deletion process', [
                 'reservation_id' => $reservation->id,
                 'booking_reference' => $reservation->booking_reference,
                 'status' => $reservation->status,
                 'has_checkin' => $reservation->checkIn !== null,
             ]);
-
-            // Use database transaction for atomic deletion
             DB::beginTransaction();
 
             try {
-                // Delete CheckIn record if it exists
                 if ($reservation->checkIn) {
-                    Log::info('🔍 [RESERVATION DELETE] CheckIn record found, deleting it first', [
+                    Log::info('[RESERVATION DELETE] CheckIn record found, deleting it first', [
                         'reservation_id' => $reservation->id,
                         'checkin_id' => $reservation->checkIn->id,
                     ]);
                     $reservation->checkIn()->delete();
                     Log::info(' [RESERVATION DELETE] CheckIn record deleted successfully');
                 }
-
-                // Disassociate orders linked to this reservation
                 DB::table('orders')->where('reservation_id', $reservation->id)->update(['reservation_id' => null]);
-
-                // Disassociate delivery tasks linked to this reservation if table exists
                 if (Schema::hasTable('delivery_tasks')) {
                     DB::table('delivery_tasks')->where('reservation_id', $reservation->id)->update(['reservation_id' => null]);
                 }
-
-                // Disassociate payments linked to this reservation if table exists
                 if (Schema::hasTable('payments')) {
                     DB::table('payments')->where('reservation_id', $reservation->id)->update(['reservation_id' => null]);
                 }
-
-                // Update room status to available if room is attached to this reservation
                 if ($reservation->room) {
                     $oldStatus = $reservation->room->status;
                     $reservation->room->update([
@@ -359,8 +330,6 @@ class ReservationController extends Controller
                         'new_status' => 'available',
                     ]);
                 }
-
-                // Delete the reservation
                 $reservation->delete();
                 Log::info(' [RESERVATION DELETE] Reservation deleted successfully', [
                     'reservation_id' => $reservation->id,
@@ -391,6 +360,7 @@ class ReservationController extends Controller
             ], 500);
         }
     }
+
     public function checkIn(Reservation $reservation)
     {
         if(!$reservation->canCheckIn()){
@@ -399,18 +369,15 @@ class ReservationController extends Controller
             ],422);
         }
 
-        DB::transaction(function() use($reservation){
-            // Update reservation status
+        DB::transaction(function () use ($reservation) {
             $reservation->update([
                 'status'=>'checked_in'
             ]);
-            // Update room status
             $reservation->room()->update([
                 'status'=>'occupied'
             ]);
-            // Create CheckIn record if not exists
             if (!$reservation->checkIn) {
-                \App\Models\CheckIn::create([
+                CheckIn::create([
                     'hotel_id' => $reservation->hotel_id,
                     'reservation_id' => $reservation->id,
                     'guest_id' => $reservation->guest_id,
@@ -424,26 +391,22 @@ class ReservationController extends Controller
                 ]);
             }
         });
-        // Send check-in email AFTER transaction (outside transaction scope)
         try {
-            // Ensure room and room type relationships are loaded
             $reservation->load(['room', 'room.roomType', 'guest']);
-            
-            Log::info('📧 [RESERVATION] Preparing to send check-in email', [
+
+            Log::info('[RESERVATION] Preparing to send check-in email', [
                 'reservation_id' => $reservation->id,
                 'guest_email' => $reservation->guest->email,
             ]);
-            
             Mail::to($reservation->guest->email)
-                ->send(new \App\Mail\CheckInConfirmed($reservation));
-            
-            Log::info('📧 [RESERVATION] Check-in email sent successfully', [
+                ->send(new CheckInConfirmed($reservation));
+            Log::info('[RESERVATION] Check-in email sent successfully', [
                 'reservation_id' => $reservation->id,
                 'guest_email' => $reservation->guest->email,
                 'timestamp' => now()->toIso8601String(),
             ]);
         } catch (\Exception $e) {
-            Log::error('📧 [RESERVATION] FAILED to send check-in email', [
+            Log::error('[RESERVATION] FAILED to send check-in email', [
                 'reservation_id' => $reservation->id,
                 'guest_email' => $reservation->guest->email,
                 'error_message' => $e->getMessage(),
@@ -468,41 +431,33 @@ class ReservationController extends Controller
                 'message' => 'Only pending reservations can be confirmed.',
             ], 422);
         }
-
-        // Update reservation status and create notifications
         DB::transaction(function () use ($reservation) {
             $reservation->update([
                 'status' => 'confirmed',
             ]);
-
-            // Create notification for receptionist dashboard
             $this->createConfirmationNotification($reservation);
         });
-
-        // Send confirmation email ONLY to the target guest (reservation guest)
         try {
-            // Ensure room and room type relationships are loaded
             $reservation->load(['room', 'room.roomType', 'guest']);
-            
-            Log::info('📧 [RESERVATION] Preparing to send confirmation email', [
+
+            Log::info('[RESERVATION] Preparing to send confirmation email', [
                 'reservation_id' => $reservation->id,
                 'guest_email' => $reservation->guest->email,
                 'guest_name' => $reservation->guest->first_name . ' ' . $reservation->guest->last_name,
                 'queue_connection' => config('queue.default'),
                 'mail_driver' => config('mail.default'),
             ]);
-            
             Mail::to($reservation->guest->email)
-                ->send(new \App\Mail\ReservationConfirmed($reservation));
-            
-            Log::info('📧 [RESERVATION] Confirmation email sent successfully', [
+                ->send(new ReservationConfirmed($reservation));
+
+            Log::info('[RESERVATION] Confirmation email sent successfully', [
                 'reservation_id' => $reservation->id,
                 'guest_email' => $reservation->guest->email,
                 'guest_name' => "{$reservation->guest->first_name} {$reservation->guest->last_name}",
                 'timestamp' => now()->toIso8601String(),
             ]);
         } catch (\Exception $e) {
-            Log::error('📧 [RESERVATION] FAILED to send confirmation email', [
+            Log::error('[RESERVATION] FAILED to send confirmation email', [
                 'reservation_id' => $reservation->id,
                 'guest_email' => $reservation->guest->email,
                 'error_message' => $e->getMessage(),
@@ -530,25 +485,18 @@ class ReservationController extends Controller
         }
 
         DB::transaction(function () use ($reservation) {
-            // Log before update
-            Log::info('🔍 [RESERVATION CHECKOUT] Starting checkout', [
+            Log::info('[RESERVATION CHECKOUT] Starting checkout', [
                 'reservation_id' => $reservation->id,
                 'room_id' => $reservation->room_id,
                 'room_number' => $reservation->room->room_number,
                 'room_status_before' => $reservation->room->status,
             ]);
-
-            // Update reservation status
             $reservation->update([
                 'status' => 'checked_out',
             ]);
-
-            // Update room status to available
             $reservation->room()->update([
                 'status' => 'available',
             ]);
-
-            // Verify room status was updated
             $room = $reservation->room->fresh();
             Log::info(' [RESERVATION CHECKOUT] Room status updated', [
                 'reservation_id' => $reservation->id,
@@ -557,8 +505,6 @@ class ReservationController extends Controller
                 'room_status_after' => $room->status,
                 'verified' => $room->status === 'available' ? 'YES' : 'NO',
             ]);
-            
-            // Update CheckIn record if exists
             if ($reservation->checkIn) {
                 $reservation->checkIn()->update([
                     'checked_out_at' => now(),
@@ -568,27 +514,24 @@ class ReservationController extends Controller
                 ]);
             }
         });
-
-        // Send check-out email AFTER transaction (outside transaction scope)
         try {
-            // Ensure room and room type relationships are loaded
             $reservation->load(['room', 'room.roomType', 'guest']);
-            
-            Log::info('📧 [RESERVATION] Preparing to send check-out email', [
+
+            Log::info('[RESERVATION] Preparing to send check-out email', [
                 'reservation_id' => $reservation->id,
                 'guest_email' => $reservation->guest->email,
             ]);
             
             Mail::to($reservation->guest->email)
-                ->send(new \App\Mail\CheckOutNotification($reservation));
-            
-            Log::info('📧 [RESERVATION] Check-out email sent successfully', [
+                ->send(new CheckOutNotification($reservation));
+
+            Log::info('[RESERVATION] Check-out email sent successfully', [
                 'reservation_id' => $reservation->id,
                 'guest_email' => $reservation->guest->email,
                 'timestamp' => now()->toIso8601String(),
             ]);
         } catch (\Exception $e) {
-            Log::error('📧 [RESERVATION] FAILED to send check-out email', [
+            Log::error(' [RESERVATION] FAILED to send check-out email', [
                 'reservation_id' => $reservation->id,
                 'guest_email' => $reservation->guest->email,
                 'error_message' => $e->getMessage(),
@@ -598,7 +541,7 @@ class ReservationController extends Controller
             ]);
         }
 
-        Log::info('🎉 [RESERVATION CHECKOUT] Checkout completed successfully', [
+        Log::info('[RESERVATION CHECKOUT] Checkout completed successfully', [
             'reservation_id' => $reservation->id,
             'room_status' => $reservation->fresh('room')->room->status,
         ]);
@@ -636,20 +579,14 @@ class ReservationController extends Controller
         );
     }
 
-    /**
-     * Check room availability strictly within the active hotel tenant.
-     * 
-     * GET /api/reservations/availability
-     */
     public function availability(Request $request)
     {
-        $hotelId = \App\Services\TenantContext::id() 
-            ?: auth()->user()?->hotel_id 
+        $hotelId = TenantContext::id()
+            ?: Auth::user()?->hotel_id 
             ?: $request->header('X-Hotel-ID')
             ?: $request->hotel_id;
-
         if (!$hotelId && $request->filled('room_id')) {
-            $hotelId = \App\Models\Room::withoutGlobalScopes()->where('id', $request->room_id)->value('hotel_id');
+            $hotelId = Room::withoutGlobalScopes()->where('id', $request->room_id)->value('hotel_id');
         }
 
         if (!$hotelId) {
@@ -669,8 +606,6 @@ class ReservationController extends Controller
 
         $checkIn = $request->check_in_date;
         $checkOut = $request->check_out_date;
-
-        // Find all booked room IDs for these dates within this hotel
         $bookedRoomIds = Reservation::where('hotel_id', $hotelId)
             ->whereNotIn('status', ['cancelled', 'checked_out'])
             ->where(function ($q) use ($checkIn, $checkOut) {
@@ -679,11 +614,9 @@ class ReservationController extends Controller
             })
             ->pluck('room_id')
             ->toArray();
-
-        // If specific room check requested
         if ($request->filled('room_id')) {
             $roomId = $request->room_id;
-            $targetRoom = \App\Models\Room::where('hotel_id', $hotelId)
+            $targetRoom = Room::where('hotel_id', $hotelId)
                 ->where('id', $roomId)
                 ->with('roomType')
                 ->first();
@@ -711,9 +644,7 @@ class ReservationController extends Controller
                 'message'       => $isAvailable ? 'Room is available.' : 'Room is not available for the selected dates.'
             ]);
         }
-
-        // Query available rooms in this hotel
-        $query = \App\Models\Room::where('hotel_id', $hotelId)
+        $query = Room::where('hotel_id', $hotelId)
             ->where('is_active', true)
             ->where('status', '!=', 'maintenance')
             ->whereNotIn('id', $bookedRoomIds)
@@ -736,25 +667,19 @@ class ReservationController extends Controller
             'check_in_date'         => $checkIn,
             'check_out_date'        => $checkOut,
             'available_rooms_count' => $availableRooms->count(),
-            'data'                  => \App\Http\Resources\RoomResource::collection($availableRooms),
+            'data'                  => RoomResource::collection($availableRooms),
         ]);
     }
 
-    /**
-     * Create notification when a new reservation is booked (hotel-scoped)
-     */
     private function createReservationNotification(Reservation $reservation)
     {
         try {
-            // Get all receptionist users belonging to this specific hotel
-            $receptionists = \App\Models\User::whereHas('hotelMemberships', function ($q) use ($reservation) {
+            $receptionists = User::whereHas('hotelMemberships', function ($q) use ($reservation) {
                 $q->where('hotel_id', $reservation->hotel_id)
                   ->where('is_active', true);
             })->where('role', 'receptionist')->get();
-
-            // Fallback to direct user hotel_id if no memberships found
             if ($receptionists->isEmpty()) {
-                $receptionists = \App\Models\User::where('hotel_id', $reservation->hotel_id)
+                $receptionists = User::where('hotel_id', $reservation->hotel_id)
                     ->where('role', 'receptionist')
                     ->get();
             }
@@ -787,24 +712,19 @@ class ReservationController extends Controller
         }
     }
 
-    /**
-     * Create notification when reservation is confirmed (hotel-scoped)
-     */
     private function createConfirmationNotification(Reservation $reservation)
     {
         try {
-            // Get all receptionist users belonging to this specific hotel
-            $receptionists = \App\Models\User::whereHas('hotelMemberships', function ($q) use ($reservation) {
+            $receptionists = User::whereHas('hotelMemberships', function ($q) use ($reservation) {
                 $q->where('hotel_id', $reservation->hotel_id)
                   ->where('is_active', true);
             })->where('role', 'receptionist')->get();
 
             if ($receptionists->isEmpty()) {
-                $receptionists = \App\Models\User::where('hotel_id', $reservation->hotel_id)
+                $receptionists = User::where('hotel_id', $reservation->hotel_id)
                     ->where('role', 'receptionist')
                     ->get();
             }
-
             foreach ($receptionists as $receptionist) {
                 NotificationController::createNotification(
                     $receptionist->id,

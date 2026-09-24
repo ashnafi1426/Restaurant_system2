@@ -8,10 +8,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Traits\BelongsToTenant;
 
-/**
- * DeliveryTask Model
- * Tracks individual delivery assignments and their status throughout the delivery lifecycle
- */
 class DeliveryTask extends Model
 {
     use HasFactory, HasUuids, BelongsToTenant;
@@ -45,95 +41,59 @@ class DeliveryTask extends Model
         'cancelled_at' => 'datetime',
     ];
 
-    /**
-     * Get the floor
-     */
     public function floor(): BelongsTo
     {
         return $this->belongsTo(HotelFloor::class);
     }
 
-    /**
-     * Get the room
-     */
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class);
     }
 
-    /**
-     * Get the order
-     */
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
     }
 
-    /**
-     * Get the waiter
-     */
     public function waiter(): BelongsTo
     {
         return $this->belongsTo(Waiter::class);
     }
 
-    /**
-     * Get the manager who assigned
-     */
     public function assignedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_by');
     }
 
-    /**
-     * Scope to get tasks for a waiter today
-     */
     public function scopeForWaiterToday($query, $waiterId)
     {
         return $query->where('waiter_id', $waiterId)
             ->whereDate('assigned_at', today());
     }
 
-    /**
-     * Scope to get pending tasks (not yet assigned)
-     */
     public function scopePending($query)
     {
         return $query->where('status', 'waiting_assignment');
     }
 
-    /**
-     * Scope to get assigned tasks
-     */
     public function scopeAssigned($query)
     {
         return $query->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery']);
     }
 
-    /**
-     * Scope to get completed tasks
-     */
     public function scopeCompleted($query)
     {
         return $query->where('status', 'delivered');
     }
 
-    /**
-     * Scope to get cancelled tasks
-     */
     public function scopeCancelled($query)
     {
         return $query->where('status', 'cancelled');
     }
 
-    /**
-     * Accept delivery task
-     * Idempotent - can be called multiple times safely
-     * Accepts both 'assigned' (legacy) and auto-assigned (already accepted) tasks
-     */
     public function accept(Waiter $waiter): void
     {
-        // Already accepted - allow re-entry (idempotent)
         if ($this->status === 'accepted') {
             \Log::info('Task already accepted - idempotent call allowed', ['id' => $this->id]);
             return;
@@ -148,19 +108,13 @@ class DeliveryTask extends Model
             'accepted_at' => now(),
         ]);
         
-        // Refresh to sync model with DB
         $this->refresh();
         
         $waiter->incrementOrders();
     }
 
-    /**
-     * Mark as picked up
-     * Idempotent - can be called multiple times safely (e.g., on retry)
-     */
     public function markPickedUp(): void
     {
-        // Already picked up - allow re-entry (idempotent)
         if ($this->status === 'picked_up') {
             \Log::info('Task already picked up - idempotent call allowed', ['id' => $this->id]);
             return;
@@ -175,18 +129,11 @@ class DeliveryTask extends Model
             'picked_up_at' => now(),
         ]);
         
-        // Refresh to sync model with DB
         $this->refresh();
     }
 
-    /**
-     * Mark as on delivery
-     * Idempotent - can be called multiple times safely (e.g., on retry)
-     * Accepts both 'assigned' (legacy), 'accepted' (new), and 'picked_up'
-     */
     public function markOnDelivery(): void
     {
-        // Already on delivery - allow re-entry (idempotent)
         if ($this->status === 'on_delivery') {
             \Log::info('Task already on delivery - idempotent call allowed', ['id' => $this->id]);
             return;
@@ -201,18 +148,11 @@ class DeliveryTask extends Model
             'on_delivery_at' => now(),
         ]);
         
-        // Refresh to sync model with DB
         $this->refresh();
     }
 
-    /**
-     * Mark as delivered
-     * Idempotent - can be called multiple times safely (e.g., on retry)
-     * Accepts both 'assigned' (legacy), 'picked_up', and 'on_delivery'
-     */
     public function markDelivered(string $remarks = null): void
     {
-        // Already delivered - allow re-entry (idempotent)
         if ($this->status === 'delivered') {
             \Log::info('Task already delivered - idempotent call allowed', ['id' => $this->id]);
             return;
@@ -228,7 +168,6 @@ class DeliveryTask extends Model
             'remarks' => $remarks,
         ]);
         
-        // Refresh to sync model with DB
         $this->refresh();
 
         if ($this->waiter) {
@@ -236,9 +175,6 @@ class DeliveryTask extends Model
         }
     }
 
-    /**
-     * Cancel delivery
-     */
     public function cancel(string $reason = null): void
     {
         if (in_array($this->status, ['delivered', 'cancelled'])) {
@@ -256,17 +192,12 @@ class DeliveryTask extends Model
         }
     }
 
-    /**
-     * Reassign to another waiter
-     */
     public function reassign(Waiter $newWaiter, $assignedBy, string $reason = null): void
     {
-        // Decrement old waiter's orders
         if ($this->waiter) {
             $this->waiter->decrementOrders();
         }
 
-        // Update task
         $this->update([
             'waiter_id' => $newWaiter->id,
             'assigned_by' => $assignedBy,
@@ -274,13 +205,9 @@ class DeliveryTask extends Model
             'remarks' => $reason ? "{$reason} - Reassigned" : 'Reassigned',
         ]);
 
-        // Increment new waiter's orders
         $newWaiter->incrementOrders();
     }
 
-    /**
-     * Get delivery duration in minutes (sanitized to realistic 5-45 minute range)
-     */
     public function getDeliveryDurationMinutes(): int
     {
         $start = $this->picked_up_at ?? $this->on_delivery_at ?? $this->accepted_at ?? $this->assigned_at;
@@ -293,23 +220,16 @@ class DeliveryTask extends Model
             }
         }
 
-        // Deterministic realistic fallback (10 to 28 mins) for test data spanning multiple days
         $hash = hexdec(substr(md5((string) $this->id), 0, 4));
         return 10 + ($hash % 19);
     }
 
-    /**
-     * Check if delivery is late (> 30 minutes)
-     */
     public function isLate(): bool
     {
         $duration = $this->getDeliveryDurationMinutes();
         return $duration && $duration > 30;
     }
 
-    /**
-     * Get delivery status label
-     */
     public function getStatusLabel(): string
     {
         return match ($this->status) {

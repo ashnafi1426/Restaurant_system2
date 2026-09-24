@@ -8,9 +8,6 @@ use Illuminate\Http\Request;
 
 class AuditLogController extends Controller
 {
-    /**
-     * Display a listing of RBAC audit logs.
-     */
     public function index(Request $request)
     {
         $query = RbacAuditLog::with('user')

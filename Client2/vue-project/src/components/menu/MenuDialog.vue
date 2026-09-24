@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import menuService from '@/services/menuService'
 import { useMenuStore } from '@/stores/menuStore'
+import { useTaxRateStore } from '@/stores/taxRateStore'
 import type { MenuItem } from '@/types/menu'
 
 const props = defineProps<{
@@ -15,14 +16,16 @@ const emit = defineEmits<{
 }>()
 
 const store = useMenuStore()
+const taxRateStore = useTaxRateStore()
 
-// Form state
 const form = ref({
   name: '',
   price: 0,
   category: '',
   description: '',
   image: '',
+  tax_rate_id: '',
+  tax_included: false,
   is_available: true,
 })
 
@@ -35,20 +38,57 @@ const notification = ref({
   type: 'success' as 'success' | 'error',
 })
 
-// Computed
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value),
 })
 
 const dialogTitle = computed(() => {
-  return editMode.value ? 'Edit Menu Item' : 'Add New Menu Item'
+  return props.editMode ? 'Edit Menu Item' : 'Add New Menu Item'
 })
 
-// Watch for menu item changes
+const selectedTaxRate = computed(() => {
+  return taxRateStore.taxRates.find((t) => t.id === form.value.tax_rate_id) || null
+})
+
+const pricePreview = computed(() => {
+  const price = Number(form.value.price) || 0
+  const rate = selectedTaxRate.value ? Number(selectedTaxRate.value.rate) : 0
+
+  if (price <= 0 || rate <= 0) {
+    return {
+      basePrice: price.toFixed(2),
+      taxAmount: '0.00',
+      totalPrice: price.toFixed(2),
+    }
+  }
+
+  if (form.value.tax_included) {
+    const base = price / (1 + rate / 100)
+    const tax = price - base
+    return {
+      basePrice: base.toFixed(2),
+      taxAmount: tax.toFixed(2),
+      totalPrice: price.toFixed(2),
+    }
+  } else {
+    const tax = price * (rate / 100)
+    const total = price + tax
+    return {
+      basePrice: price.toFixed(2),
+      taxAmount: tax.toFixed(2),
+      totalPrice: total.toFixed(2),
+    }
+  }
+})
+
 watch(
   () => [props.modelValue, props.menuItem],
-  () => {
+  async () => {
+    if (taxRateStore.taxRates.length === 0) {
+      await taxRateStore.fetchTaxRates()
+    }
+
     if (props.modelValue && props.menuItem && props.editMode) {
       form.value = {
         name: props.menuItem.name,
@@ -56,10 +96,15 @@ watch(
         category: props.menuItem.category || '',
         description: props.menuItem.description || '',
         image: (props.menuItem as any).image || '',
+        tax_rate_id: (props.menuItem as any).tax_rate_id || (props.menuItem as any).tax_rate?.id || '',
+        tax_included: Boolean((props.menuItem as any).tax_included),
         is_available: props.menuItem.is_available,
       }
     } else if (props.modelValue && !props.editMode) {
       resetForm()
+      if (taxRateStore.defaultTaxRate) {
+        form.value.tax_rate_id = taxRateStore.defaultTaxRate.id
+      }
     }
   },
   { deep: true },
@@ -72,6 +117,8 @@ function resetForm() {
     category: '',
     description: '',
     image: '',
+    tax_rate_id: '',
+    tax_included: false,
     is_available: true,
   }
   errors.value = {}
@@ -126,37 +173,33 @@ async function submit() {
       name: form.value.name,
       price: form.value.price,
       category: form.value.category,
+      tax_rate_id: form.value.tax_rate_id || null,
+      tax_included: form.value.tax_included,
       description: form.value.description,
       image: form.value.image,
       is_available: form.value.is_available,
     }
 
-    if (editMode && props.menuItem?.id) {
-      // Update existing item
+    if (props.editMode && props.menuItem?.id) {
       await menuService.updateMenu(props.menuItem.id, payload)
       showNotification(' Menu item updated successfully!', 'success')
     } else {
-      // Create new item
       await menuService.createMenu(payload)
       showNotification(' Menu item created successfully!', 'success')
     }
 
-    // Refresh store data
     await store.fetchMenuItems()
     await store.fetchStatistics()
 
-    // Close dialog
     isOpen.value = false
     resetForm()
   } catch (error: any) {
-    console.error('Error submitting form:', error)
-
+    console.error('[MenuDialog] Error saving menu item:', error)
     const errorMessage =
       error.response?.data?.message ||
       error.response?.data?.error ||
       'Failed to save menu item. Please try again.'
 
-    // Handle validation errors from backend
     if (error.response?.data?.errors) {
       fieldErrors.value = error.response.data.errors
       showNotification('Please fix the validation errors', 'error')
@@ -177,7 +220,6 @@ function closeDialog() {
 <template>
   <v-dialog v-model="isOpen" max-width="600" persistent>
     <v-card class="rounded-2xl">
-      <!-- Notification -->
       <transition name="fade">
         <v-alert
           v-if="notification.show"
@@ -190,7 +232,6 @@ function closeDialog() {
         </v-alert>
       </transition>
 
-      <!-- Header with gradient -->
       <div
         class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 sm:py-4 md:py-6 px-4 sm:px-6 flex items-center justify-between"
       >
@@ -209,10 +250,8 @@ function closeDialog() {
         </button>
       </div>
 
-      <!-- Content Area -->
       <v-card-text class="px-3 sm:px-6 py-3 sm:py-6">
         <div class="space-y-3 sm:space-y-5">
-          <!-- Item Name Field -->
           <div>
             <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
               Item Name *
@@ -230,9 +269,7 @@ function closeDialog() {
             />
           </div>
 
-          <!-- Price and Category Row -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <!-- Price -->
             <div>
               <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
                 Price ($) *
@@ -251,7 +288,6 @@ function closeDialog() {
               />
             </div>
 
-            <!-- Category -->
             <div>
               <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
                 Category *
@@ -275,7 +311,53 @@ function closeDialog() {
             </div>
           </div>
 
-          <!-- Description -->
+          <!-- Tax Configuration Section -->
+          <div class="p-3 sm:p-4 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 space-y-3">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <span>Tax Configuration</span>
+              <span class="text-[11px] text-amber-600 font-medium">Auto-calculated</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-slate-600 dark:text-slate-400 mb-1">
+                  Tax Rate
+                </label>
+                <select
+                  v-model="form.tax_rate_id"
+                  class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                >
+                  <option value="">No Tax (0%)</option>
+                  <option
+                    v-for="tax in taxRateStore.activeTaxRates"
+                    :key="tax.id"
+                    :value="tax.id"
+                  >
+                    {{ tax.name }} ({{ tax.rate }}{{ tax.type === 'percentage' ? '%' : ' Fixed' }})
+                  </option>
+                </select>
+              </div>
+
+              <div class="flex items-center gap-2 pt-4">
+                <input
+                  id="dialog_tax_inc"
+                  v-model="form.tax_included"
+                  type="checkbox"
+                  class="w-4 h-4 rounded accent-amber-500 cursor-pointer"
+                />
+                <label for="dialog_tax_inc" class="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                  Price Includes Tax
+                </label>
+              </div>
+            </div>
+
+            <div v-if="form.price > 0" class="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60 dark:border-zinc-700/60 text-slate-600 dark:text-slate-400">
+              <span>Base: ${{ pricePreview.basePrice }}</span>
+              <span>Tax: ${{ pricePreview.taxAmount }}</span>
+              <span class="font-bold text-emerald-600 dark:text-emerald-400">Total: ${{ pricePreview.totalPrice }}</span>
+            </div>
+          </div>
+
           <div>
             <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
               Description
@@ -293,7 +375,6 @@ function closeDialog() {
             />
           </div>
 
-          <!-- Image URL -->
           <div>
             <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
               Image URL
@@ -307,7 +388,6 @@ function closeDialog() {
             />
           </div>
 
-          <!-- Image Preview -->
           <div v-if="form.image" class="mt-2 sm:mt-4">
             <p class="text-xs font-semibold text-slate-600 mb-2">Preview:</p>
             <img
@@ -318,7 +398,6 @@ function closeDialog() {
             />
           </div>
 
-          <!-- Available Toggle -->
           <div
             class="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 rounded-lg border border-slate-200"
           >
@@ -331,7 +410,6 @@ function closeDialog() {
         </div>
       </v-card-text>
 
-      <!-- Footer with Actions -->
       <v-card-actions
         class="px-3 sm:px-6 py-3 sm:py-4 border-t border-slate-200 bg-slate-50 flex gap-2 sm:gap-3 justify-end"
       >

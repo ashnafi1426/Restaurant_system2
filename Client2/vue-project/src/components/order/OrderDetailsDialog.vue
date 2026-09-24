@@ -1,60 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-interface OrderItem {
-  id?: string
-
-  name: string
-
-  quantity: number
-
-  price: number
-
-  subtotal: number
-}
-
-interface Order {
-  id: string
-
-  order_number: string
-
-  status: string
-
-  payment_type: string
-
-  notes?: string
-
-  guest?: {
-    first_name: string
-
-    last_name: string
-
-    phone?: string
-
-    email?: string
-  }
-
-  reservation?: {
-    booking_reference: string
-
-    check_in_date: string
-
-    check_out_date: string
-  }
-
-  room?: {
-    room_number: string
-  }
-
-  items: OrderItem[]
-
-  subtotal: number
-
-  tax: number
-
-  discount: number
-
-  total: number
-}
+import type { Order } from '@/types/order'
 
 /*
 |--------------------------------------------------------------------------
@@ -64,7 +10,6 @@ interface Order {
 
 const props = defineProps<{
   modelValue: boolean
-
   order: Order | null
 }>()
 
@@ -297,9 +242,9 @@ function closeDialog() {
                 </thead>
 
                 <tbody class="divide-y divide-gray-100">
-                  <tr v-for="item in order.items" :key="item.id" class="hover:bg-gray-50">
+                  <tr v-for="item in order.items" :key="item.id || item.menu_item_id" class="hover:bg-gray-50">
                     <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-3">
-                      {{ item.name }}
+                      {{ item.name || item.menu_item?.name || 'Item' }}
                     </td>
 
                     <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-center">
@@ -307,11 +252,11 @@ function closeDialog() {
                     </td>
 
                     <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-right">
-                      {{ item.price }}
+                      {{ item.price ?? item.item_price_at_order ?? 0 }}
                     </td>
 
                     <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-right font-medium">
-                      {{ item.subtotal }}
+                      {{ item.subtotal ?? item.line_total ?? (((item.price || item.item_price_at_order || 0)) * item.quantity) }}
                     </td>
                   </tr>
                 </tbody>

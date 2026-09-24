@@ -42,6 +42,7 @@ const loadUsers = async () => {
     lastPage.value = res.last_page || 1
     totalUsers.value = res.total || 0
   } catch (err: any) {
+    console.error('[PlatformUsersView] Error loading users:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to load platform users.'
   } finally {
     loading.value = false

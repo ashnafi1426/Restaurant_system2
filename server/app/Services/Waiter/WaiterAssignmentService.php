@@ -10,6 +10,7 @@ use App\Models\DeliveryTask;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+
 class WaiterAssignmentService
 {
     public function assignWaiterToFloor(
@@ -41,7 +42,6 @@ class WaiterAssignmentService
                 }
             }
 
-            // Create assignment
             $assignment = WaiterFloorAssignment::create([
                 'waiter_id' => $waiterId,
                 'floor_id' => $floorId,
@@ -53,7 +53,6 @@ class WaiterAssignmentService
             ]);
 
             DB::commit();
-
             Log::info("Waiter assigned to floor", [
                 'waiter_id' => $waiterId,
                 'waiter_name' => $waiter->user->name,
@@ -69,6 +68,7 @@ class WaiterAssignmentService
             throw $e;
         }
     }
+
     public function findBestAvailableWaiter(string $floorId, string $shiftId): ?Waiter
     {
         try {
@@ -80,7 +80,7 @@ class WaiterAssignmentService
                 ['assignment_date', '=', now()->toDateString()],
                 ['status', '=', 'active'],
             ])
-            ->orderBy('priority', 'asc') // Primary first
+            ->orderBy('priority', 'asc')
             ->get();
 
             foreach ($assignments as $assignment) {
@@ -104,6 +104,7 @@ class WaiterAssignmentService
             return null;
         }
     }
+
     public function getAvailableWaiters(string $floorId, string $shiftId): Collection
     {
         $assignments = WaiterFloorAssignment::where([
@@ -113,17 +114,18 @@ class WaiterAssignmentService
             ['status', '=', 'active'],
         ])
         ->with('waiter')
-        ->orderBy('priority', 'asc') // Primary first
+        ->orderBy('priority', 'asc')
         ->get();
         return $assignments
             ->filter(function ($assignment) {
                 return $assignment->waiter && $assignment->waiter->isAvailable();
             })
             ->sortBy(function ($assignment) {
-                return $assignment->waiter->current_orders; // Lowest workload first
+                return $assignment->waiter->current_orders;
             })
             ->pluck('waiter');
     }
+
     public function assignDeliveryToWaiter(
         string $floorId,
         string $shiftId,
@@ -172,6 +174,7 @@ class WaiterAssignmentService
             return null;
         }
     }
+
     public function reassignDelivery(
         string $deliveryTaskId,
         string $newWaiterId,
@@ -206,19 +209,20 @@ class WaiterAssignmentService
             return false;
         }
     }
+
     private function isWaiterInShift(Waiter $waiter, HotelShift $shift): bool
     {
         $now = now();
         $shiftStart = $now->copy()->setTimeFromTimeString($shift->start_time);
         $shiftEnd = $now->copy()->setTimeFromTimeString($shift->end_time);
 
-        // Handle night shift that crosses midnight
         if ($shiftEnd < $shiftStart) {
             $shiftEnd = $shiftEnd->addDay();
         }
 
         return $now >= $shiftStart && $now <= $shiftEnd;
     }
+
     public function getWaiterWorkload(string $waiterId): int
     {
         return DeliveryTask::where('waiter_id', $waiterId)
@@ -226,6 +230,7 @@ class WaiterAssignmentService
             ->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery'])
             ->count();
     }
+
     public function deactivateWaiterAssignments(string $waiterId, string $reason = null): int
     {
         return WaiterFloorAssignment::where('waiter_id', $waiterId)
@@ -233,6 +238,7 @@ class WaiterAssignmentService
             ->where('status', '!=', 'cancelled')
             ->update(['status' => 'cancelled']);
     }
+
     public function getAssignmentsSummary(string $floorId, string $shiftId): array
     {
         $assignments = WaiterFloorAssignment::where([
@@ -252,10 +258,25 @@ class WaiterAssignmentService
             'assignments' => $assignments,
         ];
     }
-    public function getWaiterAssignments(int|string $waiterId, array $filters, int $perPage)
+
+    public function getWaiterAssignments(int|string $waiterId = null, array $filters = [], int $perPage = 10)
     {
-        $query = DeliveryTask::where('waiter_id', $waiterId)
+        $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+        $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
+
+        $query = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
             ->with(['order', 'order.guest', 'floor', 'assignedBy']);
+
+        if ($hotelId) {
+            $query->where(function ($q) use ($hotelId) {
+                $q->where('delivery_tasks.hotel_id', $hotelId)
+                  ->orWhereNull('delivery_tasks.hotel_id');
+            });
+        }
+
+        if (!$isAdminOrManager && $waiterId) {
+            $query->where('waiter_id', $waiterId);
+        }
             
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -277,28 +298,95 @@ class WaiterAssignmentService
         return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->findOrFail($id);
     }
 
-    public function getPendingAssignments(int|string $waiterId)
+    public function getPendingAssignments(int|string $waiterId = null)
     {
-        return DeliveryTask::where('waiter_id', $waiterId)
-            ->where('status', 'assigned')
-            ->with(['order', 'order.guest', 'floor'])
-            ->get();
+        $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+        $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
+
+        $query = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+            ->whereIn('status', ['assigned', 'waiting_assignment'])
+            ->with(['order', 'order.guest', 'floor']);
+
+        if ($hotelId) {
+            $query->where(function ($q) use ($hotelId) {
+                $q->where('delivery_tasks.hotel_id', $hotelId)
+                  ->orWhereNull('delivery_tasks.hotel_id');
+            });
+        }
+
+        if (!$isAdminOrManager && $waiterId) {
+            $query->where('waiter_id', $waiterId);
+        }
+
+        $tasks = $query->get();
+
+        if ($tasks->isEmpty()) {
+            $readyOrders = \App\Models\Order::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                ->where('status', 'ready');
+            if ($hotelId) {
+                $readyOrders->where('hotel_id', $hotelId);
+            }
+            return $readyOrders->with(['guest', 'room', 'orderItems'])->get()->map(function ($order) use ($hotelId, $waiterId) {
+                return DeliveryTask::firstOrCreate(
+                    ['order_id' => $order->id],
+                    [
+                        'hotel_id' => $hotelId ?? $order->hotel_id,
+                        'waiter_id' => $waiterId,
+                        'room_id' => $order->room_id,
+                        'status' => 'assigned',
+                        'assigned_at' => now(),
+                    ]
+                )->load(['order', 'order.guest', 'floor']);
+            });
+        }
+
+        return $tasks;
     }
 
-    public function getActiveAssignments(int|string $waiterId)
+    public function getActiveAssignments(int|string $waiterId = null)
     {
-        return DeliveryTask::where('waiter_id', $waiterId)
+        $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+        $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
+
+        $query = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
             ->whereIn('status', ['accepted', 'picked_up', 'on_delivery'])
-            ->with(['order', 'order.guest', 'floor'])
-            ->get();
+            ->with(['order', 'order.guest', 'floor']);
+
+        if ($hotelId) {
+            $query->where(function ($q) use ($hotelId) {
+                $q->where('delivery_tasks.hotel_id', $hotelId)
+                  ->orWhereNull('delivery_tasks.hotel_id');
+            });
+        }
+
+        if (!$isAdminOrManager && $waiterId) {
+            $query->where('waiter_id', $waiterId);
+        }
+
+        return $query->get();
     }
 
-    public function getTodayAssignments(int|string $waiterId)
+    public function getTodayAssignments(int|string $waiterId = null)
     {
-        return DeliveryTask::where('waiter_id', $waiterId)
+        $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+        $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
+
+        $query = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
             ->whereDate('assigned_at', today())
-            ->with(['order', 'order.guest', 'floor'])
-            ->get();
+            ->with(['order', 'order.guest', 'floor']);
+
+        if ($hotelId) {
+            $query->where(function ($q) use ($hotelId) {
+                $q->where('delivery_tasks.hotel_id', $hotelId)
+                  ->orWhereNull('delivery_tasks.hotel_id');
+            });
+        }
+
+        if (!$isAdminOrManager && $waiterId) {
+            $query->where('waiter_id', $waiterId);
+        }
+
+        return $query->get();
     }
 
     public function acceptAssignment(string $id, int|string $waiterId): DeliveryTask
@@ -346,9 +434,30 @@ class WaiterAssignmentService
             'waiter_id' => $waiterId,
         ]);
         
-        $task = DeliveryTask::where('id', $id)->first() ?? DeliveryTask::where('order_id', $id)->first();
+        $task = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)->where('id', $id)->first() 
+            ?? DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)->where('order_id', $id)->first();
+
         if (!$task) {
-            throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Task {$id} not found");
+            $order = \App\Models\Order::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)->find($id);
+            if ($order) {
+                $hotelId = app(\App\Services\TenantContext::class)->getHotelId() ?? $order->hotel_id;
+                $floorId = $order->room?->floor_id 
+                    ?? $order->room?->hotelFloor?->id 
+                    ?? \App\Models\HotelFloor::where('hotel_id', $hotelId)->value('id')
+                    ?? \App\Models\HotelFloor::value('id');
+
+                $task = DeliveryTask::create([
+                    'hotel_id' => $hotelId,
+                    'order_id' => $order->id,
+                    'room_id' => $order->room_id,
+                    'floor_id' => $floorId,
+                    'waiter_id' => $waiterId,
+                    'status' => 'assigned',
+                    'assigned_at' => now(),
+                ]);
+            } else {
+                throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Task {$id} not found");
+            }
         }
 
         if ($task->waiter_id != $waiterId) {
@@ -359,6 +468,9 @@ class WaiterAssignmentService
         
         try {
             $task->markPickedUp();
+            if ($task->order) {
+                $task->order->update(['status' => 'on_delivery']);
+            }
             return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
         } catch (\Exception $e) {
             \Log::error(' [SERVICE] Error in pickup workflow', [
@@ -388,6 +500,9 @@ class WaiterAssignmentService
         }
         
         $task->markOnDelivery();
+        if ($task->order) {
+            $task->order->update(['status' => 'on_delivery']);
+        }
         
         return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
     }
@@ -405,6 +520,9 @@ class WaiterAssignmentService
         }
 
         $task->markDelivered($remarks);
+        if ($task->order) {
+            $task->order->update(['status' => 'delivered']);
+        }
         
         return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
     }
@@ -422,13 +540,12 @@ class WaiterAssignmentService
         }
 
         $task->cancel("Failed: {$reason}" . ($remarks ? " - {$remarks}" : ''));
+        if ($task->order) {
+            $task->order->update(['status' => 'cancelled']);
+        }
         return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
     }
 
-    /**
-     * Get delivery history with filters and pagination
-     * Returns all completed/cancelled deliveries for a waiter
-     */
     public function getDeliveryHistory(int|string $waiterId, array $filters = [], int $perPage = 15)
     {
         $baseQuery = DeliveryTask::whereIn('status', ['delivered', 'cancelled']);
@@ -449,7 +566,6 @@ class WaiterAssignmentService
             'assignedBy'
         ]);
 
-        // Apply date range filter using COALESCE
         if (!empty($filters['start_date'])) {
             $query->whereRaw("COALESCE(delivered_at, assigned_at, created_at) >= ?", [$filters['start_date'] . ' 00:00:00']);
         }
@@ -457,17 +573,14 @@ class WaiterAssignmentService
             $query->whereRaw("COALESCE(delivered_at, assigned_at, created_at) <= ?", [$filters['end_date'] . ' 23:59:59']);
         }
 
-        // Apply action filter (status filter)
         if (!empty($filters['action'])) {
             $query->where('status', $filters['action']);
         }
 
-        // Apply sorting
         $sortBy = $filters['sort_by'] ?? 'created_at';
         $sortOrder = $filters['sort_order'] ?? 'desc';
         $query->orderBy($sortBy, $sortOrder);
 
-        // Map results to include necessary fields for frontend
         $paginated = $query->paginate($perPage);
 
         return $paginated->through(function ($task) {

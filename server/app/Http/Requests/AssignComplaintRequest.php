@@ -10,6 +10,7 @@ class AssignComplaintRequest extends FormRequest
     {
         return auth()->check() && auth()->user()->role === 'manager';
     }
+
     public function rules(): array
     {
         return [
@@ -17,11 +18,6 @@ class AssignComplaintRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     *
-     * @return array<string, string>
-     */
     public function messages(): array
     {
         return [

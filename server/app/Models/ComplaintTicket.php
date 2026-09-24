@@ -38,13 +38,9 @@ class ComplaintTicket extends Model
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Boot the model
-     */
     protected static function boot()
     {
         parent::boot();
-
         static::creating(function ($model) {
             if (empty($model->ticket_number)) {
                 $model->ticket_number = 'TKT-' . date('YmdHis') . '-' . rand(1000, 9999);
@@ -52,33 +48,21 @@ class ComplaintTicket extends Model
         });
     }
 
-    /**
-     * Get the guest who filed the complaint
-     */
     public function guest(): BelongsTo
     {
         return $this->belongsTo(User::class, 'guest_id');
     }
 
-    /**
-     * Get the manager handling the complaint
-     */
     public function manager(): BelongsTo
     {
         return $this->belongsTo(User::class, 'manager_id');
     }
 
-    /**
-     * Get the staff member assigned to resolve the complaint
-     */
     public function assignedStaff(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
-    /**
-     * Assign complaint to staff
-     */
     public function assignTo($userId): void
     {
         $this->update([
@@ -88,9 +72,6 @@ class ComplaintTicket extends Model
         ]);
     }
 
-    /**
-     * Escalate complaint
-     */
     public function escalate(): void
     {
         $this->update([
@@ -105,9 +86,6 @@ class ComplaintTicket extends Model
         ]);
     }
 
-    /**
-     * Resolve complaint
-     */
     public function resolve($notes): void
     {
         $this->update([
@@ -117,41 +95,26 @@ class ComplaintTicket extends Model
         ]);
     }
 
-    /**
-     * Scope: Get open complaints
-     */
     public function scopeOpen($query)
     {
         return $query->whereIn('status', ['open', 'assigned', 'in_progress']);
     }
 
-    /**
-     * Scope: Get urgent complaints
-     */
     public function scopeUrgent($query)
     {
         return $query->whereIn('severity', ['high', 'critical']);
     }
 
-    /**
-     * Scope: Get complaints by type
-     */
     public function scopeByType($query, $type)
     {
         return $query->where('type', $type);
     }
 
-    /**
-     * Scope: Get complaints by department
-     */
     public function scopeByDepartment($query, $department)
     {
         return $query->where('department', $department);
     }
 
-    /**
-     * Scope: Get unresolved complaints
-     */
     public function scopeUnresolved($query)
     {
         return $query->whereNotIn('status', ['resolved', 'closed']);

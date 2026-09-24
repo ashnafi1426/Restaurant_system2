@@ -3,7 +3,6 @@ import { ref, computed } from 'vue'
 import tableAssignmentService, { type TableAssignment, type TableAssignmentStats } from '@/services/manager/tableAssignmentService'
 
 export const useTableAssignmentStore = defineStore('tableAssignment', () => {
-  // State
   const assignments = ref<TableAssignment[]>([])
   const todayAssignments = ref<TableAssignment[]>([])
   const stats = ref<TableAssignmentStats>({
@@ -25,7 +24,6 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
     last_page: 1,
   })
 
-  // Computed
   const hasAssignments = computed(() => assignments.value.length > 0)
   const primaryAssignments = computed(() => 
     assignments.value.filter(a => a.priority === 'primary')
@@ -37,11 +35,6 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
     assignments.value.filter(a => a.priority === 'backup')
   )
 
-  // Actions
-
-  /**
-   * Load assignments with filters
-   */
   async function loadAssignments(filters?: {
     date?: string
     waiter_id?: number
@@ -64,20 +57,16 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
         pagination.value = response.pagination
       }
 
-      console.log('[TableAssignmentStore] Loaded', assignments.value.length, 'assignments')
       return response
     } catch (err: any) {
+      console.error('[tableAssignmentStore] Failed to load assignments:', err)
       error.value = err.response?.data?.message || err.message || 'Failed to load assignments'
-      console.error('[TableAssignmentStore] Load error:', error.value)
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  /**
-   * Load today's assignments
-   */
   async function loadTodayAssignments() {
     loading.value = true
     error.value = null
@@ -85,20 +74,16 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
     try {
       const data = await tableAssignmentService.getTodayAssignments()
       todayAssignments.value = data
-      console.log('[TableAssignmentStore] Loaded today assignments:', data.length)
       return data
     } catch (err: any) {
+      console.error('[tableAssignmentStore] Failed to load today assignments:', err)
       error.value = err.response?.data?.message || err.message || 'Failed to load today assignments'
-      console.error('[TableAssignmentStore] Today load error:', error.value)
       todayAssignments.value = []
     } finally {
       loading.value = false
     }
   }
 
-  /**
-   * Assign waiters to tables
-   */
   async function assignWaitersToTables(assignments: Array<{
     waiter_id: number
     table_id: string
@@ -112,26 +97,20 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
     try {
       const response = await tableAssignmentService.assignWaitersToTables(assignments)
       
-      console.log('[TableAssignmentStore] Assignment result:', response)
-      
-      // Reload assignments after creating
       await loadAssignments()
       await loadTodayAssignments()
       await loadStats()
       
       return response
     } catch (err: any) {
+      console.error('[tableAssignmentStore] Failed to assign waiters:', err)
       error.value = err.response?.data?.message || err.message || 'Failed to assign waiters'
-      console.error('[TableAssignmentStore] Assignment error:', error.value)
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  /**
-   * Update assignment
-   */
   async function updateAssignment(
     assignmentId: string,
     data: {
@@ -148,25 +127,20 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
     try {
       const updated = await tableAssignmentService.updateAssignment(assignmentId, data)
       
-      // Reload assignments to get populated relations
       await loadAssignments()
       await loadTodayAssignments()
       await loadStats()
       
-      console.log('[TableAssignmentStore] Updated assignment:', assignmentId)
       return updated
     } catch (err: any) {
+      console.error('[tableAssignmentStore] Failed to update assignment:', err)
       error.value = err.response?.data?.message || err.message || 'Failed to update assignment'
-      console.error('[TableAssignmentStore] Update error:', error.value)
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  /**
-   * Delete assignment
-   */
   async function deleteAssignment(assignmentId: string) {
     loading.value = true
     error.value = null
@@ -174,74 +148,53 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
     try {
       await tableAssignmentService.deleteAssignment(assignmentId)
       
-      // Remove from local state
       assignments.value = assignments.value.filter(a => a.id !== assignmentId)
       todayAssignments.value = todayAssignments.value.filter(a => a.id !== assignmentId)
       
-      // Reload stats
       await loadStats()
-      
-      console.log('[TableAssignmentStore] Deleted assignment:', assignmentId)
     } catch (err: any) {
+      console.error('[tableAssignmentStore] Failed to delete assignment:', err)
       error.value = err.response?.data?.message || err.message || 'Failed to delete assignment'
-      console.error('[TableAssignmentStore] Delete error:', error.value)
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  /**
-   * Load statistics
-   */
   async function loadStats(date?: string) {
     try {
       const data = await tableAssignmentService.getAssignmentStats(date)
       stats.value = data
-      console.log('[TableAssignmentStore] Loaded stats:', data)
       return data
     } catch (err: any) {
-      console.error('[TableAssignmentStore] Stats error:', err.message)
-      // Keep existing stats on error
+      console.error('[TableAssignmentStore] Error loading stats:', err)
     }
   }
 
-  /**
-   * Get assigned waiter for a table
-   */
   async function getAssignedWaiterForTable(tableId: string) {
     try {
       const assignment = await tableAssignmentService.getAssignedWaiterForTable(tableId)
       return assignment
     } catch (err: any) {
-      console.error('[TableAssignmentStore] Get waiter error:', err.message)
+      console.error('[TableAssignmentStore] Error getting assigned waiter for table:', err)
       return null
     }
   }
 
-  /**
-   * Get tables assigned to a waiter
-   */
   async function getWaiterTables(waiterId: number, date?: string) {
     try {
       const tables = await tableAssignmentService.getWaiterTables(waiterId, date)
       return tables
     } catch (err: any) {
-      console.error('[TableAssignmentStore] Get waiter tables error:', err.message)
+      console.error('[tableAssignmentStore] Error getting waiter tables:', err)
       return []
     }
   }
 
-  /**
-   * Clear error
-   */
   function clearError() {
     error.value = null
   }
 
-  /**
-   * Reset store
-   */
   function $reset() {
     assignments.value = []
     todayAssignments.value = []
@@ -265,7 +218,6 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
   }
 
   return {
-    // State
     assignments,
     todayAssignments,
     stats,
@@ -273,13 +225,11 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
     error,
     pagination,
     
-    // Computed
     hasAssignments,
     primaryAssignments,
     secondaryAssignments,
     backupAssignments,
     
-    // Actions
     loadAssignments,
     fetchAssignments: loadAssignments,
     loadTodayAssignments,

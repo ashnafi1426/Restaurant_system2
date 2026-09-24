@@ -12,21 +12,11 @@ use Throwable;
 
 class DeliveryNotificationService
 {
-    /**
-     * Trigger standardized notification to waiter.
-     * Uses type='delivery' which is a valid ENUM value in the notifications table.
-     * 
-     * IMPORTANT: This method dispatches WaiterAssignedEvent which triggers:
-     * - NotifyWaiterListener (creates WaiterNotification record)
-     * - UpdateWorkloadListener (if needed for additional tracking)
-     */
     public function notifyAssignment(DeliveryTask $task, Waiter $waiter): void
     {
         try {
             $order = $task->order;
 
-            // STEP 15: Dispatch WaiterAssignedEvent
-            // This triggers NotifyWaiterListener which creates the actual notification
             WaiterAssignedEvent::dispatch($task, $waiter, $task->assignment_type ?? 'automatic');
 
             Log::info(' [NOTIFICATION SERVICE] WaiterAssignedEvent dispatched', [
@@ -47,14 +37,9 @@ class DeliveryNotificationService
                 'error'       => $e->getMessage(),
                 'trace'       => $e->getTraceAsString(),
             ]);
-            // Suppress — notification failure must never fail the delivery assignment transaction
         }
     }
 
-    /**
-     * Trigger standardized notification to managers when assignment fails.
-     * Uses type='general' which is a valid ENUM value in the notifications table.
-     */
     public function notifyManagerOfWaiting(DeliveryTask $task, string $reason): void
     {
         try {
@@ -63,7 +48,7 @@ class DeliveryNotificationService
             foreach ($managers as $manager) {
                 Notification::create([
                     'user_id' => $manager->id,
-                    'type'    => 'general',  // Valid ENUM: ('reservation','order','delivery','general')
+                    'type'    => 'general',
                     'title'   => 'Delivery Waiting Manual Assignment',
                     'message' => "Order #{$task->order->order_number} needs manual assignment. Reason: {$reason}",
                     'read'    => false,

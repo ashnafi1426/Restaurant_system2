@@ -19,13 +19,11 @@ const today = computed(() => {
   <div
     class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 p-8 shadow-xl"
   >
-    <!-- Background Decorations -->
     <div class="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-white/10"></div>
 
     <div class="absolute -bottom-20 right-20 h-52 w-52 rounded-full bg-white/5"></div>
 
     <div class="relative flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
-      <!-- Left -->
       <div class="flex items-start gap-5">
         <div
           class="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/20 backdrop-blur"
@@ -52,7 +50,6 @@ const today = computed(() => {
         </div>
       </div>
 
-      <!-- Right -->
       <div class="grid grid-cols-2 gap-4">
         <div class="rounded-2xl bg-white/15 p-5 text-center backdrop-blur">
           <div class="mb-2">

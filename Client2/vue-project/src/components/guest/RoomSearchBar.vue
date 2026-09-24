@@ -9,15 +9,15 @@
           :value="modelValue"
           @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
           type="text"
-          placeholder="Search by room number, type or floor…"
+          :placeholder="languageStore.t('search_rooms_guest_placeholder', 'Search by room number, type or floor…')"
           class="search-input"
           autocomplete="off"
         />
         <button
           v-if="modelValue"
-          class="clear-btn"
+          class="clear-btn cursor-pointer"
           @click="$emit('update:modelValue', '')"
-          title="Clear search"
+          :title="languageStore.t('clear_search', 'Clear search')"
         >
           <X :size="15" :stroke-width="2.5" />
         </button>
@@ -28,6 +28,9 @@
 
 <script setup lang="ts">
 import { Search, X } from 'lucide-vue-next'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
 
 defineProps<{
   modelValue: string

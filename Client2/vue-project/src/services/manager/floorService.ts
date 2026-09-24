@@ -15,22 +15,16 @@ export interface FloorResponse {
 }
 
 export const floorService = {
-  /**
-   * Get all floors
-   */
   async getFloors(): Promise<FloorResponse> {
     try {
       const response = await axios.get('/api/manager/floors')
       return response.data
     } catch (error: any) {
-      console.error('Error fetching floors:', error)
+      console.error('[FloorService] Error fetching floors:', error)
       throw error
     }
   },
 
-  /**
-   * Get active floors only
-   */
   async getActiveFloors(): Promise<FloorResponse> {
     try {
       const response = await axios.get('/api/manager/floors', {
@@ -38,20 +32,17 @@ export const floorService = {
       })
       return response.data
     } catch (error: any) {
-      console.error('Error fetching active floors:', error)
+      console.error('[FloorService] Error fetching active floors:', error)
       throw error
     }
   },
 
-  /**
-   * Get single floor details
-   */
   async getFloor(floorId: string): Promise<{ success: boolean; data: Floor }> {
     try {
       const response = await axios.get(`/api/manager/floors/${floorId}`)
       return response.data
     } catch (error: any) {
-      console.error('Error fetching floor:', error)
+      console.error('[FloorService] Error fetching floor:', error)
       throw error
     }
   }

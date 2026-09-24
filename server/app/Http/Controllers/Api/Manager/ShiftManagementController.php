@@ -10,15 +10,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-/**
- * ShiftManagementController
- * 
- * Handles hotel shift management:
- * - Create/Update shifts
- * - Activate/Deactivate shifts
- * - Get current shift
- * - View shift statistics
- */
 class ShiftManagementController extends Controller
 {
     protected ShiftManagementService $shiftService;
@@ -28,17 +19,11 @@ class ShiftManagementController extends Controller
         $this->shiftService = $shiftService;
     }
 
-    /**
-     * Get all shifts
-     * 
-     * GET /api/manager/shifts
-     */
     public function index(Request $request): JsonResponse
     {
         try {
             $query = HotelShift::query();
 
-            // Filter by status
             if ($request->has('status')) {
                 $query->where('status', $request->input('status'));
             }
@@ -65,11 +50,6 @@ class ShiftManagementController extends Controller
         }
     }
 
-    /**
-     * Create new shift
-     * 
-     * POST /api/manager/shifts
-     */
     public function store(Request $request): JsonResponse
     {
         try {
@@ -113,11 +93,6 @@ class ShiftManagementController extends Controller
         }
     }
 
-    /**
-     * Get single shift details
-     * 
-     * GET /api/manager/shifts/{id}
-     */
     public function show(HotelShift $shift): JsonResponse
     {
         try {
@@ -136,11 +111,6 @@ class ShiftManagementController extends Controller
         }
     }
 
-    /**
-     * Update shift
-     * 
-     * PUT /api/manager/shifts/{id}
-     */
     public function update(Request $request, HotelShift $shift): JsonResponse
     {
         try {
@@ -153,7 +123,6 @@ class ShiftManagementController extends Controller
 
             $data = $request->only('name', 'start_time', 'end_time', 'status');
 
-            // If times are updated, recalculate if it's night shift
             if ($request->has('start_time') || $request->has('end_time')) {
                 $startTime = $request->input('start_time', $shift->start_time);
                 $endTime = $request->input('end_time', $shift->end_time);
@@ -179,15 +148,9 @@ class ShiftManagementController extends Controller
         }
     }
 
-    /**
-     * Delete shift
-     * 
-     * DELETE /api/manager/shifts/{id}
-     */
     public function destroy(HotelShift $shift): JsonResponse
     {
         try {
-            // Check if shift has active assignments
             $activeAssignments = $shift->assignments()->where('status', 'active')->count();
             if ($activeAssignments > 0) {
                 return response()->json([
@@ -214,11 +177,6 @@ class ShiftManagementController extends Controller
         }
     }
 
-    /**
-     * Deactivate shift
-     * 
-     * PATCH /api/manager/shifts/{id}/deactivate
-     */
     public function deactivate(HotelShift $shift): JsonResponse
     {
         try {
@@ -237,11 +195,6 @@ class ShiftManagementController extends Controller
         }
     }
 
-    /**
-     * Activate shift
-     * 
-     * PATCH /api/manager/shifts/{id}/activate
-     */
     public function activate(HotelShift $shift): JsonResponse
     {
         try {
@@ -260,11 +213,6 @@ class ShiftManagementController extends Controller
         }
     }
 
-    /**
-     * Get current shift
-     * 
-     * GET /api/manager/shifts/current
-     */
     public function current(): JsonResponse
     {
         try {
@@ -291,11 +239,6 @@ class ShiftManagementController extends Controller
         }
     }
 
-    /**
-     * Get shift statistics
-     * 
-     * GET /api/manager/shifts/{id}/stats
-     */
     public function stats(HotelShift $shift): JsonResponse
     {
         try {
@@ -319,19 +262,14 @@ class ShiftManagementController extends Controller
         }
     }
 
-    /**
-     * Helper: Determine if a shift is night shift
-     */
     private function isNightShift(string $startTime, string $endTime): bool
     {
-        // Convert to minutes for easier comparison
         [$startHour, $startMin] = explode(':', $startTime);
         [$endHour, $endMin] = explode(':', $endTime);
 
         $startMinutes = (int)$startHour * 60 + (int)$startMin;
         $endMinutes = (int)$endHour * 60 + (int)$endMin;
 
-        // Night shift if it goes past midnight or starts in evening
-        return $endMinutes < $startMinutes || $startMinutes >= 18 * 60; // 6 PM onwards
+        return $endMinutes < $startMinutes || $startMinutes >= 18 * 60;
     }
 }

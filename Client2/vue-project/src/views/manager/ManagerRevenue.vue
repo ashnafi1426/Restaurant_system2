@@ -1,22 +1,28 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, watch, computed } from 'vue'
 import { useManagerRevenueStore } from '@/stores/manager/revenueStore'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
 import RevenueOverview from '@/components/manager/RevenueOverview.vue'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
-import { TrendingUp } from 'lucide-vue-next'
+import { TrendingUp, Building2 } from 'lucide-vue-next'
 
 const revenueStore = useManagerRevenueStore()
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
-onMounted(async () => {
+const loadData = async () => {
   await revenueStore.initialize()
-})
+}
+
+onMounted(loadData)
+
+watch(() => hotelStore.hotelId, loadData)
+
+const currency = computed(() => hotelStore.currentHotel?.currency || 'ETB')
 
 function formatCurrency(value: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'ETB',
-    maximumFractionDigits: 0,
-  }).format(value)
+  return `${(value || 0).toLocaleString()} ${currency.value}`
 }
 </script>
 
@@ -27,8 +33,14 @@ function formatCurrency(value: number) {
       <div class="mb-6 md:mb-8 border-b border-slate-200/60 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-lg p-4 md:p-6 transition-colors duration-300">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Revenue Report</h1>
-            <p class="text-sm md:text-base text-slate-600 dark:text-slate-400">Comprehensive revenue analysis and breakdowns</p>
+            <div class="flex items-center gap-2">
+              <h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">{{ languageStore.t('revenue_report', 'Revenue Report') }}</h1>
+              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+                <Building2 class="w-3 h-3" />
+                {{ hotelStore.hotelName }}
+              </span>
+            </div>
+            <p class="text-sm md:text-base text-slate-600 dark:text-slate-400">{{ languageStore.t('comprehensive_revenue_analysis', 'Comprehensive revenue analysis and breakdowns') }}</p>
           </div>
           <div class="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-900 dark:to-emerald-800 rounded-xl flex items-center justify-center">
             <TrendingUp class="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
@@ -49,7 +61,7 @@ function formatCurrency(value: number) {
               </svg>
             </div>
           </div>
-          <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm mt-4">Loading revenue data...</p>
+          <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm mt-4">{{ languageStore.t('loading_revenue_data', 'Loading revenue data...') }}</p>
         </div>
       </div>
 
@@ -66,36 +78,36 @@ function formatCurrency(value: number) {
 
         <!-- Revenue Chart -->
         <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">Revenue Trend</h2>
+          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">{{ languageStore.t('revenue_trend', 'Revenue Trend') }}</h2>
           <div class="h-64 flex items-center justify-center bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-            <p class="text-slate-500 dark:text-slate-400">Chart visualization coming soon...</p>
+            <p class="text-slate-500 dark:text-slate-400">{{ languageStore.t('chart_visualization_soon', 'Chart visualization coming soon...') }}</p>
           </div>
         </div>
 
         <!-- Revenue Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <p class="text-sm text-slate-500 dark:text-slate-400">Today's Revenue</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('todays_revenue', "Today's Revenue") }}</p>
             <h3 class="mt-3 text-3xl font-bold text-slate-900 dark:text-slate-100">
               {{ formatCurrency(revenueStore.revenueSummary?.today ?? 0) }}
             </h3>
-            <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-2">+12% vs yesterday</p>
+            <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-2">+12% {{ languageStore.t('vs_yesterday', 'vs yesterday') }}</p>
           </div>
 
           <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <p class="text-sm text-slate-500 dark:text-slate-400">This Week</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('this_week', 'This Week') }}</p>
             <h3 class="mt-3 text-3xl font-bold text-slate-900 dark:text-slate-100">
               {{ formatCurrency(revenueStore.revenueSummary?.thisWeek ?? 0) }}
             </h3>
-            <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-2">+8% vs last week</p>
+            <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-2">+8% {{ languageStore.t('vs_last_week', 'vs last week') }}</p>
           </div>
 
           <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <p class="text-sm text-slate-500 dark:text-slate-400">This Month</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('this_month', 'This Month') }}</p>
             <h3 class="mt-3 text-3xl font-bold text-slate-900 dark:text-slate-100">
               {{ formatCurrency(revenueStore.revenueSummary?.thisMonth ?? 0) }}
             </h3>
-            <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-2">+15% vs last month</p>
+            <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-2">+15% {{ languageStore.t('vs_last_month', 'vs last month') }}</p>
           </div>
         </div>
       </div>

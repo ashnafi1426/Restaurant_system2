@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MaintenanceAlert } from '../../types/dashboard'
+import { useLanguageStore } from '../../stores/language'
 
 interface Props {
   alerts?: MaintenanceAlert[]
@@ -8,6 +9,8 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   alerts: () => [],
 })
+
+const languageStore = useLanguageStore()
 
 const getSeverityColor = (severity: string) => {
   const colors: Record<string, string> = {
@@ -41,22 +44,20 @@ const getSeverityIcon = (severity: string) => {
   <div
     class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8 hover:shadow-md transition-shadow duration-300"
   >
-    <!-- Title Section -->
     <div class="flex items-center justify-between gap-3 mb-6 sm:mb-8">
       <div>
         <h3 class="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-wide">
-          Maintenance Alerts
+          {{ languageStore.t('maintenance_alerts', 'Maintenance Alerts') }}
         </h3>
-        <p class="text-sm text-slate-600 mt-1">System status and maintenance tasks</p>
+        <p class="text-sm text-slate-600 mt-1">{{ languageStore.t('maintenance_alerts_desc', 'System status and maintenance tasks') }}</p>
       </div>
       <button
         class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-semibold rounded-lg transition-colors"
       >
-        Clear All
+        {{ languageStore.t('clear_all', 'Clear All') }}
       </button>
     </div>
 
-    <!-- Empty State -->
     <div v-if="alerts.length === 0" class="text-center py-16">
       <div
         class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4"
@@ -70,11 +71,10 @@ const getSeverityIcon = (severity: string) => {
           />
         </svg>
       </div>
-      <p class="text-slate-600 font-semibold text-lg">All systems operational</p>
-      <p class="text-sm text-slate-500 mt-1">No active alerts at the moment</p>
+      <p class="text-slate-600 font-semibold text-lg">{{ languageStore.t('all_systems_operational', 'All systems operational') }}</p>
+      <p class="text-sm text-slate-500 mt-1">{{ languageStore.t('no_active_alerts', 'No active alerts at the moment') }}</p>
     </div>
 
-    <!-- Alerts List -->
     <div v-else class="space-y-3 sm:space-y-4">
       <div
         v-for="alert in alerts"
@@ -85,7 +85,6 @@ const getSeverityIcon = (severity: string) => {
         ]"
       >
         <div class="flex gap-3 sm:gap-4">
-          <!-- Icon -->
           <div class="flex-shrink-0 mt-0.5">
             <div
               v-if="alert.severity === 'high'"
@@ -128,7 +127,6 @@ const getSeverityIcon = (severity: string) => {
             </div>
           </div>
 
-          <!-- Content -->
           <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between gap-2">
               <div>
@@ -145,13 +143,13 @@ const getSeverityIcon = (severity: string) => {
                   'text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap',
                 ]"
               >
-                {{ alert.severity.charAt(0).toUpperCase() + alert.severity.slice(1) }}
+                {{ languageStore.t(alert.severity, alert.severity.charAt(0).toUpperCase() + alert.severity.slice(1)) }}
               </span>
             </div>
 
             <div class="flex gap-2 mt-3 flex-wrap">
               <button
-                class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
+                class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer"
                 :class="
                   alert.severity === 'high'
                     ? 'bg-red-100 text-red-700 hover:bg-red-200'
@@ -160,12 +158,12 @@ const getSeverityIcon = (severity: string) => {
                       : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                 "
               >
-                ✓ Acknowledge
+                {{ languageStore.t('acknowledge', '✓ Acknowledge') }}
               </button>
               <button
-                class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border text-slate-600 hover:bg-slate-50 transition-all"
+                class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
               >
-                View Details
+                {{ languageStore.t('view_details', 'View Details') }}
               </button>
             </div>
           </div>

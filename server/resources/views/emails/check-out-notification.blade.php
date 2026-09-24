@@ -20,7 +20,6 @@
         <div class="header">
             <h1>Thank You for Your Stay!</h1>
         </div>
-
         <div class="content">
             <p>Dear {{ $guest->first_name }} {{ $guest->last_name }},</p>
 
@@ -45,10 +44,8 @@
                     <td>{{ $nights }}</td>
                 </tr>
             </table>
-
             <h2>Guest Feedback</h2>
             <p>Your feedback is important to us. We'd love to hear about your experience at {{ $hotelWebsite }}/feedback</p>
-
             <h2>Items Left Behind</h2>
             <p>If you believe you left anything in your room, please contact our Lost & Found department:</p>
             <ul>

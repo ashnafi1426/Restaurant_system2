@@ -5,16 +5,8 @@ namespace App\Http\Resources\Manager;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * WaiterFloorAssignmentResource
- * 
- * Transforms floor assignment data for API responses
- */
 class WaiterFloorAssignmentResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     */
     public function toArray(Request $request): array
     {
         return [

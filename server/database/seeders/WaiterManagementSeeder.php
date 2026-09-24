@@ -33,7 +33,7 @@ class WaiterManagementSeeder extends Seeder
             DB::beginTransaction();
 
             // Step 1: Create Hotel Shifts with UUID tracking
-            $this->command->info('📋 Step 1: Creating hotel shifts...');
+            $this->command->info(' Step 1: Creating hotel shifts...');
             $this->seedShifts();
             $this->command->newLine();
 
@@ -117,7 +117,7 @@ class WaiterManagementSeeder extends Seeder
             
             if ($existing) {
                 $this->shiftIds[$shiftData['name']] = $existing->id;
-                $this->command->line("  ℹ️  Shift exists: {$shiftData['name']}");
+                $this->command->line("    Shift exists: {$shiftData['name']}");
                 $this->command->line("     UUID: {$existing->id}");
             } else {
                 $uuid = Str::uuid()->toString();
@@ -150,7 +150,7 @@ class WaiterManagementSeeder extends Seeder
             
             if ($existing) {
                 $this->floorIds[$floorData['floor_number']] = $existing->id;
-                $this->command->line("  ℹ️  Floor exists: {$floorData['name']}");
+                $this->command->line("    Floor exists: {$floorData['name']}");
                 $this->command->line("     UUID: {$existing->id}");
             } else {
                 $uuid = Str::uuid()->toString();

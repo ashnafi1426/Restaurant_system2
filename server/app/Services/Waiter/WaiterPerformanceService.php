@@ -36,6 +36,7 @@ class WaiterPerformanceService
             ]
         );
     }
+
     public function getPerformanceHistory($waiterId, $startDate, $endDate, $perPage = 30)
     {
         return WaiterPerformance::where('waiter_id', $waiterId)
@@ -43,6 +44,7 @@ class WaiterPerformanceService
             ->orderBy('metric_date', 'desc')
             ->paginate($perPage);
     }
+
     public function getAggregatedPerformance($waiterId, $startDate, $endDate): array
     {
         $performances = WaiterPerformance::where('waiter_id', $waiterId)
@@ -77,6 +79,7 @@ class WaiterPerformanceService
                 : 0,
         ];
     }
+
     public function getWaiterRanking($date = null, $limit = 10): array
     {
         $date = $date ? Carbon::parse($date) : Carbon::today();
@@ -102,6 +105,7 @@ class WaiterPerformanceService
 
         return $rankings;
     }
+
     public function getPerformanceTrend($waiterId, $days = 7): array
     {
         $startDate = Carbon::today()->subDays($days - 1);
@@ -112,7 +116,6 @@ class WaiterPerformanceService
             ->orderBy('metric_date', 'asc')
             ->get();
 
-        // Fill in missing days with zeros
         $trend = [];
         for ($i = 0; $i < $days; $i++) {
             $date = $startDate->copy()->addDays($i);
@@ -130,6 +133,7 @@ class WaiterPerformanceService
 
         return $trend;
     }
+
     public function generatePerformanceReport($waiterId, $startDate, $endDate): array
     {
         $performances = WaiterPerformance::where('waiter_id', $waiterId)
@@ -140,14 +144,13 @@ class WaiterPerformanceService
 
         $aggregated = $this->getAggregatedPerformance($waiterId, $startDate, $endDate);
 
-        // Get on-time delivery percentage
         $assignments = DeliveryTask::where('waiter_id', $waiterId)
             ->where('status', 'delivered')
             ->whereBetween('delivered_at', [$startDate, $endDate])
             ->get();
 
         $onTimeCount = 0;
-        $avgExpectedDeliveryTime = 30; // minutes, can be configured
+        $avgExpectedDeliveryTime = 30;
         foreach ($assignments as $assignment) {
             $deliveryTime = $assignment->getDeliveryTimeMinutes();
             if ($deliveryTime && $deliveryTime <= $avgExpectedDeliveryTime) {
@@ -195,6 +198,7 @@ class WaiterPerformanceService
             })->toArray(),
         ];
     }
+
     public function compareWaiters(array $waiterIds, $date = null): array
     {
         $date = $date ? Carbon::parse($date) : Carbon::today();
@@ -221,17 +225,13 @@ class WaiterPerformanceService
 
         return $comparisons;
     }
+
     public function getTeamPerformance($managerIdOrTeamId = null, $date = null): array
     {
         $date = $date ? Carbon::parse($date) : Carbon::today();
 
         $query = WaiterPerformance::where('metric_date', $date)
             ->with('waiter');
-
-        if ($managerIdOrTeamId) {
-            // This would filter by manager or team if we have that relationship
-            // For now, just get all
-        }
 
         $performances = $query->get();
 
@@ -261,6 +261,7 @@ class WaiterPerformanceService
                 ->toArray(),
         ];
     }
+
     public function getStatistics($waiterId): array
     {
         $today = Carbon::today();
@@ -300,6 +301,7 @@ class WaiterPerformanceService
             ],
         ];
     }
+
     public function getDeliveryTimeDistribution($waiterId, $date = null): array
     {
         $date = $date ? Carbon::parse($date) : Carbon::today();
@@ -309,7 +311,6 @@ class WaiterPerformanceService
             ->whereDate('delivered_at', $date)
             ->get();
 
-        // Categorize by delivery time ranges
         $ranges = [
             '0-10' => 0,
             '11-20' => 0,
@@ -333,6 +334,7 @@ class WaiterPerformanceService
 
         return $ranges;
     }
+
     public function rateWaiter($waiterId, $rating, $date = null): WaiterPerformance
     {
         $date = $date ? Carbon::parse($date) : Carbon::today();
@@ -345,7 +347,6 @@ class WaiterPerformanceService
             throw new \Exception('No performance record found for this waiter on this date');
         }
 
-        // Validate rating
         if ($rating < 0 || $rating > 5) {
             throw new \Exception('Rating must be between 0 and 5');
         }
@@ -355,6 +356,7 @@ class WaiterPerformanceService
 
         return $performance;
     }
+
     public function getMonthlyAveragePerformance($waiterId, $month = null): array
     {
         $month = $month ? Carbon::parse($month) : Carbon::now();

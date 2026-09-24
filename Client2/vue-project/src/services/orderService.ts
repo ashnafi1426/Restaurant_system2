@@ -22,7 +22,6 @@ class OrderService {
   }
   async createOrder(payload: CreateOrderRequest): Promise<OrderResponse> {
     const response = await api.post<OrderResponse>('/orders', payload)
-
     return response.data
   }
   async updateOrder(id: string, payload: UpdateOrderRequest): Promise<OrderResponse> {

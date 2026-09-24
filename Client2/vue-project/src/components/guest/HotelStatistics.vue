@@ -1,32 +1,45 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { BedDouble, Star, Award, Users } from 'lucide-vue-next'
+import { useLanguageStore } from '@/stores/language'
+import { useRoomStore } from '@/stores/room'
+import { useGuestHotelStore } from '@/stores/guestHotelStore'
 
-const statistics = [
+const languageStore = useLanguageStore()
+const roomStore = useRoomStore()
+const guestHotelStore = useGuestHotelStore()
+
+const roomCount = computed(() => {
+  const count = roomStore.rooms?.length || 0
+  return count > 0 ? `${count}+` : '50+'
+})
+
+const statistics = computed(() => [
   {
-    value: '150+',
-    label: 'Luxury Suites & Rooms',
+    value: roomCount.value,
+    label: languageStore.t('luxury_suites_rooms', 'Luxury Suites & Rooms'),
     icon: BedDouble,
     color: 'text-amber-400'
   },
   {
-    value: '98%',
-    label: 'Guest Satisfaction Rate',
+    value: '99%',
+    label: languageStore.t('guest_satisfaction_rate', 'Guest Satisfaction Rate'),
     icon: Star,
     color: 'text-emerald-400'
   },
   {
     value: '25+',
-    label: 'Years of Excellence',
+    label: languageStore.t('years_of_excellence', 'Years of Excellence'),
     icon: Award,
     color: 'text-blue-400'
   },
   {
-    value: '50+',
-    label: 'Professional Staff',
+    value: '80+',
+    label: languageStore.t('professional_staff', 'Professional Staff'),
     icon: Users,
     color: 'text-purple-400'
   },
-]
+])
 </script>
 
 <template>
@@ -52,3 +65,4 @@ const statistics = [
     </div>
   </section>
 </template>
+

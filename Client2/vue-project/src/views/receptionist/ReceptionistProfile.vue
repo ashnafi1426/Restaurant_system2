@@ -6,7 +6,7 @@
       <div v-if="loading" class="flex items-center justify-center py-20">
         <div class="flex flex-col items-center gap-3">
           <div class="w-10 h-10 border-4 border-teal-500/30 border-t-teal-500 rounded-full animate-spin"></div>
-          <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Loading profile...</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('loading', 'Loading profile...') }}</p>
         </div>
       </div>
 
@@ -18,9 +18,9 @@
         >
           <AlertTriangle class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p class="text-sm font-black text-amber-700 dark:text-amber-400">Action Required: Change Your Temporary Password</p>
+            <p class="text-sm font-black text-amber-700 dark:text-amber-400">{{ languageStore.t('action_required_temp_password', 'Action Required: Change Your Temporary Password') }}</p>
             <p class="text-xs text-amber-600 dark:text-amber-500 mt-0.5">
-              You are using a temporary password set by the administrator. Please change it now to secure your account.
+              {{ languageStore.t('temp_password_warning', 'You are using a temporary password set by the administrator. Please change it now to secure your account.') }}
             </p>
           </div>
         </div>
@@ -75,15 +75,15 @@
                   {{ user?.first_name }} {{ user?.last_name }}
                 </h1>
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  Active Receptionist
+                  {{ languageStore.t('active_receptionist', 'Active Receptionist') }}
                 </span>
               </div>
               <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
-                <span class="font-mono font-bold text-teal-600 dark:text-teal-400">Front Desk</span>
+                <span class="font-mono font-bold text-teal-600 dark:text-teal-400">{{ languageStore.t('front_desk', 'Front Desk') }}</span>
                 <span>•</span>
                 <span>{{ user?.email }}</span>
               </div>
-              <p class="text-[10px] text-slate-400 mt-2 italic">Click avatar to upload a profile photo</p>
+              <p class="text-[10px] text-slate-400 mt-2 italic">{{ languageStore.t('click_avatar_upload', 'Click avatar to upload a profile photo') }}</p>
             </div>
           </div>
         </div>
@@ -109,40 +109,40 @@
           <!-- Sidebar Quick Info -->
           <div class="lg:col-span-1 space-y-6">
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4">
-              <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">Quick Info</h3>
+              <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">{{ languageStore.t('quick_info', 'Quick Info') }}</h3>
               <div class="space-y-3 text-xs">
                 <div class="flex items-start gap-3">
                   <Briefcase class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Role</p>
-                    <p class="font-extrabold text-slate-900 dark:text-white">Receptionist</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">{{ languageStore.t('role', 'Role') }}</p>
+                    <p class="font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('receptionist', 'Receptionist') }}</p>
                   </div>
                 </div>
                 <div class="flex items-start gap-3">
                   <Mail class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div class="min-w-0 flex-1">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Email</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">{{ languageStore.t('email', 'Email') }}</p>
                     <p class="font-extrabold text-slate-900 dark:text-white truncate">{{ user?.email }}</p>
                   </div>
                 </div>
                 <div class="flex items-start gap-3">
                   <Phone class="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Phone</p>
-                    <p class="font-extrabold text-slate-900 dark:text-white">{{ user?.phone || 'Not provided' }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">{{ languageStore.t('phone', 'Phone') }}</p>
+                    <p class="font-extrabold text-slate-900 dark:text-white">{{ user?.phone || languageStore.t('not_provided', 'Not provided') }}</p>
                   </div>
                 </div>
                 <div v-if="receptionistProfile?.shift" class="flex items-start gap-3">
                   <Clock class="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Shift</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">{{ languageStore.t('shift', 'Shift') }}</p>
                     <p class="font-extrabold text-slate-900 dark:text-white capitalize">{{ receptionistProfile.shift }}</p>
                   </div>
                 </div>
                 <div v-if="receptionistProfile?.desk_number" class="flex items-start gap-3">
                   <MapPin class="w-4 h-4 text-teal-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Desk</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">{{ languageStore.t('desk', 'Desk') }}</p>
                     <p class="font-extrabold text-slate-900 dark:text-white">{{ receptionistProfile.desk_number }}</p>
                   </div>
                 </div>
@@ -156,14 +156,14 @@
             <!-- Personal Information Card -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
               <div>
-                <h3 class="text-lg font-black text-slate-900 dark:text-white">Personal Information</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Update your personal account details.</p>
+                <h3 class="text-lg font-black text-slate-900 dark:text-white">{{ languageStore.t('personal_info', 'Personal Information') }}</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('personal_info_desc', 'Update your personal account details.') }}</p>
               </div>
 
               <form @submit.prevent="saveProfile" class="space-y-4 text-xs font-sans">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">First Name *</label>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('first_name', 'First Name') }} *</label>
                     <input
                       v-model="form.first_name"
                       type="text"
@@ -172,7 +172,7 @@
                     />
                   </div>
                   <div>
-                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Last Name *</label>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('last_name', 'Last Name') }} *</label>
                     <input
                       v-model="form.last_name"
                       type="text"
@@ -183,18 +183,18 @@
                 </div>
 
                 <div>
-                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Email Address</label>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('email', 'Email Address') }}</label>
                   <input
                     :value="user?.email"
                     type="email"
                     disabled
                     class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold cursor-not-allowed"
                   />
-                  <p class="text-[10px] text-slate-400 mt-1">Email cannot be changed. Contact admin to update.</p>
+                  <p class="text-[10px] text-slate-400 mt-1">{{ languageStore.t('email_cant_change', 'Email cannot be changed. Contact admin to update.') }}</p>
                 </div>
 
                 <div>
-                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Phone Number</label>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('phone', 'Phone Number') }}</label>
                   <input
                     v-model="form.phone"
                     type="tel"
@@ -216,7 +216,7 @@
                   >
                     <Loader2 v-if="saving" class="w-3.5 h-3.5 animate-spin" />
                     <Save v-else class="w-3.5 h-3.5" />
-                    <span>{{ saving ? 'Saving...' : 'Save Changes' }}</span>
+                    <span>{{ saving ? languageStore.t('saving', 'Saving...') : languageStore.t('save_changes', 'Save Changes') }}</span>
                   </button>
                 </div>
               </form>
@@ -237,12 +237,12 @@
                 </div>
                 <div>
                   <h3 class="text-lg font-black text-slate-900 dark:text-white">
-                    {{ mustChangePassword ? '⚠ Change Temporary Password' : 'Change Password' }}
+                    {{ mustChangePassword ? ('⚠ ' + languageStore.t('change_temp_password', 'Change Temporary Password')) : languageStore.t('change_password', 'Change Password') }}
                   </h3>
                   <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     {{ mustChangePassword
-                      ? 'Your account was created with a temporary password. Enter it below, then set a new secure password.'
-                      : 'For your security, use a strong unique password.' }}
+                      ? languageStore.t('change_temp_password_desc', 'Your account was created with a temporary password. Enter it below, then set a new secure password.')
+                      : languageStore.t('change_password_desc', 'For your security, use a strong unique password.') }}
                   </p>
                 </div>
               </div>
@@ -251,14 +251,14 @@
                 <!-- Current / Temporary Password -->
                 <div>
                   <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">
-                    {{ mustChangePassword ? 'Temporary Password (from admin email)' : 'Current Password' }} *
+                    {{ mustChangePassword ? languageStore.t('temp_password_label', 'Temporary Password (from admin email)') : languageStore.t('current_password', 'Current Password') }} *
                   </label>
                   <div class="relative">
                     <input
                       v-model="passwordForm.current_password"
                       :type="showCurrentPw ? 'text' : 'password'"
                       required
-                      :placeholder="mustChangePassword ? 'Enter the temporary password sent to your email' : 'Enter your current password'"
+                      :placeholder="mustChangePassword ? languageStore.t('enter_temp_password', 'Enter the temporary password sent to your email') : languageStore.t('enter_current_password', 'Enter your current password')"
                       class="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-teal-500 transition"
                     />
                     <button
@@ -274,14 +274,14 @@
 
                 <!-- New Password -->
                 <div>
-                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">New Password *</label>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('new_password', 'New Password') }} *</label>
                   <div class="relative">
                     <input
                       v-model="passwordForm.new_password"
                       :type="showNewPw ? 'text' : 'password'"
                       required
                       minlength="8"
-                      placeholder="Minimum 8 characters"
+                      :placeholder="languageStore.t('min_8_chars', 'Minimum 8 characters')"
                       class="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-teal-500 transition"
                     />
                     <button
@@ -311,13 +311,13 @@
 
                 <!-- Confirm New Password -->
                 <div>
-                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">Confirm New Password *</label>
+                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('confirm_new_password', 'Confirm New Password') }} *</label>
                   <div class="relative">
                     <input
                       v-model="passwordForm.new_password_confirmation"
                       :type="showConfirmPw ? 'text' : 'password'"
                       required
-                      placeholder="Re-enter new password"
+                      :placeholder="languageStore.t('reenter_new_password', 'Re-enter new password')"
                       :class="[
                         'w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border text-slate-900 dark:text-white font-bold focus:outline-none transition',
                         passwordForm.new_password_confirmation && passwordForm.new_password !== passwordForm.new_password_confirmation
@@ -340,7 +340,7 @@
                     v-if="passwordForm.new_password_confirmation && passwordForm.new_password !== passwordForm.new_password_confirmation"
                     class="text-[10px] text-red-500 font-bold mt-1"
                   >
-                    Passwords do not match.
+                    {{ languageStore.t('passwords_not_match', 'Passwords do not match.') }}
                   </p>
                 </div>
 
@@ -362,7 +362,7 @@
                   >
                     <Loader2 v-if="changingPassword" class="w-3.5 h-3.5 animate-spin" />
                     <ShieldCheck v-else class="w-3.5 h-3.5" />
-                    <span>{{ changingPassword ? 'Updating...' : (mustChangePassword ? 'Set New Password' : 'Update Password') }}</span>
+                    <span>{{ changingPassword ? languageStore.t('updating', 'Updating...') : (mustChangePassword ? languageStore.t('set_new_password', 'Set New Password') : languageStore.t('update_password', 'Update Password')) }}</span>
                   </button>
                 </div>
               </form>
@@ -385,8 +385,10 @@ import {
 } from 'lucide-vue-next'
 import api from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
+import { useLanguageStore } from '@/stores/language'
 
 const authStore = useAuthStore()
+const languageStore = useLanguageStore()
 
 // ─── State ───────────────────────────────────────
 const loading = ref(true)
@@ -439,10 +441,10 @@ const strengthTextColor = computed(() => {
 })
 const strengthLabel = computed(() => {
   const s = passwordStrength.value
-  if (s <= 1) return 'Weak – add uppercase, numbers, and symbols'
-  if (s === 2) return 'Fair – getting better'
-  if (s === 3) return 'Good – almost there'
-  return 'Strong password'
+  if (s <= 1) return languageStore.t('weak_password', 'Weak – add uppercase, numbers, and symbols')
+  if (s === 2) return languageStore.t('fair_password', 'Fair – getting better')
+  if (s === 3) return languageStore.t('good_password', 'Good – almost there')
+  return languageStore.t('strong_password', 'Strong password')
 })
 
 // ─── Helpers ─────────────────────────────────────
@@ -513,6 +515,7 @@ async function saveProfile() {
       profileError.value = res.data?.message || 'Update failed.'
     }
   } catch (err: any) {
+    console.error('[ReceptionistProfile] Error saving profile:', err)
     profileError.value = err.response?.data?.message || 'Failed to update profile. Please try again.'
   } finally {
     saving.value = false
@@ -546,6 +549,7 @@ async function changePassword() {
       passwordError.value = res.data?.message || 'Password change failed.'
     }
   } catch (err: any) {
+    console.error('[ReceptionistProfile] Error changing password:', err)
     const errData = err.response?.data
     if (err.response?.status === 422 && errData?.errors) {
       const msgs = Object.values(errData.errors).flat() as string[]
@@ -597,6 +601,7 @@ async function onPhotoSelected(event: Event) {
       photoPreview.value = null
     }
   } catch (err: any) {
+    console.error('[ReceptionistProfile] Photo upload error:', err)
     showGlobalMessage(err.response?.data?.message || 'Failed to upload photo. Please try again.', 'error')
     photoPreview.value = null
   } finally {

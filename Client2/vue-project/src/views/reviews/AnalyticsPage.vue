@@ -22,12 +22,13 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import AnalyticsDashboard from '@/components/reviews/AnalyticsDashboard.vue'
 
 const authStore = useAuthStore()
 
-const isManager = authStore.isManager || authStore.isAdmin
+const isManager = computed(() => authStore.can('reviews.view') || authStore.hasAnyRole(['manager', 'admin']))
 </script>
 
 <style scoped>

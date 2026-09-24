@@ -4,6 +4,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import { rbacService } from '@/services/rbacService'
 import type { Role, Permission } from '@/types/rbacTypes'
 import { useAuthStore } from '@/stores/auth'
+import { useLanguageStore } from '@/stores/language'
 import {
   Shield,
   Users,
@@ -36,6 +37,7 @@ import {
 } from 'lucide-vue-next'
 
 const authStore = useAuthStore()
+const languageStore = useLanguageStore()
 const roles = ref<Role[]>([])
 const permissions = ref<Permission[]>([])
 const loading = ref(false)
@@ -216,8 +218,8 @@ onMounted(() => { loadData() })
   <DashboardLayout>
     <div class="min-h-screen bg-white dark:bg-slate-900 py-4 px-6 space-y-6 font-sans">
       <div>
-        <h1 class="text-2xl font-black text-slate-900 dark:text-slate-100">Role & Permission Matrix</h1>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Configure role permissions side-by-side across all system modules.</p>
+        <h1 class="text-2xl font-black text-slate-900 dark:text-slate-100">{{ languageStore.t('role_permission_matrix', 'Role & Permission Matrix') }}</h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('role_permission_desc', 'Configure role permissions side-by-side across all system modules.') }}</p>
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -225,7 +227,7 @@ onMounted(() => { loadData() })
           <Users class="w-7 h-7 text-purple-500" />
           <div>
             <p class="text-xl font-black text-slate-900 dark:text-slate-100">{{ totalRoles }}</p>
-            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Roles</p>
+            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ languageStore.t('total_roles', 'Total Roles') }}</p>
           </div>
         </div>
 
@@ -233,7 +235,7 @@ onMounted(() => { loadData() })
           <Shield class="w-7 h-7 text-emerald-500" />
           <div>
             <p class="text-xl font-black text-slate-900 dark:text-slate-100">{{ totalPermissions }}</p>
-            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Permissions</p>
+            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ languageStore.t('total_permissions', 'Total Permissions') }}</p>
           </div>
         </div>
 
@@ -241,7 +243,7 @@ onMounted(() => { loadData() })
           <FileText class="w-7 h-7 text-blue-500" />
           <div>
             <p class="text-xl font-black text-slate-900 dark:text-slate-100">{{ totalModules }}</p>
-            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">System Modules</p>
+            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ languageStore.t('system_modules', 'System Modules') }}</p>
           </div>
         </div>
 
@@ -249,7 +251,7 @@ onMounted(() => { loadData() })
           <Users class="w-7 h-7 text-amber-500" />
           <div>
             <p class="text-xl font-black text-slate-900 dark:text-slate-100">{{ usersAssigned }}</p>
-            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Users Assigned</p>
+            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ languageStore.t('users_assigned', 'Users Assigned') }}</p>
           </div>
         </div>
       </div>
@@ -259,20 +261,20 @@ onMounted(() => { loadData() })
           <AlertCircle class="w-4 h-4" />
           <span>{{ error }}</span>
         </div>
-        <button @click="error = null" class="text-rose-500 hover:text-rose-700 font-bold cursor-pointer">Dismiss</button>
+        <button @click="error = null" class="text-rose-500 hover:text-rose-700 font-bold cursor-pointer">{{ languageStore.t('dismiss', 'Dismiss') }}</button>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-4">
           <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs overflow-hidden">
             <div class="p-4 border-b border-slate-200 dark:border-slate-700 space-y-3">
-              <h2 class="font-black text-sm text-slate-900 dark:text-slate-100">System Roles</h2>
+              <h2 class="font-black text-sm text-slate-900 dark:text-slate-100">{{ languageStore.t('system_roles', 'System Roles') }}</h2>
               <div class="relative">
                 <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   v-model="searchQuery"
                   type="text"
-                  placeholder="Search roles..."
+                  :placeholder="languageStore.t('search_roles_placeholder', 'Search roles...')"
                   class="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                 />
               </div>
@@ -281,7 +283,7 @@ onMounted(() => { loadData() })
             <div class="max-h-[550px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/60">
               <div v-if="loading && roles.length === 0" class="p-8 text-center">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p class="text-xs text-slate-600 dark:text-slate-400 mt-2">Loading...</p>
+                <p class="text-xs text-slate-600 dark:text-slate-400 mt-2">{{ languageStore.t('loading', 'Loading...') }}</p>
               </div>
 
               <button
@@ -301,19 +303,19 @@ onMounted(() => { loadData() })
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
                     <p class="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">{{ role.display_name || role.name }}</p>
-                    <span v-if="role.is_system" class="text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">System</span>
+                    <span v-if="role.is_system" class="text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">{{ languageStore.t('system', 'System') }}</span>
                   </div>
-                  <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5 line-clamp-2">{{ role.description || 'System role access control' }}</p>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5 line-clamp-2">{{ role.description || languageStore.t('system_role_access_control', 'System role access control') }}</p>
                 </div>
                 <span :class="['px-2 py-0.5 text-[10px] uppercase font-extrabold rounded-full flex-shrink-0', (role.is_active ?? true) ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20']">
-                  {{ (role.is_active ?? true) ? 'active' : 'inactive' }}
+                  {{ (role.is_active ?? true) ? languageStore.t('active', 'active') : languageStore.t('inactive', 'inactive') }}
                 </span>
                 <ChevronRight class="w-4 h-4 text-slate-400 flex-shrink-0" />
               </button>
             </div>
 
             <div class="border-t border-slate-200 dark:border-slate-700 p-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Showing {{ filteredRoles.length }} of {{ roles.length }} roles
+              {{ languageStore.t('showing_count', `Showing ${filteredRoles.length} of ${roles.length} roles`) }}
             </div>
           </div>
         </div>
@@ -324,24 +326,24 @@ onMounted(() => { loadData() })
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 v-if="selectedRole" class="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                    <span>Permissions for: {{ selectedRole.display_name || selectedRole.name }}</span>
+                    <span>{{ languageStore.t('permissions_for', 'Permissions for:') }} {{ selectedRole.display_name || selectedRole.name }}</span>
                   </h3>
-                  <h3 v-else class="font-bold text-slate-900 dark:text-slate-100">Select a role</h3>
-                  <p v-if="selectedRole" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Assign permissions to define what this role can access and manage.</p>
+                  <h3 v-else class="font-bold text-slate-900 dark:text-slate-100">{{ languageStore.t('select_role', 'Select a role') }}</h3>
+                  <p v-if="selectedRole" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('assign_perms_desc', 'Assign permissions to define what this role can access and manage.') }}</p>
                 </div>
                 
                 <div v-if="selectedRole" class="flex items-center gap-2">
                   <button @click="expandAll" class="px-3 py-1.5 text-xs font-bold border border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition flex items-center gap-1 cursor-pointer">
                     <Zap class="w-3.5 h-3.5 fill-blue-500" />
-                    <span>Expand All</span>
+                    <span>{{ languageStore.t('expand_all', 'Expand All') }}</span>
                   </button>
                   <button @click="collapseAll" class="px-3 py-1.5 text-xs font-bold border border-slate-300 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition flex items-center gap-1 cursor-pointer">
                     <X class="w-3.5 h-3.5" />
-                    <span>Collapse All</span>
+                    <span>{{ languageStore.t('collapse_all', 'Collapse All') }}</span>
                   </button>
                   <button v-if="hasChanges" @click="saveChanges" :disabled="saving" class="px-4 py-1.5 text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition disabled:opacity-50 flex items-center gap-1 shadow-md shadow-blue-500/20 cursor-pointer">
                     <Save class="w-3.5 h-3.5" />
-                    {{ saving ? 'Saving...' : 'Save Changes' }}
+                    {{ saving ? languageStore.t('saving', 'Saving...') : languageStore.t('save_changes', 'Save Changes') }}
                   </button>
                 </div>
               </div>
@@ -350,13 +352,13 @@ onMounted(() => { loadData() })
             <div v-if="selectedRole" class="overflow-x-auto">
               <div v-if="loading" class="p-12 text-center">
                 <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-3">Loading permissions...</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-3">{{ languageStore.t('loading_permissions', 'Loading permissions...') }}</p>
               </div>
 
               <table v-else class="w-full text-xs">
                 <thead class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-700">
                   <tr>
-                    <th class="px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Module</th>
+                    <th class="px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">{{ languageStore.t('module', 'Module') }}</th>
                     <th v-for="action in permissionActions" :key="action" class="px-3 py-3 text-center font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">{{ action }}</th>
                   </tr>
                 </thead>
@@ -386,7 +388,7 @@ onMounted(() => { loadData() })
 
             <div v-else class="p-12 text-center">
               <Shield class="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-              <p class="text-xs text-slate-500 dark:text-slate-400">Select a role from the left list to configure matrix permissions.</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">{{ languageStore.t('select_role_instruction', 'Select a role from the left list to configure matrix permissions.') }}</p>
             </div>
           </div>
         </div>

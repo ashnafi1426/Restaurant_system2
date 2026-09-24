@@ -4,6 +4,7 @@ namespace App\Services\Manager;
 
 use App\Models\HotelShift;
 use Illuminate\Support\Facades\Log;
+
 class ShiftManagementService
 {
     public function createShift(array $data): HotelShift
@@ -30,6 +31,7 @@ class ShiftManagementService
             throw $e;
         }
     }
+
     public function updateShift(string $shiftId, array $data): HotelShift
     {
         try {
@@ -50,6 +52,7 @@ class ShiftManagementService
             throw $e;
         }
     }
+
     public function deactivateShift(string $shiftId): bool
     {
         try {
@@ -63,6 +66,7 @@ class ShiftManagementService
             return false;
         }
     }
+
     public function activateShift(string $shiftId): bool
     {
         try {
@@ -76,20 +80,24 @@ class ShiftManagementService
             return false;
         }
     }
+
     public function getAllShifts()
     {
         return HotelShift::orderBy('start_time', 'asc')->get();
     }
+
     public function getActiveShifts()
     {
         return HotelShift::active()->orderBy('start_time', 'asc')->get();
     }
+
     public function getCurrentShift(): ?HotelShift
     {
         return HotelShift::active()->get()->first(function ($shift) {
             return $shift->isCurrentShift();
         });
     }
+
     public function getShiftByName(string $name): ?HotelShift
     {
         return HotelShift::where('name', 'like', "%{$name}%")->first();

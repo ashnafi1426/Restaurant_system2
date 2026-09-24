@@ -1,16 +1,23 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import GuestLayout from '@/Layouts/GuestLayout.vue'
 import GalleryHero from '@/components/guest/GalleryHero.vue'
 import GalleryCategories from '@/components/guest/GalleryCategories.vue'
 import GalleryGrid from '@/components/guest/GalleryGrid.vue'
+import { useLanguageStore } from '@/stores/language'
+import { useGuestHotelStore } from '@/stores/guestHotelStore'
+import { useRoomStore } from '@/stores/room'
+
+const languageStore = useLanguageStore()
+const guestHotelStore = useGuestHotelStore()
+const roomStore = useRoomStore()
 
 const selectedCategory = ref('All')
 const galleryItems = ref<any[]>([])
 const loading = ref(true)
 const error = ref('')
 
-// Fallback gallery items in case API is not available
+// Default gallery items with rich resort imagery
 const defaultGalleryItems = [
   // === ROOMS CATEGORY ===
   {
@@ -90,26 +97,52 @@ const defaultGalleryItems = [
   },
 ]
 
-onMounted(async () => {
+async function loadGallery() {
+  loading.value = true
+  error.value = ''
   try {
-    // Try to load gallery items from backend
-    const response = await fetch('/api/gallery')
-    if (response.ok) {
-      const data = await response.json()
-      galleryItems.value = data.data || defaultGalleryItems
+    // Fetch hotel rooms to display actual hotel rooms in gallery
+    await roomStore.fetchRooms()
+    const hotelRoomImages: any[] = []
+    if (roomStore.rooms && roomStore.rooms.length > 0) {
+      roomStore.rooms.forEach((room: any, index: number) => {
+        if (room.images && Array.isArray(room.images) && room.images.length > 0) {
+          room.images.forEach((img: string, imgIdx: number) => {
+            hotelRoomImages.push({
+              id: `room-${room.id}-${imgIdx}`,
+              title: room.room_type?.name || `Room #${room.room_number}`,
+              category: 'Rooms',
+              src: img,
+            })
+          })
+        }
+      })
+    }
+
+    if (hotelRoomImages.length > 0) {
+      // Merge active hotel room photos with facilities, restaurant, outdoor
+      const otherCategories = defaultGalleryItems.filter(item => item.category !== 'Rooms')
+      galleryItems.value = [...hotelRoomImages, ...otherCategories]
     } else {
-      // Fallback to default gallery items
       galleryItems.value = defaultGalleryItems
     }
   } catch (e) {
-    // If API call fails, use default gallery items
-    console.warn('Gallery API not available, using default gallery items', e)
+    console.warn('[Gallery] Using fallback gallery items', e)
     galleryItems.value = defaultGalleryItems
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  loadGallery()
+})
+
+watch(() => guestHotelStore.hotelId, () => {
+  loadGallery()
 })
 </script>
+
 
 <template>
   <GuestLayout>
@@ -132,7 +165,7 @@ onMounted(async () => {
             />
           </svg>
         </div>
-        <p class="text-gray-600">Loading gallery...</p>
+        <p class="text-gray-600">{{ languageStore.t('loading_gallery', 'Loading gallery...') }}</p>
       </div>
     </div>
     <div v-else-if="error" class="flex items-center justify-center py-20">

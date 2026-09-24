@@ -29,7 +29,7 @@ class AssignChefsToExistingOrders extends Command
      */
     public function handle()
     {
-        $this->info('🔄 Starting to assign chefs to unassigned orders...');
+        $this->info(' Starting to assign chefs to unassigned orders...');
 
         // Get all unassigned orders
         $unassignedOrders = Order::whereNull('chef_id')->get();

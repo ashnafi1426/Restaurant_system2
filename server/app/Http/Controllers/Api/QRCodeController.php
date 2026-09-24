@@ -9,12 +9,6 @@ use Illuminate\Support\Facades\Log;
 
 class QRCodeController extends Controller
 {
-    /**
-     * Generate QR code for a specific room using QR server API
-     * 
-     * Route: GET /api/qr-code/generate/{roomId}
-     * Returns: QR code image URL
-     */
     public function generateForRoom($roomId)
     {
         try {
@@ -30,13 +24,11 @@ class QRCodeController extends Controller
                 return response()->json(['error' => 'Room has no QR token'], 422);
             }
 
-            // Generate URL for the ordering page
             $baseUrl = config('app.frontend_url', 'http://localhost:5173');
             $orderUrl = "{$baseUrl}/order/{$room->qr_token}";
 
             Log::info('[QR CODE] Generated URL', ['url' => $orderUrl]);
 
-            // Use QR Server API (free, no dependencies)
             $qrImageUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($orderUrl);
 
             return response()->json([
@@ -59,12 +51,6 @@ class QRCodeController extends Controller
         }
     }
 
-    /**
-     * Generate QR codes for all rooms
-     * 
-     * Route: GET /api/qr-code/generate-all
-     * Returns: JSON with room numbers and QR code URLs
-     */
     public function generateAll()
     {
         try {
@@ -109,12 +95,6 @@ class QRCodeController extends Controller
         }
     }
 
-    /**
-     * Get QR code data (room info + token + QR image)
-     * 
-     * Route: GET /api/qr-code/data/{roomId}
-     * Returns: Complete QR code info
-     */
     public function getQRCodeData($roomId)
     {
         try {

@@ -17,9 +17,6 @@ use Illuminate\Support\Facades\DB;
 
 class FloorAssignmentController extends Controller
 {
-    /**
-     * Get active hotel ID for tenant scoping.
-     */
     protected function getHotelId(): ?string
     {
         $hotelId = request()->header('X-Hotel-ID')
@@ -37,11 +34,6 @@ class FloorAssignmentController extends Controller
         return $hotelId;
     }
 
-    /**
-     * Get today's floor assignments
-     * 
-     * GET /api/manager/floors/assignments/today
-     */
     public function today(): JsonResponse
     {
         try {
@@ -72,11 +64,6 @@ class FloorAssignmentController extends Controller
         }
     }
 
-    /**
-     * Assign waiters to floors
-     * 
-     * POST /api/manager/floors/assignments
-     */
     public function store(AssignFloorRequest $request): JsonResponse
     {
         try {
@@ -101,7 +88,6 @@ class FloorAssignmentController extends Controller
 
                     $hotelId = $this->getHotelId();
 
-                    // Check if assignment already exists
                     $existing = WaiterFloorAssignment::where([
                         'waiter_id' => $assignment['waiter_id'],
                         'floor_id' => $assignment['floor_id'],
@@ -110,7 +96,6 @@ class FloorAssignmentController extends Controller
                     ])->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->first();
 
                     if ($existing) {
-                        // Update existing assignment
                         $existing->update([
                             'priority' => $assignment['priority'],
                             'assigned_by' => auth()->id(),
@@ -120,7 +105,6 @@ class FloorAssignmentController extends Controller
                             'id' => $existing->id,
                         ]);
                     } else {
-                        // Create new assignment
                         $newAssignment = WaiterFloorAssignment::create([
                             'id' => Str::uuid(),
                             'hotel_id' => $hotelId,
@@ -194,11 +178,6 @@ class FloorAssignmentController extends Controller
         }
     }
 
-    /**
-     * Get all assignments (with filters)
-     * 
-     * GET /api/manager/floors/assignments
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -209,22 +188,18 @@ class FloorAssignmentController extends Controller
                 $query->where('hotel_id', $hotelId);
             }
 
-            // Filter by date
             if ($request->has('date')) {
                 $query->whereDate('assignment_date', $request->input('date'));
             }
 
-            // Filter by floor
             if ($request->has('floor_id')) {
                 $query->where('floor_id', $request->input('floor_id'));
             }
 
-            // Filter by waiter
             if ($request->has('waiter_id')) {
                 $query->where('waiter_id', $request->input('waiter_id'));
             }
 
-            // Filter by status
             if ($request->has('status')) {
                 $query->where('status', $request->input('status'));
             }
@@ -253,11 +228,6 @@ class FloorAssignmentController extends Controller
         }
     }
 
-    /**
-     * Update assignment priority
-     * 
-     * PATCH /api/manager/floors/assignments/{id}
-     */
     public function update(Request $request, WaiterFloorAssignment $assignment): JsonResponse
     {
         try {
@@ -282,11 +252,6 @@ class FloorAssignmentController extends Controller
         }
     }
 
-    /**
-     * Delete assignment
-     * 
-     * DELETE /api/manager/floors/assignments/{id}
-     */
     public function destroy(WaiterFloorAssignment $assignment): JsonResponse
     {
         try {
@@ -304,11 +269,6 @@ class FloorAssignmentController extends Controller
         }
     }
 
-    /**
-     * Manually reassign delivery to different waiter
-     * 
-     * PATCH /api/manager/deliveries/{id}/reassign
-     */
     public function reassignDelivery(ReassignDeliveryRequest $request, DeliveryTask $delivery): JsonResponse
     {
         try {
@@ -318,24 +278,20 @@ class FloorAssignmentController extends Controller
             $oldWaiterId = $delivery->waiter_id;
             $newWaiterId = $data['waiter_id'];
 
-            // Update delivery task
             $delivery->update([
                 'waiter_id' => $newWaiterId,
                 'assignment_type' => 'manual',
-                'status' => 'assigned', // Reset to assigned state
+                'status' => 'assigned',
             ]);
 
-            // Decrease old waiter's current orders
             $oldWaiter = Waiter::find($oldWaiterId);
             if ($oldWaiter && $oldWaiter->current_orders > 0) {
                 $oldWaiter->decrement('current_orders');
             }
 
-            // Increase new waiter's current orders
             $newWaiter = Waiter::find($newWaiterId);
             $newWaiter->increment('current_orders');
 
-            // Log the reassignment
             \Log::info('Delivery reassigned', [
                 'delivery_id' => $delivery->id,
                 'old_waiter_id' => $oldWaiterId,
@@ -345,9 +301,6 @@ class FloorAssignmentController extends Controller
             ]);
 
             DB::commit();
-
-            // TODO: Send notifications to both waiters
-            // TODO: Create audit log entry
 
             return response()->json([
                 'success' => true,
@@ -369,31 +322,32 @@ class FloorAssignmentController extends Controller
         }
     }
 
-    /**
-     * Get floor assignment statistics
-     * 
-     * GET /api/manager/floors/assignments/stats
-     */
     public function stats(Request $request): JsonResponse
     {
         try {
             $date = $request->input('date', now()->format('Y-m-d'));
+            $hotelId = $this->getHotelId();
+
+            $baseQuery = WaiterFloorAssignment::whereDate('assignment_date', $date)
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId));
+
+            $totalWaitersCount = \App\Models\Waiter::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+                ->where('status', 'active')
+                ->count();
 
             $stats = [
-                'total_assignments' => WaiterFloorAssignment::whereDate('assignment_date', $date)->count(),
-                'total_floors' => WaiterFloorAssignment::whereDate('assignment_date', $date)
+                'total_assignments' => (clone $baseQuery)->count(),
+                'total_floors' => (clone $baseQuery)
                     ->distinct('floor_id')
                     ->count('floor_id'),
-                'total_waiters' => WaiterFloorAssignment::whereDate('assignment_date', $date)
-                    ->distinct('waiter_id')
-                    ->count('waiter_id'),
-                'primary_assignments' => WaiterFloorAssignment::whereDate('assignment_date', $date)
+                'total_waiters' => $totalWaitersCount > 0 ? $totalWaitersCount : (clone $baseQuery)->distinct('waiter_id')->count('waiter_id'),
+                'primary_assignments' => (clone $baseQuery)
                     ->where('priority', 'primary')
                     ->count(),
-                'secondary_assignments' => WaiterFloorAssignment::whereDate('assignment_date', $date)
+                'secondary_assignments' => (clone $baseQuery)
                     ->where('priority', 'secondary')
                     ->count(),
-                'backup_assignments' => WaiterFloorAssignment::whereDate('assignment_date', $date)
+                'backup_assignments' => (clone $baseQuery)
                     ->where('priority', 'backup')
                     ->count(),
             ];
@@ -405,6 +359,7 @@ class FloorAssignmentController extends Controller
                 'data' => $stats,
             ]);
         } catch (\Exception $e) {
+            \Log::error('FloorAssignmentController stats error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve statistics',

@@ -26,7 +26,7 @@
 
 ---
 
-## 📁 Files Modified
+##Files Modified
 
 1. `src/components/loading/GlobalPageLoader.vue` - Branding
 2. `index.html` - HTML loader branding

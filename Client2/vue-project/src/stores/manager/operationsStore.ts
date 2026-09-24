@@ -42,18 +42,13 @@ export const useManagerOperationsStore = defineStore('managerOperations', () => 
     pendingLaundry: pendingLaundry.value.length,
   }))
 
-  /*
-  |--------------------------------------------------------------------------
-  | ACTIONS
-  |--------------------------------------------------------------------------
-  */
-
   async function loadOrders() {
     try {
       loading.value = true
       error.value = null
       orders.value = await managerService.getRecentOrders()
     } catch (err: any) {
+      console.error('[manager/operationsStore] Failed to load orders:', err)
       error.value = err.message
     } finally {
       loading.value = false
@@ -64,6 +59,7 @@ export const useManagerOperationsStore = defineStore('managerOperations', () => 
     try {
       deliveries.value = await managerService.getDeliveries()
     } catch (err: any) {
+      console.error('[manager/operationsStore] Failed to load deliveries:', err)
       error.value = err.message
     }
   }
@@ -72,6 +68,7 @@ export const useManagerOperationsStore = defineStore('managerOperations', () => 
     try {
       housekeeping.value = await managerService.getHousekeeping()
     } catch (err: any) {
+      console.error('[manager/operationsStore] Failed to load housekeeping:', err)
       error.value = err.message
     }
   }
@@ -80,6 +77,7 @@ export const useManagerOperationsStore = defineStore('managerOperations', () => 
     try {
       laundryRequests.value = await managerService.getLaundryRequests()
     } catch (err: any) {
+      console.error('[manager/operationsStore] Failed to load laundry:', err)
       error.value = err.message
     }
   }

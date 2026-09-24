@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use App\Services\QRCodeService;
 use Illuminate\Support\Str;
-
 use App\Models\Traits\BelongsToTenant;
 
 class Room extends Model
@@ -32,19 +31,14 @@ class Room extends Model
         'floor_id' => 'string',
     ];
     
-    /**
-     * Boot model to auto-generate QR token and code when creating
-     */
     protected static function booted()
     {
         static::creating(function ($room) {
-            // Generate random 8-character token if not set
             if (!$room->qr_token) {
                 $room->qr_token = self::generateUniqueToken();
             }
         });
         static::created(function ($room) {
-            // Generate QR code image after room is created
             try {
                 $qrImagePath = QRCodeService::generateAndSaveQRCode(
                     $room->id,
@@ -73,9 +67,6 @@ class Room extends Model
         });
     }
     
-    /**
-     * Generate unique 8-character token
-     */
     public static function generateUniqueToken()
     {
         do {
@@ -90,17 +81,11 @@ class Room extends Model
         return $this->belongsTo(RoomType::class);
     }
     
-    /**
-     * Get the hotel floor associated with this room
-     */
     public function hotelFloor()
     {
         return $this->belongsTo(HotelFloor::class, 'floor_id', 'id');
     }
     
-    /**
-     * Get full QR code image URL
-     */
     public function getQRCodeUrlAttribute()
     {
         if (!$this->qr_image_path) {
@@ -109,10 +94,6 @@ class Room extends Model
         return url("storage/{$this->qr_image_path}");
     }
 
-    /**
-     * Scope to search rooms by multiple criteria
-     * Searches: room_number, floor, description, status, room_type name
-     */
     public function scopeSearch($query, $searchTerm)
     {
         if (!$searchTerm) {
@@ -130,10 +111,6 @@ class Room extends Model
         });
     }
 
-    /**
-     * Safely resolve the associated floor ID for this room without parsing the room number.
-     * Prefers direct relationship, falls back to querying the floor attribute.
-     */
     public function getFloorId(): ?string
     {
         if ($this->floor_id) {

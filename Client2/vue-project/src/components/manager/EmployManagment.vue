@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-
 import { Plus, Users, Building2, Briefcase, CheckCircle } from 'lucide-vue-next'
-
 import { useManagerStore } from '@/stores/managerStore'
 
 const manager = useManagerStore()
@@ -14,9 +12,7 @@ const employees = computed(() => {
 const statistics = computed(() => {
   return {
     total: employees.value.length,
-
     active: employees.value.filter((e) => e.status === 'active').length,
-
     departments: new Set(employees.value.map((e) => e.department)).size,
   }
 })
@@ -24,12 +20,9 @@ const statistics = computed(() => {
 
 <template>
   <section class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-    <!-- HEADER -->
-
     <div class="flex justify-between items-center mb-8">
       <div>
         <h2 class="text-xl font-bold">Employee Management</h2>
-
         <p class="text-sm text-slate-500">Manage hotel staff</p>
       </div>
 
@@ -37,17 +30,13 @@ const statistics = computed(() => {
         class="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-xl hover:bg-blue-700"
       >
         <Plus class="w-5 h-5" />
-
         Add Employee
       </button>
     </div>
 
-    <!-- STATISTICS -->
-
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
       <div class="bg-blue-50 rounded-2xl p-5">
         <p class="text-sm text-slate-500">Total Employees</p>
-
         <h3 class="text-3xl font-bold">
           {{ statistics.total }}
         </h3>
@@ -55,7 +44,6 @@ const statistics = computed(() => {
 
       <div class="bg-green-50 rounded-2xl p-5">
         <p class="text-sm text-slate-500">Active Employees</p>
-
         <h3 class="text-3xl font-bold">
           {{ statistics.active }}
         </h3>
@@ -63,25 +51,19 @@ const statistics = computed(() => {
 
       <div class="bg-purple-50 rounded-2xl p-5">
         <p class="text-sm text-slate-500">Departments</p>
-
         <h3 class="text-3xl font-bold">
           {{ statistics.departments }}
         </h3>
       </div>
     </div>
 
-    <!-- EMPLOYEE TABLE -->
-
     <div class="overflow-x-auto">
       <table class="w-full">
         <thead>
           <tr class="border-b text-left text-sm text-slate-500">
             <th class="p-4">Employee</th>
-
             <th class="p-4">Department</th>
-
             <th class="p-4">Position</th>
-
             <th class="p-4">Status</th>
           </tr>
         </thead>
@@ -98,7 +80,6 @@ const statistics = computed(() => {
                   <p class="font-semibold">
                     {{ employee.name }}
                   </p>
-
                   <p class="text-xs text-slate-500">
                     {{ employee.phone }}
                   </p>
@@ -109,7 +90,6 @@ const statistics = computed(() => {
             <td class="p-4">
               <div class="flex items-center gap-2">
                 <Building2 class="w-4" />
-
                 {{ employee.department }}
               </div>
             </td>
@@ -117,7 +97,6 @@ const statistics = computed(() => {
             <td class="p-4">
               <div class="flex items-center gap-2">
                 <Briefcase class="w-4" />
-
                 {{ employee.position }}
               </div>
             </td>
@@ -128,7 +107,6 @@ const statistics = computed(() => {
                 class="flex items-center gap-2 text-green-700 bg-green-100 px-3 py-1 rounded-full w-fit"
               >
                 <CheckCircle class="w-4" />
-
                 Active
               </span>
             </td>

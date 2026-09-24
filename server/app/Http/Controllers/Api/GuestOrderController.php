@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
 use App\Models\Room;
 use App\Models\MenuItem;
@@ -11,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+
 class GuestOrderController extends Controller
 {
     public function getRoom($qrToken)
@@ -23,7 +26,7 @@ class GuestOrderController extends Controller
                 return response()->json([
                     'success' => false,
                     'error' => 'Invalid QR code',
-                    'message' => 'This QR code is not valid.',
+                    'message' => trans_msg('invalid_qr_code', default: 'This QR code is not valid.'),
                 ], 404);
             }
             Log::info('[QR ORDER] Room found by token', [
@@ -34,7 +37,7 @@ class GuestOrderController extends Controller
             $activeReservation = DB::table('reservations')
                 ->join('guests', 'reservations.guest_id', '=', 'guests.id')
                 ->where('reservations.room_id', $room->id)
-                ->whereIn('reservations.status', ['confirmed', 'checked_in'])  // Allow confirmed too
+                ->whereIn('reservations.status', ['confirmed', 'checked_in'])
                 ->orderBy('reservations.created_at', 'desc')
                 ->select('reservations.id', 'guests.id as guest_id', 'guests.first_name', 'guests.last_name', 'guests.email', 'guests.phone')
                 ->first();
@@ -55,7 +58,7 @@ class GuestOrderController extends Controller
                 return response()->json([
                     'success' => false,
                     'error' => 'No active reservation',
-                    'message' => 'There is no active reservation for this room. Please check in first.',
+                    'message' => trans_msg('no_active_reservation', default: 'There is no active reservation for this room. Please check in first.'),
                 ], 422);
             }
 
@@ -93,6 +96,7 @@ class GuestOrderController extends Controller
             ], 500);
         }
     }
+
     private function formatMenuItemForGuest($item): array
     {
         $imageUrl = null;
@@ -103,14 +107,52 @@ class GuestOrderController extends Controller
                 $imageUrl = asset('storage/' . $item->image);
             }
         }
+
+        $price = (float) $item->price;
+        $taxRateModel = $item->relationLoaded('taxRate') ? $item->taxRate : $item->taxRate;
+        $rate = $taxRateModel ? (float) $taxRateModel->rate : 0.0;
+        $taxIncluded = (bool) ($item->tax_included ?? false);
+
+        if ($rate > 0) {
+            if ($taxIncluded) {
+                $basePrice = round($price / (1 + ($rate / 100)), 2);
+                $taxAmount = round($price - $basePrice, 2);
+                $totalPrice = $price;
+            } else {
+                $basePrice = $price;
+                $taxAmount = round($price * ($rate / 100), 2);
+                $totalPrice = round($price + $taxAmount, 2);
+            }
+        } else {
+            $basePrice = $price;
+            $taxAmount = 0.0;
+            $totalPrice = $price;
+        }
+
         return [
             'id' => $item->id,
             'name' => $item->name,
             'description' => $item->description,
-            'price' => (float) $item->price,
-            'image' => $imageUrl,  // Full URL or null
+            'price' => $price,
+            'base_price' => $basePrice,
+            'tax_amount' => $taxAmount,
+            'total_price' => $totalPrice,
+            'formatted_price' => number_format($price, 2),
+            'formatted_total_price' => number_format($totalPrice, 2),
+            'tax_rate_id' => $item->tax_rate_id,
+            'tax_included' => $taxIncluded,
+            'tax_rate' => $taxRateModel ? [
+                'id' => $taxRateModel->id,
+                'name' => $taxRateModel->name,
+                'rate' => (float) $taxRateModel->rate,
+                'type' => $taxRateModel->type,
+            ] : null,
+            'image' => $imageUrl,
+            'category' => $item->category,
+            'is_available' => (bool) $item->is_available,
         ];
     }
+
     public function getMenuItems($qrToken)
     {
         try {
@@ -128,6 +170,7 @@ class GuestOrderController extends Controller
             }
 
             $query = MenuItem::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                ->with('taxRate')
                 ->where('is_available', true);
 
             if ($room->hotel_id) {
@@ -158,7 +201,7 @@ class GuestOrderController extends Controller
                 'success' => true,
                 'data' => $categorized,
             ]);
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             Log::error('[GUEST ORDER] Error fetching menu', [
                 'qr_token' => $qrToken,
                 'error' => $e->getMessage(),
@@ -170,39 +213,40 @@ class GuestOrderController extends Controller
             ], 500);
         }
     }
-    public function getAllMenuItems()
+
+    public function getAllMenuItems(Request $request)
     {
         try {
-            Log::info('[GUEST ORDER] Fetching all menu items (public)');
+            $hotelId = $request->header('X-Hotel-ID') ?? $request->query('hotel_id');
+            Log::info('[GUEST ORDER] Fetching all menu items (public)', ['hotel_id' => $hotelId]);
 
-            $existingCategories = MenuItem::distinct()->pluck('category')->toArray();
+            $query = MenuItem::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                ->with('taxRate')
+                ->where('is_available', true);
 
-            $sampleItems = [
-                ['name' => 'Classic Eggs Benedict', 'description' => 'Poached eggs on toasted English muffin with hollandaise sauce.', 'category' => 'breakfast', 'price' => 380, 'is_available' => true],
-                ['name' => 'Belgian Waffle Tower', 'description' => 'Golden waffles served with fresh berries and maple syrup.', 'category' => 'breakfast', 'price' => 320, 'is_available' => true],
-                ['name' => 'Creamy Pumpkin Soup', 'description' => 'Smooth pumpkin soup with a touch of cream and herbs.', 'category' => 'soups', 'price' => 250, 'is_available' => true],
-                ['name' => 'French Onion Soup', 'description' => 'Rich beef broth, caramelized onions, melted gruyere cheese.', 'category' => 'soups', 'price' => 280, 'is_available' => true],
-                ['name' => 'Truffle Mushroom Bruschetta', 'description' => 'Grilled garlic crostini topped with sauteed wild mushrooms.', 'category' => 'appetizers', 'price' => 340, 'is_available' => true],
-                ['name' => 'Crispy Calamari Rings', 'description' => 'Tender calamari lightly fried, served with garlic aioli.', 'category' => 'appetizers', 'price' => 420, 'is_available' => true],
-                ['name' => 'Club Sandwich Supreme', 'description' => 'Triple-decker sandwich with roasted turkey and crispy bacon.', 'category' => 'sandwiches', 'price' => 450, 'is_available' => true],
-                ['name' => 'Gourmet Wagyu Beef Burger', 'description' => 'Wagyu patty, melted cheddar, and truffle sauce in brioche bun.', 'category' => 'sandwiches', 'price' => 580, 'is_available' => true],
-                ['name' => 'Chicken Alfredo Pasta', 'description' => 'Creamy alfredo pasta with grilled chicken and parmesan.', 'category' => 'pasta', 'price' => 550, 'is_available' => true],
-                ['name' => 'Seafood Spaghetti Marinara', 'description' => 'Spaghetti tossed with tiger prawns, mussels, and squid.', 'category' => 'pasta', 'price' => 680, 'is_available' => true],
-                ['name' => 'Chocolate Lava Cake', 'description' => 'Warm chocolate cake with a rich, melting center.', 'category' => 'desserts', 'price' => 350, 'is_available' => true],
-                ['name' => 'Classic New York Cheesecake', 'description' => 'Rich and creamy cheesecake with wild strawberry coulis.', 'category' => 'desserts', 'price' => 320, 'is_available' => true],
-                ['name' => 'Signature Iced Caramel Latte', 'description' => 'Double shot espresso with cold milk and caramel drizzle.', 'category' => 'beverages', 'price' => 180, 'is_available' => true],
-            ];
-
-            foreach ($sampleItems as $itemData) {
-                if (!in_array($itemData['category'], $existingCategories)) {
-                    MenuItem::firstOrCreate(['name' => $itemData['name']], $itemData);
-                }
+            if ($hotelId) {
+                $query->where(function ($q) use ($hotelId) {
+                    $q->where('hotel_id', $hotelId)
+                      ->orWhereNull('hotel_id');
+                });
             }
 
-            $menuItems = MenuItem::where('is_available', true)
+            $menuItems = $query
                 ->orderBy('category')
                 ->orderBy('name')
                 ->get();
+
+            // If flat is requested or per_page
+            if ($request->has('per_page') || $request->query('flat')) {
+                $flatItems = $menuItems->map(fn($item) => $this->formatMenuItemForGuest($item))->values();
+                if ($request->has('per_page')) {
+                    $flatItems = $flatItems->take((int)$request->query('per_page'));
+                }
+                return response()->json([
+                    'success' => true,
+                    'data' => $flatItems,
+                ]);
+            }
 
             $categorized = $menuItems->groupBy('category')
                 ->map(fn($items, $category) => [
@@ -227,13 +271,29 @@ class GuestOrderController extends Controller
         }
     }
 
+    public static function guessCategoryIcon($nameOrSlug)
+    {
+        $key = strtolower(trim(str_replace([' ', '_'], '-', $nameOrSlug ?? '')));
+        return match (true) {
+            str_contains($key, 'breakfast') || str_contains($key, 'morning') => 'clock',
+            str_contains($key, 'soup') => 'soup',
+            str_contains($key, 'appetizer') || str_contains($key, 'starter') => 'leaf',
+            str_contains($key, 'salad') => 'salad',
+            str_contains($key, 'main') || str_contains($key, 'entree') => 'utensils',
+            str_contains($key, 'sandwich') || str_contains($key, 'burger') => 'sandwich',
+            str_contains($key, 'pasta') || str_contains($key, 'noodle') => 'layers',
+            str_contains($key, 'pizza') => 'pizza',
+            str_contains($key, 'dessert') || str_contains($key, 'sweet') || str_contains($key, 'cake') => 'cake',
+            str_contains($key, 'drink') || str_contains($key, 'beverage') || str_contains($key, 'wine') || str_contains($key, 'bar') || str_contains($key, 'coffee') => 'wine',
+            default => 'utensils',
+        };
+    }
+
     public function getPublicCategories()
     {
         try {
-            // 1. Fetch all existing categories from categories table
             $dbCategories = \App\Models\Category::all();
 
-            // 2. Fetch distinct category values from menu_items table
             $itemCategories = MenuItem::select('category')->whereNotNull('category')->distinct()->pluck('category')->toArray();
 
             $categoryMap = [];
@@ -245,11 +305,16 @@ class GuestOrderController extends Controller
                     ->orWhere('category_id', $c->id)
                     ->count();
 
+                $icon = $c->icon;
+                if (!$icon || $icon === 'grid' || $icon === 'menu') {
+                    $icon = self::guessCategoryIcon($slug ?: $c->name);
+                }
+
                 $categoryMap[$slug] = [
                     'id' => $c->id ?: $slug,
                     'name' => $c->name,
                     'slug' => $slug,
-                    'icon' => $c->icon ?: 'grid',
+                    'icon' => $icon,
                     'count' => $cnt,
                 ];
             }
@@ -263,7 +328,7 @@ class GuestOrderController extends Controller
                         'id' => $slug,
                         'name' => ucwords(str_replace('-', ' ', $rawCat)),
                         'slug' => $slug,
-                        'icon' => 'grid',
+                        'icon' => self::guessCategoryIcon($slug),
                         'count' => $cnt,
                     ];
                 }
@@ -338,7 +403,6 @@ class GuestOrderController extends Controller
                         'hotel_id' => $hotelId,
                     ]);
                     
-                    // Create temporary guest
                     $guest = Guest::create([
                         'id' => Str::uuid(),
                         'hotel_id' => $hotelId,
@@ -348,7 +412,6 @@ class GuestOrderController extends Controller
                         'phone' => '0000000000'
                     ]);
                     
-                    // Create temporary reservation with all required fields
                     $reservationId = Str::uuid();
                     DB::table('reservations')->insert([
                         'id' => $reservationId,
@@ -364,7 +427,6 @@ class GuestOrderController extends Controller
                         'updated_at' => now()
                     ]);
                     
-                    // Re-fetch the reservation
                     $reservation = DB::table('reservations')
                         ->where('id', $reservationId)
                         ->first();
@@ -378,7 +440,6 @@ class GuestOrderController extends Controller
                 $guest_id = $reservation->guest_id;
                 $reservation_id = $reservation->id;
 
-                // Calculate total price
                 $items = $validated['items'];
                 $total = 0;
                 $orderItems = [];
@@ -396,7 +457,6 @@ class GuestOrderController extends Controller
                     ];
                 }
 
-                // Create order linked to reservation and guest
                 $orderNumber = 'ORD-' . now()->format('YmdHis') . '-' . str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);
                 $order = Order::create([
                     'hotel_id' => $hotelId,
@@ -404,10 +464,10 @@ class GuestOrderController extends Controller
                     'room_id' => $room->id,
                     'guest_id' => $guest_id,
                     'reservation_id' => $reservation_id,
-                    'order_time' => now(), // Set order time for kitchen queue sorting
+                    'order_time' => now(),
                     'total' => $total,
                     'status' => Order::STATUS_PENDING,
-                    'source' => 'guest_qr', // Track that this came from guest QR scan
+                    'source' => 'guest_qr',
                     'special_requests' => $validated['special_requests'] ?? null,
                 ]);
 
@@ -421,7 +481,6 @@ class GuestOrderController extends Controller
                     'items_count' => count($orderItems),
                 ]);
 
-                // Create order items
                 foreach ($orderItems as $item) {
                     OrderItem::create([
                         'order_id' => $order->id,
@@ -432,12 +491,11 @@ class GuestOrderController extends Controller
                     ]);
                 }
 
-                // Reload order with items
                 $order->load('orderItems', 'room');
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Order placed successfully',
+                    'message' => trans_msg('order_placed', default: 'Order placed successfully'),
                     'data' => [
                         'id' => $order->id,
                         'room_number' => $order->room->room_number,
@@ -483,23 +541,17 @@ class GuestOrderController extends Controller
         }
     }
 
-    /**
-     * Get order status for guest
-     * Public endpoint - no authentication required
-     */
     public function getOrderStatus($roomNumber)
     {
         try {
             Log::info('[GUEST ORDER] Fetching order status', ['room_number' => $roomNumber]);
 
-            // Find room
             $room = Room::where('room_number', $roomNumber)->first();
 
             if (!$room) {
                 return response()->json(['error' => 'Room not found'], 404);
             }
 
-            // Get latest orders from this room
             $orders = Order::where('room_id', $room->id)
                 ->orderBy('created_at', 'desc')
                 ->limit(5)

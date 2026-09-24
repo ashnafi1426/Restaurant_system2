@@ -7,11 +7,6 @@ use App\Services\Manager\ManagerDashboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * Manager Waiter Controller
- * 
- * Handles waiter management and assignments
- */
 class WaiterController extends Controller
 {
     protected ManagerDashboardService $dashboardService;
@@ -21,13 +16,9 @@ class WaiterController extends Controller
         $this->dashboardService = $dashboardService;
     }
 
-    /**
-     * Get all waiters
-     */
     public function index(Request $request): JsonResponse
     {
         try {
-            // Get all waiters with user relationship loaded
             $waiters = \App\Models\Waiter::with('user')
                 ->orderBy('section')
                 ->get()
@@ -78,13 +69,11 @@ class WaiterController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            // Log incoming request
             \Log::info('Waiter store request received', [
                 'all_data' => $request->all(),
                 'keys' => array_keys($request->all())
             ]);
 
-            // Determine if creating new user or using existing
             $isNewUser = empty($request->input('user_id'));
             
             $rules = [
@@ -97,7 +86,6 @@ class WaiterController extends Controller
                 'employee_number' => 'sometimes|string|max:50|unique:waiters,employee_number',
             ];
             if ($isNewUser) {
-                // New user validation - all fields required
                 $rules = array_merge($rules, [
                     'first_name' => 'required|string|max:255',
                     'last_name' => 'required|string|max:255',
@@ -106,7 +94,6 @@ class WaiterController extends Controller
                     'password' => 'required|string|min:8',
                 ]);
             } else {
-                // Existing user - just need the ID
                 $rules = array_merge($rules, [
                     'user_id' => 'required|uuid|exists:users,id',
                 ]);
@@ -123,7 +110,6 @@ class WaiterController extends Controller
                 'validated_keys' => array_keys($validated)
             ]);
 
-            // If creating new user
             if ($isNewUser) {
                 try {
                     $hashedPassword = \Illuminate\Support\Facades\Hash::make($validated['password']);
@@ -169,7 +155,6 @@ class WaiterController extends Controller
             }
 
             try {
-                // Prepare waiter data
                 $waiterData = [
                     'user_id' => $validated['user_id'],
                     'phone' => $validated['phone'] ?? null,
@@ -255,9 +240,6 @@ class WaiterController extends Controller
         }
     }
 
-    /**
-     * Update waiter status
-     */
     public function updateStatus(Request $request, \App\Models\Waiter $waiter): JsonResponse
     {
         try {
@@ -280,9 +262,6 @@ class WaiterController extends Controller
         }
     }
 
-    /**
-     * Get single waiter with full details
-     */
     public function show(\App\Models\Waiter $waiter): JsonResponse
     {
         try {
@@ -300,9 +279,6 @@ class WaiterController extends Controller
         }
     }
 
-    /**
-     * Update waiter details
-     */
     public function update(Request $request, \App\Models\Waiter $waiter): JsonResponse
     {
         try {
@@ -334,9 +310,6 @@ class WaiterController extends Controller
         }
     }
 
-    /**
-     * Delete a waiter
-     */
     public function destroy(\App\Models\Waiter $waiter): JsonResponse
     {
         try {
@@ -354,9 +327,6 @@ class WaiterController extends Controller
         }
     }
 
-    /**
-     * Get waiter assignments
-     */
     public function getAssignments(\App\Models\Waiter $waiter): JsonResponse
     {
         try {
@@ -378,9 +348,6 @@ class WaiterController extends Controller
         }
     }
 
-    /**
-     * Get waiter performance metrics
-     */
     public function getPerformance(\App\Models\Waiter $waiter): JsonResponse
     {
         try {
@@ -419,9 +386,6 @@ class WaiterController extends Controller
         }
     }
 
-    /**
-     * Get all available users for waiter assignment
-     */
     public function getAvailableUsers(): JsonResponse
     {
         try {

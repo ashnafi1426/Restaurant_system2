@@ -29,79 +29,32 @@ interface MenuItem {
 
 const route = useRoute()
 
-/*
-|--------------------------------------------------------------------------
-| Guest QR Information
-|--------------------------------------------------------------------------
-*/
-// Try to get QR token from route param first, then localStorage
 const routeQrToken = route.params.qrToken ? String(route.params.qrToken) : ''
 const qrToken = ref(routeQrToken || localStorage.getItem('qr_token') || '')
 const roomNumber = ref(localStorage.getItem('room_number') || '')
 const guestName = ref(localStorage.getItem('guest_name') || 'Guest')
 
-// If QR token came from URL param, save it to localStorage
 if (qrToken.value && !routeQrToken) {
   localStorage.setItem('qr_token', qrToken.value)
 }
 
-// DEBUG: Log current values
-console.log('[GuestMenuPage Init]', {
-  qrToken: qrToken.value,
-  routeQrToken: routeQrToken,
-  roomNumber: roomNumber.value,
-  guestName: guestName.value,
-  localStorage: typeof localStorage !== 'undefined' ? 'available' : 'unavailable',
-})
-
-/*
-|--------------------------------------------------------------------------
-| Menu State
-|--------------------------------------------------------------------------
-*/
 const menuItems = ref<MenuItem[]>([])
 const loading = ref(false)
 const error = ref('')
 const categories = ref<string[]>([])
 
-/*
-|--------------------------------------------------------------------------
-| Search
-|--------------------------------------------------------------------------
-*/
 const searchQuery = ref('')
-
-/*
-|--------------------------------------------------------------------------
-| Categories
-|--------------------------------------------------------------------------
-*/
 const selectedCategory = ref('all')
 
-/*
-|--------------------------------------------------------------------------
-| Cart
-|--------------------------------------------------------------------------
-*/
 const cartItems = ref<any[]>([])
 const cartDrawer = ref(false)
 
-/*
-|--------------------------------------------------------------------------
-| Order
-|--------------------------------------------------------------------------
-*/
 const placingOrder = ref(false)
 const orderSuccess = ref(false)
 const createdOrder = ref<any>(null)
 const orderStatus = ref('pending')
 const orderError = ref('')
 
-/*
-|--------------------------------------------------------------------------
-| Computed Menu Filtering
-|--------------------------------------------------------------------------
-*/
 const filteredMenu = computed(() => {
   let items = menuItems.value
 
@@ -118,11 +71,6 @@ const filteredMenu = computed(() => {
   return items
 })
 
-/*
-|--------------------------------------------------------------------------
-| Cart Functions
-|--------------------------------------------------------------------------
-*/
 function addToCart(item: MenuItem) {
   const existing = cartItems.value.find((i) => i.id === item.id)
 
@@ -164,11 +112,6 @@ const cartTotal = computed(() => {
   return cartItems.value.reduce((sum, item) => sum + item.price * item.quantity, 0)
 })
 
-/*
-|--------------------------------------------------------------------------
-| Order Submit
-|--------------------------------------------------------------------------
-*/
 async function submitOrder(orderData: any) {
   placingOrder.value = true
   orderError.value = ''
@@ -182,13 +125,11 @@ async function submitOrder(orderData: any) {
       throw new Error('Please add items to your order.')
     }
 
-    // Format items for API
     const items = cartItems.value.map((item) => ({
       menu_item_id: item.id,
       quantity: item.quantity,
     }))
 
-    // Submit order to API
     const response = await api.post('/guest/orders', {
       qr_token: qrToken.value,
       items: items,
@@ -200,35 +141,20 @@ async function submitOrder(orderData: any) {
       orderStatus.value = response.data.data.status || 'pending'
       orderSuccess.value = true
 
-      // Clear cart
       cartItems.value = []
       cartDrawer.value = false
-
-      console.log('[Order Success]', {
-        order_id: createdOrder.value.id,
-        room: createdOrder.value.room_number,
-        total: createdOrder.value.total,
-      })
     } else {
       throw new Error(response.data.message || 'Failed to create order')
     }
   } catch (err: any) {
+    console.error('[GuestMenuPage] Failed to submit order:', err)
     const message = err.response?.data?.message || err.message || 'Failed to submit order'
     orderError.value = message
-    console.error('[Order Error]', {
-      error: message,
-      details: err.response?.data,
-    })
   } finally {
     placingOrder.value = false
   }
 }
 
-/*
-|--------------------------------------------------------------------------
-| Load Menu from API
-|--------------------------------------------------------------------------
-*/
 async function loadMenu() {
   loading.value = true
   error.value = ''
@@ -238,17 +164,9 @@ async function loadMenu() {
       throw new Error('QR token not set. Please set it in localStorage first.')
     }
 
-    console.log('[Menu Loading]', {
-      qrToken: qrToken.value,
-      timestamp: new Date().toISOString(),
-    })
-
-    // Use token-based menu endpoint for security
-    console.log('[Loading menu with QR token validation]')
     const menuResponse = await api.get(`/guest/menu/${qrToken.value}/items`)
 
     if (menuResponse.data.success && menuResponse.data.data) {
-      // Flatten categorized items into single array
       const allItems: MenuItem[] = []
       const cats = new Set<string>()
 
@@ -261,7 +179,12 @@ async function loadMenu() {
               description: item.description || '',
               image: item.image || null,
               category: categoryGroup.category || 'other',
-              price: parseFloat(item.price),
+              price: item.total_price != null ? parseFloat(item.total_price) : parseFloat(item.price),
+              total_price: item.total_price != null ? parseFloat(item.total_price) : parseFloat(item.price),
+              base_price: item.base_price != null ? parseFloat(item.base_price) : parseFloat(item.price),
+              tax_amount: item.tax_amount != null ? parseFloat(item.tax_amount) : 0,
+              tax_rate: item.tax_rate,
+              tax_included: item.tax_included,
               is_available: true,
             })),
           )
@@ -273,51 +196,28 @@ async function loadMenu() {
 
       menuItems.value = allItems
       categories.value = Array.from(cats).sort()
-
-      console.log('[ Menu Loaded Successfully]', {
-        qr_token: qrToken.value,
-        total_items: allItems.length,
-        categories: categories.value,
-      })
     } else {
       throw new Error('Invalid menu response format')
     }
   } catch (err: any) {
+    console.error('[GuestMenuPage] Failed to load menu:', err)
     const apiMessage = err.response?.data?.message
     const apiError = err.response?.data?.error
     const userMessage = apiMessage || apiError || err.message || 'Failed to load menu'
 
     error.value = userMessage
-
-    console.error('[ Menu Load Error]', {
-      error: userMessage,
-      qr_token: qrToken.value,
-      status: err.response?.status,
-      full_response: err.response?.data,
-    })
   } finally {
     loading.value = false
   }
 }
 
-/*
-|--------------------------------------------------------------------------
-| Category Change
-|--------------------------------------------------------------------------
-*/
 function changeCategory(category: string) {
   selectedCategory.value = category
 }
 
-/*
-|--------------------------------------------------------------------------
-| Lifecycle
-|--------------------------------------------------------------------------
-*/
 onMounted(() => {
   if (!qrToken.value) {
     error.value = 'Invalid access: QR token not found. Please scan a valid QR code.'
-    console.warn('[GuestMenuPage] No QR token found')
   } else {
     loadMenu()
   }
@@ -326,7 +226,6 @@ onMounted(() => {
 
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- ERROR DISPLAY -->
     <div v-if="error" class="bg-red-50 border-l-4 border-red-500 p-4 sticky top-0 z-40">
       <div class="flex items-center gap-3">
         <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -344,17 +243,13 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- LOADING STATE -->
     <div v-if="loading" class="flex items-center justify-center min-h-screen">
       <div class="text-center">
-        <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-12 h-12) -->
         <div class="relative w-12 h-12 mx-auto mb-3">
-          <!-- Static background - BRIGHT CYAN -->
           <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
           </svg>
           
-          <!-- Animated spinner - BRIGHT YELLOW -->
           <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
             <svg viewBox="0 0 100 100" class="w-full h-full">
               <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
@@ -365,40 +260,20 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div v-else>
-      <!-- HERO -->
       <HotelHero />
-
-      <!-- Welcome -->
       <WelcomeBanner />
-
-      <!-- QR INFORMATION -->
       <QRInfoCard :room-number="roomNumber" :qr-token="qrToken" />
-
-      <!-- SEARCH -->
       <SearchBar v-model="searchQuery" />
-
-      <!-- CATEGORY -->
       <CategorySlider
         :active="selectedCategory"
         :categories="categories"
         @change="changeCategory"
       />
-
-      <!-- FEATURED -->
       <FeaturedMenu :items="menuItems.slice(0, 3)" @add="addToCart" />
-
-      <!-- POPULAR -->
       <PopularItems :items="menuItems" @add="addToCart" />
-
-      <!-- ALL MENU -->
       <MenuGrid :items="filteredMenu" :loading="loading" @add="addToCart" />
-
-      <!-- FLOATING CART -->
       <FloatingCart :count="cartCount" @open="openCart" />
-
-      <!-- CART DRAWER -->
       <CartDrawer
         v-model="cartDrawer"
         :items="cartItems"
@@ -408,14 +283,8 @@ onMounted(() => {
         @update="updateQuantity"
         @checkout="submitOrder"
       />
-
-      <!-- ORDER SUMMARY -->
       <OrderSummary v-if="cartItems.length" :subtotal="cartTotal" />
-
-      <!-- ORDER STATUS -->
       <OrderStatusTimeline v-if="createdOrder" :status="orderStatus" />
-
-      <!-- SUCCESS -->
       <OrderSuccessDialog
         v-model="orderSuccess"
         :order-id="createdOrder?.id || ''"
@@ -423,8 +292,6 @@ onMounted(() => {
         :estimated-minutes="20"
         @track-order="openCart"
       />
-
-      <!-- FOOTER -->
       <GuestFooter />
     </div>
   </div>

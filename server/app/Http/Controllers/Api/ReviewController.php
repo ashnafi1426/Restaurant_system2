@@ -64,7 +64,7 @@ class ReviewController extends Controller
             $review = $this->reviewService->createGuestReview($validated);
             
             return response()->json([
-                'message' => 'Review submitted successfully',
+                'message' => trans_msg('review_submitted', default: 'Review submitted successfully'),
                 'data' => $review,
             ], 201);
         } catch (PurchaseNotVerifiedException $e) {
@@ -156,8 +156,8 @@ class ReviewController extends Controller
             }
 
             return response()->json([
-                'message' => 'Review deleted successfully',
-            ], 204);
+                'message' => trans_msg('review_deleted', default: 'Review deleted successfully'),
+            ], 200);
         } catch (ReviewNotModifiableException $e) {
             return response()->json([
                 'error' => 'Modification forbidden',

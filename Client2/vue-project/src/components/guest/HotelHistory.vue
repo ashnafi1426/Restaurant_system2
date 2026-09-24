@@ -1,26 +1,33 @@
 <script setup lang="ts">
-const milestones = [
+import { computed } from 'vue'
+import { useLanguageStore } from '@/stores/language'
+import { useGuestHotelStore } from '@/stores/guestHotelStore'
+
+const languageStore = useLanguageStore()
+const guestHotelStore = useGuestHotelStore()
+
+const milestones = computed(() => [
   {
     year: '1995',
-    title: 'Grand Foundation',
-    description: 'Our journey began with a vision to build a world-class luxury hotel in the heart of Africa.',
+    title: languageStore.t('Grand Foundation', 'Grand Foundation'),
+    description: languageStore.t('grand_foundation_desc', 'Our journey began with a vision to build ' + guestHotelStore.hotelName + ' into a world-class luxury hotel in ' + guestHotelStore.hotelCity + '.'),
   },
   {
     year: '2005',
-    title: 'International Expansion',
-    description: 'Added 50 executive suites and upgraded all fine dining, spa, and conference facilities.',
+    title: languageStore.t('International Expansion', 'International Expansion'),
+    description: languageStore.t('intl_expansion_desc', 'Added 50 executive suites and upgraded all fine dining, spa, and conference facilities.'),
   },
   {
     year: '2015',
-    title: 'Continental Recognition',
-    description: 'Awarded Best Luxury Hotel in East Africa for exceptional guest satisfaction and service innovation.',
+    title: languageStore.t('Continental Recognition', 'Continental Recognition'),
+    description: languageStore.t('cont_recognition_desc', 'Awarded Best Luxury Hotel in East Africa for exceptional guest satisfaction and service innovation.'),
   },
   {
     year: '2023',
-    title: 'The Modern Era',
-    description: 'Completely renovated with smart room technology while preserving classic architectural elegance.',
+    title: languageStore.t('The Modern Era', 'The Modern Era'),
+    description: languageStore.t('modern_era_desc', 'Completely renovated with smart room technology while preserving classic architectural elegance.'),
   },
-]
+])
 </script>
 
 <template>
@@ -29,13 +36,13 @@ const milestones = [
       <!-- Header -->
       <div class="mx-auto mb-12 max-w-3xl text-center space-y-3">
         <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-          Our Journey
+          {{ guestHotelStore.hotelName }} • {{ languageStore.t('our_journey', 'Our Journey') }}
         </span>
         <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-          Hotel History & Milestones
+          {{ languageStore.t('hotel_history_milestones', 'Hotel History & Milestones') }}
         </h2>
         <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
-          From our humble beginnings to becoming a leading luxury destination, discover the story of our growth and commitment to excellence.
+          {{ languageStore.t('hotel_history_desc', 'From our beginnings to becoming a leading luxury destination in ' + guestHotelStore.hotelCity + ', discover our growth and commitment to excellence.') }}
         </p>
       </div>
 
@@ -71,3 +78,4 @@ const milestones = [
     </div>
   </section>
 </template>
+

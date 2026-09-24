@@ -1,6 +1,5 @@
 <template>
   <div class="waiter-performance-panel">
-    <!-- Header -->
     <div class="panel-header">
       <div class="header-content">
         <h3 class="panel-title">Performance Metrics</h3>
@@ -11,23 +10,18 @@
       </button>
     </div>
 
-    <!-- Content -->
     <div class="panel-body">
-      <!-- Loading State -->
       <div v-if="loading" class="loading-state">
         <div class="spinner"></div>
         <p>Loading performance data...</p>
       </div>
 
-      <!-- Error State -->
       <div v-else-if="error" class="error-state">
         <AlertCircle :size="24" />
         <p>{{ error }}</p>
       </div>
 
-      <!-- Performance Data -->
       <div v-else class="performance-data">
-        <!-- Summary Cards -->
         <div class="metrics-grid">
           <div class="metric-card">
             <span class="metric-label">Acceptance Rate</span>
@@ -62,7 +56,6 @@
           </div>
         </div>
 
-        <!-- Detailed Stats -->
         <div class="detailed-stats">
           <h4>Today's Statistics</h4>
           <div class="stats-grid">
@@ -93,7 +86,6 @@
           </div>
         </div>
 
-        <!-- Performance Chart (Simple visualization) -->
         <div class="performance-trend" v-if="performanceHistory.length > 0">
           <h4>Last 7 Days Trend</h4>
           <div class="trend-chart">
@@ -137,6 +129,7 @@ onMounted(async () => {
     loading.value = true
     performanceHistory.value = await waiterStore.getPerformance(props.waiterId)
   } catch (err: any) {
+    console.error('[WaiterPerformancePanel] Failed to load performance data:', err)
     error.value = err.message || 'Failed to load performance data'
   } finally {
     loading.value = false

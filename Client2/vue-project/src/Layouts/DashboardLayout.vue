@@ -7,16 +7,16 @@ import { useThemeStore } from '../stores/theme'
 import { useSidebarStore } from '../stores/sidebarStore'
 import { useHotelStore } from '../stores/hotelStore'
 import { useAuthStore } from '../stores/auth'
+import { useLanguageStore } from '../stores/language'
 import { platformService } from '../services/platformService'
-import { ShieldAlert, LogOut, KeyRound, X } from 'lucide-vue-next'
+import { ShieldAlert, LogOut, X } from 'lucide-vue-next'
 
 const themeStore = useThemeStore()
 const sidebarStore = useSidebarStore()
 const hotelStore = useHotelStore()
 const authStore = useAuthStore()
+const languageStore = useLanguageStore()
 const router = useRouter()
-
-const showPasswordNotice = ref(true)
 
 onMounted(() => {
   themeStore.initTheme()
@@ -26,15 +26,13 @@ const exitPlatformView = async () => {
   try {
     await platformService.exitHotelViewMode()
   } catch (e) {
-    // ignore
+    console.error('[DashboardLayout] Error exiting hotel view mode:', e)
   }
   hotelStore.exitPlatformViewMode()
   router.push('/admin/hotels')
 }
 
-// Close sidebar when navigating (only on mobile)
 const closeMobileSidebar = () => {
-  // Only close on mobile screens (less than lg breakpoint: 1024px)
   if (window.innerWidth < 1024) {
     sidebarStore.closeMobile()
   }
@@ -45,34 +43,38 @@ const closeMobileSidebar = () => {
   <div
     class="h-screen flex bg-white dark:bg-slate-950 overflow-hidden transition-colors duration-300"
   >
-    <!-- ============ MOBILE OVERLAY ============ -->
-    <!-- Only show on mobile when sidebar is open -->
-    <div
-      v-if="sidebarStore.isMobileOpen"
-      @click="sidebarStore.closeMobile()"
-      class="fixed inset-0 bg-black/50 z-30 lg:hidden"
-      role="presentation"
-    ></div>
+    <!-- Mobile Backdrop -->
+    <Transition
+      enter-active-class="transition-opacity duration-300 ease-out"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-200 ease-in"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="sidebarStore.isMobileOpen"
+        @click="sidebarStore.closeMobile()"
+        class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 lg:hidden"
+        role="presentation"
+      ></div>
+    </Transition>
 
-    <!-- ============ SIDEBAR ============ -->
-    <!-- Desktop: collapsible width | Mobile: fixed overlay -->
+    <!-- Sidebar Wrapper -->
     <div
       :class="[
-        'h-screen bg-slate-900 dark:bg-slate-950 flex flex-col flex-shrink-0 shadow-sm dark:shadow-black transition-all duration-300 ease-in-out',
-        // Desktop behavior (lg and up) - dynamic width based on collapse state
-        'lg:static lg:sticky lg:top-0 lg:left-0',
+        'h-screen flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out',
+        'fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] shadow-2xl lg:shadow-none',
+        'lg:static lg:sticky lg:top-0 lg:left-0 lg:z-30',
         sidebarStore.isCollapsed ? 'lg:w-20' : 'lg:w-72',
-        // Mobile behavior (below lg) - fixed width with transform
-        'fixed inset-y-0 left-0 z-40 w-64',
         sidebarStore.isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
       ]"
     >
-      <Sidebar @navigate="closeMobileSidebar" />
+      <Sidebar :key="hotelStore.hotelId || authStore.currentHotel?.id || 'sidebar-main'" @navigate="closeMobileSidebar" />
     </div>
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       <Navbar />
 
-      <!-- ===== PLATFORM ADMIN VIEW WARNING BANNER ===== -->
       <div
         v-if="hotelStore.isViewingAsPlatformAdmin"
         class="bg-amber-500 text-slate-950 font-black px-4 sm:px-6 py-2 flex items-center justify-between shadow-md text-xs tracking-wide flex-shrink-0 z-20 animate-in fade-in duration-200"
@@ -87,62 +89,26 @@ const closeMobileSidebar = () => {
           class="px-3 py-1 bg-slate-950 hover:bg-slate-900 text-white rounded-lg transition font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
         >
           <LogOut class="w-3.5 h-3.5" />
-          <span>Exit Hotel View</span>
+          <span>{{ languageStore.t('Exit Hotel View', 'Exit Hotel View') }}</span>
         </button>
       </div>
 
-      <!-- ===== NON-BLOCKING SYSTEM PASSWORD NOTICE BANNER ===== -->
-      <div
-        v-if="authStore.mustChangePassword && showPasswordNotice"
-        class="bg-indigo-500/10 border-b border-indigo-500/20 px-4 sm:px-6 py-2.5 flex items-center justify-between text-indigo-700 dark:text-indigo-300 text-xs flex-shrink-0 z-10 animate-in fade-in duration-200"
-      >
-        <div class="flex items-center gap-2">
-          <KeyRound class="w-4 h-4 text-indigo-500 flex-shrink-0" />
-          <span>
-            You logged in with a system-generated password. You can set your permanent password anytime on your
-            <router-link to="/admin/profile?tab=security" class="font-bold underline hover:text-indigo-900 dark:hover:text-indigo-100">
-              Profile page
-            </router-link>.
-          </span>
-        </div>
-        <div class="flex items-center gap-2.5">
-          <router-link
-            to="/admin/profile?tab=security"
-            class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] transition shadow-xs"
-          >
-            Go to Profile
-          </router-link>
-          <button
-            @click="showPasswordNotice = false"
-            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-0.5"
-            title="Dismiss notice"
-          >
-            <X class="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
-      <!-- ===== MAIN CONTENT ===== -->
       <main class="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-slate-950 transition-colors duration-300">
-        <!-- Content Container -->
-        <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
-          <!-- Page Header (Optional) -->
+        <div :key="hotelStore.hotelId" class="w-full px-4 sm:px-6 lg:px-8 py-6">
           <div>
             <slot name="header"></slot>
           </div>
 
-          <!-- Main Slot Content -->
           <slot></slot>
         </div>
       </main>
 
-      <!-- ===== FOOTER ===== -->
       <footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 backdrop-blur-sm px-4 sm:px-6 lg:px-8 py-3 transition-colors flex-shrink-0">
         <div
           class="w-full flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400"
         >
           <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
-            <span class="whitespace-nowrap">&copy; 2024 Hotel Management System</span>
+            <span class="whitespace-nowrap">&copy; 2024 {{ languageStore.t('hotel_management_system', 'Hotel Management System') }}</span>
             <span class="hidden sm:inline text-slate-300 dark:text-slate-600">•</span>
             <span class="flex items-center justify-center gap-1">
               <span class="relative flex h-2 w-2">
@@ -151,13 +117,13 @@ const closeMobileSidebar = () => {
                 ></span>
                 <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 dark:bg-emerald-400"></span>
               </span>
-              <span class="whitespace-nowrap">All systems operational</span>
+              <span class="whitespace-nowrap">{{ languageStore.t('all_systems_operational', 'All systems operational') }}</span>
             </span>
           </div>
           <div class="flex items-center gap-3 md:gap-4 font-bold">
-            <router-link to="/contact" class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap">Privacy</router-link>
-            <router-link to="/contact" class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap">Terms</router-link>
-            <router-link to="/contact" class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap hidden sm:inline">Support</router-link>
+            <router-link to="/contact" class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap">{{ languageStore.t('privacy', 'Privacy') }}</router-link>
+            <router-link to="/contact" class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap">{{ languageStore.t('terms', 'Terms') }}</router-link>
+            <router-link to="/contact" class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap hidden sm:inline">{{ languageStore.t('support', 'Support') }}</router-link>
             <span class="text-slate-300 dark:text-slate-600 hidden sm:inline">|</span>
             <span class="text-slate-400 dark:text-slate-500 whitespace-nowrap">v2.0.0</span>
           </div>
@@ -168,12 +134,10 @@ const closeMobileSidebar = () => {
 </template>
 
 <style scoped>
-/* Force scrollbar to always be visible to prevent layout shift */
 main {
   scrollbar-gutter: stable;
 }
 
-/* Smooth scrollbar */
 main::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -192,7 +156,6 @@ main::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
-/* Dark mode scrollbar */
 .dark main::-webkit-scrollbar-thumb {
   background: #475569;
 }
@@ -201,7 +164,6 @@ main::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
 
-/* Fade in content animation */
 main > div {
   animation: fadeInUp 0.4s ease-out forwards;
 }
@@ -217,7 +179,6 @@ main > div {
   }
 }
 
-/* Button focus styles */
 button:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;

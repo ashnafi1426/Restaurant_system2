@@ -9,11 +9,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-/**
- * WaiterManagementService
- * 
- * Handles waiter registration, updates, and lifecycle management
- */
 class WaiterManagementService
 {
     public function registerWaiter(array $waiterData): Waiter
@@ -28,7 +23,6 @@ class WaiterManagementService
                 'role' => 'waiter',
             ]);
 
-            // Create waiter profile
             $waiter = Waiter::create([
                 'user_id' => $user->id,
                 'employee_number' => $waiterData['employee_number'] ?? $this->generateEmployeeNumber(),
@@ -56,6 +50,7 @@ class WaiterManagementService
             throw $e;
         }
     }
+
     public function updateWaiter(string $waiterId, array $data): Waiter
     {
         try {
@@ -63,7 +58,6 @@ class WaiterManagementService
 
             $waiter = Waiter::findOrFail($waiterId);
 
-            // Update user info if provided
             if (isset($data['name']) || isset($data['email'])) {
                 $userData = [];
                 if (isset($data['name'])) {
@@ -78,7 +72,6 @@ class WaiterManagementService
                 $waiter->user->update($userData);
             }
 
-            // Update waiter profile
             $waiter->update(array_filter([
                 'phone' => $data['phone'] ?? null,
                 'employment_type' => $data['employment_type'] ?? null,
@@ -100,6 +93,7 @@ class WaiterManagementService
             throw $e;
         }
     }
+
     public function deactivateWaiter(string $waiterId): bool
     {
         try {
@@ -108,13 +102,11 @@ class WaiterManagementService
             $waiter = Waiter::findOrFail($waiterId);
             $waiter->deactivate();
 
-            // Cancel all pending assignments
             $waiter->floorAssignments()
                 ->where('status', '!=', 'completed')
                 ->where('status', '!=', 'cancelled')
                 ->update(['status' => 'cancelled']);
 
-            // Cancel pending deliveries
             $waiter->deliveryTasks()
                 ->whereIn('status', ['assigned', 'accepted', 'picked_up'])
                 ->update([
@@ -134,6 +126,7 @@ class WaiterManagementService
             return false;
         }
     }
+
     public function reactivateWaiter(string $waiterId): bool
     {
         try {
@@ -148,6 +141,7 @@ class WaiterManagementService
             return false;
         }
     }
+
     public function suspendWaiter(string $waiterId, string $reason = null): bool
     {
         try {
@@ -156,7 +150,6 @@ class WaiterManagementService
             $waiter = Waiter::findOrFail($waiterId);
             $waiter->suspend();
 
-            // Create audit log
             Log::info("Waiter suspended", [
                 'waiter_id' => $waiterId,
                 'reason' => $reason,
@@ -171,10 +164,12 @@ class WaiterManagementService
             return false;
         }
     }
+
     public function deleteWaiter(string $waiterId): bool
     {
         return $this->deactivateWaiter($waiterId);
     }
+
     public function changeAvailability(string $waiterId, string $availability): bool
     {
         try {
@@ -199,12 +194,14 @@ class WaiterManagementService
             return false;
         }
     }
+
     private function generateEmployeeNumber(): string
     {
         $prefix = 'WTR';
         $count = Waiter::count() + 1;
         return "{$prefix}" . str_pad($count, 4, '0', STR_PAD_LEFT);
     }
+
     public function getWaiterWithDetails(string $waiterId): Waiter
     {
         return Waiter::with([
@@ -216,6 +213,7 @@ class WaiterManagementService
             },
         ])->findOrFail($waiterId);
     }
+
     public function getAllActiveWaiters()
     {
         return Waiter::active()
@@ -223,6 +221,7 @@ class WaiterManagementService
             ->orderBy('created_at', 'desc')
             ->get();
     }
+
     public function getWaiterStats(string $waiterId): array
     {
         $waiter = Waiter::findOrFail($waiterId);

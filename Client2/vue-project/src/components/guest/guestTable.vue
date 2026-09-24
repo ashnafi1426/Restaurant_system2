@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useLanguageStore } from '@/stores/language'
 import type { Guest } from '../../types/guest'
+
+const languageStore = useLanguageStore()
 
 interface Props {
   guests: Guest[]
@@ -62,12 +65,12 @@ onBeforeUnmount(() => {
           <span class="material-symbols-rounded text-blue-600">groups</span>
         </div>
         <div>
-          <h2 class="text-lg font-semibold text-slate-800">Guest Records</h2>
-          <p class="text-sm text-slate-500">Complete list of registered guests</p>
+          <h2 class="text-lg font-semibold text-slate-800">{{ languageStore.t('Guest Records', 'Guest Records') }}</h2>
+          <p class="text-sm text-slate-500">{{ languageStore.t('complete_guest_list', 'Complete list of registered guests') }}</p>
         </div>
       </div>
       <div v-if="!loading && guests.length > 0" class="text-sm text-slate-500">
-        {{ guests.length }} guest{{ guests.length !== 1 ? 's' : '' }}
+        {{ guests.length }} {{ languageStore.t('Guests', 'guests') }}
       </div>
     </div>
 
@@ -87,7 +90,7 @@ onBeforeUnmount(() => {
           </svg>
         </div>
       </div>
-      <p class="font-medium">Loading guests...</p>
+      <p class="font-medium">{{ languageStore.t('loading_guests', 'Loading guests...') }}</p>
     </div>
 
     <!-- Empty -->
@@ -97,8 +100,8 @@ onBeforeUnmount(() => {
       >
         <span class="material-symbols-rounded text-4xl text-slate-400">groups</span>
       </div>
-      <h3 class="text-xl font-semibold text-slate-700 mb-2">No Guests Found</h3>
-      <p class="text-slate-500">No guest records match your current filters</p>
+      <h3 class="text-xl font-semibold text-slate-700 mb-2">{{ languageStore.t('No Guests Found', 'No Guests Found') }}</h3>
+      <p class="text-slate-500">{{ languageStore.t('no_guests_match_filters', 'No guest records match your current filters') }}</p>
     </div>
 
     <!-- Table -->
@@ -109,32 +112,32 @@ onBeforeUnmount(() => {
             <th
               class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
             >
-              Guest Information
+              {{ languageStore.t('Guest Information', 'Guest Information') }}
             </th>
             <th
               class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
             >
-              Contact
+              {{ languageStore.t('Contact', 'Contact') }}
             </th>
             <th
               class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
             >
-              Nationality
+              {{ languageStore.t('Nationality', 'Nationality') }}
             </th>
             <th
               class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
             >
-              Passport
+              {{ languageStore.t('Passport', 'Passport') }}
             </th>
             <th
               class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
             >
-              Registered
+              {{ languageStore.t('Registered', 'Registered') }}
             </th>
             <th
               class="px-6 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider w-24"
             >
-              Actions
+              {{ languageStore.t('Actions', 'Actions') }}
             </th>
           </tr>
         </thead>
@@ -177,7 +180,7 @@ onBeforeUnmount(() => {
                 <span class="material-symbols-rounded text-sm">public</span>
                 {{ guest.nationality }}
               </div>
-              <span v-else class="text-slate-400 text-sm">Not specified</span>
+              <span v-else class="text-slate-400 text-sm">-</span>
             </td>
 
             <!-- Passport -->
@@ -231,7 +234,7 @@ onBeforeUnmount(() => {
                       class="flex w-full items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors text-left"
                     >
                       <span class="material-symbols-rounded text-blue-600">visibility</span>
-                      <span class="font-medium text-slate-700">View Details</span>
+                      <span class="font-medium text-slate-700">{{ languageStore.t('View Details', 'View Details') }}</span>
                     </button>
 
                     <!-- Edit -->
@@ -245,7 +248,7 @@ onBeforeUnmount(() => {
                       class="flex w-full items-center gap-3 px-4 py-3 hover:bg-green-50 transition-colors text-left"
                     >
                       <span class="material-symbols-rounded text-green-600">edit</span>
-                      <span class="font-medium text-slate-700">Edit Guest</span>
+                      <span class="font-medium text-slate-700">{{ languageStore.t('Edit', 'Edit Guest') }}</span>
                     </button>
 
                     <div class="border-t border-slate-200"></div>
@@ -261,7 +264,7 @@ onBeforeUnmount(() => {
                       class="flex w-full items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors text-left"
                     >
                       <span class="material-symbols-rounded">delete</span>
-                      <span class="font-medium">Delete Guest</span>
+                      <span class="font-medium">{{ languageStore.t('Delete', 'Delete Guest') }}</span>
                     </button>
                   </div>
                 </transition>

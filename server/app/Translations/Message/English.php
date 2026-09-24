@@ -1,0 +1,132 @@
+<?php
+
+namespace App\Translations\Message;
+
+class English
+{
+    public static function get(): array
+    {
+        return [
+            // General System Responses
+            'success' => 'Operation completed successfully',
+            'error' => 'An unexpected error occurred',
+            'server_error' => 'Internal server error. Please try again later.',
+            'not_found' => 'Resource not found',
+            'unauthorized' => 'Unauthorized access. Please log in.',
+            'forbidden' => 'You do not have permission to perform this action.',
+            'validation_error' => 'The given data was invalid.',
+            'saved_successfully' => 'Saved successfully',
+            'updated_successfully' => 'Updated successfully',
+            'deleted_successfully' => 'Deleted successfully',
+            'created_successfully' => 'Created successfully',
+            'changes_saved' => 'Your changes have been saved successfully',
+            'action_completed' => 'Action completed successfully',
+            'no_data_found' => 'No data found',
+            'invalid_request' => 'Invalid request parameters',
+            'feature_disabled' => 'This feature is currently disabled',
+            'file_uploaded' => 'File uploaded successfully',
+            'file_deleted' => 'File deleted successfully',
+            'language_changed' => 'Language changed successfully',
+            'hotel_switched' => 'Hotel switched successfully',
+
+            // Auth & Account
+            'login_success' => 'Logged in successfully',
+            'login_failed' => 'Invalid email or password',
+            'login_required' => 'Please log in to continue',
+            'logout_success' => 'Logged out successfully',
+            'account_disabled' => 'Your account has been disabled. Please contact the administrator.',
+            'account_not_activated' => 'Account not activated. Please check your email for the activation link.',
+            'password_reset_sent' => 'Password reset link has been sent to your email.',
+            'password_reset_success' => 'Password has been reset successfully.',
+            'password_updated' => 'Password updated successfully.',
+            'password_incorrect' => 'The current password you provided is incorrect.',
+            'profile_updated' => 'Profile updated successfully.',
+            'token_expired' => 'Session expired. Please log in again.',
+            'email_already_exists' => 'This email address is already registered.',
+            'phone_already_exists' => 'This phone number is already registered.',
+            'registration_success' => 'Registration completed successfully.',
+            'access_denied' => 'Access denied. Insufficient permissions.',
+
+            // Orders, Food, Cart & QR
+            'added_to_cart' => 'Added to cart successfully',
+            'removed_from_cart' => 'Item removed from cart',
+            'cart_cleared' => 'Cart cleared successfully',
+            'cart_empty' => 'Your cart is empty',
+            'order_placed' => 'Your order has been placed successfully',
+            'order_created' => 'Order created successfully',
+            'order_updated' => 'Order updated successfully',
+            'order_cancelled' => 'Order cancelled successfully',
+            'order_not_found' => 'Order not found',
+            'order_status_updated' => 'Order status has been updated',
+            'item_unavailable' => 'One or more selected items are currently unavailable',
+            'order_in_preparation' => 'Your order is currently being prepared',
+            'order_ready' => 'Your order is ready',
+            'order_served' => 'Order has been marked as served',
+            'order_delivered' => 'Order has been successfully delivered',
+            'kitchen_notified' => 'Order sent to the kitchen',
+            'special_instructions_received' => 'Special instructions have been recorded',
+            'invalid_qr_code' => 'Invalid QR code. Please scan a valid table or room QR code.',
+            'qr_expired' => 'This QR code has expired',
+            'no_active_reservation' => 'No active reservation found for this room. Please check in first.',
+
+            // Rooms, Bookings & Guests
+            'reservation_created' => 'Reservation created successfully',
+            'reservation_confirmed' => 'Reservation confirmed successfully',
+            'reservation_cancelled' => 'Reservation has been cancelled',
+            'reservation_not_found' => 'Reservation not found',
+            'check_in_success' => 'Guest checked in successfully',
+            'check_out_success' => 'Guest checked out successfully',
+            'room_not_available' => 'The selected room is not available for the chosen dates',
+            'room_status_updated' => 'Room status updated successfully',
+            'room_created' => 'Room added successfully',
+            'room_updated' => 'Room updated successfully',
+            'room_deleted' => 'Room deleted successfully',
+            'room_already_occupied' => 'Room is currently occupied',
+            'room_under_maintenance' => 'Room is currently under maintenance',
+            'dates_invalid' => 'Check-out date must be after check-in date',
+            'guest_registered' => 'Guest information saved successfully',
+            'guest_not_found' => 'Guest not found',
+
+            // Payments, Invoices & Billing
+            'payment_successful' => 'Payment completed successfully',
+            'payment_failed' => 'Payment failed. Please try again or choose another method.',
+            'payment_pending' => 'Payment is pending confirmation',
+            'payment_verified' => 'Payment verified successfully',
+            'payment_initiated' => 'Payment has been initiated',
+            'refund_processed' => 'Refund has been processed successfully',
+            'refund_failed' => 'Failed to process refund',
+            'invoice_generated' => 'Invoice generated successfully',
+            'invoice_sent' => 'Invoice sent to guest email',
+            'amount_invalid' => 'Invalid payment amount',
+            'insufficient_balance' => 'Insufficient balance',
+            'transaction_recorded' => 'Transaction recorded successfully',
+
+            // Menu Management
+            'menu_item_created' => 'Menu item created successfully',
+            'menu_item_updated' => 'Menu item updated successfully',
+            'menu_item_deleted' => 'Menu item deleted successfully',
+            'category_created' => 'Category created successfully',
+            'category_updated' => 'Category updated successfully',
+            'category_deleted' => 'Category deleted successfully',
+            'item_stock_updated' => 'Item availability updated successfully',
+
+            // Reviews & Ratings
+            'review_submitted' => 'Thank you! Your review has been submitted successfully',
+            'review_deleted' => 'Review deleted successfully',
+            'review_approved' => 'Review approved successfully',
+            'review_rejected' => 'Review rejected successfully',
+            'rating_required' => 'Please provide a rating between 1 and 5 stars',
+            'already_reviewed' => 'You have already submitted a review for this item or stay',
+
+            // Staff & RBAC
+            'staff_created' => 'Staff member created successfully',
+            'staff_updated' => 'Staff member details updated',
+            'staff_deleted' => 'Staff member removed successfully',
+            'role_created' => 'Role created successfully',
+            'role_updated' => 'Role updated successfully',
+            'role_deleted' => 'Role deleted successfully',
+            'permissions_updated' => 'Permissions updated successfully',
+            'status_changed' => 'Status changed successfully',
+        ];
+    }
+}

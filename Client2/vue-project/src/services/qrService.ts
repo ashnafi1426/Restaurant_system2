@@ -4,19 +4,27 @@ export interface QRResolutionResult {
   success: boolean
   context: 'room' | 'table' | null
   data: {
-    // Room data
+    hotel_id?: string
+    hotel_name?: string
     room_id?: string
     room_number?: string
     floor?: string
     floor_id?: string
     room_type?: string
-    // Table data
+    guest?: {
+      guest_id: string
+      guest_name: string
+      guest_email?: string
+      guest_phone?: string
+      reservation_id?: string
+      check_in_date?: string
+      expected_checkout?: string
+    } | null
     table_id?: string
     table_number?: string
     table_name?: string | null
     capacity?: number
     location?: string | null
-    // Common
     status?: string
   } | null
   message: string
@@ -27,21 +35,13 @@ export interface QRValidationResult {
   context: 'room' | 'table' | null
 }
 
-/**
- * QR Service - Handles QR token resolution and validation
- */
 export const qrService = {
-  /**
-   * Resolve QR token to determine context (room or table)
-   * @param token - 8-character QR token
-   * @returns Resolution result with context and data
-   */
   async resolveQRToken(token: string): Promise<QRResolutionResult> {
     try {
       const response = await axios.get(`/qr/resolve/${token}`)
       return response.data
     } catch (error: any) {
-      // Return error in expected format
+      console.error('[QRService] Error resolving QR token:', error)
       return {
         success: false,
         context: null,
@@ -51,16 +51,12 @@ export const qrService = {
     }
   },
 
-  /**
-   * Validate QR token (lightweight check)
-   * @param token - 8-character QR token
-   * @returns Validation result
-   */
   async validateQRToken(token: string): Promise<QRValidationResult> {
     try {
       const response = await axios.post('/qr/validate', { qr_token: token })
       return response.data
     } catch (error: any) {
+      console.error('[QRService] Error validating QR token:', error)
       return {
         valid: false,
         context: null

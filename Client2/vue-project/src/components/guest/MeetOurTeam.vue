@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useLanguageStore } from '@/stores/language'
+import { useGuestHotelStore } from '@/stores/guestHotelStore'
+
+const languageStore = useLanguageStore()
+const guestHotelStore = useGuestHotelStore()
+
 interface TeamMember {
   id: number
   name: string
@@ -7,36 +14,36 @@ interface TeamMember {
   bio: string
 }
 
-const teamMembers: TeamMember[] = [
+const teamMembers = computed<TeamMember[]>(() => [
   {
     id: 1,
-    name: 'John Smith',
-    position: 'General Manager',
+    name: 'Abebe Tadesse',
+    position: languageStore.t('General Manager', 'General Manager'),
     image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=800&fit=crop',
-    bio: 'With 20+ years in luxury hospitality, John leads our team with vision, passion, and operational excellence.',
+    bio: languageStore.t('gm_bio', 'With 20+ years in luxury hospitality, leading ' + guestHotelStore.hotelName + ' with vision, passion, and operational excellence.'),
   },
   {
     id: 2,
     name: 'Chef Michael Vance',
-    position: 'Executive Chef',
+    position: languageStore.t('Executive Chef', 'Executive Chef'),
     image: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=600&h=800&fit=crop',
-    bio: 'Award-winning international chef specializing in gourmet fine dining and culinary innovation.',
+    bio: languageStore.t('chef_bio', 'Award-winning international chef specializing in gourmet fine dining and authentic Ethiopian culinary innovation.'),
   },
   {
     id: 3,
-    name: 'Sarah Johnson',
-    position: 'Front Desk Manager',
+    name: 'Sara Mengistu',
+    position: languageStore.t('Front Desk Manager', 'Front Desk Manager'),
     image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=800&fit=crop',
-    bio: 'Dedicated to providing 24/7 seamless check-ins, guest relations, and personalized concierge care.',
+    bio: languageStore.t('fd_manager_bio', 'Dedicated to providing 24/7 seamless check-ins, guest relations, and personalized concierge care.'),
   },
   {
     id: 4,
     name: 'Emma Wilson',
-    position: 'Guest Relations Director',
+    position: languageStore.t('Guest Relations Director', 'Guest Relations Director'),
     image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=600&h=800&fit=crop',
-    bio: 'Ensures every guest stay is memorable, tailored to perfection, and exceeds international luxury standards.',
+    bio: languageStore.t('gr_director_bio', 'Ensures every guest stay at ' + guestHotelStore.hotelName + ' is memorable, tailored to perfection, and exceeds luxury standards.'),
   },
-]
+])
 </script>
 
 <template>
@@ -45,13 +52,13 @@ const teamMembers: TeamMember[] = [
       <!-- Header -->
       <div class="mx-auto max-w-3xl text-center space-y-3">
         <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-          Our Team
+          {{ guestHotelStore.hotelName }} • {{ languageStore.t('our_team', 'Our Team') }}
         </span>
         <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-          Meet Our Executive Leadership
+          {{ languageStore.t('meet_our_team', 'Meet Our Executive Leadership') }}
         </h2>
         <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
-          Our dedicated team of hospitality experts is committed to delivering exceptional service and creating unforgettable stays.
+          {{ languageStore.t('meet_our_team_desc', 'Our dedicated team at ' + guestHotelStore.hotelName + ' is committed to delivering exceptional service and creating unforgettable stays.') }}
         </p>
       </div>
 
@@ -88,3 +95,4 @@ const teamMembers: TeamMember[] = [
     </div>
   </section>
 </template>
+

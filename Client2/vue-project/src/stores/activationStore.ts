@@ -35,7 +35,6 @@ interface ResendResult {
 }
 
 export const useActivationStore = defineStore('activation', () => {
-  // State
   const loading = ref(false)
   const validatingToken = ref(false)
   const activating = ref(false)
@@ -44,7 +43,6 @@ export const useActivationStore = defineStore('activation', () => {
   const error = ref<string | null>(null)
   const errorType = ref<string | null>(null)
 
-  
   async function validateToken(token: string): Promise<ValidationResult> {
     validatingToken.value = true
     error.value = null
@@ -67,6 +65,7 @@ export const useActivationStore = defineStore('activation', () => {
         message: response.data.message || 'Invalid activation token'
       }
     } catch (err: any) {
+      console.error('[activationStore] Failed to validate token:', err)
       const message = err.response?.data?.message || 'Failed to validate token'
       const type = err.response?.data?.error_type || 'validation_error'
 
@@ -84,9 +83,6 @@ export const useActivationStore = defineStore('activation', () => {
     }
   }
 
-  /**
-   * Activate account with password
-   */
   async function activateAccount(
     token: string,
     password: string,
@@ -116,6 +112,7 @@ export const useActivationStore = defineStore('activation', () => {
         message: response.data.message || 'Activation failed'
       }
     } catch (err: any) {
+      console.error('[activationStore] Failed to activate account:', err)
       const message = err.response?.data?.message || 'Failed to activate account'
       const type = err.response?.data?.error_type || 'activation_error'
 
@@ -132,9 +129,6 @@ export const useActivationStore = defineStore('activation', () => {
     }
   }
 
-  /**
-   * Resend activation email
-   */
   async function resendActivation(email: string): Promise<ResendResult> {
     resending.value = true
     error.value = null
@@ -147,6 +141,7 @@ export const useActivationStore = defineStore('activation', () => {
         message: response.data.message
       }
     } catch (err: any) {
+      console.error('[activationStore] Failed to resend activation email:', err)
       const message = err.response?.data?.message || 'Failed to resend activation email'
       error.value = message
 
@@ -159,9 +154,6 @@ export const useActivationStore = defineStore('activation', () => {
     }
   }
 
-  /**
-   * Check password strength
-   */
   function checkPasswordStrength(password: string): {
     score: number
     label: string
@@ -171,42 +163,36 @@ export const useActivationStore = defineStore('activation', () => {
     let score = 0
     const feedback: string[] = []
 
-    // Length check
     if (password.length >= 8) {
       score++
     } else {
       feedback.push('At least 8 characters required')
     }
 
-    // Uppercase check
     if (/[A-Z]/.test(password)) {
       score++
     } else {
       feedback.push('Add uppercase letters')
     }
 
-    // Lowercase check
     if (/[a-z]/.test(password)) {
       score++
     } else {
       feedback.push('Add lowercase letters')
     }
 
-    // Number check
     if (/[0-9]/.test(password)) {
       score++
     } else {
       feedback.push('Add numbers')
     }
 
-    // Special character check
     if (/[^A-Za-z0-9]/.test(password)) {
       score++
     } else {
       feedback.push('Add special characters (!@#$%^&*)')
     }
 
-    // Determine label and color
     let label = ''
     let color = ''
 
@@ -227,9 +213,6 @@ export const useActivationStore = defineStore('activation', () => {
     return { score, label, color, feedback }
   }
 
-  /**
-   * Reset store state
-   */
   function resetState() {
     loading.value = false
     validatingToken.value = false
@@ -241,7 +224,6 @@ export const useActivationStore = defineStore('activation', () => {
   }
 
   return {
-    // State
     loading,
     validatingToken,
     activating,
@@ -250,7 +232,6 @@ export const useActivationStore = defineStore('activation', () => {
     error,
     errorType,
 
-    // Actions
     validateToken,
     activateAccount,
     resendActivation,

@@ -66,10 +66,6 @@ class CashierProfileController extends Controller
         }
     }
 
-    /**
-     * Update cashier profile
-     * PUT /api/cashier/profile
-     */
     public function updateProfile(Request $request): JsonResponse
     {
         try {
@@ -127,10 +123,6 @@ class CashierProfileController extends Controller
         }
     }
 
-    /**
-     * Upload profile photo
-     * POST /api/cashier/profile/photo
-     */
     public function uploadPhoto(Request $request): JsonResponse
     {
         try {
@@ -172,10 +164,6 @@ class CashierProfileController extends Controller
         }
     }
 
-    /**
-     * Change password
-     * POST /api/cashier/profile/change-password
-     */
     public function changePassword(Request $request): JsonResponse
     {
         try {
@@ -210,10 +198,6 @@ class CashierProfileController extends Controller
         }
     }
 
-    /**
-     * Get cashier statistics
-     * GET /api/cashier/profile/stats
-     */
     public function getStats(): JsonResponse
     {
         try {
@@ -243,10 +227,6 @@ class CashierProfileController extends Controller
         }
     }
 
-    /**
-     * Update availability status
-     * POST /api/cashier/profile/status
-     */
     public function updateStatus(Request $request): JsonResponse
     {
         try {

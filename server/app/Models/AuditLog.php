@@ -13,7 +13,7 @@ class AuditLog extends Model
     protected $table = 'audit_logs';
     public $incrementing = false;
     protected $keyType = 'string';
-    public $timestamps = false; // table only has created_at
+    public $timestamps = false;
 
     protected $fillable = [
         'id',
@@ -56,7 +56,7 @@ class AuditLog extends Model
         return self::create([
             'id' => (string) \Illuminate\Support\Str::uuid(),
             'hotel_id' => $hotelId,
-            'user_id' => $userId ?: auth()->id(),
+            'user_id' => $userId ?: \Illuminate\Support\Facades\Auth::id(),
             'action' => $action,
             'target_table' => $targetTable,
             'target_id' => $targetId,

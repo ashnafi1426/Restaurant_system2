@@ -3,16 +3,12 @@ import { ref } from 'vue'
 import { publicAxios } from '../services/axios'
 
 export const usePasswordResetStore = defineStore('passwordReset', () => {
-  // State
   const loading = ref(false)
   const sending = ref(false)
   const resetting = ref(false)
   const error = ref<string | null>(null)
   const successMessage = ref<string | null>(null)
 
-  /**
-   * Request password reset email
-   */
   async function requestReset(email: string) {
     sending.value = true
     error.value = null
@@ -28,10 +24,10 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
 
       return { success: false, message: response.data.message }
     } catch (err: any) {
+      console.error('[passwordResetStore] Failed to send reset email:', err)
       const message = err.response?.data?.message || 'Failed to send reset email'
       error.value = message
 
-      // Check if user needs activation
       if (err.response?.data?.needs_activation) {
         return {
           success: false,
@@ -46,9 +42,6 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
     }
   }
 
-  /**
-   * Reset password with token
-   */
   async function resetPassword(email: string, token: string, password: string, passwordConfirmation: string) {
     resetting.value = true
     error.value = null
@@ -69,6 +62,7 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
 
       return { success: false, message: response.data.message }
     } catch (err: any) {
+      console.error('[passwordResetStore] Failed to reset password:', err)
       const message = err.response?.data?.message || 'Failed to reset password'
       const errorType = err.response?.data?.error_type || 'reset_error'
 
@@ -84,9 +78,6 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
     }
   }
 
-  /**
-   * Verify reset token
-   */
   async function verifyToken(email: string, token: string) {
     loading.value = true
     error.value = null
@@ -99,6 +90,7 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
 
       return { success: response.data.success, message: response.data.message }
     } catch (err: any) {
+      console.error('[passwordResetStore] Failed to verify reset token:', err)
       const message = err.response?.data?.message || 'Invalid or expired token'
       error.value = message
 
@@ -108,9 +100,6 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
     }
   }
 
-  /**
-   * Check password strength
-   */
   function checkPasswordStrength(password: string): {
     score: number
     label: string
@@ -170,9 +159,6 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
     return { score, label, color, feedback }
   }
 
-  /**
-   * Reset store state
-   */
   function resetState() {
     loading.value = false
     sending.value = false
@@ -182,14 +168,12 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
   }
 
   return {
-    // State
     loading,
     sending,
     resetting,
     error,
     successMessage,
 
-    // Actions
     requestReset,
     resetPassword,
     verifyToken,

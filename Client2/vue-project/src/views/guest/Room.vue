@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoomStore } from '@/stores/room'
+import { useGuestHotelStore } from '@/stores/guestHotelStore'
+import { useLanguageStore } from '@/stores/language'
 import RoomHero from '@/components/guest/RoomHero.vue'
 import RoomSearchBar from '@/components/guest/RoomSearchBar.vue'
 import RoomGrid from '@/components/guest/RoomGrid.vue'
 import NoRoomsFound from '@/components/guest/NoRoomsFound.vue'
 import RoomPagination from '@/components/guest/RoomPagination.vue'
 import RoomCTA from '@/components/guest/RoomCTA.vue'
-import GuestLayout from '@/layouts/GuestLayout.vue'
+import GuestLayout from '@/Layouts/GuestLayout.vue'
+
 const roomStore = useRoomStore()
+const guestHotelStore = useGuestHotelStore()
+const languageStore = useLanguageStore()
 
 const search = ref('')
 const selectedType = ref('All')
@@ -98,6 +103,12 @@ onMounted(() => {
 watch([search, selectedType, selectedCapacity], () => {
   currentPage.value = 1
 })
+
+// Re-fetch rooms when guest switches hotel
+watch(() => guestHotelStore.hotelId, () => {
+  clearFilters()
+  loadRooms()
+})
 </script>
 
 <template>
@@ -129,7 +140,7 @@ watch([search, selectedType, selectedCapacity], () => {
                 </svg>
               </div>
             </div>
-            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">Loading rooms...</p>
+            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">{{ languageStore.t('loading_rooms', 'Loading rooms...') }}</p>
           </div>
         </div>
       </section>
@@ -140,9 +151,9 @@ watch([search, selectedType, selectedCapacity], () => {
           <p class="text-red-700 font-medium">{{ error }}</p>
           <button
             @click="loadRooms"
-            class="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            class="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition cursor-pointer"
           >
-            Try Again
+            {{ languageStore.t('try_again', 'Try Again') }}
           </button>
         </div>
       </section>

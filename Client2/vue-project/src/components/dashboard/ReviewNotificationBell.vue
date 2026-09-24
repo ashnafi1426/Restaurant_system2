@@ -1,17 +1,14 @@
 <template>
   <div class="review-notification-bell relative">
-    <!-- Notification Bell Button -->
     <button
       @click="showDropdown = !showDropdown"
       class="relative inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex-shrink-0"
       title="Review Notifications"
     >
-      <!-- Bell Icon -->
       <svg class="w-5 h-5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
       </svg>
 
-      <!-- Unread Badge -->
       <span
         v-if="unreadCount > 0"
         class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full"
@@ -20,7 +17,6 @@
       </span>
     </button>
 
-    <!-- Dropdown Panel -->
     <transition
       enter-active-class="transition ease-out duration-100"
       enter-from-class="transform opacity-0 scale-95"
@@ -33,7 +29,6 @@
         v-if="showDropdown"
         class="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-50"
       >
-        <!-- Header -->
         <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 p-4">
           <h3 class="text-sm font-bold text-gray-900 dark:text-white">Review Notifications</h3>
           <button
@@ -46,7 +41,6 @@
           </button>
         </div>
 
-        <!-- Notifications List -->
         <div class="max-h-96 overflow-y-auto">
           <div v-if="loading" class="p-4 text-center">
             <p class="text-sm text-gray-500">Loading...</p>
@@ -69,7 +63,6 @@
               ]"
               @click="markAsRead(notification.id)"
             >
-              <!-- Icon -->
               <div class="flex gap-3">
                 <div class="flex-shrink-0">
                   <span class="inline-flex items-center justify-center h-8 w-8 rounded-full"
@@ -86,7 +79,6 @@
                   </span>
                 </div>
 
-                <!-- Content -->
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-semibold text-gray-900 dark:text-white">
                     <span v-if="notification.notification_type === 'new_review'">New Review</span>
@@ -101,7 +93,6 @@
                   </p>
                 </div>
 
-                <!-- Unread Indicator -->
                 <div v-if="!notification.is_read" class="flex-shrink-0">
                   <div class="h-2 w-2 bg-blue-600 rounded-full mt-1"></div>
                 </div>
@@ -110,7 +101,6 @@
           </div>
         </div>
 
-        <!-- Footer -->
         <div class="border-t border-slate-200 dark:border-slate-700 p-3 text-center">
           <router-link
             to="/reviews"
@@ -123,7 +113,6 @@
       </div>
     </transition>
 
-    <!-- Backdrop -->
     <div
       v-if="showDropdown"
       class="fixed inset-0 z-40"
@@ -141,7 +130,7 @@ const showDropdown = ref(false)
 const notifications = ref<ReviewNotification[]>([])
 const unreadCount = ref(0)
 const loading = ref(false)
-let pollInterval: NodeJS.Timeout | null = null
+let pollInterval: any = null
 
 const formatTime = (dateString: string) => {
   const date = new Date(dateString)
@@ -164,7 +153,7 @@ const loadNotifications = async () => {
     notifications.value = (data.data as ReviewNotification[]) || []
     unreadCount.value = await reviewService.getUnreadNotificationCount()
   } catch (error) {
-    console.error('Failed to load notifications:', error)
+    console.error('[ReviewNotificationBell] Failed to load notifications:', error)
   } finally {
     loading.value = false
   }
@@ -179,14 +168,13 @@ const markAsRead = async (notificationId: string) => {
       unreadCount.value = Math.max(0, unreadCount.value - 1)
     }
   } catch (error) {
-    console.error('Failed to mark as read:', error)
+    console.error('[ReviewNotificationBell] Failed to mark notification as read:', error)
   }
 }
 
 onMounted(() => {
   loadNotifications()
 
-  // Poll for new notifications every 30 seconds
   pollInterval = setInterval(() => {
     loadNotifications()
   }, 30000)
@@ -200,7 +188,4 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.review-notification-bell {
-  /* Component styles */
-}
 </style>

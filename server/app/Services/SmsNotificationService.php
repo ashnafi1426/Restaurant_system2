@@ -6,40 +6,14 @@ use App\Models\Reservation;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-/**
- * ============================================================================
- * SmsNotificationService
- * ============================================================================
- * Handles SMS notifications for guest bookings
- * 
- * Features:
- * - Send confirmation SMS after booking
- * - Send check-in reminders 24 hours before
- * - Send cancellation notifications
- * - Track SMS delivery status
- * - Support for multiple SMS providers (Chapa SMS, etc.)
- * ============================================================================
- */
 class SmsNotificationService
 {
-    /**
-     * SMS Provider (can be configured in env)
-     */
     private string $provider;
 
-    /**
-     * SMS API Key
-     */
     private string $apiKey;
 
-    /**
-     * SMS API Endpoint
-     */
     private string $apiEndpoint;
 
-    /**
-     * SMS Sender ID
-     */
     private string $senderId;
 
     public function __construct()
@@ -50,22 +24,13 @@ class SmsNotificationService
         $this->senderId = config('services.sms.sender_id', 'HOTEL');
     }
 
-    /**
-     * ============================================================================
-     * Send Booking Confirmation SMS
-     * ============================================================================
-     * Sends confirmation SMS to guest after successful booking
-     * 
-     * @param Reservation $reservation
-     * @return array - {success: bool, message_id?: string, error?: string}
-     */
     public function sendBookingConfirmation(Reservation $reservation): array
     {
         try {
             $guest = $reservation->guest;
 
             if (!$guest || !$guest->phone) {
-                Log::warning('⚠️ [SMS] No phone number for guest', [
+                Log::warning(' [SMS] No phone number for guest', [
                     'guest_id' => $guest?->id,
                     'reservation_id' => $reservation->id,
                 ]);
@@ -84,7 +49,7 @@ class SmsNotificationService
             );
 
         } catch (\Exception $e) {
-            Log::error('❌ [SMS] Booking confirmation exception', [
+            Log::error(' [SMS] Booking confirmation exception', [
                 'message' => $e->getMessage(),
                 'reservation_id' => $reservation->id,
             ]);
@@ -96,22 +61,13 @@ class SmsNotificationService
         }
     }
 
-    /**
-     * ============================================================================
-     * Send Check-In Reminder SMS
-     * ============================================================================
-     * Sends reminder SMS 24 hours before check-in
-     * 
-     * @param Reservation $reservation
-     * @return array - {success: bool, message_id?: string, error?: string}
-     */
     public function sendCheckInReminder(Reservation $reservation): array
     {
         try {
             $guest = $reservation->guest;
 
             if (!$guest || !$guest->phone) {
-                Log::warning('⚠️ [SMS] No phone number for guest', [
+                Log::warning(' [SMS] No phone number for guest', [
                     'guest_id' => $guest?->id,
                     'reservation_id' => $reservation->id,
                 ]);
@@ -130,7 +86,7 @@ class SmsNotificationService
             );
 
         } catch (\Exception $e) {
-            Log::error('❌ [SMS] Check-in reminder exception', [
+            Log::error(' [SMS] Check-in reminder exception', [
                 'message' => $e->getMessage(),
                 'reservation_id' => $reservation->id,
             ]);
@@ -142,23 +98,13 @@ class SmsNotificationService
         }
     }
 
-    /**
-     * ============================================================================
-     * Send Cancellation SMS
-     * ============================================================================
-     * Sends cancellation notification SMS to guest
-     * 
-     * @param Reservation $reservation
-     * @param ?float $refundAmount
-     * @return array - {success: bool, message_id?: string, error?: string}
-     */
     public function sendCancellationNotification(Reservation $reservation, ?float $refundAmount = null): array
     {
         try {
             $guest = $reservation->guest;
 
             if (!$guest || !$guest->phone) {
-                Log::warning('⚠️ [SMS] No phone number for guest', [
+                Log::warning(' [SMS] No phone number for guest', [
                     'guest_id' => $guest?->id,
                     'reservation_id' => $reservation->id,
                 ]);
@@ -177,7 +123,7 @@ class SmsNotificationService
             );
 
         } catch (\Exception $e) {
-            Log::error('❌ [SMS] Cancellation notification exception', [
+            Log::error(' [SMS] Cancellation notification exception', [
                 'message' => $e->getMessage(),
                 'reservation_id' => $reservation->id,
             ]);
@@ -189,22 +135,11 @@ class SmsNotificationService
         }
     }
 
-    /**
-     * ============================================================================
-     * Send SMS
-     * ============================================================================
-     * Generic SMS sending method supporting multiple providers
-     * 
-     * @param string $phoneNumber - Recipient phone number
-     * @param string $message - SMS message content
-     * @param string $messageId - Unique message identifier for tracking
-     * @return array - {success: bool, message_id?: string, error?: string, provider_response?: array}
-     */
     private function sendSms(string $phoneNumber, string $message, string $messageId): array
     {
         try {
             if (empty($this->apiKey)) {
-                Log::warning('⚠️ [SMS] SMS API key not configured', [
+                Log::warning(' [SMS] SMS API key not configured', [
                     'provider' => $this->provider,
                 ]);
                 return [
@@ -213,10 +148,9 @@ class SmsNotificationService
                 ];
             }
 
-            // Sanitize phone number
             $phoneNumber = $this->sanitizePhoneNumber($phoneNumber);
 
-            Log::info('📱 [SMS] Sending SMS', [
+            Log::info('[SMS] Sending SMS', [
                 'provider' => $this->provider,
                 'phone' => $this->maskPhoneNumber($phoneNumber),
                 'message_id' => $messageId,
@@ -228,13 +162,13 @@ class SmsNotificationService
                 : $this->sendViaDefaultProvider($phoneNumber, $message, $messageId);
 
             if ($response['success']) {
-                Log::info('✅ [SMS] SMS sent successfully', [
+                Log::info(' [SMS] SMS sent successfully', [
                     'provider' => $this->provider,
                     'message_id' => $messageId,
                     'provider_message_id' => $response['provider_message_id'] ?? null,
                 ]);
             } else {
-                Log::error('❌ [SMS] Failed to send SMS', [
+                Log::error(' [SMS] Failed to send SMS', [
                     'provider' => $this->provider,
                     'message_id' => $messageId,
                     'error' => $response['error'] ?? 'Unknown error',
@@ -244,7 +178,7 @@ class SmsNotificationService
             return $response;
 
         } catch (\Exception $e) {
-            Log::error('❌ [SMS] Send SMS exception', [
+            Log::error(' [SMS] Send SMS exception', [
                 'message' => $e->getMessage(),
                 'message_id' => $messageId,
             ]);
@@ -256,9 +190,6 @@ class SmsNotificationService
         }
     }
 
-    /**
-     * Send SMS via Chapa API
-     */
     private function sendViaChapaApi(string $phoneNumber, string $message, string $messageId): array
     {
         try {
@@ -288,7 +219,7 @@ class SmsNotificationService
             }
 
         } catch (\Exception $e) {
-            Log::error('❌ [SMS] Chapa API exception', [
+            Log::error(' [SMS] Chapa API exception', [
                 'message' => $e->getMessage(),
             ]);
 
@@ -299,9 +230,6 @@ class SmsNotificationService
         }
     }
 
-    /**
-     * Send SMS via default HTTP provider
-     */
     private function sendViaDefaultProvider(string $phoneNumber, string $message, string $messageId): array
     {
         try {
@@ -327,7 +255,7 @@ class SmsNotificationService
             }
 
         } catch (\Exception $e) {
-            Log::error('❌ [SMS] Default provider exception', [
+            Log::error(' [SMS] Default provider exception', [
                 'message' => $e->getMessage(),
             ]);
 
@@ -338,9 +266,6 @@ class SmsNotificationService
         }
     }
 
-    /**
-     * Format booking confirmation message
-     */
     private function formatConfirmationMessage(Reservation $reservation): string
     {
         $hotel = $reservation->room?->hotel;
@@ -351,9 +276,6 @@ class SmsNotificationService
         return "Hi {$reservation->guest->first_name}! Your booking at {$hotelName} is confirmed for {$checkInDate}. Booking Reference: {$bookingRef}. Thank you!";
     }
 
-    /**
-     * Format check-in reminder message
-     */
     private function formatCheckInReminderMessage(Reservation $reservation): string
     {
         $hotel = $reservation->room?->hotel;
@@ -364,9 +286,6 @@ class SmsNotificationService
         return "Reminder: Your check-in at {$hotelName} is tomorrow ({$checkInDate}) at {$checkInTime}. We look forward to welcoming you!";
     }
 
-    /**
-     * Format cancellation message
-     */
     private function formatCancellationMessage(Reservation $reservation, ?float $refundAmount = null): string
     {
         $hotel = $reservation->room?->hotel;
@@ -377,18 +296,13 @@ class SmsNotificationService
         return "Your booking at {$hotelName} (Ref: {$bookingRef}) has been cancelled.{$refundInfo} For assistance, contact support.";
     }
 
-    /**
-     * Sanitize phone number - ensure proper format
-     */
     private function sanitizePhoneNumber(string $phone): string
     {
-        // Remove all non-digit characters except leading +
         if (strpos($phone, '+') === 0) {
             $phone = '+' . preg_replace('/[^0-9]/', '', substr($phone, 1));
         } else {
             $phone = preg_replace('/[^0-9]/', '', $phone);
 
-            // Add country code if not present (assuming Ethiopia +251)
             if (!str_starts_with($phone, '251') && !str_starts_with($phone, '0')) {
                 $phone = '251' . $phone;
             } elseif (str_starts_with($phone, '0')) {
@@ -401,12 +315,8 @@ class SmsNotificationService
         return $phone;
     }
 
-    /**
-     * Mask phone number for logging
-     */
     private function maskPhoneNumber(string $phone): string
     {
-        // Keep first 5 and last 2 digits
         if (strlen($phone) > 7) {
             return substr($phone, 0, 5) . '***' . substr($phone, -2);
         }

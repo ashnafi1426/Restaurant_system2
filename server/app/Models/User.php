@@ -41,10 +41,6 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Get the password for authentication.
-     * Since our column is password_hash, we need to tell Laravel to use it.
-     */
     public function getAuthPassword()
     {
         return $this->password_hash;
@@ -78,20 +74,13 @@ class User extends Authenticatable
         return $this->role === 'chef';
     }
 
-    /**
-     * Check if user account is activated.
-     */
     public function isActivated(): bool
     {
         return in_array($this->activation_status, ['activated', 'active']) || !empty($this->password_hash);
     }
 
-    /**
-     * Check if user needs activation.
-     */
     public function needsActivation(): bool
     {
-        // If the user already has a password set and account is active, they can log in directly
         if (!empty($this->password_hash) && $this->is_active) {
             return false;
         }
@@ -99,9 +88,6 @@ class User extends Authenticatable
         return in_array($this->activation_status, ['pending', 'expired']);
     }
 
-    /**
-     * Check if activation token is valid (not expired).
-     */
     public function hasValidActivationToken(): bool
     {
         return $this->activation_token 
@@ -110,89 +96,64 @@ class User extends Authenticatable
     }
     public function managerNotifications()
     {
-    return $this->hasMany(ManagerNotification::class, 'manager_id');
+        return $this->hasMany(ManagerNotification::class, 'manager_id');
     }
 
     public function managerActivityLogs()
     {
-    return $this->hasMany(ManagerActivityLog::class, 'manager_id');
+        return $this->hasMany(ManagerActivityLog::class, 'manager_id');
     }
 
     public function managerDashboardSetting()
     {
-    return $this->hasOne(ManagerDashboardSetting::class, 'manager_id');
+        return $this->hasOne(ManagerDashboardSetting::class, 'manager_id');
     }
 
     public function managerAnnouncements()
     {
-    return $this->hasMany(ManagerAnnouncement::class, 'manager_id');
+        return $this->hasMany(ManagerAnnouncement::class, 'manager_id');
     }
 
     public function managerReports()
     {
-    return $this->hasMany(ManagerReport::class, 'manager_id');
+        return $this->hasMany(ManagerReport::class, 'manager_id');
     }
 
-    /**
-     * Get all waiter assignments for this user
-     * (only if user is a waiter)
-     */
     public function assignments()
     {
         return $this->hasMany(WaiterAssignment::class, 'waiter_id');
     }
 
-    /**
-     * Get the waiter profile linked to this user.
-     */
     public function waiter()
     {
         return $this->hasOne(Waiter::class, 'user_id', 'id');
     }
 
-    /**
-     * Get the administrator profile linked to this user.
-     */
     public function administrator()
     {
         return $this->hasOne(Administrator::class, 'id', 'id');
     }
 
-    /**
-     * Get the manager profile linked to this user.
-     */
     public function manager()
     {
         return $this->hasOne(Manager::class, 'id', 'id');
     }
 
-    /**
-     * Get the receptionist profile linked to this user.
-     */
     public function receptionist()
     {
         return $this->hasOne(Receptionist::class, 'id', 'id');
     }
 
-    /**
-     * Get the cashier profile linked to this user.
-     */
     public function cashier()
     {
         return $this->hasOne(Cashier::class, 'id', 'id');
     }
 
-    /**
-     * Get the chef profile linked to this user.
-     */
     public function chef()
     {
         return $this->hasOne(Chef::class, 'id', 'id');
     }
 
-    /**
-     * RBAC: User's permanent assigned roles.
-     */
     public function roles()
     {
         return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id')
@@ -200,25 +161,16 @@ class User extends Authenticatable
                     ->withTimestamps();
     }
 
-    /**
-     * RBAC: User's temporary role assignments.
-     */
     public function temporaryRoleAssignments()
     {
         return $this->hasMany(TemporaryRoleAssignment::class, 'user_id');
     }
 
-    /**
-     * RBAC: Direct user permission assignments.
-     */
     public function userPermissions()
     {
         return $this->hasMany(UserPermission::class, 'user_id');
     }
 
-    /**
-     * RBAC: Direct permissions relationship.
-     */
     public function directPermissions()
     {
         return $this->belongsToMany(Permission::class, 'user_permissions', 'user_id', 'permission_id')
@@ -226,49 +178,31 @@ class User extends Authenticatable
                     ->withTimestamps();
     }
 
-    /**
-     * RBAC: Helper method to check if user has a permission.
-     */
     public function hasPermission(string $permissionSlug): bool
     {
         return app(\App\Services\AuthorizationService::class)->hasPermission($this, $permissionSlug);
     }
 
-    /**
-     * RBAC: Helper method to check if user has any permission.
-     */
     public function hasAnyPermission(array $permissionSlugs): bool
     {
         return app(\App\Services\AuthorizationService::class)->hasAnyPermission($this, $permissionSlugs);
     }
 
-    /**
-     * RBAC: Helper method to check if user has all permissions.
-     */
     public function hasAllPermissions(array $permissionSlugs): bool
     {
         return app(\App\Services\AuthorizationService::class)->hasAllPermissions($this, $permissionSlugs);
     }
 
-    /**
-     * RBAC: Helper method to check if user has a role.
-     */
     public function hasRole(string $roleSlug): bool
     {
         return app(\App\Services\AuthorizationService::class)->hasRole($this, $roleSlug);
     }
 
-    /**
-     * RBAC: Helper method to get effective permissions list.
-     */
     public function getEffectivePermissions(): array
     {
         return app(\App\Services\AuthorizationService::class)->getEffectivePermissions($this);
     }
 
-    /**
-     * Multi-Tenant: Hotels this user belongs to.
-     */
     public function hotels()
     {
         return $this->belongsToMany(Hotel::class, 'hotel_users', 'user_id', 'hotel_id')
@@ -276,17 +210,11 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    /**
-     * Multi-Tenant: User's hotel membership records.
-     */
     public function hotelMemberships()
     {
         return $this->hasMany(HotelUser::class, 'user_id');
     }
 
-    /**
-     * Check if user belongs to a specific hotel.
-     */
     public function belongsToHotel(string $hotelId): bool
     {
         return $this->hotelMemberships()
@@ -295,12 +223,8 @@ class User extends Authenticatable
             ->exists();
     }
 
-    /**
-     * Get user's role in a specific hotel.
-     */
     public function getHotelRole(string $hotelId): ?string
     {
-        // 1. Check user_roles assignment for this hotel
         $roleFromUserRoles = \App\Models\Role::withoutTenant()
             ->where('hotel_id', $hotelId)
             ->where('is_active', true)
@@ -314,7 +238,6 @@ class User extends Authenticatable
             return strtolower($roleFromUserRoles->slug);
         }
 
-        // 2. Check hotel membership record
         $membership = $this->hotelMemberships()
             ->where('hotel_id', $hotelId)
             ->where('is_active', true)
@@ -332,9 +255,6 @@ class User extends Authenticatable
             }
         }
 
-        // 3. Fallback to user model's role column
         return !empty($this->role) ? strtolower($this->role) : null;
     }
 }
-
-

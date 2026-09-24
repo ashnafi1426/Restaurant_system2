@@ -8,13 +8,14 @@ export interface Guest {
 export interface Room {
   id: string
   room_number: string
-  room_type?: string
+  room_type?: string | { id?: string | number; name?: string; capacity?: number; base_price_per_night?: number } | null
   floor?: number
   status?: string
 }
 export interface Reservation {
   id: string
   booking_reference: string
+  reservation_number?: string
   guest_id: string
   room_id: string
   guest?: Guest
@@ -23,6 +24,12 @@ export interface Reservation {
   check_out_date: string
   total_nights?: number
   number_of_guests: number
+  adults_count?: number
+  children_count?: number
+  total_price?: number
+  total_amount?: number
+  total?: number
+  payment_status?: string
   status: 'pending' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled'
   special_requests?: string | null
   cancelled_at?: string | null
@@ -33,7 +40,6 @@ export interface Reservation {
 
   updated_at?: string
 }
-
 export interface ReservationFormData {
   guest_id: string
 

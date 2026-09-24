@@ -5,6 +5,7 @@ export interface OrderItem {
   item_price_at_order?: number
   price?: number
   line_total?: number
+  subtotal?: number
   notes?: string
   name?: string
   menu_item?: {
@@ -77,7 +78,7 @@ export interface Order {
   room_id: string
   order_time: string
   status: 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled'
-  payment_type: 'room_charge' | 'cash' | 'card'
+  payment_type: 'room_charge' | 'cash' | 'card' | 'chapa' | 'online'
   subtotal: number
   tax: number
   discount: number
@@ -105,7 +106,14 @@ export interface Order {
       name: string
     }
   }
+  table?: {
+    id: string
+    table_number: string
+  }
   reservation?: {
     id: string
+    booking_reference?: string
+    check_in_date?: string
+    check_out_date?: string
   }
 }

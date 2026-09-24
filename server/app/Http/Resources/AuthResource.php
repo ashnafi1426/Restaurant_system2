@@ -7,9 +7,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class AuthResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     */
     public function toArray(Request $request): array
     {
         $hotelId = app(\App\Services\TenantContext::class)->getHotelId()
@@ -23,7 +20,6 @@ class AuthResource extends JsonResource
         $effectivePermissions = $authService->getEffectivePermissions($this->resource, $hotelId);
         $tempAssignments = $authService->getActiveTemporaryRoles($this->resource);
 
-        // Dynamically compute primary role slug from active hotel roles
         $primaryRoleSlug = $activeRoles->isNotEmpty()
             ? strtolower($activeRoles->first()->slug)
             : ($this->isPlatformAdmin() ? 'admin' : strtolower($this->role ?? 'guest'));

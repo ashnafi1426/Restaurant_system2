@@ -37,23 +37,16 @@ export interface AssignmentStats {
 }
 
 class FloorAssignmentService {
-  /**
-   * Get today's floor assignments
-   */
   async getTodayAssignments(): Promise<FloorAssignment[]> {
     try {
       const response = await api.get('/manager/floors/assignments/today')
       return response.data.data || response.data
     } catch (error: any) {
-      // If endpoint fails, log and return empty array
-      console.warn('Failed to fetch today assignments:', error.message)
+      console.error('[FloorAssignmentService] Error fetching today assignments:', error)
       return []
     }
   }
 
-  /**
-   * Get all assignments with filters
-   */
   async getAssignments(params?: {
     page?: number
     per_page?: number
@@ -66,9 +59,6 @@ class FloorAssignmentService {
     return response.data
   }
 
-  /**
-   * Assign waiters to floors (batch)
-   */
   async assignWaitersToFloors(assignments: Array<{
     waiter_id: string
     floor_id: string
@@ -77,25 +67,17 @@ class FloorAssignmentService {
     priority: 'primary' | 'secondary' | 'backup'
   }>): Promise<FloorAssignment[]> {
     try {
-      console.log('[FloorAssignmentService] Assigning waiters to floors:', assignments)
-      
       const response = await api.post('/manager/floors/assignments', {
         assignments,
       })
-      
-      console.log('[FloorAssignmentService] API Response:', response.data)
-      
       const data = response.data.data || response.data
       return Array.isArray(data) ? data : [data]
     } catch (error: any) {
-      console.error('[FloorAssignmentService] Assignment error:', error.response?.data || error.message)
+      console.error('[FloorAssignmentService] Error assigning waiters to floors:', error)
       throw error
     }
   }
 
-  /**
-   * Update assignment priority
-   */
   async updateAssignmentPriority(
     assignmentId: string,
     priority: 'primary' | 'secondary' | 'backup'
@@ -106,33 +88,18 @@ class FloorAssignmentService {
     return response.data.data
   }
 
-  /**
-   * Delete assignment
-   */
   async deleteAssignment(assignmentId: string): Promise<void> {
     await api.delete(`/manager/floors/assignments/${assignmentId}`)
   }
 
-  /**
-   * Get assignment statistics
-   */
   async getAssignmentStats(date?: string): Promise<AssignmentStats> {
     try {
-      console.log('[FloorAssignmentService] Fetching stats for date:', date)
       const response = await api.get('/manager/floors/assignments/stats', {
         params: date ? { date } : {},
       })
-      console.log('[FloorAssignmentService] Stats response:', response.data)
       return response.data.data || response.data
     } catch (error: any) {
-      // If stats endpoint fails, log the URL and return default stats
-      console.warn('[FloorAssignmentService] Stats endpoint failed:', {
-        message: error.message,
-        status: error.response?.status,
-        url: error.config?.url,
-        fullError: error
-      })
-      // Return default stats - this is non-critical
+      console.error('[FloorAssignmentService] Error fetching assignment stats:', error)
       return {
         total_assignments: 0,
         total_floors: 0,
@@ -144,28 +111,19 @@ class FloorAssignmentService {
     }
   }
 
-  /**
-   * Get all shifts (for assignment modal)
-   */
   async getShifts(): Promise<any[]> {
     try {
-      console.log('[FloorAssignmentService] Fetching shifts...')
       const response = await api.get('/manager/shifts', { params: { status: 'active' } })
       const shifts = response.data.data || response.data
       
-      // Ensure we return an array
       if (Array.isArray(shifts)) {
-        console.log('[FloorAssignmentService] Shifts loaded:', shifts.length)
         return shifts
       } else if (shifts.data && Array.isArray(shifts.data)) {
-        console.log('[FloorAssignmentService] Shifts loaded (from data property):', shifts.data.length)
         return shifts.data
       }
-      
-      console.warn('[FloorAssignmentService] Unexpected shifts format:', shifts)
       return []
     } catch (error: any) {
-      console.error('[FloorAssignmentService] Error fetching shifts:', error.message)
+      console.error('[FloorAssignmentService] Error fetching shifts:', error)
       return []
     }
   }

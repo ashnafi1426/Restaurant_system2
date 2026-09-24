@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- Main Navbar -->
     <nav
       class="guest-navbar fixed top-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700 shadow-sm dark:shadow-slate-950/50 transition-colors"
     >
@@ -8,109 +7,105 @@
         class="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400/60 dark:via-amber-500/40 to-transparent"
       ></div>
 
-      <!-- Navbar Content -->
       <div class="px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-        <!-- Left: Logo -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2.5">
           <div
-            class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 shadow-md flex items-center justify-center flex-shrink-0"
+            class="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 shadow-xs flex items-center justify-center flex-shrink-0 overflow-hidden"
           >
-            <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path
-                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-              />
-            </svg>
+            <img 
+              v-if="hotelLogoUrl && !imageLoadFailed" 
+              :src="hotelLogoUrl" 
+              :alt="guestHotelStore.hotelName" 
+              class="w-full h-full object-cover" 
+              @error="imageLoadFailed = true" 
+            />
+            <span v-else class="text-amber-600 dark:text-amber-400 font-black text-lg">
+              {{ (guestHotelStore.hotelName || 'H').charAt(0).toUpperCase() }}
+            </span>
           </div>
           <div class="hidden sm:block">
-            <h1 class="text-sm md:text-lg font-bold text-slate-900 dark:text-slate-100 transition-colors">Royal Horizon</h1>
+            <h1 class="text-sm md:text-lg font-bold text-slate-900 dark:text-slate-100 transition-colors">{{ guestHotelStore.hotelName }}</h1>
             <p
               class="text-[8px] md:text-[10px] text-amber-600 dark:text-amber-400 font-semibold tracking-[2px] uppercase transition-colors"
             >
-              Hotel & Resort
+              {{ guestHotelStore.currentHotel?.city || 'Hotel & Resort' }}
             </p>
           </div>
         </div>
 
-        <!-- Center: Title (Desktop Only) -->
         <div class="hidden md:flex flex-col items-center">
-          <h2 class="text-lg lg:text-xl font-serif font-bold text-slate-900 dark:text-slate-100 transition-colors">Our Menu</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 transition-colors">Delicious meals, delivered to your room</p>
+          <h2 class="text-lg lg:text-xl font-serif font-bold text-slate-900 dark:text-slate-100 transition-colors">{{ languageStore.t('digital_menu', 'Our Menu') }}</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 transition-colors">{{ languageStore.t('culinary_desc', 'Delicious meals, delivered to your room') }}</p>
         </div>
 
-        <!-- Right: Controls (Mobile, Tablet & Desktop Responsive) -->
-        <div class="flex items-center gap-1.5 sm:gap-3">
-          <div class="flex items-center gap-1.5 sm:gap-3">
-            <!-- Theme Toggle Button -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <div class="flex items-center gap-2 sm:gap-2.5">
             <button
               @click="handleThemeToggle"
-              class="flex items-center justify-center w-10 h-10 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-amber-500 transition cursor-pointer shadow-xs"
-              :title="theme.isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+              class="flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-amber-500 transition cursor-pointer shadow-xs shrink-0"
+              :title="theme.isDark ? languageStore.t('light_mode', 'Switch to Light Mode') : languageStore.t('dark_mode', 'Switch to Dark Mode')"
             >
-              <Sun v-if="theme.isDark" class="w-5 h-5 text-amber-400" />
-              <Moon v-else class="w-5 h-5 text-slate-700" />
+              <Sun v-if="theme.isDark" class="w-4.5 h-4.5 text-amber-400" />
+              <Moon v-else class="w-4.5 h-4.5 text-slate-700" />
             </button>
 
-            <!-- Fullscreen Toggle Button matching Screenshot Image 1 -->
             <button
               @click="toggleFullscreen"
-              class="flex items-center justify-center w-10 h-10 rounded-2xl border-2 border-amber-400 bg-white dark:bg-slate-900 hover:border-amber-500 hover:scale-105 transition-all cursor-pointer shadow-xs"
-              :title="isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'"
+              class="flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-amber-500 hover:scale-105 transition-all cursor-pointer shadow-xs shrink-0"
+              :title="isFullscreen ? languageStore.t('exit_fullscreen', 'Exit Fullscreen') : languageStore.t('fullscreen', 'Enter Fullscreen')"
             >
-              <Maximize v-if="!isFullscreen" class="w-5 h-5 text-amber-500 stroke-[2.5]" />
-              <Minimize v-else class="w-5 h-5 text-amber-500 stroke-[2.5]" />
+              <Maximize v-if="!isFullscreen" class="w-4.5 h-4.5 text-amber-500 stroke-[2.5]" />
+              <Minimize v-else class="w-4.5 h-4.5 text-amber-500 stroke-[2.5]" />
             </button>
 
+            <!-- Language Selector -->
+            <LanguageSelector variant="compact" />
 
-
-            <!-- Profile Button -->
             <button
               @click="toggleProfileDropdown"
-              class="flex items-center gap-2 px-4 py-2 rounded-full bg-[#c29353] hover:bg-[#b08244] text-white text-xs font-black shadow-md transition cursor-pointer"
+              class="flex items-center gap-2 h-10 px-3.5 sm:px-4 rounded-xl bg-[#c29353] hover:bg-[#b08244] text-white text-xs font-black shadow-md transition cursor-pointer shrink-0"
             >
               <User class="w-4 h-4 text-white" />
-              <span>{{ guestName }}</span>
+              <span class="max-w-[120px] truncate">{{ guestName || languageStore.t('walk_in_guest', 'Walk-in Guest') }}</span>
               <ChevronDown class="w-3.5 h-3.5 text-white/80" />
             </button>
 
-            <!-- Profile Dropdown matching Screenshot -->
             <Transition name="dropdown">
               <div
                 v-if="showProfileDropdown"
                 class="absolute right-0 mt-2 top-full w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 z-50 overflow-hidden font-sans"
               >
-                <!-- Profile Header Card matching Screenshot -->
                 <div class="p-4 bg-[#fffdf5] dark:bg-slate-800/80 border-b border-amber-100 dark:border-slate-800 flex items-center gap-3">
                   <div class="w-11 h-11 rounded-full border-2 border-[#c29353] bg-[#c29353]/10 flex items-center justify-center text-amber-700 dark:text-amber-400 flex-shrink-0">
                     <User class="w-5 h-5" />
                   </div>
                   <div>
-                    <p class="text-sm font-black text-slate-900 dark:text-white leading-tight">{{ guestName }}</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Room {{ currentRoom || '101' }}</p>
+                    <p class="text-sm font-black text-slate-900 dark:text-white leading-tight">{{ guestName || languageStore.t('walk_in_guest', 'Walk-in Guest') }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('room', 'Room') }} {{ currentRoom || '101' }}</p>
                   </div>
                 </div>
 
-                <!-- Dropdown Menu Actions -->
                 <div class="py-1">
                   <button
                     @click="handleViewProfile"
                     class="w-full px-5 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-3 cursor-pointer"
                   >
                     <User class="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                    <span>My Profile</span>
+                    <span>{{ languageStore.t('my_profile', 'My Profile') }}</span>
                   </button>
                   <button
                     @click="handleMyOrders"
                     class="w-full px-5 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-3 cursor-pointer"
                   >
                     <ShoppingBag class="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                    <span>My Orders</span>
+                    <span>{{ languageStore.t('my_orders', 'My Orders') }}</span>
                   </button>
                   <button
                     @click="handleSettings"
                     class="w-full px-5 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-3 cursor-pointer"
                   >
                     <Settings class="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                    <span>Settings</span>
+                    <span>{{ languageStore.t('settings', 'Settings') }}</span>
                   </button>
                   <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
                   <button
@@ -118,17 +113,16 @@
                     class="w-full px-5 py-3 text-left text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition flex items-center gap-3 cursor-pointer"
                   >
                     <LogOut class="w-4 h-4 text-rose-500" />
-                    <span>Logout</span>
+                    <span>{{ languageStore.t('logout', 'Logout') }}</span>
                   </button>
                 </div>
               </div>
             </Transition>
           </div>
 
-          <!-- Mobile: Hamburger Menu Button -->
           <button
             @click="toggleMobileMenu"
-            class="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 transition-colors"
+            class="md:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-amber-50 dark:hover:bg-slate-800 transition-colors shrink-0"
             :title="showMobileMenu ? 'Close menu' : 'Open menu'"
           >
             <svg
@@ -164,190 +158,119 @@
       </div>
     </nav>
 
-    <!-- Mobile Menu Backdrop -->
-    <Transition name="fade">
-      <div
-        v-if="showMobileMenu"
-        class="fixed inset-0 bg-black/20 md:hidden z-40 transition-colors"
-        @click="closeMobileMenu"
-        style="top: 64px"
-      ></div>
-    </Transition>
+    <Teleport to="body">
+      <!-- Backdrop Dimmer -->
+      <Transition name="fade">
+        <div
+          v-if="showMobileMenu"
+          class="fixed inset-0 bg-black/40 backdrop-blur-xs z-[90] md:hidden transition-opacity"
+          @click="closeMobileMenu"
+        ></div>
+      </Transition>
 
-    <!-- Mobile Menu -->
-    <Transition name="slide-in">
-      <div
-        v-if="showMobileMenu"
-        class="fixed top-16 left-0 right-0 bottom-0 bg-white dark:bg-slate-900 md:hidden z-45 overflow-y-auto transition-colors"
-      >
-        <!-- Tab Navigation -->
-        <div class="sticky top-0 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-700 p-3 flex gap-2 z-10 transition-colors">
-          <button
-            @click="mobileMenuTab = 'categories'"
-            class="flex-1 py-2 px-3 rounded-lg font-medium text-sm transition-all"
-            :class="[
-              mobileMenuTab === 'categories'
-                ? 'bg-amber-500 text-white'
-                : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700',
-            ]"
-          >
-            📁 Categories
-          </button>
-          <button
-            @click="mobileMenuTab = 'profile'"
-            class="flex-1 py-2 px-3 rounded-lg font-medium text-sm transition-all"
-            :class="[
-              mobileMenuTab === 'profile'
-                ? 'bg-amber-500 text-white'
-                : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700',
-            ]"
-          >
-            👤 Profile
-          </button>
-        </div>
+      <!-- Minimized Mobile Drawer (Slides from Right, compact width ~72-80 / max 82vw) -->
+      <Transition name="slide-right">
+        <div
+          v-if="showMobileMenu"
+          class="fixed top-0 right-0 bottom-0 w-72 sm:w-80 max-w-[85vw] bg-white dark:bg-slate-900 md:hidden z-[100] shadow-2xl flex flex-col border-l border-slate-200/80 dark:border-slate-800 transition-colors font-sans"
+        >
+          <!-- Compact Drawer Header -->
+          <div class="px-4 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-[#c29353]"></span>
+              <span class="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">
+                {{ languageStore.t('categories', 'Categories') }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <LanguageSelector variant="compact" />
+              <button
+                type="button"
+                @click.stop="closeMobileMenu"
+                class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                title="Close menu"
+              >
+                <X class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
 
-        <!-- Tab Content -->
-        <div class="p-4 space-y-3">
-          <!-- Categories Tab -->
-          <div v-if="mobileMenuTab === 'categories'" class="space-y-3">
-            <!-- Mobile Live Search Bar -->
+          <!-- Drawer Body with Scroll -->
+          <div class="p-3 space-y-2.5 flex-1 overflow-y-auto">
+            <!-- Mobile Search Input (Compact) -->
             <div class="relative">
               <input
                 v-model="mobileSearchQuery"
                 @input="handleMobileSearch"
                 type="text"
-                placeholder="Search delicious meals, drinks, desserts..."
-                class="w-full pl-9 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-amber-500 font-medium"
+                :placeholder="languageStore.t('search_placeholder', 'Search menu...')"
+                class="w-full pl-8 pr-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 text-xs rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-[#c29353] font-medium"
               />
-              <Search class="absolute left-3 top-3 w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <Search class="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-[#c29353]" />
             </div>
 
-            <div class="px-4 py-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg border border-amber-200 dark:border-amber-700 mb-2">
-              <p class="text-xs font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wide">
-                Browse Categories
-              </p>
+            <!-- Loading Categories -->
+            <div
+              v-if="loadingCategories && mobileCategories.length === 0"
+              class="flex items-center justify-center py-6 text-slate-400 dark:text-slate-500 text-xs"
+            >
+              <div class="w-4 h-4 border-2 border-[#c29353] border-t-transparent rounded-full animate-spin mr-2"></div>
+              Loading...
             </div>
+
+            <!-- Categories List (Compact) -->
             <div class="space-y-1">
               <button
                 v-for="category in mobileCategories"
                 :key="category.id || category.slug || category.name"
+                type="button"
                 @click.stop="selectCategoryMobile(category)"
-                class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 transition-colors text-left border-l-4 cursor-pointer"
+                class="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl transition-all duration-200 text-left cursor-pointer relative z-10"
                 :class="[
-                  (selectedMobileCategory === (category.id || category.slug || category.name) || (category.name === 'All Categories' && selectedMobileCategory === null))
-                    ? 'bg-amber-100 dark:bg-amber-900/40 border-l-amber-500 text-slate-900 dark:text-slate-100 font-bold'
-                    : 'border-l-transparent text-slate-700 dark:text-slate-300',
+                  isCategoryActive(category)
+                    ? 'bg-[#c29353] text-white font-black shadow-xs'
+                    : 'bg-slate-50/80 dark:bg-slate-800/50 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium'
                 ]"
               >
-                <span class="text-lg w-6 flex items-center justify-center flex-shrink-0">
-                  <component :is="getIconComponent(category.id)" :size="18" :stroke-width="1.5" />
-                </span>
-                <span class="text-sm font-medium flex-1">{{ category.name }}</span>
+                <div
+                  class="flex items-center justify-center flex-shrink-0 w-5"
+                  :class="{ 'text-white': isCategoryActive(category), 'text-slate-500 dark:text-slate-400': !isCategoryActive(category) }"
+                >
+                  <component :is="getCategoryIcon(category)" :size="16" :stroke-width="2" />
+                </div>
+                <span class="text-xs flex-1 truncate">{{ category.name }}</span>
                 <span
-                  v-if="category.count"
-                  class="text-xs bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 px-2 py-0.5 rounded-full"
+                  v-if="category.count !== undefined && category.count !== null"
+                  class="text-[10px] px-1.5 py-0.5 rounded-full font-bold transition-colors"
+                  :class="[
+                    isCategoryActive(category)
+                      ? 'bg-white/20 text-white'
+                      : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                  ]"
                 >
                   {{ category.count }}
                 </span>
               </button>
             </div>
           </div>
-
-          <!-- Profile Tab -->
-          <div v-if="mobileMenuTab === 'profile'" class="space-y-2">
-            <!-- Profile Header Card -->
-            <div
-              class="flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/30 rounded-lg border border-amber-200 dark:border-amber-700 mb-3"
-            >
-              <img
-                v-if="guestAvatar"
-                :src="guestAvatar"
-                :alt="guestName"
-                class="w-12 h-12 rounded-full object-cover border-2 border-amber-300 dark:border-amber-600 flex-shrink-0"
-              />
-              <div
-                v-else
-                class="w-12 h-12 rounded-full bg-amber-200 dark:bg-amber-900/40 flex items-center justify-center text-xl flex-shrink-0"
-              >
-                👤
-              </div>
-              <div class="min-w-0">
-                <p class="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{{ guestName }}</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
-                  Room {{ currentRoom || 'Not assigned' }}
-                </p>
-              </div>
-            </div>
-
-            <!-- Theme Toggle in Mobile Menu -->
-            <button
-              @click="handleThemeToggle"
-              class="flex items-center justify-center gap-2 w-full rounded-lg px-4 py-3 font-medium text-slate-700 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <Sun v-if="!theme.isDarkMode" class="w-5 h-5" />
-              <Moon v-else class="w-5 h-5" />
-              <span>{{ theme.isDarkMode ? 'Light Mode' : 'Dark Mode' }}</span>
-            </button>
-
-            <!-- Profile Menu Items -->
-            <button
-              @click="handleViewProfile"
-              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
-            >
-              <span class="text-lg">👤</span>
-              <span class="text-sm">My Profile</span>
-            </button>
-
-            <button
-              @click="handleMyOrders"
-              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
-            >
-              <span class="text-lg">📋</span>
-              <span class="text-sm">My Orders</span>
-            </button>
-
-            <button
-              @click="handleSearchClick"
-              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
-            >
-              <span class="text-lg">🔍</span>
-              <span class="text-sm">Search Menu</span>
-            </button>
-
-            <button
-              @click="handleSettings"
-              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
-            >
-              <span class="text-lg">⚙️</span>
-              <span class="text-sm">Settings</span>
-            </button>
-
-            <div class="border-t border-gray-200 dark:border-slate-700 my-2"></div>
-
-            <button
-              @click="handleLogout"
-              class="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400"
-            >
-              <span class="text-lg">🚪</span>
-              <span class="text-sm font-medium">Logout</span>
-            </button>
-          </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
 
-    <!-- Navbar Spacer -->
     <div class="h-16 md:h-20"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../../stores/auth'
 import { useThemeStore } from '../../../stores/themeStore'
+import { useLanguageStore } from '@/stores/language'
+import { useGuestHotelStore } from '@/stores/guestHotelStore'
+import LanguageSelector from '@/components/common/LanguageSelector.vue'
 import api from '../../../api/auth'
-import { Sun, Moon, Maximize, Minimize, User, ShoppingBag, Settings, LogOut, ChevronDown, Search } from 'lucide-vue-next'
+import { Sun, Moon, Maximize, Minimize, User, ShoppingBag, Settings, LogOut, ChevronDown, Search, X } from 'lucide-vue-next'
 import {
   Clock,
   Utensils,
@@ -361,6 +284,8 @@ import {
   Cake,
   Wine,
   Menu,
+  Grid,
+  Coffee,
 } from 'lucide-vue-next'
 
 interface Room {
@@ -372,6 +297,7 @@ interface Room {
 
 interface Category {
   id: string | null
+  slug?: string
   name: string
   icon: string
   count?: number
@@ -383,6 +309,7 @@ interface Props {
   guestAvatar?: string
   initialRoom?: string | number
   categories?: Category[]
+  selectedCategoryId?: string | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -390,20 +317,8 @@ const props = withDefaults(defineProps<Props>(), {
   guestEmail: '',
   guestAvatar: '',
   initialRoom: '',
-  categories: () => [
-    { id: null, name: 'All Categories', icon: 'menu', count: 0 },
-    { id: 'breakfast', name: 'Breakfast', icon: 'clock', count: 24 },
-    { id: 'lunch', name: 'Lunch', icon: 'utensils', count: 18 },
-    { id: 'appetizers', name: 'Appetizers', icon: 'leaf', count: 18 },
-    { id: 'soups', name: 'Soups', icon: 'soup', count: 12 },
-    { id: 'salads', name: 'Salads', icon: 'salad', count: 16 },
-    { id: 'main-course', name: 'Main Course', icon: 'utensils-crossed', count: 36 },
-    { id: 'pasta', name: 'Pasta', icon: 'layers', count: 14 },
-    { id: 'pizza', name: 'Pizza', icon: 'pizza', count: 12 },
-    { id: 'burgers', name: 'Burgers', icon: 'sandwich', count: 10 },
-    { id: 'desserts', name: 'Desserts', icon: 'cake', count: 14 },
-    { id: 'beverages', name: 'Beverages', icon: 'wine', count: 22 },
-  ],
+  categories: () => [],
+  selectedCategoryId: null,
 })
 
 const emit = defineEmits<{
@@ -419,18 +334,111 @@ const emit = defineEmits<{
 const router = useRouter()
 const authStore = useAuthStore()
 const theme = useThemeStore()
+const languageStore = useLanguageStore()
+const guestHotelStore = useGuestHotelStore()
 
-// State
 const currentRoom = ref<string | number>(props.initialRoom || '')
 const showRoomDropdown = ref(false)
 const showProfileDropdown = ref(false)
 const showMobileMenu = ref(false)
 const availableRooms = ref<Room[]>([])
 const roomsLoading = ref(false)
-const mobileMenuTab = ref<'categories' | 'profile'>('categories')
-const selectedMobileCategory = ref<string | null>(null)
+const selectedMobileCategory = ref<string | null>(props.selectedCategoryId)
 const isFullscreen = ref(false)
 const mobileSearchQuery = ref('')
+const imageLoadFailed = ref(false)
+
+watch(
+  () => [guestHotelStore.hotelId, guestHotelStore.currentHotel?.logo],
+  () => {
+    imageLoadFailed.value = false
+  },
+  { immediate: true }
+)
+
+const hotelLogoUrl = computed(() => {
+  if (imageLoadFailed.value) return null
+  const logo = guestHotelStore.currentHotel?.logo
+  if (logo && typeof logo === 'string' && logo.trim()) {
+    const trimmed = logo.trim()
+    if (
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('data:') ||
+      trimmed.startsWith('/images/')
+    ) {
+      return trimmed
+    }
+    if (trimmed.startsWith('/storage/')) {
+      return `http://127.0.0.1:8000${trimmed}`
+    }
+    if (trimmed.startsWith('storage/') || trimmed.startsWith('hotels/')) {
+      return `http://127.0.0.1:8000/storage/${trimmed.replace(/^storage\//, '')}`
+    }
+    if (trimmed.startsWith('images/')) {
+      return `/${trimmed}`
+    }
+    return `http://127.0.0.1:8000/storage/${trimmed}`
+  }
+
+  const name = (guestHotelStore.hotelName || '').toLowerCase()
+  if (name.includes('qelem') || name.includes('meda')) {
+    return '/images/qelem meda logo.png'
+  }
+  return '/images/Hotel logo.png'
+})
+
+watch(
+  () => props.selectedCategoryId,
+  (newVal) => {
+    selectedMobileCategory.value = newVal
+  },
+  { immediate: true },
+)
+
+const backendCategories = ref<Category[]>([])
+const loadingCategories = ref(false)
+
+async function fetchCategoriesFromBackend() {
+  loadingCategories.value = true
+  try {
+    let list: any[] = []
+    try {
+      const res = await api.get('/guest/categories')
+      list = res.data?.data || res.data || []
+    } catch (guestErr) {
+      console.warn('[GuestNavbar] /guest/categories endpoint unavailable, trying /categories:', guestErr)
+      const res = await api.get('/categories')
+      list = res.data?.data || res.data || []
+    }
+
+    if (Array.isArray(list) && list.length > 0) {
+      backendCategories.value = [
+        { id: null, name: 'All Categories', icon: 'menu', count: 0 },
+        ...list.map((cat: any) => ({
+          id: cat.slug || cat.id || String(cat.name || '').toLowerCase(),
+          name: cat.name || cat.slug || 'Category',
+          icon: cat.icon || cat.slug || 'utensils',
+          count: cat.count ?? cat.menu_items_count ?? undefined,
+        })),
+      ]
+    }
+  } catch (err) {
+    console.error('[GuestNavbar] Error fetching categories from backend:', err)
+  } finally {
+    loadingCategories.value = false
+  }
+}
+
+watch(
+  () => props.categories,
+  (newVal) => {
+    if (!newVal || newVal.length === 0) {
+      fetchCategoriesFromBackend()
+    }
+  },
+  { immediate: true },
+)
 
 function handleMobileSearch() {
   emit('search', mobileSearchQuery.value)
@@ -440,67 +448,142 @@ function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().then(() => {
       isFullscreen.value = true
-    }).catch(err => {
-      console.error('Error attempting to enable fullscreen:', err)
+    }).catch((err) => {
+      console.error('[GuestNavbar] Request fullscreen error:', err)
     })
   } else {
     if (document.exitFullscreen) {
       document.exitFullscreen().then(() => {
         isFullscreen.value = false
+      }).catch((err) => {
+        console.error('[GuestNavbar] Exit fullscreen error:', err)
       })
     }
   }
 }
 
-// Icon mapping
 const getIconComponent = (categoryId: string | null) => {
+  if (!categoryId) return Menu
+  const key = String(categoryId).toLowerCase().trim().replace(/_/g, '-')
   const iconMap: { [key: string]: any } = {
     menu: Menu,
+    grid: Grid,
+    all: Grid,
     clock: Clock,
     breakfast: Clock,
     utensils: Utensils,
     lunch: Utensils,
+    dinner: Utensils,
+    starter: Leaf,
+    starters: Leaf,
     leaf: Leaf,
     appetizers: Leaf,
+    appetizer: Leaf,
     soup: Soup,
     soups: Soup,
     salad: Salad,
     salads: Salad,
     'utensils-crossed': UtensilsCrossed,
     'main-course': UtensilsCrossed,
+    'main course': UtensilsCrossed,
+    'main-courses': UtensilsCrossed,
+    main: UtensilsCrossed,
     layers: Layers,
     pasta: Layers,
     pizza: Pizza,
     sandwich: Sandwich,
+    sandwiches: Sandwich,
     burger: Sandwich,
     burgers: Sandwich,
     cake: Cake,
+    dessert: Cake,
     desserts: Cake,
     wine: Wine,
+    beverage: Wine,
     beverages: Wine,
     drinks: Wine,
+    drink: Wine,
+    coffee: Coffee,
+    tea: Coffee,
   }
-  return iconMap[categoryId as string] || Menu
+  return iconMap[key] || Utensils
 }
 
-// Computed
+const getCategoryIcon = (category: any) => {
+  if (!category) return Menu
+
+  const name = String(category.name || '').toLowerCase().trim()
+  const slug = String(category.slug || '').toLowerCase().trim()
+  const icon = String(category.icon || '').toLowerCase().trim()
+  const id = String(category.id || '').toLowerCase().trim()
+
+  if (category.id === null || name === 'all categories' || slug === 'all' || name === 'all') {
+    return Grid
+  }
+
+  if (icon && icon !== 'grid' && icon !== 'menu') {
+    const matched = getIconComponent(icon)
+    if (matched !== Utensils && matched !== Menu) return matched
+  }
+
+  const text = `${slug} ${name} ${id} ${icon}`
+
+  if (text.includes('break') || text.includes('egg') || text.includes('morn') || text.includes('pancake') || text.includes('toast') || text.includes('clock')) {
+    return Clock
+  }
+  if (text.includes('soup') || text.includes('broth') || text.includes('stew') || text.includes('ramen') || text.includes('chowder')) {
+    return Soup
+  }
+  if (text.includes('appetiz') || text.includes('starter') || text.includes('snack') || text.includes('finger') || text.includes('leaf') || text.includes('bruschetta')) {
+    return Leaf
+  }
+  if (text.includes('salad') || text.includes('green') || text.includes('veg')) {
+    return Salad
+  }
+  if (text.includes('sandw') || text.includes('burger') || text.includes('wrap') || text.includes('sub') || text.includes('panini')) {
+    return Sandwich
+  }
+  if (text.includes('pasta') || text.includes('noodl') || text.includes('spaghetti') || text.includes('layer') || text.includes('lasagna')) {
+    return Layers
+  }
+  if (text.includes('pizza') || text.includes('pie') || text.includes('calzone')) {
+    return Pizza
+  }
+  if (text.includes('dessert') || text.includes('cake') || text.includes('sweet') || text.includes('pastry') || text.includes('ice cream') || text.includes('chocolate') || text.includes('pudding')) {
+    return Cake
+  }
+  if (text.includes('bev') || text.includes('drink') || text.includes('wine') || text.includes('beer') || text.includes('cocktail') || text.includes('bar') || text.includes('juice') || text.includes('smoothie')) {
+    return Wine
+  }
+  if (text.includes('coffee') || text.includes('tea') || text.includes('latte') || text.includes('cappuccino') || text.includes('cafe')) {
+    return Coffee
+  }
+  if (text.includes('main') || text.includes('dinner') || text.includes('lunch') || text.includes('entree') || text.includes('steak') || text.includes('grill') || text.includes('meat') || text.includes('seafood') || text.includes('fish') || text.includes('chicken')) {
+    return UtensilsCrossed
+  }
+
+  return Utensils
+}
+
 const guestName = computed(() => props.guestName || authStore.user?.name || 'Guest User')
 const guestEmail = computed(
   () => props.guestEmail || authStore.user?.email || 'guest@royalhorizon.com',
 )
 const guestAvatar = computed(() => props.guestAvatar || authStore.user?.avatar || '')
-const mobileCategories = computed(() =>
-  props.categories && props.categories.length > 0 ? props.categories : [],
-)
+const mobileCategories = computed(() => {
+  if (props.categories && props.categories.length > 0) {
+    return props.categories
+  }
+  return backendCategories.value
+})
 
-// Methods
 async function fetchAvailableRooms() {
   roomsLoading.value = true
   try {
     const response = await api.get('/rooms', { params: { status: 'available', per_page: 100 } })
     if (response.data?.data) availableRooms.value = response.data.data
-  } catch (error) {
-    console.error('Error fetching rooms:', error)
+  } catch (err) {
+    console.error('[GuestNavbar] Error fetching available rooms:', err)
   } finally {
     roomsLoading.value = false
   }
@@ -530,13 +613,35 @@ function selectRoom(room: string) {
   emit('room-selected', room)
 }
 
+function isCategoryActive(cat: any): boolean {
+  if (!cat) return false
+  const catName = String(cat.name || '').toLowerCase().trim()
+  const catSlug = String(cat.slug || '').toLowerCase().trim()
+  const catId = cat.id !== undefined && cat.id !== null ? String(cat.id).toLowerCase().trim() : null
+
+  const selected = selectedMobileCategory.value
+
+  if (selected === null || selected === '' || selected === 'all') {
+    return cat.id === null || catName === 'all categories' || catSlug === 'all'
+  }
+
+  const selStr = String(selected).toLowerCase().trim()
+  return (
+    catId === selStr ||
+    catSlug === selStr ||
+    catName === selStr ||
+    (catSlug && selStr.includes(catSlug)) ||
+    (catName && selStr.includes(catName))
+  )
+}
+
 function selectCategoryMobile(cat: any) {
   let categoryId: string | null = null
   if (typeof cat === 'object' && cat !== null) {
-    if (cat.name === 'All Categories' || cat.id === null) {
+    if (cat.name === 'All Categories' || cat.id === null || cat.slug === 'all') {
       categoryId = null
     } else {
-      categoryId = cat.name || cat.slug || cat.id
+      categoryId = cat.slug || cat.id || cat.name
     }
   } else {
     categoryId = (cat === 'All Categories' || cat === 'all') ? null : cat
@@ -545,6 +650,13 @@ function selectCategoryMobile(cat: any) {
   selectedMobileCategory.value = categoryId
   showMobileMenu.value = false
   emit('category-selected', categoryId)
+
+  setTimeout(() => {
+    const el = document.getElementById('menu-grid')
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, 100)
 }
 
 function handleViewProfile() {
@@ -570,7 +682,7 @@ function handleSettings() {
 
 function handleSearchClick() {
   showMobileMenu.value = false
-  emit('search')
+  emit('search', '')
 }
 
 function handleLogout() {
@@ -590,14 +702,15 @@ function handleOutsideClick(event: MouseEvent) {
 }
 
 const handleThemeToggle = () => {
-  console.log('[QRMenuNavbar] 🎨 Theme toggle clicked')
   theme.toggleTheme()
-  console.log('[QRMenuNavbar] 🎨 New theme:', theme.isDarkMode ? 'dark' : 'light')
 }
 
 onMounted(() => {
   window.addEventListener('click', handleOutsideClick)
   fetchAvailableRooms()
+  if (!props.categories || props.categories.length === 0) {
+    fetchCategoriesFromBackend()
+  }
 })
 
 onBeforeUnmount(() => {
@@ -606,7 +719,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* Dropdown Animation */
 .dropdown-enter-active,
 .dropdown-leave-active {
   transition: all 0.15s ease;
@@ -618,7 +730,6 @@ onBeforeUnmount(() => {
   transform: scale(0.95) translateY(-8px);
 }
 
-/* Fade Animation */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;
@@ -629,7 +740,6 @@ onBeforeUnmount(() => {
   opacity: 0;
 }
 
-/* Slide In Animation for Mobile Menu */
 .slide-in-enter-active,
 .slide-in-leave-active {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -638,6 +748,17 @@ onBeforeUnmount(() => {
 .slide-in-enter-from,
 .slide-in-leave-to {
   transform: translateY(-100%);
+}
+
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+.slide-right-enter-from,
+.slide-right-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
 }
 
 .guest-navbar {

@@ -7,11 +7,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class WaiterAssignmentResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
@@ -21,10 +16,10 @@ class WaiterAssignmentResource extends JsonResource
             'assigned_by' => $this->assigned_by,
             'assigned_at' => $this->assigned_at,
             'accepted_at' => $this->accepted_at,
-            'rejected_at' => $this->cancelled_at, // Map to cancelled_at for frontend compatibility
+            'rejected_at' => $this->cancelled_at,
             'picked_up_at' => $this->picked_up_at,
             'delivered_at' => $this->delivered_at,
-            'failed_at' => $this->cancelled_at, // Map to cancelled_at for frontend compatibility
+            'failed_at' => $this->cancelled_at,
             'status' => $this->status,
             'rejection_reason' => $this->cancellation_reason,
             'failure_reason' => $this->cancellation_reason,

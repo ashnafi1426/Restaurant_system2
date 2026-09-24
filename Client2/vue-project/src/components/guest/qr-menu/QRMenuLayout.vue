@@ -1,9 +1,7 @@
 <template>
   <div class="min-h-screen bg-white">
-    <!-- Header -->
     <div class="sticky top-0 z-50 bg-white border-b border-gray-100">
       <div class="flex items-center justify-between px-4">
-        <!-- Sidebar Toggle Button (Mobile) -->
         <button
           @click="sidebarOpen = !sidebarOpen"
           class="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition"
@@ -32,7 +30,6 @@
           </svg>
         </button>
 
-        <!-- Navbar -->
         <div class="flex-1">
           <GuestNavbar
             :guest-name="guestName"
@@ -40,6 +37,7 @@
             :guest-avatar="guestAvatar"
             :initial-room="roomNumber"
             :categories="categories"
+            :selected-category-id="selectedCategory"
             @search="handleSearch"
             @room-selected="handleRoomSelected"
             @category-selected="handleCategorySelected"
@@ -50,11 +48,9 @@
       </div>
     </div>
 
-    <!-- Main Content Container -->
     <div class="flex relative">
-      <!-- LEFT SIDEBAR - COMPACT WIDTH & SMOOTH SCROLLABLE -->
       <aside
-        class="hidden lg:block fixed left-0 top-16 w-48 h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800/80 z-40 overflow-y-auto p-2 transition-colors"
+        class="hidden lg:block fixed left-0 top-16 w-60 h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800/80 z-40 overflow-y-auto p-2 transition-colors"
       >
         <CategorySidebar
           :categories="categories"
@@ -64,7 +60,6 @@
         />
       </aside>
 
-      <!-- Mobile Sidebar (Slide-out) -->
       <div
         v-if="sidebarOpen"
         class="fixed inset-0 bg-black/50 z-30 lg:hidden top-16"
@@ -85,13 +80,10 @@
         </div>
       </aside>
 
-      <!-- RIGHT CONTENT - Compact Offsets & Minimized Hero Height -->
-      <main class="w-full lg:ml-48 bg-[#f9f8f6] dark:bg-slate-950 px-3 sm:px-5 lg:px-6 py-2 transition-colors pb-3">
-        <!-- Hero Section - Spacious Height & Gourmet Food Photography -->
+      <main class="w-full lg:ml-60 bg-[#f9f8f6] dark:bg-slate-950 px-3 sm:px-5 lg:px-6 py-2 transition-colors pb-3">
         <div
           class="relative h-48 sm:h-60 md:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-md bg-slate-950 border border-slate-800/80 font-sans mt-3"
         >
-          <!-- Background Gourmet Food Photo -->
           <div class="absolute inset-0 z-0">
             <img
               src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=1200&h=800&fit=crop"
@@ -101,16 +93,15 @@
             <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/70 to-transparent"></div>
           </div>
 
-          <!-- Content Container -->
           <div class="relative z-10 h-full flex items-center px-6 sm:px-8 md:px-10">
             <div class="max-w-md space-y-2 sm:space-y-3 text-white">
               <h1 class="text-2xl sm:text-3xl md:text-4xl font-serif font-bold tracking-tight leading-tight">
-                <span class="inline block text-white">Good Food, </span>
-                <span class="inline block text-[#c29353] drop-shadow-md">Great Moments</span>
+                <span class="block text-white">{{ languageStore.t('good_food', 'Good Food,') }} </span>
+                <span class="block text-[#c29353] drop-shadow-md">{{ languageStore.t('great_moments', 'Great Moments') }}</span>
               </h1>
 
               <p class="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed max-w-sm">
-                Fresh ingredients, expertly prepared. Delivered directly to your room.
+                {{ languageStore.t('culinary_desc', 'Fresh ingredients, expertly prepared. Delivered directly to your room.') }}
               </p>
 
               <div class="pt-2">
@@ -118,7 +109,7 @@
                   @click="handleViewSpecials"
                   class="px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-[#c29353] hover:bg-[#b08244] text-white font-black text-xs sm:text-sm shadow-lg hover:shadow-xl transition cursor-pointer inline-flex items-center gap-2 transform hover:-translate-y-0.5"
                 >
-                  <span>View Specials</span>
+                  <span>{{ languageStore.t('view_specials', 'View Specials') }}</span>
                   <ChevronRight class="w-4 h-4" />
                 </button>
               </div>
@@ -126,7 +117,6 @@
           </div>
         </div>
 
-        <!-- Search -->
         <div class="mt-2.5">
           <MenuSearch
             :menu-items="allMenuItems"
@@ -135,7 +125,6 @@
           />
         </div>
 
-        <!-- Mobile/Tablet Horizontal Category Swipe Pills Bar -->
         <div class="lg:hidden mt-2.5 overflow-x-auto hide-scrollbar flex items-center gap-2 py-1">
           <button
             v-for="cat in categories"
@@ -143,17 +132,19 @@
             @click="handleCategorySelected(cat.id)"
             :class="[
               'px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 flex-shrink-0',
-              selectedCategory === cat.id
+              (selectedCategory === cat.id || (cat.slug && selectedCategory === cat.slug) || (cat.id === null && selectedCategory === null))
                 ? 'bg-[#c29353] text-white shadow-xs font-black'
                 : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800'
             ]"
           >
-            <span>{{ cat.name }}</span>
+            <span>{{ languageStore.t(cat.name, cat.name) }}</span>
             <span
               v-if="cat.count !== undefined"
               :class="[
                 'px-1.5 py-0.2 rounded-full text-[10px] font-black',
-                selectedCategory === cat.id ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                (selectedCategory === cat.id || (cat.slug && selectedCategory === cat.slug) || (cat.id === null && selectedCategory === null))
+                  ? 'bg-white/20 text-white'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
               ]"
             >
               {{ cat.count }}
@@ -161,25 +152,23 @@
           </button>
         </div>
 
-        <!-- Section Header -->
         <div class="mt-3 mb-1.5 flex items-center justify-between">
           <div>
             <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
-              Recommended for You
+              {{ languageStore.t('recommended_for_you', 'Recommended for You') }}
             </h2>
             <p class="text-[11px] text-slate-500 dark:text-slate-400">
-              Fresh ingredients, expertly prepared
+              {{ languageStore.t('fresh_ingredients', 'Fresh ingredients, expertly prepared') }}
             </p>
           </div>
           <button
             v-if="filteredMenuItems.length > itemsPerPage"
             class="text-xs font-bold text-[#c29353] hover:underline transition-colors"
           >
-            View All →
+            {{ languageStore.t('view_all', 'View All') }} →
           </button>
         </div>
 
-        <!-- Menu Grid -->
         <div id="menu-grid">
           <MenuGrid
             :items="filteredMenuItems"
@@ -195,7 +184,6 @@
           />
         </div>
 
-        <!-- Features Bar matching Screenshot -->
         <div
           class="mt-2.5 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 rounded-2xl bg-white dark:bg-slate-900 p-3 sm:p-4 border border-slate-200/80 dark:border-slate-800 shadow-xs mb-2 font-sans"
         >
@@ -204,8 +192,8 @@
               <Utensils class="w-4 h-4" />
             </div>
             <div>
-              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">Freshly Prepared</h4>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Premium ingredients</p>
+              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">{{ languageStore.t('freshly_prepared', 'Freshly Prepared') }}</h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('premium_ingredients', 'Premium ingredients') }}</p>
             </div>
           </div>
 
@@ -214,8 +202,8 @@
               <Truck class="w-4 h-4" />
             </div>
             <div>
-              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">Fast Delivery</h4>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Within 30 minutes</p>
+              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">{{ languageStore.t('fast_delivery', 'Fast Delivery') }}</h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('within_30_mins', 'Within 30 minutes') }}</p>
             </div>
           </div>
 
@@ -224,8 +212,8 @@
               <ShieldCheck class="w-4 h-4" />
             </div>
             <div>
-              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">Safe & Hygienic</h4>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Highest standards</p>
+              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">{{ languageStore.t('safe_hygienic', 'Safe & Hygienic') }}</h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('highest_standards', 'Highest standards') }}</p>
             </div>
           </div>
 
@@ -234,15 +222,14 @@
               <Clock class="w-4 h-4" />
             </div>
             <div>
-              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">24/7 Service</h4>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Always here to serve</p>
+              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">{{ languageStore.t('service_247', '24/7 Service') }}</h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('always_here', 'Always here to serve') }}</p>
             </div>
           </div>
         </div>
       </main>
     </div>
 
-    <!-- Floating Cart -->
     <Transition
       enter-active-class="transition duration-300 ease-out"
       enter-from-class="translate-y-full opacity-0"
@@ -265,7 +252,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             <div>
-              <p class="text-white/70 text-xs sm:text-sm">{{ cartItems.length }} Items in Cart</p>
+              <p class="text-white/70 text-xs sm:text-sm">{{ cartItems.length }} {{ languageStore.t('items_in_cart', 'Items in Cart') }}</p>
               <h3 class="text-lg sm:text-xl md:text-2xl font-bold">{{ formatPrice(cartTotal) }}</h3>
             </div>
           </div>
@@ -274,13 +261,12 @@
             @click="handleViewCart"
             class="w-full sm:w-auto rounded-xl bg-amber-500 px-4 sm:px-6 md:px-10 py-2 sm:py-3 md:py-4 text-sm sm:text-base md:text-lg font-semibold text-white transition hover:bg-amber-600"
           >
-            View Cart & Checkout →
+            {{ languageStore.t('view_cart_checkout', 'View Cart & Checkout →') }}
           </button>
         </div>
       </div>
     </Transition>
 
-    <!-- Loading Overlay -->
     <div
       v-if="isLoadingMenu"
       class="fixed inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-40 flex items-center justify-center"
@@ -296,14 +282,13 @@
             </svg>
           </div>
         </div>
-        <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">Loading menu...</p>
+        <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">{{ languageStore.t('loading_menu', 'Loading menu...') }}</p>
       </div>
     </div>
 
-    <!-- Review Modal -->
     <GuestReviewModal
       :is-open="showReviewModal"
-      :menu-item="selectedMenuItemForReview"
+      :menu-item="(selectedMenuItemForReview as any)"
       :guest-name="guestName"
       :guest-email="guestEmail"
       :order-id="qrToken"
@@ -321,12 +306,13 @@ import GuestNavbar from './GuestNavbar.vue'
 import CategorySidebar from './CategorySidebar.vue'
 import MenuSearch from './MenuSearch.vue'
 import GuestReviewModal from '../GuestReviewModal.vue'
-// import MenuFilter from './MenuFilter.vue'
 import MenuGrid from './MenuGrid.vue'
+import { useLanguageStore } from '@/stores/language'
 import api from '@/api/auth'
 
 interface Category {
   id: string | null
+  slug?: string
   name: string
   icon: string
   count?: number
@@ -337,6 +323,11 @@ interface MenuItem {
   name: string
   description: string
   price: number
+  base_price?: number
+  tax_amount?: number
+  total_price?: number
+  tax_rate?: any
+  tax_included?: boolean
   image: string | null
   category: string
   rating?: number
@@ -374,6 +365,8 @@ const props = withDefaults(defineProps<Props>(), {
   itemsPerPage: 12,
 })
 
+const languageStore = useLanguageStore()
+
 const emit = defineEmits<{
   'room-selected': [room: string | number]
   logout: []
@@ -381,7 +374,6 @@ const emit = defineEmits<{
   'view-cart': [items: CartItem[]]
 }>()
 
-// State
 const selectedCategory = ref<string | null>(null)
 const searchQuery = ref('')
 const selectedSort = ref('popular')
@@ -393,24 +385,19 @@ const allMenuItems = ref<MenuItem[]>([])
 const errorMessage = ref('')
 const sidebarOpen = ref(false)
 
-// Review modal state
 const showReviewModal = ref(false)
 const selectedMenuItemForReview = ref<MenuItem | null>(null)
 
-// Categories - Fetch from backend
 const categories = ref<Category[]>([])
 const loadingCategories = ref(false)
 
-/**
- * Load categories from backend API
- */
 function deriveCategoriesFromMenuItems() {
   const catMap: { [key: string]: { name: string; count: number; icon: string } } = {}
 
   if (allMenuItems.value && allMenuItems.value.length > 0) {
     allMenuItems.value.forEach((item) => {
       const rawCat = item.category || 'Other'
-      const norm = normalizeCategory(rawCat)
+      const norm = normalizeCat(rawCat)
       let title = rawCat.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
 
       if (!catMap[norm]) {
@@ -428,44 +415,31 @@ function deriveCategoriesFromMenuItems() {
     count: catMap[key].count,
   }))
 
-  const defaultCategories: Category[] = [
-    { id: 'breakfast', name: 'Breakfast', icon: 'clock', count: 0 },
-    { id: 'soups', name: 'Soups', icon: 'soup', count: 0 },
-    { id: 'appetizers', name: 'Appetizers', icon: 'leaf', count: 0 },
-    { id: 'main-courses', name: 'Main Courses', icon: 'utensils', count: 0 },
-    { id: 'sandwiches', name: 'Sandwiches', icon: 'sandwich', count: 0 },
-    { id: 'pasta', name: 'Pasta', icon: 'layers', count: 0 },
-    { id: 'desserts', name: 'Desserts', icon: 'cake', count: 0 },
-    { id: 'beverages', name: 'Beverages', icon: 'wine', count: 0 },
-  ]
-
-  const combined = [...derived]
-  defaultCategories.forEach((def) => {
-    if (!combined.some((c) => normalizeCategory(c.name) === normalizeCategory(def.name))) {
-      combined.push(def)
-    }
-  })
-
   categories.value = [
     { id: null, name: 'All Categories', icon: 'grid', count: allMenuItems.value.length },
-    ...combined,
+    ...derived,
   ]
 }
 
 const loadCategories = async () => {
   loadingCategories.value = true
   try {
-    // Debug logging
-    console.log('[QRMenuLayout] Fetching categories from API...')
-
-    const response = await api.get('/guest/categories')
-    const rawCategories = response.data?.data || response.data || []
+    let rawCategories: any[] = []
+    try {
+      const response = await api.get('/guest/categories')
+      rawCategories = response.data?.data || response.data || []
+    } catch (guestErr) {
+      console.warn('[QRMenuLayout] /guest/categories endpoint unavailable, trying /categories:', guestErr)
+      const response = await api.get('/categories')
+      rawCategories = response.data?.data || response.data || []
+    }
 
     if (Array.isArray(rawCategories) && rawCategories.length > 0) {
       const backendCategories = rawCategories.map((cat: any) => ({
-        id: cat.slug || cat.id,
+        id: cat.id ?? cat.slug,
+        slug: cat.slug || (typeof cat.id === 'string' ? cat.id : ''),
         name: cat.name,
-        icon: cat.icon || '🍽️',
+        icon: cat.icon || '',
         count: cat.count ?? cat.menu_items_count ?? 0,
       }))
 
@@ -476,8 +450,8 @@ const loadCategories = async () => {
       updateCategoryCounts()
       return
     }
-  } catch (error: any) {
-    console.warn('[QRMenuLayout] Error loading categories from backend API:', error)
+  } catch (error) {
+    console.error('[QRMenuLayout] Error loading categories from API:', error)
   } finally {
     loadingCategories.value = false
   }
@@ -504,7 +478,6 @@ function parseCategoryName(item: any): string {
   return 'Other'
 }
 
-// Load menu items from API - DEFINED BEFORE BEING USED
 const loadMenuItems = async () => {
   isLoadingMenu.value = true
   errorMessage.value = ''
@@ -524,12 +497,18 @@ const loadMenuItems = async () => {
         allMenuItems.value = data.flatMap((categoryGroup: any) => {
           const categoryName = categoryGroup.category
           return categoryGroup.items.map((item: any) => {
-            const price = parseFloat(item.price)
+            const rawPrice = parseFloat(item.price)
+            const totalPrice = item.total_price != null ? parseFloat(item.total_price) : (isNaN(rawPrice) ? 0 : rawPrice)
             return {
               id: item.id,
               name: item.name || 'Unnamed Item',
               description: item.description || '',
-              price: isNaN(price) ? 0 : price,
+              price: totalPrice,
+              base_price: item.base_price != null ? parseFloat(item.base_price) : rawPrice,
+              tax_amount: item.tax_amount != null ? parseFloat(item.tax_amount) : 0,
+              total_price: totalPrice,
+              tax_rate: item.tax_rate,
+              tax_included: item.tax_included,
               image: item.image || '/images/placeholder.png',
               category: categoryName || parseCategoryName(item),
               rating: item.rating || 4.5,
@@ -539,12 +518,18 @@ const loadMenuItems = async () => {
         })
       } else if (Array.isArray(data)) {
         allMenuItems.value = data.map((item: any) => {
-          const price = parseFloat(item.price)
+          const rawPrice = parseFloat(item.price)
+          const totalPrice = item.total_price != null ? parseFloat(item.total_price) : (isNaN(rawPrice) ? 0 : rawPrice)
           return {
             id: item.id,
             name: item.name || 'Unnamed Item',
             description: item.description || '',
-            price: isNaN(price) ? 0 : price,
+            price: totalPrice,
+            base_price: item.base_price != null ? parseFloat(item.base_price) : rawPrice,
+            tax_amount: item.tax_amount != null ? parseFloat(item.tax_amount) : 0,
+            total_price: totalPrice,
+            tax_rate: item.tax_rate,
+            tax_included: item.tax_included,
             image: item.image || '/images/placeholder.png',
             category: parseCategoryName(item),
             rating: item.rating || 4.5,
@@ -554,12 +539,18 @@ const loadMenuItems = async () => {
       }
     } else if (response.data && Array.isArray(response.data)) {
       allMenuItems.value = response.data.map((item: any) => {
-        const price = parseFloat(item.price)
+        const rawPrice = parseFloat(item.price)
+        const totalPrice = item.total_price != null ? parseFloat(item.total_price) : (isNaN(rawPrice) ? 0 : rawPrice)
         return {
           id: item.id,
           name: item.name || 'Unnamed Item',
           description: item.description || '',
-          price: isNaN(price) ? 0 : price,
+          price: totalPrice,
+          base_price: item.base_price != null ? parseFloat(item.base_price) : rawPrice,
+          tax_amount: item.tax_amount != null ? parseFloat(item.tax_amount) : 0,
+          total_price: totalPrice,
+          tax_rate: item.tax_rate,
+          tax_included: item.tax_included,
           image: item.image || '/images/placeholder.png',
           category: parseCategoryName(item),
           rating: item.rating || 4.5,
@@ -569,8 +560,8 @@ const loadMenuItems = async () => {
     } else {
       errorMessage.value = 'Unexpected data format from server'
     }
-  } catch (error: any) {
-    console.error('Error loading menu items:', error)
+  } catch (error) {
+    console.error('[QRMenuLayout] Error fetching menu items:', error)
     errorMessage.value = 'Failed to load menu items. Please try again.'
   } finally {
     isLoadingMenu.value = false
@@ -623,7 +614,6 @@ function matchCategory(itemCat: string | null | undefined, selectedCat: string |
   )
 }
 
-// Update category counts - DEFINED BEFORE BEING USED
 const updateCategoryCounts = () => {
   categories.value.forEach((cat) => {
     if (cat.id) {
@@ -637,7 +627,6 @@ const updateCategoryCounts = () => {
   })
 }
 
-// Filtered and sorted menu items
 const filteredMenuItems = computed(() => {
   let items = [...allMenuItems.value]
 
@@ -647,11 +636,19 @@ const filteredMenuItems = computed(() => {
     items = items.filter((item) => matchCategory(item.category, selectedCategory.value))
   }
 
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
+  const rawQuery = searchQuery.value
+  const query = typeof rawQuery === 'string'
+    ? rawQuery.toLowerCase().trim()
+    : (rawQuery && typeof rawQuery === 'object' && (rawQuery as any).name)
+      ? String((rawQuery as any).name).toLowerCase().trim()
+      : ''
+
+  if (query) {
     items = items.filter(
       (item) =>
-        item.name.toLowerCase().includes(query) || item.description.toLowerCase().includes(query),
+        (item.name && item.name.toLowerCase().includes(query)) ||
+        (item.description && item.description.toLowerCase().includes(query)) ||
+        (item.category && item.category.toLowerCase().includes(query)),
     )
   }
 
@@ -666,13 +663,21 @@ const filteredMenuItems = computed(() => {
   return items
 })
 
-// Cart total
 const cartTotal = computed(() => {
   return cartItems.value.reduce((total, item) => total + item.price * item.quantity, 0)
 })
 
-// Event handlers
-const handleSearch = () => {}
+const handleSearch = (query?: any) => {
+  if (typeof query === 'string') {
+    searchQuery.value = query
+  } else if (query && typeof query === 'object' && query.name) {
+    searchQuery.value = String(query.name)
+  } else if (query && typeof query === 'object' && query.target) {
+    searchQuery.value = String(query.target.value || '')
+  } else {
+    searchQuery.value = ''
+  }
+}
 
 const handleRoomSelected = (room: string | number) => {
   emit('room-selected', room)
@@ -682,24 +687,46 @@ const handleLogout = () => {
   emit('logout')
 }
 
-const handleCategorySelected = (categoryId: string | null) => {
-  console.log(`[QRMenuLayout] Category selected from header/sidebar: ${categoryId}`)
-  selectedCategory.value = categoryId
+const handleCategorySelected = (catOrId: any) => {
+  let catVal: string | null = null
+  if (catOrId === null || catOrId === undefined || catOrId === 'all' || catOrId === 'All Categories') {
+    catVal = null
+  } else if (typeof catOrId === 'object' && catOrId !== null) {
+    if (catOrId.name === 'All Categories' || catOrId.id === null || catOrId.slug === 'all') {
+      catVal = null
+    } else {
+      catVal = catOrId.slug || catOrId.id || catOrId.name
+    }
+  } else {
+    catVal = String(catOrId)
+  }
+
+  selectedCategory.value = catVal
   sidebarOpen.value = false
 }
 
-const handleCategorySelectedMobile = (categoryId: string | null) => {
-  console.log(`[QRMenuLayout] Mobile Category selected: ${categoryId}`)
-  selectedCategory.value = categoryId
-  sidebarOpen.value = false
+const handleCategorySelectedMobile = (catOrId: any) => {
+  handleCategorySelected(catOrId)
 }
 
-const handleSearchQueryChanged = (query: string) => {
-  searchQuery.value = query
+const handleSearchQueryChanged = (query: any) => {
+  if (typeof query === 'string') {
+    searchQuery.value = query
+  } else if (query && typeof query === 'object' && query.name) {
+    searchQuery.value = String(query.name)
+  } else {
+    searchQuery.value = String(query || '')
+  }
 }
 
-const handleSuggestionSelected = (suggestion: string) => {
-  searchQuery.value = suggestion
+const handleSuggestionSelected = (suggestion: any) => {
+  if (typeof suggestion === 'string') {
+    searchQuery.value = suggestion
+  } else if (suggestion && typeof suggestion === 'object' && suggestion.name) {
+    searchQuery.value = String(suggestion.name)
+  } else {
+    searchQuery.value = ''
+  }
 }
 
 const handleSortChanged = (value: string) => {
@@ -740,17 +767,12 @@ const handleWriteReview = (item: MenuItem) => {
   showReviewModal.value = true
 }
 
-const handleReviewSuccess = (message: string) => {
-  console.log(' Review submitted:', message)
+const handleReviewSuccess = (_message: string) => {
   showReviewModal.value = false
-  // Trigger event to reload all review stats
   window.dispatchEvent(new Event('review-stats-updated'))
 }
 
-const handleReviewError = (message: string) => {
-  console.error(' Review error:', message)
-  // Optional: show error toast
-}
+const handleReviewError = (_message: string) => {}
 
 const handleExplore = () => {
   const menuSection = document.getElementById('menu-grid')
@@ -759,24 +781,19 @@ const handleExplore = () => {
   }
 }
 
-const handleViewSpecials = () => {
-  console.log('View specials clicked')
-}
+const handleViewSpecials = () => {}
 
 const formatPrice = (price: number): string => {
   return `$${price.toFixed(2)}`
 }
 
-// Watch for menu items change - AFTER functions are defined
 watch(allMenuItems, updateCategoryCounts, { immediate: true, deep: true })
 
-// Lifecycle - Load menu items and categories on mount
 onMounted(() => {
   loadCategories()
   loadMenuItems()
 })
 
-// Expose methods for parent - AFTER functions are defined
 defineExpose({
   loadMenuItems,
   allMenuItems,
@@ -795,7 +812,6 @@ defineExpose({
 </script>
 
 <style scoped>
-/* Hide scrollbar for category pills */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -805,7 +821,6 @@ defineExpose({
   scrollbar-width: none;
 }
 
-/* Loading spinner animation */
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -815,7 +830,6 @@ defineExpose({
   animation: spin 0.8s linear infinite;
 }
 
-/* Luxury 4px Thin Scrollbar for Sidebar */
 aside::-webkit-scrollbar {
   width: 4px;
 }

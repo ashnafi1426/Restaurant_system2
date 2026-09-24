@@ -1,24 +1,34 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
-import DashboardLayout from '../../../layouts/DashboardLayout.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import { useRoomTypeStore } from '../../../stores/roomType'
+import { useHotelStore } from '../../../stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
 
 import RoomTypeTable from '../../../components/room-types/RoomTypeTable.vue'
 import ConfirmDeleteModal from '../../../components/room-types/DeleteRoomTypeModal.vue'
-import { BedDouble, Plus } from 'lucide-vue-next'
+import { BedDouble, Plus, Building2 } from 'lucide-vue-next'
 
 import type { RoomType } from '../../../types/roomType'
 
 const router = useRouter()
 const store = useRoomTypeStore()
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
 const deleteModalOpen = ref(false)
-const selectedId = ref<number | null>(null)
+const selectedId = ref<string | number | null>(null)
 
-onMounted(() => {
+const loadData = () => {
   store.fetchRoomTypes()
+}
+
+onMounted(loadData)
+
+watch(() => hotelStore.hotelId, () => {
+  loadData()
 })
 
 const view = (rt: RoomType) => {
@@ -60,18 +70,22 @@ const refresh = () => {
             <BedDouble class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Room Types</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage room tiers, guest capacities, and pricing models.</p>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                {{ languageStore.t('room_types', 'Room Types') }}
+              </h1>
+              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+                <Building2 class="w-3 h-3" />
+                {{ hotelStore.hotelName }}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{ languageStore.t('room_types_desc', 'Manage room tiers, guest capacities, and pricing models.') }}
+            </p>
           </div>
         </div>
 
-        <button
-          @click="create"
-          class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition text-xs sm:text-sm inline-flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-600/20"
-        >
-          <Plus class="w-4 h-4 stroke-[3]" />
-          <span>Add Room Type</span>
-        </button>
+
       </div>
 
       <!-- TABLE COMPONENT WITH INTEGRATED TOOLBAR & FILTER -->
@@ -94,3 +108,4 @@ const refresh = () => {
     </div>
   </DashboardLayout>
 </template>
+

@@ -23,7 +23,6 @@ const goToCheckOut = () => {
 
 <template>
   <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
-    <!-- Header -->
     <div class="flex items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
       <div class="flex items-center gap-2.5">
         <div class="w-8 h-8 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-sm">
@@ -39,7 +38,6 @@ const goToCheckOut = () => {
       </span>
     </div>
 
-    <!-- Departures List -->
     <div v-if="departures.length > 0" class="divide-y divide-slate-100 dark:divide-slate-800/60 my-2">
       <div
         v-for="dep in departures.slice(0, 4)"
@@ -78,7 +76,6 @@ const goToCheckOut = () => {
       </div>
     </div>
 
-    <!-- Empty State -->
     <div v-else class="text-center py-8">
       <Clock class="w-7 h-7 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
       <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">No scheduled departures for today</p>

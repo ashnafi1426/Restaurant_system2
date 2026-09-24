@@ -1,13 +1,11 @@
-﻿<script setup lang="ts">
-// MenuCard - Pure Presentation Component with Review Ratings
-// Displays menu item with review statistics
+<script setup lang="ts">
 import type { MenuItem } from '@/types/menu'
 import { ref, onMounted } from 'vue'
 import reviewService from '@/services/reviewService'
 import type { ReviewStats } from '@/types/review'
 
-defineProps<{
-  item: MenuItem // ← Always from store.menuItems
+const props = defineProps<{
+  item: MenuItem
 }>()
 
 const emit = defineEmits<{
@@ -17,7 +15,6 @@ const emit = defineEmits<{
   (e: 'view-reviews', item: MenuItem): void
 }>()
 
-// Review stats
 const reviewStats = ref<ReviewStats | null>(null)
 const loadingReviews = ref(false)
 
@@ -30,7 +27,7 @@ const loadReviewStats = async () => {
   try {
     reviewStats.value = await reviewService.getMenuItemStats(props.item.id)
   } catch (error) {
-    console.error('Failed to load review stats:', error)
+    console.error('[MenuCard] Error loading review stats:', error)
   } finally {
     loadingReviews.value = false
   }
@@ -48,11 +45,9 @@ const renderStars = (rating: number | null) => {
   <div
     class="group rounded-lg sm:rounded-xl md:rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg hover:border-purple-300 transition-all duration-300"
   >
-    <!-- Image Container -->
     <div
       class="relative h-32 sm:h-40 md:h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden"
     >
-      <!-- Image -->
       <img
         v-if="item.image_url"
         :src="item.image_url"
@@ -60,14 +55,12 @@ const renderStars = (rating: number | null) => {
         class="w-full h-full object-cover"
       />
 
-      <!-- Placeholder when no image -->
       <div v-else class="absolute inset-0 flex items-center justify-center">
         <v-icon size="40" sm:size="50" md:size="64" color="slate-300"
           >mdi-silverware-fork-knife</v-icon
         >
       </div>
 
-      <!-- Availability Badge -->
       <div class="absolute top-2 sm:top-3 right-2 sm:right-3 z-10">
         <div
           :class="[
@@ -89,9 +82,7 @@ const renderStars = (rating: number | null) => {
       </div>
     </div>
 
-    <!-- Content Section -->
     <div class="p-3 sm:p-4 md:p-5 flex flex-col h-full">
-      <!-- Category Badge -->
       <div class="mb-2 sm:mb-3">
         <span
           class="inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg bg-purple-50 text-purple-700 text-xs font-bold uppercase tracking-wide"
@@ -100,18 +91,15 @@ const renderStars = (rating: number | null) => {
           <span class="truncate">{{ item.category }}</span>
         </span>
       </div>
-      <!-- Title -->
       <h3
         class="text-xs sm:text-sm md:text-base font-bold text-slate-900 line-clamp-2 mb-1 sm:mb-2"
       >
         {{ item.name }}
       </h3>
-      <!-- Description -->
       <p class="text-xs text-slate-600 line-clamp-2 mb-2 sm:mb-3 flex-1">
         {{ item.description || 'No description provided' }}
       </p>
 
-      <!-- Review Rating Badge -->
       <div v-if="reviewStats" class="mb-2 sm:mb-3 p-2 bg-yellow-50 rounded-lg">
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-1">
@@ -129,18 +117,22 @@ const renderStars = (rating: number | null) => {
         </button>
       </div>
 
-      <!-- Footer: Price & Actions -->
       <div class="pt-2 sm:pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
-        <!-- Price -->
         <div>
           <p class="text-lg sm:text-xl md:text-2xl font-black text-purple-600">
-            ${{ item.price.toFixed(2) }}
+            ${{ ((item.total_price !== undefined && item.total_price !== null) ? Number(item.total_price) : Number(item.price)).toFixed(2) }}
           </p>
+          <div v-if="item.tax_rate && Number(item.tax_rate.rate) > 0" class="text-[10px] text-slate-500 font-medium">
+            <span v-if="item.tax_included" class="text-emerald-600 font-semibold">
+              Incl. {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
+            </span>
+            <span v-else>
+              ${{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% tax
+            </span>
+          </div>
         </div>
 
-        <!-- Action Buttons -->
         <div class="flex items-center gap-1 sm:gap-2">
-          <!-- Toggle Availability -->
           <v-btn
             icon
             size="x-small"
@@ -156,7 +148,6 @@ const renderStars = (rating: number | null) => {
             </v-icon>
           </v-btn>
 
-          <!-- Edit -->
           <v-btn
             icon
             size="x-small"
@@ -170,7 +161,6 @@ const renderStars = (rating: number | null) => {
             <v-icon size="16" sm:size="18">mdi-pencil</v-icon>
           </v-btn>
 
-          <!-- Delete -->
           <v-btn
             icon
             size="x-small"

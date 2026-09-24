@@ -10,14 +10,12 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue', 'submit', 'cancel'])
 const form = reactive<RoomType>({ ...props.modelValue })
 
-// Re-sync when parent loads data async (edit page fetches API after mount)
 watch(
   () => props.modelValue,
   (val) => {
     if (val) {
       Object.assign(form, {
         ...val,
-        // Ensure correct types after re-sync
         base_price_per_night: Number(val.base_price_per_night) || 0,
         capacity: parseInt(String(val.capacity), 10) || 0,
         amenities: Array.isArray(val.amenities) ? [...val.amenities] : [],
@@ -28,7 +26,6 @@ watch(
   { immediate: true, deep: true },
 )
 
-// Emit changes up to parent with guaranteed correct types
 watch(
   form,
   () => emit('update:modelValue', {
@@ -40,7 +37,6 @@ watch(
   { deep: true },
 )
 
-// Amenity tag input
 const newAmenity = ref('')
 const addAmenity = () => {
   const trimmed = newAmenity.value.trim()
@@ -69,7 +65,6 @@ const submit = () => emit('submit', {
 
 <template>
   <form @submit.prevent="submit" class="space-y-4 sm:space-y-5 md:space-y-6">
-    <!-- Name -->
     <div>
       <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
         Room Type Name <span class="text-red-500">*</span>
@@ -83,7 +78,6 @@ const submit = () => emit('submit', {
       />
     </div>
 
-    <!-- Description -->
     <div>
       <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
         Description <span class="text-slate-400 text-xs">(Optional)</span>
@@ -96,9 +90,7 @@ const submit = () => emit('submit', {
       />
     </div>
 
-    <!-- Price and Capacity in Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
-      <!-- Price Per Night -->
       <div>
         <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
           Price Per Night <span class="text-red-500">*</span>
@@ -120,7 +112,6 @@ const submit = () => emit('submit', {
         </div>
       </div>
 
-      <!-- Capacity -->
       <div>
         <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
           Capacity (Guests) <span class="text-red-500">*</span>
@@ -137,13 +128,11 @@ const submit = () => emit('submit', {
       </div>
     </div>
 
-    <!-- Amenities -->
     <div>
       <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
         Amenities <span class="text-slate-400 text-xs">(Optional)</span>
       </label>
 
-      <!-- Tag chips -->
       <div class="flex flex-wrap gap-1.5 mb-2" v-if="form.amenities.length">
         <span
           v-for="(amenity, index) in form.amenities"
@@ -161,7 +150,6 @@ const submit = () => emit('submit', {
         </span>
       </div>
 
-      <!-- Add amenity input -->
       <div class="flex gap-2">
         <input
           v-model="newAmenity"
@@ -181,7 +169,6 @@ const submit = () => emit('submit', {
       <p class="text-xs text-slate-400 mt-1">Press Enter or click + to add each amenity</p>
     </div>
 
-    <!-- Active Checkbox -->
     <div
       class="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl"
     >
@@ -204,7 +191,6 @@ const submit = () => emit('submit', {
       </div>
     </div>
 
-    <!-- Action Buttons -->
     <div class="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
       <button
         type="button"

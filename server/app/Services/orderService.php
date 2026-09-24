@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Exception;
+
 class OrderService{
     public function index(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
@@ -165,6 +166,7 @@ class OrderService{
     private function getMenuItem(string $menuItemId): MenuItem
     {
         $menuItem = MenuItem::query()
+            ->with('taxRate')
             ->find($menuItemId);
 
         if (! $menuItem) {
@@ -175,22 +177,22 @@ class OrderService{
 
         return $menuItem;
     }
+
     private function generateOrderNumber(): string
     {
         do {
-
             $number = sprintf(
                 'ORD-%s-%s',
                 now()->format('YmdHis'),
                 strtoupper(Str::random(4))
             );
-
         } while (
             Order::where('order_number', $number)->exists()
         );
 
         return $number;
     }
+
     private function assignChefToOrder(): ?string
     {
         try {
@@ -219,145 +221,140 @@ class OrderService{
             return $selectedChef;
         } catch (\Exception $e) {
             \Log::error('Failed to assign chef: ' . $e->getMessage());
-            // Fallback: return first chef
             $firstChef = User::where('role', 'chef')->first();
             return $firstChef?->id ?? null;
         }
     }
-public function create(array $data): Order
-{
-    DB::beginTransaction();
 
-    try {
-        $reservation = $this->validateReservation(
-            $data['reservation_id']
-        );
+    public function calculateItemTax(MenuItem $menuItem, int $quantity): array
+    {
+        $price = (float) $menuItem->price;
+        $taxRate = $menuItem->taxRate;
+        $rate = $taxRate ? (float) $taxRate->rate : 0.0;
+        $taxIncluded = (bool) $menuItem->tax_included;
 
-        $this->validateGuest(
-            $reservation,
-            $data['guest_id']
-        );
-
-        $this->validateRoom(
-            $reservation,
-            $data['room_id']
-        );
-
-        $subtotal = 0;
-        $tax = 0;
-        $hotelId = $data['hotel_id'] 
-            ?? $reservation->hotel_id 
-            ?? $reservation->room?->hotel_id 
-            ?? app(\App\Services\TenantContext::class)->getHotelId();
-
-        if ($hotelId) {
-            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        if ($taxIncluded) {
+            $lineTotal = round($price * $quantity, 2);
+            $subtotal = $rate > 0 ? round($lineTotal / (1 + ($rate / 100)), 2) : $lineTotal;
+            $taxAmount = round($lineTotal - $subtotal, 2);
+        } else {
+            $subtotal = round($price * $quantity, 2);
+            $taxAmount = $rate > 0 ? round($subtotal * ($rate / 100), 2) : 0.0;
+            $lineTotal = round($subtotal + $taxAmount, 2);
         }
 
-        $order = Order::create([
-
-            'hotel_id' => $hotelId,
-
-            'order_number' => $this->generateOrderNumber(),
-
-            'reservation_id' => $reservation->id,
-
-            'guest_id' => $reservation->guest_id,
-
-            'room_id' => $reservation->room_id,
-
-            'order_time' => now(),
-
-            'status' => Order::STATUS_PENDING,
-
-            'payment_type' => 'room_charge',
-
+        return [
+            'price' => $price,
+            'quantity' => $quantity,
+            'tax_rate_id' => $taxRate?->id,
+            'tax_rate' => $rate,
+            'tax_amount' => $taxAmount,
             'subtotal' => $subtotal,
-
-            'tax' => $tax,
-
-            'discount' => $discount,
-
-            'total' => $total,
-
-            'notes' => $data['notes'] ?? null,
-
-            'chef_id' => $this->assignChefToOrder(),
-
-        ]);
-        foreach ($data['items'] as $item) {
-
-            /*
-            |--------------------------------------------------------------------------
-            | Get Menu Item
-            |--------------------------------------------------------------------------
-            */
-
-            $menuItem = $this->getMenuItem(
-                $item['menu_item_id']
-            );
-            $lineTotal = $menuItem->price * $item['quantity'];
-
-        
-
-            $order->orderItems()->create([
-
-                'menu_item_id' => $menuItem->id,
-
-                'quantity' => $item['quantity'],
-
-                'item_price_at_order' => $menuItem->price,
-
-                'line_total' => $lineTotal,
-
-                'notes' => $item['notes'] ?? null,
-
-            ]);
-            $subtotal += $lineTotal;
-        }
-        $tax = 0;
-
-        $discount = 0;
-
-        $total = ($subtotal + $tax) - $discount;
-
-        $order->update([
-
-            'subtotal' => $subtotal,
-
-            'tax' => $tax,
-
-            'discount' => $discount,
-
-            'total' => $total,
-
-        ]);
-        
-        // Notify chefs of the new order
-        $this->notifyChefs($order);
-        
-        DB::commit();
-        return $order->fresh()->load([
-
-            'reservation',
-
-            'guest',
-
-            'room',
-
-            'orderItems',
-
-            'orderItems.menuItem',
-
-        ]);
-
-    } catch (\Throwable $exception) {
-
-        DB::rollBack();
-
-        throw $exception;
+            'total' => $lineTotal,
+        ];
     }
-}
+
+    public function create(array $data): Order
+    {
+        DB::beginTransaction();
+
+        try {
+            $reservation = $this->validateReservation(
+                $data['reservation_id']
+            );
+
+            $this->validateGuest(
+                $reservation,
+                $data['guest_id']
+            );
+
+            $this->validateRoom(
+                $reservation,
+                $data['room_id']
+            );
+
+            $hotelId = $data['hotel_id'] 
+                ?? $reservation->hotel_id 
+                ?? $reservation->room?->hotel_id 
+                ?? app(\App\Services\TenantContext::class)->getHotelId();
+
+            if ($hotelId) {
+                app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+            }
+
+            $order = Order::create([
+                'hotel_id' => $hotelId,
+                'order_number' => $this->generateOrderNumber(),
+                'reservation_id' => $reservation->id,
+                'guest_id' => $reservation->guest_id,
+                'room_id' => $reservation->room_id,
+                'order_time' => now(),
+                'status' => Order::STATUS_PENDING,
+                'payment_type' => 'room_charge',
+                'subtotal' => 0,
+                'tax' => 0,
+                'service_charge_rate' => 0,
+                'service_charge_amount' => 0,
+                'discount' => 0,
+                'total' => 0,
+                'notes' => $data['notes'] ?? null,
+                'chef_id' => $this->assignChefToOrder(),
+            ]);
+
+            $orderSubtotal = 0;
+            $orderTax = 0;
+
+            foreach ($data['items'] as $item) {
+                $menuItem = $this->getMenuItem($item['menu_item_id']);
+                $calc = $this->calculateItemTax($menuItem, (int) $item['quantity']);
+
+                $order->orderItems()->create([
+                    'menu_item_id' => $menuItem->id,
+                    'quantity' => $calc['quantity'],
+                    'item_price_at_order' => $calc['price'],
+                    'tax_rate_id' => $calc['tax_rate_id'],
+                    'tax_rate' => $calc['tax_rate'],
+                    'tax_amount' => $calc['tax_amount'],
+                    'subtotal' => $calc['subtotal'],
+                    'total' => $calc['total'],
+                    'line_total' => $calc['total'],
+                    'notes' => $item['notes'] ?? null,
+                ]);
+
+                $orderSubtotal += $calc['subtotal'];
+                $orderTax += $calc['tax_amount'];
+            }
+
+            $discount = 0;
+            $serviceCharge = 0;
+            $total = round(($orderSubtotal + $orderTax + $serviceCharge) - $discount, 2);
+
+            $order->update([
+                'subtotal' => round($orderSubtotal, 2),
+                'tax' => round($orderTax, 2),
+                'service_charge_rate' => 0,
+                'service_charge_amount' => $serviceCharge,
+                'discount' => $discount,
+                'total' => $total,
+            ]);
+            
+            $this->notifyChefs($order);
+            
+            DB::commit();
+            return $order->fresh()->load([
+                'reservation',
+                'guest',
+                'room',
+                'orderItems',
+                'orderItems.menuItem',
+                'orderItems.taxRate',
+            ]);
+
+        } catch (\Throwable $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
+    }
 private function notifyChefs(Order $order): void
 {
     try {
@@ -416,89 +413,76 @@ public function update(string $id, array $data): Order
 
         $submittedItemIds = [];
 
-        $subtotal = 0;
+        $orderSubtotal = 0;
+        $orderTax = 0;
 
         foreach ($data['items'] as $itemData) {
-            $menuItem = $this->getMenuItem(
-                $itemData['menu_item_id']
-            );
+            $menuItem = $this->getMenuItem($itemData['menu_item_id']);
+            $calc = $this->calculateItemTax($menuItem, (int) $itemData['quantity']);
 
-            $lineTotal = $menuItem->price * $itemData['quantity'];
-            if (
-                !empty($itemData['id']) &&
-                $existingItems->has($itemData['id'])
-            ) {
-
-                $orderItem = $existingItems->get(
-                    $itemData['id']
-                );
-
+            if (!empty($itemData['id']) && $existingItems->has($itemData['id'])) {
+                $orderItem = $existingItems->get($itemData['id']);
                 $orderItem->update([
-
                     'menu_item_id' => $menuItem->id,
-
-                    'quantity' => $itemData['quantity'],
-
-                    'item_price_at_order' => $menuItem->price,
-
-                    'line_total' => $lineTotal,
-
+                    'quantity' => $calc['quantity'],
+                    'item_price_at_order' => $calc['price'],
+                    'tax_rate_id' => $calc['tax_rate_id'],
+                    'tax_rate' => $calc['tax_rate'],
+                    'tax_amount' => $calc['tax_amount'],
+                    'subtotal' => $calc['subtotal'],
+                    'total' => $calc['total'],
+                    'line_total' => $calc['total'],
                     'notes' => $itemData['notes'] ?? null,
-
                 ]);
 
                 $submittedItemIds[] = $orderItem->id;
-            }
-            else {
-
+            } else {
                 $newItem = $order->orderItems()->create([
-
                     'menu_item_id' => $menuItem->id,
-
-                    'quantity' => $itemData['quantity'],
-
-                    'item_price_at_order' => $menuItem->price,
-
-                    'line_total' => $lineTotal,
-
+                    'quantity' => $calc['quantity'],
+                    'item_price_at_order' => $calc['price'],
+                    'tax_rate_id' => $calc['tax_rate_id'],
+                    'tax_rate' => $calc['tax_rate'],
+                    'tax_amount' => $calc['tax_amount'],
+                    'subtotal' => $calc['subtotal'],
+                    'total' => $calc['total'],
+                    'line_total' => $calc['total'],
                     'notes' => $itemData['notes'] ?? null,
-
                 ]);
 
                 $submittedItemIds[] = $newItem->id;
             }
-            $subtotal += $lineTotal;
+
+            $orderSubtotal += $calc['subtotal'];
+            $orderTax += $calc['tax_amount'];
         }
 
         $order->orderItems()
             ->whereNotIn('id', $submittedItemIds)
             ->delete();
-        $tax = $this->calculateTax($subtotal);
 
-        $discount = $this->calculateDiscount(
-            $subtotal,
-            $reservation
-        );
+        $discount = 0;
+        $serviceCharge = 0;
+        $total = round(($orderSubtotal + $orderTax + $serviceCharge) - $discount, 2);
 
-        $total = $this->calculateTotal(
-            $subtotal,
-            $tax,
-            $discount
-        );
         $order->update([
-
-            'subtotal' => $subtotal,
-
-            'tax' => $tax,
-
+            'subtotal' => round($orderSubtotal, 2),
+            'tax' => round($orderTax, 2),
+            'service_charge_rate' => 0,
+            'service_charge_amount' => $serviceCharge,
             'discount' => $discount,
-
             'total' => $total,
-
         ]);
         DB::commit();
 
         return $order->fresh()->load([
+            'reservation',
+            'guest',
+            'room',
+            'orderItems',
+            'orderItems.menuItem',
+            'orderItems.taxRate',
+        ]);
 
             'reservation',
 

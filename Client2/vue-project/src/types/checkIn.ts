@@ -1,14 +1,20 @@
 export interface Guest {
   id: string
-  full_name: string
-  phone: string
-  email: string
+  full_name?: string
+  first_name?: string
+  last_name?: string
+  phone?: string
+  email?: string
 }
 
 export interface Room {
   id: string
   room_number: string
-  status: string
+  status?: string
+  room_type?: {
+    id?: string
+    name: string
+  }
 }
 
 export interface Reservation {

@@ -7,63 +7,64 @@ import type {
   WaiterProfile,
 } from '@/types/waiter'
 class WaiterService {
-  async getDashboard(): Promise<WaiterDashboard> {
-    console.log(' [SERVICE] getDashboard API call initiated')
-    try {
-      const response = await api.get('/waiter/dashboard')
-      console.log(' [SERVICE] getDashboard response received:', {
-        'status': response.status,
-        'data': response.data,
-        'data.success': response.data?.success,
-        'data.data': response.data?.data,
-        'today_stats': response.data?.data?.today_stats,
-      })
+  private getTenantParams(extra: Record<string, any> = {}) {
+    const hotelId = typeof localStorage !== 'undefined' ? localStorage.getItem('hotel_id') : null
+    return hotelId ? { hotel_id: hotelId, ...extra } : extra
+  }
 
+  async getDashboard(customParams?: any): Promise<WaiterDashboard> {
+    try {
+      const response = await api.get('/waiter/dashboard', {
+        params: this.getTenantParams(customParams),
+      })
       if (response.data && response.data.data) {
-        console.log(' [SERVICE] Extracted dashboard data with today_stats:', response.data.data.today_stats)
         return response.data.data
       }
-      console.warn('[SERVICE] getDashboard response missing data field', response.data)
       return response.data
     } catch (err: any) {
-      console.error(' [SERVICE] getDashboard API error:', {
-        status: err.response?.status,
-        message: err.response?.data?.message || err.message,
-        data: err.response?.data,
-      })
+      console.error('[WaiterService] Error fetching dashboard data:', err)
       throw err
     }
   }
   async getTodayStats(): Promise<any> {
-    const response = await api.get('/waiter/dashboard/today')
+    const response = await api.get('/waiter/dashboard/today', {
+      params: this.getTenantParams(),
+    })
     return response.data.data
   }
   async getPerformance(): Promise<any> {
-    const response = await api.get('/waiter/dashboard/performance')
+    const response = await api.get('/waiter/dashboard/performance', {
+      params: this.getTenantParams(),
+    })
     return response.data.data
   }
   async getRecentAssignments(limit: number = 10): Promise<WaiterAssignment[]> {
     const response = await api.get('/waiter/dashboard/recent-assignments', {
-      params: { limit },
+      params: this.getTenantParams({ limit }),
     })
     return response.data.data
   }
-  async getReadyForPickup(): Promise<WaiterAssignment[]> {
-    const response = await api.get('/waiter/dashboard/ready-pickup')
+  async getReadyForPickup(customParams?: any): Promise<WaiterAssignment[]> {
+    const response = await api.get('/waiter/dashboard/ready-pickup', {
+      params: this.getTenantParams(customParams),
+    })
     return response.data.data
   }
 
-  async getReadyForPickupOrders(): Promise<WaiterAssignment[]> {
-    return this.getReadyForPickup()
+  async getReadyForPickupOrders(customParams?: any): Promise<WaiterAssignment[]> {
+    return this.getReadyForPickup(customParams)
   }
-
   async getPendingPickupOrders(): Promise<WaiterAssignment[]> {
-    const response = await api.get('/waiter/dashboard/pending-pickup')
+    const response = await api.get('/waiter/dashboard/pending-pickup', {
+      params: this.getTenantParams(),
+    })
     return response.data.data
   }
 
   async getOnDelivery(): Promise<WaiterAssignment[]> {
-    const response = await api.get('/waiter/dashboard/on-delivery')
+    const response = await api.get('/waiter/dashboard/on-delivery', {
+      params: this.getTenantParams(),
+    })
     return response.data.data
   }
 
@@ -78,44 +79,35 @@ class WaiterService {
 
   async getCompletedDeliveries(limit: number = 10): Promise<WaiterAssignment[]> {
     const response = await api.get('/waiter/dashboard/completed', {
-      params: { limit },
+      params: this.getTenantParams({ limit }),
     })
     return response.data.data
   }
-
   async getFailedDeliveries(limit: number = 10): Promise<WaiterAssignment[]> {
     const response = await api.get('/waiter/dashboard/failed', {
-      params: { limit },
+      params: this.getTenantParams({ limit }),
     })
     return response.data.data
   }
 
   async getDeliveryTimeline(): Promise<DeliveryLog[]> {
-    const response = await api.get('/waiter/dashboard/timeline')
+    const response = await api.get('/waiter/dashboard/timeline', {
+      params: this.getTenantParams(),
+    })
     return response.data.data
   }
 
   async getQuickStats(): Promise<any> {
-    console.log(' [SERVICE] getQuickStats API call initiated')
     try {
-      const response = await api.get('/waiter/dashboard/quick-stats')
-      console.log(' [SERVICE] getQuickStats response received:', response.data)
+      const response = await api.get('/waiter/dashboard/quick-stats', {
+        params: this.getTenantParams(),
+      })
       return response.data.data
     } catch (err: any) {
-      console.error(' [SERVICE] getQuickStats API error:', {
-        status: err.response?.status,
-        message: err.response?.data?.message || err.message,
-        data: err.response?.data,
-      })
+      console.error('[WaiterService] Error fetching quick stats:', err)
       throw err
     }
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Assignments
-  |--------------------------------------------------------------------------
-  */
 
   async getAssignments(params: {
     status?: string
@@ -125,9 +117,9 @@ class WaiterService {
     sort_order?: string
     per_page?: number
   } = {}): Promise<{ data: WaiterAssignment[]; pagination: any }> {
-    console.log(' [WAITER SERVICE] Calling getAssignments with params:', params)
-    const response = await api.get('/waiter/assignments', { params })
-    console.log(' [WAITER SERVICE] getAssignments response:', response.data)
+    const response = await api.get('/waiter/assignments', {
+      params: this.getTenantParams(params),
+    })
     return {
       data: response.data.data,
       pagination: response.data.pagination,
@@ -135,22 +127,30 @@ class WaiterService {
   }
 
   async getAssignment(id: string): Promise<WaiterAssignment> {
-    const response = await api.get(`/waiter/assignments/${id}`)
+    const response = await api.get(`/waiter/assignments/${id}`, {
+      params: this.getTenantParams(),
+    })
     return response.data.data
   }
 
   async getPendingAssignments(): Promise<WaiterAssignment[]> {
-    const response = await api.get('/waiter/assignments/pending/list')
+    const response = await api.get('/waiter/assignments/pending/list', {
+      params: this.getTenantParams(),
+    })
     return response.data.data
   }
 
   async getActiveAssignments(): Promise<WaiterAssignment[]> {
-    const response = await api.get('/waiter/assignments/active/list')
+    const response = await api.get('/waiter/assignments/active/list', {
+      params: this.getTenantParams(),
+    })
     return response.data.data
   }
 
   async getTodayAssignments(): Promise<WaiterAssignment[]> {
-    const response = await api.get('/waiter/assignments/today/list')
+    const response = await api.get('/waiter/assignments/today/list', {
+      params: this.getTenantParams(),
+    })
     return response.data.data
   }
 
@@ -194,12 +194,6 @@ class WaiterService {
     })
     return response.data.data
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | History & Reports
-  |--------------------------------------------------------------------------
-  */
 
   async getHistory(params: {
     date?: string
@@ -281,12 +275,6 @@ class WaiterService {
     return response.data.data
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Profile
-  |--------------------------------------------------------------------------
-  */
-
   async getProfile(): Promise<WaiterProfile> {
     const response = await api.get('/waiter/profile')
     return response.data.data
@@ -331,12 +319,6 @@ class WaiterService {
     const response = await api.get('/waiter/profile/availability')
     return response.data.data
   }
-
-  /*
-  |--------------------------------------------------------------------------
-  | Settings
-  |--------------------------------------------------------------------------
-  */
 
   async getSettings(): Promise<any> {
     const response = await api.get('/waiter/settings')

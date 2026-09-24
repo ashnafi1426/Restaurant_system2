@@ -11,31 +11,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
-
 class UpdateWorkloadListener implements ShouldQueue
 {
     use InteractsWithQueue;
 
-    /**
-     * The number of times the queued listener may be attempted
-     *
-     * @var int
-     */
     public $tries = 2;
 
-    /**
-     * Create the event listener.
-     *
-     * @return void
-     */
     public function __construct() {}
 
-    /**
-     * Handle WaiterAssignedEvent - increment workload
-     *
-     * @param WaiterAssignedEvent $event
-     * @return void
-     */
     public function handleWaiterAssigned(WaiterAssignedEvent $event): void
     {
         try {
@@ -45,15 +28,11 @@ class UpdateWorkloadListener implements ShouldQueue
             ]);
 
             DB::transaction(function () use ($event) {
-                // Get waiter with fresh data
                 $waiter = Waiter::findOrFail($event->waiterId);
 
-                // Increment current orders
                 $waiter->increment('current_orders');
 
-                // Check if waiter should be marked as busy
                 if ($waiter->current_orders >= $waiter->max_orders) {
-                    // Mark as busy
                     if ($waiter->availability_status !== 'busy') {
                         $waiter->update(['availability_status' => 'busy']);
                         
@@ -65,7 +44,6 @@ class UpdateWorkloadListener implements ShouldQueue
                     }
                 }
 
-                // Log workload update
                 Log::info('Workload updated', [
                     'waiter_id' => $event->waiterId,
                     'previous_orders' => $waiter->current_orders - 1,
@@ -84,12 +62,6 @@ class UpdateWorkloadListener implements ShouldQueue
         }
     }
 
-    /**
-     * Handle DeliveryReassignedEvent - update both waiters' workload
-     *
-     * @param DeliveryReassignedEvent $event
-     * @return void
-     */
     public function handleDeliveryReassigned(DeliveryReassignedEvent $event): void
     {
         try {
@@ -100,14 +72,11 @@ class UpdateWorkloadListener implements ShouldQueue
             ]);
 
             DB::transaction(function () use ($event) {
-                // Get waiters with fresh data
                 $newWaiter = Waiter::findOrFail($event->newWaiterId);
                 $previousWaiter = Waiter::findOrFail($event->previousWaiterId);
 
-                // Decrement previous waiter's orders
                 $previousWaiter->decrement('current_orders');
 
-                // Check if previous waiter can now accept more
                 if ($previousWaiter->current_orders < $previousWaiter->max_orders) {
                     if ($previousWaiter->availability_status === 'busy') {
                         $previousWaiter->update(['availability_status' => 'available']);
@@ -120,10 +89,8 @@ class UpdateWorkloadListener implements ShouldQueue
                     }
                 }
 
-                // Increment new waiter's orders
                 $newWaiter->increment('current_orders');
 
-                // Check if new waiter should be marked as busy
                 if ($newWaiter->current_orders >= $newWaiter->max_orders) {
                     if ($newWaiter->availability_status !== 'busy') {
                         $newWaiter->update(['availability_status' => 'busy']);

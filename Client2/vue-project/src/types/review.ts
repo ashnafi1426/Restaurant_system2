@@ -1,8 +1,3 @@
-/**
- * Review Types
- * Type definitions for menu item review and rating system
- */
-
 export interface Review {
   id: string
   guest_id: string

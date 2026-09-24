@@ -11,10 +11,6 @@ use Illuminate\Support\Facades\Storage;
 
 class ReceptionistProfileController extends Controller
 {
-    /**
-     * Get receptionist profile
-     * GET /api/receptionist/profile
-     */
     public function getProfile(): JsonResponse
     {
         try {
@@ -70,10 +66,6 @@ class ReceptionistProfileController extends Controller
         }
     }
 
-    /**
-     * Update receptionist profile
-     * PUT /api/receptionist/profile
-     */
     public function updateProfile(Request $request): JsonResponse
     {
         try {
@@ -131,10 +123,6 @@ class ReceptionistProfileController extends Controller
         }
     }
 
-    /**
-     * Upload profile photo
-     * POST /api/receptionist/profile/photo
-     */
     public function uploadPhoto(Request $request): JsonResponse
     {
         try {
@@ -176,10 +164,6 @@ class ReceptionistProfileController extends Controller
         }
     }
 
-    /**
-     * Change password
-     * POST /api/receptionist/profile/change-password
-     */
     public function changePassword(Request $request): JsonResponse
     {
         try {
@@ -214,43 +198,33 @@ class ReceptionistProfileController extends Controller
         }
     }
 
-    /**
-     * Get receptionist statistics
-     * GET /api/receptionist/profile/stats
-     */
     public function getStats(): JsonResponse
     {
         try {
             $today = now()->toDateString();
             
-            // Get check-ins today (reservations that have check_in_date = today)
             $checkInsToday = DB::table('reservations')
                 ->whereDate('check_in_date', $today)
                 ->where('status', 'confirmed')
                 ->count();
             
-            // Get check-outs today (reservations that have check_out_date = today)
             $checkOutsToday = DB::table('reservations')
                 ->whereDate('check_out_date', $today)
                 ->whereIn('status', ['confirmed', 'checked_in'])
                 ->count();
             
-            // Get pending reservations
             $pendingReservations = DB::table('reservations')
                 ->where('status', 'pending')
                 ->count();
             
-            // Get confirmed reservations
             $confirmedReservations = DB::table('reservations')
                 ->where('status', 'confirmed')
                 ->count();
             
-            // Get available rooms
             $availableRooms = DB::table('rooms')
                 ->where('status', 'available')
                 ->count();
             
-            // Get occupied rooms (active guests)
             $occupiedRooms = DB::table('rooms')
                 ->where('status', 'occupied')
                 ->count();
@@ -282,10 +256,6 @@ class ReceptionistProfileController extends Controller
         }
     }
 
-    /**
-     * Update availability status
-     * POST /api/receptionist/profile/status
-     */
     public function updateStatus(Request $request): JsonResponse
     {
         try {

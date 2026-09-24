@@ -68,17 +68,11 @@ class ManagerReport extends Model
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Get the manager who generated the report
-     */
     public function manager(): BelongsTo
     {
         return $this->belongsTo(User::class, 'manager_id');
     }
 
-    /**
-     * Calculate order success rate
-     */
     public function getOrderSuccessRate(): float
     {
         if ($this->total_orders === 0) {
@@ -87,9 +81,6 @@ class ManagerReport extends Model
         return round(($this->completed_orders / $this->total_orders) * 100, 2);
     }
 
-    /**
-     * Calculate average order value
-     */
     public function getAverageOrderValue(): float
     {
         if ($this->total_orders === 0) {
@@ -98,9 +89,6 @@ class ManagerReport extends Model
         return round($this->total_revenue / $this->total_orders, 2);
     }
 
-    /**
-     * Calculate average revenue per guest
-     */
     public function getAverageRevenuePerGuest(): float
     {
         if ($this->total_guests === 0) {
@@ -109,9 +97,6 @@ class ManagerReport extends Model
         return round($this->total_revenue / $this->total_guests, 2);
     }
 
-    /**
-     * Get report status label
-     */
     public function getStatusLabel(): string
     {
         return match ($this->status) {
@@ -122,9 +107,6 @@ class ManagerReport extends Model
         };
     }
 
-    /**
-     * Mark report as generated
-     */
     public function markAsGenerated(): void
     {
         $this->update([
@@ -133,9 +115,6 @@ class ManagerReport extends Model
         ]);
     }
 
-    /**
-     * Mark report as sent
-     */
     public function markAsSent(): void
     {
         $this->update([
@@ -144,41 +123,26 @@ class ManagerReport extends Model
         ]);
     }
 
-    /**
-     * Scope: Get reports by type
-     */
     public function scopeByType($query, $type)
     {
         return $query->where('report_type', $type);
     }
 
-    /**
-     * Scope: Get reports by manager
-     */
     public function scopeForManager($query, $managerId)
     {
         return $query->where('manager_id', $managerId);
     }
 
-    /**
-     * Scope: Get reports for date range
-     */
     public function scopeDateRange($query, $startDate, $endDate)
     {
         return $query->whereBetween('period_start', [$startDate, $endDate]);
     }
 
-    /**
-     * Scope: Get generated reports
-     */
     public function scopeGenerated($query)
     {
         return $query->where('status', '!=', 'draft');
     }
 
-    /**
-     * Scope: Get recent reports
-     */
     public function scopeRecent($query, $limit = 10)
     {
         return $query->orderBy('report_date', 'desc')->limit($limit);

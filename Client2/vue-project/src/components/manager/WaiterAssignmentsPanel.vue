@@ -1,6 +1,5 @@
 <template>
   <div class="assignments-panel">
-    <!-- Header -->
     <div class="panel-header">
       <div class="header-content">
         <h3 class="panel-title">Active Assignments</h3>
@@ -11,28 +10,23 @@
       </button>
     </div>
 
-    <!-- Content -->
     <div class="panel-body">
-      <!-- Loading State -->
       <div v-if="loading" class="loading-state">
         <div class="spinner"></div>
         <p>Loading assignments...</p>
       </div>
 
-      <!-- Error State -->
       <div v-else-if="error" class="error-state">
         <AlertCircle :size="24" />
         <p>{{ error }}</p>
       </div>
 
-      <!-- Empty State -->
       <div v-else-if="assignments.length === 0" class="empty-state">
         <CheckCircle :size="48" />
         <p>No active assignments</p>
         <span>This waiter is ready for new assignments</span>
       </div>
 
-      <!-- Assignments List -->
       <div v-else class="assignments-list">
         <div
           v-for="assignment in assignments"
@@ -46,25 +40,22 @@
             'status-failed': assignment.status === 'failed',
           }"
         >
-          <!-- Status Badge -->
           <div class="status-badge">
             <span class="status-dot"></span>
             {{ formatStatus(assignment.status) }}
           </div>
 
-          <!-- Assignment Details -->
           <div class="assignment-details">
             <p class="order-id">Order #{{ assignment.order_id?.substring(0, 8) || 'N/A' }}</p>
             <p class="assigned-time">{{ formatTime(assignment.assigned_at) }}</p>
 
-            <!-- Timeline -->
             <div class="timeline">
               <div class="timeline-item" :class="{ completed: assignment.accepted_at }">
                 <span class="timeline-dot">✓</span>
                 <span class="timeline-label">Accepted</span>
               </div>
               <div class="timeline-item" :class="{ completed: assignment.picked_up_at }">
-                <span class="timeline-dot">📦</span>
+                <span class="timeline-dot"></span>
                 <span class="timeline-label">Picked Up</span>
               </div>
               <div class="timeline-item" :class="{ completed: assignment.delivered_at }">
@@ -74,7 +65,6 @@
             </div>
           </div>
 
-          <!-- Remarks -->
           <div v-if="assignment.remarks" class="remarks">
             <p class="remarks-text">{{ assignment.remarks }}</p>
           </div>
@@ -125,11 +115,11 @@ onMounted(async () => {
   try {
     loading.value = true
     const data = await waiterStore.getAssignments(props.waiterId)
-    // Filter only active assignments (not completed/failed/rejected)
     assignments.value = (data || []).filter((a: any) =>
       ['pending', 'accepted', 'on_delivery', 'picked_up'].includes(a.status)
     )
   } catch (err: any) {
+    console.error('[WaiterAssignmentsPanel] Failed to load assignments:', err)
     error.value = err.message || 'Failed to load assignments'
   } finally {
     loading.value = false

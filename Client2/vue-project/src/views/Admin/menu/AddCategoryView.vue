@@ -1,7 +1,6 @@
 <template>
   <DashboardLayout>
-    <!-- Page Header - Responsive -->
-    <template #header>
+    <template>
       <div
         class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4"
       >
@@ -17,8 +16,6 @@
         </button>
       </div>
     </template>
-
-    <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center py-12">
       <div class="flex flex-col items-center gap-4">
         <div
@@ -27,10 +24,7 @@
         <p class="text-slate-600 text-sm">Loading...</p>
       </div>
     </div>
-
-    <!-- Form Container - Responsive Width -->
     <div v-else class="w-full max-w-2xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
-      <!-- Error Alert -->
       <div
         v-if="errors.general"
         class="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg"
@@ -39,7 +33,6 @@
       </div>
 
       <form @submit.prevent="submitForm" class="space-y-4 sm:space-y-6">
-        <!-- Category Name -->
         <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm">
           <label for="name" class="block text-xs font-semibold text-slate-600 uppercase mb-2">
             Category Name <span class="text-red-500">*</span>
@@ -55,7 +48,6 @@
           <p v-if="errors.name" class="text-red-600 text-xs mt-1">{{ errors.name }}</p>
         </div>
 
-        <!-- Description -->
         <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm">
           <label
             for="description"
@@ -72,9 +64,7 @@
           ></textarea>
         </div>
 
-        <!-- Icon & Display Order Row - Responsive Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <!-- Icon Selection -->
           <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm">
             <label for="icon" class="block text-xs font-semibold text-slate-600 uppercase mb-2">
               Icon <span class="text-slate-400">(optional)</span>
@@ -85,10 +75,10 @@
               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
             >
               <option value="">Select an icon...</option>
-              <option value="sun">☀️ Sun (Breakfast)</option>
+              <option value="sun"> Sun (Breakfast)</option>
               <option value="leaf">🍃 Leaf (Vegetarian)</option>
               <option value="soup">🍲 Soup</option>
-              <option value="utensils">🍽️ Utensils (Main Course)</option>
+              <option value="utensils">Utensils (Main Course)</option>
               <option value="pizza">🍕 Pizza</option>
               <option value="flame">🔥 Flame (Spicy/Pasta)</option>
               <option value="cake">🍰 Cake (Dessert)</option>
@@ -99,7 +89,6 @@
             <p v-if="errors.icon" class="text-red-600 text-xs mt-1">{{ errors.icon }}</p>
           </div>
 
-          <!-- Display Order -->
           <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm">
             <label
               for="display_order"
@@ -119,7 +108,6 @@
           </div>
         </div>
 
-        <!-- Active Status -->
         <div class="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
@@ -145,7 +133,6 @@
           </div>
         </div>
 
-        <!-- Form Actions - Responsive -->
         <div
           class="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center justify-end mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200"
         >
@@ -176,13 +163,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import DashboardLayout from '@/layouts/DashboardLayout.vue'
-import categoryService from '@/services/categoryService'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import categoryService, { type CreateCategoryData } from '@/services/categoryService'
 
-// Router
 const router = useRouter()
 
-// State
 const formData = ref({
   name: '',
   description: '',
@@ -195,12 +180,10 @@ const loading = ref(false)
 const submitting = ref(false)
 const errors = ref<Record<string, string>>({})
 
-// Computed
 const isFormValid = computed(() => {
   return formData.value.name.trim().length > 0
 })
 
-// Methods
 const validateForm = (): boolean => {
   errors.value = {}
 
@@ -219,29 +202,21 @@ const submitForm = async () => {
   submitting.value = true
 
   try {
-    const payload = {
+    const payload: CreateCategoryData = {
       name: formData.value.name,
       description: formData.value.description || null,
       icon: formData.value.icon || null,
       display_order: formData.value.display_order || 0,
-      is_active: formData.value.is_active ? 1 : 0,
+      is_active: Boolean(formData.value.is_active),
     }
-
-    console.log('📤 Creating category with payload:', payload)
-
     await categoryService.createCategory(payload)
 
-    console.log(' Category created successfully')
-
-    // Redirect back to menu
     router.push({ name: 'admin-menu' })
   } catch (error: any) {
-    console.error(' Error creating category:', error)
-
+    console.error('[AddCategoryView] Error creating category:', error)
     if (error.response?.data?.message) {
       errors.value.general = error.response.data.message
     } else if (error.response?.data?.errors) {
-      console.error('📋 Validation Errors:', error.response.data.errors)
       errors.value.general = 'Please check your input and try again'
     } else {
       errors.value.general = 'Failed to create category'

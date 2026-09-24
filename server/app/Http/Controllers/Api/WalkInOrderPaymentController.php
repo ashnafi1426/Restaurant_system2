@@ -17,27 +17,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-/**
- * ============================================================================
- * WalkInOrderPaymentController
- * ============================================================================
- * Handles payment flow for walk-in restaurant table orders
- * 
- * Payment Flow:
- * 1. Customer scans table QR code
- * 2. Customer selects menu items and adds to cart
- * 3. Customer initiates checkout with payment
- * 4. Initialize payment with Chapa
- * 5. Redirect to Chapa checkout
- * 6. Customer completes payment
- * 7. Verify payment status
- * 8. Create order record ONLY after payment verification
- * 9. Send order to kitchen
- * 10. Chef cannot see order until payment is verified
- * 
- * Order is NEVER created before successful payment verification
- * ============================================================================
- */
 class WalkInOrderPaymentController extends Controller
 {
     protected PaymentService $paymentService;
@@ -51,36 +30,9 @@ class WalkInOrderPaymentController extends Controller
         $this->chapaService = $chapaService;
     }
 
-    /**
-     * ============================================================================
-     * Initialize Walk-In Order Payment
-     * ============================================================================
-     * Validates order items and initializes payment with Chapa
-     * 
-     * Request Body:
-     * {
-     *   "table_id": "uuid",
-     *   "qr_token": "table-2-GveD6NRGFa",
-     *   "items": [
-     *     {
-     *       "menu_item_id": "uuid",
-     *       "quantity": 2
-     *     }
-     *   ],
-     *   "special_requests": "Optional order notes",
-     *   "first_name": "John",
-     *   "last_name": "Doe",
-     *   "email": "john@example.com",
-     *   "phone": "+251912345678"
-     * }
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function initializePayment(Request $request): JsonResponse
     {
         try {
-            // Validate request
             $validated = $request->validate([
                 'table_id'     => 'nullable|string',
                 'qr_token'     => 'required|string',
@@ -94,7 +46,6 @@ class WalkInOrderPaymentController extends Controller
                 'phone'        => 'required|string|max:20',
             ]);
 
-            // Get table by table_id, qr_token, or table_number
             $table = null;
             if (!empty($validated['table_id'])) {
                 $table = RestaurantTable::where('id', $validated['table_id'])
@@ -117,7 +68,6 @@ class WalkInOrderPaymentController extends Controller
                 ], 404);
             }
 
-            // Calculate order total
             $orderCalculation = $this->calculateOrderTotal($validated['items']);
 
             if (!$orderCalculation['success']) {
@@ -127,7 +77,6 @@ class WalkInOrderPaymentController extends Controller
                 ], 400);
             }
 
-            // Prepare order items with prices for payment metadata
             $orderItemsWithPrices = [];
             foreach ($orderCalculation['items'] as $item) {
                 $orderItemsWithPrices[] = [
@@ -139,7 +88,6 @@ class WalkInOrderPaymentController extends Controller
                 ];
             }
 
-            // Create payment record
             $payment = Payment::create([
                 'id'         => Str::uuid(),
                 'tx_ref'     => 'WALKIN-' . strtoupper(Str::random(12)),
@@ -161,8 +109,7 @@ class WalkInOrderPaymentController extends Controller
                 ],
             ]);
 
-            // Initialize payment with Chapa
-            $title = 'Table Order'; // 11 characters - safe for Chapa
+            $title = 'Table Order';
             
             $chapaResponse = $this->chapaService->initialize([
                 'amount'       => $payment->amount,
@@ -182,7 +129,6 @@ class WalkInOrderPaymentController extends Controller
                 ),
             ]);
 
-            // Handle initialization failure
             if (!$chapaResponse['success']) {
                 Log::error('Chapa Initialize Failed for Walk-In Order', [
                     'payment_id' => $payment->id,
@@ -202,7 +148,6 @@ class WalkInOrderPaymentController extends Controller
                 ], 400);
             }
 
-            // Update payment with checkout URL
             $checkoutUrl = $this->chapaService->getCheckoutUrl($chapaResponse);
             $payment->update([
                 'checkout_url' => $checkoutUrl,
@@ -217,7 +162,6 @@ class WalkInOrderPaymentController extends Controller
                 'item_count'  => count($validated['items']),
             ]);
 
-            // Return response
             return response()->json([
                 'success'       => true,
                 'message'       => 'Payment initialized successfully',
@@ -249,23 +193,10 @@ class WalkInOrderPaymentController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Complete Walk-In Order After Payment
-     * ============================================================================
-     * Called after payment verification
-     * Creates the actual order record in database
-     * 
-     * @param string $txRef - Transaction reference
-     * @return JsonResponse
-     */
     public function completeOrder(string $txRef): JsonResponse
     {
         try {
-            // Find payment
             $payment = Payment::where('tx_ref', $txRef)->firstOrFail();
-
-            // Check if order already exists
             if ($payment->order_id && $payment->order) {
                 return response()->json([
                     'success' => true,
@@ -274,8 +205,6 @@ class WalkInOrderPaymentController extends Controller
                     'payment' => new PaymentResource($payment),
                 ]);
             }
-
-            // Verify payment is verified
             if ($payment->status !== 'verified') {
                 return response()->json([
                     'success' => false,
@@ -283,7 +212,6 @@ class WalkInOrderPaymentController extends Controller
                 ], 400);
             }
 
-            // Get metadata
             $metadata = $payment->metadata;
 
             if (!$metadata || !isset($metadata['items']) || !isset($metadata['table_id'])) {
@@ -293,7 +221,6 @@ class WalkInOrderPaymentController extends Controller
                 ], 400);
             }
 
-            // Create order
             $result = DB::transaction(function () use ($payment, $metadata) {
                 $calculation = $metadata['calculation'];
                 $tableId = $metadata['table_id'] ?? null;
@@ -306,8 +233,6 @@ class WalkInOrderPaymentController extends Controller
                 if ($hotelId) {
                     app(\App\Services\TenantContext::class)->setHotelId($hotelId);
                 }
-                
-                // Create order
                 $order = Order::create([
                     'hotel_id' => $hotelId,
                     'order_number' => Order::generateOrderNumber(),
@@ -323,11 +248,10 @@ class WalkInOrderPaymentController extends Controller
                     'service_charge' => $calculation['service_charge'] ?? 0,
                     'discount' => $calculation['discount'] ?? 0,
                     'status' => Order::STATUS_PENDING,
-                    'payment_type' => 'card', // Paid via Chapa
+                    'payment_type' => 'card',
                     'notes' => $metadata['special_requests'] ?? null,
                 ]);
 
-                // Create order items
                 foreach ($metadata['items'] as $item) {
                     OrderItem::create([
                         'order_id' => $order->id,
@@ -338,12 +262,10 @@ class WalkInOrderPaymentController extends Controller
                     ]);
                 }
 
-                // Link payment to order
                 $payment->update([
                     'order_id' => $order->id,
                 ]);
 
-                // Update table status to occupied
                 RestaurantTable::where('id', $metadata['table_id'])->update([
                     'status' => RestaurantTable::STATUS_OCCUPIED,
                 ]);
@@ -359,6 +281,12 @@ class WalkInOrderPaymentController extends Controller
                 'order_id'    => $result['order']->id,
                 'table_id'    => $metadata['table_id'],
             ]);
+
+            try {
+                app(\App\Services\Waiter\AutomaticWaiterAssignmentService::class)->assignWaiterToReadyOrder($result['order']);
+            } catch (\Throwable $assignErr) {
+                Log::warning('Automatic waiter assignment for walk-in order failed: ' . $assignErr->getMessage());
+            }
 
             return response()->json([
                 'success' => true,
@@ -386,9 +314,6 @@ class WalkInOrderPaymentController extends Controller
         }
     }
 
-    /**
-     * Calculate Order Total
-     */
     private function calculateOrderTotal(array $items): array
     {
         try {
@@ -409,16 +334,9 @@ class WalkInOrderPaymentController extends Controller
                 ];
             }
 
-            // Calculate tax (15%)
             $tax = $subtotal * 0.15;
-
-            // Calculate service charge (10%)
             $serviceCharge = $subtotal * 0.10;
-
-            // No discount for walk-in orders
             $discount = 0;
-
-            // Calculate total
             $total = $subtotal + $tax + $serviceCharge - $discount;
 
             return [
@@ -443,9 +361,6 @@ class WalkInOrderPaymentController extends Controller
         }
     }
 
-    /**
-     * Get Order by Payment
-     */
     public function getOrderByPayment(string $txRef): JsonResponse
     {
         try {

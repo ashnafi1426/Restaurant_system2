@@ -1,4 +1,3 @@
-// Guest information returned by the API
 export interface Guest {
   id: string
   first_name: string
@@ -15,7 +14,6 @@ export interface Guest {
   updated_at: string
 }
 
-// Form data for creating/updating guests
 export interface GuestForm {
   first_name: string
   last_name: string
@@ -28,7 +26,6 @@ export interface GuestForm {
   preferences: string[]
 }
 
-// API response for a paginated list
 export interface GuestListResponse {
   data: Guest[]
   meta: {
@@ -39,13 +36,11 @@ export interface GuestListResponse {
   }
 }
 
-// API response for a single guest
 export interface GuestResponse {
   data: Guest
   message?: string
 }
 
-// Search/filter parameters
 export interface GuestFilter {
   search?: string
   nationality?: string
@@ -53,11 +48,6 @@ export interface GuestFilter {
   per_page?: number
 }
 
-// ===========================================
-// MENU & ORDER TYPES
-// ===========================================
-
-// Guest menu item interface
 export interface MenuItem {
   id: string
   name: string
@@ -68,7 +58,6 @@ export interface MenuItem {
   is_available: boolean
 }
 
-// Order interface
 export interface Order {
   id: string | number
   order_number?: string
@@ -79,7 +68,6 @@ export interface Order {
   created_at?: string
 }
 
-// Order item interface
 export interface OrderItem {
   menu_item_id: string
   quantity: number
@@ -87,7 +75,6 @@ export interface OrderItem {
   line_total?: number
 }
 
-// Cart item for guest ordering
 export interface CartItem extends MenuItem {
   quantity: number
 }

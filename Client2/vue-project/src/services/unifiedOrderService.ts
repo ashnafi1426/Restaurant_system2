@@ -47,21 +47,13 @@ export interface PaymentInitializeResponse {
   errors?: any
 }
 
-/**
- * Unified Order Service - Handles order creation for both room service and walk-in
- * Backend automatically determines order type based on QR token
- */
 export const unifiedOrderService = {
-  /**
-   * Create an order (room service or walk-in determined by backend)
-   * @param orderData - Order data including QR token and items
-   * @returns Order creation response
-   */
   async createOrder(orderData: CreateOrderRequest): Promise<OrderResponse> {
     try {
       const response = await axios.post('/guest/unified-orders', orderData)
       return response.data
     } catch (error: any) {
+      console.error('[UnifiedOrderService] Error creating order:', error)
       throw {
         success: false,
         message: error.response?.data?.message || 'Failed to create order',
@@ -70,16 +62,12 @@ export const unifiedOrderService = {
     }
   },
 
-  /**
-   * Initialize walk-in order payment via Chapa
-   * @param paymentData - Payment data including customer info
-   * @returns Payment initialization response with checkout URL
-   */
   async initializeWalkInPayment(paymentData: WalkInPaymentRequest): Promise<PaymentInitializeResponse> {
     try {
       const response = await axios.post('/walk-in-payments/initialize', paymentData)
       return response.data
     } catch (error: any) {
+      console.error('[UnifiedOrderService] Error initializing walk-in payment:', error)
       throw {
         success: false,
         message: error.response?.data?.message || 'Failed to initialize payment',
@@ -88,16 +76,12 @@ export const unifiedOrderService = {
     }
   },
 
-  /**
-   * Get order by payment transaction reference
-   * @param txRef - Transaction reference from payment
-   * @returns Order details
-   */
   async getOrderByPayment(txRef: string): Promise<any> {
     try {
       const response = await axios.get(`/walk-in-payments/${txRef}`)
       return response.data
     } catch (error: any) {
+      console.error('[UnifiedOrderService] Error getting order by payment:', error)
       throw {
         success: false,
         message: error.response?.data?.message || 'Failed to get order',

@@ -42,21 +42,9 @@ class MenuItemReview extends Model
         'updated_at' => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Status Constants
-    |--------------------------------------------------------------------------
-    */
-
     public const STATUS_PENDING = 'pending';
     public const STATUS_APPROVED = 'approved';
     public const STATUS_REJECTED = 'rejected';
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
 
     public function guest()
     {
@@ -98,12 +86,6 @@ class MenuItemReview extends Model
         return $this->hasMany(ReviewNotification::class, 'review_id');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Query Scopes
-    |--------------------------------------------------------------------------
-    */
-
     public function scopePending($query)
     {
         return $query->where('status', self::STATUS_PENDING);
@@ -139,12 +121,6 @@ class MenuItemReview extends Model
         return $query->orderByRaw('helpful_count / (helpful_count + not_helpful_count + 1) DESC');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Status Helper Methods
-    |--------------------------------------------------------------------------
-    */
-
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
@@ -164,12 +140,6 @@ class MenuItemReview extends Model
     {
         return $this->isPending();
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Accessors
-    |--------------------------------------------------------------------------
-    */
 
     public function getAnonymizedGuestNameAttribute(): string
     {

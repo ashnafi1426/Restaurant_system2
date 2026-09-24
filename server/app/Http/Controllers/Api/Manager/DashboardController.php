@@ -8,6 +8,7 @@ use App\Services\Manager\DashboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+
 class DashboardController extends Controller
 {
     protected DashboardService $dashboardService;
@@ -16,6 +17,7 @@ class DashboardController extends Controller
     {
         $this->dashboardService = $dashboardService;
     }
+
     private function getUser()
     {
         try {
@@ -25,6 +27,7 @@ class DashboardController extends Controller
             return null;
         }
     }
+
     private function handleAction(callable $action, array $defaultData = []): JsonResponse
     {
         try {
@@ -61,9 +64,6 @@ class DashboardController extends Controller
         }
     }
 
-    /**
-     * Get complete dashboard data
-     */
     public function index(): JsonResponse
     {
         return $this->handleAction(
@@ -72,9 +72,6 @@ class DashboardController extends Controller
         );
     }
 
-    /**
-     * Get dashboard statistics only
-     */
     public function statistics(): JsonResponse
     {
         Log::info('[DashboardController.statistics] 🚀 Statistics endpoint called');
@@ -87,16 +84,13 @@ class DashboardController extends Controller
                     'keys' => array_keys($stats)
                 ]);
                 $resource = new DashboardStatsResource($stats);
-                Log::info('[DashboardController.statistics] 📦 Resource created, ready to return');
+                Log::info('[DashboardController.statistics]  Resource created, ready to return');
                 return $resource;
             },
             []
         );
     }
 
-    /**
-     * Get daily trend data for charts
-     */
     public function dailyTrends(Request $request): JsonResponse
     {
         $days = $request->query('days', 7);
@@ -107,9 +101,6 @@ class DashboardController extends Controller
         );
     }
 
-    /**
-     * Get top selling items
-     */
     public function topSellingItems(Request $request): JsonResponse
     {
         $limit = $request->query('limit', 5);
@@ -120,9 +111,6 @@ class DashboardController extends Controller
         );
     }
 
-    /**
-     * Get performance summary
-     */
     public function performanceSummary(): JsonResponse
     {
         return $this->handleAction(

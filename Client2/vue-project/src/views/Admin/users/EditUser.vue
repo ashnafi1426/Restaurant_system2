@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import DashboardLayout from '../../../layouts/DashboardLayout.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import UserForm from '../../../components/user/UserForm.vue'
 import { useUserStore } from '../../../stores/user'
 import type { User } from '../../../types/user'
@@ -27,11 +27,7 @@ const loadUser = async () => {
   loadingUser.value = true
   try {
     const res = await userStore.fetchUser(id)
-    console.log('[EditUser] Raw response:', res)
-    console.log('[EditUser] userStore.user:', userStore.user)
-    
     const extracted = extractUserData(res) || extractUserData(userStore.user)
-    console.log('[EditUser] Final extracted user data:', extracted)
     
     if (extracted) {
       userData.value = {
@@ -63,7 +59,7 @@ const updateUser = async (data: User) => {
       router.push('/users')
     }, 1000)
   } catch (error: any) {
-    console.error('[EditUser] Update error:', error)
+    console.error('[EditUser] Error updating user:', error)
   }
 }
 
@@ -75,7 +71,6 @@ onMounted(() => {
 <template>
   <DashboardLayout>
     <div class="max-w-5xl mx-auto px-4 py-6">
-      <!-- Header -->
       <div class="flex items-center justify-between mb-6">
         <div>
           <h1 class="text-3xl font-bold text-slate-800">Edit User</h1>
@@ -87,15 +82,12 @@ onMounted(() => {
         </button>
       </div>
 
-      <!-- Card -->
       <div class="bg-white rounded-xl shadow p-8">
-        <!-- Loading -->
         <div v-if="loadingUser" class="text-center py-12">
           <p class="text-gray-500">Loading user details...</p>
         </div>
 
         <template v-else>
-          <!-- Success -->
           <div
             v-if="successMessage"
             class="mb-6 rounded-lg border border-green-200 bg-green-50 p-4"
@@ -103,7 +95,6 @@ onMounted(() => {
             <p class="font-semibold text-green-700">✓ {{ successMessage }}</p>
           </div>
 
-          <!-- Validation Errors -->
           <div
             v-if="Object.keys(userStore.errors).length"
             class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4"
@@ -116,7 +107,6 @@ onMounted(() => {
             </ul>
           </div>
 
-          <!-- User Form -->
           <UserForm
             v-if="userData"
             :initialData="userData"

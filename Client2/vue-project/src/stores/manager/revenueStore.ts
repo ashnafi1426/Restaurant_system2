@@ -4,22 +4,10 @@ import managerService from '@/services/managerService'
 import type { RevenueSummary, RevenueChartItem } from '@/types/manager'
 
 export const useManagerRevenueStore = defineStore('managerRevenue', () => {
-  /*
-  |--------------------------------------------------------------------------
-  | STATE
-  |--------------------------------------------------------------------------
-  */
-
   const revenueSummary = ref<RevenueSummary | null>(null)
   const revenueChart = ref<RevenueChartItem[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
-
-  /*
-  |--------------------------------------------------------------------------
-  | COMPUTED
-  |--------------------------------------------------------------------------
-  */
 
   const revenue = computed(() => ({
     today: revenueSummary.value?.today ?? 0,
@@ -30,12 +18,6 @@ export const useManagerRevenueStore = defineStore('managerRevenue', () => {
     roomService: 0,
     laundry: 0,
   }))
-
-  /*
-  |--------------------------------------------------------------------------
-  | ACTIONS
-  |--------------------------------------------------------------------------
-  */
 
   async function loadSummary() {
     try {
@@ -51,6 +33,7 @@ export const useManagerRevenueStore = defineStore('managerRevenue', () => {
     try {
       revenueChart.value = await managerService.getRevenueChart(period)
     } catch (err: any) {
+      console.error('[manager/revenueStore] Failed to load revenue chart:', err)
       error.value = err.message
     }
   }

@@ -27,7 +27,6 @@ class CheckInController extends Controller
             'reservation',
         ]);
 
-        // General search filter
         if ($request->filled('search')) {
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
@@ -46,17 +45,14 @@ class CheckInController extends Controller
             });
         }
 
-        // Filter by guest
         if ($request->filled('guest_id')) {
             $query->where('guest_id', $request->guest_id);
         }
 
-        // Filter by room
         if ($request->filled('room_id')) {
             $query->where('room_id', $request->room_id);
         }
 
-        // Status filter (active vs checked_out)
         if ($request->filled('status')) {
             $status = strtolower($request->status);
             if ($status === 'active' || $status === 'checked_in') {
@@ -79,6 +75,7 @@ class CheckInController extends Controller
 
         return CheckInResource::collection($checkIns);
     }
+
     public function store(StoreCheckInRequest $request)
     {
         \Log::info('[CHECK-IN] POST request received', [
@@ -88,7 +85,6 @@ class CheckInController extends Controller
             'all_inputs' => $request->all(),
         ]);
 
-        // Debug: Check if reservation_id exists in request
         if (!$request->has('reservation_id')) {
             \Log::error('[CHECK-IN] WARNING: reservation_id is missing from request!', [
                 'keys' => array_keys($request->all()),
@@ -118,12 +114,6 @@ class CheckInController extends Controller
                 ],
             ]);
 
-            /*
-            |--------------------------------------------------------------------------
-            | Validation
-            |--------------------------------------------------------------------------
-            */
-
             \Log::info('[CHECK-IN] Starting validation checks');
 
             if ($reservation->status !== 'confirmed') {
@@ -133,9 +123,6 @@ class CheckInController extends Controller
             }
             \Log::info(' [CHECK-IN] Validation 1 passed: reservation status is confirmed');
 
-            // Allow both 'available' and 'reserved' status for check-in
-            // 'reserved' means room is reserved for a confirmed booking
-            // 'available' means completely unbooked
             $allowedStatuses = ['available', 'reserved'];
             if (!in_array($reservation->room->status, $allowedStatuses)) {
                 $msg = "Selected room is not available. Room status is: {$reservation->room->status}";
@@ -156,26 +143,14 @@ class CheckInController extends Controller
             }
             \Log::info(' [CHECK-IN] Validation 3 passed: not already checked in');
 
-            /*
-            |--------------------------------------------------------------------------
-            | Create Check In
-            |--------------------------------------------------------------------------
-            */
-
             \Log::info(' [CHECK-IN] All validations passed, creating check-in record');
 
             $checkIn = CheckIn::create([
-
                 'reservation_id' => $reservation->id,
-
                 'guest_id' => $reservation->guest_id,
-
                 'room_id' => $reservation->room_id,
-
                 'checked_in_at' => now(),
-
                 'expected_check_out_at' => $reservation->check_out_date,
-
             ]);
 
             \Log::info(' [CHECK-IN] Check-in record created', [
@@ -183,23 +158,11 @@ class CheckInController extends Controller
                 'checked_in_at' => $checkIn->checked_in_at,
             ]);
 
-            /*
-            |--------------------------------------------------------------------------
-            | Update Reservation
-            |--------------------------------------------------------------------------
-            */
-
             $reservation->update([
                 'status' => 'checked_in',
             ]);
 
             \Log::info(' [CHECK-IN] Reservation status updated to checked_in');
-
-            /*
-            |--------------------------------------------------------------------------
-            | Update Room
-            |--------------------------------------------------------------------------
-            */
 
             $reservation->room->update([
                 'status' => 'occupied',
@@ -211,9 +174,8 @@ class CheckInController extends Controller
 
             \Log::info(' [CHECK-IN] Transaction committed - check-in successful');
 
-            // Send check-in confirmation email
             try {
-                \Log::info('📧 [CHECK-IN] Preparing to send check-in confirmation email', [
+                \Log::info(' [CHECK-IN] Preparing to send check-in confirmation email', [
                     'guest_email' => $reservation->guest->email,
                     'guest_name' => $reservation->guest->first_name . ' ' . $reservation->guest->last_name,
                 ]);
@@ -227,15 +189,11 @@ class CheckInController extends Controller
                     'error' => $e->getMessage(),
                     'guest_email' => $reservation->guest->email,
                 ]);
-                // Don't fail the check-in if email fails
             }
 
             return response()->json([
-
                 'success' => true,
-
                 'message' => 'Guest checked in successfully.',
-
                 'data' => new CheckInResource(
                     $checkIn->load([
                         'guest',
@@ -243,7 +201,6 @@ class CheckInController extends Controller
                         'reservation',
                     ])
                 ),
-
             ], 201);
 
         } catch (Exception $exception) {
@@ -257,11 +214,8 @@ class CheckInController extends Controller
             ]);
 
             return response()->json([
-
                 'success' => false,
-
                 'message' => $exception->getMessage(),
-
             ], 422);
         }
     }
@@ -289,11 +243,9 @@ class CheckInController extends Controller
                 'is_checked_out' => $checkIn->checked_out_at !== null,
             ]);
 
-            // Use database transaction for atomic deletion
             DB::beginTransaction();
 
             try {
-                // Update room status to available before deletion
                 if ($checkIn->room) {
                     $oldStatus = $checkIn->room->status;
                     $checkIn->room->update([
@@ -307,10 +259,7 @@ class CheckInController extends Controller
                     ]);
                 }
 
-                // Update reservation status if still linked
                 if ($checkIn->reservation) {
-                    // If check-in was checked out, mark reservation as checked_out
-                    // If not checked out yet, mark reservation back to confirmed
                     $newReservationStatus = $checkIn->checked_out_at ? 'checked_out' : 'confirmed';
                     
                     $checkIn->reservation->update([
@@ -324,7 +273,6 @@ class CheckInController extends Controller
                     ]);
                 }
 
-                // Delete the check-in record
                 $checkIn->delete();
                 Log::info(' [CHECK-IN DELETE] Check-in deleted successfully', [
                     'checkin_id' => $checkIn->id,
@@ -361,12 +309,10 @@ class CheckInController extends Controller
         DB::beginTransaction();
 
         try {
-            // Check if already checked out
             if ($checkIn->checked_out_at) {
                 throw new Exception('Guest already checked out.');
             }
 
-            // Get room before any updates
             $room = $checkIn->room;
             
             \Log::info('🔍 [CHECKOUT] Starting checkout process', [
@@ -376,23 +322,19 @@ class CheckInController extends Controller
                 'room_status_before' => $room->status,
             ]);
 
-            // Update check-in record
             $checkIn->update([
                 'checked_out_at' => now(),
             ]);
 
-            // Update reservation status
             $reservation = $checkIn->reservation;
             $reservation->update([
                 'status' => 'checked_out',
             ]);
 
-            // Update room status to available
             $room->update([
                 'status' => 'available',
             ]);
 
-            // Refresh room to verify update
             $room->refresh();
             
             \Log::info(' [CHECKOUT] Room status updated', [
@@ -402,14 +344,13 @@ class CheckInController extends Controller
                 'verified' => $room->status === 'available' ? 'YES' : 'NO',
             ]);
 
-            // Verify the status was actually updated
             if ($room->status !== 'available') {
                 throw new Exception('Failed to update room status to available. Current status: ' . $room->status);
             }
 
             DB::commit();
 
-            \Log::info('🎉 [CHECKOUT] Checkout completed successfully', [
+            \Log::info('[CHECKOUT] Checkout completed successfully', [
                 'check_in_id' => $checkIn->id,
                 'room_id' => $room->id,
                 'room_status' => $room->status,
@@ -440,18 +381,14 @@ class CheckInController extends Controller
     public function statistics()
     {
         return response()->json([
-
             'total_check_ins' => CheckIn::count(),
-
             'today_check_ins' => CheckIn::whereDate(
                 'checked_in_at',
                 today()
             )->count(),
-
             'active_guests' => CheckIn::whereNull(
                 'checked_out_at'
             )->count(),
-
             'expected_today' => CheckIn::whereDate(
                 'expected_check_out_at',
                 today()

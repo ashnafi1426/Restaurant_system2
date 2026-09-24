@@ -74,7 +74,6 @@ const handlePerPageChange = (event: Event) => {
 
 <template>
   <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-    <!-- Left: Status Info + User Role Badge -->
     <div class="flex items-center gap-3 flex-wrap">
       <div v-if="roleName" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
         <UserCheck class="w-3.5 h-3.5" />
@@ -87,7 +86,6 @@ const handlePerPageChange = (event: Event) => {
         <span class="font-extrabold text-slate-900 dark:text-white">{{ pagination.total || 0 }}</span> entries
       </p>
 
-      <!-- Per Page Selector -->
       <div class="flex items-center gap-1.5 ml-1">
         <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Per page:</span>
         <select
@@ -102,9 +100,7 @@ const handlePerPageChange = (event: Event) => {
       </div>
     </div>
 
-    <!-- Right: Page Controls -->
     <div class="flex items-center gap-1.5">
-      <!-- Previous Button -->
       <button
         @click="goToPage(pagination.current_page - 1)"
         :disabled="pagination.current_page <= 1"
@@ -114,7 +110,6 @@ const handlePerPageChange = (event: Event) => {
         <span>Prev</span>
       </button>
 
-      <!-- Page Numbers -->
       <button
         v-for="page in visiblePages"
         :key="page"
@@ -129,7 +124,6 @@ const handlePerPageChange = (event: Event) => {
         {{ page }}
       </button>
 
-      <!-- Next Button -->
       <button
         @click="goToPage(pagination.current_page + 1)"
         :disabled="pagination.current_page >= pagination.last_page"

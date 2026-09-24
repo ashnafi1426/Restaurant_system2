@@ -9,7 +9,12 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Authrequest;
 use App\Http\Resources\AuthResource;
-
+use \App\Models\HotelUser;
+use \App\Services\TenantContext;
+use Illuminate\Support\Facades\Cache;
+use \App\Models\Hotel;
+use \App\Services\AuthorizationService;
+use Illuminate\Http\JsonResponse;
 class AuthController extends Controller
 {
     public function login(Authrequest $request)
@@ -29,20 +34,18 @@ class AuthController extends Controller
                 Log::warning('Login: User not found', ['email' => $request->email]);
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invalid credentials'
+                    'message' => trans_msg('login_failed', default: 'Invalid credentials')
                 ], 401);
             }
-            // Check if account needs activation (only for accounts without an active password)
             if ($user->needsActivation() && empty($user->password_hash)) {
                 Log::warning('Login: Account not activated', [
                     'email' => $request->email,
                     'activation_status' => $user->activation_status
                 ]);
-                
                 return response()->json([
                     'success' => false,
                     'needs_activation' => true,
-                    'message' => 'Account not activated. Please check your email for the activation link.'
+                    'message' => trans_msg('account_not_activated', default: 'Account not activated. Please check your email for the activation link.')
                 ], 403);
             }
             $passwordMatches = Hash::check(
@@ -59,14 +62,14 @@ class AuthController extends Controller
                 Log::warning('Login: Password mismatch', ['email' => $request->email]);
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invalid credentials'
+                    'message' => trans_msg('login_failed', default: 'Invalid credentials')
                 ], 401);
             }
             if (!$user->is_active) {
                 Log::warning('Login: Account disabled', ['email' => $request->email]);
                 return response()->json([
                     'success' => false,
-                    'message' => 'Account disabled'
+                    'message' => trans_msg('account_disabled', default: 'Account disabled')
                 ], 403);
             }
             $user->update([
@@ -81,18 +84,14 @@ class AuthController extends Controller
                 'token' => substr($token, 0, 20) . '...',
                 'timestamp' => now(),
             ]);
-
-            // Ensure memberships are active for an active user
             if ($user->is_active) {
-                \App\Models\HotelUser::where('user_id', $user->id)->update(['is_active' => true]);
+                HotelUser::where('user_id', $user->id)->update(['is_active' => true]);
             }
 
             $memberships = $user->hotelMemberships()
                 ->where('is_active', true)
                 ->with('hotel')
                 ->get();
-
-            // Enforce hotel suspension for non-platform users
             if (!$user->isPlatformAdmin() && $memberships->isNotEmpty()) {
                 $hasActiveHotel = $memberships->contains(fn ($m) => $m->hotel && $m->hotel->isActive());
                 if (!$hasActiveHotel) {
@@ -108,7 +107,7 @@ class AuthController extends Controller
             }
 
             $defaultHotel = $memberships->first()?->hotel 
-                ?: ($user->isPlatformAdmin() ? \App\Models\Hotel::first() : null);
+                ?: ($user->isPlatformAdmin() ? Hotel::first() : null);
 
             $hotelList = $memberships->map(fn ($m) => [
                 'id' => $m->hotel_id,
@@ -120,11 +119,10 @@ class AuthController extends Controller
             ]);
 
             if ($defaultHotel) {
-                app(\App\Services\TenantContext::class)->setHotelId($defaultHotel->id);
-                \Illuminate\Support\Facades\Cache::forget("user_permissions_{$defaultHotel->id}_{$user->id}");
-                \Illuminate\Support\Facades\Cache::forget("user_permissions_global_{$user->id}");
+                app(TenantContext::class)->setHotelId($defaultHotel->id);
+                Cache::forget("user_permissions_{$defaultHotel->id}_{$user->id}");
+                Cache::forget("user_permissions_global_{$user->id}");
             }
-
             $currentHotelPayload = $defaultHotel ? [
                 'id' => $defaultHotel->id,
                 'name' => $defaultHotel->name,
@@ -133,10 +131,9 @@ class AuthController extends Controller
                 'currency' => $defaultHotel->currency ?? 'ETB',
                 'role' => $user->getHotelRole($defaultHotel->id) ?? ($user->isPlatformAdmin() ? 'admin' : $user->role),
             ] : null;
-
             return response()->json([
                 'success' => true,
-                'message' => 'Login successful',
+                'message' => trans_msg('login_success', default: 'Login successful'),
                 'token' => $token,
                 'user' => new AuthResource($user),
                 'hotels' => $hotelList,
@@ -164,15 +161,14 @@ class AuthController extends Controller
             ->get();
 
         $hotelId = $request->header('X-Hotel-ID')
-            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: app(TenantContext::class)->getHotelId()
             ?: $user->hotel_id
             ?: $memberships->first()?->hotel_id;
 
         if ($hotelId) {
-            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+            app(TenantContext::class)->setHotelId($hotelId);
         }
-
-        $activeHotel = $hotelId ? \App\Models\Hotel::find($hotelId) : null;
+        $activeHotel = $hotelId ?Hotel::find($hotelId) : null;
         if (!$activeHotel && $memberships->isNotEmpty()) {
             $activeHotel = $memberships->first()->hotel;
         }
@@ -207,7 +203,7 @@ class AuthController extends Controller
         ]);
 
         $user = $request->user();
-        $hotel = \App\Models\Hotel::findOrFail($validated['hotel_id']);
+        $hotel = Hotel::findOrFail($validated['hotel_id']);
 
         if (!$hotel->isActive() && !$user->isPlatformAdmin()) {
             $statusMsg = $hotel->isSuspended()
@@ -227,23 +223,21 @@ class AuthController extends Controller
         }
 
         $hotelId = $hotel->id;
-        app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        app(TenantContext::class)->setHotelId($hotelId);
 
-        // Invalidate stale permission cache for this hotel and user
-        \Illuminate\Support\Facades\Cache::forget("user_permissions_{$hotelId}_{$user->id}");
-        \Illuminate\Support\Facades\Cache::forget("user_permissions_global_{$user->id}");
-
+        Cache::forget("user_permissions_{$hotelId}_{$user->id}");
+        Cache::forget("user_permissions_global_{$user->id}");
         $hotelRole = $user->getHotelRole($hotel->id) ?? ($user->isPlatformAdmin() ? 'admin' : $user->role);
 
-        // Fetch effective roles and permissions for the target hotel
-        $authService = app(\App\Services\AuthorizationService::class);
+
+        $authService = app(AuthorizationService::class);
         $activeRoles = $authService->getActiveRoles($user, $hotel->id);
         $effectivePermissions = $authService->getEffectivePermissions($user, $hotel->id);
 
         return response()->json([
             'success' => true,
-            'message' => 'Switched hotel successfully',
-            'user' => new \App\Http\Resources\AuthResource($user),
+            'message' => trans_msg('hotel_switched', default: 'Switched hotel successfully'),
+            'user' => new AuthResource($user),
             'current_hotel' => [
                 'id' => $hotel->id,
                 'name' => $hotel->name,
@@ -266,7 +260,7 @@ class AuthController extends Controller
         $user = $request->user();
 
         if ($user->isPlatformAdmin()) {
-            $hotels = \App\Models\Hotel::all();
+            $hotels = Hotel::all();
             return response()->json([
                 'success' => true,
                 'hotels' => $hotels->map(fn ($h) => [
@@ -304,14 +298,10 @@ class AuthController extends Controller
         }
         return response()->json([
             'success' => true,
-            'message' => 'Logged out successfully'
+            'message' => trans_msg('logout_success', default: 'Logged out successfully')
         ]);
     }
-
-    /**
-     * Update password for authenticated user (e.g. required after system-generated password)
-     */
-    public function updatePassword(Request $request): \Illuminate\Http\JsonResponse
+    public function updatePassword(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'current_password' => 'required|string',
@@ -320,20 +310,20 @@ class AuthController extends Controller
 
         $user = $request->user();
 
-        if (!\Illuminate\Support\Facades\Hash::check($validated['current_password'], $user->password_hash)) {
+        if (!Hash::check($validated['current_password'], $user->password_hash)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Current password does not match our records.',
+                'message' => trans_msg('password_incorrect', default: 'Current password does not match our records.'),
             ], 422);
         }
 
-        $user->password_hash = \Illuminate\Support\Facades\Hash::make($validated['new_password']);
+        $user->password_hash = Hash::make($validated['new_password']);
         $user->must_change_password = false;
         $user->save();
 
         return response()->json([
             'success' => true,
-            'message' => 'Password updated successfully. You can now use your new password.',
+            'message' => trans_msg('password_updated', default: 'Password updated successfully. You can now use your new password.'),
             'user' => new AuthResource($user),
         ]);
     }

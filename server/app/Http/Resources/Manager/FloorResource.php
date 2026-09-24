@@ -6,16 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\Waiter\WaiterResource;
 
-/**
- * FloorResource
- * 
- * Transforms floor data for API responses
- */
 class FloorResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     */
     public function toArray(Request $request): array
     {
         return [

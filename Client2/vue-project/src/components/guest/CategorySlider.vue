@@ -19,17 +19,15 @@ const emit = defineEmits<{
   (e: 'change', category: string): void
 }>()
 
-// State
 const categories = ref<Category[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-// Enhanced category labels with emojis - fallback mapping
 const categoryLabels: Record<string, string> = {
-  all: '🍽️ All',
+  all: 'All',
   breakfast: '🥐 Breakfast',
   lunch: '🍲 Lunch',
-  dinner: '🍽️ Dinner',
+  dinner: 'Dinner',
   drinks: '🥤 Drinks',
   dessert: '🍰 Dessert',
   appetizer: '🥗 Appetizer',
@@ -59,9 +57,6 @@ const categoryLabels: Record<string, string> = {
   chocolate: '🍫 Chocolate',
 }
 
-/**
- * Get label for a category with intelligent fallback
- */
 const getLabel = (category: Category | string) => {
   if (!category) return '📌 All'
 
@@ -70,12 +65,10 @@ const getLabel = (category: Category | string) => {
 
   const normalized = categorySlug.toLowerCase().trim()
 
-  // Direct match
   if (categoryLabels[normalized]) {
     return categoryLabels[normalized]
   }
 
-  // Check for partial matches (e.g., "beverages" -> "🥤 Beverages")
   for (const [key, label] of Object.entries(categoryLabels)) {
     if (normalized.includes(key) || key.includes(normalized)) {
       const emoji = label.split(' ')[0]
@@ -83,9 +76,9 @@ const getLabel = (category: Category | string) => {
     }
   }
 
-  // Default format
   return `📌 ${categoryName}`
 }
+
 const loadCategories = async () => {
   loading.value = true
   error.value = null
@@ -94,38 +87,26 @@ const loadCategories = async () => {
 
     if (response.data?.data && Array.isArray(response.data.data)) {
       categories.value = response.data.data
-      console.log(`[CategorySlider] Loaded ${categories.value.length} categories from backend`)
     } else {
       error.value = 'No categories found'
-      console.warn('[CategorySlider] No categories in response')
     }
   } catch (err: any) {
+    console.error('[CategorySlider] Failed to load categories:', err)
     error.value = err.message || 'Failed to load categories'
-    console.error('[CategorySlider] Error loading categories:', err)
   } finally {
     loading.value = false
   }
 }
 
-/**
- * Handle category change with logging
- */
 const handleCategoryChange = (category: string) => {
-  console.log(`[CategorySlider] Category changed to: "${category}"`)
   emit('change', category)
 }
 
-/**
- * Check if category is active
- */
 const isActive = computed(() => (categoryOrSlug: Category | string) => {
   const slug = typeof categoryOrSlug === 'string' ? categoryOrSlug : categoryOrSlug.slug
   return props.active?.toLowerCase() === slug.toLowerCase()
 })
 
-/**
- * Load categories on mount
- */
 onMounted(() => {
   loadCategories()
 })
@@ -147,7 +128,6 @@ onMounted(() => {
       </div>
 
       <div v-else class="flex gap-2 md:gap-3 min-w-max">
-        <!-- All Categories Button -->
         <button
           @click="handleCategoryChange('all')"
           :disabled="loading"
@@ -163,7 +143,6 @@ onMounted(() => {
           {{ getLabel('all') }}
         </button>
 
-        <!-- Dynamic Category Buttons from Backend -->
         <button
           v-for="category in categories"
           :key="category.id"
@@ -182,19 +161,15 @@ onMounted(() => {
           {{ getLabel(category) }}
         </button>
 
-        <!-- Loading Indicator -->
         <div
           v-if="loading"
           class="px-3 sm:px-4 py-1.5 sm:py-2 md:py-3 flex items-center gap-2 text-gray-500"
         >
-          <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-4 h-4) -->
           <div class="relative w-4 h-4">
-            <!-- Static background - BRIGHT CYAN -->
             <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
             </svg>
             
-            <!-- Animated spinner - BRIGHT YELLOW -->
             <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
               <svg viewBox="0 0 100 100" class="w-full h-full">
                 <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />

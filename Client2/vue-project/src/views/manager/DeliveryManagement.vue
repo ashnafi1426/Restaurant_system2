@@ -26,8 +26,10 @@ import {
   ShoppingBag,
 } from 'lucide-vue-next'
 import { useDeliveryManagementStore } from '@/stores/manager/deliveryManagementStore'
+import { useLanguageStore } from '@/stores/language'
 
 const store = useDeliveryManagementStore()
+const languageStore = useLanguageStore()
 const isLoading = ref(false)
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
@@ -237,8 +239,12 @@ const getStatusBadgeClass = (status: string) => {
             <Truck class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Room Service Deliveries</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Track and manage all active, in-transit, and completed room service deliveries.</p>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+              {{ languageStore.t('room_service_deliveries', 'Room Service Deliveries') }}
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{ languageStore.t('room_service_deliveries_desc', 'Track and manage all active, in-transit, and completed room service deliveries.') }}
+            </p>
           </div>
         </div>
 
@@ -248,7 +254,7 @@ const getStatusBadgeClass = (status: string) => {
           class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer border border-slate-200 dark:border-slate-700 disabled:opacity-50"
         >
           <Download class="w-4 h-4" />
-          <span>Generate Report</span>
+          <span>{{ languageStore.t('generate_report', 'Generate Report') }}</span>
         </button>
       </div>
 
@@ -257,7 +263,9 @@ const getStatusBadgeClass = (status: string) => {
         <!-- Total Deliveries -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Deliveries</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('total_deliveries', 'Total Deliveries') }}
+            </p>
             <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ deliveryData.total_deliveries }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -268,7 +276,9 @@ const getStatusBadgeClass = (status: string) => {
         <!-- Completed -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Completed</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('completed', 'Completed') }}
+            </p>
             <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ deliveryData.completed }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -279,7 +289,9 @@ const getStatusBadgeClass = (status: string) => {
         <!-- In Progress -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">In Progress</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('in_progress', 'In Progress') }}
+            </p>
             <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ deliveryData.in_progress }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
@@ -290,7 +302,9 @@ const getStatusBadgeClass = (status: string) => {
         <!-- Failed / Cancelled -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Failed / Issues</p>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ languageStore.t('failed_issues', 'Failed / Issues') }}
+            </p>
             <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ deliveryData.failed }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
@@ -311,7 +325,7 @@ const getStatusBadgeClass = (status: string) => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search deliveries by room, order ID, or waiter..."
+              :placeholder="languageStore.t('search_deliveries_placeholder', 'Search deliveries by room, order ID, or waiter...')"
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
@@ -328,7 +342,7 @@ const getStatusBadgeClass = (status: string) => {
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+            <span>{{ isFilterOpen ? languageStore.t('hide_filters', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
           </button>
         </div>
 
@@ -339,7 +353,7 @@ const getStatusBadgeClass = (status: string) => {
             type="button"
             @click="refresh"
             :disabled="isLoading"
-            title="Refresh"
+            :title="languageStore.t('refresh', 'Refresh')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
@@ -349,7 +363,7 @@ const getStatusBadgeClass = (status: string) => {
           <button
             type="button"
             @click="toggleFullscreen"
-            title="Toggle Fullscreen"
+            :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
@@ -374,35 +388,35 @@ const getStatusBadgeClass = (status: string) => {
             <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Delivery Status
+                {{ languageStore.t('delivery_status', 'Delivery Status') }}
               </label>
               <select
                 v-model="selectedStatus"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="">All Statuses</option>
-                <option value="delivered">Delivered</option>
-                <option value="on_delivery">In Transit / On Delivery</option>
-                <option value="assigned">Assigned / Picked Up</option>
-                <option value="failed">Failed / Cancelled</option>
+                <option value="">{{ languageStore.t('all_statuses', 'All Statuses') }}</option>
+                <option value="delivered">{{ languageStore.t('delivered', 'Delivered') }}</option>
+                <option value="on_delivery">{{ languageStore.t('in_transit_on_delivery', 'In Transit / On Delivery') }}</option>
+                <option value="assigned">{{ languageStore.t('assigned_picked_up', 'Assigned / Picked Up') }}</option>
+                <option value="failed">{{ languageStore.t('failed_cancelled', 'Failed / Cancelled') }}</option>
               </select>
             </div>
 
             <!-- Floor Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Floor
+                {{ languageStore.t('floor', 'Floor') }}
               </label>
               <select
                 v-model="selectedFloor"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="">All Floors</option>
-                <option value="1">Floor 1</option>
-                <option value="2">Floor 2</option>
-                <option value="3">Floor 3</option>
-                <option value="4">Floor 4</option>
-                <option value="5">Floor 5</option>
+                <option value="">{{ languageStore.t('all_floors', 'All Floors') }}</option>
+                <option value="1">{{ languageStore.t('floor', 'Floor') }} 1</option>
+                <option value="2">{{ languageStore.t('floor', 'Floor') }} 2</option>
+                <option value="3">{{ languageStore.t('floor', 'Floor') }} 3</option>
+                <option value="4">{{ languageStore.t('floor', 'Floor') }} 4</option>
+                <option value="5">{{ languageStore.t('floor', 'Floor') }} 5</option>
               </select>
             </div>
 
@@ -414,7 +428,7 @@ const getStatusBadgeClass = (status: string) => {
                 class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
               >
                 <RotateCcw class="w-3.5 h-3.5" />
-                <span>Reset Filters</span>
+                <span>{{ languageStore.t('reset_filters', 'Reset Filters') }}</span>
               </button>
             </div>
           </div>
@@ -428,12 +442,12 @@ const getStatusBadgeClass = (status: string) => {
           <table class="w-full text-left border-collapse">
             <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">Room / Location</th>
-                <th class="py-3 px-4 whitespace-nowrap">Order Ref</th>
-                <th class="py-3 px-4 whitespace-nowrap">Assigned Waiter</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">Floor</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Actions</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('room_location', 'Room / Location') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('order_ref', 'Order Ref') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('assigned_waiter', 'Assigned Waiter') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('floor', 'Floor') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('status', 'Status') }}</th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('actions', 'Actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
@@ -456,13 +470,13 @@ const getStatusBadgeClass = (status: string) => {
 
                 <!-- Waiter -->
                 <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white">
-                  {{ delivery.waiter?.name || delivery.waiter?.full_name || 'Unassigned' }}
+                  {{ delivery.waiter?.name || delivery.waiter?.full_name || languageStore.t('unassigned', 'Unassigned') }}
                 </td>
 
                 <!-- Floor -->
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span class="font-semibold text-slate-600 dark:text-slate-400">
-                    Floor {{ delivery.floor || delivery.room?.floor || 1 }}
+                    {{ languageStore.t('floor', 'Floor') }} {{ delivery.floor || delivery.room?.floor || 1 }}
                   </span>
                 </td>
 
@@ -480,10 +494,10 @@ const getStatusBadgeClass = (status: string) => {
                 <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
                   <button
                     @click="openDetailsModal(delivery)"
-                    class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition"
+                    class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
                   >
                     <Eye class="w-3.5 h-3.5 text-blue-500" />
-                    <span>View</span>
+                    <span>{{ languageStore.t('view', 'View') }}</span>
                   </button>
                 </td>
               </tr>
@@ -491,7 +505,7 @@ const getStatusBadgeClass = (status: string) => {
               <!-- Empty State -->
               <tr v-if="paginatedDeliveries.length === 0">
                 <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  No deliveries found matching your search or filter.
+                  {{ languageStore.t('no_deliveries_found', 'No deliveries found matching your search or filter.') }}
                 </td>
               </tr>
             </tbody>
@@ -517,12 +531,12 @@ const getStatusBadgeClass = (status: string) => {
               </span>
             </div>
             <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-              <span>Waiter: {{ delivery.waiter?.name || 'Unassigned' }}</span>
+              <span>{{ languageStore.t('waiter', 'Waiter') }}: {{ delivery.waiter?.name || languageStore.t('unassigned', 'Unassigned') }}</span>
               <button
                 @click="openDetailsModal(delivery)"
-                class="px-2 py-1 text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 rounded-lg"
+                class="px-2 py-1 text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 rounded-lg cursor-pointer"
               >
-                Details
+                {{ languageStore.t('details', 'Details') }}
               </button>
             </div>
           </div>
@@ -534,14 +548,14 @@ const getStatusBadgeClass = (status: string) => {
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            Showing <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
-            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> tasks
+            {{ languageStore.t('showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> {{ languageStore.t('tasks', 'tasks') }}
           </div>
 
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page') }}:</span>
               <select
                 :value="store.perPage"
                 @change="changePageSize"
@@ -596,36 +610,38 @@ const getStatusBadgeClass = (status: string) => {
       >
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-6 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Delivery Task Details</h3>
-            <button @click="closeDetailsModal" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">
+              {{ languageStore.t('delivery_task_details', 'Delivery Task Details') }}
+            </h3>
+            <button @click="closeDetailsModal" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer">
               <X class="w-4 h-4" />
             </button>
           </div>
 
           <div v-if="selectedDelivery" class="space-y-3 text-xs">
             <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-              <span class="text-slate-500">Destination:</span>
+              <span class="text-slate-500">{{ languageStore.t('destination', 'Destination') }}:</span>
               <span class="font-bold text-slate-900 dark:text-white">{{ getRoomNumber(selectedDelivery) }}</span>
             </div>
             <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-              <span class="text-slate-500">Order Reference:</span>
+              <span class="text-slate-500">{{ languageStore.t('order_reference', 'Order Reference') }}:</span>
               <span class="font-bold text-slate-900 dark:text-white">#{{ selectedDelivery.order_id || selectedDelivery.id }}</span>
             </div>
             <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-              <span class="text-slate-500">Assigned Waiter:</span>
-              <span class="font-bold text-slate-900 dark:text-white">{{ selectedDelivery.waiter?.name || 'Unassigned' }}</span>
+              <span class="text-slate-500">{{ languageStore.t('assigned_waiter', 'Assigned Waiter') }}:</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{ selectedDelivery.waiter?.name || languageStore.t('unassigned', 'Unassigned') }}</span>
             </div>
             <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
-              <span class="text-slate-500">Status:</span>
+              <span class="text-slate-500">{{ languageStore.t('status', 'Status') }}:</span>
               <span class="font-bold uppercase" :class="getStatusBadgeClass(selectedDelivery.status)">{{ selectedDelivery.status }}</span>
             </div>
           </div>
 
           <button
             @click="closeDetailsModal"
-            class="w-full py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-xs transition"
+            class="w-full py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl text-xs transition cursor-pointer"
           >
-            Close
+            {{ languageStore.t('close', 'Close') }}
           </button>
         </div>
       </div>

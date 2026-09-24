@@ -1,6 +1,5 @@
 <template>
   <div class="delivery-card rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
-    <!-- Card Header -->
     <div class="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3">
       <div class="flex items-center justify-between">
         <div>
@@ -26,9 +25,7 @@
       </div>
     </div>
 
-    <!-- Card Content -->
     <div class="p-4 space-y-3">
-      <!-- Waiter Info -->
       <div class="flex items-center justify-between">
         <div>
           <p class="text-xs text-gray-600 font-medium">Waiter</p>
@@ -49,7 +46,6 @@
         </div>
       </div>
 
-      <!-- Details Grid -->
       <div class="grid grid-cols-2 gap-3 bg-gray-50 rounded-lg p-3">
         <div>
           <p class="text-xs text-gray-600 font-medium">Room</p>
@@ -69,13 +65,11 @@
         </div>
       </div>
 
-      <!-- Customer Note -->
       <div v-if="delivery.customer_note" class="rounded-md bg-amber-50 border border-amber-200 p-2">
         <p class="text-xs font-medium text-amber-900 mb-1">Special Instructions</p>
         <p class="text-sm text-amber-800">{{ delivery.customer_note }}</p>
       </div>
 
-      <!-- Timeline Info -->
       <div class="space-y-2 text-sm">
         <div class="flex justify-between items-center">
           <span class="text-gray-600">Assigned:</span>
@@ -92,7 +86,6 @@
       </div>
     </div>
 
-    <!-- Card Footer - Actions -->
     <div class="border-t border-gray-200 bg-gray-50 px-4 py-3 flex gap-2">
       <button
         v-if="delivery.status !== 'completed' && delivery.status !== 'failed'"

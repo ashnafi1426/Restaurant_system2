@@ -35,7 +35,6 @@ const formatDate = (date: string) => {
 
 <template>
   <div class="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm">
-    <!-- Header -->
     <div class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5">
       <h3 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">Active Guests</h3>
       <span class="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400 font-medium"
@@ -43,14 +42,12 @@ const formatDate = (date: string) => {
       >
     </div>
 
-    <!-- Check-ins List -->
     <div v-if="checkIns.length > 0" class="space-y-2 sm:space-y-2.5 md:space-y-3">
       <div
         v-for="checkIn in checkIns.slice(0, 5)"
         :key="checkIn.id"
         class="flex items-center gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 md:p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition"
       >
-        <!-- Avatar -->
         <div class="flex-shrink-0">
           <div
             class="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center"
@@ -61,7 +58,6 @@ const formatDate = (date: string) => {
           </div>
         </div>
 
-        <!-- Guest & Room Info -->
         <div class="flex-1 min-w-0">
           <p class="text-xs sm:text-sm md:text-base font-semibold text-gray-900 dark:text-white truncate">
             {{ checkIn.guest?.first_name }} {{ checkIn.guest?.last_name }}
@@ -71,7 +67,6 @@ const formatDate = (date: string) => {
           </p>
         </div>
 
-        <!-- Days Remaining -->
         <div class="flex-shrink-0 text-right">
           <p
             :class="`text-xs sm:text-sm md:text-base ${getDaysRemainingColor(calculateDaysRemaining(checkIn.expected_check_out_at))}`"
@@ -85,12 +80,10 @@ const formatDate = (date: string) => {
       </div>
     </div>
 
-    <!-- Empty State -->
     <div v-else class="text-center py-6 sm:py-8 md:py-10">
       <p class="text-xs sm:text-sm md:text-base text-gray-500 dark:text-slate-400">No active guests</p>
     </div>
 
-    <!-- View All Link -->
     <div
       v-if="checkIns.length > 5"
       class="mt-3 sm:mt-4 md:mt-5 pt-3 sm:pt-4 md:pt-5 border-t border-gray-100 dark:border-slate-700"

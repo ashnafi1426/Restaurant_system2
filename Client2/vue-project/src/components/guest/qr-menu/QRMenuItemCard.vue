@@ -4,6 +4,7 @@ import reviewService from '@/services/reviewService'
 import type { MenuItem } from '@/types/menu'
 import type { ReviewStats } from '@/types/review'
 import { ShoppingCart, Star, MessageSquare } from 'lucide-vue-next'
+import { useLanguageStore } from '@/stores/language'
 
 interface Props {
   item: MenuItem
@@ -18,12 +19,13 @@ const props = withDefaults(defineProps<Props>(), {
   guestEmail: '',
 })
 
+const languageStore = useLanguageStore()
+
 const emit = defineEmits<{
   (e: 'add-to-cart', quantity: number): void
   (e: 'write-review'): void
 }>()
 
-// State
 const quantity = ref(1)
 const reviewStats = ref<ReviewStats | null>(null)
 const loadingReviews = ref(false)
@@ -31,7 +33,6 @@ const loadingReviews = ref(false)
 onMounted(async () => {
   await loadReviewStats()
   
-  // Listen for review updates
   window.addEventListener('review-stats-updated', () => {
     loadReviewStats()
   })
@@ -41,11 +42,9 @@ const loadReviewStats = async () => {
   loadingReviews.value = true
   try {
     const stats = await reviewService.getMenuItemStats(props.item.id)
-    console.log('Stats loaded for', props.item.id, ':', stats)
     reviewStats.value = stats
   } catch (error) {
-    console.error('Failed to load review stats for', props.item.id, ':', error)
-    // Set default empty stats
+    console.error('[QRMenuItemCard] Error loading review stats:', error)
     reviewStats.value = {
       menu_item_id: props.item.id,
       total_reviews: 0,
@@ -87,127 +86,166 @@ const renderStars = (rating: number | null): string => {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-all">
-    <!-- Image -->
-    <div class="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
+  <div
+    class="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+  >
+    <!-- Image Header -->
+    <div class="relative h-44 sm:h-48 w-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
       <img
         v-if="item.image_url || item.image"
         :src="item.image_url || item.image"
         :alt="item.name"
-        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        loading="lazy"
       />
-      <div v-else class="absolute inset-0 flex items-center justify-center text-slate-300">
-        <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div v-else class="absolute inset-0 flex items-center justify-center text-slate-300 dark:text-slate-600">
+        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
         </svg>
       </div>
 
-      <!-- Availability Badge -->
-      <div class="absolute top-3 right-3">
+      <!-- Subtle bottom gradient -->
+      <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 pointer-events-none"></div>
+
+      <!-- Category badge -->
+      <div v-if="item.category" class="absolute top-2.5 left-2.5 z-10">
+        <span
+          class="inline-block px-2.5 py-1 bg-slate-950/75 backdrop-blur-md text-[#c29353] dark:text-amber-400 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider rounded-lg border border-amber-500/20 shadow-sm"
+        >
+          {{ languageStore.t(item.category, item.category) }}
+        </span>
+      </div>
+
+      <!-- Availability status -->
+      <div class="absolute top-2.5 right-2.5 z-10">
         <div
           :class="[
-            'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold',
-            item.is_available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700',
+            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold shadow-sm backdrop-blur-md',
+            item.is_available
+              ? 'bg-emerald-600/90 text-white'
+              : 'bg-rose-600/90 text-white',
           ]"
         >
-          <span class="w-2 h-2 rounded-full" :class="item.is_available ? 'bg-green-600' : 'bg-red-600'" />
-          {{ item.is_available ? 'Available' : 'Unavailable' }}
+          <span
+            class="w-1.5 h-1.5 rounded-full"
+            :class="item.is_available ? 'bg-emerald-200' : 'bg-rose-200'"
+          />
+          {{ item.is_available ? languageStore.t('available', 'Available') : languageStore.t('unavailable', 'Unavailable') }}
         </div>
       </div>
     </div>
 
-    <!-- Content -->
-    <div class="p-4 space-y-3">
-      <!-- Category -->
-      <div>
-        <span class="inline-block px-2.5 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded-lg uppercase tracking-wide">
-          {{ item.category }}
-        </span>
+    <!-- Content & Details -->
+    <div class="p-3.5 sm:p-4 flex-1 flex flex-col justify-between gap-3">
+      <!-- Title & Description -->
+      <div class="space-y-1">
+        <h3
+          class="text-base sm:text-lg font-bold text-slate-900 dark:text-white line-clamp-1 group-hover:text-[#c29353] transition-colors"
+          :title="item.name"
+        >
+          {{ item.name }}
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+          {{ item.description }}
+        </p>
       </div>
 
-      <!-- Title -->
-      <h3 class="text-lg font-bold text-slate-900 line-clamp-2">{{ item.name }}</h3>
+      <!-- Rating / Review snippet -->
+      <div>
+        <div
+          v-if="reviewStats && reviewStats.total_reviews > 0"
+          class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/20"
+        >
+          <Star :size="13" class="fill-amber-400 text-amber-400 shrink-0" />
+          <span class="text-xs font-bold text-slate-800 dark:text-slate-200">
+            {{ reviewStats.average_rating?.toFixed(1) || '0.0' }}
+          </span>
+          <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+            ({{ reviewStats.total_reviews }} {{ reviewStats.total_reviews === 1 ? languageStore.t('review', 'review') : languageStore.t('reviews', 'reviews') }})
+          </span>
+        </div>
 
-      <!-- Description -->
-      <p class="text-sm text-slate-600 line-clamp-2">{{ item.description }}</p>
+        <div
+          v-else
+          class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 dark:text-slate-500"
+        >
+          <MessageSquare :size="12" class="opacity-70 shrink-0" />
+          <span>{{ languageStore.t('no_reviews_yet', 'No reviews yet') }}</span>
+        </div>
+      </div>
 
-      <!-- Review Rating -->
-      <div v-if="reviewStats && reviewStats.total_reviews > 0" class="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg p-3 border border-yellow-200">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <div class="flex gap-0.5">
-              <Star 
-                v-for="i in 5" 
-                :key="i" 
-                :size="16" 
-                :class="i <= Math.round(reviewStats.average_rating) 
-                  ? 'fill-yellow-400 text-yellow-400' 
-                  : 'text-gray-300'" 
-              />
-            </div>
-            <div>
-              <span class="text-sm font-bold text-slate-900">{{ reviewStats.average_rating?.toFixed(1) || '0.0' }}</span>
-              <span class="text-xs text-slate-600 ml-1">({{ reviewStats.total_reviews }} <span v-if="reviewStats.total_reviews === 1">review</span><span v-else>reviews</span>)</span>
+      <!-- Price & Actions footer -->
+      <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2.5">
+        <!-- Price Row -->
+        <div class="flex items-baseline justify-between">
+          <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{{ languageStore.t('price', 'Price') }}</span>
+          <div class="text-right">
+            <span class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+              ${{ ((item.total_price !== undefined && item.total_price !== null) ? Number(item.total_price) : Number(item.price || 0)).toFixed(2) }}
+            </span>
+            <div v-if="item.tax_rate && Number(item.tax_rate.rate) > 0" class="text-[10px] text-slate-400 font-medium">
+              <span v-if="item.tax_included" class="text-emerald-600 dark:text-emerald-400 font-semibold">
+                Incl. {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
+              </span>
+              <span v-else>
+                ${{ Number(item.base_price || item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% tax
+              </span>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- No Reviews Yet -->
-      <div v-else class="bg-slate-50 rounded-lg p-3 border border-slate-200">
-        <div class="flex items-center gap-2">
-          <MessageSquare :size="16" class="text-slate-400" />
-          <span class="text-xs text-slate-600 font-medium">No reviews yet</span>
-        </div>
-      </div>
-
-      <!-- Price -->
-      <div class="pt-2 border-t border-slate-200">
-        <p class="text-2xl font-black text-purple-600 mb-3">${{ item.price.toFixed(2) }}</p>
-
-        <!-- Action Buttons -->
-        <div class="space-y-2">
-          <!-- Add to Cart -->
-          <div v-if="item.is_available" class="flex items-center gap-2">
-            <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-1.5 flex-shrink-0">
-              <button
-                @click="decrementQuantity"
-                class="w-6 h-6 flex items-center justify-center hover:bg-slate-200 rounded transition-colors"
-              >
-                <span class="text-slate-700 font-bold">−</span>
-              </button>
-              <span class="w-8 text-center font-semibold text-slate-800">{{ quantity }}</span>
-              <button
-                @click="incrementQuantity"
-                class="w-6 h-6 flex items-center justify-center hover:bg-slate-200 rounded transition-colors"
-              >
-                <span class="text-slate-700 font-bold">+</span>
-              </button>
-            </div>
+        <!-- Order Controls -->
+        <div v-if="item.is_available" class="flex items-center gap-2">
+          <!-- Stepper -->
+          <div
+            class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1 shrink-0 border border-slate-200/60 dark:border-slate-700/60"
+          >
             <button
-              @click="handleAddToCart"
-              class="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold py-2.5 rounded-lg hover:shadow-lg transition-all"
+              @click.stop="decrementQuantity"
+              class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition active:scale-95 text-xs font-bold"
+              aria-label="Decrease quantity"
             >
-              <ShoppingCart size="18" />
-              Add to Cart
+              −
+            </button>
+            <span class="w-6 sm:w-7 text-center font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 select-none">
+              {{ quantity }}
+            </span>
+            <button
+              @click.stop="incrementQuantity"
+              class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition active:scale-95 text-xs font-bold"
+              aria-label="Increase quantity"
+            >
+              +
             </button>
           </div>
 
-          <!-- Write Review Button (Always Available) -->
+          <!-- Add to Cart Button -->
           <button
-            @click="$emit('write-review')"
-            :disabled="!orderId"
-            :title="orderId ? 'Write a review' : 'Complete your order first'"
-            class="w-full flex items-center justify-center gap-2 border-2 border-slate-200 text-slate-700 font-semibold py-2.5 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            @click.stop="handleAddToCart"
+            class="flex-1 min-w-0 h-9 sm:h-10 flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#c29353] to-[#a8793b] hover:from-[#b08244] hover:to-[#966b32] text-white font-bold py-2 px-3 rounded-xl shadow-xs hover:shadow-md transition-all active:scale-[0.98] text-xs sm:text-sm whitespace-nowrap"
           >
-            <MessageSquare size="18" />
-            Write Review
+            <ShoppingCart :size="15" class="shrink-0" />
+            <span class="truncate">{{ languageStore.t('add_to_cart', 'Add to Cart') }}</span>
           </button>
+        </div>
 
-          <!-- Unavailable Message -->
-          <div v-if="!item.is_available" class="text-center py-3 bg-red-50 rounded-lg">
-            <p class="text-sm text-red-600 font-medium">Currently Unavailable</p>
-          </div>
+        <!-- Write Review Button -->
+        <button
+          @click.stop="$emit('write-review')"
+          :disabled="!orderId"
+          :title="orderId ? languageStore.t('write_review', 'Write Review') : 'Complete your order first'"
+          class="w-full h-8 sm:h-9 flex items-center justify-center gap-1.5 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        >
+          <MessageSquare :size="13" class="shrink-0" />
+          <span>{{ languageStore.t('write_review', 'Write Review') }}</span>
+        </button>
+
+        <!-- Unavailable Notice -->
+        <div
+          v-if="!item.is_available"
+          class="text-center py-2 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 rounded-xl"
+        >
+          <p class="text-xs font-bold text-rose-600 dark:text-rose-400">{{ languageStore.t('currently_unavailable', 'Currently Unavailable') }}</p>
         </div>
       </div>
     </div>
@@ -215,7 +253,6 @@ const renderStars = (rating: number | null): string => {
 </template>
 
 <style scoped>
-/* Smooth transitions */
 button:disabled {
   cursor: not-allowed;
 }

@@ -17,7 +17,7 @@ export const usePageLoaderStore = defineStore('pageLoader', () => {
     setTimeout(() => {
       isLoading.value = false
       progress.value = 0
-    }, 300) // Short delay to show 100% completion
+    }, 300)
   }
 
   const updateProgress = (value: number) => {

@@ -27,13 +27,24 @@ class WaiterAssignmentController extends Controller
         $this->waiterContextResolver = $waiterContextResolver;
     }
 
-    /**
-     * Get all assignments for waiter
-     * GET /api/waiter/assignments
-     */
+    private function resolveTenant(Request $request): ?string
+    {
+        $hotelId = $request->input('hotel_id') 
+            ?: $request->query('hotel_id')
+            ?: $request->header('X-Hotel-ID') 
+            ?: app(\App\Services\TenantContext::class)->getHotelId();
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
+
     public function index(Request $request): JsonResponse
     {
         try {
+            $this->resolveTenant($request);
             $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
 
             if (!$waiterId) {
@@ -93,16 +104,11 @@ class WaiterAssignmentController extends Controller
         }
     }
 
-    /**
-     * Get single assignment
-     * GET /api/waiter/assignments/{id}
-     */
     public function show($id): JsonResponse
     {
         try {
             $assignment = $this->assignmentService->getAssignment($id);
 
-            // Verify ownership
             $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
 
             if (!$waiterId || (int) $assignment->waiter_id !== (int) $waiterId) {
@@ -129,16 +135,12 @@ class WaiterAssignmentController extends Controller
             ], 500);
         }
     }
-    public function getPending(): JsonResponse
+
+    public function getPending(Request $request): JsonResponse
     {
         try {
+            $this->resolveTenant($request);
             $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
-            if (!$waiterId) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Waiter profile not linked to this account',
-                ], 403);
-            }
             $assignments = $this->assignmentService->getPendingAssignments($waiterId);
 
             return response()->json([
@@ -155,20 +157,11 @@ class WaiterAssignmentController extends Controller
         }
     }
 
-    /**
-     * Get active assignments
-     * GET /api/waiter/assignments/active
-     */
-    public function getActive(): JsonResponse
+    public function getActive(Request $request): JsonResponse
     {
         try {
+            $this->resolveTenant($request);
             $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
-            if (!$waiterId) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Waiter profile not linked to this account',
-                ], 403);
-            }
             $assignments = $this->assignmentService->getActiveAssignments($waiterId);
 
             return response()->json([
@@ -185,20 +178,11 @@ class WaiterAssignmentController extends Controller
         }
     }
 
-    /**
-     * Get today's assignments
-     * GET /api/waiter/assignments/today
-     */
-    public function getToday(): JsonResponse
+    public function getToday(Request $request): JsonResponse
     {
         try {
+            $this->resolveTenant($request);
             $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
-            if (!$waiterId) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Waiter profile not linked to this account',
-                ], 403);
-            }
             $assignments = $this->assignmentService->getTodayAssignments($waiterId);
 
             return response()->json([
@@ -215,18 +199,14 @@ class WaiterAssignmentController extends Controller
         }
     }
 
-    /**
-     * Accept assignment
-     * PATCH /api/waiter/assignments/{id}/accept
-     */
     public function accept(AcceptAssignmentRequest $request, $id): JsonResponse
     {
         try {
             \Log::info(' [ENDPOINT] accept called', ['task_id' => $id]);
             
             $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
-            
-            \Log::info('📋 [ENDPOINT] Waiter ID resolved in accept', [
+
+            \Log::info(' [ENDPOINT] Waiter ID resolved in accept', [
                 'task_id' => $id,
                 'waiter_id' => $waiterId,
             ]);
@@ -272,10 +252,6 @@ class WaiterAssignmentController extends Controller
         }
     }
 
-    /**
-     * Reject assignment
-     * PATCH /api/waiter/assignments/{id}/reject
-     */
     public function reject(RejectAssignmentRequest $request, $id): JsonResponse
     {
         try {
@@ -308,16 +284,13 @@ class WaiterAssignmentController extends Controller
         }
     }
 
-    /**
-     * Pickup order
-     * PATCH /api/waiter/assignments/{id}/pickup
-     */
-    public function pickup($id): JsonResponse
+    public function pickup(Request $request, $id): JsonResponse
     {
         try {
+            $this->resolveTenant($request);
             \Log::info(' [CONTROLLER] Pickup endpoint called', ['id' => $id]);
             
-            $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
+            $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user()) ?: auth()->id();
             if (!$waiterId) {
                 \Log::error(' [CONTROLLER] Waiter profile not linked');
                 return response()->json([
@@ -342,6 +315,7 @@ class WaiterAssignmentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Assignment not found',
+                'error' => $e->getMessage(),
             ], 404);
         } catch (\Exception $e) {
             \Log::error(' [CONTROLLER] Pickup error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine(), [
@@ -356,18 +330,15 @@ class WaiterAssignmentController extends Controller
         }
     }
 
-    /**
-     * Start delivery (mark as on_delivery)
-     * PATCH /api/waiter/assignments/{id}/start-delivery
-     */
-    public function startDelivery($id): JsonResponse
+    public function startDelivery(Request $request, $id): JsonResponse
     {
         try {
+            $this->resolveTenant($request);
             \Log::info(' [ENDPOINT] startDelivery called', ['task_id' => $id]);
             
-            $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
-            
-            \Log::info('📋 [ENDPOINT] Waiter ID resolved in startDelivery', [
+            $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user()) ?: auth()->id();
+
+            \Log::info(' [ENDPOINT] Waiter ID resolved in startDelivery', [
                 'task_id' => $id,
                 'waiter_id' => $waiterId,
             ]);
@@ -397,6 +368,7 @@ class WaiterAssignmentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Assignment not found',
+                'error' => $e->getMessage(),
             ], 404);
         } catch (\Exception $e) {
             \Log::error(' [ENDPOINT] Failed to start delivery', [
@@ -413,14 +385,11 @@ class WaiterAssignmentController extends Controller
         }
     }
 
-    /**
-     * Deliver order
-     * PATCH /api/waiter/assignments/{id}/deliver
-     */
     public function deliver(DeliverOrderRequest $request, $id): JsonResponse
     {
         try {
-            $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
+            $this->resolveTenant($request);
+            $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user()) ?: auth()->id();
             if (!$waiterId) {
                 return response()->json([
                     'success' => false,
@@ -449,14 +418,11 @@ class WaiterAssignmentController extends Controller
         }
     }
 
-    /**
-     * Mark delivery as failed
-     * PATCH /api/waiter/assignments/{id}/failed
-     */
     public function failed(FailedDeliveryRequest $request, $id): JsonResponse
     {
         try {
-            $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user());
+            $this->resolveTenant($request);
+            $waiterId = $this->waiterContextResolver->resolveWaiterId(auth()->user()) ?: auth()->id();
             if (!$waiterId) {
                 return response()->json([
                     'success' => false,

@@ -7,7 +7,6 @@ use App\Services\Manager\ManagerDashboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-
 class AnalyticsController extends Controller
 {
     protected ManagerDashboardService $dashboardService;
@@ -17,9 +16,6 @@ class AnalyticsController extends Controller
         $this->dashboardService = $dashboardService;
     }
 
-    /**
-     * Get analytics dashboard data
-     */
     public function index(Request $request): JsonResponse
     {
         try {

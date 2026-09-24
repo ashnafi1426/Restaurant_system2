@@ -19,7 +19,7 @@ export const useUserStore = defineStore('user', {
         this.users = response.data.data
         return response.data
       } catch (error) {
-        console.error(error)
+        console.error('[UserStore] Error fetching users:', error)
         throw error
       } finally {
         this.loading = false
@@ -34,7 +34,7 @@ export const useUserStore = defineStore('user', {
         this.user = response.data.data
         return response.data
       } catch (error) {
-        console.error(error)
+        console.error('[UserStore] Error fetching user:', error)
         throw error
       } finally {
         this.loading = false
@@ -49,6 +49,7 @@ export const useUserStore = defineStore('user', {
         const response = await userService.createUser(user)
         return response.data
       } catch (error: any) {
+        console.error('[UserStore] Error creating user:', error)
         if (error.response?.status === 422) {
           this.errors = error.response.data.errors
         }
@@ -63,7 +64,6 @@ export const useUserStore = defineStore('user', {
       this.errors = {}
 
       try {
-        // For update, only include password if provided
         const userData = { ...user }
         if (!userData.password) {
           delete userData.password
@@ -80,6 +80,7 @@ export const useUserStore = defineStore('user', {
 
         return response.data
       } catch (error: any) {
+        console.error('[UserStore] Error updating user:', error)
         if (error.response?.status === 422) {
           this.errors = error.response.data.errors
         }
@@ -96,7 +97,7 @@ export const useUserStore = defineStore('user', {
         await userService.deleteUser(id)
         this.users = this.users.filter((user) => user.id !== id)
       } catch (error) {
-        console.error(error)
+        console.error('[UserStore] Error deleting user:', error)
         throw error
       } finally {
         this.loading = false
@@ -119,7 +120,7 @@ export const useUserStore = defineStore('user', {
 
         return updatedUser
       } catch (error) {
-        console.error(error)
+        console.error('[UserStore] Error toggling user status:', error)
         throw error
       }
     },

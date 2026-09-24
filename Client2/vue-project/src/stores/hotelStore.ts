@@ -58,34 +58,48 @@ export const useHotelStore = defineStore('hotel', {
       try {
         const response = await axiosInstance.post('/auth/switch-hotel', { hotel_id: hotelId })
         if (response.data?.success && response.data?.current_hotel) {
-          this.currentHotel = response.data.current_hotel
-          localStorage.setItem('current_hotel', JSON.stringify(this.currentHotel))
+          const hotelData = response.data.current_hotel
+          this.currentHotel = hotelData
+          localStorage.setItem('current_hotel', JSON.stringify(hotelData))
 
-          // Update authStore user roles and permissions with new hotel context
           try {
             const { useAuthStore } = await import('./auth')
             const authStore = useAuthStore()
-            if (authStore.user) {
-              if (response.data.permissions) {
-                authStore.user.permissions = response.data.permissions
+            
+            authStore.setCurrentHotel(hotelData)
+
+            if (response.data?.user) {
+              authStore.setUser(response.data.user)
+            } else {
+              const existingUser = authStore.user || {}
+              const effectiveRole = hotelData.role || response.data.roles?.[0]?.slug || existingUser.role
+              const updatedUser = {
+                ...existingUser,
+                role: effectiveRole,
+                roles: response.data.roles || existingUser.roles || [],
+                permissions: response.data.permissions || existingUser.permissions || [],
               }
-              if (response.data.roles) {
-                authStore.user.roles = response.data.roles
-              }
-              if (response.data.current_hotel?.role) {
-                authStore.user.role = response.data.current_hotel.role
-              }
-              localStorage.setItem('user', JSON.stringify(authStore.user))
+              authStore.setUser(updatedUser)
             }
-          } catch (e) {
-            console.warn('[HOTEL] Failed to sync authStore permissions on switch:', e)
+
+            try {
+              await authStore.fetchCurrentUser()
+            } catch (err: any) {
+              console.error('[hotelStore] Failed to fetch current user after hotel switch:', err)
+            }
+
+            window.dispatchEvent(new CustomEvent('hotel-switched', { 
+              detail: { hotelId, role: hotelData.role } 
+            }))
+          } catch (err: any) {
+            console.error('[hotelStore] Failed to sync auth state during hotel switch:', err)
           }
 
           return true
         }
         return false
-      } catch (error) {
-        console.error('Failed to switch hotel:', error)
+      } catch (err: any) {
+        console.error('[hotelStore] Failed to switch hotel:', err)
         return false
       } finally {
         this.isLoading = false
@@ -104,8 +118,8 @@ export const useHotelStore = defineStore('hotel', {
             localStorage.setItem('current_hotel', JSON.stringify(this.currentHotel))
           }
         }
-      } catch (error) {
-        console.error('Failed to fetch hotels:', error)
+      } catch (err: any) {
+        console.error('[hotelStore] Failed to fetch my hotels:', err)
       }
     },
 
@@ -114,6 +128,10 @@ export const useHotelStore = defineStore('hotel', {
       this.availableHotels = []
       localStorage.removeItem('current_hotel')
       localStorage.removeItem('available_hotels')
+    },
+
+    async loadHotels() {
+      return this.fetchMyHotels()
     },
   },
 })

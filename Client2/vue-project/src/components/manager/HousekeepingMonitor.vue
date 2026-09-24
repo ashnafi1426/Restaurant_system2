@@ -2,8 +2,10 @@
 import { computed } from 'vue'
 import { Sparkles, Home, AlertCircle, CheckCircle2 } from 'lucide-vue-next'
 import { useManagerStore } from '@/stores/managerStore'
+import { useLanguageStore } from '@/stores/language'
 
 const manager = useManagerStore()
+const languageStore = useLanguageStore()
 
 const housekeepingStats = computed(() => {
   const tasks = manager.housekeeping
@@ -35,43 +37,40 @@ const statusIcon = (status: string) => {
 
 <template>
   <section class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-    <!-- HEADER -->
     <div class="flex justify-between items-center mb-8">
       <div>
-        <h2 class="text-xl font-bold">Housekeeping Tasks</h2>
-        <p class="text-sm text-slate-500">Room cleaning and maintenance</p>
+        <h2 class="text-xl font-bold">{{ languageStore.t('housekeeping_tasks', 'Housekeeping Tasks') }}</h2>
+        <p class="text-sm text-slate-500">{{ languageStore.t('room_cleaning_maintenance', 'Room cleaning and maintenance') }}</p>
       </div>
       <div class="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
         <Sparkles class="w-6 h-6 text-emerald-600" />
       </div>
     </div>
 
-    <!-- STATISTICS -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
       <div class="bg-blue-50 rounded-2xl p-4">
-        <p class="text-sm text-slate-500">Total Tasks</p>
+        <p class="text-sm text-slate-500">{{ languageStore.t('total_tasks', 'Total Tasks') }}</p>
         <h3 class="text-3xl font-bold text-blue-700 mt-2">{{ housekeepingStats.total }}</h3>
       </div>
 
       <div class="bg-yellow-50 rounded-2xl p-4">
-        <p class="text-sm text-slate-500">Pending</p>
+        <p class="text-sm text-slate-500">{{ languageStore.t('pending', 'Pending') }}</p>
         <h3 class="text-3xl font-bold text-yellow-700 mt-2">{{ housekeepingStats.pending }}</h3>
       </div>
 
       <div class="bg-orange-50 rounded-2xl p-4">
-        <p class="text-sm text-slate-500">In Progress</p>
+        <p class="text-sm text-slate-500">{{ languageStore.t('in_progress', 'In Progress') }}</p>
         <h3 class="text-3xl font-bold text-orange-700 mt-2">{{ housekeepingStats.inProgress }}</h3>
       </div>
 
       <div class="bg-green-50 rounded-2xl p-4">
-        <p class="text-sm text-slate-500">Completed</p>
+        <p class="text-sm text-slate-500">{{ languageStore.t('completed', 'Completed') }}</p>
         <h3 class="text-3xl font-bold text-green-700 mt-2">{{ housekeepingStats.completed }}</h3>
       </div>
     </div>
 
-    <!-- TASKS LIST -->
     <div class="space-y-3">
-      <p class="text-sm font-medium text-slate-600">Task Queue</p>
+      <p class="text-sm font-medium text-slate-600">{{ languageStore.t('task_queue', 'Task Queue') }}</p>
 
       <div
         v-for="task in manager.housekeeping.slice(0, 6)"
@@ -91,24 +90,24 @@ const statusIcon = (status: string) => {
               <component :is="statusIcon(task.status)" class="w-4 h-4" />
             </div>
             <div>
-              <p class="font-medium text-sm">Room {{ task.roomNumber }}</p>
+              <p class="font-medium text-sm">{{ languageStore.t('room', 'Room') }} {{ task.roomNumber }}</p>
               <p class="text-xs text-slate-500">{{ task.taskType }}</p>
             </div>
           </div>
 
           <span :class="['px-2 py-1 rounded text-xs font-medium', priorityColor(task.priority)]">
-            {{ task.priority.toUpperCase() }}
+            {{ languageStore.t(task.priority.toLowerCase(), task.priority.toUpperCase()) }}
           </span>
         </div>
 
         <div class="ml-11 flex items-center justify-between text-xs text-slate-500">
-          <span>Assigned: {{ task.assignedTo || 'Unassigned' }}</span>
-          <span v-if="task.estimatedTime">ETA: {{ task.estimatedTime }} min</span>
+          <span>{{ languageStore.t('assigned', 'Assigned') }}: {{ task.assignedTo || languageStore.t('unassigned', 'Unassigned') }}</span>
+          <span v-if="task.estimatedTime">{{ languageStore.t('eta', 'ETA') }}: {{ task.estimatedTime }} {{ languageStore.t('min', 'min') }}</span>
         </div>
       </div>
 
       <div v-if="manager.housekeeping.length === 0" class="py-8 text-center text-slate-500">
-        No housekeeping tasks
+        {{ languageStore.t('no_housekeeping_tasks', 'No housekeeping tasks') }}
       </div>
     </div>
   </section>

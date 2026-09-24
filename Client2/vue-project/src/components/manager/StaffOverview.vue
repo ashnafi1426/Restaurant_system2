@@ -22,7 +22,6 @@ const staffStats = computed(() => {
 
 <template>
   <section class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-    <!-- HEADER -->
     <div class="flex justify-between items-center mb-8">
       <div>
         <h2 class="text-xl font-bold">Staff Overview</h2>
@@ -33,7 +32,6 @@ const staffStats = computed(() => {
       </div>
     </div>
 
-    <!-- STATISTICS -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
       <div class="bg-blue-50 rounded-2xl p-4">
         <p class="text-sm text-slate-500">Total Staff</p>
@@ -56,7 +54,6 @@ const staffStats = computed(() => {
       </div>
     </div>
 
-    <!-- STAFF LIST -->
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
@@ -124,7 +121,6 @@ const staffStats = computed(() => {
       </table>
     </div>
 
-    <!-- FOOTER -->
     <div v-if="manager.staff.length > 8" class="mt-4 pt-4 border-t text-center">
       <button class="text-blue-600 hover:text-blue-700 font-medium text-sm">
         View All Staff →

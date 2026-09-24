@@ -22,9 +22,6 @@ use Carbon\Carbon;
 
 class ManagerDashboardService
 {
-    /**
-     * Get active hotel ID for tenant scoping.
-     */
     protected function getHotelId(): ?string
     {
         $hotelId = request()->header('X-Hotel-ID')
@@ -49,7 +46,6 @@ class ManagerDashboardService
         $hotelId = $this->getHotelId();
         $today = Carbon::today();
         
-        // Calculate actual order statistics strictly for this tenant
         $orders = Order::withoutGlobalScopes();
         if ($hotelId && Schema::hasColumn('orders', 'hotel_id')) {
             $orders->where('hotel_id', $hotelId);
@@ -65,7 +61,6 @@ class ManagerDashboardService
         $readyOrders = (clone $orders)->where('status', Order::STATUS_READY)->count();
         $servedOrders = (clone $orders)->where('status', Order::STATUS_SERVED)->count();
         
-        // Delivery tasks
         $deliveries = DeliveryTask::withoutGlobalScopes();
         if ($hotelId && Schema::hasColumn('delivery_tasks', 'hotel_id')) {
             $deliveries->where('hotel_id', $hotelId);
@@ -79,7 +74,6 @@ class ManagerDashboardService
         $activeDeliveries = (clone $deliveries)->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery'])->count();
         $completedDeliveries = (clone $deliveries)->where('status', 'delivered')->count();
 
-        // Room & Occupancy
         $roomQuery = Room::withoutGlobalScopes();
         $checkInQuery = CheckIn::withoutGlobalScopes();
         $resQuery = Reservation::withoutGlobalScopes();
@@ -108,7 +102,6 @@ class ManagerDashboardService
         $guestCheckouts = (clone $checkInQuery)->whereDate('expected_check_out_at', $today)->count();
         $todayReservations = (clone $resQuery)->whereDate('created_at', $today)->count();
 
-        // Laundry & Housekeeping
         $laundryQuery = LaundryRequest::withoutGlobalScopes();
         $housekeepingQuery = HousekeepingTask::withoutGlobalScopes();
         if ($hotelId && Schema::hasColumn('laundry_requests', 'hotel_id')) {
@@ -130,13 +123,11 @@ class ManagerDashboardService
         $pendingLaundry = (clone $laundryQuery)->where('status', 'pending')->count();
         $pendingHousekeeping = (clone $housekeepingQuery)->where('status', 'pending')->count();
 
-        // Staff
         $activeStaff = 0;
         if ($hotelId) {
             $activeStaff = HotelUser::where('hotel_id', $hotelId)->where('is_active', true)->count();
         }
 
-        // Revenue
         $todayRevenue = (float) ((clone $orders)->whereDate('served_at', $today)->where('status', Order::STATUS_SERVED)->sum('total') ?: 0);
         $monthlyRevenue = (float) ((clone $orders)->whereMonth('served_at', $today->month)->where('status', Order::STATUS_SERVED)->sum('total') ?: 0);
 
@@ -167,14 +158,12 @@ class ManagerDashboardService
             'guestCheckouts' => $guestCheckouts,
             'todayReservations' => $todayReservations,
             
-            // Restaurant Orders Statistics
             'totalOrders' => $totalOrders,
             'pendingOrders' => $pendingOrders,
             'preparingOrders' => $preparingOrders,
             'readyOrders' => $readyOrders,
             'servedOrders' => $servedOrders,
             
-            // Room Service Delivery Statistics
             'totalDeliveries' => $totalDeliveries,
             'activeDeliveries' => $activeDeliveries,
             'completedDeliveries' => $completedDeliveries,
@@ -188,6 +177,7 @@ class ManagerDashboardService
             'monthlyRevenue' => round($monthlyRevenue, 2),
         ];
     }
+
     public function revenueSummary(): array
     {
         $today = Carbon::today();
@@ -204,6 +194,7 @@ class ManagerDashboardService
             'thisYear' => $this->calculateRevenue($thisYearStart, Carbon::now()),
         ];
     }
+
     private function calculateRevenue(Carbon $start, Carbon $end): float
     {
         $hotelId = $this->getHotelId();
@@ -228,6 +219,7 @@ class ManagerDashboardService
 
         return (float) ($orderQuery->whereBetween('created_at', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])->sum('total') ?: 0);
     }
+
     public function occupancySummary(): array
     {
         $hotelId = $this->getHotelId();
@@ -259,6 +251,7 @@ class ManagerDashboardService
             'occupancyRate' => $occupancyRate,
         ];
     }
+
     public function reservationSummary(): array
     {
         $hotelId = $this->getHotelId();
@@ -280,6 +273,7 @@ class ManagerDashboardService
             'cancelled' => Reservation::withoutGlobalScopes()->where('hotel_id', $hotelId)->where('status', 'cancelled')->count(),
         ];
     }
+
     public function revenueChart(string $period = 'monthly'): array
     {
         $data = [];
@@ -294,7 +288,6 @@ class ManagerDashboardService
                 ];
             }
         } elseif ($period === 'monthly') {
-            // Last 30 days
             for ($i = 29; $i >= 0; $i--) {
                 $date = Carbon::now()->subDays($i);
                 $revenue = $this->calculateRevenue($date, $date);
@@ -304,7 +297,6 @@ class ManagerDashboardService
                 ];
             }
         } else {
-            // Last 12 months
             for ($i = 11; $i >= 0; $i--) {
                 $date = Carbon::now()->subMonths($i);
                 $revenue = $this->calculateRevenue($date->startOfMonth(), $date->endOfMonth());
@@ -317,6 +309,7 @@ class ManagerDashboardService
 
         return $data;
     }
+
     public function occupancyChart(): array
     {
         $hotelId = $this->getHotelId();
@@ -348,6 +341,7 @@ class ManagerDashboardService
 
         return $data;
     }
+
     public function completeDashboard(): array
     {
         return [
@@ -367,6 +361,7 @@ class ManagerDashboardService
             'waiters' => $this->getWaiters(),
         ];
     }
+
     public function getStaff(): array
     {
         $hotelId = $this->getHotelId();
@@ -390,6 +385,7 @@ class ManagerDashboardService
             })
             ->toArray();
     }
+
     public function getRecentOrders(): array
     {
         $hotelId = $this->getHotelId();
@@ -421,6 +417,7 @@ class ManagerDashboardService
             })
             ->toArray();
     }
+
     public function getDeliveries(): array
     {
         $hotelId = $this->getHotelId();
@@ -451,6 +448,7 @@ class ManagerDashboardService
             })
             ->toArray();
     }
+
     public function getHousekeeping(): array
     {
         $hotelId = $this->getHotelId();
@@ -481,6 +479,7 @@ class ManagerDashboardService
             })
             ->toArray();
     }
+
     public function getLaundry(): array
     {
         $hotelId = $this->getHotelId();
@@ -514,6 +513,7 @@ class ManagerDashboardService
             })
             ->toArray();
     }
+
     public function getActivities(): array
     {
         $hotelId = $this->getHotelId();
@@ -540,6 +540,7 @@ class ManagerDashboardService
             })
             ->toArray();
     }
+
     public function getWaiters(): array
     {
         $hotelId = $this->getHotelId();

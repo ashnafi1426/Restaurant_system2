@@ -72,9 +72,19 @@ use App\Http\Controllers\Api\ResponseController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\ReviewNotificationController;
 use App\Http\Controllers\Api\Admin\AdminBookingController;
+use App\Http\Controllers\Api\Platform\PlatformHotelController;
+use App\Http\Controllers\Api\Guests\PublicHotelController;
+use App\Http\Controllers\Api\Guests\GuestBookingController;
+use App\Http\Controllers\Api\Payment\PaymentGatewayController;
+use App\Http\Controllers\Api\Analytics\BookingAnalyticsController;
+use App\Http\Controllers\Api\CancellationPolicyController;
+use App\Http\Controllers\Api\TranslationController;
+use App\Http\Controllers\Api\TaxRateController;
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::get('/translations', [TranslationController::class, 'index']);
+Route::get('/tax-rates', [TaxRateController::class, 'index']);
+
+Route::post('/auth/login', [AuthController::class, 'login'])->name('login');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -95,28 +105,28 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'platform.admin'])->prefix('platform')->group(function () {
-    Route::get('/statistics', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'statistics']);
-    Route::get('/hotels', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'index']);
-    Route::post('/hotels', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'store']);
-    Route::get('/hotels/{id}', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'show']);
-    Route::put('/hotels/{id}', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'update']);
-    Route::patch('/hotels/{id}/status', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'updateStatus']);
-    Route::post('/hotels/{id}/archive', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'archive']);
-    Route::delete('/hotels/{id}', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'destroy']);
-    Route::get('/hotels/{id}/admins', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'getAdmins']);
-    Route::post('/hotels/{id}/admins', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'assignAdmin']);
-    Route::delete('/hotels/{id}/admins/{userId}', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'removeAdmin']);
-    Route::get('/admins', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'allAdmins']);
-    Route::post('/hotel-admins', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'createHotelAdmin']);
-    Route::post('/hotel-admins/{id}/reset-password', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'resetAdminPassword']);
-    Route::post('/hotel-admins/{id}/resend-password', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'resendAdminPassword']);
-    Route::patch('/hotel-admins/{id}/toggle-status', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'toggleAdminStatus']);
-    Route::post('/hotels/{id}/enter-view', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'enterViewMode']);
-    Route::post('/hotels/exit-view', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'exitViewMode']);
-    Route::get('/users', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'allUsers']);
-    Route::get('/audit-logs', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'auditLogs']);
-    Route::get('/settings', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'getSettings']);
-    Route::put('/settings', [\App\Http\Controllers\Api\Platform\PlatformHotelController::class, 'updateSettings']);
+    Route::get('/statistics', [PlatformHotelController::class, 'statistics']);
+    Route::get('/hotels', [PlatformHotelController::class, 'index']);
+    Route::post('/hotels', [PlatformHotelController::class, 'store']);
+    Route::get('/hotels/{id}', [PlatformHotelController::class, 'show']);
+    Route::put('/hotels/{id}', [PlatformHotelController::class, 'update']);
+    Route::patch('/hotels/{id}/status', [PlatformHotelController::class, 'updateStatus']);
+    Route::post('/hotels/{id}/archive', [PlatformHotelController::class, 'archive']);
+    Route::delete('/hotels/{id}', [PlatformHotelController::class, 'destroy']);
+    Route::get('/hotels/{id}/admins', [PlatformHotelController::class, 'getAdmins']);
+    Route::post('/hotels/{id}/admins', [PlatformHotelController::class, 'assignAdmin']);
+    Route::delete('/hotels/{id}/admins/{userId}', [PlatformHotelController::class, 'removeAdmin']);
+    Route::get('/admins', [PlatformHotelController::class, 'allAdmins']);
+    Route::post('/hotel-admins', [PlatformHotelController::class, 'createHotelAdmin']);
+    Route::post('/hotel-admins/{id}/reset-password', [PlatformHotelController::class, 'resetAdminPassword']);
+    Route::post('/hotel-admins/{id}/resend-password', [PlatformHotelController::class, 'resendAdminPassword']);
+    Route::patch('/hotel-admins/{id}/toggle-status', [PlatformHotelController::class, 'toggleAdminStatus']);
+    Route::post('/hotels/{id}/enter-view', [PlatformHotelController::class, 'enterViewMode']);
+    Route::post('/hotels/exit-view', [PlatformHotelController::class, 'exitViewMode']);
+    Route::get('/users', [PlatformHotelController::class, 'allUsers']);
+    Route::get('/audit-logs', [PlatformHotelController::class, 'auditLogs']);
+    Route::get('/settings', [PlatformHotelController::class, 'getSettings']);
+    Route::put('/settings', [PlatformHotelController::class, 'updateSettings']);
 });
 Route::get('/activation/{token}', [ActivationController::class, 'validateToken']);
 Route::post('/activate-account', [ActivationController::class, 'activateAccount']);
@@ -124,10 +134,8 @@ Route::post('/resend-activation', [ActivationController::class, 'resendActivatio
 Route::post('/check-activation-status', [ActivationController::class, 'checkActivationStatus']);
 Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
 
-// Reset password with token
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
 
-// Verify reset token
 Route::post('/verify-reset-token', [PasswordResetController::class, 'verifyToken']);
 Route::get('/rooms', [RoomController::class, 'index']);
 Route::get('/rooms/{room}', [RoomController::class, 'show']);
@@ -139,7 +147,6 @@ Route::get('/reservations/availability', [ReservationController::class, 'availab
 Route::get('/qr-codes/download/{roomId}', [QRCodePrintController::class, 'downloadQRCode']);
 Route::get('/qr-codes/print/{roomId}', [QRCodePrintController::class, 'getPrintTemplate']);
 
-// Public Payment Routes (Callback and Verification)
 Route::prefix('payments')->group(function () {
     Route::post('/initialize', [PaymentController::class, 'initialize']);
     Route::get('/verify/{txRef}', [PaymentController::class, 'verify']);
@@ -147,27 +154,23 @@ Route::prefix('payments')->group(function () {
     Route::get('/callback', [PaymentController::class, 'callback']);
 });
 
-// Public Reservation Payment Routes (No authentication required for guest booking)
 Route::prefix('reservation-payments')->group(function () {
     Route::post('/initialize', [ReservationPaymentController::class, 'initializePayment']);
     Route::post('/complete/{txRef}', [ReservationPaymentController::class, 'completeReservation']);
     Route::get('/{txRef}', [ReservationPaymentController::class, 'getReservationByPayment']);
 });
-// Public Order Payment Routes (No authentication required for guest QR orders)
 Route::prefix('order-payments')->group(function () {
     Route::post('/initialize', [GuestOrderPaymentController::class, 'initializePayment']);
     Route::post('/complete/{txRef}', [GuestOrderPaymentController::class, 'completeOrder']);
     Route::get('/{txRef}', [GuestOrderPaymentController::class, 'getOrderByPayment']);
 });
 
-// Walk-In Order Payment Routes (No authentication required for table QR orders)
 Route::prefix('walk-in-payments')->group(function () {
     Route::post('/initialize', [WalkInOrderPaymentController::class, 'initializePayment']);
     Route::post('/complete/{txRef}', [WalkInOrderPaymentController::class, 'completeOrder']);
     Route::get('/{txRef}', [WalkInOrderPaymentController::class, 'getOrderByPayment']);
 });
 
-// QR Resolution Routes (Public)
 Route::prefix('qr')->group(function () {
     Route::post('/resolve', [QRResolutionController::class, 'resolveQRToken']);
     Route::get('/resolve/{qrToken}', [QRResolutionController::class, 'resolveFromUrl']);
@@ -178,8 +181,8 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/menu-items', [MenuItemController::class, 'index']);
 
 Route::prefix('guest')->group(function () {
-    Route::get('/hotels', [\App\Http\Controllers\Api\Guests\PublicHotelController::class, 'index']);
-    Route::get('/hotels/{slug}', [\App\Http\Controllers\Api\Guests\PublicHotelController::class, 'show']);
+    Route::get('/hotels', [PublicHotelController::class, 'index']);
+    Route::get('/hotels/{slug}', [PublicHotelController::class, 'show']);
     Route::get('/categories', [GuestOrderController::class, 'getPublicCategories']);
     Route::get('/menu/items', [GuestOrderController::class, 'getAllMenuItems']);
     Route::get('/menu/{qrToken}', [GuestOrderController::class, 'getRoom']);
@@ -190,14 +193,12 @@ Route::prefix('guest')->group(function () {
 Route::prefix('guest')->group(function () {
     Route::post('/unified-orders', [UnifiedOrderController::class, 'store']);
 });
-
-// Guest Booking Routes (with QR token validation via middleware)
 Route::prefix('guest/bookings')->middleware('qr.token')->group(function () {
-    Route::post('/check-availability', [\App\Http\Controllers\Api\Guests\GuestBookingController::class, 'checkAvailability']);
-    Route::get('/rooms/{roomId}', [\App\Http\Controllers\Api\Guests\GuestBookingController::class, 'getRoomDetails']);
-    Route::post('/', [\App\Http\Controllers\Api\Guests\GuestBookingController::class, 'createBooking']);
-    Route::get('/{bookingReference}', [\App\Http\Controllers\Api\Guests\GuestBookingController::class, 'getBookingStatus']);
-    Route::post('/{bookingReference}/cancel', [\App\Http\Controllers\Api\Guests\GuestBookingController::class, 'cancelBooking']);
+    Route::post('/check-availability', [GuestBookingController::class, 'checkAvailability']);
+    Route::get('/rooms/{roomId}', [GuestBookingController::class, 'getRoomDetails']);
+    Route::post('/', [GuestBookingController::class, 'createBooking']);
+    Route::get('/{bookingReference}', [GuestBookingController::class, 'getBookingStatus']);
+    Route::post('/{bookingReference}/cancel', [GuestBookingController::class, 'cancelBooking']);
 });
 Route::prefix('qr-code')->group(function () {
     Route::get('/generate/{roomId}', [QRCodeController::class, 'generateForRoom']);
@@ -209,7 +210,6 @@ Route::get('/roles/active', [RoleController::class, 'getActiveRoles']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    // System Roles & Permissions Management (Platform Super Admin OR any Admin with permissions)
     Route::middleware('permission:roles.view|roles.create|roles.update|roles.delete|roles.assign_permissions|permissions.view|permissions.create|permissions.update|permissions.delete')->group(function () {
         Route::get('/roles', [RoleController::class, 'index']);
         Route::post('/roles', [RoleController::class, 'store']);
@@ -224,8 +224,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/permissions/{permission}', [PermissionController::class, 'show']);
         Route::put('/permissions/{permission}', [PermissionController::class, 'update']);
         Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy']);
-
-        // Direct User Permissions management
         Route::get('/users/{user}/direct-permissions', [UserDirectPermissionController::class, 'getUserPermissions']);
         Route::post('/users/{user}/direct-permissions', [UserDirectPermissionController::class, 'assignDirectPermissions']);
         Route::delete('/users/{user}/direct-permissions/{permission}', [UserDirectPermissionController::class, 'removeDirectPermission']);
@@ -259,7 +257,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
         Route::patch('/orders/{id}/status', [OrderController::class, 'changeStatus']);
     });
-
     // Reservations, Guests, Check-Ins, Rooms & Room Types Access (Permission & Role Driven)
     Route::middleware('role:staff')->group(function () {
         Route::get('/reservations', [ReservationController::class, 'index']);
@@ -368,7 +365,6 @@ Route::middleware('auth:sanctum')->group(function () {
            Route::patch('/orders/{order}/complete',[KitchenController::class,'complete']);
        });
     });
-
     Route::middleware('role:staff')->group(function () {
        // Chef Profile Routes
        Route::prefix('chef/profile')->group(function () {
@@ -406,9 +402,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/categories/{category}/toggle', [CategoryController::class, 'toggle']);
         Route::post('/categories/reorder', [CategoryController::class, 'reorder']);
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+        Route::get('/tax-rates/{taxRate}', [TaxRateController::class, 'show']);
+        Route::post('/tax-rates', [TaxRateController::class, 'store']);
+        Route::put('/tax-rates/{taxRate}', [TaxRateController::class, 'update']);
+        Route::patch('/tax-rates/{taxRate}/toggle', [TaxRateController::class, 'toggleStatus']);
+        Route::delete('/tax-rates/{taxRate}', [TaxRateController::class, 'destroy']);
     });
     Route::middleware('role:staff')->group(function(){
-        // Receptionist Profile Routes
         Route::prefix('receptionist/profile')->group(function () {
             Route::get('/', [ReceptionistProfileController::class, 'getProfile']);
             Route::put('/', [ReceptionistProfileController::class, 'updateProfile']);
@@ -502,14 +502,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/{waiter}/stats', [WaiterManagementController::class, 'stats']);
         });
         Route::prefix('floors')->group(function () {
-            Route::get('/', [FloorManagementController::class, 'index']);
-            Route::post('/', [FloorManagementController::class, 'store']);
-            Route::get('/{floor}', [FloorManagementController::class, 'show']);
-            Route::put('/{floor}', [FloorManagementController::class, 'update']);
-            Route::delete('/{floor}', [FloorManagementController::class, 'destroy']);
-            Route::patch('/{floor}/deactivate', [FloorManagementController::class, 'deactivate']);
-            Route::patch('/{floor}/activate', [FloorManagementController::class, 'activate']);
-            Route::get('/{floor}/stats', [FloorManagementController::class, 'stats']);
             Route::prefix('assignments')->group(function () {
                 Route::get('/today', [FloorAssignmentController::class, 'today']);
                 Route::get('/stats', [FloorAssignmentController::class, 'stats']);
@@ -518,6 +510,14 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::patch('/{assignment}', [FloorAssignmentController::class, 'update']);
                 Route::delete('/{assignment}', [FloorAssignmentController::class, 'destroy']);
             });
+            Route::get('/', [FloorManagementController::class, 'index']);
+            Route::post('/', [FloorManagementController::class, 'store']);
+            Route::get('/{floor}', [FloorManagementController::class, 'show']);
+            Route::put('/{floor}', [FloorManagementController::class, 'update']);
+            Route::delete('/{floor}', [FloorManagementController::class, 'destroy']);
+            Route::patch('/{floor}/deactivate', [FloorManagementController::class, 'deactivate']);
+            Route::patch('/{floor}/activate', [FloorManagementController::class, 'activate']);
+            Route::get('/{floor}/stats', [FloorManagementController::class, 'stats']);
         });
         
         // Restaurant Table Assignment Routes (Waiters to Tables for Walk-in Customers)
@@ -591,7 +591,7 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
     
-    Route::middleware('role:staff')->prefix('waiter')->group(function () {
+    Route::middleware('role:staff|admin|manager|waiter')->prefix('waiter')->group(function () {
         Route::prefix('dashboard')->group(function () {
             Route::get('/', [WaiterDashboardController::class, 'getDashboard']);
             Route::get('/today', [WaiterDashboardController::class, 'getTodayStats']);
@@ -769,29 +769,29 @@ Route::middleware('auth:sanctum')->prefix('notifications/reviews')->group(functi
 // ============================================================================
 
 // Payment Gateway Routes (authenticated staff/admin)
-Route::middleware('auth:sanctum', 'role:staff')->prefix('payment-gateway')->group(function () {
-    Route::post('/callback', [\App\Http\Controllers\Api\Payment\PaymentGatewayController::class, 'handleCallback']);
-    Route::get('/status/{paymentId}', [\App\Http\Controllers\Api\Payment\PaymentGatewayController::class, 'getPaymentStatus']);
-    Route::get('/history', [\App\Http\Controllers\Api\Payment\PaymentGatewayController::class, 'getPaymentHistory']);
-    Route::post('/refund', [\App\Http\Controllers\Api\Payment\PaymentGatewayController::class, 'processRefund']);
-    Route::get('/revenue-report', [\App\Http\Controllers\Api\Payment\PaymentGatewayController::class, 'getRevenueReport']);
+Route::middleware(['auth:sanctum', 'role:staff'])->prefix('payment-gateway')->group(function () {
+    Route::post('/callback', [PaymentGatewayController::class, 'handleCallback']);
+    Route::get('/status/{paymentId}', [PaymentGatewayController::class, 'getPaymentStatus']);
+    Route::get('/history', [PaymentGatewayController::class, 'getPaymentHistory']);
+    Route::post('/refund', [PaymentGatewayController::class, 'processRefund']);
+    Route::get('/revenue-report', [PaymentGatewayController::class, 'getRevenueReport']);
 });
 
 // Booking Analytics Routes (authenticated admin/manager)
-Route::middleware('auth:sanctum', 'role:admin|manager')->prefix('booking-analytics')->group(function () {
-    Route::get('/occupancy-rate', [\App\Http\Controllers\Api\Analytics\BookingAnalyticsController::class, 'getOccupancyRate']);
-    Route::get('/revenue-analytics', [\App\Http\Controllers\Api\Analytics\BookingAnalyticsController::class, 'getRevenueAnalytics']);
-    Route::get('/booking-trends', [\App\Http\Controllers\Api\Analytics\BookingAnalyticsController::class, 'getBookingTrends']);
-    Route::get('/guest-statistics', [\App\Http\Controllers\Api\Analytics\BookingAnalyticsController::class, 'getGuestStatistics']);
-    Route::get('/dashboard-summary', [\App\Http\Controllers\Api\Analytics\BookingAnalyticsController::class, 'getDashboardSummary']);
+Route::middleware(['auth:sanctum', 'role:admin|manager'])->prefix('booking-analytics')->group(function () {
+    Route::get('/occupancy-rate', [BookingAnalyticsController::class, 'getOccupancyRate']);
+    Route::get('/revenue-analytics', [BookingAnalyticsController::class, 'getRevenueAnalytics']);
+    Route::get('/booking-trends', [BookingAnalyticsController::class, 'getBookingTrends']);
+    Route::get('/guest-statistics', [BookingAnalyticsController::class, 'getGuestStatistics']);
+    Route::get('/dashboard-summary', [BookingAnalyticsController::class, 'getDashboardSummary']);
 });
 
 // Cancellation Policy Routes (authenticated staff)
-Route::middleware('auth:sanctum', 'role:staff')->prefix('cancellation-policies')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Api\CancellationPolicyController::class, 'index']);
-    Route::post('/', [\App\Http\Controllers\Api\CancellationPolicyController::class, 'store']);
-    Route::get('/{policyId}', [\App\Http\Controllers\Api\CancellationPolicyController::class, 'show']);
-    Route::put('/{policyId}', [\App\Http\Controllers\Api\CancellationPolicyController::class, 'update']);
-    Route::delete('/{policyId}', [\App\Http\Controllers\Api\CancellationPolicyController::class, 'destroy']);
-    Route::post('/{policyId}/calculate-refund', [\App\Http\Controllers\Api\CancellationPolicyController::class, 'calculateRefund']);
+Route::middleware(['auth:sanctum', 'role:staff'])->prefix('cancellation-policies')->group(function () {
+    Route::get('/', [CancellationPolicyController::class, 'index']);
+    Route::post('/', [CancellationPolicyController::class, 'store']);
+    Route::get('/{policyId}', [CancellationPolicyController::class, 'show']);
+    Route::put('/{policyId}', [CancellationPolicyController::class, 'update']);
+    Route::delete('/{policyId}', [CancellationPolicyController::class, 'destroy']);
+    Route::post('/{policyId}/calculate-refund', [CancellationPolicyController::class, 'calculateRefund']);
 });

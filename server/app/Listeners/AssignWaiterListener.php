@@ -6,6 +6,7 @@ use App\Events\OrderReadyEvent;
 use App\Services\Waiter\AutomaticWaiterAssignmentService;
 use Illuminate\Support\Facades\Log;
 use Throwable;
+
 class AssignWaiterListener
 {
     public function __construct(
@@ -22,8 +23,6 @@ class AssignWaiterListener
                 'timestamp' => now(),
             ]);
 
-            // Call the automatic assignment service
-            // This implements the complete 20-step workflow
             $result = $this->assignmentService->assignWaiterToReadyOrder($event->order);
 
             Log::info(' [LISTENER] AssignWaiterListener completed', [
@@ -41,10 +40,6 @@ class AssignWaiterListener
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
-
-            // Log but don't throw - allows order to stay ready
-            // Manager can manually assign if needed
-            // (Not re-throwing because no queue retry logic anymore)
         }
     }
 }

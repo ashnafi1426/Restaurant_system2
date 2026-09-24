@@ -11,20 +11,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-/**
- * ============================================================================
- * PaymentGatewayController
- * ============================================================================
- * Handles payment gateway integration, transaction logging, and status tracking
- * 
- * Features:
- * - Payment transaction logging with detailed audit trail
- * - Payment status tracking (pending, completed, failed, refunded)
- * - Chapa gateway callback handling
- * - Payment transaction history retrieval
- * - Refund processing and management
- * ============================================================================
- */
 class PaymentGatewayController extends Controller
 {
     protected ChapaService $chapaService;
@@ -34,15 +20,6 @@ class PaymentGatewayController extends Controller
         $this->chapaService = $chapaService;
     }
 
-    /**
-     * ============================================================================
-     * Process Payment Callback from Gateway
-     * ============================================================================
-     * Receives and processes payment callbacks from Chapa payment gateway
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function handleCallback(Request $request): JsonResponse
     {
         try {
@@ -61,7 +38,6 @@ class PaymentGatewayController extends Controller
                 ], 400);
             }
 
-            // Find payment
             $payment = Payment::where('tx_ref', $txRef)->first();
 
             if (!$payment) {
@@ -72,7 +48,6 @@ class PaymentGatewayController extends Controller
                 ], 404);
             }
 
-            // Verify with Chapa
             $response = $this->chapaService->verify($txRef);
 
             if (!$response['success']) {
@@ -89,7 +64,6 @@ class PaymentGatewayController extends Controller
             }
 
             if ($this->chapaService->isSuccessful($response)) {
-                // Update payment status to completed
                 $payment->updatePaymentStatus(
                     'completed',
                     $response,
@@ -97,7 +71,6 @@ class PaymentGatewayController extends Controller
                     $this->chapaService->getPaymentMethod($response)
                 );
 
-                // Log transaction
                 $this->logPaymentTransaction($payment, 'completed', $response);
 
                 Log::info('✅ [GATEWAY] Payment completed successfully', [
@@ -142,15 +115,6 @@ class PaymentGatewayController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Get Payment Status
-     * ============================================================================
-     * Retrieve current payment status and transaction details
-     * 
-     * @param string $paymentId
-     * @return JsonResponse
-     */
     public function getPaymentStatus(string $paymentId): JsonResponse
     {
         try {
@@ -164,7 +128,7 @@ class PaymentGatewayController extends Controller
                     'amount' => $payment->amount,
                     'currency' => $payment->currency,
                     'status' => $payment->status,
-                    'payment_status' => $payment->payment_status ?? $payment->status, // Explicit field
+                    'payment_status' => $payment->payment_status ?? $payment->status,
                     'payment_method' => $payment->payment_method,
                     'email' => $payment->email,
                     'phone' => $payment->phone,
@@ -195,31 +159,19 @@ class PaymentGatewayController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Get Payment History
-     * ============================================================================
-     * Retrieve paginated payment transaction history for admin
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function getPaymentHistory(Request $request): JsonResponse
     {
         try {
             $query = Payment::query();
 
-            // Filter by status
             if ($request->has('status')) {
                 $query->where('payment_status', $request->get('status'));
             }
 
-            // Filter by payment status field
             if ($request->has('payment_status')) {
                 $query->where('payment_status', $request->get('payment_status'));
             }
 
-            // Filter by date range
             if ($request->has('from_date') && $request->has('to_date')) {
                 $query->whereBetween('created_at', [
                     $request->get('from_date'),
@@ -227,12 +179,10 @@ class PaymentGatewayController extends Controller
                 ]);
             }
 
-            // Filter by hotel
             if ($request->has('hotel_id')) {
                 $query->where('hotel_id', $request->get('hotel_id'));
             }
 
-            // Search by email or tx_ref
             if ($request->has('search')) {
                 $search = $request->get('search');
                 $query->where(function ($q) use ($search) {
@@ -267,15 +217,6 @@ class PaymentGatewayController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Process Refund
-     * ============================================================================
-     * Process refund for a completed payment
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function processRefund(Request $request): JsonResponse
     {
         try {
@@ -287,7 +228,6 @@ class PaymentGatewayController extends Controller
 
             $payment = Payment::findOrFail($validated['payment_id']);
 
-            // Check if payment can be refunded
             if ($payment->status !== 'completed' && $payment->status !== 'verified') {
                 return response()->json([
                     'success' => false,
@@ -295,7 +235,6 @@ class PaymentGatewayController extends Controller
                 ], 422);
             }
 
-            // Check if already refunded
             if ($payment->payment_status === 'refunded') {
                 return response()->json([
                     'success' => false,
@@ -305,7 +244,6 @@ class PaymentGatewayController extends Controller
 
             $refundAmount = $validated['refund_amount'] ?? $payment->amount;
 
-            // Verify refund amount doesn't exceed payment
             if ($refundAmount > $payment->amount) {
                 return response()->json([
                     'success' => false,
@@ -316,7 +254,6 @@ class PaymentGatewayController extends Controller
             DB::beginTransaction();
 
             try {
-                // Update payment status to refunded
                 $payment->update([
                     'payment_status' => 'refunded',
                     'refunded_at' => now(),
@@ -324,13 +261,11 @@ class PaymentGatewayController extends Controller
                     'refund_amount' => $refundAmount,
                 ]);
 
-                // Log transaction
                 $this->logPaymentTransaction($payment, 'refunded', [
                     'reason' => $validated['reason'],
                     'refund_amount' => $refundAmount,
                 ]);
 
-                // If reservation exists, cancel it
                 if ($payment->reservation) {
                     $payment->reservation->update([
                         'status' => 'cancelled',
@@ -382,17 +317,6 @@ class PaymentGatewayController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Log Payment Transaction
-     * ============================================================================
-     * Log payment transaction for audit trail and analytics
-     * 
-     * @param Payment $payment
-     * @param string $status
-     * @param array $details
-     * @return void
-     */
     private function logPaymentTransaction(Payment $payment, string $status, array $details = []): void
     {
         try {
@@ -410,7 +334,7 @@ class PaymentGatewayController extends Controller
                 'updated_at' => now(),
             ]);
 
-            Log::info('📝 [GATEWAY] Payment transaction logged', [
+            Log::info('[GATEWAY] Payment transaction logged', [
                 'payment_id' => $payment->id,
                 'status' => $status,
                 'amount' => $payment->amount,
@@ -424,26 +348,15 @@ class PaymentGatewayController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Get Revenue Report
-     * ============================================================================
-     * Get revenue analytics by hotel and date range
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function getRevenueReport(Request $request): JsonResponse
     {
         try {
             $query = Payment::where('payment_status', 'completed');
 
-            // Filter by hotel
             if ($request->has('hotel_id')) {
                 $query->where('hotel_id', $request->get('hotel_id'));
             }
 
-            // Filter by date range
             if ($request->has('from_date') && $request->has('to_date')) {
                 $query->whereBetween('created_at', [
                     $request->get('from_date'),

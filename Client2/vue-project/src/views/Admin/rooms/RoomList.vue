@@ -1,27 +1,36 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-import DashboardLayout from '../../../layouts/DashboardLayout.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import RoomTable from '../../../components/rooms/RoomTable.vue'
 import DeleteRoomModal from '../../../components/rooms/DeleteRoomModal.vue'
 
 import { useRoomStore } from '../../../stores/room'
-import { BedDouble, Plus } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { useHotelStore } from '../../../stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
+import { BedDouble, Plus, Building2 } from 'lucide-vue-next'
 
 const router = useRouter()
 const roomStore = useRoomStore()
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
 const showDeleteModal = ref(false)
 const selectedRoomId = ref<string | null>(null)
 
-onMounted(async () => {
+const loadData = async () => {
   try {
     await roomStore.fetchRooms()
   } catch (error) {
     console.error('Error fetching rooms:', error)
   }
+}
+
+onMounted(loadData)
+
+watch(() => hotelStore.hotelId, () => {
+  loadData()
 })
 
 const createRoom = () => {
@@ -63,18 +72,22 @@ const refresh = async () => {
             <BedDouble class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Room Management</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage, filter, and track all hotel rooms and live occupancy.</p>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                {{ languageStore.t('room_management', 'Room Management') }}
+              </h1>
+              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+                <Building2 class="w-3 h-3" />
+                {{ hotelStore.hotelName }}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{ languageStore.t('room_management_desc', 'Manage, filter, and track all hotel rooms and live occupancy.') }}
+            </p>
           </div>
         </div>
 
-        <button
-          @click="createRoom"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-blue-600/20 transition cursor-pointer inline-flex items-center justify-center gap-2"
-        >
-          <Plus class="w-4 h-4 stroke-[3]" />
-          <span>Add Room</span>
-        </button>
+
       </div>
 
       <div
@@ -103,3 +116,4 @@ const refresh = async () => {
     </div>
   </DashboardLayout>
 </template>
+

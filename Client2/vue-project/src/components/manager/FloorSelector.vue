@@ -30,7 +30,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useManagerStore } from '../../stores/manager/floorAssignmentStore'
 
 interface Props {
   modelValue?: string | number
@@ -53,20 +52,17 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
 })
 
-const emit = defineEmits<{
+defineEmits<{
   'update:modelValue': [value: string | number]
 }>()
 
-const store = useManagerStore()
 const loading = ref(false)
 const error = ref('')
 const floors = ref<Floor[]>([])
 
 const selectedFloor = computed({
   get: () => props.modelValue,
-  set: (value) => {
-    // Value updates through emit
-  },
+  set: () => {},
 })
 
 onMounted(async () => {
@@ -77,8 +73,6 @@ async function loadFloors() {
   loading.value = true
   error.value = ''
   try {
-    // In a real scenario, fetch from API
-    // For now, we'll use mock data or fetch from store
     floors.value = [
       { id: 1, name: 'Ground Floor', floor_number: 0, status: 'active' },
       { id: 2, name: 'First Floor', floor_number: 1, status: 'active' },
@@ -86,9 +80,9 @@ async function loadFloors() {
       { id: 4, name: 'Third Floor', floor_number: 3, status: 'active' },
       { id: 5, name: 'Rooftop', floor_number: 4, status: 'active' },
     ]
-  } catch (err) {
+  } catch (err: any) {
+    console.error('[FloorSelector] Error loading floors:', err)
     error.value = 'Failed to load floors'
-    console.error('Error loading floors:', err)
   } finally {
     loading.value = false
   }

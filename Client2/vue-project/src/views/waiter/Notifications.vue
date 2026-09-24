@@ -2,13 +2,11 @@
   <DashboardLayout>
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
       <div class="max-w-7xl mx-auto">
-        <!-- Header -->
         <div class="mb-8">
-          <h1 class="text-4xl font-bold text-slate-900">Notifications</h1>
-          <p class="text-slate-600 mt-2">Stay updated with your delivery notifications</p>
+          <h1 class="text-4xl font-bold text-slate-900">{{ languageStore.t('notifications', 'Notifications') }}</h1>
+          <p class="text-slate-600 mt-2">{{ languageStore.t('stay_updated_with_delivery_notifications', 'Stay updated with your delivery notifications') }}</p>
         </div>
 
-        <!-- Loading State -->
         <div v-if="loading" class="flex items-center justify-center py-16">
           <div class="text-center">
             <div class="relative w-12 h-12">
@@ -21,23 +19,20 @@
                 </svg>
               </div>
             </div>
-            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm mt-4">Loading notifications...</p>
+            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm mt-4">{{ languageStore.t('loading_notifications', 'Loading notifications...') }}</p>
           </div>
         </div>
 
-        <!-- Error State -->
         <div v-else-if="error" class="bg-red-50 border-l-4 border-red-600 rounded-lg p-6 mb-6">
-          <p class="text-red-700 font-semibold">Error loading notifications</p>
+          <p class="text-red-700 font-semibold">{{ languageStore.t('error_loading_notifications', 'Error loading notifications') }}</p>
           <p class="text-red-600 text-sm mt-2">{{ error }}</p>
         </div>
 
-        <!-- Empty State -->
         <div v-else-if="notifications.length === 0" class="bg-white rounded-lg shadow-sm p-12 text-center">
-          <p class="text-slate-600 text-lg">No notifications</p>
-          <p class="text-slate-500 mt-2">You're all caught up!</p>
+          <p class="text-slate-600 text-lg">{{ languageStore.t('no_notifications', 'No notifications') }}</p>
+          <p class="text-slate-500 mt-2">{{ languageStore.t('all_caught_up', "You're all caught up!") }}</p>
         </div>
 
-        <!-- Notifications List -->
         <div v-else class="space-y-4">
           <div v-for="notif in notifications" :key="notif.id" :class="[
             'bg-white rounded-lg shadow-sm p-6 border-l-4 transition',
@@ -60,7 +55,7 @@
                 @click="markAsRead(notif.id)"
                 class="ml-4 px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition whitespace-nowrap"
               >
-                Mark Read
+                {{ languageStore.t('mark_read', 'Mark Read') }}
               </button>
             </div>
           </div>
@@ -74,7 +69,9 @@
 import { ref, onMounted } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import waiterService from '@/services/waiterService'
+import { useLanguageStore } from '@/stores/language'
 
+const languageStore = useLanguageStore()
 const loading = ref(true)
 const error = ref<string | null>(null)
 const notifications = ref<any[]>([])
@@ -88,10 +85,10 @@ const formatDate = (date: string) => {
   const hours = Math.floor(diff / 3600000)
   const days = Math.floor(diff / 86400000)
   
-  if (minutes < 1) return 'just now'
-  if (minutes < 60) return `${minutes}m ago`
-  if (hours < 24) return `${hours}h ago`
-  if (days < 7) return `${days}d ago`
+  if (minutes < 1) return languageStore.t('just_now', 'just now')
+  if (minutes < 60) return `${minutes}${languageStore.t('m_ago', 'm ago')}`
+  if (hours < 24) return `${hours}${languageStore.t('h_ago', 'h ago')}`
+  if (days < 7) return `${days}${languageStore.t('d_ago', 'd ago')}`
   
   return d.toLocaleDateString()
 }
@@ -100,15 +97,9 @@ const fetchNotifications = async () => {
   try {
     loading.value = true
     error.value = null
-    
-    console.log('[Notifications] Loading notifications...')
-    
-    // For now, use a placeholder or mock data
-    // Once backend endpoint is available, use: const data = await waiterService.getNotifications()
     notifications.value = []
-    
   } catch (err: any) {
-    console.error('[Notifications] Error:', err)
+    console.error('[Notifications] Error fetching notifications:', err)
     error.value = err.message || 'Failed to load notifications'
   } finally {
     loading.value = false
@@ -122,7 +113,7 @@ const markAsRead = async (notificationId: string) => {
       notification.read = true
     }
   } catch (err: any) {
-    console.error('[Notifications] Error marking as read:', err)
+    console.error('[Notifications] Error marking notification as read:', err)
   }
 }
 

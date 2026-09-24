@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
+import { useLanguageStore } from '@/stores/language'
 
 interface GalleryImage {
   id: number
@@ -15,6 +16,8 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
+
+const languageStore = useLanguageStore()
 
 function close() {
   emit('close')
@@ -55,20 +58,20 @@ onUnmounted(() => {
 
         <button
           @click="close"
-          class="absolute right-8 top-8 flex h-12 w-12 items-center justify-center rounded-full bg-white text-2xl font-bold text-slate-900 shadow-xl transition hover:rotate-90 hover:bg-red-500 hover:text-white"
+          class="absolute right-8 top-8 flex h-12 w-12 items-center justify-center rounded-full bg-white text-2xl font-bold text-slate-900 shadow-xl transition hover:rotate-90 hover:bg-red-500 hover:text-white cursor-pointer"
         >
           ×
         </button>
 
         <!-- Image Container -->
         <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
-          <div class="bg-slate-100 rounded-2xl sm:rounded-3xl overflow-hidden">
+          <div class="bg-slate-100 dark:bg-slate-800 rounded-2xl sm:rounded-3xl overflow-hidden">
             <img
               :src="image.src"
-              :alt="image.title"
+              :alt="languageStore.t(image.title, image.title)"
               class="mx-auto max-h-[70vh] sm:max-h-[80vh] w-auto"
               @error="
-                (e) => {
+                (e: any) => {
                   e.target.src =
                     'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%23e2e8f0%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%2364748b%22 font-family=%22Arial%22%3EImage Not Found%3C/text%3E%3C/svg%3E'
                 }
@@ -78,25 +81,25 @@ onUnmounted(() => {
 
           <!-- Information -->
 
-          <div class="mt-8 rounded-3xl bg-white p-8 shadow-2xl">
+          <div class="mt-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 shadow-2xl">
             <div class="flex flex-wrap items-center justify-between gap-6">
               <div>
                 <span class="rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-white">
-                  {{ image.category }}
+                  {{ languageStore.t(image.category, image.category) }}
                 </span>
 
-                <h2 class="mt-5 text-4xl font-bold text-slate-900">
-                  {{ image.title }}
+                <h2 class="mt-5 text-4xl font-bold text-slate-900 dark:text-white">
+                  {{ languageStore.t(image.title, image.title) }}
                 </h2>
 
-                <p class="mt-3 text-slate-500">Luxury Hotel Gallery Collection</p>
+                <p class="mt-3 text-slate-500 dark:text-slate-400">{{ languageStore.t('luxury_hotel_gallery_collection', 'Luxury Hotel Gallery Collection') }}</p>
               </div>
 
               <button
                 @click="close"
-                class="rounded-xl bg-amber-500 px-8 py-4 font-semibold text-white transition hover:bg-amber-600"
+                class="rounded-xl bg-amber-500 px-8 py-4 font-semibold text-white transition hover:bg-amber-600 cursor-pointer"
               >
-                Close Gallery
+                {{ languageStore.t('close_gallery', 'Close Gallery') }}
               </button>
             </div>
           </div>
@@ -105,3 +108,4 @@ onUnmounted(() => {
     </Transition>
   </Teleport>
 </template>
+

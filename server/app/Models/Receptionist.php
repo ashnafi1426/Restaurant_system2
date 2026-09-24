@@ -26,33 +26,21 @@ class Receptionist extends Model
         'hire_date' => 'date',
     ];
 
-    /**
-     * Get the user associated with this receptionist
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id', 'id');
     }
 
-    /**
-     * Check if receptionist is active
-     */
     public function isActive(): bool
     {
         return $this->status === 'active';
     }
 
-    /**
-     * Check if receptionist is on break
-     */
     public function isOnBreak(): bool
     {
         return $this->status === 'on_break';
     }
 
-    /**
-     * Scope to get active receptionists
-     */
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

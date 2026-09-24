@@ -9,6 +9,7 @@ use App\Models\DeliveryTask;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+
 class DeliveryManagementController extends Controller
 {
     public function index(Request $request): JsonResponse
@@ -78,11 +79,6 @@ class DeliveryManagementController extends Controller
         }
     }
 
-    /**
-     * Get single delivery details
-     * 
-     * GET /api/manager/deliveries/{id}
-     */
     public function show(DeliveryTask $delivery): JsonResponse
     {
         try {
@@ -101,11 +97,6 @@ class DeliveryManagementController extends Controller
         }
     }
 
-    /**
-     * Reassign delivery to different waiter
-     * 
-     * PATCH /api/manager/deliveries/{id}/reassign
-     */
     public function reassign(ReassignDeliveryRequest $request, DeliveryTask $delivery): JsonResponse
     {
         try {
@@ -115,7 +106,6 @@ class DeliveryManagementController extends Controller
             $oldWaiterId = $delivery->waiter_id;
             $newWaiterId = $data['waiter_id'];
 
-            // Verify new waiter exists and is active
             $newWaiter = \App\Models\Waiter::find($newWaiterId);
             if (!$newWaiter || $newWaiter->status !== 'active') {
                 return response()->json([
@@ -124,7 +114,6 @@ class DeliveryManagementController extends Controller
                 ], 422);
             }
 
-            // Check new waiter's workload
             if ($newWaiter->current_orders >= $newWaiter->maximum_orders) {
                 return response()->json([
                     'success' => false,
@@ -132,14 +121,12 @@ class DeliveryManagementController extends Controller
                 ], 422);
             }
 
-            // Update delivery
             $delivery->update([
                 'waiter_id' => $newWaiterId,
                 'assignment_type' => 'manual',
                 'status' => 'assigned',
             ]);
 
-            // Update waiter order counts
             $oldWaiter = \App\Models\Waiter::find($oldWaiterId);
             if ($oldWaiter && $oldWaiter->current_orders > 0) {
                 $oldWaiter->decrement('current_orders');
@@ -176,11 +163,6 @@ class DeliveryManagementController extends Controller
         }
     }
 
-    /**
-     * Cancel delivery
-     * 
-     * DELETE /api/manager/deliveries/{id}
-     */
     public function destroy(Request $request, DeliveryTask $delivery): JsonResponse
     {
         try {
@@ -188,7 +170,6 @@ class DeliveryManagementController extends Controller
 
             $reason = $request->input('reason', 'Cancelled by manager');
 
-            // Cannot cancel if already delivered or completed
             if (in_array($delivery->status, ['delivered', 'completed'])) {
                 return response()->json([
                     'success' => false,
@@ -196,12 +177,10 @@ class DeliveryManagementController extends Controller
                 ], 422);
             }
 
-            // Decrement waiter's current orders
             if ($delivery->waiter) {
                 $delivery->waiter->decrement('current_orders');
             }
 
-            // Update delivery status
             $delivery->update([
                 'status' => 'cancelled',
                 'delivery_notes' => $reason,
@@ -229,11 +208,6 @@ class DeliveryManagementController extends Controller
         }
     }
 
-    /**
-     * Get delivery statistics and report
-     * 
-     * GET /api/manager/deliveries/report
-     */
     public function report(Request $request): JsonResponse
     {
         try {
@@ -242,7 +216,6 @@ class DeliveryManagementController extends Controller
 
             $query = DeliveryTask::whereBetween('assigned_at', [$startDate, $endDate]);
 
-            // Report data
             $report = [
                 'total_deliveries' => $query->count(),
                 'completed_deliveries' => (clone $query)->where('status', 'delivered')->count(),
@@ -277,11 +250,6 @@ class DeliveryManagementController extends Controller
         }
     }
 
-    /**
-     * Get today's delivery summary
-     * 
-     * GET /api/manager/deliveries/summary/today
-     */
     public function todaySummary(): JsonResponse
     {
         try {
@@ -313,9 +281,6 @@ class DeliveryManagementController extends Controller
         }
     }
 
-    /**
-     * Helper: Get average delivery time
-     */
     private function getAverageDeliveryTime(string $startDate, string $endDate): ?string
     {
         $deliveries = DeliveryTask::whereBetween('assigned_at', [$startDate, $endDate])
@@ -347,9 +312,6 @@ class DeliveryManagementController extends Controller
         return "{$hours}h {$minutes}m";
     }
 
-    /**
-     * Helper: Get deliveries grouped by waiter
-     */
     private function getDeliveriesByWaiter(string $startDate, string $endDate): array
     {
         return DeliveryTask::whereBetween('assigned_at', [$startDate, $endDate])
@@ -370,9 +332,6 @@ class DeliveryManagementController extends Controller
             ->toArray();
     }
 
-    /**
-     * Helper: Get deliveries grouped by floor
-     */
     private function getDeliveriesByFloor(string $startDate, string $endDate): array
     {
         return DeliveryTask::whereBetween('assigned_at', [$startDate, $endDate])
@@ -392,9 +351,6 @@ class DeliveryManagementController extends Controller
             ->toArray();
     }
 
-    /**
-     * Helper: Get deliveries grouped by status
-     */
     private function getDeliveriesByStatus(string $startDate, string $endDate): array
     {
         return DeliveryTask::whereBetween('assigned_at', [$startDate, $endDate])

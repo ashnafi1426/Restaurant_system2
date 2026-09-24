@@ -69,7 +69,6 @@ class UpdateRoomTypeRequest extends FormRequest
                 'This room type name already exists.',
 
             'base_price_per_night.required' =>
-
                 'Base price is required.',
 
             'base_price_per_night.numeric' =>
@@ -81,7 +80,6 @@ class UpdateRoomTypeRequest extends FormRequest
                 'Capacity is required.',
 
             'capacity.integer' =>
-
                 'Capacity must be an integer.',
 
             'capacity.min' =>

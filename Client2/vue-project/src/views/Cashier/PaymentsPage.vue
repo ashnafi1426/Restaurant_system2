@@ -3,6 +3,8 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
 import { useCashierStore } from '@/stores/cashierStore'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
 import {
   Search,
   Filter,
@@ -14,12 +16,15 @@ import {
   Calendar,
   X,
   CreditCard,
-  Loader2
+  Loader2,
+  Building2,
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
 const cashierStore = useCashierStore()
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
 // Filter state
 const filters = ref({
@@ -52,8 +57,13 @@ watch(() => route.query.filter, (newFilter) => {
   }
 })
 
+watch(() => hotelStore.hotelId, () => {
+  filters.value.page = 1
+  loadPayments()
+})
+
 const loadPayments = async () => {
-  await cashierStore.fetchPayments(filters.value)
+  await cashierStore.fetchPayments(filters.value as any)
 }
 
 // Search handler
@@ -142,9 +152,11 @@ const sortBy = (column: string) => {
 }
 
 // Compact Format helpers
+const currency = computed(() => hotelStore.currentHotel?.currency || 'ETB')
+
 const formatCurrency = (amount: number | string) => {
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
-  return `${(numAmount || 0).toFixed(2)} ETB`
+  return `${(numAmount || 0).toFixed(2)} ${currency.value}`
 }
 
 const formatDateShort = (date: string) => {
@@ -202,8 +214,14 @@ const viewPayment = (id: string) => {
       <!-- Header Banner -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Payments & Transactions</h1>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">View and manage all payment transaction logs.</p>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">{{ languageStore.t('payments_billing', 'Payments & Transactions') }}</h1>
+            <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+              <Building2 class="w-3 h-3" />
+              {{ hotelStore.hotelName }}
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('transactions_desc', 'View and manage all payment transaction logs.') }}</p>
         </div>
 
         <button
@@ -212,7 +230,7 @@ const viewPayment = (id: string) => {
           class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700 disabled:opacity-50"
         >
           <RefreshCw :class="['w-3.5 h-3.5', cashierStore.isLoading && 'animate-spin']" />
-          <span>Refresh</span>
+          <span>{{ languageStore.t('refresh', 'Refresh') }}</span>
         </button>
       </div>
 
@@ -227,7 +245,7 @@ const viewPayment = (id: string) => {
               : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
-          All
+          {{ languageStore.t('All', 'All') }}
         </button>
         <button
           @click="setQuickFilter('today')"
@@ -238,7 +256,7 @@ const viewPayment = (id: string) => {
               : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
-          Today
+          {{ languageStore.t('due_today', 'Today') }}
         </button>
         <button
           @click="setQuickFilter('week')"
@@ -249,7 +267,7 @@ const viewPayment = (id: string) => {
               : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
-          Week
+          {{ languageStore.t('Week', 'Week') }}
         </button>
         <button
           @click="setQuickFilter('month')"
@@ -260,7 +278,7 @@ const viewPayment = (id: string) => {
               : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
-          Month
+          {{ languageStore.t('Month', 'Month') }}
         </button>
         <button
           @click="setQuickFilter('paid')"
@@ -271,7 +289,7 @@ const viewPayment = (id: string) => {
               : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
-          Paid
+          {{ languageStore.t('paid', 'Paid') }}
         </button>
         <button
           @click="setQuickFilter('pending')"
@@ -282,7 +300,7 @@ const viewPayment = (id: string) => {
               : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
-          Pending
+          {{ languageStore.t('pending', 'Pending') }}
         </button>
         <button
           @click="setQuickFilter('failed')"
@@ -293,7 +311,7 @@ const viewPayment = (id: string) => {
               : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
-          Failed
+          {{ languageStore.t('cancelled', 'Failed') }}
         </button>
         <button
           @click="setQuickFilter('refunded')"
@@ -304,7 +322,7 @@ const viewPayment = (id: string) => {
               : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           ]"
         >
-          Refunded
+          {{ languageStore.t('refund', 'Refunded') }}
         </button>
       </div>
 
@@ -317,7 +335,7 @@ const viewPayment = (id: string) => {
               v-model="filters.search"
               @keyup.enter="handleSearch"
               type="text"
-              placeholder="Search ref, email, or name..."
+              :placeholder="languageStore.t('search_transactions_ph', 'Search ref, email, or name...')"
               class="w-full pl-10 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-amber-500 transition"
             />
           </div>
@@ -327,15 +345,15 @@ const viewPayment = (id: string) => {
               @click="handleSearch"
               class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold shadow-xs transition cursor-pointer"
             >
-              Search
+              {{ languageStore.t('Search', 'Search') }}
             </button>
 
             <button
               @click="showFilters = !showFilters"
-              class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer border border-slate-200 dark:border-slate-700 flex items-center gap-1"
+              class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer border border-slate-200 dark:border-slate-700 flex items-center gap-1"
             >
               <Filter class="w-3.5 h-3.5" />
-              <span>Filters</span>
+              <span>{{ languageStore.t('Filters', 'Filters') }}</span>
             </button>
           </div>
         </div>
@@ -343,41 +361,43 @@ const viewPayment = (id: string) => {
         <!-- Advanced Filter Dropdowns -->
         <div v-if="showFilters" class="pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
-            <label class="block text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Status</label>
+            <label class="block text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('Status', 'Status') }}</label>
             <select
               v-model="filters.status"
               class="w-full px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none"
             >
-              <option value="">All Statuses</option>
-              <option value="paid">Paid</option>
-              <option value="verified">Verified</option>
-              <option value="pending">Pending</option>
-              <option value="initialized">Initialized</option>
-              <option value="failed">Failed</option>
-              <option value="refunded">Refunded</option>
+              <option value="">{{ languageStore.t('All Statuses', 'All Statuses') }}</option>
+              <option value="paid">{{ languageStore.t('paid', 'Paid') }}</option>
+              <option value="verified">{{ languageStore.t('Confirmed', 'Verified') }}</option>
+              <option value="pending">{{ languageStore.t('pending', 'Pending') }}</option>
+              <option value="initialized">{{ languageStore.t('pending', 'Initialized') }}</option>
+              <option value="failed">{{ languageStore.t('cancelled', 'Failed') }}</option>
+              <option value="refunded">{{ languageStore.t('refund', 'Refunded') }}</option>
             </select>
           </div>
 
           <div>
-            <label class="block text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Type</label>
+            <label class="block text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('Type', 'Type') }}</label>
             <select
               v-model="filters.type"
               class="w-full px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none"
             >
-              <option value="">All Types</option>
-              <option value="reservation">Reservation</option>
-              <option value="order">Restaurant Order</option>
+              <option value="">{{ languageStore.t('All', 'All Types') }}</option>
+              <option value="reservation">{{ languageStore.t('Reservations', 'Reservation') }}</option>
+              <option value="order">{{ languageStore.t('Food Orders', 'Restaurant Order') }}</option>
             </select>
           </div>
 
           <div>
-            <label class="block text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Provider</label>
+            <label class="block text-[9px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('payment_method', 'Provider') }}</label>
             <select
               v-model="filters.provider"
               class="w-full px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none"
             >
-              <option value="">All Providers</option>
+              <option value="">{{ languageStore.t('All', 'All Providers') }}</option>
               <option value="chapa">Chapa</option>
+              <option value="telebirr">{{ languageStore.t('telebirr', 'Telebirr') }}</option>
+              <option value="cbe_birr">{{ languageStore.t('cbe_birr', 'CBE Birr') }}</option>
             </select>
           </div>
 
@@ -386,13 +406,13 @@ const viewPayment = (id: string) => {
               @click="applyFilters"
               class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer"
             >
-              Apply
+              {{ languageStore.t('Confirm', 'Apply') }}
             </button>
             <button
               @click="clearFilters"
               class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition cursor-pointer border border-slate-200 dark:border-slate-700"
             >
-              Reset
+              {{ languageStore.t('Reset', 'Reset') }}
             </button>
           </div>
         </div>
@@ -403,10 +423,10 @@ const viewPayment = (id: string) => {
         <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
           <div class="flex items-center gap-2">
             <CreditCard class="w-4 h-4 text-blue-500" />
-            <h2 class="text-sm font-extrabold text-slate-900 dark:text-white">Transaction Logs</h2>
+            <h2 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('Payment History', 'Transaction Logs') }}</h2>
           </div>
           <span v-if="cashierStore.pagination" class="px-2.5 py-0.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-black rounded-full border border-slate-300/60 dark:border-slate-700">
-            {{ cashierStore.pagination.total || 0 }} Records
+            {{ cashierStore.pagination.total || 0 }} {{ languageStore.t('records', 'Records') }}
           </span>
         </div>
 
@@ -414,14 +434,14 @@ const viewPayment = (id: string) => {
           <table class="w-full text-left border-collapse table-fixed min-w-[700px]">
             <thead>
               <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                <th @click="sortBy('tx_ref')" class="w-[18%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">Ref</th>
-                <th @click="sortBy('customer_name')" class="w-[22%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">Customer</th>
-                <th @click="sortBy('amount')" class="w-[13%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">Amount</th>
-                <th class="w-[10%] px-2.5 py-2.5 whitespace-nowrap">Type</th>
-                <th class="w-[9%] px-2.5 py-2.5 whitespace-nowrap">Method</th>
-                <th @click="sortBy('status')" class="w-[12%] px-2.5 py-2.5 text-center whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">Status</th>
-                <th @click="sortBy('created_at')" class="w-[11%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">Date</th>
-                <th class="w-[5%] px-2 py-2 text-right whitespace-nowrap pr-3">Action</th>
+                <th @click="sortBy('tx_ref')" class="w-[18%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Reservation #', 'Ref') }}</th>
+                <th @click="sortBy('customer_name')" class="w-[22%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Guest', 'Customer') }}</th>
+                <th @click="sortBy('amount')" class="w-[13%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Amount', 'Amount') }}</th>
+                <th class="w-[10%] px-2.5 py-2.5 whitespace-nowrap">{{ languageStore.t('Room Type', 'Type') }}</th>
+                <th class="w-[9%] px-2.5 py-2.5 whitespace-nowrap">{{ languageStore.t('payment_method', 'Method') }}</th>
+                <th @click="sortBy('status')" class="w-[12%] px-2.5 py-2.5 text-center whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Status', 'Status') }}</th>
+                <th @click="sortBy('created_at')" class="w-[11%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Check-in Date', 'Date') }}</th>
+                <th class="w-[5%] px-2 py-2 text-right whitespace-nowrap pr-3">{{ languageStore.t('Actions', 'Action') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-[11px]">
@@ -433,7 +453,7 @@ const viewPayment = (id: string) => {
 
               <tr v-else-if="cashierStore.payments.length === 0">
                 <td colspan="8" class="p-10 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  No payment records found matching criteria.
+                  {{ languageStore.t('no_records_found', 'No payment records found matching criteria.') }}
                 </td>
               </tr>
 
@@ -497,7 +517,7 @@ const viewPayment = (id: string) => {
                   <button
                     @click.stop="viewPayment(payment.id)"
                     class="p-1.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition cursor-pointer border border-blue-500/20"
-                    title="View Transaction"
+                    :title="languageStore.t('View Details', 'View Transaction')"
                   >
                     <Eye class="w-3.5 h-3.5" />
                   </button>
@@ -515,7 +535,7 @@ const viewPayment = (id: string) => {
           <!-- Left Side: Per Page Selector & Showing Count -->
           <div class="flex flex-wrap items-center gap-3 text-slate-600 dark:text-slate-400">
             <div class="flex items-center gap-1.5">
-              <span class="font-bold text-slate-700 dark:text-slate-300 text-xs">Items per page:</span>
+              <span class="font-bold text-slate-700 dark:text-slate-300 text-xs">{{ languageStore.t('Per page:', 'Items per page:') }}</span>
               <select
                 :value="filters.per_page"
                 @change="changePerPage"
@@ -529,9 +549,9 @@ const viewPayment = (id: string) => {
             </div>
 
             <div class="text-[11px] font-medium">
-              Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ cashierStore.pagination.from || 0 }}</span> to
-              <span class="font-extrabold text-slate-900 dark:text-white">{{ cashierStore.pagination.to || 0 }}</span> of
-              <span class="font-extrabold text-slate-900 dark:text-white">{{ cashierStore.pagination.total || 0 }}</span> payments
+              {{ languageStore.t('Showing', 'Showing') }} <span class="font-extrabold text-slate-900 dark:text-white">{{ cashierStore.pagination.from || 0 }}</span> {{ languageStore.t('to', 'to') }}
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ cashierStore.pagination.to || 0 }}</span> {{ languageStore.t('of', 'of') }}
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ cashierStore.pagination.total || 0 }}</span> {{ languageStore.t('Payments', 'payments') }}
             </div>
           </div>
 
@@ -541,10 +561,10 @@ const viewPayment = (id: string) => {
               @click="previousPage"
               :disabled="cashierStore.pagination.current_page <= 1"
               class="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold text-xs"
-              title="Previous Page"
+              :title="languageStore.t('Previous', 'Previous Page')"
             >
               <ChevronLeft class="w-3.5 h-3.5" />
-              <span class="hidden sm:inline">Prev</span>
+              <span class="hidden sm:inline">{{ languageStore.t('Previous', 'Prev') }}</span>
             </button>
 
             <div class="flex items-center gap-1">
@@ -567,9 +587,9 @@ const viewPayment = (id: string) => {
               @click="nextPage"
               :disabled="cashierStore.pagination.current_page >= cashierStore.pagination.last_page"
               class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold text-xs"
-              title="Next Page"
+              :title="languageStore.t('Next', 'Next Page')"
             >
-              <span class="hidden sm:inline">Next</span>
+              <span class="hidden sm:inline">{{ languageStore.t('Next', 'Next') }}</span>
               <ChevronRight class="w-3.5 h-3.5" />
             </button>
           </div>

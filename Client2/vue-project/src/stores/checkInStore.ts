@@ -54,20 +54,10 @@ export const useCheckInStore = defineStore('checkIn', {
       this.error = null
 
       try {
-        console.log(' [STORE] fetchCheckIns called with params:', params)
         const response = await checkInService.getAll(params)
 
-        console.log(' [STORE] API Response received:', response)
-        console.log(' [STORE] Response.data structure:', response.data ? Object.keys(response.data) : 'null/undefined')
-
-        // Handle paginated response
         if (response.data && typeof response.data === 'object') {
           if (response.data.data) {
-            // Laravel paginated response
-            console.log(' [STORE] Detected Laravel paginated response')
-            console.log(' [STORE] Data count:', response.data.data.length)
-            console.log('📄 [STORE] First record:', response.data.data[0])
-
             this.checkIns = response.data.data
             this.pagination = {
               current_page: response.data.current_page || 1,
@@ -75,39 +65,23 @@ export const useCheckInStore = defineStore('checkIn', {
               per_page: response.data.per_page || 10,
               last_page: response.data.last_page || 1,
             }
-            console.log(' [STORE] Pagination set:', this.pagination)
           } else if (Array.isArray(response.data)) {
-            // Simple array response
-            console.log(' [STORE] Detected simple array response')
             this.checkIns = response.data
             this.pagination.total = response.data.length
           } else {
-            // Single object or other format
-            console.log(' [STORE] Detected single object response')
             this.checkIns = [response.data]
             this.pagination.total = 1
           }
         } else {
-          console.warn(' [STORE] Unexpected response format:', response.data)
           this.checkIns = []
           this.pagination.total = 0
         }
-
-        console.log(' [STORE] Store state after fetch:')
-        console.log('  - checkIns.length:', this.checkIns.length)
-        console.log('  - pagination:', this.pagination)
-        console.log('  - loading:', this.loading)
       } catch (error: any) {
-        console.error(' [STORE] Error fetching check-ins:', error)
-        console.error(' [STORE] Error message:', error.message)
-        console.error(' [STORE] Error response:', error.response?.data)
-        console.error(' [STORE] Error status:', error.response?.status)
-
+        console.error('[checkInStore] Failed to fetch check-ins:', error)
         this.error = error.message || 'Failed to fetch check-ins'
         this.checkIns = []
       } finally {
         this.loading = false
-        console.log(' [STORE] Loading state set to false')
       }
     },
 
@@ -116,7 +90,7 @@ export const useCheckInStore = defineStore('checkIn', {
         const response = await checkInService.getStatistics()
         this.statistics = response.data
       } catch (error: any) {
-        console.error(' [CHECK-IN] Error fetching statistics:', error)
+        console.error('[checkInStore] Failed to fetch check-in statistics:', error)
       }
     },
 
@@ -125,7 +99,7 @@ export const useCheckInStore = defineStore('checkIn', {
         const response = await checkInService.getById(id)
         this.selectedCheckIn = response.data.data || response.data
       } catch (error: any) {
-        console.error(' [CHECK-IN] Error viewing check-in:', error)
+        console.error('[checkInStore] Failed to view check-in:', error)
       }
     },
 
@@ -135,7 +109,7 @@ export const useCheckInStore = defineStore('checkIn', {
         await this.fetchCheckIns()
         await this.fetchStatistics()
       } catch (error: any) {
-        console.error(' [CHECK-IN] Error checking in guest:', error)
+        console.error('[checkInStore] Failed to check in guest:', error)
         this.error = error.message || 'Failed to check in guest'
         throw error
       }
@@ -147,7 +121,7 @@ export const useCheckInStore = defineStore('checkIn', {
         await this.fetchCheckIns()
         await this.fetchStatistics()
       } catch (error: any) {
-        console.error(' [CHECK-IN] Error checking out guest:', error)
+        console.error('[checkInStore] Failed to check out guest:', error)
         this.error = error.message || 'Failed to check out guest'
         throw error
       }
@@ -159,7 +133,7 @@ export const useCheckInStore = defineStore('checkIn', {
         await this.fetchCheckIns()
         await this.fetchStatistics()
       } catch (error: any) {
-        console.error(' [CHECK-IN] Error deleting check-in:', error)
+        console.error('[checkInStore] Failed to delete check-in:', error)
         this.error = error.message || 'Failed to delete check-in'
         throw error
       }

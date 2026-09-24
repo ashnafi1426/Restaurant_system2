@@ -173,7 +173,7 @@ const formatCurrency = (value: number) => {
 
       <div class="rounded-2xl bg-amber-50 border border-amber-200 p-5">
         <div class="flex items-start gap-4">
-          <div class="text-2xl">ℹ️</div>
+          <div class="text-2xl"></div>
 
           <div>
             <h3 class="font-bold text-slate-900">Hotel Room Service</h3>

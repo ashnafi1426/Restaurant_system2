@@ -17,10 +17,8 @@ const emit = defineEmits<{
 <template>
   <Teleport to="body">
     <div v-if="show" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
-      <!-- Backdrop -->
       <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity" @click="emit('close')"></div>
 
-      <!-- Modal Window -->
       <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 my-auto animate-in fade-in zoom-in duration-150">
       <div class="flex items-start justify-between gap-3">
         <div class="p-3.5 rounded-2xl bg-rose-500/10 text-rose-500 border border-rose-500/20">

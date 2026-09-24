@@ -38,7 +38,7 @@ class DiagnoseDeliveryIssues extends Command
 
         // 2. Check delivery tasks
         $this->line('');
-        $this->line('📦 DELIVERY TASKS BY STATUS:');
+        $this->line(' DELIVERY TASKS BY STATUS:');
         $this->line('═══════════════════════════════════════');
         
         $tasksByStatus = DeliveryTask::select('status')
@@ -78,7 +78,7 @@ class DiagnoseDeliveryIssues extends Command
                 }
             }
         } else {
-            $this->warn('ℹ️ No on_delivery tasks found');
+            $this->warn(' No on_delivery tasks found');
         }
 
         // 4. Check waiter-specific tasks

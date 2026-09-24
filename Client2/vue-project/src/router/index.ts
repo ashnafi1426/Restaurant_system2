@@ -1,11 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AboutPage from '../views/guest/About.vue'
 import roomPage from '../views/guest/Room.vue'
-// import RestaurantPage from '../views/guest/Reservation.vue'
 import GuestHome from '../views/guest/Home.vue'
 import contactPage from '../views/guest/Contact.vue'
 import GalleryPage from '../views/guest/Gallary.vue'
-// import QROrderingPage from '../views/guest/QROrderingPage.vue'
 import LoginView from '../views/LoginView.vue'
 import ActivationPage from '../views/ActivationPage.vue'
 import AdminDashboard from '../views/Admin/AdminDashboard.vue'
@@ -54,12 +52,13 @@ import cashierRoutes from './cashierRouter'
 import reviewRoutes from './reviewRouter'
 import RoleManagementView from '@/views/Admin/rbac/RoleManagementView.vue'
 import PermissionManagementView from '@/views/Admin/rbac/PermissionManagementView.vue'
-import RolePermissionMatrixView from '@/views/Admin/RolePermissionManagement.vue'
+import RolePermissionMatrixView from '@/views/Admin/rbac/RolePermissionMatrixView.vue'
 import UserRoleAssignmentView from '@/views/Admin/rbac/UserRoleAssignmentView.vue'
 import TemporaryRoleAssignmentView from '@/views/Admin/rbac/TemporaryRoleAssignmentView.vue'
 import AuditLogView from '@/views/Admin/rbac/AuditLogView.vue'
 import UnauthorizedView from '@/views/UnauthorizedView.vue'
 import { useAuthStore } from '../stores/auth'
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -70,13 +69,9 @@ const router = createRouter({
       beforeEnter: (to, from, next) => {
         const token = localStorage.getItem('token')
         const user = JSON.parse(localStorage.getItem('user') || 'null')
-
-        // If user is authenticated, redirect dynamically to their role path
         if (token && user?.role) {
           return next(`/${user.role}`)
         }
-
-        // If not authenticated, show guest home page
         next()
       },
     },
@@ -98,16 +93,6 @@ const router = createRouter({
       component: () => import('../views/ResetPasswordPage.vue'),
       meta: { public: true }
     },
-    // {
-    //   path: '/reservation',
-    //   name: 'guest-reservation',
-    //   component: RestaurantPage,
-    // },
-    // {
-    //   path: '/my-reservation',
-    //   name: 'my-reservations',
-    //   component: RestaurantPage,
-    // },
     {
       path: '/rooms',
       name: 'guest-rooms',
@@ -123,7 +108,6 @@ const router = createRouter({
       name: 'About',
       component: AboutPage,
     },
-
     {
       path: '/contact',
       name: 'contact',
@@ -195,6 +179,16 @@ const router = createRouter({
       },
     },
     {
+      path: '/admin/taxes',
+      name: 'admin-taxes',
+      component: () => import('../views/Admin/taxes/TaxManagementView.vue'),
+      meta: {
+        requiresAuth: true,
+        role: 'admin',
+        title: 'Tax Management',
+      },
+    },
+    {
       path: '/receptionist',
       name: 'receptionist-dashboard',
       component: ReceptionDashboard,
@@ -223,11 +217,12 @@ const router = createRouter({
     },
     {
       path: '/chef',
+      alias: ['/kitchen', '/chef/dashboard', '/kitchen/dashboard'],
       name: 'chef-dashboard',
       component: kitchenDashboard,
       meta: {
         requiresAuth: true,
-        permission: 'dashboard.view',
+        title: 'Kitchen Dashboard',
       },
     },
     {
@@ -275,7 +270,6 @@ const router = createRouter({
         permission: 'kitchen.mark_ready',
       },
     },
-
     {
       path: '/users',
       component: UserList,
@@ -284,7 +278,6 @@ const router = createRouter({
         permission: 'users.view',
       },
     },
-
     {
       path: '/users/create',
       component: CreateUser,
@@ -293,7 +286,6 @@ const router = createRouter({
         permission: 'users.create',
       },
     },
-
     {
       path: '/users/:id/edit',
       component: EditUser,
@@ -343,7 +335,6 @@ const router = createRouter({
         permission: 'rooms.view',
       },
     },
-
     {
       path: '/room-types/create',
       component: CreateRoomType,
@@ -352,7 +343,6 @@ const router = createRouter({
         permission: 'rooms.create',
       },
     },
-
     {
       path: '/room-types/:id',
       component: ViewRoomType,
@@ -361,7 +351,6 @@ const router = createRouter({
         permission: 'rooms.view',
       },
     },
-
     {
       path: '/room-types/:id/edit',
       component: EditRoomType,
@@ -412,7 +401,6 @@ const router = createRouter({
         permission: 'reservations.view',
       },
     },
-
     {
       path: '/reservations/create',
       name: 'reservations.create',
@@ -423,7 +411,6 @@ const router = createRouter({
         permission: 'reservations.create',
       },
     },
-
     {
       path: '/reservations/:id/edit',
       name: 'reservations.edit',
@@ -464,7 +451,6 @@ const router = createRouter({
         permission: 'reports.view',
       },
     },
-
     {
       path: '/orders',
       name: 'orders',
@@ -532,11 +518,6 @@ const router = createRouter({
         requiresAuth: false,
       },
     },
-
-    // ============================================================================
-    // Payment Routes
-    // ============================================================================
-    // Payment checkout page - Initialize payment
     {
       path: '/payment/checkout',
       name: 'payment-checkout',
@@ -546,8 +527,6 @@ const router = createRouter({
         requiresAuth: false,
       },
     },
-
-    // Payment success page - After successful payment (Room Booking)
     {
       path: '/payment/success',
       name: 'payment-success',
@@ -557,8 +536,6 @@ const router = createRouter({
         requiresAuth: false,
       },
     },
-
-    // Order payment success page - After successful order payment
     {
       path: '/order/payment/success',
       name: 'order-payment-success',
@@ -568,8 +545,6 @@ const router = createRouter({
         requiresAuth: false,
       },
     },
-
-    // Payment failed page - If payment failed
     {
       path: '/payment/failed',
       name: 'payment-failed',
@@ -579,8 +554,6 @@ const router = createRouter({
         requiresAuth: false,
       },
     },
-
-    // Payment pending page - Payment is being processed
     {
       path: '/payment/pending',
       name: 'payment-pending',
@@ -590,10 +563,6 @@ const router = createRouter({
         requiresAuth: false,
       },
     },
-
-    // ============================================================================
-    // Dynamic RBAC Routes & Unauthorized View
-    // ============================================================================
     {
       path: '/unauthorized',
       name: 'unauthorized',
@@ -654,7 +623,6 @@ const router = createRouter({
       component: AuditLogView,
       meta: { requiresAuth: true, superAdminOnly: true, title: 'Audit Logs' },
     },
-
     ...managerRoutes,
     ...reviewRoutes,
     ...waiterRoutes,
@@ -670,65 +638,62 @@ router.beforeEach(async (to) => {
   const authStore = useAuthStore()
   const token = authStore.token || localStorage.getItem('token')
 
-  // Unauthenticated route protection
   if (to.meta.requiresAuth && !token) {
     return '/login'
   }
 
-  // Hydrate auth store user & permissions if token exists and state not initialized
   if (token && (!authStore.user || !authStore.isInitialized)) {
     try {
       await authStore.initializeAuth()
-    } catch (err) {
-      console.error('[RBAC GUARD] Session initialization error:', err)
+    } catch (e) {
+      console.error('[Router] Auth initialization guard error:', e)
     }
   }
 
-  // Allow public routes
   if (!to.meta.requiresAuth && !to.meta.permission && !to.meta.role && !to.meta.roles) {
     return true
   }
 
-  // 0. Super Admin exclusivity check (Platform / Multi-hotel routes strictly for Super Admin)
   if (to.meta.superAdminOnly && !authStore.isPlatformAdmin) {
-    console.warn(`[RBAC GUARD] Access denied to ${to.path}. Platform Super Admin privileges required.`)
     return '/admin'
   }
 
-  // SUPER ADMIN OVERRIDE: Platform Super Admin user has unlimited access to all system routes
   if (authStore.isPlatformAdmin) {
     return true
   }
 
-  // 1. Permission authorization check
-  if (to.meta.permission && typeof to.meta.permission === 'string') {
-    if (authStore.can(to.meta.permission)) {
-      return true
-    } else {
-      console.warn(`[RBAC GUARD] Access denied to ${to.path}. Required permission: ${to.meta.permission}`)
-      return '/unauthorized'
-    }
+  const targetPermission = typeof to.meta.permission === 'string' ? to.meta.permission : null
+  const targetRole = typeof to.meta.role === 'string' ? to.meta.role : null
+  const targetRoles = Array.isArray(to.meta.roles) ? (to.meta.roles as string[]) : null
+
+  const hasPermission = targetPermission ? authStore.can(targetPermission) : true
+
+  const hasRole = targetRole ? authStore.hasRole(targetRole) : true
+  const hasAnyRole = targetRoles ? targetRoles.some(r => authStore.hasRole(r)) : true
+
+  const isManagerSection = to.path.startsWith('/manager') && (authStore.hasRole('manager') || authStore.currentRole === 'manager' || authStore.user?.role === 'manager')
+  const isAdminSection = to.path.startsWith('/admin') && (authStore.hasRole('admin') || authStore.currentRole === 'admin' || authStore.user?.role === 'admin')
+  const isReceptionistSection = to.path.startsWith('/receptionist') && (authStore.hasRole('receptionist') || authStore.currentRole === 'receptionist' || authStore.user?.role === 'receptionist')
+  const isCashierSection = to.path.startsWith('/cashier') && (authStore.hasRole('cashier') || authStore.currentRole === 'cashier' || authStore.user?.role === 'cashier')
+  const isChefSection = to.path.startsWith('/chef') && (authStore.hasRole('chef') || authStore.currentRole === 'chef' || authStore.user?.role === 'chef')
+  const isWaiterSection = to.path.startsWith('/waiter') && (authStore.hasRole('waiter') || authStore.currentRole === 'waiter' || authStore.user?.role === 'waiter')
+
+  const isRoleSectionMatch = isManagerSection || isAdminSection || isReceptionistSection || isCashierSection || isChefSection || isWaiterSection
+
+  if (isRoleSectionMatch) {
+    return true
   }
 
-  // 2. Single role authorization check
-  if (to.meta.role && typeof to.meta.role === 'string') {
-    if (authStore.hasRole(to.meta.role)) {
-      return true
-    } else {
-      console.warn(`[RBAC GUARD] Access denied to ${to.path}. Required role: ${to.meta.role}`)
-      return '/unauthorized'
-    }
+  if (targetRole && !hasRole) {
+    return '/unauthorized'
   }
 
-  // 3. Multiple roles authorization check (to.meta.roles array)
-  if (to.meta.roles && Array.isArray(to.meta.roles)) {
-    const hasAnyRequiredRole = (to.meta.roles as string[]).some(r => authStore.hasRole(r))
-    if (hasAnyRequiredRole) {
-      return true
-    } else {
-      console.warn(`[RBAC GUARD] Access denied to ${to.path}. Required one of roles:`, to.meta.roles)
-      return '/unauthorized'
-    }
+  if (targetRoles && !hasAnyRole) {
+    return '/unauthorized'
+  }
+
+  if (targetPermission && !hasPermission) {
+    return '/unauthorized'
   }
 
   return true

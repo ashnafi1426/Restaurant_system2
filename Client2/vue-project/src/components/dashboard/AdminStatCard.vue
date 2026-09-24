@@ -36,7 +36,6 @@ const trendColor = (trend: number) => {
     :class="colorMap[color]?.border"
   >
     <div class="flex items-start justify-between gap-2 sm:gap-3">
-      <!-- Left Content -->
       <div class="flex-1 min-w-0">
         <p
           class="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 sm:mb-1.5"
@@ -49,7 +48,6 @@ const trendColor = (trend: number) => {
           {{ value }}
         </h3>
 
-        <!-- Subtitle or Trend -->
         <div v-if="subtitle" class="text-[10px] sm:text-xs text-gray-600 font-medium">
           {{ subtitle }}
         </div>
@@ -81,7 +79,6 @@ const trendColor = (trend: number) => {
         </div>
       </div>
 
-      <!-- Icon -->
       <div
         class="w-10 h-10 sm:w-11 sm:h-11 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
         :class="[colorMap[color]?.bg]"

@@ -9,21 +9,6 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-/**
- * ============================================================================
- * BookingCancellationMail
- * ============================================================================
- * Sends cancellation notification to guest with refund information
- * 
- * Features:
- * - Cancellation confirmation with booking reference
- * - Refund amount and timeline
- * - Cancellation reason
- * - Rebook incentive or discount code
- * - Contact support option
- * - Queued for async sending
- * ============================================================================
- */
 class BookingCancellationMail extends Mailable
 {
     use Queueable, SerializesModels;
@@ -35,9 +20,6 @@ class BookingCancellationMail extends Mailable
         public ?string $discountCode = null
     ) {}
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
@@ -45,9 +27,6 @@ class BookingCancellationMail extends Mailable
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         $hotel = $this->reservation->room?->hotel ?? null;
@@ -75,16 +54,11 @@ class BookingCancellationMail extends Mailable
                 'hotelEmail' => $hotel?->email ?? env('HOTEL_EMAIL', 'info@hotel.com'),
                 'hotelWebsite' => env('APP_URL', 'https://hotel.com'),
                 'discountCode' => $this->discountCode,
-                'discountPercentage' => 10, // 10% rebooking discount
+                'discountPercentage' => 10,
             ],
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
     public function attachments(): array
     {
         return [];

@@ -11,32 +11,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-/**
- * ============================================================================
- * BookingAnalyticsController
- * ============================================================================
- * Provides analytics and reporting for booking system
- * 
- * Features:
- * - Occupancy rate calculation
- * - Revenue tracking by hotel
- * - Booking trends and patterns
- * - Guest statistics
- * - Room performance metrics
- * - Booking status distribution
- * ============================================================================
- */
 class BookingAnalyticsController extends Controller
 {
-    /**
-     * ============================================================================
-     * Get Occupancy Rate
-     * ============================================================================
-     * Calculate occupancy rate for hotel over date range
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function getOccupancyRate(Request $request): JsonResponse
     {
         try {
@@ -50,7 +26,6 @@ class BookingAnalyticsController extends Controller
             $fromDate = new \DateTime($validated['from_date']);
             $toDate = new \DateTime($validated['to_date']);
 
-            // Total number of rooms in hotel
             $totalRooms = Room::where('hotel_id', $hotelId)
                 ->where('is_active', true)
                 ->count();
@@ -73,11 +48,9 @@ class BookingAnalyticsController extends Controller
                 ]);
             }
 
-            // Calculate total room-nights (each room for each night in period)
             $daysInPeriod = $toDate->diff($fromDate)->days + 1;
             $totalRoomNights = $totalRooms * $daysInPeriod;
 
-            // Get confirmed/checked-in reservations in period
             $occupiedNights = Reservation::where('hotel_id', $hotelId)
                 ->whereIn('status', ['confirmed', 'checked_in', 'checked_out'])
                 ->where(function ($query) use ($validated) {
@@ -86,7 +59,6 @@ class BookingAnalyticsController extends Controller
                 })
                 ->get()
                 ->sum(function ($reservation) use ($validated) {
-                    // Calculate overlap between reservation and period
                     $resCheckIn = max(
                         new \DateTime($validated['from_date']),
                         $reservation->check_in_date
@@ -101,7 +73,6 @@ class BookingAnalyticsController extends Controller
 
             $occupancyRate = $totalRoomNights > 0 ? ($occupiedNights / $totalRoomNights) * 100 : 0;
 
-            // Calculate average occupancy per day
             $dailyOccupancy = [];
             for ($i = 0; $i < $daysInPeriod; $i++) {
                 $date = (clone $fromDate)->add(new \DateInterval('P' . $i . 'D'));
@@ -166,15 +137,6 @@ class BookingAnalyticsController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Get Revenue Analytics
-     * ============================================================================
-     * Calculate and retrieve revenue metrics by hotel and date range
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function getRevenueAnalytics(Request $request): JsonResponse
     {
         try {
@@ -186,7 +148,6 @@ class BookingAnalyticsController extends Controller
 
             $hotelId = $validated['hotel_id'];
 
-            // Get completed/verified payments
             $payments = Payment::where('hotel_id', $hotelId)
                 ->whereIn('status', ['verified', 'completed'])
                 ->whereBetween('created_at', [
@@ -199,14 +160,12 @@ class BookingAnalyticsController extends Controller
             $paymentCount = $payments->count();
             $averagePayment = $paymentCount > 0 ? $totalRevenue / $paymentCount : 0;
 
-            // Revenue by payment method
             $revenueByMethod = $payments->groupBy('payment_method')->map(fn ($group) => [
                 'method' => $group->first()?->payment_method ?? 'Unknown',
                 'count' => $group->count(),
                 'amount' => (float) $group->sum('amount'),
             ])->values();
 
-            // Daily revenue breakdown
             $dailyRevenue = [];
             $fromDate = new \DateTime($validated['from_date']);
             $toDate = new \DateTime($validated['to_date']);
@@ -269,15 +228,6 @@ class BookingAnalyticsController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Get Booking Trends
-     * ============================================================================
-     * Analyze booking trends and patterns
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function getBookingTrends(Request $request): JsonResponse
     {
         try {
@@ -289,7 +239,6 @@ class BookingAnalyticsController extends Controller
 
             $hotelId = $validated['hotel_id'];
 
-            // Get booking status distribution
             $statusDistribution = Reservation::where('hotel_id', $hotelId)
                 ->whereBetween('created_at', [
                     $validated['from_date'] . ' 00:00:00',
@@ -299,7 +248,6 @@ class BookingAnalyticsController extends Controller
                 ->selectRaw('status, COUNT(*) as count')
                 ->pluck('count', 'status');
 
-            // Booking timeline
             $bookingTimeline = [];
             $fromDate = new \DateTime($validated['from_date']);
             $toDate = new \DateTime($validated['to_date']);
@@ -319,7 +267,6 @@ class BookingAnalyticsController extends Controller
                 ];
             }
 
-            // Average booking duration
             $reservations = Reservation::where('hotel_id', $hotelId)
                 ->whereBetween('created_at', [
                     $validated['from_date'] . ' 00:00:00',
@@ -370,15 +317,6 @@ class BookingAnalyticsController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Get Guest Statistics
-     * ============================================================================
-     * Retrieve guest-related statistics and metrics
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function getGuestStatistics(Request $request): JsonResponse
     {
         try {
@@ -390,7 +328,6 @@ class BookingAnalyticsController extends Controller
 
             $hotelId = $validated['hotel_id'];
 
-            // Total unique guests
             $totalGuests = Reservation::where('hotel_id', $hotelId)
                 ->whereBetween('created_at', [
                     $validated['from_date'] . ' 00:00:00',
@@ -399,7 +336,6 @@ class BookingAnalyticsController extends Controller
                 ->distinct('guest_id')
                 ->count();
 
-            // Repeat guests
             $guestBookingCounts = Reservation::where('hotel_id', $hotelId)
                 ->whereIn('status', ['checked_in', 'checked_out', 'confirmed'])
                 ->groupBy('guest_id')
@@ -409,7 +345,6 @@ class BookingAnalyticsController extends Controller
             $repeatGuests = $guestBookingCounts->filter(fn ($g) => $g->booking_count > 1)->count();
             $newGuests = $guestBookingCounts->filter(fn ($g) => $g->booking_count === 1)->count();
 
-            // Average guests per booking
             $totalGuests_ = Reservation::where('hotel_id', $hotelId)
                 ->whereBetween('created_at', [
                     $validated['from_date'] . ' 00:00:00',
@@ -461,15 +396,6 @@ class BookingAnalyticsController extends Controller
         }
     }
 
-    /**
-     * ============================================================================
-     * Get Dashboard Summary
-     * ============================================================================
-     * Get comprehensive dashboard summary for quick overview
-     * 
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function getDashboardSummary(Request $request): JsonResponse
     {
         try {
@@ -482,29 +408,24 @@ class BookingAnalyticsController extends Controller
             $startOfMonth = now()->startOfMonth()->format('Y-m-d');
             $endOfMonth = now()->endOfMonth()->format('Y-m-d');
 
-            // Today's bookings
             $todayBookings = Reservation::where('hotel_id', $hotelId)
                 ->whereDate('created_at', $today)
                 ->count();
 
-            // Today's revenue
             $todayRevenue = Payment::where('hotel_id', $hotelId)
                 ->whereIn('status', ['verified', 'completed'])
                 ->whereDate('created_at', $today)
                 ->sum('amount');
 
-            // Month's revenue
             $monthRevenue = Payment::where('hotel_id', $hotelId)
                 ->whereIn('status', ['verified', 'completed'])
                 ->whereBetween('created_at', [$startOfMonth . ' 00:00:00', $endOfMonth . ' 23:59:59'])
                 ->sum('amount');
 
-            // Active reservations
             $activeReservations = Reservation::where('hotel_id', $hotelId)
                 ->whereIn('status', ['confirmed', 'checked_in'])
                 ->count();
 
-            // Occupancy today
             $totalRooms = Room::where('hotel_id', $hotelId)
                 ->where('is_active', true)
                 ->count();

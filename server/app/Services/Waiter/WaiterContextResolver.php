@@ -21,7 +21,6 @@ class WaiterContextResolver
             'relation_loaded' => $user->relationLoaded('waiter') ? 'yes' : 'no',
         ]);
         
-        // Try loaded relationship first
         if ($user->relationLoaded('waiter') && $user->waiter) {
             $waiterId = (int) $user->waiter->id;
             \Log::info(' [RESOLVER] Waiter ID resolved from loaded relation', [
@@ -31,7 +30,6 @@ class WaiterContextResolver
             return $waiterId;
         }
 
-        // Try loading missing relationship
         $user->loadMissing('waiter');
 
         if ($user->waiter) {
@@ -46,7 +44,6 @@ class WaiterContextResolver
             'user_id' => $user->id,
         ]);
 
-        // Fallback: try finding by email or phone
         $fallbackWaiter = Waiter::whereHas('user', function ($query) use ($user) {
             $query->where('email', $user->email)
                 ->orWhere('phone', $user->phone);
@@ -61,15 +58,18 @@ class WaiterContextResolver
             return $waiterId;
         }
 
-        // 4. Try finding directly by user_id
         $directWaiter = Waiter::where('user_id', $user->id)->first();
         if ($directWaiter?->id) {
             return (int) $directWaiter->id;
         }
 
-        // 5. Auto-heal / Link: Create linked waiter profile record if user has order/delivery perms or is staff
         try {
+            $hotelId = app(\App\Services\TenantContext::class)->getHotelId()
+                ?? $user->hotel_id
+                ?? \App\Models\HotelUser::where('user_id', $user->id)->value('hotel_id');
+
             $createdWaiter = Waiter::create([
+                'hotel_id' => $hotelId,
                 'user_id' => (string) $user->id,
                 'section' => 'All Sections',
                 'shift' => 'morning',
@@ -80,6 +80,7 @@ class WaiterContextResolver
             \Log::info(' [RESOLVER] Auto-linked Waiter profile for user', [
                 'user_id' => $user->id,
                 'waiter_id' => $createdWaiter->id,
+                'hotel_id' => $hotelId,
                 'primary_role' => $user->role,
             ]);
 

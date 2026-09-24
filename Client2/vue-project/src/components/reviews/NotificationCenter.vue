@@ -1,24 +1,20 @@
 <template>
   <div class="notification-center">
-    <!-- Header with Badge -->
     <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-bold">Review Notifications</h3>
+      <h3 class="text-lg font-bold">{{ languageStore.t('review_notifications', 'Review Notifications') }}</h3>
       <span v-if="unreadCount > 0" class="bg-red-600 text-white rounded-full px-3 py-1 text-sm font-semibold">
-        {{ unreadCount }} new
+        {{ unreadCount }} {{ languageStore.t('new', 'new') }}
       </span>
     </div>
 
-    <!-- Loading State -->
     <div v-if="loading" class="space-y-3">
       <div v-for="i in 3" :key="i" class="animate-pulse h-20 bg-gray-200 rounded"></div>
     </div>
 
-    <!-- No Notifications -->
     <div v-else-if="notifications.length === 0" class="text-center py-8 bg-gray-50 rounded-lg">
-      <p class="text-gray-600">No notifications</p>
+      <p class="text-gray-600">{{ languageStore.t('no_notifications', 'No notifications') }}</p>
     </div>
 
-    <!-- Notifications List -->
     <div v-else class="space-y-3">
       <div 
         v-for="notification in notifications" 
@@ -30,25 +26,22 @@
         ]"
       >
         <div class="flex items-start gap-3">
-          <!-- Icon -->
           <span class="text-2xl flex-shrink-0">
             <span v-if="notification.notification_type === 'new_review'">📝</span>
             <span v-else-if="notification.notification_type === 'review_approved'"></span>
             <span v-else></span>
           </span>
 
-          <!-- Content -->
           <div class="flex-1">
             <p class="font-semibold text-gray-900">
-              <span v-if="notification.notification_type === 'new_review'">New Review Submitted</span>
-              <span v-else-if="notification.notification_type === 'review_approved'">Review Approved</span>
-              <span v-else>Review Rejected</span>
+              <span v-if="notification.notification_type === 'new_review'">{{ languageStore.t('new_review_submitted', 'New Review Submitted') }}</span>
+              <span v-else-if="notification.notification_type === 'review_approved'">{{ languageStore.t('review_approved', 'Review Approved') }}</span>
+              <span v-else>{{ languageStore.t('review_rejected', 'Review Rejected') }}</span>
             </p>
             <p class="text-sm text-gray-600 mt-1">{{ notification.message }}</p>
             <p class="text-xs text-gray-500 mt-2">{{ formatDate(notification.created_at) }}</p>
           </div>
 
-          <!-- Unread Indicator -->
           <div v-if="!notification.is_read" class="flex-shrink-0">
             <div class="w-3 h-3 bg-blue-600 rounded-full"></div>
           </div>
@@ -56,14 +49,13 @@
       </div>
     </div>
 
-    <!-- Pagination -->
     <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 mt-4">
       <button
         @click="currentPage = Math.max(1, currentPage - 1)"
         :disabled="currentPage === 1"
-        class="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50"
+        class="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 cursor-pointer"
       >
-        Prev
+        {{ languageStore.t('previous', 'Prev') }}
       </button>
       
       <span class="text-xs text-gray-600">
@@ -73,9 +65,9 @@
       <button
         @click="currentPage = Math.min(totalPages, currentPage + 1)"
         :disabled="currentPage === totalPages"
-        class="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50"
+        class="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 cursor-pointer"
       >
-        Next
+        {{ languageStore.t('next', 'Next') }}
       </button>
     </div>
   </div>
@@ -85,6 +77,9 @@
 import { ref, onMounted, watch } from 'vue'
 import reviewService from '@/services/reviewService'
 import { ReviewNotification } from '@/types/review'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
 
 const notifications = ref<ReviewNotification[]>([])
 const loading = ref(true)
@@ -113,11 +108,10 @@ const loadNotifications = async () => {
     notifications.value = (data.data as ReviewNotification[]) || []
     totalPages.value = data.last_page || 1
 
-    // Load unread count
     const count = await reviewService.getUnreadNotificationCount()
     unreadCount.value = count
   } catch (error) {
-    console.error('Failed to load notifications:', error)
+    console.error('[NotificationCenter] Failed to load notifications:', error)
   } finally {
     loading.value = false
   }
@@ -132,7 +126,7 @@ const markAsRead = async (notificationId: string) => {
       unreadCount.value = Math.max(0, unreadCount.value - 1)
     }
   } catch (error) {
-    console.error('Failed to mark as read:', error)
+    console.error('[NotificationCenter] Failed to mark notification as read:', error)
   }
 }
 

@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { onMounted, computed, ref } from 'vue'
+import { onMounted, computed, ref, watch } from 'vue'
 import { useKitchenStore } from '@/stores/kitchenStore'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
 import { storeToRefs } from 'pinia'
-import DashboardLayout from '@/layouts/DashboardLayout.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import {
   Search,
   Filter,
@@ -19,10 +21,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Play,
+  Building2,
 } from 'lucide-vue-next'
 
 const kitchenStore = useKitchenStore()
-const { pendingOrders, statistics, actionLoading, error } = storeToRefs(kitchenStore)
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
+const { pendingOrders, statistics, actionLoading, error, loading } = storeToRefs(kitchenStore)
 
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
@@ -34,6 +39,10 @@ const currentPage = ref(1)
 const itemsPerPage = ref(10)
 
 onMounted(async () => {
+  await kitchenStore.fetchDashboard()
+})
+
+watch(() => hotelStore.hotelId, async () => {
   await kitchenStore.fetchDashboard()
 })
 
@@ -141,7 +150,8 @@ const formatTime = (dateTime: string) => {
   try {
     const date = new Date(dateTime)
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-  } catch {
+  } catch (error) {
+    console.error('[PendingOrdersView] Error formatting time:', error)
     return '—'
   }
 }
@@ -160,14 +170,20 @@ const formatTime = (dateTime: string) => {
             <Clock class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Pending Orders</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">New incoming orders awaiting kitchen acceptance and preparation.</p>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{{ languageStore.t('pending_orders', 'Pending Orders') }}</h1>
+              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+                <Building2 class="w-3 h-3" />
+                {{ hotelStore.hotelName }}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('pending_orders_desc', 'New incoming orders awaiting kitchen acceptance and preparation.') }}</p>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
           <div class="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm">
-            Pending: {{ pendingOrders?.length || 0 }} Orders
+            {{ languageStore.t('pending', 'Pending') }}: {{ pendingOrders?.length || 0 }} {{ languageStore.t('orders', 'Orders') }}
           </div>
         </div>
       </div>
@@ -184,7 +200,7 @@ const formatTime = (dateTime: string) => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search pending orders by #, room, guest, or food..."
+              :placeholder="languageStore.t('search_pending_orders_placeholder', 'Search pending orders by #, room, guest, or food...')"
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition outline-none"
             />
           </div>
@@ -201,7 +217,7 @@ const formatTime = (dateTime: string) => {
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+            <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
           </button>
         </div>
 
@@ -211,7 +227,7 @@ const formatTime = (dateTime: string) => {
           <button
             type="button"
             @click="refresh"
-            title="Refresh"
+            :title="languageStore.t('refresh', 'Refresh')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': actionLoading }" />
@@ -221,7 +237,7 @@ const formatTime = (dateTime: string) => {
           <button
             type="button"
             @click="toggleFullscreen"
-            title="Toggle Fullscreen"
+            :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
@@ -246,15 +262,15 @@ const formatTime = (dateTime: string) => {
             <!-- Order Type Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                Order Type
+                {{ languageStore.t('order_type', 'Order Type') }}
               </label>
               <select
                 v-model="selectedType"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="all">All Pending Orders</option>
-                <option value="room">Room Service</option>
-                <option value="walk_in">Takeout / Walk-in</option>
+                <option value="all">{{ languageStore.t('all_pending_orders', 'All Pending Orders') }}</option>
+                <option value="room">{{ languageStore.t('room_service', 'Room Service') }}</option>
+                <option value="walk_in">{{ languageStore.t('takeout_walk_in', 'Takeout / Walk-in') }}</option>
               </select>
             </div>
 
@@ -266,7 +282,7 @@ const formatTime = (dateTime: string) => {
                 class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
               >
                 <RotateCcw class="w-3.5 h-3.5" />
-                <span>Reset Filters</span>
+                <span>{{ languageStore.t('reset_filters', 'Reset Filters') }}</span>
               </button>
             </div>
           </div>
@@ -280,121 +296,143 @@ const formatTime = (dateTime: string) => {
           <table class="w-full text-left border-collapse">
             <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">Order Ref</th>
-                <th class="py-3 px-4 whitespace-nowrap">Room / Service</th>
-                <th class="py-3 px-4 whitespace-nowrap">Guest</th>
-                <th class="py-3 px-4 whitespace-nowrap">Dishes</th>
-                <th class="py-3 px-4 whitespace-nowrap">Order Time</th>
-                <th class="py-3 px-4 text-right whitespace-nowrap">Total</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Action</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('order_ref', 'Order Ref') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('room_service', 'Room / Service') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('guest', 'Guest') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('dishes', 'Dishes') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('order_time', 'Order Time') }}</th>
+                <th class="py-3 px-4 text-right whitespace-nowrap">{{ languageStore.t('total', 'Total') }}</th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('action', 'Action') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <tr
-                v-for="order in paginatedOrders"
-                :key="order.id"
-                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
-              >
-                <!-- Order Ref -->
-                <td class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
-                  {{ order.order_number || `ORD-${String(order.id).padStart(6, '0')}` }}
-                </td>
-
-                <!-- Room / Service -->
-                <td class="py-3 px-4 whitespace-nowrap">
-                  <span
-                    v-if="order.room?.room_number"
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
-                  >
-                    <BedDouble class="w-3 h-3 text-slate-400" />
-                    Room {{ order.room.room_number }}
-                  </span>
-                  <span
-                    v-else
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
-                  >
-                    <ShoppingBag class="w-3 h-3" />
-                    Takeout
-                  </span>
-                </td>
-
-                <!-- Guest -->
-                <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white">
-                  {{ order.guest?.full_name || 'Walk-in Guest' }}
-                </td>
-
-                <!-- Items -->
-                <td class="py-3 px-4">
-                  <div class="space-y-0.5 max-w-xs">
-                    <div
-                      v-for="(item, idx) in (order.items || []).slice(0, 2)"
-                      :key="idx"
-                      class="text-xs text-slate-700 dark:text-slate-300 font-medium"
-                    >
-                      <span class="font-bold text-amber-600 dark:text-amber-400">{{ item.quantity }}x</span> {{ item.name }}
-                    </div>
-                    <div v-if="(order.items || []).length > 2" class="text-[10px] text-slate-400 font-bold">
-                      +{{ (order.items || []).length - 2 }} more
-                    </div>
+              <!-- Loading Spinner State -->
+              <tr v-if="loading">
+                <td colspan="7" class="px-6 py-20 text-center">
+                  <div class="flex flex-col items-center justify-center gap-3">
+                    <Loader2 class="w-8 h-8 text-amber-600 dark:text-amber-400 animate-spin" />
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_pending_orders', 'Loading pending orders...') }}</span>
                   </div>
                 </td>
-
-                <!-- Time -->
-                <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-medium">
-                  {{ formatTime(order.order_time) }}
-                </td>
-
-                <!-- Total -->
-                <td class="py-3 px-4 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white font-mono text-xs sm:text-sm">
-                  ${{ parseFloat(String(order.total || 0)).toFixed(2) }}
-                </td>
-
-                <!-- Action -->
-                <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
-                  <button
-                    @click="startPreparing(String(order.id))"
-                    :disabled="actionLoading"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50"
-                  >
-                    <Play class="w-3 h-3 fill-current" />
-                    <span>Prepare</span>
-                  </button>
-                </td>
               </tr>
 
-              <!-- Empty State -->
-              <tr v-if="paginatedOrders.length === 0">
-                <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  No pending orders at this moment.
-                </td>
-              </tr>
+              <!-- Data Rows -->
+              <template v-else>
+                <tr
+                  v-for="order in paginatedOrders"
+                  :key="order.id"
+                  class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+                >
+                  <!-- Order Ref -->
+                  <td class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
+                    {{ order.order_number || `ORD-${String(order.id).padStart(6, '0')}` }}
+                  </td>
+
+                  <!-- Room / Service -->
+                  <td class="py-3 px-4 whitespace-nowrap">
+                    <span
+                      v-if="order.room?.room_number"
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
+                    >
+                      <BedDouble class="w-3 h-3 text-slate-400" />
+                      {{ languageStore.t('room', 'Room') }} {{ order.room.room_number }}
+                    </span>
+                    <span
+                      v-else
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
+                    >
+                      <ShoppingBag class="w-3 h-3" />
+                      {{ languageStore.t('takeout', 'Takeout') }}
+                    </span>
+                  </td>
+
+                  <!-- Guest -->
+                  <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white">
+                    {{ order.guest?.full_name || languageStore.t('walk_in_guest', 'Walk-in Guest') }}
+                  </td>
+
+                  <!-- Dishes -->
+                  <td class="py-3 px-4">
+                    <div class="space-y-0.5 max-w-xs">
+                      <div
+                        v-for="(item, idx) in (order.items || []).slice(0, 2)"
+                        :key="idx"
+                        class="text-xs text-slate-700 dark:text-slate-300 font-medium"
+                      >
+                        <span class="font-bold text-amber-600 dark:text-amber-400">{{ item.quantity }}x</span> {{ item.name }}
+                      </div>
+                      <div v-if="(order.items || []).length > 2" class="text-[10px] text-slate-400 font-bold">
+                        +{{ (order.items || []).length - 2 }} {{ languageStore.t('more', 'more') }}
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Time -->
+                  <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-medium">
+                    {{ formatTime(order.order_time) }}
+                  </td>
+
+                  <!-- Total -->
+                  <td class="py-3 px-4 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white font-mono text-xs sm:text-sm">
+                    ${{ parseFloat(String(order.total || 0)).toFixed(2) }}
+                  </td>
+
+                  <!-- Action -->
+                  <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
+                    <button
+                      @click="startPreparing(String(order.id))"
+                      :disabled="Boolean(actionLoading)"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50"
+                    >
+                      <Play class="w-3 h-3 fill-current" />
+                      <span>{{ languageStore.t('prepare', 'Prepare') }}</span>
+                    </button>
+                  </td>
+                </tr>
+
+                <!-- Empty State -->
+                <tr v-if="paginatedOrders.length === 0">
+                  <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                    {{ languageStore.t('no_pending_orders', 'No pending orders at this moment.') }}
+                  </td>
+                </tr>
+              </template>
             </tbody>
           </table>
         </div>
 
         <!-- Mobile Card View -->
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-          <div
-            v-for="order in paginatedOrders"
-            :key="order.id"
-            class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
-          >
-            <div class="flex items-center justify-between">
-              <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">
-                {{ order.order_number }}
-              </span>
-              <button
-                @click="startPreparing(String(order.id))"
-                class="px-3 py-1 bg-blue-600 text-white font-bold text-xs rounded-lg"
-              >
-                Prepare
-              </button>
-            </div>
-            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-              <span>{{ order.guest?.full_name || 'Walk-in' }}</span>
-              <span class="font-extrabold text-slate-900 dark:text-white">${{ parseFloat(String(order.total || 0)).toFixed(2) }}</span>
-            </div>
+          <div v-if="loading" class="py-16 text-center flex flex-col items-center justify-center gap-3">
+            <Loader2 class="w-8 h-8 text-amber-600 dark:text-amber-400 animate-spin" />
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_pending_orders', 'Loading pending orders...') }}</span>
           </div>
+          <template v-else>
+            <div
+              v-for="order in paginatedOrders"
+              :key="order.id"
+              class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+            >
+              <div class="flex items-center justify-between">
+                <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">
+                  {{ order.order_number }}
+                </span>
+                <button
+                  @click="startPreparing(String(order.id))"
+                  class="px-3 py-1 bg-blue-600 text-white font-bold text-xs rounded-lg cursor-pointer"
+                >
+                  {{ languageStore.t('prepare', 'Prepare') }}
+                </button>
+              </div>
+              <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+                <span>{{ order.guest?.full_name || languageStore.t('walk_in', 'Walk-in') }}</span>
+                <span class="font-extrabold text-slate-900 dark:text-white">${{ parseFloat(String(order.total || 0)).toFixed(2) }}</span>
+              </div>
+            </div>
+            <div v-if="paginatedOrders.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">
+              {{ languageStore.t('no_pending_orders', 'No pending orders at this moment.') }}
+            </div>
+          </template>
         </div>
 
         <!-- Pagination Footer -->
@@ -403,14 +441,14 @@ const formatTime = (dateTime: string) => {
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            Showing <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
-            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> orders
+            {{ languageStore.t('showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> {{ languageStore.t('orders', 'orders') }}
           </div>
 
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
               <select
                 :value="itemsPerPage"
                 @change="changeItemsPerPage"

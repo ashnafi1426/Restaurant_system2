@@ -12,10 +12,10 @@ export interface Category {
 
 export interface CreateCategoryData {
   name: string
-  description?: string
-  icon?: string
+  description?: string | null
+  icon?: string | null
   display_order?: number
-  is_active?: boolean
+  is_active?: boolean | number
 }
 export interface UpdateCategoryData extends Partial<CreateCategoryData> {}
 export default {

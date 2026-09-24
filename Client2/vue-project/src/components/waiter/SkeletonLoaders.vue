@@ -1,5 +1,4 @@
 <template>
-  <!-- Dashboard Stats Card Skeleton -->
   <div v-if="type === 'stat-card'" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 animate-pulse">
     <div class="flex items-center justify-between">
       <div class="flex-1">
@@ -10,7 +9,6 @@
     </div>
   </div>
 
-  <!-- Table Row Skeleton -->
   <div v-else-if="type === 'table-row'" class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-4 animate-pulse">
     <div class="grid grid-cols-5 gap-4">
       <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded"></div>
@@ -21,7 +19,6 @@
     </div>
   </div>
 
-  <!-- Order Card Skeleton -->
   <div v-else-if="type === 'order-card'" class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 animate-pulse">
     <div class="flex items-center justify-between mb-4">
       <div class="flex-1">
@@ -46,9 +43,7 @@
     </div>
   </div>
 
-  <!-- Full Page Skeleton -->
   <div v-else-if="type === 'full-page'" class="space-y-6">
-    <!-- Header -->
     <div class="flex items-center justify-between animate-pulse">
       <div>
         <div class="h-8 bg-slate-200 dark:bg-slate-700 rounded w-48 mb-2"></div>
@@ -57,7 +52,6 @@
       <div class="h-10 bg-slate-200 dark:bg-slate-700 rounded w-28"></div>
     </div>
 
-    <!-- 4 Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div v-for="i in 4" :key="i" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
         <div class="flex items-center justify-between">
@@ -70,7 +64,6 @@
       </div>
     </div>
 
-    <!-- Content Section -->
     <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
       <div class="h-6 bg-slate-200 dark:bg-slate-700 rounded w-40 mb-6"></div>
       <div class="space-y-4">
@@ -85,15 +78,12 @@
     </div>
   </div>
 
-  <!-- Minimal Spinner with Text -->
   <div v-else-if="type === 'spinner-with-text'" class="flex flex-col items-center justify-center py-12">
     <div class="relative w-14 h-14 mb-3">
-      <!-- Static background - BRIGHT CYAN -->
       <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
         <circle cx="50" cy="50" r="42" fill="none" stroke="#06B6D4" stroke-width="5" opacity="0.3" />
       </svg>
       
-      <!-- Animated spinner - BRIGHT YELLOW -->
       <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
         <svg viewBox="0 0 100 100" class="w-full h-full">
           <circle cx="50" cy="50" r="42" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="65 260" />
@@ -103,7 +93,6 @@
     <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">{{ loadingText }}</p>
   </div>
 
-  <!-- List Items Skeleton -->
   <div v-else-if="type === 'list-items'" class="space-y-3">
     <div v-for="i in itemCount" :key="i" class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 animate-pulse">
       <div class="flex items-center justify-between">
@@ -116,7 +105,6 @@
     </div>
   </div>
 
-  <!-- Chart Skeleton -->
   <div v-else-if="type === 'chart'" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
     <div class="h-6 bg-slate-200 dark:bg-slate-700 rounded w-32 mb-6"></div>
     <div class="space-y-4">
@@ -127,7 +115,6 @@
     </div>
   </div>
 
-  <!-- Grid Items Skeleton -->
   <div v-else-if="type === 'grid-items'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     <div v-for="i in itemCount" :key="i" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 animate-pulse">
       <div class="h-6 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-4"></div>

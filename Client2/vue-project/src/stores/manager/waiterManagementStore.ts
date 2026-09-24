@@ -15,7 +15,6 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
   const totalWaiters = ref(0)
   const totalPages = ref(0)
 
-  // Computed
   const activeWaiters = computed(() => waiters.value.filter(w => w.status === 'active'))
   const inactiveWaiters = computed(() => waiters.value.filter(w => w.status === 'inactive'))
   const suspendedWaiters = computed(() => waiters.value.filter(w => w.status === 'suspended'))
@@ -24,7 +23,6 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
     waiters.value.filter(w => w.status === 'active' && w.availability === 'available' && !w.is_busy)
   )
 
-  // Actions
   async function fetchWaiters(page = 1, search = '', status: string | null = null) {
     isLoading.value = true
     error.value = null
@@ -37,7 +35,6 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
         availability: filterAvailability.value,
       })
       
-      // Ensure we have valid data
       const waiterData = Array.isArray(response.data) ? response.data : (response.data?.data || [])
       waiters.value = waiterData
       
@@ -51,9 +48,9 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
         totalPages.value = 1
       }
     } catch (err: any) {
+      console.error('[waiterManagementStore] Failed to fetch waiters:', err)
       error.value = err.response?.data?.message || 'Failed to fetch waiters'
       waiters.value = []
-      console.error('Error fetching waiters:', err)
     } finally {
       isLoading.value = false
     }
@@ -65,8 +62,8 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
     try {
       selectedWaiter.value = await waiterManagementService.getWaiter(waiterId)
     } catch (err: any) {
+      console.error('[waiterManagementStore] Failed to fetch waiter:', err)
       error.value = err.response?.data?.message || 'Failed to fetch waiter'
-      console.error('Error fetching waiter:', err)
     } finally {
       isLoading.value = false
     }
@@ -81,6 +78,7 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
       totalWaiters.value += 1
       return newWaiter
     } catch (err: any) {
+      console.error('[waiterManagementStore] Failed to register waiter:', err)
       error.value = err.response?.data?.message || 'Failed to register waiter'
       throw err
     } finally {
@@ -102,6 +100,7 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
       }
       return updated
     } catch (err: any) {
+      console.error('[waiterManagementStore] Failed to update waiter:', err)
       error.value = err.response?.data?.message || 'Failed to update waiter'
       throw err
     } finally {
@@ -119,6 +118,7 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
       }
       return updated
     } catch (err: any) {
+      console.error('[waiterManagementStore] Failed to deactivate waiter:', err)
       error.value = err.response?.data?.message || 'Failed to deactivate waiter'
       throw err
     } finally {
@@ -136,6 +136,7 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
       }
       return updated
     } catch (err: any) {
+      console.error('[waiterManagementStore] Failed to reactivate waiter:', err)
       error.value = err.response?.data?.message || 'Failed to reactivate waiter'
       throw err
     } finally {
@@ -153,6 +154,7 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
       }
       return updated
     } catch (err: any) {
+      console.error('[waiterManagementStore] Failed to suspend waiter:', err)
       error.value = err.response?.data?.message || 'Failed to suspend waiter'
       throw err
     } finally {
@@ -173,6 +175,7 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
       }
       return updated
     } catch (err: any) {
+      console.error('[waiterManagementStore] Failed to change availability:', err)
       error.value = err.response?.data?.message || 'Failed to change availability'
       throw err
     } finally {
@@ -187,6 +190,7 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
       waiters.value = waiters.value.filter(w => w.id !== waiterId)
       totalWaiters.value -= 1
     } catch (err: any) {
+      console.error('[waiterManagementStore] Failed to delete waiter:', err)
       error.value = err.response?.data?.message || 'Failed to delete waiter'
       throw err
     } finally {
@@ -203,7 +207,6 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
   }
 
   return {
-    // State
     waiters,
     selectedWaiter,
     isLoading,
@@ -216,14 +219,12 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
     totalWaiters,
     totalPages,
 
-    // Computed
     activeWaiters,
     inactiveWaiters,
     suspendedWaiters,
     busyWaiters,
     availableWaiters,
 
-    // Actions
     fetchWaiters,
     getWaiter,
     registerWaiter,

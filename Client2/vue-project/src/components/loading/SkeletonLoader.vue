@@ -1,6 +1,5 @@
 <template>
   <div class="space-y-4">
-    <!-- Stats Cards Skeleton -->
     <div v-if="type === 'stats'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div v-for="i in 4" :key="i" class="bg-white rounded-lg p-6 shadow-sm animate-pulse">
         <div class="flex justify-between items-start">
@@ -13,7 +12,6 @@
       </div>
     </div>
 
-    <!-- List Items Skeleton -->
     <div v-if="type === 'list'" class="space-y-3">
       <div v-for="i in (count || 5)" :key="i" class="bg-white rounded-lg p-4 shadow-sm animate-pulse">
         <div class="flex justify-between items-center">
@@ -26,7 +24,6 @@
       </div>
     </div>
 
-    <!-- Table Skeleton -->
     <div v-if="type === 'table'" class="bg-white rounded-lg p-4 shadow-sm">
       <div class="space-y-3">
         <div v-for="i in (count || 6)" :key="i" class="animate-pulse">
@@ -40,7 +37,6 @@
       </div>
     </div>
 
-    <!-- Card Grid Skeleton -->
     <div v-if="type === 'cards'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div v-for="i in (count || 4)" :key="i" class="bg-white rounded-lg p-6 shadow-sm animate-pulse">
         <div class="h-4 bg-slate-200 rounded w-32 mb-4"></div>
@@ -51,15 +47,12 @@
       </div>
     </div>
 
-    <!-- Full Page Skeleton -->
     <div v-if="type === 'page'" class="space-y-6">
-      <!-- Header -->
       <div class="animate-pulse">
         <div class="h-8 bg-slate-300 rounded w-48 mb-2"></div>
         <div class="h-4 bg-slate-200 rounded w-64"></div>
       </div>
 
-      <!-- Stats Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div v-for="i in 4" :key="i" class="bg-white rounded-lg p-6 shadow-sm animate-pulse">
           <div class="h-4 bg-slate-200 rounded w-24 mb-2"></div>
@@ -67,7 +60,6 @@
         </div>
       </div>
 
-      <!-- Content -->
       <div class="bg-white rounded-lg p-6 shadow-sm animate-pulse space-y-4">
         <div class="h-6 bg-slate-300 rounded w-40 mb-4"></div>
         <div v-for="i in 5" :key="i" class="flex gap-4">

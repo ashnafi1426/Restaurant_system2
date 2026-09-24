@@ -9,7 +9,8 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  ShieldAlert
+  ShieldAlert,
+  Loader2
 } from 'lucide-vue-next'
 
 const logs = ref<RbacAuditLogItem[]>([])
@@ -27,6 +28,7 @@ const fetchLogs = async (page = 1) => {
     currentPage.value = res.pagination.current_page
     lastPage.value = res.pagination.last_page
   } catch (err: any) {
+    console.error('[AuditLogView] Fetch logs error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to load security audit logs.'
   } finally {
     loading.value = false
@@ -87,35 +89,48 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-            <tr v-for="log in logs" :key="log.id" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-              <td class="p-4 font-mono text-slate-500 dark:text-slate-400">
-                {{ new Date(log.created_at).toLocaleString() }}
-              </td>
-
-              <td class="p-4 font-extrabold text-slate-900 dark:text-white">
-                {{ log.user?.full_name || 'System / Service' }}
-              </td>
-
-              <td class="p-4">
-                <span class="px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 font-mono font-bold">
-                  {{ log.action }}
-                </span>
-              </td>
-
-              <td class="p-4 font-mono text-slate-600 dark:text-slate-300">
-                {{ log.target_type ? `${log.target_type} #${log.target_id}` : 'N/A' }}
-              </td>
-
-              <td class="p-4 font-mono text-slate-400">
-                {{ log.ip_address || '127.0.0.1' }}
+            <!-- Loading Spinner State -->
+            <tr v-if="loading">
+              <td colspan="5" class="px-6 py-16 text-center">
+                <div class="flex flex-col items-center justify-center gap-3">
+                  <Loader2 class="w-8 h-8 text-amber-600 dark:text-amber-400 animate-spin" />
+                  <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Loading audit log entries...</span>
+                </div>
               </td>
             </tr>
 
-            <tr v-if="logs.length === 0">
-              <td colspan="5" class="p-8 text-center text-slate-400 font-medium">
-                No audit logs recorded yet.
-              </td>
-            </tr>
+            <!-- Data Rows -->
+            <template v-else>
+              <tr v-for="log in logs" :key="log.id" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+                <td class="p-4 font-mono text-slate-500 dark:text-slate-400">
+                  {{ new Date(log.created_at).toLocaleString() }}
+                </td>
+
+                <td class="p-4 font-extrabold text-slate-900 dark:text-white">
+                  {{ log.user?.full_name || 'System / Service' }}
+                </td>
+
+                <td class="p-4">
+                  <span class="px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 font-mono font-bold">
+                    {{ log.action }}
+                  </span>
+                </td>
+
+                <td class="p-4 font-mono text-slate-600 dark:text-slate-300">
+                  {{ log.target_type ? `${log.target_type} #${log.target_id}` : 'N/A' }}
+                </td>
+
+                <td class="p-4 font-mono text-slate-400">
+                  {{ log.ip_address || '127.0.0.1' }}
+                </td>
+              </tr>
+
+              <tr v-if="logs.length === 0">
+                <td colspan="5" class="p-8 text-center text-slate-400 font-medium">
+                  No audit logs recorded yet.
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
 

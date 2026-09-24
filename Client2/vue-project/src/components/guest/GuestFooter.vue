@@ -44,7 +44,7 @@
           <h3 class="text-lg font-bold mb-4">Contact</h3>
           <ul class="space-y-2 text-sm">
             <li class="text-gray-400">📞 +1-800-HOTEL-1</li>
-            <li class="text-gray-400">📧 service@hotel.com</li>
+            <li class="text-gray-400"> service@hotel.com</li>
             <li class="text-gray-400">📍 City Center, Country</li>
             <li class="flex gap-3 mt-4">
               <a href="#" class="text-teal-400 hover:text-teal-300 transition">📘</a>

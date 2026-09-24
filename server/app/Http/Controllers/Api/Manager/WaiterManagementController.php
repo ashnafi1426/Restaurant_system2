@@ -12,9 +12,6 @@ use Illuminate\Support\Facades\Log;
 
 class WaiterManagementController extends Controller
 {
-    /**
-     * Get active hotel ID for tenant scoping.
-     */
     protected function getHotelId(): ?string
     {
         $hotelId = request()->header('X-Hotel-ID')
@@ -37,7 +34,6 @@ class WaiterManagementController extends Controller
         try {
             $hotelId = $this->getHotelId();
 
-            // Get all waiters with user relationship and TODAY'S floor assignments loaded strictly for active hotel
             $waitersQuery = Waiter::with([
                 'user',
                 'floorAssignments' => function ($q) use ($hotelId) {
@@ -79,7 +75,6 @@ class WaiterManagementController extends Controller
                         'employee_number' => $waiter->employee_number,
                         'phone' => $waiter->phone,
                         'hire_date' => $waiter->hire_date,
-                        // Add floor assignments
                         'floor_assignments' => $waiter->floorAssignments->map(function ($assignment) {
                             return [
                                 'id' => $assignment->id,
@@ -119,9 +114,6 @@ class WaiterManagementController extends Controller
         }
     }
 
-    /**
-     * Create a new waiter
-     */
     public function store(Request $request): JsonResponse
     {
         try {
@@ -138,8 +130,7 @@ class WaiterManagementController extends Controller
                 'status' => 'required|in:active,inactive,on_break',
                 'maximum_orders' => 'required|integer|min:1|max:20',
                 'employment_type' => 'sometimes|in:full_time,part_time,contract',
-                'employee_number' => 'sometimes|string|max:50', // Uniqueness checked manually later
-                // Floor assignment validation
+                'employee_number' => 'sometimes|string|max:50',
                 'floor_assignments' => 'sometimes|array',
                 'floor_assignments.*.floor_id' => 'required_with:floor_assignments|exists:hotel_floors,id',
                 'floor_assignments.*.shift_id' => 'required_with:floor_assignments|exists:hotel_shifts,id',
@@ -148,16 +139,13 @@ class WaiterManagementController extends Controller
             ];
             
             if ($isNewUser) {
-                // New user validation - all fields required EXCEPT password (will be set via activation)
-                // Note: Email uniqueness checked after validation to handle existing users
                 $rules = array_merge($rules, [
                     'first_name' => 'required|string|max:255',
                     'last_name' => 'required|string|max:255',
-                    'email' => 'required|email', // Uniqueness checked manually later
+                    'email' => 'required|email',
                     'phone' => 'required|string|max:20',
                 ]);
             } else {
-                // Existing user - just need the ID
                 $rules = array_merge($rules, [
                     'user_id' => 'required|uuid|exists:users,id',
                 ]);
@@ -174,13 +162,10 @@ class WaiterManagementController extends Controller
                 'validated_keys' => array_keys($validated)
             ]);
 
-            // If creating new user
             if ($isNewUser) {
                 try {
-                    // Check for existing email BEFORE attempting to create
                     $existingUser = User::where('email', $validated['email'])->first();
                     
-                    // Check for duplicate employee_number if provided
                     if (!empty($validated['employee_number'])) {
                         $existingWaiterWithNumber = Waiter::where('employee_number', $validated['employee_number'])->first();
                         if ($existingWaiterWithNumber) {
@@ -195,9 +180,7 @@ class WaiterManagementController extends Controller
                     }
 
                     if ($existingUser) {
-                        // User already exists - check if they're pending activation
                         if ($existingUser->activation_status === 'pending' || $existingUser->activation_status === 'expired') {
-                            // Update user info and resend activation
                             $existingUser->update([
                                 'first_name' => $validated['first_name'],
                                 'last_name' => $validated['last_name'],
@@ -205,7 +188,6 @@ class WaiterManagementController extends Controller
                                 'role' => 'waiter',
                             ]);
 
-                            // Resend activation email
                             $activationService = new ActivationService();
                             $activationService->generateActivationToken($existingUser);
 
@@ -214,7 +196,6 @@ class WaiterManagementController extends Controller
                                 'email' => $existingUser->email,
                             ]);
                         } else {
-                            // User exists and is activated - just update role
                             $existingUser->update([
                                 'first_name' => $validated['first_name'],
                                 'last_name' => $validated['last_name'],
@@ -231,7 +212,6 @@ class WaiterManagementController extends Controller
                         
                         $user = $existingUser;
                     } else {
-                        // Create new user WITH auto-generated password (sent via email)
                         $temporaryPassword = $this->generateSecurePassword();
                         
                         $user = User::create([
@@ -241,12 +221,11 @@ class WaiterManagementController extends Controller
                             'phone' => $validated['phone'] ?? null,
                             'password_hash' => \Illuminate\Support\Facades\Hash::make($temporaryPassword),
                             'role' => 'waiter',
-                            'is_active' => true, // User can login immediately
+                            'is_active' => true,
                             'activation_status' => 'activated',
                             'email_verified_at' => now(),
                         ]);
 
-                        // Send email with temporary password
                         try {
                             \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\NewUserCreated($user, $temporaryPassword));
                             
@@ -260,7 +239,6 @@ class WaiterManagementController extends Controller
                                 'email' => $user->email,
                                 'error' => $mailException->getMessage()
                             ]);
-                            // Don't fail - just log the error
                         }
                     }
 
@@ -317,8 +295,6 @@ class WaiterManagementController extends Controller
                     ]);
                 }
 
-                // Prepare waiter data
-                // Get user to check activation status
                 $user = User::find($validated['user_id']);
                 
                 $waiterData = [
@@ -330,7 +306,7 @@ class WaiterManagementController extends Controller
                     'experience_level' => $validated['experience_level'],
                     'employment_type' => $validated['employment_type'] ?? 'full_time',
                     'hire_date' => $request->input('hire_date') ? $validated['hire_date'] : now()->toDateString(),
-                    'status' => $validated['status'] ?? 'active', // Now they can be active immediately since they have password
+                    'status' => $validated['status'] ?? 'active',
                     'availability' => 'offline',
                     'current_orders' => 0,
                     'maximum_orders' => $validated['maximum_orders'],
@@ -341,7 +317,6 @@ class WaiterManagementController extends Controller
 
                 $waiter = Waiter::create($waiterData);
 
-                // Also ensure hotel membership exists in hotel_users
                 if ($hotelId && $user) {
                     \App\Models\HotelUser::firstOrCreate(
                         ['hotel_id' => $hotelId, 'user_id' => $user->id],
@@ -349,7 +324,6 @@ class WaiterManagementController extends Controller
                     );
                 }
 
-                // Create floor assignments if provided
                 if (!empty($validated['floor_assignments'])) {
                     $this->syncFloorAssignments($waiter, $validated['floor_assignments']);
                     
@@ -427,9 +401,6 @@ class WaiterManagementController extends Controller
         }
     }
 
-    /**
-     * Get single waiter with full details
-     */
     public function show(Waiter $waiter): JsonResponse
     {
         try {
@@ -452,9 +423,6 @@ class WaiterManagementController extends Controller
         }
     }
 
-    /**
-     * Update waiter details
-     */
     public function update(Request $request, Waiter $waiter): JsonResponse
     {
         try {
@@ -469,7 +437,6 @@ class WaiterManagementController extends Controller
                 'current_orders' => 'sometimes|integer|min:0',
                 'availability' => 'sometimes|in:available,busy,break,offline',
                 'employee_number' => 'sometimes|string|max:50|unique:waiters,employee_number,' . $waiter->id,
-                // Floor assignment validation
                 'floor_assignments' => 'sometimes|array',
                 'floor_assignments.*.floor_id' => 'required_with:floor_assignments|exists:hotel_floors,id',
                 'floor_assignments.*.shift_id' => 'required_with:floor_assignments|exists:hotel_shifts,id',
@@ -482,10 +449,8 @@ class WaiterManagementController extends Controller
                 'updates' => $validated,
             ]);
 
-            // Update waiter basic info
             $waiter->update(collect($validated)->except('floor_assignments')->toArray());
 
-            // Update floor assignments if provided
             if (isset($validated['floor_assignments'])) {
                 $this->syncFloorAssignments($waiter, $validated['floor_assignments']);
                 
@@ -513,9 +478,6 @@ class WaiterManagementController extends Controller
         }
     }
 
-    /**
-     * Delete a waiter
-     */
     public function destroy(Waiter $waiter): JsonResponse
     {
         try {
@@ -542,9 +504,6 @@ class WaiterManagementController extends Controller
         }
     }
 
-    /**
-     * Deactivate waiter
-     */
     public function deactivate(Waiter $waiter): JsonResponse
     {
         try {
@@ -572,9 +531,6 @@ class WaiterManagementController extends Controller
         }
     }
 
-    /**
-     * Reactivate waiter
-     */
     public function reactivate(Waiter $waiter): JsonResponse
     {
         try {
@@ -602,9 +558,6 @@ class WaiterManagementController extends Controller
         }
     }
 
-    /**
-     * Suspend waiter
-     */
     public function suspend(Waiter $waiter): JsonResponse
     {
         try {
@@ -632,9 +585,6 @@ class WaiterManagementController extends Controller
         }
     }
 
-    /**
-     * Change waiter availability
-     */
     public function changeAvailability(Request $request, Waiter $waiter): JsonResponse
     {
         try {
@@ -667,9 +617,6 @@ class WaiterManagementController extends Controller
         }
     }
 
-    /**
-     * Get waiter statistics
-     */
     public function stats(Waiter $waiter): JsonResponse
     {
         try {
@@ -701,17 +648,8 @@ class WaiterManagementController extends Controller
         }
     }
 
-    /**
-     * Sync floor assignments for a waiter
-     * This creates/updates floor assignments, handling duplicates
-     * 
-     * @param Waiter $waiter
-     * @param array $assignments
-     * @return void
-     */
     private function syncFloorAssignments(Waiter $waiter, array $assignments): void
     {
-        // Delete existing assignments for dates covered by new assignments
         $dates = collect($assignments)->pluck('assignment_date')
             ->map(fn($date) => $date ?? today()->toDateString())
             ->unique()
@@ -721,7 +659,6 @@ class WaiterManagementController extends Controller
             ->whereIn('assignment_date', $dates)
             ->delete();
         
-        // Create new assignments
         foreach ($assignments as $assignment) {
             \App\Models\WaiterFloorAssignment::create([
                 'id' => \Illuminate\Support\Str::uuid(),
@@ -731,35 +668,29 @@ class WaiterManagementController extends Controller
                 'priority' => $assignment['priority'],
                 'assignment_date' => $assignment['assignment_date'] ?? today()->toDateString(),
                 'status' => 'active',
-                'assigned_by' => auth()->id(), // Current manager
+                'assigned_by' => auth()->id(),
             ]);
         }
     }
 
-    /**
-     * Generate a secure random password
-     */
     private function generateSecurePassword(int $length = 12): string
     {
-        $uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Excluding I, O
-        $lowercase = 'abcdefghjkmnpqrstuvwxyz'; // Excluding i, l, o
-        $numbers = '23456789'; // Excluding 0, 1
+        $uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+        $lowercase = 'abcdefghjkmnpqrstuvwxyz';
+        $numbers = '23456789';
         $symbols = '!@#$%&*';
         
-        // Ensure at least one character from each group
         $password = 
             $uppercase[random_int(0, strlen($uppercase) - 1)] .
             $lowercase[random_int(0, strlen($lowercase) - 1)] .
             $numbers[random_int(0, strlen($numbers) - 1)] .
             $symbols[random_int(0, strlen($symbols) - 1)];
         
-        // Fill the rest with random characters from all groups
         $allChars = $uppercase . $lowercase . $numbers . $symbols;
         for ($i = 4; $i < $length; $i++) {
             $password .= $allChars[random_int(0, strlen($allChars) - 1)];
         }
         
-        // Shuffle the password to randomize character positions
         return str_shuffle($password);
     }
 }

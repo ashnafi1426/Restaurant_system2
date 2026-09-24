@@ -219,13 +219,21 @@ const onImageError = () => {
 
       <div class="mt-6 flex items-end justify-between">
         <div>
-          <p class="text-xs uppercase tracking-wide text-slate-500">Price</p>
+          <p class="text-xs uppercase tracking-wide text-slate-500">Price (incl. tax)</p>
 
           <h2 class="text-3xl font-bold text-amber-600 dark:text-amber-400">
-            {{ item.price.toFixed(2) }}
+            {{ ((item.total_price !== undefined && item.total_price !== null) ? Number(item.total_price) : Number(item.price)).toFixed(2) }}
 
             <span class="text-base font-medium"> ETB </span>
           </h2>
+          <p v-if="item.tax_rate && Number(item.tax_rate.rate) > 0" class="text-[11px] text-slate-400 mt-0.5 font-medium">
+            <span v-if="item.tax_included" class="text-emerald-600 dark:text-emerald-400">
+              Incl. {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
+            </span>
+            <span v-else>
+              Base: {{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% Tax
+            </span>
+          </p>
         </div>
 
         <div class="text-right">
@@ -269,10 +277,10 @@ const onImageError = () => {
 
       <div class="flex items-center justify-between gap-4">
         <div>
-          <p class="text-sm text-slate-500">Total</p>
+          <p class="text-sm text-slate-500">Total (incl. tax)</p>
 
           <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            {{ (item.price * quantity).toFixed(2) }}
+            {{ (((item.total_price !== undefined && item.total_price !== null) ? Number(item.total_price) : Number(item.price)) * quantity).toFixed(2) }}
 
             ETB
           </p>

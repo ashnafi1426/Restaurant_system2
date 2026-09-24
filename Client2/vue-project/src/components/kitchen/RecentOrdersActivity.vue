@@ -1,25 +1,21 @@
 <template>
   <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
-    <!-- Header -->
     <div class="bg-slate-900 dark:bg-slate-950 px-5 py-3.5 text-white border-b border-slate-800">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5">
           <Activity :size="20" class="text-amber-500" />
-          <h3 class="text-sm font-black tracking-wide uppercase">Recently Updated Orders</h3>
+          <h3 class="text-sm font-black tracking-wide uppercase">{{ languageStore.t('recently_updated_orders', 'Recently Updated Orders') }}</h3>
         </div>
-        <span class="text-[10px] font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider">Live Feed</span>
+        <span class="text-[10px] font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider">{{ languageStore.t('live_feed', 'Live Feed') }}</span>
       </div>
     </div>
 
-    <!-- Content -->
     <div class="max-h-96 overflow-y-auto">
-      <!-- Empty State -->
       <div v-if="recentOrders.length === 0" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
         <ListX :size="32" class="mx-auto mb-3 text-slate-400 dark:text-slate-600" />
-        <p class="text-sm font-medium">No recent orders</p>
+        <p class="text-sm font-medium">{{ languageStore.t('no_recent_orders', 'No recent orders') }}</p>
       </div>
 
-      <!-- Order Items -->
       <div v-else class="divide-y divide-slate-100 dark:divide-slate-800">
         <div
           v-for="(order, idx) in recentOrders"
@@ -29,9 +25,7 @@
             getOrderBorderColor(order.status),
           ]"
         >
-          <!-- Timeline Indicator -->
           <div class="flex gap-3.5">
-            <!-- Status Icon -->
             <div
               :class="[
                 'flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center',
@@ -46,19 +40,17 @@
               />
             </div>
 
-            <!-- Order Details -->
             <div class="flex-1 min-w-0">
-              <!-- Room & Order Number -->
               <div class="flex items-center justify-between gap-2 mb-1">
                 <div class="flex items-center gap-2">
                   <span class="text-xs font-bold text-slate-900 dark:text-white">
                     <template v-if="order.room?.room_number">
-                      Room {{ order.room.room_number }}
+                      {{ languageStore.t('room', 'Room') }} {{ order.room.room_number }}
                     </template>
                     <template v-else>
                       <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
                         <ShoppingBag class="w-3.5 h-3.5" />
-                        Takeout
+                        {{ languageStore.t('takeout', 'Takeout') }}
                       </span>
                     </template>
                   </span>
@@ -70,37 +62,34 @@
                     getStatusBadgeClass(order.status),
                   ]"
                 >
-                  {{ order.status.toUpperCase() }}
+                  {{ languageStore.t(order.status, order.status) }}
                 </span>
               </div>
 
-              <!-- Guest & Items -->
-              <p class="text-xs text-slate-600 mb-2">
-                <span class="font-medium">{{ order.guest?.full_name || 'Walk-in' }}</span>
+              <p class="text-xs text-slate-600 dark:text-slate-400 mb-2">
+                <span class="font-medium text-slate-800 dark:text-slate-200">{{ order.guest?.full_name || languageStore.t('walk_in_guest', 'Walk-in Guest') }}</span>
                 •
-                <span class="text-slate-500">{{ order.items?.length || 0 }} items</span>
+                <span class="text-slate-500 dark:text-slate-400">{{ order.items?.length || 0 }} {{ languageStore.t('items', 'items') }}</span>
               </p>
 
-              <!-- Quick Items Preview -->
-              <div class="text-xs text-slate-700 mb-2">
+              <div class="text-xs text-slate-700 dark:text-slate-300 mb-2">
                 <div
                   v-for="item in (order.items || []).slice(0, 2)"
                   :key="item.id"
-                  class="text-slate-600"
+                  class="text-slate-600 dark:text-slate-400"
                 >
                   {{ item.quantity }}x {{ item.name }}
                 </div>
-                <div v-if="(order.items || []).length > 2" class="text-slate-500">
-                  +{{ (order.items || []).length - 2 }} more
+                <div v-if="(order.items || []).length > 2" class="text-slate-500 dark:text-slate-400">
+                  +{{ (order.items || []).length - 2 }} {{ languageStore.t('more', 'more') }}
                 </div>
               </div>
 
-              <!-- Footer: Time & Amount -->
               <div class="flex items-center justify-between">
-                <span class="text-xs text-slate-500">{{
+                <span class="text-xs text-slate-500 dark:text-slate-400">{{
                   formatTime(order.updated_at || order.order_time)
                 }}</span>
-                <span class="text-xs font-bold text-slate-900"
+                <span class="text-xs font-bold text-slate-900 dark:text-white"
                   >${{ parseFloat(order.total).toFixed(2) }}</span
                 >
               </div>
@@ -110,9 +99,8 @@
       </div>
     </div>
 
-    <!-- Footer -->
-    <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 text-center text-xs text-slate-600">
-      Last 10 orders • Updates auto-refresh every 10s
+    <div class="bg-slate-50 dark:bg-slate-800/60 px-6 py-3 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-600 dark:text-slate-400">
+      {{ languageStore.t('last_10_orders', 'Last 10 orders • Updates auto-refresh every 10s') }}
     </div>
   </div>
 </template>
@@ -120,13 +108,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Clock, ChefHat, CheckCircle, XCircle, Activity, ListX, ShoppingBag } from 'lucide-vue-next'
+import { useLanguageStore } from '@/stores/language'
 import type { KitchenOrder } from '@/types/kitchen'
+
+const languageStore = useLanguageStore()
 
 const props = defineProps<{
   orders?: KitchenOrder[]
 }>()
 
-// Get most recent 10 orders sorted by updated time
 const recentOrders = computed(() => {
   return (props.orders || [])
     .sort((a, b) => {
@@ -170,15 +160,15 @@ function getStatusBg(status: string) {
 function getStatusBadgeClass(status: string) {
   switch (status) {
     case 'pending':
-      return 'bg-amber-100 text-amber-800'
+      return 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
     case 'preparing':
-      return 'bg-blue-100 text-blue-800'
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300'
     case 'ready':
-      return 'bg-green-100 text-green-800'
+      return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
     case 'served':
-      return 'bg-slate-100 text-slate-800'
+      return 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300'
     default:
-      return 'bg-red-100 text-red-800'
+      return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
   }
 }
 
@@ -204,20 +194,20 @@ function formatTime(dateTime: string): string {
     const diffMs = now.getTime() - date.getTime()
     const diffMins = Math.floor(diffMs / 60000)
 
-    if (diffMins < 1) return 'Just now'
+    if (diffMins < 1) return languageStore.t('just_now', 'Just now')
     if (diffMins < 60) return `${diffMins}m ago`
     const diffHours = Math.floor(diffMins / 60)
     if (diffHours < 24) return `${diffHours}h ago`
 
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-  } catch {
+  } catch (error) {
+    console.error('[RecentOrdersActivity] Error formatting time:', error)
     return '—'
   }
 }
 </script>
 
 <style scoped>
-/* Smooth scrollbar for recent orders */
 ::-webkit-scrollbar {
   width: 6px;
 }

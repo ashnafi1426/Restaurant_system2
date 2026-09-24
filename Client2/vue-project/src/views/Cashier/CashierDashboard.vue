@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import DashboardLayout from '../../layouts/DashboardLayout.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import { useCashierStore } from '@/stores/cashierStore'
+import { useHotelStore } from '@/stores/hotelStore'
 import { useAuthStore } from '@/stores/auth'
+import { useLanguageStore } from '@/stores/language'
 import {
   TrendingUp,
   Clock,
@@ -15,43 +17,55 @@ import {
   RefreshCw,
   FileText,
   ArrowUpRight,
+  Building2,
+  Receipt,
+  Wallet,
 } from 'lucide-vue-next'
 
 const router = useRouter()
 const cashierStore = useCashierStore()
+const hotelStore = useHotelStore()
 const auth = useAuthStore()
+const languageStore = useLanguageStore()
+
+const currency = computed(() => hotelStore.currentHotel?.currency || 'ETB')
 
 // Load dashboard data
 onMounted(() => {
   cashierStore.loadDashboard()
 })
 
+// Watch hotel switch to reload dashboard data for selected tenant
+watch(() => hotelStore.hotelId, () => {
+  cashierStore.loadDashboard()
+})
+
 // Computed stats
 const stats = computed(() => [
   {
-    title: "Today's Revenue",
-    value: `${cashierStore.todayRevenue.toFixed(2)} ETB`,
+    title: languageStore.t("Today's Revenue", "Today's Revenue"),
+    value: `${cashierStore.todayRevenue.toFixed(2)} ${currency.value}`,
     icon: DollarSign,
-    color: 'bg-green-500',
+    color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
     trend: '+12%',
   },
   {
-    title: 'Pending Payments',
+    title: languageStore.t('pending_payments', 'Pending Payments'),
     value: cashierStore.dashboardStats?.pending_payments ?? 0,
     icon: Clock,
-    color: 'bg-yellow-500',
+    color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
   },
   {
-    title: 'Completed Payments',
+    title: languageStore.t('completed_payments', 'Completed Payments'),
     value: cashierStore.dashboardStats?.completed_payments ?? 0,
     icon: CheckCircle,
-    color: 'bg-blue-500',
+    color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20',
   },
   {
-    title: 'Refund Requests',
+    title: languageStore.t('refund_requests', 'Refund Requests'),
     value: cashierStore.dashboardStats?.refund_requests ?? 0,
     icon: XCircle,
-    color: 'bg-red-500',
+    color: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20',
   },
 ])
 
@@ -61,7 +75,7 @@ const monthlyRevenue = computed(() => cashierStore.monthlyRevenue.toFixed(2))
 // Format currency
 const formatCurrency = (amount: number | string) => {
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
-  return `${numAmount.toFixed(2)} ETB`
+  return `${(numAmount || 0).toFixed(2)} ${currency.value}`
 }
 
 // Format date
@@ -73,16 +87,17 @@ const formatDate = (date: string) => {
     minute: '2-digit',
   })
 }
+
 const getStatusColor = (status: string) => {
   const statusColors: Record<string, string> = {
-    paid: 'bg-green-100 text-green-700',
-    verified: 'bg-green-100 text-green-700',
-    pending: 'bg-yellow-100 text-yellow-700',
-    initialized: 'bg-blue-100 text-blue-700',
-    failed: 'bg-red-100 text-red-700',
-    refunded: 'bg-purple-100 text-purple-700',
+    paid: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20',
+    verified: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20',
+    pending: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20',
+    initialized: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20',
+    failed: 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20',
+    refunded: 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20',
   }
-  return statusColors[status.toLowerCase()] || 'bg-gray-100 text-gray-700'
+  return statusColors[status.toLowerCase()] || 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
 }
 
 // Navigate to payments page
@@ -103,21 +118,37 @@ const refreshDashboard = () => {
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6 py-4 md:py-6">
-      <!-- Header -->
-      <div class="flex justify-between items-center">
-        <div>
-          <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Cashier Dashboard</h1>
-          <p class="text-slate-500 dark:text-slate-400 mt-1">
-            Manage invoices, payments, transactions and refunds
-          </p>
+    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans">
+      <!-- Header Banner with Hotel Scope Badge -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+            <Wallet class="w-5 h-5 stroke-[2.2]" />
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{{ languageStore.t('cashier_dashboard', 'Cashier Dashboard') }}</h1>
+              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+                <Building2 class="w-3 h-3" />
+                {{ hotelStore.hotelName }}
+              </span>
+              <span class="text-[10px] uppercase font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                {{ languageStore.t('cashier', 'Cashier') }}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{ languageStore.t('cashier_dashboard_desc', 'Multi-property payment collection, live transaction auditing, and financial settlements.') }}
+            </p>
+          </div>
         </div>
+
         <button
           @click="refreshDashboard"
-          class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          :disabled="cashierStore.isLoading"
+          class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-600/20 transition cursor-pointer disabled:opacity-50"
         >
-          <RefreshCw :size="18" />
-          Refresh
+          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': cashierStore.isLoading }" />
+          <span>{{ languageStore.t('refresh', 'Refresh') }}</span>
         </button>
       </div>
 
@@ -137,7 +168,7 @@ const refreshDashboard = () => {
           v-for="stat in stats"
           :key="stat.title"
           class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6 hover:shadow-lg transition-shadow cursor-pointer"
-          @click="stat.title === 'Pending Payments' ? navigateToPayments('pending') : null"
+          @click="stat.title === languageStore.t('pending_payments', 'Pending Payments') ? navigateToPayments('pending') : null"
         >
           <div class="flex items-start justify-between">
             <div class="flex-1">
@@ -158,39 +189,39 @@ const refreshDashboard = () => {
 
       <!-- Quick Actions -->
       <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
-        <h2 class="text-xl font-semibold text-slate-800 dark:text-white mb-4">Quick Actions</h2>
+        <h2 class="text-xl font-semibold text-slate-800 dark:text-white mb-4">{{ languageStore.t('quick_actions', 'Quick Actions') }}</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <button
             v-if="auth.can('payments.view')"
             @click="navigateToPayments()"
-            class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors"
+            class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors cursor-pointer"
           >
             <FileText :size="18" />
-            View Payments
+            {{ languageStore.t('view_payments', 'View Payments') }}
           </button>
           <button
             v-if="auth.can('payments.view')"
             @click="navigateToPayments('paid')"
-            class="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-colors"
+            class="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-colors cursor-pointer"
           >
             <CheckCircle :size="18" />
-            Paid Payments
+            {{ languageStore.t('paid_payments', 'Paid Payments') }}
           </button>
           <button
             v-if="auth.can('payments.view')"
             @click="navigateToPayments('pending')"
-            class="flex items-center justify-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg transition-colors"
+            class="flex items-center justify-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg transition-colors cursor-pointer"
           >
             <Clock :size="18" />
-            Pending Payments
+            {{ languageStore.t('pending_payments', 'Pending Payments') }}
           </button>
           <button
             v-if="auth.can('reports.sales')"
             @click="router.push({ name: 'cashier-reports' })"
-            class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition-colors"
+            class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition-colors cursor-pointer"
           >
-            <TrendingUp :size="18" />
-            View Reports
+            <Receipt :size="18" />
+            {{ languageStore.t('financial_reports', 'Financial Reports') }}
           </button>
         </div>
       </div>
@@ -202,14 +233,14 @@ const refreshDashboard = () => {
             <Calendar :size="18" class="text-blue-600" />
             <h3 class="font-semibold text-slate-700 dark:text-slate-300">Weekly Revenue</h3>
           </div>
-          <p class="text-3xl font-bold text-blue-600 mt-4">{{ weeklyRevenue }} ETB</p>
+          <p class="text-3xl font-bold text-blue-600 mt-4">{{ weeklyRevenue }} {{ currency }}</p>
         </div>
         <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
           <div class="flex items-center gap-2 mb-2">
             <Calendar :size="18" class="text-green-600" />
             <h3 class="font-semibold text-slate-700 dark:text-slate-300">Monthly Revenue</h3>
           </div>
-          <p class="text-3xl font-bold text-green-600 mt-4">{{ monthlyRevenue }} ETB</p>
+          <p class="text-3xl font-bold text-green-600 mt-4">{{ monthlyRevenue }} {{ currency }}</p>
         </div>
         <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
           <div class="flex items-center gap-2 mb-2">

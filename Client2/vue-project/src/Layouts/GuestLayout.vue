@@ -3,11 +3,16 @@ import { onMounted } from 'vue'
 import GuestNavbar from '@/components/guest/guestNavbar.vue'
 import Footer from '@/components/guest/Footer.vue'
 import { useThemeStore } from '@/stores/themeStore'
+import { useGuestHotelStore } from '@/stores/guestHotelStore'
 
 const theme = useThemeStore()
+const guestHotelStore = useGuestHotelStore()
 
 onMounted(() => {
   theme.initializeTheme()
+  if (guestHotelStore.availableHotels.length === 0) {
+    guestHotelStore.fetchAvailableHotels()
+  }
 })
 </script>
 

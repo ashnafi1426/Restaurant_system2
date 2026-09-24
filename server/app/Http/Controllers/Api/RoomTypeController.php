@@ -121,12 +121,6 @@ class RoomTypeController extends Controller{
             $roomType->is_active =
                 $request->is_active;
 
-            /*
-            |--------------------------------------------------------------------------
-            | Save
-            |--------------------------------------------------------------------------
-            */
-
             $roomType->save();
             DB::commit();
             return response()->json([
@@ -224,11 +218,7 @@ protected function successResponse(
 
     ], $status);
 
-}/**
- * ------------------------------------------------------------------
- * Standard Error Response
- * ------------------------------------------------------------------
- */
+}
 
 protected function errorResponse(
 

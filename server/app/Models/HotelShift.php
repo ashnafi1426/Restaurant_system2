@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Support\Str;
 use App\Models\Traits\BelongsToTenant;
 
 class HotelShift extends Model
@@ -40,9 +41,6 @@ class HotelShift extends Model
         return $query->where('status', 'active');
     }
     
-    /**
-     * Get the current active shift based on current time
-     */
     public static function getCurrentShift(): ?self
     {
         $shifts = self::active()->get();
@@ -67,10 +65,8 @@ class HotelShift extends Model
         $end = $this->end_time->format('H:i');
 
         if ($start <= $end) {
-            // Normal shift (e.g., 09:00 to 17:00)
             return $now >= $start && $now <= $end;
         } else {
-            // Midnight-crossing shift (e.g., 22:00 to 06:00)
             return $now >= $start || $now <= $end;
         }
     }

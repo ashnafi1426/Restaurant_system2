@@ -1,33 +1,17 @@
 import axios from 'axios'
-
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api',
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 60000, // Increased to 60 seconds for email operations
+  timeout: 60000,
 })
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
-    const user = localStorage.getItem('user')
-
-    console.log(' [API INTERCEPTOR] Token from localStorage:', token ? '✓ Present' : '✗ Missing')
-    console.log(' [API INTERCEPTOR] User from localStorage:', user ? '✓ Present' : '✗ Missing')
-
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
-      console.log(
-        ' [API INTERCEPTOR] Authorization header set:',
-        `Bearer ${token.substring(0, 20)}...`,
-      )
-    } else {
-      // Unauthenticated request (Public Guest Endpoint)
-    }
-
-    if (user) {
-      const userData = JSON.parse(user)
-      console.log(' [API INTERCEPTOR] Current User Role:', userData.role)
     }
 
     const currentHotelRaw = localStorage.getItem('current_hotel')
@@ -36,61 +20,33 @@ api.interceptors.request.use(
         const currentHotel = JSON.parse(currentHotelRaw)
         if (currentHotel?.id) {
           config.headers['X-Hotel-ID'] = currentHotel.id
-          console.log(' [API INTERCEPTOR] X-Hotel-ID header set:', currentHotel.id)
         }
       } catch (e) {
-        // ignore JSON parse error
+        console.error('[API] Error parsing current_hotel from storage:', e)
       }
     }
 
-    // Handle FormData - let browser set the Content-Type with boundary
     if (config.data instanceof FormData) {
-      // Remove Content-Type to let browser set it automatically with boundary
       delete config.headers['Content-Type']
     } else {
       config.headers['Content-Type'] = 'application/json'
     }
 
-    console.log(' [API INTERCEPTOR] Request to:', config.url)
-    console.log(' [API INTERCEPTOR] Request headers:', config.headers)
-
     return config
   },
   (error) => {
-    console.error('[API INTERCEPTOR] Request error:', error)
     return Promise.reject(error)
   },
 )
 
 api.interceptors.response.use(
   (response) => {
-    console.log('[API INTERCEPTOR] Response received:', response.status)
-    console.log('[API INTERCEPTOR] Response URL:', response.config.url)
-    console.log('[API INTERCEPTOR] Response data:', response.data)
     return response
   },
   (error) => {
-    if (error.code === 'ECONNABORTED') {
-      console.error('[API INTERCEPTOR] Request timeout after 30s')
-    } else if (!error.response) {
-      console.error('[API INTERCEPTOR] No response from server:', error.message)
-    } else {
-      console.error('[API INTERCEPTOR] Response error:', error.response.status)
-      
-      // Handle 401 Unauthorized (Expired or Missing Token)
-      if (error.response.status === 401) {
-        console.warn('[API INTERCEPTOR] 401 Unauthorized - token missing or session expired')
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-      }
-
-      // Log detailed 422 Validation Errors
-      if (error.response.status === 422) {
-        console.error('[API INTERCEPTOR] 422 Validation Errors:', error.response.data)
-        if (error.response.data?.errors) {
-          console.table(error.response.data.errors)
-        }
-      }
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
     }
     return Promise.reject(error)
   },

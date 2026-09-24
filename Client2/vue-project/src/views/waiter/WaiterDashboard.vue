@@ -2,32 +2,35 @@
   <DashboardLayout>
     <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-3 sm:p-6 lg:p-8 transition-colors duration-200">
       <div class="max-w-7xl mx-auto space-y-6">
-        <!-- Clean Page Header -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <div class="flex items-center gap-3">
-              <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Waiter Dashboard</h1>
+              <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ languageStore.t('waiter_dashboard', 'Waiter Dashboard') }}</h1>
+              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20">
+                <Building2 class="w-3.5 h-3.5" />
+                {{ hotelStore.hotelName }}
+              </span>
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                Shift Active
+                {{ languageStore.t('shift_active', 'Shift Active') }}
               </span>
             </div>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Real-time room delivery management and performance overview</p>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('waiter_dashboard_desc', 'Real-time room delivery management and performance overview') }}</p>
           </div>
 
           <div class="flex items-center gap-2">
             <button 
+              type="button"
               @click="loadDashboard"
               :disabled="loading"
-              class="px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-slate-200 dark:border-slate-800 shadow-xs disabled:opacity-50"
+              class="px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-slate-200 dark:border-slate-800 shadow-xs disabled:opacity-50 cursor-pointer"
             >
-              <span :class="['material-symbols-rounded text-sm', loading ? 'animate-spin' : '']">refresh</span>
-              Refresh
+              <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
+              {{ languageStore.t('refresh', 'Refresh') }}
             </button>
           </div>
         </div>
 
-        <!-- Loading State -->
         <div v-if="loading" class="flex items-center justify-center py-20 bg-white dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-800">
           <div class="text-center">
             <div class="inline-block relative w-12 h-12 mb-3">
@@ -37,7 +40,6 @@
           </div>
         </div>
 
-        <!-- Error State -->
         <div v-else-if="error" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl p-6">
           <p class="text-rose-700 dark:text-rose-400 font-semibold text-sm">Error loading dashboard</p>
           <p class="text-rose-600 dark:text-rose-300 text-xs mt-1">{{ error }}</p>
@@ -49,74 +51,66 @@
           </button>
         </div>
 
-        <!-- Main Dashboard View -->
         <div v-else class="space-y-6">
-          <!-- KPI Metric Cards Grid -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Completed Deliveries -->
-            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl relative overflow-hidden group">
+            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden group">
               <div class="flex items-center justify-between">
-                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Completed</p>
-                <div class="p-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100 dark:border-blue-500/20">
-                  <span class="material-symbols-rounded text-xl">task_alt</span>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('completed', 'Completed') }}</p>
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <CheckCircle2 class="w-4 h-4" />
                 </div>
               </div>
               <div class="mt-3 flex items-baseline gap-2">
                 <span class="text-3xl font-extrabold text-slate-900 dark:text-white">{{ stats.todayDeliveries }}</span>
-                <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center">
-                  <span class="material-symbols-rounded text-sm">trending_up</span> Shift Total
-                </span>
               </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Successfully delivered</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('successfully_delivered', 'Successfully delivered') }}</p>
             </div>
 
-            <!-- Pending Pickup -->
-            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl relative overflow-hidden group">
+            <!-- Ready for Pickup -->
+            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden group">
               <div class="flex items-center justify-between">
-                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Pickup</p>
-                <div class="p-2.5 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-100 dark:border-amber-500/20">
-                  <span class="material-symbols-rounded text-xl">restaurant</span>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('ready_for_pickup', 'Ready for Pickup') }}</p>
+                <div class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                  <Clock class="w-4 h-4" />
                 </div>
               </div>
               <div class="mt-3 flex items-baseline gap-2">
                 <span class="text-3xl font-extrabold text-slate-900 dark:text-white">{{ stats.pendingDeliveries }}</span>
-                <span class="text-xs text-amber-600 dark:text-amber-400 font-semibold">Kitchen Ready</span>
               </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Awaiting waiter pickup</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('awaiting_waiter_pickup', 'Awaiting waiter pickup') }}</p>
             </div>
 
             <!-- On Delivery -->
-            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl relative overflow-hidden group">
+            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden group">
               <div class="flex items-center justify-between">
-                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">On Delivery</p>
-                <div class="p-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-500/20">
-                  <span class="material-symbols-rounded text-xl">local_shipping</span>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('on_delivery', 'On Delivery') }}</p>
+                <div class="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                  <Truck class="w-4 h-4" />
                 </div>
               </div>
               <div class="mt-3 flex items-baseline gap-2">
                 <span class="text-3xl font-extrabold text-slate-900 dark:text-white">{{ stats.onDelivery }}</span>
-                <span class="text-xs text-emerald-600 dark:text-emerald-400 font-semibold animate-pulse">En Route</span>
               </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Active room deliveries</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('active_room_deliveries', 'Active room deliveries') }}</p>
             </div>
 
             <!-- Avg Delivery Time -->
-            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl relative overflow-hidden group">
+            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden group">
               <div class="flex items-center justify-between">
-                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Avg Delivery Time</p>
-                <div class="p-2.5 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl border border-purple-100 dark:border-purple-500/20">
-                  <span class="material-symbols-rounded text-xl">timer</span>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('avg_delivery_time', 'Avg Delivery Time') }}</p>
+                <div class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                  <Timer class="w-4 h-4" />
                 </div>
               </div>
               <div class="mt-3 flex items-baseline gap-1">
                 <span class="text-3xl font-extrabold text-slate-900 dark:text-white">{{ stats.avgDeliveryTime }}</span>
                 <span class="text-sm font-bold text-slate-500 dark:text-slate-400">min</span>
               </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Target: &lt; 25 mins</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('target_delivery_time', 'Target: < 25 mins') }}</p>
             </div>
           </div>
 
-          <!-- Featured Active Delivery Tracker (If Any Delivery En-Route) -->
           <div v-if="activeDelivery" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div class="space-y-1">
@@ -137,63 +131,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Quick Navigation Shortcuts -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <router-link
-              to="/waiter/assigned-orders"
-              class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-4 rounded-xl shadow-xs hover:border-indigo-500 transition group flex items-center gap-3"
-            >
-              <div class="p-2.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg group-hover:scale-105 transition">
-                <span class="material-symbols-rounded">assignment</span>
-              </div>
-              <div>
-                <p class="text-xs font-bold text-slate-900 dark:text-white">Assigned</p>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400">View tasks</p>
-              </div>
-            </router-link>
-
-            <router-link
-              to="/waiter/ready-pickup"
-              class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-4 rounded-xl shadow-xs hover:border-amber-500 transition group flex items-center gap-3"
-            >
-              <div class="p-2.5 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg group-hover:scale-105 transition">
-                <span class="material-symbols-rounded">restaurant</span>
-              </div>
-              <div>
-                <p class="text-xs font-bold text-slate-900 dark:text-white">Kitchen Ready</p>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400">Pickup food</p>
-              </div>
-            </router-link>
-
-            <router-link
-              to="/waiter/on-delivery"
-              class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-4 rounded-xl shadow-xs hover:border-emerald-500 transition group flex items-center gap-3"
-            >
-              <div class="p-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg group-hover:scale-105 transition">
-                <span class="material-symbols-rounded">local_shipping</span>
-              </div>
-              <div>
-                <p class="text-xs font-bold text-slate-900 dark:text-white">On Delivery</p>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400">Active route</p>
-              </div>
-            </router-link>
-
-            <router-link
-              to="/waiter/completed-orders"
-              class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-4 rounded-xl shadow-xs hover:border-purple-500 transition group flex items-center gap-3"
-            >
-              <div class="p-2.5 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-lg group-hover:scale-105 transition">
-                <span class="material-symbols-rounded">check_circle</span>
-              </div>
-              <div>
-                <p class="text-xs font-bold text-slate-900 dark:text-white">Completed</p>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400">History log</p>
-              </div>
-            </router-link>
-          </div>
-
-          <!-- Recent Assignments Table -->
           <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
             <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div>
@@ -205,12 +142,17 @@
                 class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
               >
                 View All
-                <span class="material-symbols-rounded text-sm">arrow_forward</span>
+                <ArrowRight class="w-3.5 h-3.5" />
               </router-link>
             </div>
 
-            <div v-if="recentAssignments.length === 0" class="text-center py-12">
-              <span class="material-symbols-rounded text-4xl block mb-2 text-slate-400 dark:text-slate-600">inbox</span>
+            <div v-if="loading" class="text-center py-16 flex flex-col items-center justify-center gap-3">
+              <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+              <p class="text-slate-600 dark:text-slate-400 text-xs font-bold">Loading recent assignments...</p>
+            </div>
+
+            <div v-else-if="recentAssignments.length === 0" class="text-center py-12">
+              <Inbox class="w-10 h-10 text-slate-400 dark:text-slate-600 mx-auto mb-2" />
               <p class="text-slate-700 dark:text-slate-300 text-sm font-semibold">No recent assignments</p>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Check back later for new orders</p>
             </div>
@@ -259,23 +201,44 @@
                     <td class="px-4 py-3 text-right whitespace-nowrap">
                       <div class="relative inline-block text-left">
                         <button
+                          type="button"
                           @click.stop="toggleMenu(assignment.id)"
-                          class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center justify-center transition border border-slate-200 dark:border-slate-700"
+                          class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center justify-center transition border border-slate-200 dark:border-slate-700 cursor-pointer"
+                          :class="{ 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border-indigo-300': activeMenuId === String(assignment.id) }"
+                          title="Actions"
                         >
-                          <span class="material-symbols-rounded text-lg">more_vert</span>
+                          <MoreVertical class="w-4 h-4" />
                         </button>
 
                         <div
-                          v-if="activeMenuId === assignment.id"
+                          v-if="activeMenuId === String(assignment.id)"
                           @click.stop
-                          class="absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 py-1 text-left overflow-hidden"
+                          class="absolute right-0 top-9 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-50 p-1 text-left space-y-0.5"
                         >
+                          <button
+                            type="button"
+                            @click="openDetailsModal(assignment)"
+                            class="w-full px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2 rounded-lg transition cursor-pointer"
+                          >
+                            <Eye class="w-3.5 h-3.5 text-blue-500" />
+                            <span>{{ languageStore.t('quick_view', 'Quick View') }}</span>
+                          </button>
+
                           <router-link
                             to="/waiter/assigned-orders"
-                            class="w-full px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-600 flex items-center gap-2 transition"
+                            class="w-full px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-2 rounded-lg transition"
                           >
-                            <span class="material-symbols-rounded text-sm">visibility</span>
-                            View Details
+                            <ExternalLink class="w-3.5 h-3.5 text-indigo-500" />
+                            <span>{{ languageStore.t('all_assigned_orders', 'Assigned Orders') }}</span>
+                          </router-link>
+
+                          <router-link
+                            v-if="assignment.status === 'on_delivery' || assignment.status === 'picked_up'"
+                            to="/waiter/on-delivery"
+                            class="w-full px-3 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 flex items-center gap-2 rounded-lg transition"
+                          >
+                            <Truck class="w-3.5 h-3.5 text-emerald-500" />
+                            <span>{{ languageStore.t('delivery_tracker', 'Track Delivery') }}</span>
                           </router-link>
                         </div>
                       </div>
@@ -288,13 +251,88 @@
         </div>
       </div>
     </div>
+
+    <!-- Quick Order Details Modal -->
+    <div
+      v-if="showDetailModal && selectedOrder"
+      class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+      @click.self="showDetailModal = false"
+    >
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+        <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div class="flex items-center gap-2">
+            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('order_details', 'Order Details') }}</h3>
+            <span class="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">#{{ selectedOrder.order_number || selectedOrder.order_id || selectedOrder.id }}</span>
+          </div>
+          <button @click="showDetailModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg transition cursor-pointer">
+            <X class="w-4 h-4" />
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
+            <span class="text-slate-500 dark:text-slate-400">{{ languageStore.t('guest', 'Guest') }}:</span>
+            <span class="font-bold text-slate-900 dark:text-white">{{ selectedOrder.guest_name || 'Guest' }}</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
+            <span class="text-slate-500 dark:text-slate-400">{{ languageStore.t('room_table', 'Room / Table') }}:</span>
+            <span class="font-bold text-slate-900 dark:text-white">{{ selectedOrder.room_number ? 'Room ' + selectedOrder.room_number : 'N/A' }}</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
+            <span class="text-slate-500 dark:text-slate-400">{{ languageStore.t('status', 'Status') }}:</span>
+            <span class="font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">{{ selectedOrder.status || 'Assigned' }}</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
+            <span class="text-slate-500 dark:text-slate-400">{{ languageStore.t('items', 'Items') }}:</span>
+            <span class="font-bold text-slate-900 dark:text-white">{{ typeof selectedOrder.items === 'number' ? selectedOrder.items : (Array.isArray(selectedOrder.items) ? selectedOrder.items.length : 1) }} items</span>
+          </div>
+          <div v-if="selectedOrder.delivery_address || selectedOrder.address" class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
+            <span class="text-slate-500 dark:text-slate-400">{{ languageStore.t('address', 'Address') }}:</span>
+            <span class="font-bold text-slate-900 dark:text-white">{{ selectedOrder.delivery_address || selectedOrder.address }}</span>
+          </div>
+          <div v-if="selectedOrder.notes || selectedOrder.special_instructions" class="py-1.5 bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">{{ languageStore.t('notes', 'Notes') }}</span>
+            <p class="text-xs text-slate-700 dark:text-slate-300 font-medium">{{ selectedOrder.notes || selectedOrder.special_instructions }}</p>
+          </div>
+        </div>
+
+        <div class="pt-2 flex items-center justify-end gap-2">
+          <router-link
+            to="/waiter/assigned-orders"
+            class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition"
+          >
+            {{ languageStore.t('view_in_assigned', 'Full Management') }}
+          </router-link>
+        </div>
+      </div>
+    </div>
   </DashboardLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import waiterService from '@/services/waiterService'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
+import {
+  Building2,
+  Loader2,
+  MoreVertical,
+  Eye,
+  Truck,
+  ExternalLink,
+  X,
+  CheckCircle2,
+  Clock,
+  Timer,
+  RefreshCw,
+  ArrowRight,
+  Inbox
+} from 'lucide-vue-next'
+
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -307,9 +345,18 @@ const stats = ref({
 const recentAssignments = ref<any[]>([])
 const activeDelivery = ref<any | null>(null)
 const activeMenuId = ref<string | null>(null)
+const showDetailModal = ref(false)
+const selectedOrder = ref<any | null>(null)
 
-const toggleMenu = (id: string) => {
-  activeMenuId.value = activeMenuId.value === id ? null : id
+const toggleMenu = (id: string | number) => {
+  const key = String(id)
+  activeMenuId.value = activeMenuId.value === key ? null : key
+}
+
+const openDetailsModal = (order: any) => {
+  selectedOrder.value = order
+  showDetailModal.value = true
+  activeMenuId.value = null
 }
 
 const handleOutsideClick = () => {
@@ -321,15 +368,15 @@ const loadDashboard = async () => {
     loading.value = true
     error.value = null
 
-    const dashboardData = await waiterService.getDashboard()
+    const dashboardData = await waiterService.getDashboard({ hotel_id: hotelStore.hotelId })
 
     if (dashboardData && dashboardData.today_stats) {
       const ts = dashboardData.today_stats
       stats.value = {
-        todayDeliveries: ts.completed_deliveries || 8,
-        pendingDeliveries: ts.pending_assignments || 6,
-        onDelivery: ts.on_delivery_count || 2,
-        avgDeliveryTime: Math.round(ts.average_delivery_time || 16.5),
+        todayDeliveries: ts.completed_deliveries ?? 0,
+        pendingDeliveries: ts.pending_assignments ?? 0,
+        onDelivery: ts.on_delivery_count ?? 0,
+        avgDeliveryTime: Math.round(ts.average_delivery_time ?? 0),
       }
     }
 
@@ -347,6 +394,10 @@ const loadDashboard = async () => {
     loading.value = false
   }
 }
+
+watch(() => hotelStore.hotelId, () => {
+  loadDashboard()
+})
 
 onMounted(() => {
   loadDashboard()

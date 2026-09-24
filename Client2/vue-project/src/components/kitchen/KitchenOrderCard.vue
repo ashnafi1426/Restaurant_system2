@@ -8,14 +8,14 @@
         <div class="flex items-center gap-1 sm:gap-2 flex-wrap">
           <span
             v-if="order.priority"
-            class="text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-1.5 sm:px-2 py-0.5 rounded whitespace-nowrap"
+            class="text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:orange-900/20 px-1.5 sm:px-2 py-0.5 rounded whitespace-nowrap"
           >
-            PRIORITY
+            {{ languageStore.t('priority', 'PRIORITY') }}
           </span>
           <span
             class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap"
           >
-            ROOM {{ order.room }}
+            {{ languageStore.t('room', 'ROOM') }} {{ order.room }}
           </span>
           <span v-if="order.customer" class="text-xs text-gray-400 hidden sm:inline truncate"
             >• {{ order.customer }}</span
@@ -37,7 +37,6 @@
       </div>
     </div>
 
-    <!-- Order Items -->
     <div class="space-y-1 sm:space-y-2">
       <div v-for="(item, index) in order.items" :key="index" class="flex items-start gap-2">
         <span
@@ -56,7 +55,6 @@
       </div>
     </div>
 
-    <!-- Actions -->
     <div
       class="flex items-center gap-1 sm:gap-2 mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-gray-200 dark:border-gray-600 flex-wrap"
     >
@@ -66,7 +64,7 @@
           class="flex-1 min-w-[120px] inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition"
         >
           <CookingPot class="w-3 h-3 sm:w-4 sm:h-4" />
-          <span class="hidden sm:inline">START PREPARING</span><span class="sm:hidden">START</span>
+          <span class="hidden sm:inline">{{ languageStore.t('start_preparing', 'START PREPARING') }}</span><span class="sm:hidden">{{ languageStore.t('start', 'START') }}</span>
         </button>
       </template>
 
@@ -76,7 +74,7 @@
           class="flex-1 min-w-[120px] inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition"
         >
           <CheckCircle2 class="w-3 h-3 sm:w-4 sm:h-4" />
-          <span class="hidden sm:inline">MARK READY</span><span class="sm:hidden">READY</span>
+          <span class="hidden sm:inline">{{ languageStore.t('mark_ready', 'MARK READY') }}</span><span class="sm:hidden">{{ languageStore.t('ready', 'READY') }}</span>
         </button>
       </template>
 
@@ -86,7 +84,7 @@
           class="flex-1 min-w-[120px] inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition"
         >
           <CheckCircle2 class="w-3 h-3 sm:w-4 sm:h-4" />
-          <span class="hidden sm:inline">MARK SERVED</span><span class="sm:hidden">SERVED</span>
+          <span class="hidden sm:inline">{{ languageStore.t('mark_served', 'MARK SERVED') }}</span><span class="sm:hidden">{{ languageStore.t('serve', 'SERVED') }}</span>
         </button>
       </template>
 
@@ -101,6 +99,9 @@
 
 <script setup lang="ts">
 import { MoreVertical, CookingPot, CheckCircle2, Clock } from 'lucide-vue-next'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
 
 defineProps<{
   order: {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import DashboardLayout from '../../../layouts/DashboardLayout.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import UserForm from '../../../components/user/UserForm.vue'
 
 import { useUserStore } from '../../../stores/user'
@@ -25,7 +25,9 @@ const createUser = async (data: User) => {
     setTimeout(() => {
       router.push('/users')
     }, 2000)
-  } catch (error: any) {}
+  } catch (error: any) {
+    console.error('[CreateUser] Error creating user:', error)
+  }
 }
 </script>
 

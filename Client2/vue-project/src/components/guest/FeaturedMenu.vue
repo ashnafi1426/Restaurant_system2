@@ -25,8 +25,6 @@ const placeholderImage = 'https://images.unsplash.com/photo-1544025162-d76694265
 
 <template>
   <section v-if="items.length" class="mb-10">
-    <!-- Header -->
-
     <div class="flex items-center justify-between mb-6">
       <div>
         <h2 class="text-2xl font-bold text-slate-900">⭐ Chef's Recommendations</h2>
@@ -35,16 +33,12 @@ const placeholderImage = 'https://images.unsplash.com/photo-1544025162-d76694265
       </div>
     </div>
 
-    <!-- Cards -->
-
     <div class="flex gap-6 overflow-x-auto pb-3 snap-x snap-mandatory">
       <div
         v-for="item in items"
         :key="item.id"
         class="min-w-[330px] max-w-[330px] bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl transition duration-300 snap-start"
       >
-        <!-- Image -->
-
         <div class="relative h-56">
           <img :src="item.image || placeholderImage" class="w-full h-full object-cover" />
 
@@ -60,8 +54,6 @@ const placeholderImage = 'https://images.unsplash.com/photo-1544025162-d76694265
             ⭐ Chef Choice
           </div>
         </div>
-
-        <!-- Body -->
 
         <div class="p-6">
           <h3 class="text-xl font-bold text-slate-900">
@@ -79,9 +71,7 @@ const placeholderImage = 'https://images.unsplash.com/photo-1544025162-d76694265
 
             <span>
               ⏱
-
               {{ item.preparation_time || 20 }}
-
               mins
             </span>
           </div>
@@ -89,8 +79,7 @@ const placeholderImage = 'https://images.unsplash.com/photo-1544025162-d76694265
           <div class="flex items-center justify-between mt-6">
             <div>
               <p class="text-2xl font-bold text-teal-600">
-                {{ item.price }}
-
+                {{ (item.total_price != null ? Number(item.total_price).toFixed(2) : Number(item.price).toFixed(2)) }}
                 ETB
               </p>
             </div>

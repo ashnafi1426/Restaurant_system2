@@ -9,9 +9,6 @@ use Throwable;
 
 class FloorResolverService
 {
-    /**
-     * Safely determine the correct active HotelFloor from a given Room.
-     */
     public function resolveForRoom(?Room $room): ?HotelFloor
     {
         if (!$room) {

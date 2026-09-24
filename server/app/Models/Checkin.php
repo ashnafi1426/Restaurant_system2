@@ -28,12 +28,6 @@ class CheckIn extends Model
         'checked_out_at' => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
     public function reservation()
     {
         return $this->belongsTo(Reservation::class);
@@ -48,12 +42,6 @@ class CheckIn extends Model
     {
         return $this->belongsTo(Room::class);
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Helper Methods
-    |--------------------------------------------------------------------------
-    */
 
     public function isCheckedOut(): bool
     {

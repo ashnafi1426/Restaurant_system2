@@ -37,25 +37,16 @@ class ManagerNotification extends Model
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Get the manager for this notification
-     */
     public function manager(): BelongsTo
     {
         return $this->belongsTo(User::class, 'manager_id');
     }
 
-    /**
-     * Get the delivery task for this notification
-     */
     public function deliveryTask(): BelongsTo
     {
         return $this->belongsTo(DeliveryTask::class, 'delivery_task_id', 'id');
     }
 
-    /**
-     * Mark notification as read
-     */
     public function markAsRead(): void
     {
         $this->update([
@@ -64,26 +55,17 @@ class ManagerNotification extends Model
         ]);
     }
 
-    /**
-     * Scope: Get unread notifications
-     */
     public function scopeUnread($query)
     {
         return $query->where('is_read', false);
     }
 
-    /**
-     * Scope: Get urgent notifications
-     */
     public function scopeUrgent($query)
     {
         return $query->where('priority', 'urgent')
             ->orWhere('priority', 'high');
     }
 
-    /**
-     * Scope: Get active notifications (not expired)
-     */
     public function scopeActive($query)
     {
         return $query->where(function ($q) {
@@ -92,17 +74,11 @@ class ManagerNotification extends Model
         });
     }
 
-    /**
-     * Scope: Get notifications by type
-     */
     public function scopeByType($query, $type)
     {
         return $query->where('type', $type);
     }
 
-    /**
-     * Scope: Get recent notifications
-     */
     public function scopeRecent($query, $limit = 10)
     {
         return $query->orderBy('created_at', 'desc')->limit($limit);

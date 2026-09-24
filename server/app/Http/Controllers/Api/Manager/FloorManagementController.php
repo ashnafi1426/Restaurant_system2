@@ -10,17 +10,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-
 use Illuminate\Validation\Rule;
 
-/**
- * FloorManagementController
- * 
- * Handles hotel floor management:
- * - Create/Update floors
- * - Activate/Deactivate floors
- * - View floor details and statistics
- */
 class FloorManagementController extends Controller
 {
     protected FloorManagementService $floorService;
@@ -30,9 +21,6 @@ class FloorManagementController extends Controller
         $this->floorService = $floorService;
     }
 
-    /**
-     * Get active hotel ID for tenant scoping.
-     */
     protected function getHotelId(): ?string
     {
         $hotelId = request()->header('X-Hotel-ID')
@@ -50,11 +38,6 @@ class FloorManagementController extends Controller
         return $hotelId;
     }
 
-    /**
-     * Get all floors
-     * 
-     * GET /api/manager/floors
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -65,12 +48,10 @@ class FloorManagementController extends Controller
                 $query->where('hotel_id', $hotelId);
             }
 
-            // Filter by status
             if ($request->has('is_active')) {
                 $query->where('is_active', $request->boolean('is_active'));
             }
 
-            // Search by name or floor_number
             if ($request->has('search')) {
                 $search = $request->input('search');
                 $query->where(function($q) use ($search) {
@@ -107,11 +88,6 @@ class FloorManagementController extends Controller
         }
     }
 
-    /**
-     * Create new floor
-     * 
-     * POST /api/manager/floors
-     */
     public function store(Request $request): JsonResponse
     {
         try {
@@ -174,11 +150,6 @@ class FloorManagementController extends Controller
         }
     }
 
-    /**
-     * Get single floor details
-     * 
-     * GET /api/manager/floors/{id}
-     */
     public function show(HotelFloor $floor): JsonResponse
     {
         try {
@@ -197,11 +168,6 @@ class FloorManagementController extends Controller
         }
     }
 
-    /**
-     * Update floor
-     * 
-     * PUT /api/manager/floors/{id}
-     */
     public function update(Request $request, HotelFloor $floor): JsonResponse
     {
         try {
@@ -230,15 +196,9 @@ class FloorManagementController extends Controller
         }
     }
 
-    /**
-     * Delete floor
-     * 
-     * DELETE /api/manager/floors/{id}
-     */
     public function destroy(HotelFloor $floor): JsonResponse
     {
         try {
-            // Check if floor has active assignments
             $activeAssignments = $floor->assignments()->where('status', 'active')->count();
             if ($activeAssignments > 0) {
                 return response()->json([
@@ -265,11 +225,6 @@ class FloorManagementController extends Controller
         }
     }
 
-    /**
-     * Deactivate floor
-     * 
-     * PATCH /api/manager/floors/{id}/deactivate
-     */
     public function deactivate(HotelFloor $floor): JsonResponse
     {
         try {
@@ -288,11 +243,6 @@ class FloorManagementController extends Controller
         }
     }
 
-    /**
-     * Activate floor
-     * 
-     * PATCH /api/manager/floors/{id}/activate
-     */
     public function activate(HotelFloor $floor): JsonResponse
     {
         try {
@@ -311,11 +261,6 @@ class FloorManagementController extends Controller
         }
     }
 
-    /**
-     * Get floor statistics
-     * 
-     * GET /api/manager/floors/{id}/stats
-     */
     public function stats(HotelFloor $floor): JsonResponse
     {
         try {
@@ -334,11 +279,6 @@ class FloorManagementController extends Controller
         }
     }
 
-    /**
-     * Get all shifts
-     * 
-     * GET /api/manager/shifts
-     */
     public function shifts(Request $request): JsonResponse
     {
         try {

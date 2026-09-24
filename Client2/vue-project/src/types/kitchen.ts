@@ -10,35 +10,17 @@ export interface KitchenGuest {
   full_name: string
 }
 
-/*
-|--------------------------------------------------------------------------
-| Room
-|--------------------------------------------------------------------------
-*/
-
 export interface KitchenRoom {
   id: string
 
   room_number: string
 }
 
-/*
-|--------------------------------------------------------------------------
-| Reservation
-|--------------------------------------------------------------------------
-*/
-
 export interface KitchenReservation {
   id: string
 
   booking_reference: string
 }
-
-/*
-|--------------------------------------------------------------------------
-| Menu Item
-|--------------------------------------------------------------------------
-*/
 
 export interface KitchenMenuItem {
   id: string
@@ -59,12 +41,6 @@ export interface KitchenMenuItem {
 
   image?: string | null
 }
-
-/*
-|--------------------------------------------------------------------------
-| Kitchen Order
-|--------------------------------------------------------------------------
-*/
 
 export interface KitchenOrder {
   id: string
@@ -97,12 +73,6 @@ export interface KitchenOrder {
 
   updated_at: string
 }
-
-/*
-|--------------------------------------------------------------------------
-| Kitchen Statistics
-|--------------------------------------------------------------------------
-*/
 
 export interface KitchenStatistics {
   pending_orders: number

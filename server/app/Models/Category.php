@@ -29,51 +29,21 @@ class Category extends Model
         'display_order' => 'integer',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * A category has many menu items
-     */
     public function menuItems()
     {
         return $this->hasMany(MenuItem::class);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Query Scopes
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Active categories only
-     */
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
 
-    /**
-     * Order by display_order
-     */
     public function scopeOrdered($query)
     {
         return $query->orderBy('display_order', 'asc')->orderBy('name', 'asc');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Mutators
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Generate slug from name before saving
-     */
     protected static function booted()
     {
         static::creating(function ($category) {
@@ -89,9 +59,6 @@ class Category extends Model
         });
     }
 
-    /**
-     * Get menu items count
-     */
     public function getItemsCountAttribute()
     {
         return $this->menuItems()->count();

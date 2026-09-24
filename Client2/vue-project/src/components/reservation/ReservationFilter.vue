@@ -57,7 +57,6 @@ const reset = () => {
 
 <template>
   <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs">
-    <!-- Single Universal Search Bar -->
     <div class="relative flex items-center w-full">
       <div class="absolute left-4 text-purple-600 dark:text-purple-400 pointer-events-none">
         <Search class="w-5 h-5" />

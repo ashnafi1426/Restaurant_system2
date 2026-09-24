@@ -9,39 +9,8 @@ use App\Models\Guest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-/**
- * ============================================================================
- * PaymentService
- * ============================================================================
- * Handles payment-related business logic and operations
- * 
- * Responsibilities:
- * - Create payment records for reservations and orders
- * - Handle post-payment actions (create records in database)
- * - Calculate payment amounts
- * - Generate payment metadata
- * - Query and filter payments
- * ============================================================================
- */
 class PaymentService
 {
-    /**
-     * Create Payment for Reservation
-     * 
-     * Initiates a payment record for hotel reservation booking
-     * Does NOT create reservation record yet (happens after payment verification)
-     * 
-     * @param array $data - Payment data
-     *   - amount (required)
-     *   - first_name (required)
-     *   - last_name (required)
-     *   - email (required)
-     *   - phone (required)
-     *   - guest_id (optional)
-     * 
-     * @return Payment
-     * @throws \Exception
-     */
     public function createReservationPayment(array $data): Payment
     {
         try {
@@ -49,8 +18,7 @@ class PaymentService
             $metadata['type'] = 'reservation';
             $metadata['created_at'] = now()->toIso8601String();
             
-            // Ensure amount is properly formatted as integer for Chapa (smallest currency unit)
-            $amount = (int)($data['amount'] * 100) / 100; // Store as decimal with 2 places
+            $amount = (int)($data['amount'] * 100) / 100;
             
             Log::info('Creating Payment Record', [
                 'amount' => $amount,
@@ -96,37 +64,16 @@ class PaymentService
         }
     }
 
-    /**
-     * Create Payment for Guest Order (QR Ordering)
-     * 
-     * Initiates a payment record for guest restaurant order
-     * Does NOT create order record yet (happens after payment verification)
-     * 
-     * @param array $data - Payment data
-     *   - amount (required)
-     *   - first_name (required)
-     *   - last_name (required)
-     *   - email (required)
-     *   - phone (required)
-     *   - guest_id (required)
-     *   - room_id (optional)
-     * 
-     * @return Payment
-     * @throws \Exception
-     */
     public function createOrderPayment(array $data): Payment
     {
         try {
-            //  PRESERVE ALL METADATA - especially items and calculation arrays
             $metadata = $data['metadata'] ?? [];
             
-            // Only add/override specific fields without destroying existing data
             $metadata['type'] = 'order';
             $metadata['room_id'] = $data['room_id'] ?? ($metadata['room_id'] ?? null);
             $metadata['created_at'] = now()->toIso8601String();
-            
-            //  Log to verify items are being saved
-            Log::info('💾 [PAYMENT] Creating order payment with metadata', [
+
+            Log::info('[PAYMENT] Creating order payment with metadata', [
                 'has_items' => isset($metadata['items']),
                 'items_count' => isset($metadata['items']) ? count($metadata['items']) : 0,
                 'has_calculation' => isset($metadata['calculation']),
@@ -147,7 +94,6 @@ class PaymentService
                 'metadata'         => $metadata,
             ]);
 
-            //  Verify metadata was saved correctly
             $savedMetadata = $payment->fresh()->metadata;
             Log::info(' [PAYMENT] Order Payment Created', [
                 'payment_id' => $payment->id,
@@ -169,29 +115,12 @@ class PaymentService
         }
     }
 
-    /**
-     * Handle Successful Reservation Payment
-     * 
-     * Called after payment is verified as successful.
-     * Creates the actual Reservation record in database.
-     * 
-     * Transaction ensures atomicity - if reservation creation fails,
-     * payment status is NOT marked as verified.
-     * 
-     * @param Payment $payment
-     * @param array $reservationData
-     * 
-     * @return array - ['success' => bool, 'reservation' => Reservation, 'message' => string]
-     */
     public function handleReservationPaymentSuccess(Payment $payment, array $reservationData): array
     {
         try {
-            // Start database transaction
             $reservation = DB::transaction(function () use ($payment, $reservationData) {
                 $hotelId = $payment->hotel_id ?? ($payment->metadata['hotel_id'] ?? null) ?? ($reservationData['hotel_id'] ?? null);
 
-                // Create reservation record with 'pending' status
-                // Receptionist needs to confirm before it becomes 'confirmed'
                 $reservation = Reservation::create([
                     'hotel_id'          => $hotelId,
                     'booking_reference' => Reservation::generateBookingReference(),
@@ -202,19 +131,17 @@ class PaymentService
                     'number_of_guests'  => $reservationData['number_of_guests'],
                     'status'            => 'pending',
                     'special_requests'  => $reservationData['special_requests'] ?? null,
-                    'total_amount'      => $payment->amount, // ← ADD PAYMENT AMOUNT
+                    'total_amount'      => $payment->amount,
                     'created_by'        => auth()->id() ?? null,
                 ]);
 
-                // Link payment to reservation
                 $payment->update(['reservation_id' => $reservation->id]);
 
-                // Log the creation
                 Log::info('Reservation Created After Payment', [
                     'payment_id'     => $payment->id,
                     'reservation_id' => $reservation->id,
                     'guest_id'       => $reservationData['guest_id'],
-                    'total_amount'   => $payment->amount, // ← LOG AMOUNT
+                    'total_amount'   => $payment->amount,
                 ]);
 
                 return $reservation;
@@ -240,15 +167,14 @@ class PaymentService
         }
     }
 
-
     public function handleOrderPaymentSuccess(Payment $payment, array $orderData, array $orderItems): array
     {
         try {
-            // Start database transaction
+            $order = DB::transaction(function () use ($payment, $orderData, $orderItems) {
                 $roomId = $orderData['room_id'] ?? null;
-                $room = $roomId ? Room::find($roomId) : null;
+                $room = $roomId ? \App\Models\Room::find($roomId) : null;
                 $hotelId = $payment->hotel_id 
-                    ?? $room?->hotel_id 
+                    ?? ($room ? $room->hotel_id : null) 
                     ?? ($payment->metadata['hotel_id'] ?? null)
                     ?? ($orderData['hotel_id'] ?? null)
                     ?? app(\App\Services\TenantContext::class)->getHotelId();
@@ -257,45 +183,49 @@ class PaymentService
                     app(\App\Services\TenantContext::class)->setHotelId($hotelId);
                 }
 
-                // Create order record
-                $order = Order::create([
-                    'hotel_id'        => $hotelId,
-                    'order_number'    => Order::generateOrderNumber(),
-                    'guest_id'        => $orderData['guest_id'],
-                    'room_id'         => $orderData['room_id'] ?? null,
-                    'order_time'      => now(),
-                    'status'          => Order::STATUS_PENDING,
-                    'source'          => 'guest_qr',
-                    'payment_type'    => 'chapa',
-                    'subtotal'        => $orderData['subtotal'] ?? $payment->amount,
-                    'tax'             => $orderData['tax'] ?? 0,
-                    'discount'        => $orderData['discount'] ?? 0,
-                    'total'           => $payment->amount,
-                    'notes'           => $orderData['notes'] ?? null,
+                $createdOrder = Order::create([
+                    'hotel_id'         => $hotelId,
+                    'order_number'     => Order::generateOrderNumber(),
+                    'guest_id'         => $orderData['guest_id'],
+                    'room_id'          => $orderData['room_id'] ?? null,
+                    'order_time'       => now(),
+                    'status'           => Order::STATUS_PENDING,
+                    'source'           => 'guest_qr',
+                    'payment_type'     => 'chapa',
+                    'subtotal'         => $orderData['subtotal'] ?? $payment->amount,
+                    'tax'              => $orderData['tax'] ?? 0,
+                    'discount'         => $orderData['discount'] ?? 0,
+                    'total'            => $payment->amount,
+                    'notes'            => $orderData['notes'] ?? null,
                     'special_requests' => $orderData['special_requests'] ?? null,
                 ]);
+
                 foreach ($orderItems as $item) {
-                    $order->orderItems()->create([
-                        'menu_item_id' => $item['menu_item_id'],
-                        'quantity'     => $item['quantity'],
-                        'price'        => $item['price'],
+                    $createdOrder->orderItems()->create([
+                        'menu_item_id'         => $item['menu_item_id'],
+                        'quantity'             => $item['quantity'],
+                        'price'                => $item['price'],
                         'special_instructions' => $item['special_instructions'] ?? null,
                     ]);
                 }
 
-                // Link payment to order
-                $payment->update(['order_id' => $order->id]);
+                $payment->update(['order_id' => $createdOrder->id]);
 
-                // Log the creation
                 Log::info('Order Created After Payment', [
                     'payment_id' => $payment->id,
-                    'order_id'   => $order->id,
+                    'order_id'   => $createdOrder->id,
                     'guest_id'   => $orderData['guest_id'],
                     'total'      => $payment->amount,
                 ]);
 
-                return $order;
+                return $createdOrder;
             });
+
+            try {
+                app(\App\Services\Waiter\AutomaticWaiterAssignmentService::class)->assignWaiterToReadyOrder($order);
+            } catch (\Throwable $assignErr) {
+                Log::warning('Automatic waiter assignment after payment failed: ' . $assignErr->getMessage());
+            }
 
             return [
                 'success' => true,
@@ -317,21 +247,11 @@ class PaymentService
         }
     }
 
-    /**
-     * Get Payment Statistics
-     * 
-     * Returns payment metrics and statistics
-     * 
-     * @param array $filters - Filter options (date range, status, provider, etc.)
-     * 
-     * @return array
-     */
     public function getStatistics(array $filters = []): array
     {
         try {
             $query = Payment::query();
 
-            // Apply filters
             if (!empty($filters['from_date']) && !empty($filters['to_date'])) {
                 $query->whereBetween('created_at', [
                     $filters['from_date'],
@@ -370,13 +290,6 @@ class PaymentService
         }
     }
 
-    /**
-     * Generate Payment Reference for Display
-     * 
-     * @param Payment $payment
-     * 
-     * @return string
-     */
     public function generatePaymentReference(Payment $payment): string
     {
         return sprintf(

@@ -8,43 +8,19 @@ import type {
   PaginatedTablesResponse
 } from '@/types/restaurantTable'
 
-/**
- * Restaurant Table Service - Manager API calls for table management
- */
 export const restaurantTableService = {
-  /**
-   * Get list of restaurant tables with pagination and filtering
-   */
   async getTables(filters?: TableFilters): Promise<{ success: boolean; data: PaginatedTablesResponse }> {
-    console.log(' [SERVICE] getTables START')
-    console.log(' [SERVICE] axios imported:', typeof axios, axios.name)
-    console.log(' [SERVICE] axios.get:', typeof axios.get)
-
     try {
-      console.log(' [SERVICE] Calling axios.get with URL: /manager/restaurant-tables')
-      console.log(' [SERVICE] With filters:', filters)
-
       const response = await axios.get('/manager/restaurant-tables', { params: filters })
-
-      console.log(' [SERVICE] Response received!')
-      console.log(' [SERVICE] Response status:', response.status)
-      console.log(' [SERVICE] Response data:', response.data)
-
       return response.data
     } catch (error) {
-      console.error(' [SERVICE] Error caught:', error)
+      console.error('[RestaurantTableService] Error fetching tables:', error)
       throw error
     }
   },
 
-  /**
-   * Get all restaurant tables without pagination (for dropdowns)
-   */
   async getAllTables(): Promise<RestaurantTable[]> {
-    console.log(' [SERVICE] getAllTables START')
-
     try {
-      // Request with high per_page to get all tables
       const response = await axios.get('/manager/restaurant-tables', {
         params: {
           per_page: 1000,
@@ -52,52 +28,33 @@ export const restaurantTableService = {
         }
       })
 
-      console.log(' [SERVICE] Full Response:', JSON.stringify(response, null, 2))
-      console.log(' [SERVICE] Response data:', response.data)
-      console.log(' [SERVICE] Response data.data:', response.data?.data)
-      console.log(' [SERVICE] Response data.data.data:', response.data?.data?.data)
-
-      // Extract tables array from paginated response
       if (response.data?.success && response.data?.data) {
-        // Paginated response: data.data is pagination object with data.data.data being array
         if (response.data.data.data && Array.isArray(response.data.data.data)) {
-          console.log(' [SERVICE]  Found tables in data.data.data:', response.data.data.data.length)
           return response.data.data.data
         }
-        // Direct array
         else if (Array.isArray(response.data.data)) {
-          console.log(' [SERVICE]  Found tables in data.data (array):', response.data.data.length)
           return response.data.data
         }
       }
 
-      console.warn(' [SERVICE]  Unexpected response structure - returning empty array')
       return []
     } catch (error: any) {
-      console.error(' [SERVICE]  Error caught:', error)
-      console.error(' [SERVICE] Error response:', error.response)
-      console.error(' [SERVICE] Error response data:', error.response?.data)
+      console.error('[RestaurantTableService] Error fetching all tables:', error)
       throw error
     }
   },
 
-  /**
-   * Get single restaurant table by ID
-   */
   async getTableById(id: string): Promise<{ success: boolean; data: RestaurantTable }> {
     const response = await axios.get(`/manager/restaurant-tables/${id}`)
     return response.data
   },
 
-  /**
-   * Create new restaurant table
-   */
   async createTable(data: CreateTableRequest): Promise<{ success: boolean; message: string; data: RestaurantTable }> {
     try {
       const response = await axios.post('/manager/restaurant-tables', data)
       return response.data
     } catch (error: any) {
-      // Re-throw with validation errors attached
+      console.error('[RestaurantTableService] Error creating table:', error)
       if (error.response?.data?.errors) {
         const err: any = new Error(error.response.data.message || 'Validation failed')
         err.errors = error.response.data.errors
@@ -108,9 +65,6 @@ export const restaurantTableService = {
     }
   },
 
-  /**
-   * Update existing restaurant table
-   */
   async updateTable(
     id: string,
     data: UpdateTableRequest
@@ -119,17 +73,11 @@ export const restaurantTableService = {
     return response.data
   },
 
-  /**
-   * Delete restaurant table (soft delete)
-   */
   async deleteTable(id: string): Promise<{ success: boolean; message: string }> {
     const response = await axios.delete(`/manager/restaurant-tables/${id}`)
     return response.data
   },
 
-  /**
-   * Regenerate QR code for a table
-   */
   async regenerateQR(id: string): Promise<{
     success: boolean
     message: string
@@ -144,24 +92,16 @@ export const restaurantTableService = {
     return response.data
   },
 
-  /**
-   * Get table statistics
-   */
   async getStatistics(): Promise<{ success: boolean; data: TableStatistics }> {
     const response = await axios.get('/manager/restaurant-tables/statistics')
     return response.data
   },
 
-  /**
-   * Download QR code image as PNG file attachment using backend endpoint
-   */
   async downloadQRCode(table: any): Promise<void> {
     if (!table || !table.id) return
     const fileName = `Table_${table.table_number}_QR.png`
 
     try {
-      console.log('📥 Downloading QR code for table:', table.table_number, table.id)
-      // Primary Method: Call backend endpoint via authorized axios client
       const response = await axios.get(`/manager/restaurant-tables/${table.id}/download-qr`, {
         responseType: 'blob',
       })
@@ -176,7 +116,7 @@ export const restaurantTableService = {
       document.body.removeChild(link)
       setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000)
     } catch (err) {
-      console.warn('API download endpoint failed, attempting canvas fallback download:', err)
+      console.error('[RestaurantTableService] Download QR API failed, attempting canvas fallback:', err)
       if (table.qr_code_url) {
         const img = new Image()
         img.crossOrigin = 'anonymous'

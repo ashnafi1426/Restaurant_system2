@@ -10,8 +10,10 @@ import RecentReservations from '@/components/reception/RecentReservations.vue'
 import { getReceptionDashboard } from '@/services/receptionService'
 import type { ReceptionDashboardData } from '@/types/reception'
 import { LogIn, CalendarPlus, RefreshCw, AlertCircle } from 'lucide-vue-next'
+import { useLanguageStore } from '@/stores/language'
 
 const router = useRouter()
+const languageStore = useLanguageStore()
 const dashboard = ref<ReceptionDashboardData | null>(null)
 const loading = ref(false)
 const errorOccurred = ref(false)
@@ -49,14 +51,14 @@ onMounted(loadDashboard)
         <div>
           <div class="flex items-center gap-2">
             <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Receptionist Front Desk
+              {{ languageStore.t('receptionist_front_desk', 'Receptionist Front Desk') }}
             </h1>
             <span class="px-2.5 py-0.5 text-xs font-black rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              LIVE SYSTEM
+              {{ languageStore.t('live_system', 'LIVE SYSTEM') }}
             </span>
           </div>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Real-time property occupancy, guest arrivals, and check-in management.
+            {{ languageStore.t('receptionist_desc', 'Real-time property occupancy, guest arrivals, and check-in management.') }}
           </p>
         </div>
 
@@ -69,7 +71,7 @@ onMounted(loadDashboard)
             title="Refresh Data"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-            <span>Refresh</span>
+            <span>{{ languageStore.t('refresh', 'Refresh') }}</span>
           </button>
 
           <button
@@ -77,7 +79,7 @@ onMounted(loadDashboard)
             class="px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer"
           >
             <CalendarPlus class="w-4 h-4" />
-            <span>+ New Booking</span>
+            <span>{{ languageStore.t('new_booking', '+ New Booking') }}</span>
           </button>
 
           <button
@@ -85,7 +87,7 @@ onMounted(loadDashboard)
             class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer"
           >
             <LogIn class="w-4 h-4" />
-            <span>Quick Check-In</span>
+            <span>{{ languageStore.t('quick_check_in', 'Quick Check-In') }}</span>
           </button>
         </div>
       </div>

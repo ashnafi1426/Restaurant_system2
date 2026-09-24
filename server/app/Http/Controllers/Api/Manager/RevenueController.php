@@ -7,11 +7,6 @@ use App\Services\Manager\ManagerDashboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * Manager Revenue Controller
- * 
- * Handles all revenue tracking and analysis
- */
 class RevenueController extends Controller
 {
     protected ManagerDashboardService $dashboardService;
@@ -21,9 +16,6 @@ class RevenueController extends Controller
         $this->dashboardService = $dashboardService;
     }
 
-    /**
-     * Get revenue summary
-     */
     public function summary(Request $request): JsonResponse
     {
         try {
@@ -41,9 +33,6 @@ class RevenueController extends Controller
         }
     }
 
-    /**
-     * Get revenue chart data
-     */
     public function chart(Request $request): JsonResponse
     {
         try {

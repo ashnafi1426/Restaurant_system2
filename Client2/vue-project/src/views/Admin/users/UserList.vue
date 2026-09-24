@@ -5,12 +5,14 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import UserTable from '../../../components/user/UserTable.vue'
 import { useUserStore } from '../../../stores/user'
 import { useHotelStore } from '../../../stores/hotelStore'
-import { Users, UserCheck, UserX } from 'lucide-vue-next'
+import { useLanguageStore } from '../../../stores/language'
+import { Users, UserCheck, UserX, Building2 } from 'lucide-vue-next'
 import type { User } from '@/types/user'
 
 const router = useRouter()
 const userStore = useUserStore()
 const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
 
 onMounted(async () => {
   await userStore.fetchUsers()
@@ -38,7 +40,7 @@ const editUser = (user: User) => {
 }
 
 const deleteUser = async (user: User) => {
-  if (confirm(`Are you sure you want to delete ${user.first_name || 'this user'}?`)) {
+  if (confirm(languageStore.t('delete_user_confirm', `Are you sure you want to delete ${user.first_name || 'this user'}?`))) {
     await userStore.deleteUser(String(user.id))
   }
 }
@@ -54,8 +56,18 @@ const refresh = async () => {
       <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs">
         <div>
-          <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">User & Staff Management</h1>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage system accounts, staff roles, and department access.</p>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+              {{ languageStore.t('user_staff_management', 'User & Staff Management') }}
+            </h1>
+            <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+              <Building2 class="w-3 h-3" />
+              {{ hotelStore.hotelName }}
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            {{ languageStore.t('user_staff_desc', 'Manage system accounts, staff roles, and department access.') }}
+          </p>
         </div>
       </div>
 
@@ -64,7 +76,9 @@ const refresh = async () => {
         <!-- Total Users -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Total Staff</p>
+            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">
+              {{ languageStore.t('total_staff', 'Total Staff') }}
+            </p>
             <h2 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">{{ totalUsers }}</h2>
           </div>
           <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -75,7 +89,9 @@ const refresh = async () => {
         <!-- Active Users -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Active Accounts</p>
+            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">
+              {{ languageStore.t('active_accounts', 'Active Accounts') }}
+            </p>
             <h2 class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ activeUsers }}</h2>
           </div>
           <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -86,7 +102,9 @@ const refresh = async () => {
         <!-- Inactive Users -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center justify-between">
           <div>
-            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Inactive Accounts</p>
+            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">
+              {{ languageStore.t('inactive_accounts', 'Inactive Accounts') }}
+            </p>
             <h2 class="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ inactiveUsers }}</h2>
           </div>
           <div class="p-3 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400">

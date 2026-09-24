@@ -22,14 +22,6 @@ class GuestBookingController extends Controller
         $this->tenantContext = $tenantContext;
     }
 
-    /**
-     * Check room availability for given date range and guest count.
-     * 
-     * POST /guest/bookings/check-availability
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function checkAvailability(Request $request)
     {
         try {
@@ -38,7 +30,6 @@ class GuestBookingController extends Controller
                 'hotel_id' => $this->tenantContext->getHotelId(),
             ]);
 
-            // Validate input
             $validated = $request->validate([
                 'check_in_date' => 'required|date_format:Y-m-d|after_or_equal:today',
                 'check_out_date' => 'required|date_format:Y-m-d|after:check_in_date',
@@ -69,15 +60,12 @@ class GuestBookingController extends Controller
                 ], 401);
             }
 
-            // Query available rooms scoped to current hotel
-            // Rooms with BelongsToTenant trait will auto-scope to hotel_id
             $availableRooms = Room::where('hotel_id', $hotelId)
                 ->where('is_active', true)
                 ->where('status', 'available')
                 ->with('roomType')
                 ->get()
                 ->filter(function ($room) use ($checkInDate, $checkOutDate) {
-                    // Check if room has any overlapping reservations
                     $hasConflict = Reservation::where('room_id', $room->id)
                         ->whereIn('status', ['confirmed', 'checked_in', 'pending'])
                         ->where(function ($query) use ($checkInDate, $checkOutDate) {
@@ -141,15 +129,6 @@ class GuestBookingController extends Controller
         }
     }
 
-    /**
-     * Get room details by room ID.
-     * 
-     * GET /guest/bookings/rooms/{roomId}
-     * 
-     * @param string $roomId
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function getRoomDetails($roomId, Request $request)
     {
         try {
@@ -169,7 +148,6 @@ class GuestBookingController extends Controller
                 ], 401);
             }
 
-            // Query room and verify it belongs to the current hotel
             $room = Room::where('id', $roomId)
                 ->where('hotel_id', $hotelId)
                 ->with('roomType')
@@ -234,14 +212,6 @@ class GuestBookingController extends Controller
         }
     }
 
-    /**
-     * Create a new booking.
-     * 
-     * POST /guest/bookings
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function createBooking(Request $request)
     {
         try {
@@ -249,7 +219,6 @@ class GuestBookingController extends Controller
                 'hotel_id' => $this->tenantContext->getHotelId(),
             ]);
 
-            // Validate input
             $validated = $request->validate([
                 'guest_info' => 'required|array',
                 'guest_info.first_name' => 'required|string|min:2|max:100',
@@ -289,7 +258,6 @@ class GuestBookingController extends Controller
                 ], 401);
             }
 
-            // Verify room belongs to the current hotel and eagerly load roomType
             $room = Room::where('id', $validated['room_id'])
                 ->where('hotel_id', $hotelId)
                 ->with('roomType')
@@ -307,7 +275,6 @@ class GuestBookingController extends Controller
                 ], 404);
             }
 
-            // Verify room type belongs to the current hotel
             if ($room->roomType && $room->roomType->hotel_id !== $hotelId) {
                 Log::warning('[GUEST BOOKING] RoomType hotel mismatch', [
                     'room_id' => $room->id,
@@ -322,7 +289,6 @@ class GuestBookingController extends Controller
                 ], 409);
             }
 
-            // Check availability
             $hasConflict = Reservation::where('room_id', $room->id)
                 ->whereIn('status', ['confirmed', 'checked_in', 'pending'])
                 ->where(function ($query) use ($validated) {
@@ -348,9 +314,7 @@ class GuestBookingController extends Controller
                 ], 409);
             }
 
-            // Use transaction for consistency
             return DB::transaction(function () use ($validated, $room, $hotelId) {
-                // Create or update guest
                 $guest = Guest::where('hotel_id', $hotelId)
                     ->where('email', $validated['guest_info']['email'])
                     ->first();
@@ -376,14 +340,12 @@ class GuestBookingController extends Controller
                     ]);
                 }
 
-                // Calculate stay details
                 $checkInDate = new \DateTime($validated['check_in_date']);
                 $checkOutDate = new \DateTime($validated['check_out_date']);
                 $stayDuration = $checkOutDate->diff($checkInDate)->days;
                 $roomPrice = $room->roomType ? (float) $room->roomType->price : 0;
                 $totalPrice = $stayDuration * $roomPrice;
 
-                // Create reservation
                 $reservation = Reservation::create([
                     'hotel_id' => $hotelId,
                     'booking_reference' => Reservation::generateBookingReference(),
@@ -445,15 +407,6 @@ class GuestBookingController extends Controller
         }
     }
 
-    /**
-     * Get booking status by booking reference.
-     * 
-     * GET /guest/bookings/{bookingReference}
-     * 
-     * @param string $bookingReference
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function getBookingStatus($bookingReference, Request $request)
     {
         try {
@@ -473,7 +426,6 @@ class GuestBookingController extends Controller
                 ], 401);
             }
 
-            // Query reservation scoped to current hotel
             $reservation = Reservation::where('hotel_id', $hotelId)
                 ->where('booking_reference', $bookingReference)
                 ->with(['guest', 'room'])
@@ -529,15 +481,6 @@ class GuestBookingController extends Controller
         }
     }
 
-    /**
-     * Cancel a booking.
-     * 
-     * POST /guest/bookings/{bookingReference}/cancel
-     * 
-     * @param string $bookingReference
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function cancelBooking($bookingReference, Request $request)
     {
         try {
@@ -546,7 +489,6 @@ class GuestBookingController extends Controller
                 'hotel_id' => $this->tenantContext->getHotelId(),
             ]);
 
-            // Validate input
             $validated = $request->validate([
                 'cancellation_reason' => 'nullable|string|max:500',
             ]);
@@ -562,7 +504,6 @@ class GuestBookingController extends Controller
                 ], 401);
             }
 
-            // Query reservation scoped to current hotel
             $reservation = Reservation::where('hotel_id', $hotelId)
                 ->where('booking_reference', $bookingReference)
                 ->first();
@@ -579,7 +520,6 @@ class GuestBookingController extends Controller
                 ], 404);
             }
 
-            // Check if booking can be cancelled
             if (!$reservation->canCancel()) {
                 Log::warning('[GUEST BOOKING] Booking cannot be cancelled', [
                     'booking_reference' => $bookingReference,
@@ -592,27 +532,23 @@ class GuestBookingController extends Controller
                 ], 422);
             }
 
-            // Check 48-hour cancellation window
             $hoursUntilCheckIn = now()->diffInHours($reservation->check_in_date, false);
             if ($hoursUntilCheckIn < 48 && $hoursUntilCheckIn > 0) {
                 Log::warning('[GUEST BOOKING] Cancellation within 48-hour window', [
                     'booking_reference' => $bookingReference,
                     'hours_until_checkin' => $hoursUntilCheckIn,
                 ]);
-                // Still allow cancellation but log the late cancellation
                 Log::info('[GUEST BOOKING] Late cancellation allowed', [
                     'booking_reference' => $bookingReference,
                     'hours_until_checkin' => $hoursUntilCheckIn,
                 ]);
             }
 
-            // Update reservation status
             $reservation->update([
                 'status' => 'cancelled',
                 'cancelled_at' => now(),
             ]);
 
-            // Log cancellation reason
             Log::info('[GUEST BOOKING] Booking cancelled successfully', [
                 'booking_reference' => $bookingReference,
                 'cancellation_reason' => $validated['cancellation_reason'] ?? 'Not provided',

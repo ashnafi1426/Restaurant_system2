@@ -42,9 +42,6 @@ export interface PaginatedResponse<T> {
 }
 
 class WaiterManagementService {
-  /**
-   * Get all waiters with pagination and filters
-   */
   async getWaiters(params?: {
     page?: number
     per_page?: number
@@ -53,7 +50,6 @@ class WaiterManagementService {
     availability?: string
   }): Promise<PaginatedResponse<Waiter>> {
     const response = await api.get('/manager/waiters', { params })
-    // Handle both direct data array and nested data structure
     const data = response.data.data || response.data
     const paginationData = response.data.pagination || {
       total: (Array.isArray(data) ? data.length : 0),
@@ -68,17 +64,11 @@ class WaiterManagementService {
     }
   }
 
-  /**
-   * Get single waiter details
-   */
   async getWaiter(waiterId: string): Promise<Waiter> {
     const response = await api.get(`/manager/waiters/${waiterId}`)
     return response.data.data
   }
 
-  /**
-   * Register new waiter
-   */
   async registerWaiter(data: {
     first_name: string
     last_name: string
@@ -95,9 +85,6 @@ class WaiterManagementService {
     return response.data.data
   }
 
-  /**
-   * Update waiter information
-   */
   async updateWaiter(
     waiterId: string,
     data: {
@@ -112,25 +99,16 @@ class WaiterManagementService {
     return response.data.data
   }
 
-  /**
-   * Deactivate waiter
-   */
   async deactivateWaiter(waiterId: string): Promise<Waiter> {
     const response = await api.patch(`/manager/waiters/${waiterId}/deactivate`)
     return response.data.data
   }
 
-  /**
-   * Reactivate waiter
-   */
   async reactivateWaiter(waiterId: string): Promise<Waiter> {
     const response = await api.patch(`/manager/waiters/${waiterId}/reactivate`)
     return response.data.data
   }
 
-  /**
-   * Suspend waiter
-   */
   async suspendWaiter(waiterId: string, reason: string): Promise<Waiter> {
     const response = await api.patch(`/manager/waiters/${waiterId}/suspend`, {
       reason,
@@ -138,9 +116,6 @@ class WaiterManagementService {
     return response.data.data
   }
 
-  /**
-   * Change waiter availability
-   */
   async changeAvailability(
     waiterId: string,
     availability: 'available' | 'busy' | 'break' | 'offline'
@@ -151,17 +126,11 @@ class WaiterManagementService {
     return response.data.data
   }
 
-  /**
-   * Get waiter statistics
-   */
   async getWaiterStats(waiterId: string): Promise<WaiterStats> {
     const response = await api.get(`/manager/waiters/${waiterId}/stats`)
     return response.data.data
   }
 
-  /**
-   * Delete waiter
-   */
   async deleteWaiter(waiterId: string): Promise<void> {
     await api.delete(`/manager/waiters/${waiterId}`)
   }

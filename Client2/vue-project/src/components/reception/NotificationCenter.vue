@@ -8,24 +8,21 @@ const notificationStore = useNotificationStore()
 const isOpen = ref(false)
 const showDropdown = ref(false)
 
-// Close dropdown when clicking outside
 const closeDropdown = () => {
   showDropdown.value = false
 }
 
-// Get notification icon based on type
 const getNotificationIcon = (type: string) => {
   const icons: Record<string, string> = {
     booking: '📅',
     check_in: '🔓',
     check_out: '🚪',
     cancellation: '',
-    system: 'ℹ️',
+    system: '',
   }
   return icons[type] || '📬'
 }
 
-// Get notification color based on type
 const getNotificationColor = (type: string) => {
   const colors: Record<string, string> = {
     booking: 'bg-blue-50 border-blue-200 text-blue-900',
@@ -37,7 +34,6 @@ const getNotificationColor = (type: string) => {
   return colors[type] || 'bg-white border-gray-200 text-gray-900'
 }
 
-// Format date
 const formatDate = (date: string | undefined) => {
   if (!date) return ''
   const d = new Date(date)
@@ -49,68 +45,53 @@ const formatDate = (date: string | undefined) => {
   })
 }
 
-// Handle mark as read
 const handleMarkAsRead = async (notificationId: string | undefined) => {
   if (notificationId) {
-    console.log(' [UI] Mark as read clicked for:', notificationId)
     try {
       await notificationStore.markNotificationAsRead(notificationId)
-      console.log(' [UI] Mark as read successful')
     } catch (error) {
-      console.error(' [UI] Error marking as read:', error)
+      console.error('[NotificationCenter] Error marking notification as read:', error)
     }
   }
 }
 
-// Handle delete
 const handleDelete = async (notificationId: string | undefined) => {
   if (notificationId) {
-    console.log('🗑️ [UI] Delete clicked for:', notificationId)
     try {
       await notificationStore.deleteNotification(notificationId)
-      console.log('🗑️ [UI] Delete successful')
     } catch (error) {
-      console.error('🗑️ [UI] Error deleting:', error)
+      console.error('[NotificationCenter] Error deleting notification:', error)
     }
   }
 }
 
-// Handle clear all
 const handleClearAll = async () => {
-  console.log('🗑️ [UI] Clear all clicked')
   try {
     await notificationStore.clearAllNotifications()
-    console.log('🗑️ [UI] Clear all successful')
   } catch (error) {
-    console.error('🗑️ [UI] Error clearing all:', error)
+    console.error('[NotificationCenter] Error clearing notifications:', error)
   }
 }
 
-// Handle mark all read
 const handleMarkAllRead = async () => {
-  console.log('✓ [UI] Mark all read clicked')
   try {
     await notificationStore.markAllAsRead()
-    console.log('✓ [UI] Mark all read successful')
   } catch (error) {
-    console.error('✓ [UI] Error marking all read:', error)
+    console.error('[NotificationCenter] Error marking all notifications as read:', error)
   }
 }
 
-// Start polling on mount (only for receptionist, not for manager)
 onMounted(async () => {
   const { useAuthStore } = await import('@/stores/auth')
   const auth = useAuthStore()
   
   await notificationStore.fetchNotifications()
   
-  // Only enable polling for receptionist role (manager has different notification handling)
   if (auth.user?.role === 'receptionist') {
-    notificationStore.startPolling(5000) // Poll every 5 seconds
+    notificationStore.startPolling(5000)
   }
 })
 
-// Stop polling on unmount
 onUnmounted(() => {
   notificationStore.stopPolling()
 })
@@ -118,7 +99,6 @@ onUnmounted(() => {
 
 <template>
   <div class="relative">
-    <!-- Notification Bell Button -->
     <button
       @click="showDropdown = !showDropdown"
       class="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-all"
@@ -126,7 +106,6 @@ onUnmounted(() => {
     >
       <Bell class="w-6 h-6" />
 
-      <!-- Unread Badge -->
       <span
         v-if="notificationStore.unreadCount > 0"
         class="absolute top-0 right-0 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full"
@@ -135,7 +114,6 @@ onUnmounted(() => {
       </span>
     </button>
 
-    <!-- Notification Dropdown Panel -->
     <div
       v-if="showDropdown"
       @click.self="closeDropdown"
@@ -147,7 +125,6 @@ onUnmounted(() => {
       v-show="showDropdown"
       class="absolute right-0 mt-2 w-96 bg-white dark:bg-slate-800 rounded-lg shadow-2xl border border-gray-200 dark:border-slate-700 z-50 overflow-hidden max-h-[600px] flex flex-col"
     >
-      <!-- Header -->
       <div
         class="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-900 dark:to-blue-800 text-white px-4 py-3 flex items-center justify-between flex-shrink-0"
       >
@@ -166,14 +143,11 @@ onUnmounted(() => {
         </button>
       </div>
 
-      <!-- Notifications List -->
       <div class="overflow-y-auto flex-1">
-        <!-- Loading State -->
         <div v-if="notificationStore.loading" class="p-4 space-y-3">
           <div v-for="i in 3" :key="i" class="h-20 bg-gray-200 dark:bg-slate-700 rounded-lg animate-pulse" />
         </div>
 
-        <!-- Empty State -->
         <div
           v-else-if="notificationStore.notifications.length === 0"
           class="flex flex-col items-center justify-center py-12 px-4"
@@ -182,7 +156,6 @@ onUnmounted(() => {
           <p class="text-gray-500 dark:text-slate-400 text-sm">No notifications yet</p>
         </div>
 
-        <!-- Notifications -->
         <div v-else class="divide-y divide-gray-200 dark:divide-slate-700">
           <div
             v-for="notification in notificationStore.notifications"
@@ -199,12 +172,10 @@ onUnmounted(() => {
             @click="handleMarkAsRead(notification.id)"
           >
             <div class="flex items-start gap-3">
-              <!-- Icon -->
               <div class="text-2xl flex-shrink-0">
                 {{ getNotificationIcon(notification.type) }}
               </div>
 
-              <!-- Content -->
               <div class="flex-1 min-w-0">
                 <div class="flex items-start justify-between gap-2">
                   <div>
@@ -215,7 +186,6 @@ onUnmounted(() => {
                       {{ notification.message }}
                     </p>
 
-                    <!-- Additional Info -->
                     <div
                       v-if="notification.guest_name || notification.room_number"
                       class="mt-2 flex flex-wrap gap-2"
@@ -240,7 +210,6 @@ onUnmounted(() => {
                       </span>
                     </div>
 
-                    <!-- Dates -->
                     <div
                       v-if="notification.check_in_date || notification.check_out_date"
                       class="mt-2 flex flex-wrap gap-2 text-xs text-gray-500 dark:text-slate-500"
@@ -254,19 +223,16 @@ onUnmounted(() => {
                     </div>
                   </div>
 
-                  <!-- Unread Indicator -->
                   <div
                     v-if="!notification.read"
                     class="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-1.5"
                   />
                 </div>
 
-                <!-- Timestamp -->
                 <p class="text-xs text-gray-500 dark:text-slate-500 mt-2">
                   {{ formatDate(notification.created_at) }}
                 </p>
 
-                <!-- Actions -->
                 <div class="flex gap-2 mt-3">
                   <button
                     v-if="!notification.read"
@@ -290,7 +256,6 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Footer -->
       <div
         v-if="notificationStore.notifications.length > 0"
         class="border-t border-gray-200 dark:border-slate-700 px-4 py-3 bg-gray-50 dark:bg-slate-700/50 flex gap-2 justify-between flex-shrink-0"
@@ -313,7 +278,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Smooth scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -331,7 +295,6 @@ onUnmounted(() => {
   background: #94a3b8;
 }
 
-/* Dark mode scrollbar */
 :root.dark ::-webkit-scrollbar-thumb {
   background: #475569;
 }

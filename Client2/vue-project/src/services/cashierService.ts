@@ -37,10 +37,6 @@ export async function getRefundRequests() {
   return response.data
 }
 
-// ============================================================================
-// Payments
-// ============================================================================
-
 export interface PaymentFilters {
   search?: string
   status?: string
@@ -98,7 +94,6 @@ export async function getRefundReport(filters?: ReportFilters) {
 }
 
 export default {
-  // Dashboard
   getDashboardStats,
   getRecentPayments,
   getPendingPayments,
@@ -107,12 +102,10 @@ export default {
   getPaymentMethodChart,
   getRefundRequests,
 
-  // Payments
   getPayments,
   getPaymentById,
   refundPayment,
 
-  // Reports
   getRevenueReport,
   getPaymentReport,
   getRefundReport,

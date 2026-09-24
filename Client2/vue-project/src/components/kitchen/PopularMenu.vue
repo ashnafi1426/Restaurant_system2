@@ -3,7 +3,7 @@
     <div class="border-b border-slate-200 dark:border-slate-800 px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50 dark:bg-slate-800/80">
       <div class="flex items-center gap-2">
         <TrendingUp class="w-5 h-5 text-amber-500" />
-        <h2 class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">Popular Today</h2>
+        <h2 class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">{{ languageStore.t('popular_today', 'Popular Today') }}</h2>
       </div>
     </div>
 
@@ -14,7 +14,6 @@
           :key="index"
           class="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-2.5 sm:p-3 hover:shadow-md transition"
         >
-          <!-- Image -->
           <div class="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
             <img
               v-if="item.image"
@@ -30,7 +29,6 @@
               <Utensils class="w-4 h-4" />
             </div>
 
-            <!-- Item Info -->
             <div class="flex-1 min-w-0">
               <p class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm truncate">
                 {{ item.name }}
@@ -39,15 +37,14 @@
             </div>
           </div>
 
-          <!-- Count -->
           <div class="text-right flex-shrink-0 ml-2">
             <p class="text-base sm:text-lg font-black text-amber-600 dark:text-amber-400">{{ item.orders }}</p>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold hidden sm:block uppercase">Orders</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold hidden sm:block uppercase">{{ languageStore.t('orders', 'Orders') }}</p>
           </div>
         </div>
       </div>
       <div v-else class="text-center py-6 sm:py-8 text-slate-400 dark:text-slate-600">
-        <p class="text-xs sm:text-sm font-medium">No order data yet</p>
+        <p class="text-xs sm:text-sm font-medium">{{ languageStore.t('no_order_data_yet', 'No order data yet') }}</p>
       </div>
     </div>
   </div>
@@ -56,16 +53,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useKitchenStore } from '@/stores/kitchenStore'
+import { useLanguageStore } from '@/stores/language'
 import { storeToRefs } from 'pinia'
 import { TrendingUp, Utensils } from 'lucide-vue-next'
 
 const kitchenStore = useKitchenStore()
+const languageStore = useLanguageStore()
 const { orders } = storeToRefs(kitchenStore)
 
-/**
- * Calculate popular items from actual orders with real images
- * Groups items by name and counts occurrences, uses image from first occurrence
- */
 const popularItems = computed(() => {
   const itemCount: Record<
     string,
@@ -80,7 +75,7 @@ const popularItems = computed(() => {
             name: item.name,
             category: item.category || 'Unknown',
             orders: 0,
-            image: item.image || null, // Use actual image from backend
+            image: item.image || null,
           }
         }
         itemCount[item.name].orders += item.quantity || 1
@@ -88,15 +83,11 @@ const popularItems = computed(() => {
     })
   })
 
-  // Return top 3 items by order count
   return Object.values(itemCount)
     .sort((a, b) => b.orders - a.orders)
     .slice(0, 3)
 })
 
-/**
- * Handle image load errors - show placeholder
- */
 function handleImageError(event: Event) {
   const img = event.target as HTMLImageElement
   img.style.display = 'none'

@@ -18,14 +18,8 @@ use Illuminate\Support\Str;
 
 class PasswordResetController extends Controller
 {
-    /**
-     * Send password reset link email.
-     * 
-     * POST /api/forgot-password
-     */
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
-        // Rate limiting: 3 attempts per hour per email
         $key = 'forgot-password:' . $request->email;
         
         if (RateLimiter::tooManyAttempts($key, 3)) {
@@ -38,12 +32,11 @@ class PasswordResetController extends Controller
             ], 429);
         }
         
-        RateLimiter::hit($key, 3600); // 1 hour
+        RateLimiter::hit($key, 3600);
         
         try {
             $user = User::where('email', $request->email)->first();
             
-            // Check if user needs activation first
             if ($user->needsActivation()) {
                 return response()->json([
                     'success' => false,
@@ -52,22 +45,15 @@ class PasswordResetController extends Controller
                 ], 400);
             }
             
-            // Create password reset token
             $token = Str::random(60);
-            
-            // Delete any existing tokens for this email
             DB::table('password_reset_tokens')
                 ->where('email', $request->email)
                 ->delete();
-            
-            // Insert new token
             DB::table('password_reset_tokens')->insert([
                 'email' => $request->email,
                 'token' => Hash::make($token),
                 'created_at' => now()
             ]);
-            
-            // Send password reset email
             Mail::to($user->email)->send(new PasswordResetMail($user, $token));
             
             Log::info('Password reset email sent', [
@@ -92,6 +78,7 @@ class PasswordResetController extends Controller
             ], 500);
         }
     }
+
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
         $key = 'reset-password:' . $request->ip();
@@ -103,11 +90,9 @@ class PasswordResetController extends Controller
         }
         RateLimiter::hit($key, 60);
         try {
-            // Find password reset record
             $resetRecord = DB::table('password_reset_tokens')
                 ->where('email', $request->email)
                 ->first();
-            
             if (!$resetRecord) {
                 return response()->json([
                     'success' => false,
@@ -115,8 +100,6 @@ class PasswordResetController extends Controller
                     'error_type' => 'invalid_token'
                 ], 400);
             }
-            
-            // Verify token
             if (!Hash::check($request->token, $resetRecord->token)) {
                 return response()->json([
                     'success' => false,
@@ -124,11 +107,8 @@ class PasswordResetController extends Controller
                     'error_type' => 'invalid_token'
                 ], 400);
             }
-            
-            // Check if token is expired (60 minutes)
             $tokenAge = now()->diffInMinutes($resetRecord->created_at);
             if ($tokenAge > 60) {
-                // Delete expired token
                 DB::table('password_reset_tokens')
                     ->where('email', $request->email)
                     ->delete();
@@ -139,15 +119,10 @@ class PasswordResetController extends Controller
                     'error_type' => 'expired'
                 ], 400);
             }
-            
-            // Find user and update password
             $user = User::where('email', $request->email)->first();
-            
             $user->update([
                 'password_hash' => Hash::make($request->password)
             ]);
-            
-            // Delete the used token
             DB::table('password_reset_tokens')
                 ->where('email', $request->email)
                 ->delete();
@@ -175,11 +150,6 @@ class PasswordResetController extends Controller
         }
     }
 
-    /**
-     * Verify password reset token.
-     * 
-     * POST /api/verify-reset-token
-     */
     public function verifyToken(Request $request): JsonResponse
     {
         $request->validate([
@@ -197,8 +167,6 @@ class PasswordResetController extends Controller
                 'message' => 'Invalid token'
             ], 400);
         }
-        
-        // Check expiration
         $tokenAge = now()->diffInMinutes($resetRecord->created_at);
         if ($tokenAge > 60) {
             return response()->json([

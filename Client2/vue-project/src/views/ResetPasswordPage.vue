@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+  <div class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4 font-sans">
     <div class="w-full max-w-md">
       <!-- Success State -->
       <div v-if="resetSuccess" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 text-center">
@@ -11,17 +11,17 @@
           </div>
         </div>
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Password Reset Successfully!
+          {{ languageStore.t('password_reset_success_title', 'Password Reset Successfully!') }}
         </h2>
         <p class="text-gray-600 dark:text-gray-400 mb-6">
-          Your password has been updated. You can now log in with your new password.
+          {{ languageStore.t('password_reset_success_desc', 'Your password has been updated. You can now log in with your new password.') }}
         </p>
         
         <button
           @click="router.push('/login')"
-          class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
+          class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 cursor-pointer"
         >
-          Continue to Login
+          {{ languageStore.t('continue_to_login', 'Continue to Login') }}
         </button>
       </div>
 
@@ -35,10 +35,10 @@
             </svg>
           </div>
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Create New Password
+            {{ languageStore.t('create_new_password', 'Create New Password') }}
           </h1>
           <p class="text-gray-600 dark:text-gray-400 text-sm">
-            Please enter your new password below
+            {{ languageStore.t('enter_new_password_below', 'Please enter your new password below') }}
           </p>
         </div>
 
@@ -61,20 +61,20 @@
           <!-- Password Field -->
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              New Password
+              {{ languageStore.t('new_password', 'New Password') }}
             </label>
             <div class="relative">
               <input
                 v-model="form.password"
                 :type="showPassword ? 'text' : 'password'"
-                placeholder="Enter new password"
+                :placeholder="languageStore.t('new_password', 'Enter new password')"
                 class="w-full px-4 py-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 :class="{ 'border-red-500': errors.password }"
               />
               <button
                 type="button"
                 @click="showPassword = !showPassword"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
               >
                 <svg v-if="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -93,20 +93,20 @@
           <!-- Confirm Password Field -->
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Confirm New Password
+              {{ languageStore.t('confirm_new_password', 'Confirm New Password') }}
             </label>
             <div class="relative">
               <input
                 v-model="form.passwordConfirmation"
                 :type="showPasswordConfirmation ? 'text' : 'password'"
-                placeholder="Confirm new password"
+                :placeholder="languageStore.t('confirm_new_password', 'Confirm new password')"
                 class="w-full px-4 py-3 pr-10 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                 :class="{ 'border-red-500': errors.passwordConfirmation }"
               />
               <button
                 type="button"
                 @click="showPasswordConfirmation = !showPasswordConfirmation"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
               >
                 <svg v-if="showPasswordConfirmation" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -126,7 +126,7 @@
           <div v-if="form.password" class="mb-6">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Password Strength:
+                {{ languageStore.t('password_strength', 'Password Strength:') }}
               </span>
               <span
                 class="text-sm font-semibold"
@@ -137,7 +137,7 @@
                   'text-green-600': passwordStrength.color === 'green'
                 }"
               >
-                {{ passwordStrength.label }}
+                {{ localizedStrengthLabel }}
               </span>
             </div>
             <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -152,73 +152,22 @@
                 :style="{ width: `${(passwordStrength.score / 5) * 100}%` }"
               ></div>
             </div>
-            <ul v-if="passwordStrength.feedback.length > 0" class="mt-2 space-y-1">
-              <li
-                v-for="(feedback, index) in passwordStrength.feedback"
-                :key="index"
-                class="text-xs text-gray-600 dark:text-gray-400 flex items-center"
-              >
-                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                </svg>
-                {{ feedback }}
-              </li>
-            </ul>
-          </div>
-
-          <!-- Requirements List -->
-          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-            <h3 class="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">
-              Password Requirements:
-            </h3>
-            <ul class="space-y-1 text-xs text-blue-800 dark:text-blue-300">
-              <li class="flex items-center">
-                <svg class="w-3 h-3 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
-                Minimum 8 characters
-              </li>
-              <li class="flex items-center">
-                <svg class="w-3 h-3 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
-                At least one uppercase letter
-              </li>
-              <li class="flex items-center">
-                <svg class="w-3 h-3 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
-                At least one lowercase letter
-              </li>
-              <li class="flex items-center">
-                <svg class="w-3 h-3 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
-                At least one number
-              </li>
-              <li class="flex items-center">
-                <svg class="w-3 h-3 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
-                At least one special character (!@#$%^&*)
-              </li>
-            </ul>
           </div>
 
           <!-- Submit Button -->
           <button
             type="submit"
             :disabled="resetting"
-            class="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
+            class="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 cursor-pointer"
           >
             <span v-if="resetting" class="flex items-center justify-center">
               <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Resetting Password...
+              {{ languageStore.t('updating', 'Resetting Password...') }}
             </span>
-            <span v-else>Reset Password</span>
+            <span v-else>{{ languageStore.t('update_password', 'Reset Password') }}</span>
           </button>
         </form>
 
@@ -231,7 +180,7 @@
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Back to Login
+            {{ languageStore.t('back_to_login', 'Back to Login') }}
           </router-link>
         </div>
       </div>
@@ -243,10 +192,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePasswordResetStore } from '../stores/passwordResetStore'
+import { useLanguageStore } from '@/stores/language'
 
 const route = useRoute()
 const router = useRouter()
 const passwordResetStore = usePasswordResetStore()
+const languageStore = useLanguageStore()
 
 const form = ref({
   password: '',
@@ -269,6 +220,14 @@ const email = ref(route.query.email as string)
 
 const passwordStrength = computed(() => {
   return passwordResetStore.checkPasswordStrength(form.value.password)
+})
+
+const localizedStrengthLabel = computed(() => {
+  const lbl = passwordStrength.value.label?.toLowerCase() || ''
+  if (lbl.includes('weak')) return languageStore.t('weak', 'Weak')
+  if (lbl.includes('medium')) return languageStore.t('medium', 'Medium')
+  if (lbl.includes('strong')) return languageStore.t('strong', 'Strong')
+  return passwordStrength.value.label
 })
 
 const validateForm = (): boolean => {
@@ -348,11 +307,5 @@ onMounted(async () => {
     error.value = 'Invalid reset link. Missing required parameters.'
     return
   }
-
-  // Optionally verify token is valid before showing form
-  // const result = await passwordResetStore.verifyToken(email.value, token.value)
-  // if (!result.success) {
-  //   error.value = result.message
-  // }
 })
 </script>

@@ -12,34 +12,23 @@ use Illuminate\Support\Str;
 
 class ActivationService
 {
-    /**
-     * Generate and send activation email for a new user.
-     *
-     * @param User $user
-     * @return array
-     */
     public function generateActivationToken(User $user): array
     {
         try {
-            // Generate UUID token
             $token = Str::uuid()->toString();
             
-            // Set expiration (24 hours from now)
             $expiresAt = Carbon::now()->addHours(24);
             
-            // Update user with activation token
             $user->update([
                 'activation_token' => $token,
                 'activation_token_expires_at' => $expiresAt,
                 'activation_status' => 'pending',
-                'password_hash' => null, // Ensure no password set
+                'password_hash' => null,
                 'email_verified_at' => null
             ]);
             
-            // Send activation email
             $this->sendActivationEmail($user, $token);
             
-            // Log the action
             Log::info('Activation token generated', [
                 'user_id' => $user->id,
                 'email' => $user->email,
@@ -65,12 +54,6 @@ class ActivationService
         }
     }
 
-    /**
-     * Validate activation token.
-     *
-     * @param string $token
-     * @return array
-     */
     public function validateToken(string $token): array
     {
         $user = User::where('activation_token', $token)->first();
@@ -83,7 +66,6 @@ class ActivationService
             ];
         }
         
-        // Check if already activated
         if ($user->activation_status === 'activated') {
             return [
                 'valid' => false,
@@ -93,7 +75,6 @@ class ActivationService
             ];
         }
         
-        // Check if token expired
         if (Carbon::now()->isAfter($user->activation_token_expires_at)) {
             $user->update(['activation_status' => 'expired']);
             
@@ -111,16 +92,8 @@ class ActivationService
         ];
     }
 
-    /**
-     * Activate user account with password.
-     *
-     * @param string $token
-     * @param string $password
-     * @return array
-     */
     public function activateAccount(string $token, string $password): array
     {
-        // Validate token first
         $validation = $this->validateToken($token);
         
         if (!$validation['valid']) {
@@ -130,7 +103,6 @@ class ActivationService
         $user = $validation['user'];
         
         try {
-            // Set password and activate account
             $user->update([
                 'password_hash' => Hash::make($password),
                 'activation_token' => null,
@@ -140,7 +112,6 @@ class ActivationService
                 'is_active' => true
             ]);
             
-            // If user is a waiter, activate their waiter status as well
             if ($user->role === 'waiter' && $user->waiter) {
                 $user->waiter->update([
                     'status' => 'active'
@@ -152,7 +123,6 @@ class ActivationService
                 ]);
             }
             
-            // Log successful activation
             Log::info('Account activated successfully', [
                 'user_id' => $user->id,
                 'email' => $user->email,
@@ -178,12 +148,6 @@ class ActivationService
         }
     }
 
-    /**
-     * Resend activation email.
-     *
-     * @param string $email
-     * @return array
-     */
     public function resendActivation(string $email): array
     {
         $user = User::where('email', $email)->first();
@@ -195,7 +159,6 @@ class ActivationService
             ];
         }
         
-        // Check if already activated
         if ($user->activation_status === 'activated') {
             return [
                 'success' => false,
@@ -203,17 +166,9 @@ class ActivationService
             ];
         }
         
-        // Generate new token
         return $this->generateActivationToken($user);
     }
 
-    /**
-     * Send activation email to user.
-     *
-     * @param User $user
-     * @param string $token
-     * @return void
-     */
     private function sendActivationEmail(User $user, string $token): void
     {
         try {
@@ -233,12 +188,6 @@ class ActivationService
         }
     }
 
-    /**
-     * Check if user needs activation.
-     *
-     * @param User $user
-     * @return bool
-     */
     public function needsActivation(User $user): bool
     {
         return $user->activation_status === 'pending' || 

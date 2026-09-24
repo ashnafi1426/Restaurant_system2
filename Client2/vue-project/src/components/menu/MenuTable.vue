@@ -1,26 +1,40 @@
 <template>
   <div class="w-full">
-    <!-- Desktop Table View (md and above) -->
+    <!-- Loading State Spinner -->
     <div
-      class="hidden md:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden"
+      v-if="loading"
+      class="py-20 px-4 text-center flex flex-col items-center justify-center space-y-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs"
     >
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
-            <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-              <th class="py-3 px-4 pl-5 whitespace-nowrap">Item Name</th>
-              <th class="py-3 px-4 whitespace-nowrap">Category</th>
-              <th class="py-3 px-4 whitespace-nowrap font-mono">Price</th>
-              <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
-              <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs font-medium text-slate-600 dark:text-slate-300">
-            <tr
-              v-for="item in items"
-              :key="item.id"
-              class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
-            >
+      <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+      <div class="space-y-0.5">
+        <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200">Loading Menu Items...</p>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400">Fetching dishes, prices, and kitchen availability</p>
+      </div>
+    </div>
+
+    <!-- Loaded Content -->
+    <template v-else>
+      <!-- Desktop Table View (md and above) -->
+      <div
+        class="hidden md:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden"
+      >
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+              <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">Item Name</th>
+                <th class="py-3 px-4 whitespace-nowrap">Category</th>
+                <th class="py-3 px-4 whitespace-nowrap font-mono">Price</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <tr
+                v-for="item in items"
+                :key="item.id"
+                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+              >
               <!-- Item Name & Thumbnail -->
               <td class="py-3 px-4 pl-5 flex items-center gap-3">
                 <div class="relative flex-shrink-0">
@@ -51,15 +65,22 @@
                   {{ getCategoryName(item.category) }}
                 </span>
               </td>
-              <!-- Price -->
-              <td
-                class="py-3 px-4 align-middle font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm tracking-wide font-mono"
-              >
-                ${{
-                  typeof item.price === 'number'
-                    ? item.price.toFixed(2)
-                    : parseFloat(item.price || 0).toFixed(2)
-                }}
+              <!-- Price with Tax -->
+              <td class="py-3 px-4 align-middle font-mono">
+                <div class="font-black text-slate-900 dark:text-white text-xs sm:text-sm tracking-wide">
+                  ${{ (item.total_price !== undefined ? item.total_price : Number(item.price)).toFixed(2) }}
+                </div>
+                <div v-if="item.tax_rate && Number(item.tax_rate.rate) > 0" class="text-[10px] font-sans font-medium text-slate-400 dark:text-slate-500">
+                  <span v-if="item.tax_included" class="text-emerald-600 dark:text-emerald-400 font-semibold">
+                    Incl. {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
+                  </span>
+                  <span v-else>
+                    ${{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% tax
+                  </span>
+                </div>
+                <div v-else class="text-[10px] font-sans text-slate-400">
+                  No Tax
+                </div>
               </td>
               <!-- Status -->
               <td class="py-3 px-4 align-middle text-center whitespace-nowrap">
@@ -231,11 +252,10 @@
                     {{ item.name }}
                   </div>
                   <div class="text-xs text-slate-400 font-medium truncate">
-                    Price: ${{
-                      typeof item.price === 'number'
-                        ? item.price.toFixed(2)
-                        : parseFloat(item.price || 0).toFixed(2)
-                    }}
+                    Total: <span class="font-bold text-slate-900">${{ (item.total_price !== undefined ? item.total_price : Number(item.price)).toFixed(2) }}</span>
+                    <span v-if="item.tax_rate && Number(item.tax_rate.rate) > 0" class="text-[10px] text-slate-400 ml-1">
+                      ({{ item.tax_included ? 'Tax Incl.' : `+$${(item.tax_amount || 0).toFixed(2)} tax` }})
+                    </span>
                   </div>
                 </div>
               </td>
@@ -413,13 +433,14 @@
                 >
                   {{ getCategoryName(item.category) }}
                 </span>
-                <span class="font-black text-slate-900 text-sm font-mono">
-                  ${{
-                    typeof item.price === 'number'
-                      ? item.price.toFixed(2)
-                      : parseFloat(item.price || 0).toFixed(2)
-                  }}
-                </span>
+                <div class="flex flex-col items-end">
+                  <span class="font-black text-slate-900 text-sm font-mono">
+                    ${{ (item.total_price !== undefined ? item.total_price : Number(item.price)).toFixed(2) }}
+                  </span>
+                  <span v-if="item.tax_rate && Number(item.tax_rate.rate) > 0" class="text-[9px] text-slate-400">
+                    {{ item.tax_included ? 'Tax Incl.' : `+$${(item.tax_amount || 0).toFixed(2)} tax` }}
+                  </span>
+                </div>
               </div>
             </div>
             <!-- Three-Dot Menu Button -->
@@ -548,11 +569,13 @@
         </div>
       </div>
     </div>
-  </div>
+  </template>
+</div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { Loader2 } from 'lucide-vue-next'
 import type { MenuItem } from '@/types/menu'
 
 defineProps<{
@@ -562,9 +585,9 @@ defineProps<{
 
 defineEmits(['edit', 'delete', 'toggle'])
 
-const activeMenuId = ref<number | null>(null)
+const activeMenuId = ref<string | number | null>(null)
 
-function toggleRowMenu(id: number) {
+function toggleRowMenu(id: string | number) {
   activeMenuId.value = activeMenuId.value === id ? null : id
 }
 

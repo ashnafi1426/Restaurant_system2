@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Star, Quote } from 'lucide-vue-next'
+import { useLanguageStore } from '@/stores/language'
+import { useGuestHotelStore } from '@/stores/guestHotelStore'
+
+const languageStore = useLanguageStore()
+const guestHotelStore = useGuestHotelStore()
 
 interface Testimonial {
   id: string
@@ -48,15 +53,15 @@ const testimonials: Testimonial[] = [
       <!-- Header -->
       <div class="mx-auto max-w-3xl text-center space-y-3">
         <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-          Guest Reviews
+          {{ languageStore.t('guest_reviews', 'Guest Reviews') }}
         </span>
 
         <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
-          What Our Guests Say
+          {{ languageStore.t('what_guests_say', 'What Our Guests Say') }}
         </h2>
 
         <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
-          Read real reviews from international travelers who experienced the luxury of Grand Horizon Hotel.
+          {{ languageStore.t('what_guests_say_desc', 'Read real reviews from international travelers who experienced the luxury of ' + guestHotelStore.hotelName + '.') }}
         </p>
       </div>
 

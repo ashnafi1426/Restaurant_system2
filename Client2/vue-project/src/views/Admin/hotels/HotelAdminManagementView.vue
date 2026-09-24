@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import { platformService, type Hotel } from '@/services/platformService'
@@ -19,7 +19,13 @@ import {
   X,
   Copy,
   ExternalLink,
-  Send
+  Send,
+  Filter,
+  Minimize2,
+  Maximize2,
+  RotateCcw,
+  Loader2,
+  MoreVertical
 } from 'lucide-vue-next'
 
 interface AdminItem {
@@ -48,10 +54,28 @@ const admins = ref<AdminItem[]>([])
 const hotels = ref<Hotel[]>([])
 const loading = ref(true)
 const saving = ref(false)
+const isFilterOpen = ref(false)
+const isFullscreen = ref(false)
 const searchQuery = ref('')
 const selectedHotelId = ref('all')
+const selectedStatus = ref('all')
 const successMessage = ref('')
 const errorMessage = ref('')
+const copied = ref(false)
+
+const toggleFilter = () => {
+  isFilterOpen.value = !isFilterOpen.value
+}
+
+const toggleFullscreen = () => {
+  isFullscreen.value = !isFullscreen.value
+}
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  selectedHotelId.value = 'all'
+  selectedStatus.value = 'all'
+}
 
 // Pagination
 const currentPage = ref(1)
@@ -92,10 +116,22 @@ const loadAdmins = async () => {
     lastPage.value = res.last_page || 1
     totalAdmins.value = res.total || 0
   } catch (err: any) {
+    console.error('[HotelAdminManagement] Load admins error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to load hotel administrators.'
   } finally {
     loading.value = false
   }
+}
+
+const activeMenu = ref<string | null>(null)
+
+const toggleMenu = (id: string, event?: Event) => {
+  if (event) event.stopPropagation()
+  activeMenu.value = activeMenu.value === id ? null : id
+}
+
+const handleOutsideClick = () => {
+  activeMenu.value = null
 }
 
 const loadHotels = async () => {
@@ -110,6 +146,11 @@ const loadHotels = async () => {
 onMounted(() => {
   loadAdmins()
   loadHotels()
+  window.addEventListener('click', handleOutsideClick)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', handleOutsideClick)
 })
 
 watch([searchQuery, selectedHotelId], () => {
@@ -151,6 +192,7 @@ const handleCreateAdmin = async () => {
     await loadAdmins()
     setTimeout(() => { successMessage.value = '' }, 5000)
   } catch (err: any) {
+    console.error('[HotelAdminManagement] Create admin error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to create hotel administrator.'
   } finally {
     saving.value = false
@@ -167,6 +209,7 @@ const handleResetPassword = async (admin: AdminItem) => {
     successMessage.value = res.message || `New system temporary password generated and emailed to ${admin.user.email}.`
     setTimeout(() => { successMessage.value = '' }, 5000)
   } catch (err: any) {
+    console.error('[HotelAdminManagement] Reset password error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to generate temporary password.'
   } finally {
     saving.value = false
@@ -183,6 +226,7 @@ const handleResendPasswordByEmail = async (admin: AdminItem) => {
     successMessage.value = res.message || `Temporary password sent to ${admin.user.email}!`
     setTimeout(() => { successMessage.value = '' }, 5000)
   } catch (err: any) {
+    console.error('[HotelAdminManagement] Resend password error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to resend password by email.'
   } finally {
     saving.value = false
@@ -196,6 +240,7 @@ const handleToggleStatus = async (admin: AdminItem) => {
     successMessage.value = res.message || 'Status updated successfully.'
     setTimeout(() => { successMessage.value = '' }, 3000)
   } catch (err: any) {
+    console.error('[HotelAdminManagement] Toggle status error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to toggle status.'
   }
 }
@@ -231,24 +276,6 @@ const copyToClipboard = (text: string) => {
           </div>
         </div>
 
-        <div class="flex items-center gap-2.5">
-          <button
-            @click="loadAdmins"
-            :disabled="loading"
-            class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition cursor-pointer border border-slate-200 dark:border-slate-700 font-bold text-xs flex items-center gap-1.5"
-          >
-            <RefreshCw :class="['w-4 h-4', loading && 'animate-spin']" />
-            <span>Refresh</span>
-          </button>
-
-          <button
-            @click="openCreateModal"
-            class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs shadow-md shadow-indigo-600/20 transition flex items-center gap-2 cursor-pointer"
-          >
-            <Plus class="w-4 h-4" />
-            <span>Add Hotel Admin</span>
-          </button>
-        </div>
       </div>
 
       <!-- Alerts -->
@@ -262,38 +289,138 @@ const copyToClipboard = (text: string) => {
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Toolbar -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
-        <div class="relative w-full md:w-80">
-          <Search class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search by admin name or email..."
-            class="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
-          />
-        </div>
-
-        <div class="flex items-center gap-2 w-full md:w-auto">
-          <span class="text-xs font-bold text-slate-400">Hotel:</span>
-          <div class="w-56">
-            <SearchableSelect
-              v-model="selectedHotelId"
-              :options="[{ id: 'all', name: 'All Hotels', city: '' }, ...hotels]"
-              label-key="name"
-              value-key="id"
-              sublabel-key="city"
-              placeholder="All Hotels"
-              search-placeholder="Filter by hotel..."
-              :format-option-label="(opt) => opt.id === 'all' ? 'All Hotels' : `${opt.name}${opt.city ? ` (${opt.city})` : ''}`"
+      <!-- Top Bar Toolbar -->
+      <div
+        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+      >
+        <!-- Left: Search & Filter Toggle -->
+        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
+          <!-- Search Input -->
+          <div class="relative flex-1">
+            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search by admin name, email, or hotel..."
+              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none font-medium"
             />
           </div>
+
+          <!-- Filter Toggle Button -->
+          <button
+            type="button"
+            @click="toggleFilter"
+            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            :class="[
+              isFilterOpen
+                ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+            ]"
+          >
+            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
+            <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
+          </button>
+        </div>
+
+        <!-- Right: Action Buttons -->
+        <div class="flex items-center gap-2 sm:gap-2.5">
+          <!-- Refresh Button -->
+          <button
+            type="button"
+            @click="loadAdmins"
+            :disabled="loading"
+            title="Refresh"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+          >
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+          </button>
+
+          <!-- Fullscreen Toggle -->
+          <button
+            type="button"
+            @click="toggleFullscreen"
+            title="Toggle Fullscreen"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+          >
+            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+          </button>
+
+          <!-- Add Hotel Admin Primary Button -->
+          <button
+            type="button"
+            @click="openCreateModal"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold shadow-md shadow-blue-600/25 transition active:scale-98 cursor-pointer flex-shrink-0"
+          >
+            <Plus class="w-4 h-4 text-white" />
+            <span class="text-white">Create Admin</span>
+          </button>
         </div>
       </div>
 
+      <!-- Expandable Filter Panel -->
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="transform -translate-y-2 opacity-0 scale-98"
+        enter-to-class="transform translate-y-0 opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="transform translate-y-0 opacity-100 scale-100"
+        leave-to-class="transform -translate-y-2 opacity-0 scale-98"
+      >
+        <div
+          v-if="isFilterOpen"
+          class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
+        >
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+            <!-- Hotel Filter -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Assigned Hotel
+              </label>
+              <SearchableSelect
+                v-model="selectedHotelId"
+                :options="[{ id: 'all', name: 'All Hotels', city: '' }, ...hotels]"
+                label-key="name"
+                value-key="id"
+                sublabel-key="city"
+                placeholder="All Hotels"
+                search-placeholder="Filter by hotel..."
+                :format-option-label="(opt) => opt.id === 'all' ? 'All Hotels' : `${opt.name}${opt.city ? ` (${opt.city})` : ''}`"
+              />
+            </div>
+
+            <!-- Status Filter -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Account Status
+              </label>
+              <select
+                v-model="selectedStatus"
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none h-[38px]"
+              >
+                <option value="all">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            <!-- Reset Filters -->
+            <div class="flex items-end">
+              <button
+                type="button"
+                @click="resetFilters"
+                class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer h-[38px]"
+              >
+                <RotateCcw class="w-3.5 h-3.5" />
+                <span>Reset Filters</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
       <!-- Table -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden">
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto min-h-[240px]">
           <table class="w-full text-left text-xs border-collapse">
             <thead class="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700/80">
               <tr>
@@ -384,25 +511,71 @@ const copyToClipboard = (text: string) => {
                 </td>
 
                 <!-- Actions -->
-                <td class="py-4 px-5 text-right">
-                  <div class="flex items-center justify-end gap-2">
+                <td class="py-4 px-5 text-right whitespace-nowrap pr-5 relative" @click.stop>
+                  <div class="relative inline-block text-left">
                     <button
-                      @click="handleResendPasswordByEmail(adm)"
-                      class="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
-                      title="Generate new password and send directly via email"
+                      type="button"
+                      @click="toggleMenu(String(adm.id), $event)"
+                      class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                      :class="{ 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white': activeMenu === String(adm.id) }"
+                      title="Actions"
                     >
-                      <Send class="w-3.5 h-3.5" />
-                      <span>Send by Email</span>
+                      <MoreVertical class="w-4 h-4" />
                     </button>
 
-                    <button
-                      @click="handleResetPassword(adm)"
-                      class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
-                      title="Generate new temporary password"
+                    <transition
+                      enter-active-class="transition duration-100 ease-out"
+                      leave-active-class="transition duration-75 ease-in"
+                      enter-from-class="opacity-0 scale-95 -translate-y-2"
+                      enter-to-class="opacity-100 scale-100 translate-y-0"
+                      leave-from-class="opacity-100 scale-100 translate-y-0"
+                      leave-to-class="opacity-0 scale-95 -translate-y-2"
                     >
-                      <KeyRound class="w-3.5 h-3.5" />
-                      <span>Reset</span>
-                    </button>
+                      <div
+                        v-if="activeMenu === String(adm.id)"
+                        class="absolute right-0 top-8 z-50 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 text-left"
+                      >
+                        <button
+                          type="button"
+                          @click="handleResendPasswordByEmail(adm); activeMenu = null"
+                          class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer"
+                        >
+                          <Send class="w-3.5 h-3.5" />
+                          <span>Send by Email</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          @click="handleResetPassword(adm); activeMenu = null"
+                          class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        >
+                          <KeyRound class="w-3.5 h-3.5 text-amber-500" />
+                          <span>Reset Password</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          @click="handleToggleStatus(adm); activeMenu = null"
+                          class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+                          :class="adm.is_active ? 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40' : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'"
+                        >
+                          <Power class="w-3.5 h-3.5" />
+                          <span>{{ adm.is_active ? 'Deactivate Admin' : 'Activate Admin' }}</span>
+                        </button>
+
+                        <div v-if="adm.user?.email" class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+
+                        <button
+                          v-if="adm.user?.email"
+                          type="button"
+                          @click="copyToClipboard(adm.user.email); activeMenu = null"
+                          class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        >
+                          <Copy class="w-3.5 h-3.5 text-slate-400" />
+                          <span>Copy Email</span>
+                        </button>
+                      </div>
+                    </transition>
                   </div>
                 </td>
               </tr>

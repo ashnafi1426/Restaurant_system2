@@ -27,9 +27,6 @@ class ReceptionReportController extends Controller
         return $hotelId;
     }
 
-    /**
-     * Get reservation report with filters
-     */
     public function reservationReport(Request $request): JsonResponse
     {
         $this->resolveTenant($request);
@@ -49,7 +46,6 @@ class ReceptionReportController extends Controller
             'cancelled' => $reservations->where('status', 'cancelled')->count(),
         ];
         
-        // Group by date
         $dailyStats = $reservations->groupBy(function($item) {
             return Carbon::parse($item->created_at)->format('Y-m-d');
         })->map(function($group) {
@@ -75,9 +71,6 @@ class ReceptionReportController extends Controller
         ]);
     }
     
-    /**
-     * Get occupancy report
-     */
     public function occupancyReport(Request $request): JsonResponse
     {
         $this->resolveTenant($request);
@@ -88,7 +81,6 @@ class ReceptionReportController extends Controller
         $availableRooms = Room::where('status', 'available')->count();
         $occupiedRooms = Room::where('status', 'occupied')->count();
         
-        // Daily occupancy
         $period = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
         $dailyOccupancy = [];
@@ -108,7 +100,6 @@ class ReceptionReportController extends Controller
             $period->addDay();
         }
         
-        // Average occupancy
         $avgOccupancyRate = count($dailyOccupancy) > 0
             ? round(collect($dailyOccupancy)->avg('occupancy_rate'), 2)
             : 0;
@@ -131,9 +122,6 @@ class ReceptionReportController extends Controller
         ]);
     }
     
-    /**
-     * Get guest report
-     */
     public function guestReport(Request $request): JsonResponse
     {
         $this->resolveTenant($request);
@@ -143,7 +131,6 @@ class ReceptionReportController extends Controller
         $newGuests = Guest::whereBetween('created_at', [$startDate, $endDate])->count();
         $totalGuests = Guest::count();
         
-        // Top guests by reservations
         $topGuests = Guest::withCount(['reservations' => function($query) use ($startDate, $endDate) {
                 $query->whereBetween('created_at', [$startDate, $endDate]);
             }])
@@ -168,16 +155,12 @@ class ReceptionReportController extends Controller
         ]);
     }
     
-    /**
-     * Get revenue report
-     */
     public function revenueReport(Request $request): JsonResponse
     {
         $this->resolveTenant($request);
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth());
         
-        // Get all verified payments in period
         $payments = Payment::where('status', 'verified')
             ->whereBetween('verified_at', [$startDate, $endDate])
             ->get();
@@ -186,7 +169,6 @@ class ReceptionReportController extends Controller
         $reservationRevenue = $payments->whereNotNull('reservation_id')->sum('amount');
         $orderRevenue = $payments->whereNotNull('order_id')->sum('amount');
         
-        // Daily revenue
         $dailyRevenue = $payments->groupBy(function($item) {
             return Carbon::parse($item->verified_at)->format('Y-m-d');
         })->map(function($group) {
@@ -215,9 +197,6 @@ class ReceptionReportController extends Controller
         ]);
     }
     
-    /**
-     * Get check-in/check-out report
-     */
     public function checkInOutReport(Request $request): JsonResponse
     {
         $this->resolveTenant($request);
@@ -228,7 +207,6 @@ class ReceptionReportController extends Controller
         $checkOuts = CheckIn::whereBetween('checked_out_at', [$startDate, $endDate])->count();
         $activeGuests = CheckIn::whereNull('checked_out_at')->count();
         
-        // Daily stats
         $period = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
         $dailyStats = [];

@@ -10,33 +10,21 @@ use App\Models\DeliveryTask;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
+
 class OrderReadyListener implements ShouldQueue
 {
     use InteractsWithQueue;
 
     public int $tries = 3;
 
-    /**
-     * The maximum number of exceptions to allow before bailing.
-     */
     public int $maxExceptions = 2;
 
-    /**
-     * Time in seconds before the job should be retried (backoff).
-     */
     public int $backoff = 10;
 
-    /**
-     * Create the event listener.
-     */
     public function __construct()
     {
-        //
     }
 
-    /**
-     * Handle the event.
-     */
     public function handle(OrderReadyEvent $event): void
     {
         Log::info(' [LISTENER] OrderReadyListener.handle() STARTED', [
@@ -46,7 +34,6 @@ class OrderReadyListener implements ShouldQueue
         ]);
 
         try {
-            // Load fresh order with all relationships
             $order = $event->order->fresh();
             
             if (!$order) {
@@ -66,14 +53,12 @@ class OrderReadyListener implements ShouldQueue
                 'guest_id' => $order->guest_id,
             ]);
 
-            // Check if this is a walk-in order (table-based)
             if ($order->order_type === 'walk_in' && $order->table_id) {
                 Log::info('🟡 [LISTENER] Walk-in order detected - checking table assignment', [
                     'order_id' => $order->id,
                     'table_id' => $order->table_id,
                 ]);
 
-                // Get current shift based on time
                 $currentShift = HotelShift::getCurrentShift();
                 
                 if ($currentShift) {
@@ -82,7 +67,6 @@ class OrderReadyListener implements ShouldQueue
                         'shift_name' => $currentShift->name,
                     ]);
 
-                    // Get assigned waiter for this table
                     $assignment = WaiterTableAssignment::getAssignedWaiter(
                         $order->table_id,
                         $currentShift->id,
@@ -97,7 +81,6 @@ class OrderReadyListener implements ShouldQueue
                             'priority' => $assignment->priority,
                         ]);
 
-                        // Create delivery task directly
                         $deliveryTask = DeliveryTask::create([
                             'order_id' => $order->id,
                             'waiter_id' => $assignment->waiter_id,
@@ -112,26 +95,19 @@ class OrderReadyListener implements ShouldQueue
                             'table_id' => $order->table_id,
                         ]);
 
-                        // TODO: Send notification to waiter
-                        // event(new WaiterNotificationEvent($assignment->waiter_id, ...));
-
-                        return; // Success - waiter assigned based on table assignment
+                        return;
                     } else {
                         Log::warning(' [LISTENER] No waiter assigned to this table', [
                             'table_id' => $order->table_id,
                             'shift_id' => $currentShift->id,
                             'date' => today()->toDateString(),
                         ]);
-                        // Fall through to automatic assignment
                     }
                 } else {
                     Log::warning(' [LISTENER] No active shift found at current time');
-                    // Fall through to automatic assignment
                 }
             }
 
-            // For room service orders OR walk-in orders without table assignment,
-            // use the automatic waiter assignment service
             Log::info('🟢 [LISTENER] Using automatic waiter assignment', [
                 'order_id' => $order->id,
                 'order_type' => $order->order_type,
@@ -165,7 +141,6 @@ class OrderReadyListener implements ShouldQueue
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            // Fail the job so it retries
             throw $e;
         }
 
@@ -175,11 +150,6 @@ class OrderReadyListener implements ShouldQueue
         ]);
     }
 
-    /**
-     * Handle a job failure.
-     * Logs the terminal failure. Manager notification is already handled
-     * inside AutomaticWaiterAssignmentService when no waiter can be found.
-     */
     public function failed(OrderReadyEvent $event, \Throwable $exception): void
     {
         Log::error(' [LISTENER] OrderReadyListener Job Failed (Max Retries Exceeded)', [

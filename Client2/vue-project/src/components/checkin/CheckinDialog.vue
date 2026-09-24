@@ -29,57 +29,14 @@ watch(
   },
 )
 
-// Only show reservations that are confirmed
-// Room availability is validated server-side during check-in
 const checkableReservations = computed(() => {
-  console.log(' [CHECKIN DIALOG] Computing checkable reservations...')
-  console.log('📥 [CHECKIN DIALOG] Props reservations received:', props.reservations.length)
-
   if (props.reservations.length === 0) {
-    console.warn(' [CHECKIN DIALOG] NO RESERVATIONS PROVIDED TO DIALOG!')
     return []
   }
 
-  // Log first 3 reservations for debugging
-  console.log('📋 [CHECKIN DIALOG] Sample reservations:')
-  props.reservations.slice(0, 3).forEach((r: any) => {
-    console.log(`  - ID: ${r.id}`)
-    console.log(`    Status: ${r.status}`)
-    console.log(`    Room ID: ${r.room?.id}`)
-    console.log(`    Room Status: ${r.room?.status}`)
-    console.log(`    Room Number: ${r.room?.room_number}`)
-    console.log(`    Guest: ${r.guest?.full_name}`)
-  })
-
   const result = props.reservations.filter((r: any) => {
-    const statusCheck = r.status === 'confirmed'
-
-    if (!statusCheck) {
-      console.log(`   ${r.id}: FAILS status check (${r.status} !== 'confirmed')`)
-    }
-    if (statusCheck) {
-      console.log(`   ${r.id}: PASSES status check - will be shown`)
-    }
-
-    return statusCheck
+    return r.status === 'confirmed'
   })
-
-  console.log(
-    ` [CHECKIN DIALOG] Total checkable reservations: ${result.length} out of ${props.reservations.length}`,
-  )
-
-  if (result.length === 0 && props.reservations.length > 0) {
-    console.warn(' [CHECKIN DIALOG] NO CONFIRMED RESERVATIONS FOUND!')
-    console.log(' [CHECKIN DIALOG] Reservation status breakdown:')
-    const statuses = new Map()
-    props.reservations.forEach((r: any) => {
-      const key = `${r.status}`
-      statuses.set(key, (statuses.get(key) || 0) + 1)
-    })
-    statuses.forEach((count, status) => {
-      console.log(`   ${status}: ${count}`)
-    })
-  }
 
   return result
 })
@@ -104,25 +61,13 @@ async function confirmCheckIn() {
   error.value = ''
 
   try {
-    console.log(' [DIALOG] Attempting check-in with reservation:', reservation.value)
-    console.log(' [DIALOG] Reservation ID:', reservation.value.id)
-    console.log(' [DIALOG] Reservation ID type:', typeof reservation.value.id)
-    console.log(' [DIALOG] Reservation details:')
-    console.log('   - Status:', reservation.value.status)
-    console.log('   - Guest:', reservation.value.guest?.full_name)
-    console.log('   - Room:', reservation.value.room?.room_number)
-    console.log('   - Check-in date:', reservation.value.check_in_date)
-
     await store.checkInGuest(reservation.value.id)
     emit('success')
     emit('update:modelValue', false)
   } catch (err: any) {
+    console.error('[CheckinDialog] Failed to check in guest:', err)
     const errorMsg = err.message || 'Failed to check in guest'
     error.value = errorMsg
-    console.error(' [DIALOG] Check-in error:', errorMsg)
-    console.error(' [DIALOG] Full error details:', err)
-    console.error(' [DIALOG] Error response:', err.response?.data)
-    console.error(' [DIALOG] Error status:', err.response?.status)
   } finally {
     loading.value = false
   }
@@ -135,14 +80,12 @@ function closeDialog() {
 
 <template>
   <teleport to="body">
-    <!-- Dialog Backdrop -->
     <div
       v-if="modelValue"
       class="fixed inset-0 z-40 bg-black/50 transition-opacity"
       @click="closeDialog"
     />
 
-    <!-- Dialog Content -->
     <transition
       enter-active-class="transition ease-out duration-300"
       enter-from-class="opacity-0 scale-95"
@@ -156,7 +99,6 @@ function closeDialog() {
           class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
           @click.stop
         >
-          <!-- Header -->
           <div
             class="border-b border-slate-200 bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 rounded-t-2xl text-white flex-shrink-0"
           >
@@ -171,9 +113,7 @@ function closeDialog() {
             </div>
           </div>
 
-          <!-- Body - Scrollable -->
           <div class="p-6 space-y-4 overflow-y-auto flex-1">
-            <!-- Error Message -->
             <div
               v-if="error"
               class="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3"
@@ -185,7 +125,6 @@ function closeDialog() {
               </div>
             </div>
 
-            <!-- Reservation Selection -->
             <div>
               <label class="block text-sm font-semibold text-slate-700 mb-2">
                 <span class="flex items-center gap-2">
@@ -232,9 +171,7 @@ function closeDialog() {
               </div>
             </div>
 
-            <!-- Reservation Details -->
             <div v-if="reservation" class="space-y-3">
-              <!-- Guest Info -->
               <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h3 class="font-semibold text-slate-900 mb-2 flex items-center gap-2 text-sm">
                   <span class="material-symbols-rounded text-blue-600 text-lg">person</span>
@@ -256,7 +193,6 @@ function closeDialog() {
                 </div>
               </div>
 
-              <!-- Room Info -->
               <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                 <h3 class="font-semibold text-slate-900 mb-2 flex items-center gap-2 text-sm">
                   <span class="material-symbols-rounded text-green-600 text-lg">bed</span>
@@ -286,7 +222,6 @@ function closeDialog() {
                 </div>
               </div>
 
-              <!-- Info Alert -->
               <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-3">
                 <span class="material-symbols-rounded text-blue-600 flex-shrink-0 text-lg"
                   >info</span
@@ -302,7 +237,6 @@ function closeDialog() {
             </div>
           </div>
 
-          <!-- Footer -->
           <div
             class="border-t border-slate-200 bg-slate-50 px-6 py-3 rounded-b-2xl flex justify-end gap-3 flex-shrink-0"
           >
@@ -320,14 +254,11 @@ function closeDialog() {
                 !reservation || loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700',
               ]"
             >
-              <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-4 h-4) -->
               <div v-if="loading" class="relative w-4 h-4">
-                <!-- Static background - BRIGHT CYAN -->
                 <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
                   <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
                 </svg>
                 
-                <!-- Animated spinner - BRIGHT YELLOW -->
                 <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
                   <svg viewBox="0 0 100 100" class="w-full h-full">
                     <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />

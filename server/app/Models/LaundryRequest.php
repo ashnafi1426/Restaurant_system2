@@ -31,7 +31,7 @@ class LaundryRequest extends Model
         'cost' => 'decimal:2',
     ];
 
-    protected $keyType = 'string'; // For UUID
+    protected $keyType = 'string';
     public $incrementing = false;
 
     public function room()

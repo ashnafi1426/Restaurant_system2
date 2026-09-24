@@ -17,16 +17,13 @@ class AuthorizationService
     {
         $targetHotelId = $hotelId ?: app(TenantContext::class)->getHotelId();
 
-        // 1. If within a tenant hotel context, resolve hotel-scoped role strictly
         if ($targetHotelId) {
-            // A. Check hotel membership in hotel_users for this target hotel
             $membership = HotelUser::where('hotel_id', $targetHotelId)
                 ->where('user_id', $user->id)
                 ->where('is_active', true)
                 ->first();
 
             if ($membership) {
-                // If membership has role_id, load it directly
                 if ($membership->role_id) {
                     $roleById = Role::withoutTenant()
                         ->where('id', $membership->role_id)
@@ -38,7 +35,6 @@ class AuthorizationService
                     }
                 }
 
-                // Match by slug in THIS HOTEL first
                 if (!empty($membership->role)) {
                     $targetRoleStr = strtolower(trim($membership->role));
                     $hotelScopedRole = Role::withoutTenant()
@@ -57,7 +53,6 @@ class AuthorizationService
                 }
             }
 
-            // B. Check user_roles strictly for this target hotel
             $hotelRole = Role::withoutTenant()
                 ->where('hotel_id', $targetHotelId)
                 ->where('is_active', true)
@@ -71,8 +66,6 @@ class AuthorizationService
                 return collect([$hotelRole]);
             }
 
-            // C. Fallback: If membership role exists but hotel does not have a cloned role yet,
-            // check template role (where hotel_id IS NULL)
             if ($membership && !empty($membership->role)) {
                 $targetRoleStr = strtolower(trim($membership->role));
                 $templateRole = Role::withoutTenant()
@@ -90,7 +83,6 @@ class AuthorizationService
             }
         }
 
-        // 2. Platform Super Admin universal fallback
         if ($user->isPlatformAdmin()) {
             $adminRole = Role::withoutTenant()
                 ->where('slug', 'admin')
@@ -101,7 +93,6 @@ class AuthorizationService
             }
         }
 
-        // 3. Fallback: Check primary role from user_roles without tenant
         $primaryRole = $user->roles()
             ->withoutGlobalScopes()
             ->wherePivot('is_primary', true)
@@ -112,7 +103,6 @@ class AuthorizationService
             return collect([$primaryRole]);
         }
 
-        // 4. Fallback: Any hotel membership with a role
         $anyMembership = $user->hotelMemberships()->where('is_active', true)->first();
         if ($anyMembership && !empty($anyMembership->role)) {
             $targetRoleStr = strtolower(trim($anyMembership->role));
@@ -133,7 +123,6 @@ class AuthorizationService
             }
         }
 
-        // 5. Fallback: Check specialized profiles (Manager, Receptionist, Waiter, Cashier, Chef)
         if (method_exists($user, 'manager') && $user->manager()->exists()) {
             $mgrRole = Role::withoutTenant()
                 ->where('slug', 'manager')
@@ -143,7 +132,6 @@ class AuthorizationService
             if ($mgrRole) return collect([$mgrRole]);
         }
 
-        // 6. Fallback: User string role column
         if (!empty($user->role)) {
             $targetRoleStr = strtolower($user->role);
             $roleModel = Role::withoutTenant()
@@ -168,9 +156,6 @@ class AuthorizationService
         return collect();
     }
 
-    /**
-     * Get primary active role for the user in the active tenant context.
-     */
     public function getActiveRoles(User $user, ?string $hotelId = null): Collection
     {
         return $this->getUserRoles($user, $hotelId);
@@ -178,10 +163,6 @@ class AuthorizationService
 
     protected array $requestPermissionsCache = [];
 
-    /**
-     * Get effective permission slugs strictly from the user's assigned role in the target hotel.
-     * Evaluated dynamically in real-time to guarantee immediate updates across hotel switching and RBAC changes.
-     */
     public function getEffectivePermissions(User $user, ?string $hotelId = null): array
     {
         $targetHotelId = $hotelId ?: app(TenantContext::class)->getHotelId() ?: 'global';
@@ -199,7 +180,6 @@ class AuthorizationService
             return [];
         }
 
-        // Collect permissions strictly from the hotel-specific role
         $permissionSlugs = [];
         foreach ($roles as $role) {
             $rolePermissions = $role->permissions()
@@ -209,7 +189,6 @@ class AuthorizationService
 
             $permissionSlugs = array_merge($permissionSlugs, $rolePermissions);
 
-            // Ensure baseline dashboard access for operational roles so they can access their home
             $slug = strtolower($role->slug ?? '');
             if (in_array($slug, ['manager', 'admin', 'receptionist', 'waiter', 'cashier', 'chef'])) {
                 if (!in_array('dashboard.view', $permissionSlugs, true)) {
@@ -218,7 +197,6 @@ class AuthorizationService
             }
         }
 
-        // Also include direct user permissions if assigned for this hotel
         if (method_exists($user, 'directPermissions')) {
             $directQuery = $user->directPermissions()->where('permissions.is_active', true);
             if ($effectiveHotelId) {
@@ -236,12 +214,8 @@ class AuthorizationService
         return $result;
     }
 
-    /**
-     * Check if user has a specific permission in the target hotel context.
-     */
     public function hasPermission(User $user, string $permissionSlug, ?string $hotelId = null): bool
     {
-        // Platform Super Admin has unrestricted master access to everything
         if ($user->isPlatformAdmin()) {
             return true;
         }
@@ -252,9 +226,6 @@ class AuthorizationService
         return in_array($target, $effectivePermissions, true);
     }
 
-    /**
-     * Check if user has ANY of the specified permissions in the target hotel context.
-     */
     public function hasAnyPermission(User $user, array $permissionSlugs, ?string $hotelId = null): bool
     {
         if ($user->isPlatformAdmin()) {
@@ -271,9 +242,6 @@ class AuthorizationService
         return false;
     }
 
-    /**
-     * Check if user has ALL of the specified permissions in the target hotel context.
-     */
     public function hasAllPermissions(User $user, array $permissionSlugs, ?string $hotelId = null): bool
     {
         if ($user->isPlatformAdmin()) {
@@ -290,9 +258,6 @@ class AuthorizationService
         return true;
     }
 
-    /**
-     * Check if user has a specific role in the target hotel context.
-     */
     public function hasRole(User $user, string $roleSlug, ?string $hotelId = null): bool
     {
         $targetSlug = strtolower(trim($roleSlug));
@@ -307,9 +272,6 @@ class AuthorizationService
         return false;
     }
 
-    /**
-     * Check if user has ANY of the specified roles in the target hotel context.
-     */
     public function hasAnyRole(User $user, array $roleSlugs, ?string $hotelId = null): bool
     {
         foreach ($roleSlugs as $slug) {
@@ -320,9 +282,6 @@ class AuthorizationService
         return false;
     }
 
-    /**
-     * Invalidate permission cache for a user (across all hotels or specific hotel).
-     */
     public function invalidateUserCache(string $userId, ?string $hotelId = null): void
     {
         $this->requestPermissionsCache = [];
@@ -330,7 +289,6 @@ class AuthorizationService
         if ($hotelId) {
             Cache::forget("user_permissions_{$hotelId}_{$userId}");
         } else {
-            // Forget global and try all hotels
             Cache::forget("user_permissions_global_{$userId}");
             Cache::forget("user_permissions_{$userId}");
             
@@ -341,14 +299,10 @@ class AuthorizationService
         }
     }
 
-    /**
-     * Invalidate cache for all users assigned to a role.
-     */
     public function invalidateRoleCache(Role $role): void
     {
         $hotelId = $role->hotel_id;
 
-        // Invalidate users who belong to this role
         $userIds = DB::table('user_roles')
             ->where('role_id', $role->id)
             ->pluck('user_id')

@@ -1,12 +1,10 @@
 <template>
   <nav class="navbar">
     <div class="navbar-container">
-      <!-- Logo -->
       <div class="logo">
         <span class="logo-text">LUXE HERITAGE</span>
       </div>
 
-      <!-- Menu Items -->
       <ul class="nav-menu" :class="{ active: menuOpen }">
         <li class="nav-item">
           <a href="#home" class="nav-link">HOME</a>
@@ -22,19 +20,15 @@
         </li>
       </ul>
 
-      <!-- Theme Toggle & Book Button -->
       <div class="button-group">
-        <!-- Theme Toggle Button -->
         <button class="theme-btn" @click="handleThemeToggle" :title="theme.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'">
-          <span v-if="!theme.isDarkMode" class="theme-icon">☀️</span>
-          <span v-else class="theme-icon">🌙</span>
+          <span v-if="!theme.isDarkMode" class="theme-icon"></span>
+          <span v-else class="theme-icon"></span>
         </button>
 
-        <!-- Book Now Button -->
         <button class="book-btn">BOOK NOW</button>
       </div>
 
-      <!-- Hamburger Menu -->
       <div class="hamburger" :class="{ active: menuOpen }" @click="toggleMenu">
         <span></span>
         <span></span>
@@ -63,9 +57,7 @@ const navigateToRooms = () => {
 }
 
 const handleThemeToggle = () => {
-  console.log('[LandingNavbar] 🎨 Theme toggle clicked')
   theme.toggleTheme()
-  console.log('[LandingNavbar] 🎨 New theme:', theme.isDarkMode ? 'dark' : 'light')
 }
 </script>
 
@@ -80,27 +72,23 @@ const handleThemeToggle = () => {
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Dark mode */
 :global(.dark) .navbar {
   background-color: rgba(15, 23, 42, 0.98);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Small mobile (sm:640px) */
 @media (min-width: 640px) {
   .navbar {
     padding: 1rem 0;
   }
 }
 
-/* Tablet (md:768px) */
 @media (min-width: 768px) {
   .navbar {
     padding: 1.25rem 0;
   }
 }
 
-/* Desktop (lg:1024px) */
 @media (min-width: 1024px) {
   .navbar {
     padding: 1.5rem 0;
@@ -391,7 +379,6 @@ const handleThemeToggle = () => {
   transform: rotate(-45deg) translate(8px, -8px);
 }
 
-/* Mobile menu styles */
 @media (max-width: 767px) {
   .nav-menu {
     position: fixed;

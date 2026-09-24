@@ -18,28 +18,15 @@ use Illuminate\Support\Str;
 
 class UnifiedOrderController extends Controller
 {
-    /**
-     * Constructor - make this controller's methods accessible without authentication
-     */
     public function __construct()
     {
-        // Allow unauthenticated access for walk-in orders
-        // Auth is optional - will be checked inside the methods when needed
     }
     
-    /**
-     * Store method - Laravel resource controller convention
-     * Calls createOrder internally
-     */
     public function store(Request $request)
     {
         return $this->createOrder($request);
     }
     
-    /**
-     * Create an order (supports both room service and walk-in)
-     * This replaces the old createOrder method with QR token resolution
-     */
     public function createOrder(Request $request)
     {
         try {
@@ -48,9 +35,8 @@ class UnifiedOrderController extends Controller
                 'items_count' => count($request->get('items', [])),
             ]);
 
-            // Validate request
             $validated = $request->validate([
-                'qr_token' => 'required|string|min:8|max:30', // Accept both 8-char and legacy format
+                'qr_token' => 'required|string|min:8|max:30',
                 'items' => 'required|array|min:1',
                 'items.*.menu_item_id' => 'required|uuid|exists:menu_items,id',
                 'items.*.quantity' => 'required|integer|min:1|max:100',
@@ -58,9 +44,8 @@ class UnifiedOrderController extends Controller
                 'payment_type' => 'nullable|in:room_charge,cash,card',
             ]);
 
-            $qrToken = $validated['qr_token']; // Don't uppercase if legacy format
+            $qrToken = $validated['qr_token'];
 
-            // Resolve QR token to determine context
             $resolution = QRResolutionService::resolveQRToken($qrToken);
 
             if (!$resolution['success']) {
@@ -85,7 +70,6 @@ class UnifiedOrderController extends Controller
                 'context_data' => $contextData,
             ]);
 
-            // Create order based on context
             if ($context === 'room') {
                 return $this->createRoomServiceOrder($validated, $contextData);
             } elseif ($context === 'table') {
@@ -123,15 +107,11 @@ class UnifiedOrderController extends Controller
         }
     }
 
-    /**
-     * Create room service order
-     */
     protected function createRoomServiceOrder(array $validated, array $roomData)
     {
         return DB::transaction(function () use ($validated, $roomData) {
             $room = Room::findOrFail($roomData['room_id']);
 
-            // Find or create guest/reservation
             $reservation = DB::table('reservations')
                 ->where('room_id', $room->id)
                 ->whereIn('status', ['confirmed', 'checked_in'])
@@ -139,7 +119,6 @@ class UnifiedOrderController extends Controller
                 ->first();
 
             if (!$reservation) {
-                // Create temporary guest for QR orders without reservation
                 $guest = Guest::create([
                     'id' => Str::uuid(),
                     'first_name' => 'QR Guest',
@@ -165,10 +144,8 @@ class UnifiedOrderController extends Controller
                 $reservation = DB::table('reservations')->where('id', $reservationId)->first();
             }
 
-            // Calculate total and validate menu items match room hotel
             list($total, $orderItems) = $this->calculateOrderTotal($validated['items'], $room->hotel_id);
 
-            // Create order
             $order = Order::create([
                 'hotel_id' => $room->hotel_id,
                 'order_number' => Order::generateOrderNumber(),
@@ -185,7 +162,6 @@ class UnifiedOrderController extends Controller
                 'notes' => $validated['special_requests'] ?? null,
             ]);
 
-            // Create order items
             $this->createOrderItems($order->id, $orderItems);
 
             Log::info('[UNIFIED ORDER] Room service order created', [
@@ -211,18 +187,13 @@ class UnifiedOrderController extends Controller
         });
     }
 
-    /**
-     * Create walk-in order (restaurant table)
-     */
     protected function createWalkInOrder(array $validated, array $tableData)
     {
         return DB::transaction(function () use ($validated, $tableData) {
             $table = RestaurantTable::findOrFail($tableData['table_id']);
 
-            // Calculate total and validate menu items match table hotel
             list($total, $orderItems) = $this->calculateOrderTotal($validated['items'], $table->hotel_id);
 
-            // Create walk-in order (no room/guest/reservation)
             $order = Order::create([
                 'hotel_id' => $table->hotel_id,
                 'order_number' => Order::generateOrderNumber(),
@@ -239,10 +210,8 @@ class UnifiedOrderController extends Controller
                 'notes' => $validated['special_requests'] ?? null,
             ]);
 
-            // Create order items
             $this->createOrderItems($order->id, $orderItems);
 
-            // Update table status to occupied
             $table->update(['status' => RestaurantTable::STATUS_OCCUPIED]);
 
             Log::info('[UNIFIED ORDER] Walk-in order created', [
@@ -268,9 +237,6 @@ class UnifiedOrderController extends Controller
         });
     }
 
-    /**
-     * Calculate order total from items and ensure all items belong to target hotel
-     */
     protected function calculateOrderTotal(array $items, ?string $targetHotelId = null): array
     {
         $total = 0;
@@ -297,9 +263,6 @@ class UnifiedOrderController extends Controller
         return [$total, $orderItems];
     }
 
-    /**
-     * Create order items
-     */
     protected function createOrderItems(string $orderId, array $orderItems): void
     {
         foreach ($orderItems as $item) {

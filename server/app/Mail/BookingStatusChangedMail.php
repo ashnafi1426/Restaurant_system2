@@ -9,20 +9,6 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-/**
- * ============================================================================
- * BookingStatusChangedMail
- * ============================================================================
- * Sends status change notification to guest when reservation status changes
- * 
- * Features:
- * - Status update notification (pending, confirmed, checked_in, checked_out, cancelled)
- * - Relevant details based on new status
- * - Check-in instructions if status is 'confirmed'
- * - Cancellation reason if status is 'cancelled'
- * - Queued for async sending
- * ============================================================================
- */
 class BookingStatusChangedMail extends Mailable
 {
     use Queueable, SerializesModels;
@@ -33,9 +19,6 @@ class BookingStatusChangedMail extends Mailable
         public string $statusReason = ''
     ) {}
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         $statusMessage = match ($this->reservation->status) {
@@ -51,9 +34,6 @@ class BookingStatusChangedMail extends Mailable
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         $hotel = $this->reservation->room?->hotel ?? null;
@@ -83,19 +63,11 @@ class BookingStatusChangedMail extends Mailable
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
     public function attachments(): array
     {
         return [];
     }
 
-    /**
-     * Get status icon emoji
-     */
     private function getStatusIcon(string $status): string
     {
         return match ($status) {
@@ -103,13 +75,10 @@ class BookingStatusChangedMail extends Mailable
             'checked_in' => '🚪',
             'checked_out' => '👋',
             'cancelled' => '❌',
-            default => 'ℹ️',
+            default => '',
         };
     }
 
-    /**
-     * Get check-in instructions based on status
-     */
     private function getCheckInInstructions(string $status): string
     {
         return match ($status) {

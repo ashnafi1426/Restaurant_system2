@@ -27,6 +27,8 @@ class Order extends Model
         'payment_type',
         'subtotal',
         'tax',
+        'service_charge_rate',
+        'service_charge_amount',
         'discount',
         'total',
         'served_at',
@@ -39,15 +41,11 @@ class Order extends Model
         'cancelled_at' => 'datetime',
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
+        'service_charge_rate' => 'decimal:2',
+        'service_charge_amount' => 'decimal:2',
         'discount' => 'decimal:2',
         'total' => 'decimal:2',
     ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | Status Constants
-    |--------------------------------------------------------------------------
-    */
 
     public const STATUS_PENDING = 'pending';
     public const STATUS_PREPARING = 'preparing';
@@ -55,18 +53,9 @@ class Order extends Model
     public const STATUS_SERVED = 'served';
     public const STATUS_CANCELLED = 'cancelled';
 
-    /*
-    |--------------------------------------------------------------------------
-    | Order Type Constants
-    |--------------------------------------------------------------------------
-    */
-
     public const TYPE_ROOM_SERVICE = 'room_service';
     public const TYPE_WALK_IN = 'walk_in';
 
-    /**
-     * Generate unique order number
-     */
     public static function generateOrderNumber(): string
     {
         $prefix = 'ORD-' . now()->format('Ymd');
@@ -99,19 +88,10 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    /**
-     * Order has many reviews
-     */
     public function reviews()
     {
         return $this->hasMany(MenuItemReview::class, 'order_id');
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Status Helper Methods
-    |--------------------------------------------------------------------------
-    */
 
     public function isPending(): bool
     {
@@ -138,19 +118,10 @@ class Order extends Model
         return $this->status === self::STATUS_CANCELLED;
     }
 
-    /**
-     * Check if order is completed
-     */
     public function isCompleted(): bool
     {
         return in_array($this->status, [self::STATUS_SERVED, 'completed']);
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Order Type Helper Methods
-    |--------------------------------------------------------------------------
-    */
 
     public function isRoomService(): bool
     {
@@ -162,12 +133,6 @@ class Order extends Model
         return $this->order_type === self::TYPE_WALK_IN;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Financial Calculations
-    |--------------------------------------------------------------------------
-    */
-
     public function getGrandTotalAttribute()
     {
         return $this->orderItems->sum('total');
@@ -178,9 +143,6 @@ class Order extends Model
         return $this->orderItems->sum('quantity');
     }
 
-    /**
-     * Get reviewable items from this order
-     */
     public function getReviewableItemsAttribute()
     {
         if (!$this->isCompleted()) {
@@ -195,5 +157,15 @@ class Order extends Model
             })
             ->get()
             ->pluck('menuItem');
+    }
+
+    public function deliveryTask()
+    {
+        return $this->hasOne(\App\Models\DeliveryTask::class, 'order_id');
+    }
+
+    public function deliveryTasks()
+    {
+        return $this->hasMany(\App\Models\DeliveryTask::class, 'order_id');
     }
 }

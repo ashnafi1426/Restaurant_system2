@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useLanguageStore } from '@/stores/language'
 
 interface CartItem {
   id: string
@@ -21,6 +22,8 @@ const props = withDefaults(defineProps<Props>(), {
   submitting: false,
   error: '',
 })
+
+const languageStore = useLanguageStore()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
@@ -98,11 +101,7 @@ const checkout = () => {
       leave-to-class="opacity-0"
     >
       <div v-if="modelValue" class="fixed inset-0 z-[999]">
-        <!-- Overlay -->
-
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="closeDrawer" />
-
-        <!-- Drawer -->
 
         <Transition
           enter-active-class="duration-300 ease-out"
@@ -113,33 +112,28 @@ const checkout = () => {
           <aside
             class="absolute right-0 top-0 h-full w-full sm:w-[470px] bg-white shadow-2xl flex flex-col"
           >
-            <!-- Header -->
-
             <div class="border-b border-slate-200 px-6 py-5">
               <div class="flex items-center justify-between">
                 <div>
-                  <h2 class="text-2xl font-bold text-slate-900">Your Order</h2>
+                  <h2 class="text-2xl font-bold text-slate-900">{{ languageStore.t('your_order', 'Your Order') }}</h2>
 
                   <p class="mt-1 text-sm text-slate-500">
                     {{ totalItems }}
-
-                    {{ totalItems === 1 ? 'item' : 'items' }}
-
-                    selected
+                    {{ totalItems === 1 ? languageStore.t('item', 'item') : languageStore.t('items', 'items') }}
+                    {{ languageStore.t('selected', 'selected') }}
                   </p>
                 </div>
 
                 <button
                   @click="closeDrawer"
                   :disabled="props.submitting"
-                  class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 transition flex items-center justify-center disabled:opacity-50"
+                  class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 transition flex items-center justify-center disabled:opacity-50 cursor-pointer"
                 >
                   ✕
                 </button>
               </div>
             </div>
 
-            <!-- Error Alert -->
             <div v-if="props.error" class="bg-red-50 border-b border-red-200 px-6 py-3">
               <div class="flex items-start gap-3">
                 <svg
@@ -161,12 +155,7 @@ const checkout = () => {
               </div>
             </div>
 
-            <!-- Scroll Area -->
-
             <div class="flex-1 overflow-y-auto">
-              <!-- Continue in Part 9.2 -->
-              <!-- Empty Cart -->
-
               <div
                 v-if="items.length === 0"
                 class="flex flex-col items-center justify-center h-full px-8 py-16 text-center"
@@ -177,14 +166,12 @@ const checkout = () => {
                   🛒
                 </div>
 
-                <h3 class="mt-6 text-2xl font-bold text-slate-800">Your cart is empty</h3>
+                <h3 class="mt-6 text-2xl font-bold text-slate-800">{{ languageStore.t('your_cart_is_empty', 'Your cart is empty') }}</h3>
 
                 <p class="mt-3 text-slate-500 leading-relaxed">
-                  Browse our delicious menu and add your favourite meals.
+                  {{ languageStore.t('browse_menu_msg', 'Browse our delicious menu and add your favourite meals.') }}
                 </p>
               </div>
-
-              <!-- Cart Items -->
 
               <div v-else class="p-6 space-y-5">
                 <div
@@ -193,8 +180,6 @@ const checkout = () => {
                   class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"
                 >
                   <div class="flex gap-4 p-4">
-                    <!-- Image -->
-
                     <img
                       :src="
                         item.image ||
@@ -204,8 +189,6 @@ const checkout = () => {
                       class="w-24 h-24 rounded-xl object-cover"
                     />
 
-                    <!-- Content -->
-
                     <div class="flex-1">
                       <div class="flex justify-between items-start">
                         <div>
@@ -213,14 +196,12 @@ const checkout = () => {
                             {{ item.name }}
                           </h4>
 
-                          <p class="text-sm text-slate-500 mt-1">Freshly prepared by our chefs</p>
+                          <p class="text-sm text-slate-500 mt-1">{{ languageStore.t('freshly_prepared_chefs', 'Freshly prepared by our chefs') }}</p>
                         </div>
-
-                        <!-- Remove -->
 
                         <button
                           @click="removeItem(item)"
-                          class="text-red-500 hover:text-red-700 transition"
+                          class="text-red-500 hover:text-red-700 transition cursor-pointer"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -239,25 +220,20 @@ const checkout = () => {
                         </button>
                       </div>
 
-                      <!-- Price -->
-
                       <div class="mt-3 flex items-center justify-between">
                         <div>
                           <p class="text-xl font-bold text-teal-600">
-                            {{ item.price.toFixed(2) }}
-
+                            {{ ((item.total_price !== undefined && item.total_price !== null) ? Number(item.total_price) : Number(item.price)).toFixed(2) }}
                             ETB
                           </p>
                         </div>
-
-                        <!-- Quantity -->
 
                         <div
                           class="flex items-center rounded-xl border border-slate-200 overflow-hidden"
                         >
                           <button
                             @click="decrease(item)"
-                            class="w-10 h-10 hover:bg-slate-100 transition"
+                            class="w-10 h-10 hover:bg-slate-100 transition cursor-pointer"
                           >
                             −
                           </button>
@@ -268,21 +244,18 @@ const checkout = () => {
 
                           <button
                             @click="increase(item)"
-                            class="w-10 h-10 hover:bg-slate-100 transition"
+                            class="w-10 h-10 hover:bg-slate-100 transition cursor-pointer"
                           >
                             +
                           </button>
                         </div>
                       </div>
 
-                      <!-- Item Total -->
-
                       <div class="mt-4 flex justify-between items-center border-t pt-3">
-                        <span class="text-sm text-slate-500"> Item Total </span>
+                        <span class="text-sm text-slate-500">{{ languageStore.t('item_total', 'Item Total') }}</span>
 
                         <span class="font-bold text-slate-900">
-                          {{ (item.price * item.quantity).toFixed(2) }}
-
+                          {{ (((item.total_price !== undefined && item.total_price !== null) ? Number(item.total_price) : Number(item.price)) * item.quantity).toFixed(2) }}
                           ETB
                         </span>
                       </div>
@@ -291,29 +264,22 @@ const checkout = () => {
                 </div>
               </div>
 
-              <!-- Continue in Part 9.3 -->
-              <!-- Bottom Summary -->
-
               <div
                 v-if="items.length > 0"
                 class="border-t border-slate-200 bg-slate-50 p-6 space-y-6"
               >
-                <!-- Special Request -->
-
                 <div>
                   <label class="block text-sm font-semibold text-slate-700 mb-2">
-                    Special Request
+                    {{ languageStore.t('special_request', 'Special Request') }}
                   </label>
 
                   <textarea
                     v-model="specialRequest"
                     rows="3"
-                    placeholder="Example: No onions, extra spicy, less salt..."
+                    :placeholder="languageStore.t('special_request_placeholder', 'Example: No onions, extra spicy, less salt...')"
                     class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200 resize-none"
                   />
                 </div>
-
-                <!-- Estimated Delivery -->
 
                 <div class="rounded-2xl bg-teal-50 border border-teal-200 p-4">
                   <div class="flex items-center justify-between">
@@ -325,10 +291,10 @@ const checkout = () => {
                       </div>
 
                       <div>
-                        <h4 class="font-semibold text-slate-800">Estimated Delivery</h4>
+                        <h4 class="font-semibold text-slate-800">{{ languageStore.t('estimated_delivery', 'Estimated Delivery') }}</h4>
 
                         <p class="text-sm text-slate-500">
-                          Your meal will be delivered to your room.
+                          {{ languageStore.t('delivered_to_room', 'Your meal will be delivered to your room.') }}
                         </p>
                       </div>
                     </div>
@@ -336,31 +302,29 @@ const checkout = () => {
                     <div class="text-right">
                       <span class="text-2xl font-bold text-teal-600"> 20–25 </span>
 
-                      <p class="text-sm text-slate-500">Minutes</p>
+                      <p class="text-sm text-slate-500">{{ languageStore.t('minutes', 'Minutes') }}</p>
                     </div>
                   </div>
                 </div>
 
-                <!-- Order Summary -->
-
                 <div class="rounded-2xl bg-white border border-slate-200 p-5">
-                  <h3 class="text-lg font-bold text-slate-900 mb-5">Order Summary</h3>
+                  <h3 class="text-lg font-bold text-slate-900 mb-5">{{ languageStore.t('order_summary', 'Order Summary') }}</h3>
 
                   <div class="space-y-3">
                     <div class="flex justify-between text-slate-600">
-                      <span> Subtotal </span>
+                      <span>{{ languageStore.t('subtotal', 'Subtotal') }}</span>
 
                       <span> {{ subtotal.toFixed(2) }} ETB </span>
                     </div>
 
                     <div class="flex justify-between text-slate-600">
-                      <span> VAT (15%) </span>
+                      <span>{{ languageStore.t('vat', 'VAT (15%)') }}</span>
 
                       <span> {{ tax.toFixed(2) }} ETB </span>
                     </div>
 
                     <div class="flex justify-between text-slate-600">
-                      <span> Service Charge (10%) </span>
+                      <span>{{ languageStore.t('service_charge', 'Service Charge (10%)') }}</span>
 
                       <span> {{ serviceCharge.toFixed(2) }} ETB </span>
                     </div>
@@ -368,56 +332,45 @@ const checkout = () => {
                     <div class="border-t border-dashed border-slate-300 my-4" />
 
                     <div class="flex justify-between items-center">
-                      <span class="text-lg font-bold text-slate-900"> Grand Total </span>
+                      <span class="text-lg font-bold text-slate-900">{{ languageStore.t('grand_total', 'Grand Total') }}</span>
 
                       <span class="text-3xl font-bold text-teal-600">
                         {{ grandTotal.toFixed(2) }}
-
                         ETB
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <!-- Hotel Information -->
-
                 <div class="rounded-2xl bg-amber-50 border border-amber-200 p-4">
                   <div class="flex items-start gap-3">
-                    <div class="text-2xl">ℹ️</div>
+                    <div class="text-2xl"></div>
 
                     <div>
-                      <h4 class="font-semibold text-slate-800">Room Service Information</h4>
+                      <h4 class="font-semibold text-slate-800">{{ languageStore.t('room_service_info', 'Room Service Information') }}</h4>
 
                       <ul class="mt-2 space-y-1 text-sm text-slate-600">
-                        <li>• Your order will be delivered directly to your room.</li>
-                        <li>• Payment can be charged to your room account.</li>
-                        <li>• Please contact Reception if you need assistance.</li>
+                        <li>• {{ languageStore.t('room_service_note1', 'Your order will be delivered directly to your room.') }}</li>
+                        <li>• {{ languageStore.t('room_service_note2', 'Payment can be charged to your room account.') }}</li>
+                        <li>• {{ languageStore.t('room_service_note3', 'Please contact Reception if you need assistance.') }}</li>
                       </ul>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Continue in Part 9.4 -->
-              <!-- Footer -->
-
               <div v-if="items.length > 0" class="border-t border-slate-200 bg-white p-6">
-                <!-- Checkout Button -->
-
                 <button
                   @click="checkout"
                   :disabled="props.submitting"
-                  class="w-full rounded-2xl bg-teal-600 hover:bg-teal-700 active:scale-[0.99] transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="w-full rounded-2xl bg-teal-600 hover:bg-teal-700 active:scale-[0.99] transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <div class="flex items-center justify-center gap-3 py-4">
-                    <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-6 h-6) -->
                     <div v-if="props.submitting" class="relative w-6 h-6">
-                      <!-- Static background - BRIGHT CYAN -->
                       <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
                       </svg>
                       
-                      <!-- Animated spinner - BRIGHT YELLOW -->
                       <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
                         <svg viewBox="0 0 100 100" class="w-full h-full">
                           <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
@@ -425,7 +378,6 @@ const checkout = () => {
                       </div>
                     </div>
 
-                    <!-- Cart Icon -->
                     <svg
                       v-else
                       xmlns="http://www.w3.org/2000/svg"
@@ -444,21 +396,17 @@ const checkout = () => {
 
                     <div class="text-left">
                       <p class="text-lg font-bold text-white">
-                        {{ props.submitting ? 'Placing Order...' : 'Place Order' }}
+                        {{ props.submitting ? languageStore.t('placing_order', 'Placing Order...') : languageStore.t('place_order', 'Place Order') }}
                       </p>
 
                       <p class="text-sm text-teal-100">
-                        Total:
-
+                        {{ languageStore.t('total', 'Total') }}:
                         {{ grandTotal.toFixed(2) }}
-
                         ETB
                       </p>
                     </div>
                   </div>
                 </button>
-
-                <!-- Notice -->
 
                 <p class="mt-4 text-center text-xs text-slate-500 leading-relaxed">
                   By placing this order, you agree to the hotel's room service policy. Your order

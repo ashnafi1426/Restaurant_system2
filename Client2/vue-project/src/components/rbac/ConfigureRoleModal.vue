@@ -20,8 +20,8 @@ const props = defineProps<{
   editingRole: Role | null
   initialPermissionIds?: number[]
   permissions: Permission[]
-  loading: boolean // saving loading state
-  loadingPermissions?: boolean // fetching permissions loading state
+  loading: boolean
+  loadingPermissions?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -39,7 +39,6 @@ const roleForm = ref({
 const permissionSearch = ref('')
 const selectedActionFilter = ref<string>('all')
 
-// Sync form state when modal opens or editingRole / initialPermissionIds change
 watch(
   () => [props.show, props.editingRole, props.initialPermissionIds],
   () => {
@@ -102,7 +101,6 @@ const getModuleInfo = (mod: string) => {
   return { title, color: 'bg-amber-500', iconBg: 'bg-amber-500/10 text-amber-500' }
 }
 
-// Action Types for Filter Tabs
 const availableActions = computed(() => {
   const actions = new Set<string>()
   props.permissions.forEach(p => {
@@ -203,13 +201,10 @@ const handleSave = () => {
 <template>
   <Teleport to="body">
     <div v-if="show" class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-hidden">
-      <!-- Backdrop -->
       <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity" @click="emit('close')"></div>
 
-      <!-- Modal Window -->
       <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in duration-150">
         
-        <!-- Modal Header -->
         <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs">
           <div class="flex items-center gap-3.5">
             <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-xs">
@@ -238,11 +233,8 @@ const handleSave = () => {
           </button>
         </div>
 
-
-      <!-- Modal Body -->
       <div class="flex-1 overflow-y-auto p-6 space-y-6">
         
-        <!-- System Role Warning Banner -->
         <div v-if="editingRole?.slug === 'admin'" class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs font-semibold flex items-start gap-3">
           <ShieldAlert class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
@@ -250,7 +242,6 @@ const handleSave = () => {
           </div>
         </div>
 
-        <!-- Role Details Form -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/50 dark:bg-slate-950/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80">
           <div class="space-y-1.5 sm:col-span-2">
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
@@ -295,9 +286,7 @@ const handleSave = () => {
           </div>
         </div>
 
-        <!-- Permissions Catalog Section -->
         <div class="space-y-4">
-          <!-- Permission Catalog Header & Controls -->
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
             <div class="flex items-center gap-2.5">
               <div class="p-2 rounded-xl bg-amber-500/10 text-amber-500">
@@ -313,7 +302,6 @@ const handleSave = () => {
               </div>
             </div>
 
-            <!-- Global Action Controls -->
             <div class="flex items-center gap-2">
               <button
                 type="button"
@@ -334,7 +322,6 @@ const handleSave = () => {
             </div>
           </div>
 
-          <!-- Search & Action Filters -->
           <div class="flex flex-col sm:flex-row items-center gap-3">
             <div class="relative flex-1 w-full">
               <Search class="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
@@ -346,7 +333,6 @@ const handleSave = () => {
               />
             </div>
 
-            <!-- Action Filters -->
             <div class="flex items-center gap-1 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
               <button
                 @click="selectedActionFilter = 'all'"
@@ -375,27 +361,23 @@ const handleSave = () => {
             </div>
           </div>
 
-          <!-- Permissions Loading Spinner State -->
           <div v-if="loadingPermissions" class="py-12 text-center bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800">
             <Loader2 class="w-8 h-8 text-amber-500 animate-spin mx-auto mb-2" />
             <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Loading role permissions matrix...</p>
           </div>
 
-          <!-- Empty Search State -->
           <div v-else-if="groupedPermissions.length === 0" class="py-12 text-center bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800">
             <Key class="w-8 h-8 text-slate-400 mx-auto mb-2 opacity-50" />
             <p class="text-xs font-bold text-slate-600 dark:text-slate-300">No permissions match your filter criteria.</p>
             <p class="text-[11px] text-slate-400 mt-0.5">Try adjusting your search query or action filter.</p>
           </div>
 
-          <!-- Grouped Module Cards -->
           <div v-else class="space-y-4 max-h-[380px] overflow-y-auto pr-1">
             <div
               v-for="group in groupedPermissions"
               :key="group.moduleKey"
               class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition"
             >
-              <!-- Module Header Banner -->
               <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-2.5">
                   <span :class="['w-3 h-3 rounded-full flex-shrink-0', group.info.color]"></span>
@@ -407,7 +389,6 @@ const handleSave = () => {
                   </span>
                 </div>
 
-                <!-- Module Select All / Clear Toggle Button -->
                 <button
                   type="button"
                   @click="toggleModulePermissions(group.permissions, group.isAllSelected)"
@@ -424,7 +405,6 @@ const handleSave = () => {
                 </button>
               </div>
 
-              <!-- Module Permissions Grid -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div
                   v-for="perm in group.permissions"
@@ -462,7 +442,6 @@ const handleSave = () => {
         </div>
       </div>
 
-      <!-- Modal Footer -->
       <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs">
         <div class="text-xs font-bold text-slate-500 dark:text-slate-400">
           Selected Permissions: <strong class="text-amber-600 dark:text-amber-400 font-black">{{ roleForm.selectedPermissions.length }}</strong>

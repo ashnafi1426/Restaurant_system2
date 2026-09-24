@@ -61,7 +61,6 @@
       {{ error }}
     </div>
 
-    <!-- Selected Waiters Display -->
     <div v-if="selectedWaiters.length > 0" class="mt-3 flex flex-wrap gap-2">
       <div
         v-for="waiter in selectedWaiters"
@@ -142,16 +141,15 @@ async function loadWaiters() {
   loading.value = true
   error.value = ''
   try {
-    // Mock data - in real scenario fetch from API
     waiters.value = [
       { id: 1, name: 'Ahmed Hassan', email: 'ahmed@hotel.com', status: 'active', availability_status: 'available' },
       { id: 2, name: 'Fatima Ali', email: 'fatima@hotel.com', status: 'active', availability_status: 'busy' },
       { id: 3, name: 'Muhammad Khan', email: 'khan@hotel.com', status: 'active', availability_status: 'available' },
       { id: 4, name: 'Sara Ibrahim', email: 'sara@hotel.com', status: 'active', availability_status: 'break' },
     ]
-  } catch (err) {
+  } catch (err: any) {
+    console.error('[WaiterSelector] Failed to load waiters:', err)
     error.value = 'Failed to load waiters'
-    console.error('Error loading waiters:', err)
   } finally {
     loading.value = false
   }

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { useHotelStore } from '@/stores/hotelStore'
 import { useThemeStore } from '../stores/theme'
+import { useLanguageStore } from '@/stores/language'
+import LanguageSelector from '@/components/common/LanguageSelector.vue'
 import {
   CheckCircle,
   AlertCircle,
@@ -19,19 +22,17 @@ import {
   ShieldCheck
 } from 'lucide-vue-next'
 
-import { rbacService } from '../services/rbacService'
-import type { Role } from '../types/rbacTypes'
-
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const themeStore = useThemeStore()
+const languageStore = useLanguageStore()
 
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
 const rememberMe = ref(false)
-const systemRoles = ref<Role[]>([])
 
 // Toast notification state
 const showToast = ref(false)
@@ -44,16 +45,8 @@ const errors = ref({
   general: '',
 })
 
-onMounted(async () => {
+onMounted(() => {
   themeStore.initTheme()
-  try {
-    const rolesData = await rbacService.getActiveRoles()
-    if (Array.isArray(rolesData)) {
-      systemRoles.value = rolesData.filter(r => r.is_active !== false)
-    }
-  } catch (e) {
-    console.warn('[LoginView] Could not load dynamic roles:', e)
-  }
 })
 
 const validateForm = (): boolean => {
@@ -89,9 +82,23 @@ const login = async (): Promise<void> => {
   loading.value = true
   try {
     const result = await auth.login(email.value, password.value)
+    
+    // Sync hotelStore state in memory immediately
+    const hotelStore = useHotelStore()
+    if (result?.current_hotel) {
+      hotelStore.setHotels(result?.hotels || [], result.current_hotel)
+    }
+
+    // Resolve dynamic role directly from backend response (hotel-scoped role or user role)
+    const effectiveRole = (
+      result?.current_hotel?.role ||
+      result?.user?.role ||
+      auth.currentRole ||
+      'admin'
+    ).toLowerCase().trim()
+
     const userName = auth.user?.first_name ? `${auth.user.first_name} ${auth.user.last_name}` : auth.user?.email || 'User'
-    const rawRole = String(auth.user?.role || 'User').trim()
-    const userRole = rawRole ? rawRole.charAt(0).toUpperCase() + rawRole.slice(1) : 'User'
+    const userRole = effectiveRole.charAt(0).toUpperCase() + effectiveRole.slice(1)
     
     toastType.value = 'success'
     toastMessage.value = `✓ Welcome Back!\nSuccessfully authenticated as ${userName} (${userRole})`
@@ -99,22 +106,30 @@ const login = async (): Promise<void> => {
     
     setTimeout(async () => {
       showToast.value = false
-      const role = rawRole.toLowerCase().trim()
       
-      // 100% Dynamic role-based routing for all standard & custom roles
-      if (auth.isAdmin || role === 'admin') {
+      if (route.query.redirect && typeof route.query.redirect === 'string') {
+        return router.push(route.query.redirect)
+      }
+
+      // Navigate dynamically based on the verified backend role
+      if (effectiveRole === 'admin' || auth.isPlatformAdmin) {
         router.push('/admin')
-      } else if (role === 'chef') {
+      } else if (effectiveRole === 'manager') {
+        router.push('/manager')
+      } else if (effectiveRole === 'receptionist') {
+        router.push('/receptionist')
+      } else if (effectiveRole === 'cashier') {
+        router.push('/cashier')
+      } else if (effectiveRole === 'chef') {
         router.push('/chef/pending-orders')
-      } else if (role === 'waiter') {
+      } else if (effectiveRole === 'waiter') {
         router.push('/waiter')
-      } else if (role) {
-        router.push(`/${role}`)
       } else {
-        router.push('/orders')
+        router.push(`/${effectiveRole}`)
       }
     }, 600)
   } catch (error: any) {
+    console.error('[LoginView] Login error:', error)
     const errorMsg = error?.message || 'Invalid credentials. Please verify your email and password.'
     toastType.value = 'error'
     toastMessage.value = `Authentication Failure\n${errorMsg}`
@@ -180,10 +195,10 @@ const login = async (): Promise<void> => {
       <button
         type="button"
         @click="router.push({ name: 'home' })"
-        class="inline-flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors py-1.5 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs"
+        class="inline-flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors py-1.5 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs cursor-pointer"
       >
         <ArrowLeft class="w-3.5 h-3.5" />
-        <span class="hidden sm:inline">Return to Guest Site</span>
+        <span class="hidden sm:inline">{{ languageStore.t('return_to_guest_site', 'Return to Guest Site') }}</span>
       </button>
 
       <!-- Center Brand Badge -->
@@ -197,17 +212,21 @@ const login = async (): Promise<void> => {
         </span>
       </div>
 
-      <!-- Dark / Light Theme Toggle Button -->
-      <button
-        type="button"
-        @click="themeStore.toggleTheme()"
-        class="inline-flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-xs"
-        :title="themeStore.isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
-      >
-        <Sun v-if="themeStore.isDark" class="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
-        <Moon v-else class="w-3.5 h-3.5 text-slate-700" />
-        <span class="hidden sm:inline">{{ themeStore.isDark ? 'Light' : 'Dark' }}</span>
-      </button>
+      <!-- Controls: Language Selector & Dark / Light Theme Toggle -->
+      <div class="flex items-center gap-1.5">
+        <LanguageSelector variant="compact" />
+
+        <button
+          type="button"
+          @click="themeStore.toggleTheme()"
+          class="inline-flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-xs cursor-pointer"
+          :title="themeStore.isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+        >
+          <Sun v-if="themeStore.isDark" class="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
+          <Moon v-else class="w-3.5 h-3.5 text-slate-700" />
+          <span class="hidden sm:inline">{{ themeStore.isDark ? 'Light' : 'Dark' }}</span>
+        </button>
+      </div>
     </header>
 
     <!-- Center Clean Fixed Login Card Form -->
@@ -220,10 +239,10 @@ const login = async (): Promise<void> => {
             <ShieldCheck class="w-5 h-5" />
           </div>
           <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            Staff & Admin Portal
+            {{ languageStore.t('staff_admin_portal', 'Staff & Admin Portal') }}
           </h2>
           <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
-            Enter your official credentials to access system features.
+            {{ languageStore.t('sign_in_subtitle', 'Enter your official credentials to access system features.') }}
           </p>
         </div>
 
@@ -241,7 +260,7 @@ const login = async (): Promise<void> => {
           <!-- Email Input -->
           <div class="space-y-1">
             <label for="email" class="block text-xs font-bold text-slate-900 dark:text-slate-200">
-              Work Email Address
+              {{ languageStore.t('email_address', 'Work Email Address') }}
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
@@ -253,7 +272,7 @@ const login = async (): Promise<void> => {
                 v-model="email"
                 type="email"
                 autocomplete="username"
-                placeholder="name@grandhorizon.com"
+                :placeholder="languageStore.t('enter_email', 'name@grandhorizon.com')"
                 :class="[
                   'w-full pl-9 pr-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-950/70 border rounded-xl focus:outline-none transition-all duration-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-medium',
                   errors.email
@@ -271,13 +290,13 @@ const login = async (): Promise<void> => {
           <div class="space-y-1">
             <div class="flex items-center justify-between">
               <label for="password" class="block text-xs font-bold text-slate-900 dark:text-slate-200">
-                Password
+                {{ languageStore.t('password', 'Password') }}
               </label>
               <router-link
                 to="/forgot-password"
                 class="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-bold transition-colors hover:underline"
               >
-                Forgot Password?
+                {{ languageStore.t('forgot_password', 'Forgot Password?') }}
               </router-link>
             </div>
             <div class="relative">
@@ -290,7 +309,7 @@ const login = async (): Promise<void> => {
                 v-model="password"
                 :type="showPassword ? 'text' : 'password'"
                 autocomplete="current-password"
-                placeholder="••••••••••••"
+                :placeholder="languageStore.t('enter_password', '••••••••••••')"
                 :class="[
                   'w-full pl-9 pr-9 py-2.5 text-sm bg-slate-50 dark:bg-slate-950/70 border rounded-xl focus:outline-none transition-all duration-200 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-medium',
                   errors.password
@@ -301,7 +320,7 @@ const login = async (): Promise<void> => {
               <button
                 type="button"
                 @click="showPassword = !showPassword"
-                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
               >
                 <Eye v-if="!showPassword" class="w-4 h-4" />
                 <EyeOff v-else class="w-4 h-4" />
@@ -320,7 +339,9 @@ const login = async (): Promise<void> => {
                 type="checkbox"
                 class="w-4 h-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-amber-500 focus:ring-amber-500/40 focus:ring-offset-0 transition"
               />
-              <span class="text-xs text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition font-semibold">Keep me signed in</span>
+              <span class="text-xs text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition font-semibold">
+                {{ languageStore.t('remember_me', 'Keep me signed in') }}
+              </span>
             </label>
           </div>
 
@@ -332,30 +353,13 @@ const login = async (): Promise<void> => {
           >
             <div v-if="loading" class="flex items-center gap-2">
               <div class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
-              <span>Authenticating...</span>
+              <span>{{ languageStore.t('signing_in', 'Authenticating...') }}</span>
             </div>
             <div v-else class="flex items-center gap-2">
-              <span>Sign In to Dashboard</span>
+              <span>{{ languageStore.t('sign_in', 'Sign In to Dashboard') }}</span>
               <UserCheck class="w-4 h-4" />
             </div>
           </button>
-
-          <!-- Dynamic Active System Roles Badge Section -->
-          <div v-if="systemRoles.length > 0" class="pt-2 border-t border-slate-100 dark:border-slate-800/80">
-            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5 text-center">
-              Active System Roles
-            </p>
-            <div class="flex flex-wrap items-center justify-center gap-1.5">
-              <span
-                v-for="role in systemRoles"
-                :key="role.id"
-                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60"
-              >
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                {{ role.name }}
-              </span>
-            </div>
-          </div>
         </form>
       </div>
     </main>
@@ -363,7 +367,7 @@ const login = async (): Promise<void> => {
     <!-- Minimalist Security & Copyright Footer -->
     <footer class="w-full max-w-lg text-center text-xs text-slate-600 dark:text-slate-400 space-y-0.5 font-medium z-10 py-1 sm:py-2">
       <p>&copy; 2026 Grand Horizon Luxury Hotel & Dining System.</p>
-      <p class="text-[11px] text-slate-500 dark:text-slate-500">Enterprise Edition • 256-Bit SSL Encrypted</p>
+      <p class="text-[11px] text-slate-500 dark:text-slate-500">{{ languageStore.t('all_systems_operational', 'Enterprise Edition • 256-Bit SSL Encrypted') }}</p>
     </footer>
   </div>
 </template>

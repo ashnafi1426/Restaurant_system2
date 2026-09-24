@@ -3,12 +3,12 @@ import { createPinia } from 'pinia'
 import { useThemeStore } from './stores/theme'
 import { usePageLoaderStore } from './stores/pageLoaderStore'
 import { useAuthStore } from './stores/auth'
+import { useLanguageStore } from './stores/language'
 import './assets/main.css'
 import './styles/dark-mode.css'
 import App from './App.vue'
 import router from './router'
 
-// Show initial loader
 const initialLoader = document.getElementById('initial-loader')
 
 const app = createApp(App)
@@ -17,15 +17,16 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 
-// Initialize theme after pinia is created
 const themeStore = useThemeStore()
 themeStore.initTheme()
 
-// Initialize the page loader store with loading state
+const languageStore = useLanguageStore()
+app.config.globalProperties.$t = (key: string, fallback?: string) => languageStore.t(key, fallback)
+app.config.globalProperties.t = (key: string, fallback?: string) => languageStore.t(key, fallback)
+
 const loaderStore = usePageLoaderStore()
 loaderStore.showLoader('Loading...')
 
-// Wait for router to be ready and hide initial loader
 router.isReady().then(async () => {
   const authStore = useAuthStore()
   if (authStore.token) {
@@ -36,7 +37,6 @@ router.isReady().then(async () => {
     }
   }
 
-  // Hide the initial HTML loader if it exists
   if (initialLoader) {
     initialLoader.style.opacity = '0'
     setTimeout(() => {
@@ -46,8 +46,7 @@ router.isReady().then(async () => {
   
   app.mount('#app')
   
-  // Hide the Vue loader after mount - with longer delay for content to render
   setTimeout(() => {
     loaderStore.hideLoader()
-  }, 1000) // Increased to 1 second to ensure page is fully rendered
+  }, 1000)
 })

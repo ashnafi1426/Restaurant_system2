@@ -31,9 +31,9 @@
           ></path>
         </svg>
       </div>
-      <h3 class="empty-title">No items found</h3>
+      <h3 class="empty-title">{{ languageStore.t('no_items_found', 'No items found') }}</h3>
       <p class="empty-message">
-        Try adjusting your filters or search query to find what you're looking for
+        {{ languageStore.t('adjust_filters', "Try adjusting your filters or search query to find what you're looking for") }}
       </p>
       <button @click="clearFilters" class="empty-button">
         <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,7 +44,7 @@
             d="M6 18L18 6M6 6l12 12"
           ></path>
         </svg>
-        Clear Filters
+        {{ languageStore.t('clear_filters', 'Clear Filters') }}
       </button>
     </div>
 
@@ -116,7 +116,7 @@
 
     <!-- Results Info -->
     <div v-if="!isLoading && items.length > 0" class="results-info">
-      Showing {{ startItem }}-{{ endItem }} of {{ items.length }} items
+      {{ languageStore.currentLanguage === 'am' ? `ከ ${items.length} ዕቃዎች ${startItem}-${endItem} በማሳየት ላይ` : `Showing ${startItem}-${endItem} of ${items.length} items` }}
     </div>
   </div>
 </template>
@@ -124,6 +124,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import QRMenuItemCard from './QRMenuItemCard.vue'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
 
 interface MenuItem {
   id: string | number
@@ -298,7 +301,7 @@ const clearFilters = () => {
 
 @media (max-width: 1024px) {
   .menu-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 14px;
   }
 }
@@ -310,10 +313,10 @@ const clearFilters = () => {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 580px) {
   .menu-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 }
 

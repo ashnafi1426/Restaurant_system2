@@ -7,12 +7,6 @@ use App\Services\Manager\KitchenMonitorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * Manager Kitchen Monitoring Controller
- * 
- * Handles real-time kitchen monitoring and metrics
- * Manager can view but NOT perform kitchen operations
- */
 class KitchenController extends Controller
 {
     protected KitchenMonitorService $kitchenService;
@@ -22,9 +16,6 @@ class KitchenController extends Controller
         $this->kitchenService = $kitchenService;
     }
 
-    /**
-     * Get all kitchen orders with filters
-     */
     public function orders(Request $request): JsonResponse
     {
         try {
@@ -59,9 +50,6 @@ class KitchenController extends Controller
         }
     }
 
-    /**
-     * Get kitchen metrics
-     */
     public function metrics(): JsonResponse
     {
         try {
@@ -81,9 +69,6 @@ class KitchenController extends Controller
         }
     }
 
-    /**
-     * Get delayed orders
-     */
     public function delayedOrders(): JsonResponse
     {
         try {
@@ -104,9 +89,6 @@ class KitchenController extends Controller
         }
     }
 
-    /**
-     * Get kitchen performance
-     */
     public function performance(): JsonResponse
     {
         try {
@@ -126,9 +108,6 @@ class KitchenController extends Controller
         }
     }
 
-    /**
-     * Get chef workload
-     */
     public function chefWorkload(): JsonResponse
     {
         try {
@@ -148,9 +127,6 @@ class KitchenController extends Controller
         }
     }
 
-    /**
-     * Get top prepared items
-     */
     public function topItems(Request $request): JsonResponse
     {
         try {
@@ -171,9 +147,6 @@ class KitchenController extends Controller
         }
     }
 
-    /**
-     * Get queue status
-     */
     public function queueStatus(): JsonResponse
     {
         try {

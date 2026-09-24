@@ -1,9 +1,7 @@
 <template>
   <div class="rounded-lg sm:rounded-xl border border-slate-200 bg-white p-4 sm:p-6 md:p-8">
-    <!-- Title -->
     <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6">Booking Policy</h3>
 
-    <!-- Policies List -->
     <div class="space-y-3 sm:space-y-4">
       <div class="flex items-start gap-3 sm:gap-4">
         <div class="flex-shrink-0 mt-0.5 sm:mt-1">
@@ -78,7 +76,6 @@
       </div>
     </div>
 
-    <!-- Terms Checkbox -->
     <div class="mt-6 sm:mt-8 flex items-start gap-3 sm:gap-4">
       <input type="checkbox" class="mt-1 rounded w-4 h-4 sm:w-5 sm:h-5" />
       <label class="text-xs sm:text-sm text-slate-600">
@@ -94,9 +91,7 @@
 </template>
 
 <script setup lang="ts">
-// Booking policy component
 </script>
 
 <style scoped>
-/* Responsive booking policy */
 </style>

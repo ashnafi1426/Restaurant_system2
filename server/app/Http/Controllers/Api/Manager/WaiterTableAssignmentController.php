@@ -9,10 +9,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 
-/**
- * Controller for managing waiter-to-table assignments
- * Handles API endpoints for walk-in customer service management
- */
 class WaiterTableAssignmentController extends Controller
 {
     protected $assignmentService;
@@ -22,20 +18,6 @@ class WaiterTableAssignmentController extends Controller
         $this->assignmentService = $assignmentService;
     }
 
-    /**
-     * Get all table assignments with filters
-     * 
-     * GET /api/manager/table-assignments
-     * 
-     * Query params:
-     * - date: YYYY-MM-DD
-     * - waiter_id: int
-     * - table_id: uuid
-     * - shift_id: uuid
-     * - status: active/inactive/completed
-     * - priority: primary/secondary/backup
-     * - per_page: int (default: 15)
-     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -76,11 +58,6 @@ class WaiterTableAssignmentController extends Controller
         }
     }
 
-    /**
-     * Get today's active assignments
-     * 
-     * GET /api/manager/table-assignments/today
-     */
     public function today(): JsonResponse
     {
         try {
@@ -105,24 +82,6 @@ class WaiterTableAssignmentController extends Controller
         }
     }
 
-    /**
-     * Assign waiters to tables (batch)
-     * 
-     * POST /api/manager/table-assignments
-     * 
-     * Body:
-     * {
-     *   "assignments": [
-     *     {
-     *       "waiter_id": 123,
-     *       "table_id": "uuid-table-5",
-     *       "shift_id": "uuid-morning-shift",
-     *       "assignment_date": "2026-08-17",
-     *       "priority": "primary"
-     *     }
-     *   ]
-     * }
-     */
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -177,17 +136,6 @@ class WaiterTableAssignmentController extends Controller
         }
     }
 
-    /**
-     * Update assignment
-     * 
-     * PATCH /api/manager/table-assignments/{id}
-     * 
-     * Body:
-     * {
-     *   "priority": "secondary",
-     *   "status": "inactive"
-     * }
-     */
     public function update(Request $request, string $id): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -238,11 +186,6 @@ class WaiterTableAssignmentController extends Controller
         }
     }
 
-    /**
-     * Delete assignment
-     * 
-     * DELETE /api/manager/table-assignments/{id}
-     */
     public function destroy(string $id): JsonResponse
     {
         try {
@@ -273,11 +216,6 @@ class WaiterTableAssignmentController extends Controller
         }
     }
 
-    /**
-     * Get assignment statistics
-     * 
-     * GET /api/manager/table-assignments/stats?date=2026-08-17
-     */
     public function stats(Request $request): JsonResponse
     {
         try {
@@ -302,11 +240,6 @@ class WaiterTableAssignmentController extends Controller
         }
     }
 
-    /**
-     * Get assigned waiter for a table
-     * 
-     * GET /api/manager/table-assignments/table/{tableId}/assigned-waiter
-     */
     public function getAssignedWaiter(string $tableId): JsonResponse
     {
         try {
@@ -338,11 +271,6 @@ class WaiterTableAssignmentController extends Controller
         }
     }
 
-    /**
-     * Get tables assigned to a waiter
-     * 
-     * GET /api/manager/table-assignments/waiter/{waiterId}/tables?date=2026-08-17
-     */
     public function getWaiterTables(Request $request, int $waiterId): JsonResponse
     {
         try {

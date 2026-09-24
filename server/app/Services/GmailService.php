@@ -13,8 +13,8 @@ class GmailService
                         ->subject($subject)
                         ->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'));
             });
-            
-            Log::info('📧 [GMAIL] Email sent successfully', [
+
+            Log::info(' [GMAIL] Email sent successfully', [
                 'to' => $toEmail,
                 'subject' => $subject,
             ]);
@@ -22,7 +22,7 @@ class GmailService
             return true;
             
         } catch (\Exception $e) {
-            Log::error('📧 [GMAIL] Failed to send email: ' . $e->getMessage(), [
+            Log::error(' [GMAIL] Failed to send email: ' . $e->getMessage(), [
                 'to' => $toEmail,
                 'subject' => $subject,
             ]);
