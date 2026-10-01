@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, computed, watch } from 'vue'
+import { onMounted, onUnmounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import DeleteReservationDialog from '@/components/reservation/DeleteReservationDialog.vue'
@@ -29,6 +29,14 @@ import {
   UserCheck,
   Building2,
   Loader2,
+  MoreVertical,
+  ExternalLink,
+  Mail,
+  Phone,
+  Globe,
+  FileText,
+  User,
+  AlertCircle,
 } from 'lucide-vue-next'
 
 import { useReservationStore } from '@/stores/reservationStore'
@@ -37,6 +45,7 @@ import { useHotelStore } from '@/stores/hotelStore'
 import { useLanguageStore } from '@/stores/language'
 import roomService from '@/services/roomService'
 import { roomTypeService } from '@/services/roomtypeService'
+import reservationService from '@/services/reservationService'
 import type { Reservation, ReservationFilter as FilterType } from '@/types/reservation'
 
 const router = useRouter()
@@ -52,6 +61,13 @@ const selectedReservation = ref<Reservation | null>(null)
 const toastMessage = ref<string | null>(null)
 const roomTypes = ref<any[]>([])
 const rooms = ref<any[]>([])
+
+// Dropdown and Details Modal state
+const openDropdownId = ref<string | null>(null)
+const detailsModalOpen = ref(false)
+const detailsReservation = ref<Reservation | null>(null)
+const detailsLoading = ref(false)
+const modalActionLoading = ref(false)
 
 const searchQuery = ref('')
 const filterStatus = ref('')
@@ -260,12 +276,112 @@ const nextPage = () => {
   }
 }
 
+const toggleDropdown = (id: string, e: MouseEvent) => {
+  e.stopPropagation()
+  openDropdownId.value = openDropdownId.value === id ? null : id
+}
+
+const closeDropdown = () => {
+  openDropdownId.value = null
+}
+
+const handleAction = (actionFn: () => void) => {
+  closeDropdown()
+  actionFn()
+}
+
+const handleClickOutside = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.action-dropdown-container')) {
+    openDropdownId.value = null
+  }
+}
+
+const openDetailsModal = async (reservation: Reservation) => {
+  closeDropdown()
+  if (!reservation) return
+  detailsReservation.value = { ...reservation }
+  detailsModalOpen.value = true
+  detailsLoading.value = true
+  try {
+    const res = await reservationService.getReservation(reservation.id)
+    const fresh = res?.data || res
+    if (fresh) {
+      detailsReservation.value = { ...reservation, ...fresh }
+    }
+  } catch (err) {
+    console.warn('[ReservationList] Notice: using initial reservation data:', err)
+  } finally {
+    detailsLoading.value = false
+  }
+}
+
 const viewReservation = (reservation: Reservation) => {
-  router.push(`/reservations/${reservation.id}`)
+  openDetailsModal(reservation)
+}
+
+const navigateToViewPage = (id?: string) => {
+  if (!id) return
+  detailsModalOpen.value = false
+  router.push(`/reservations/${id}`)
 }
 
 const editReservation = (reservation: Reservation) => {
+  closeDropdown()
   router.push(`/reservations/${reservation.id}/edit`)
+}
+
+const confirmFromModal = async () => {
+  if (!detailsReservation.value) return
+  modalActionLoading.value = true
+  try {
+    await confirmReservation(detailsReservation.value)
+    if (detailsReservation.value) {
+      detailsReservation.value.status = 'confirmed'
+    }
+  } finally {
+    modalActionLoading.value = false
+  }
+}
+
+const checkInFromModal = async () => {
+  if (!detailsReservation.value) return
+  modalActionLoading.value = true
+  try {
+    await checkIn(detailsReservation.value)
+    if (detailsReservation.value) {
+      detailsReservation.value.status = 'checked_in'
+    }
+  } finally {
+    modalActionLoading.value = false
+  }
+}
+
+const checkOutFromModal = async () => {
+  if (!detailsReservation.value) return
+  modalActionLoading.value = true
+  try {
+    await checkOut(detailsReservation.value)
+    if (detailsReservation.value) {
+      detailsReservation.value.status = 'checked_out'
+    }
+  } finally {
+    modalActionLoading.value = false
+  }
+}
+
+const editFromModal = () => {
+  if (!detailsReservation.value) return
+  const id = detailsReservation.value.id
+  detailsModalOpen.value = false
+  router.push(`/reservations/${id}/edit`)
+}
+
+const deleteFromModal = () => {
+  if (!detailsReservation.value) return
+  const res = detailsReservation.value
+  detailsModalOpen.value = false
+  confirmDelete(res)
 }
 
 const confirmDelete = (reservation: Reservation) => {
@@ -384,7 +500,12 @@ const reloadAll = async () => {
 }
 
 onMounted(async () => {
+  window.addEventListener('click', handleClickOutside)
   await reloadAll()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', handleClickOutside)
 })
 
 watch(() => hotelStore.hotelId, async () => {
@@ -616,9 +737,9 @@ watch(() => hotelStore.hotelId, async () => {
       </Transition>
 
       <!-- Reservations Table Container -->
-      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs font-sans w-full">
         <!-- Desktop Table View -->
-        <div class="hidden md:block overflow-x-auto w-full">
+        <div class="hidden md:block overflow-x-auto w-full min-h-[380px]">
           <table class="w-full text-left border-collapse">
             <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
@@ -644,9 +765,10 @@ watch(() => hotelStore.hotelId, async () => {
               <!-- Data Rows -->
               <template v-else>
                 <tr
-                  v-for="reservation in paginatedReservations"
+                  v-for="(reservation, index) in paginatedReservations"
                   :key="reservation.id"
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+                  :class="{ 'relative z-30 bg-blue-50/30 dark:bg-[#13233c]/40': openDropdownId === reservation.id }"
                 >
                 <!-- Guest & Booking # -->
                 <td class="py-3 px-4 pl-5 whitespace-nowrap">
@@ -654,12 +776,12 @@ watch(() => hotelStore.hotelId, async () => {
                     <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 font-black flex items-center justify-center text-xs border border-blue-500/20 flex-shrink-0">
                       {{ (reservation.guest?.first_name || 'G').charAt(0).toUpperCase() }}
                     </div>
-                    <div>
-                      <div class="font-bold text-slate-900 dark:text-white">
+                    <div @click="openDetailsModal(reservation)" class="cursor-pointer group/guest" title="Click to view details">
+                      <div class="font-bold text-slate-900 dark:text-white group-hover/guest:text-blue-600 transition-colors">
                         {{ reservation.guest?.first_name }} {{ reservation.guest?.last_name }}
                       </div>
-                      <div class="text-[10px] text-slate-400 font-mono">
-                        {{ reservation.reservation_number || `#${reservation.id.slice(-6)}` }}
+                      <div class="text-[10px] text-slate-400 font-mono group-hover/guest:text-blue-500 transition-colors">
+                        {{ reservation.booking_reference || reservation.reservation_number || `#${String(reservation.id || '').slice(-6)}` }}
                       </div>
                     </div>
                   </div>
@@ -707,65 +829,129 @@ watch(() => hotelStore.hotelId, async () => {
                   </span>
                 </td>
 
-                <!-- Actions -->
-                <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
-                  <div class="flex items-center justify-end gap-1">
-                    <!-- Confirm -->
+                <!-- Actions: Direct View Button + Three-dot dropdown menu -->
+                <td class="py-3 px-4 text-right pr-5 whitespace-nowrap" :class="{ 'relative z-50': openDropdownId === reservation.id }">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <!-- Direct Quick View Button -->
                     <button
-                      v-if="reservation.status === 'pending'"
-                      @click="confirmReservation(reservation)"
-                      class="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition cursor-pointer"
-                      :title="languageStore.t('Confirm Reservation', 'Confirm Reservation')"
+                      type="button"
+                      @click.stop="openDetailsModal(reservation)"
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 hover:border-blue-300 dark:hover:border-blue-600 shadow-2xs text-xs font-bold transition cursor-pointer"
+                      :title="languageStore.t('view_details', 'View Details')"
                     >
-                      <CheckCircle2 class="w-3.5 h-3.5" />
+                      <Eye class="w-3.5 h-3.5 stroke-[2.2]" />
+                      <span class="hidden sm:inline">{{ languageStore.t('View', 'View') }}</span>
                     </button>
 
-                    <!-- Check-in -->
-                    <button
-                      v-if="reservation.status === 'confirmed'"
-                      @click="checkIn(reservation)"
-                      class="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition cursor-pointer"
-                      :title="languageStore.t('Check In Guest', 'Check In Guest')"
-                    >
-                      <LogIn class="w-3.5 h-3.5" />
-                    </button>
+                    <!-- Three-dot secondary actions menu container -->
+                    <div class="relative inline-block text-left action-dropdown-container">
+                      <button
+                        type="button"
+                        @click.stop="toggleDropdown(reservation.id, $event)"
+                        class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 shadow-xs transition cursor-pointer"
+                        :class="{ 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-400 dark:border-blue-500 shadow-sm ring-2 ring-blue-500/20': openDropdownId === reservation.id }"
+                        :title="languageStore.t('Actions', 'Actions')"
+                      >
+                        <MoreVertical class="w-4 h-4 stroke-[2.5]" />
+                      </button>
 
-                    <!-- Check-out -->
-                    <button
-                      v-if="reservation.status === 'checked_in'"
-                      @click="checkOut(reservation)"
-                      class="p-1.5 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg transition cursor-pointer"
-                      :title="languageStore.t('Check Out Guest', 'Check Out Guest')"
-                    >
-                      <LogOut class="w-3.5 h-3.5" />
-                    </button>
+                      <!-- Dropdown Menu -->
+                      <Transition
+                        enter-active-class="transition duration-100 ease-out"
+                        enter-from-class="transform scale-95 opacity-0"
+                        enter-to-class="transform scale-100 opacity-100"
+                        leave-active-class="transition duration-75 ease-in"
+                        leave-from-class="transform scale-100 opacity-100"
+                        leave-to-class="transform scale-95 opacity-0"
+                      >
+                        <div
+                          v-if="openDropdownId === reservation.id"
+                          class="absolute right-0 z-50 w-52 rounded-2xl bg-white dark:bg-[#0f1d32] border border-slate-200 dark:border-slate-800 shadow-2xl shadow-slate-900/20 dark:shadow-slate-950/70 py-1.5 focus:outline-none"
+                          :class="[
+                            paginatedReservations.length >= 4 && index >= paginatedReservations.length - 2
+                              ? 'bottom-full mb-1.5'
+                              : 'top-full mt-1.5'
+                          ]"
+                        >
+                          <!-- View Details (Modal) -->
+                          <button
+                            type="button"
+                            @click="openDetailsModal(reservation)"
+                            class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer text-left"
+                          >
+                            <Eye class="w-4 h-4 text-blue-500 flex-shrink-0" />
+                            <span>{{ languageStore.t('view_details', 'View Details') }}</span>
+                          </button>
 
-                    <!-- View Details -->
-                    <button
-                      @click="viewReservation(reservation)"
-                      class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
-                      :title="languageStore.t('View Details', 'View Details')"
-                    >
-                      <Eye class="w-3.5 h-3.5" />
-                    </button>
+                          <!-- Full Page View -->
+                          <button
+                            type="button"
+                            @click="handleAction(() => navigateToViewPage(reservation.id))"
+                            class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer text-left"
+                          >
+                            <ExternalLink class="w-4 h-4 text-slate-400 flex-shrink-0" />
+                            <span>{{ languageStore.t('Full Page View', 'Full Page View') }}</span>
+                          </button>
 
-                    <!-- Edit -->
-                    <button
-                      @click="editReservation(reservation)"
-                      class="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-lg transition cursor-pointer"
-                      :title="languageStore.t('Edit Reservation', 'Edit Reservation')"
-                    >
-                      <Edit class="w-3.5 h-3.5" />
-                    </button>
+                          <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
 
-                    <!-- Delete -->
-                    <button
-                      @click="confirmDelete(reservation)"
-                      class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
-                      :title="languageStore.t('Delete Reservation', 'Delete Reservation')"
-                    >
-                      <Trash2 class="w-3.5 h-3.5" />
-                    </button>
+                          <!-- Confirm (Pending) -->
+                          <button
+                            v-if="reservation.status === 'pending'"
+                            type="button"
+                            @click="handleAction(() => confirmReservation(reservation))"
+                            class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer text-left"
+                          >
+                            <CheckCircle2 class="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                            <span>{{ languageStore.t('confirm_booking', 'Confirm Booking') }}</span>
+                          </button>
+
+                          <!-- Check-in (Confirmed) -->
+                          <button
+                            v-if="reservation.status === 'confirmed'"
+                            type="button"
+                            @click="handleAction(() => checkIn(reservation))"
+                            class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer text-left"
+                          >
+                            <LogIn class="w-4 h-4 text-blue-500 flex-shrink-0" />
+                            <span>{{ languageStore.t('check_in_guest', 'Check In Guest') }}</span>
+                          </button>
+
+                          <!-- Check-out (Checked In) -->
+                          <button
+                            v-if="reservation.status === 'checked_in'"
+                            type="button"
+                            @click="handleAction(() => checkOut(reservation))"
+                            class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 transition cursor-pointer text-left"
+                          >
+                            <LogOut class="w-4 h-4 text-purple-500 flex-shrink-0" />
+                            <span>{{ languageStore.t('check_out_guest', 'Check Out Guest') }}</span>
+                          </button>
+
+                          <!-- Edit -->
+                          <button
+                            type="button"
+                            @click="handleAction(() => editReservation(reservation))"
+                            class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition cursor-pointer text-left"
+                          >
+                            <Edit class="w-4 h-4 text-amber-500 flex-shrink-0" />
+                            <span>{{ languageStore.t('edit_reservation', 'Edit') }}</span>
+                          </button>
+
+                          <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+
+                          <!-- Delete -->
+                          <button
+                            type="button"
+                            @click="handleAction(() => confirmDelete(reservation))"
+                            class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer text-left"
+                          >
+                            <Trash2 class="w-4 h-4 text-rose-500 flex-shrink-0" />
+                            <span>{{ languageStore.t('delete_reservation', 'Delete') }}</span>
+                          </button>
+                        </div>
+                      </Transition>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -808,10 +994,31 @@ watch(() => hotelStore.hotelId, async () => {
               <span>Room {{ reservation.room?.room_number || 'TBD' }}</span>
               <span>{{ formatDate(reservation.check_in_date) }}</span>
             </div>
-            <div class="flex items-center justify-end gap-3 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs font-bold">
-              <button @click="viewReservation(reservation)" class="text-blue-600">{{ languageStore.t('View', 'View') }}</button>
-              <button @click="editReservation(reservation)" class="text-amber-600">{{ languageStore.t('Edit', 'Edit') }}</button>
-              <button @click="confirmDelete(reservation)" class="text-rose-600">{{ languageStore.t('Delete', 'Delete') }}</button>
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs font-bold">
+              <button
+                type="button"
+                @click="openDetailsModal(reservation)"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition cursor-pointer"
+              >
+                <Eye class="w-3.5 h-3.5" />
+                <span>{{ languageStore.t('View', 'View') }}</span>
+              </button>
+              <button
+                type="button"
+                @click="editReservation(reservation)"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition cursor-pointer"
+              >
+                <Edit class="w-3.5 h-3.5" />
+                <span>{{ languageStore.t('Edit', 'Edit') }}</span>
+              </button>
+              <button
+                type="button"
+                @click="confirmDelete(reservation)"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition cursor-pointer"
+              >
+                <Trash2 class="w-3.5 h-3.5" />
+                <span>{{ languageStore.t('Delete', 'Delete') }}</span>
+              </button>
             </div>
           </div>
         </template>
@@ -877,6 +1084,254 @@ watch(() => hotelStore.hotelId, async () => {
           </div>
         </div>
       </div>
+
+      <!-- Reservation Details Modal -->
+      <Teleport to="body">
+        <Transition
+          enter-active-class="transition duration-200 ease-out"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-active-class="transition duration-150 ease-in"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
+        >
+          <div
+            v-if="detailsModalOpen && detailsReservation"
+            class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto"
+            @click.self="detailsModalOpen = false"
+          >
+            <div
+              class="w-full max-w-2xl bg-white dark:bg-[#0c182c] border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden font-sans my-8 transition-all"
+            >
+              <!-- Modal Header -->
+              <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#0f1d32]/60">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold flex-shrink-0">
+                    <Calendar class="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                        {{ languageStore.t('Reservation Details', 'Reservation Details') }}
+                      </h3>
+                      <span
+                        class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
+                        :class="getStatusBadgeClass(detailsReservation.status)"
+                      >
+                        {{ (detailsReservation.status || 'pending').replace('_', ' ') }}
+                      </span>
+                    </div>
+                    <p class="text-xs text-slate-400 font-mono mt-0.5">
+                      {{ detailsReservation.booking_reference || detailsReservation.reservation_number || `#${String(detailsReservation.id || '').slice(-8)}` }}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  @click="detailsModalOpen = false"
+                  class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
+                >
+                  <X class="w-5 h-5" />
+                </button>
+              </div>
+
+              <!-- Modal Body -->
+              <div class="p-6 space-y-5 max-h-[72vh] overflow-y-auto">
+                <!-- Loading indicator when fetching fresh data -->
+                <div v-if="detailsLoading" class="flex items-center justify-center gap-2 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 rounded-xl p-2.5">
+                  <Loader2 class="w-4 h-4 animate-spin" />
+                  <span>{{ languageStore.t('Refreshing details...', 'Refreshing details...') }}</span>
+                </div>
+
+                <!-- Guest Profile Highlight -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-[#13233c]/60 border border-slate-100 dark:border-slate-800 gap-3">
+                  <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-lg flex items-center justify-center shadow-md flex-shrink-0">
+                      {{ (detailsReservation.guest?.first_name || 'G').charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                      <h4 class="text-sm font-bold text-slate-900 dark:text-white">
+                        {{ detailsReservation.guest?.first_name }} {{ detailsReservation.guest?.last_name }}
+                      </h4>
+                      <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        <span v-if="detailsReservation.guest?.email" class="flex items-center gap-1">
+                          <Mail class="w-3.5 h-3.5 text-slate-400" />
+                          {{ detailsReservation.guest?.email }}
+                        </span>
+                        <span v-if="detailsReservation.guest?.phone" class="flex items-center gap-1">
+                          <Phone class="w-3.5 h-3.5 text-slate-400" />
+                          {{ detailsReservation.guest?.phone }}
+                        </span>
+                        <span v-if="detailsReservation.guest?.nationality" class="flex items-center gap-1">
+                          <Globe class="w-3.5 h-3.5 text-slate-400" />
+                          {{ detailsReservation.guest?.nationality }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Details Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <!-- Room & Stay -->
+                  <div class="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 bg-white dark:bg-[#0f1d32]/40">
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider pb-2 border-b border-slate-100 dark:border-slate-800">
+                      <BedDouble class="w-4 h-4 text-blue-500" />
+                      <span>{{ languageStore.t('Room & Stay', 'Room & Stay') }}</span>
+                    </div>
+                    <div class="space-y-2 text-xs">
+                      <div class="flex items-center justify-between">
+                        <span class="text-slate-500">{{ languageStore.t('Room', 'Room') }}</span>
+                        <span class="font-black text-slate-900 dark:text-white">
+                          Room {{ detailsReservation.room?.room_number || 'TBD' }}
+                          <span v-if="getRoomTypeName(detailsReservation.room)" class="text-slate-400 font-normal">
+                            ({{ getRoomTypeName(detailsReservation.room) }})
+                          </span>
+                        </span>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <span class="text-slate-500">{{ languageStore.t('Check-in Date', 'Check-in Date') }}</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ formatDate(detailsReservation.check_in_date) }}</span>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <span class="text-slate-500">{{ languageStore.t('Check-out Date', 'Check-out Date') }}</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ formatDate(detailsReservation.check_out_date) }}</span>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <span class="text-slate-500">{{ languageStore.t('Duration', 'Duration') }}</span>
+                        <span class="font-semibold text-slate-700 dark:text-slate-300">
+                          {{ detailsReservation.total_nights || detailsReservation.stay_duration || 1 }} night(s)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Guests & Billing -->
+                  <div class="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 bg-white dark:bg-[#0f1d32]/40">
+                    <div class="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider pb-2 border-b border-slate-100 dark:border-slate-800">
+                      <DollarSign class="w-4 h-4 text-emerald-500" />
+                      <span>{{ languageStore.t('Guests & Billing', 'Guests & Billing') }}</span>
+                    </div>
+                    <div class="space-y-2 text-xs">
+                      <div class="flex items-center justify-between">
+                        <span class="text-slate-500">{{ languageStore.t('Guests', 'Guests') }}</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200">
+                          {{ detailsReservation.adults_count || detailsReservation.number_of_guests || 1 }} Adults, {{ detailsReservation.children_count || 0 }} Kids
+                        </span>
+                      </div>
+                      <div class="flex items-center justify-between">
+                        <span class="text-slate-500">{{ languageStore.t('Payment Status', 'Payment Status') }}</span>
+                        <span class="font-extrabold capitalize text-slate-800 dark:text-slate-200">
+                          {{ detailsReservation.payment_status || 'Pending' }}
+                        </span>
+                      </div>
+                      <div class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800">
+                        <span class="text-slate-500 font-semibold">{{ languageStore.t('Total Price', 'Total Price') }}</span>
+                        <span class="text-base font-black text-blue-600 dark:text-blue-400">
+                          {{ formatCurrency(detailsReservation.total_price || detailsReservation.total_amount || 0) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Special Requests -->
+                <div class="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0f1d32]/40 space-y-2">
+                  <div class="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                    <FileText class="w-4 h-4 text-amber-500" />
+                    <span>{{ languageStore.t('Special Requests & Notes', 'Special Requests & Notes') }}</span>
+                  </div>
+                  <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-[#13233c]/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                    {{ detailsReservation.special_requests || 'No special requests provided.' }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Modal Footer Actions -->
+              <div class="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#0f1d32]/60">
+                <!-- Left: Open Full Page -->
+                <button
+                  type="button"
+                  @click="navigateToViewPage(detailsReservation.id)"
+                  class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 transition cursor-pointer"
+                >
+                  <ExternalLink class="w-3.5 h-3.5" />
+                  <span>{{ languageStore.t('Full Page View', 'Full Page View') }}</span>
+                </button>
+
+                <!-- Right Action Buttons -->
+                <div class="flex flex-wrap items-center gap-2">
+                  <!-- Confirm (if pending) -->
+                  <button
+                    v-if="detailsReservation.status === 'pending'"
+                    type="button"
+                    :disabled="modalActionLoading"
+                    @click="confirmFromModal"
+                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                  >
+                    <CheckCircle2 class="w-3.5 h-3.5" />
+                    <span>{{ languageStore.t('Confirm', 'Confirm') }}</span>
+                  </button>
+
+                  <!-- Check-in (if confirmed) -->
+                  <button
+                    v-if="detailsReservation.status === 'confirmed'"
+                    type="button"
+                    :disabled="modalActionLoading"
+                    @click="checkInFromModal"
+                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                  >
+                    <LogIn class="w-3.5 h-3.5" />
+                    <span>{{ languageStore.t('Check In', 'Check In') }}</span>
+                  </button>
+
+                  <!-- Check-out (if checked_in) -->
+                  <button
+                    v-if="detailsReservation.status === 'checked_in'"
+                    type="button"
+                    :disabled="modalActionLoading"
+                    @click="checkOutFromModal"
+                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                  >
+                    <LogOut class="w-3.5 h-3.5" />
+                    <span>{{ languageStore.t('Check Out', 'Check Out') }}</span>
+                  </button>
+
+                  <!-- Edit -->
+                  <button
+                    type="button"
+                    @click="editFromModal"
+                    class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold text-amber-600 dark:text-amber-400 transition cursor-pointer"
+                  >
+                    <Edit class="w-3.5 h-3.5" />
+                    <span>{{ languageStore.t('Edit', 'Edit') }}</span>
+                  </button>
+
+                  <!-- Delete -->
+                  <button
+                    type="button"
+                    @click="deleteFromModal"
+                    class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 hover:bg-rose-100 text-xs font-bold text-rose-600 dark:text-rose-400 transition cursor-pointer"
+                  >
+                    <Trash2 class="w-3.5 h-3.5" />
+                    <span>{{ languageStore.t('Delete', 'Delete') }}</span>
+                  </button>
+
+                  <!-- Close -->
+                  <button
+                    type="button"
+                    @click="detailsModalOpen = false"
+                    class="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer"
+                  >
+                    {{ languageStore.t('Close', 'Close') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
 
       <!-- Delete Dialog -->
       <DeleteReservationDialog

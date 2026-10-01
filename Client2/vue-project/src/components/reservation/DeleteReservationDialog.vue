@@ -30,15 +30,16 @@ const confirmDelete = () => {
 </script>
 
 <template>
-  <Transition
-    enter-active-class="transition duration-200"
-    enter-from-class="opacity-0 scale-95"
-    enter-to-class="opacity-100 scale-100"
-    leave-active-class="transition duration-150"
-    leave-from-class="opacity-100 scale-100"
-    leave-to-class="opacity-0 scale-95"
-  >
-    <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition duration-200"
+      enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition duration-150"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-95"
+    >
+      <div v-if="visible" class="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
       <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
         <div class="flex items-center gap-3 border-b px-6 py-5">
           <div class="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
@@ -122,4 +123,5 @@ const confirmDelete = () => {
       </div>
     </div>
   </Transition>
+  </Teleport>
 </template>

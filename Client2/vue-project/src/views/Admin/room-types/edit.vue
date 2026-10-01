@@ -7,7 +7,7 @@ import RoomTypeForm from '../../../components/room-types/RoomTypeForm.vue'
 import { roomTypeService } from '../../../services/roomtypeService'
 import { useRoomTypeStore } from '../../../stores/roomType'
 import { useHotelStore } from '@/stores/hotelStore'
-import { Building2 } from 'lucide-vue-next'
+import { Building2, AlertTriangle, CheckCircle2, X } from 'lucide-vue-next'
 
 import type { RoomType } from '../../../types/roomType'
 
@@ -28,7 +28,10 @@ const form = ref<RoomType>({
 })
 
 const loading = ref(true)
+const isSubmitting = ref(false)
+const serverErrors = ref<Record<string, string[]>>({})
 const error = ref<string | null>(null)
+const successMessage = ref<string | null>(null)
 
 const loadData = async () => {
   try {
@@ -37,6 +40,7 @@ const loadData = async () => {
     const data = res.data.data
     
     form.value = {
+      id: data.id,
       name: data.name ?? '',
       description: data.description ?? '',
       base_price_per_night: Number(data.base_price_per_night) || 0,
@@ -59,6 +63,11 @@ onMounted(loadData)
 watch(() => hotelStore.hotelId, loadData)
 
 const submit = async () => {
+  isSubmitting.value = true
+  serverErrors.value = {}
+  error.value = null
+  successMessage.value = null
+
   try {
     const payload: RoomType = {
       name: form.value.name,
@@ -70,34 +79,84 @@ const submit = async () => {
     }
     
     await store.updateRoomType(id, payload)
-    router.push('/room-types')
+    successMessage.value = `Room type "${form.value.name}" updated successfully!`
+    
+    setTimeout(() => {
+      router.push('/admin/room-types')
+    }, 1200)
   } catch (err: any) {
     console.error('[RoomTypesEdit] Failed to update room type:', err)
-    error.value = err.response?.data?.message || 'Failed to update room type'
+    const errorData = err.response?.data
+    if (errorData?.errors) {
+      serverErrors.value = errorData.errors
+      error.value = errorData.message || 'Validation failed. Please correct the highlighted errors.'
+    } else {
+      error.value = errorData?.message || err.message || 'Failed to update room type'
+    }
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
 
 <template>
   <DashboardLayout>
-    <div class="max-w-2xl mx-auto">
+    <div class="max-w-2xl mx-auto pb-12">
       <div class="flex items-center gap-2 mb-4">
-        <h1 class="text-2xl font-bold">Edit Room Type</h1>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Edit Room Type</h1>
         <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
           <Building2 class="w-3 h-3" />
           {{ hotelStore.hotelName }}
         </span>
       </div>
 
-      <div v-if="error" class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
-        <p class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+      <!-- Success Banner -->
+      <div
+        v-if="successMessage"
+        class="mb-4 p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center gap-2.5 text-emerald-800 dark:text-emerald-300 text-sm shadow-sm animate-fadeIn"
+      >
+        <CheckCircle2 class="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+        <span>{{ successMessage }}</span>
+      </div>
+
+      <!-- Error Banner -->
+      <div
+        v-if="error"
+        class="mb-4 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl flex items-start justify-between gap-3 text-red-800 dark:text-red-300 text-sm shadow-sm animate-fadeIn"
+      >
+        <div class="flex items-start gap-2.5">
+          <AlertTriangle class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p class="font-semibold">{{ error }}</p>
+            <ul v-if="Object.keys(serverErrors).length > 0" class="mt-1 list-disc list-inside text-xs space-y-0.5 text-red-700 dark:text-red-400">
+              <li v-for="(errList, field) in serverErrors" :key="field">
+                {{ errList[0] }}
+              </li>
+            </ul>
+          </div>
+        </div>
+        <button
+          type="button"
+          @click="error = null"
+          class="text-red-500 hover:text-red-700 cursor-pointer p-1"
+        >
+          <X class="w-4 h-4" />
+        </button>
       </div>
 
       <div v-if="loading" class="flex items-center justify-center py-16">
         <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
 
-      <RoomTypeForm v-else v-model="form" @submit="submit" @cancel="router.push('/room-types')" />
+      <div v-else class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+        <RoomTypeForm
+          v-model="form"
+          :is-submitting="isSubmitting"
+          :server-errors="serverErrors"
+          @submit="submit"
+          @cancel="router.push('/admin/room-types')"
+        />
+      </div>
     </div>
   </DashboardLayout>
 </template>

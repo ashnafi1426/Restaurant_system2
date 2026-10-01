@@ -36,6 +36,9 @@ export interface AssignmentStats {
   backup_assignments: number
 }
 
+export type FloorAssignmentStats = AssignmentStats
+export type BulkAssignmentPayload = any
+
 class FloorAssignmentService {
   async getTodayAssignments(): Promise<FloorAssignment[]> {
     try {
@@ -47,7 +50,7 @@ class FloorAssignmentService {
     }
   }
 
-  async getAssignments(params?: {
+  async getAssignments(params?: string | {
     page?: number
     per_page?: number
     date?: string
@@ -55,12 +58,13 @@ class FloorAssignmentService {
     waiter_id?: string
     status?: string
   }): Promise<any> {
-    const response = await api.get('/manager/floors/assignments', { params })
+    const queryParams = typeof params === 'string' ? { date: params } : params
+    const response = await api.get('/manager/floors/assignments', { params: queryParams })
     return response.data
   }
 
   async assignWaitersToFloors(assignments: Array<{
-    waiter_id: string
+    waiter_id: string | number
     floor_id: string
     shift_id: string
     assignment_date: string
@@ -76,6 +80,11 @@ class FloorAssignmentService {
       console.error('[FloorAssignmentService] Error assigning waiters to floors:', error)
       throw error
     }
+  }
+
+  async bulkAssign(payload: any): Promise<FloorAssignment[]> {
+    const list = Array.isArray(payload) ? payload : (payload?.assignments || [])
+    return this.assignWaitersToFloors(list)
   }
 
   async updateAssignmentPriority(

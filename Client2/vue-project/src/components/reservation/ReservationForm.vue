@@ -262,6 +262,59 @@ function openPaymentDialog() {
   showPaymentDialog.value = true
 }
 
+const directBookingLoading = ref(false)
+
+const bookDirectly = async () => {
+  if (!form.value.guest_id) {
+    alert('Please select or register a guest')
+    return
+  }
+  if (!form.value.check_in_date || !form.value.check_out_date) {
+    alert('Please select both check-in and check-out dates')
+    return
+  }
+  if (!isValidDateRange.value) {
+    alert('Check-out date must be after check-in date')
+    return
+  }
+  if (isPastDate.value) {
+    alert('Check-in date cannot be in the past')
+    return
+  }
+  if (!form.value.room_id) {
+    alert('Please select a room')
+    return
+  }
+  if (isCapacityExceeded.value) {
+    alert(`Selected room maximum capacity is ${roomCapacity.value} guest(s).`)
+    return
+  }
+  if (availabilityStatus.value && !availabilityStatus.value.available) {
+    alert('This room is not available for the selected dates in this hotel.')
+    return
+  }
+
+  directBookingLoading.value = true
+  try {
+    const payload = {
+      ...form.value,
+      status: 'confirmed',
+      total_amount: totalAmount.value,
+    }
+    const response = await api.post('/reservations', payload)
+    if (response.data) {
+      alert('✓ Reservation created and automatically confirmed! Confirmation email sent to the guest.')
+      window.location.href = '/reservations'
+    }
+  } catch (error: any) {
+    console.error('[ReservationForm] Direct booking error:', error)
+    const msg = error.response?.data?.message || error.message || 'Failed to create reservation'
+    alert(msg)
+  } finally {
+    directBookingLoading.value = false
+  }
+}
+
 function closePaymentDialog() {
   showPaymentDialog.value = false
 }
@@ -621,22 +674,35 @@ async function registerGuest() {
     <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
       <button
         type="button"
+        @click="$router ? $router.push('/reservations') : null"
         class="px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition duration-200 cursor-pointer"
       >
         {{ languageStore.t('cancel', 'Cancel') }}
       </button>
 
+      <!-- Direct Book & Confirm (Pay at Desk) -->
+      <button
+        type="button"
+        @click="bookDirectly"
+        :disabled="directBookingLoading || loading || !isValidDateRange || isPastDate || !form.guest_id || !form.room_id || isCapacityExceeded || (availabilityStatus !== null && !availabilityStatus.available)"
+        class="px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 shadow-sm"
+      >
+        <span v-if="directBookingLoading" class="animate-spin mr-1">⌛</span>
+        <span>✓ {{ languageStore.t('book_and_confirm', 'Confirm & Book (Pay at Desk)') }}</span>
+      </button>
+
+      <!-- Pay Online via Chapa -->
       <button
         type="button"
         @click="openPaymentDialog"
-        :disabled="loading || !isValidDateRange || isPastDate || !form.guest_id || !form.room_id || isCapacityExceeded || (availabilityStatus !== null && !availabilityStatus.available)"
-        class="px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 cursor-pointer"
+        :disabled="loading || directBookingLoading || !isValidDateRange || isPastDate || !form.guest_id || !form.room_id || isCapacityExceeded || (availabilityStatus !== null && !availabilityStatus.available)"
+        class="px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 cursor-pointer flex items-center justify-center gap-1.5"
       >
         <span v-if="loading" class="inline-flex items-center gap-2">
           <span class="animate-spin">⌛</span>
           {{ languageStore.t('processing', 'Processing...') }}
         </span>
-        <span v-else>💳 {{ languageStore.t('proceed_to_payment', 'Proceed to Payment') }}</span>
+        <span v-else>💳 {{ languageStore.t('pay_online_chapa', 'Pay Online (Chapa)') }}</span>
       </button>
     </div>
 

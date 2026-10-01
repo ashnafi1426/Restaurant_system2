@@ -3,7 +3,7 @@ export interface Room {
   id: string
   hotel_id?: string | number
   room_number: string
-  room_type_id: number
+  room_type_id: number | string
   capacity?: number
   price_per_night?: number | string
   room_type?: {
@@ -12,7 +12,9 @@ export interface Room {
     capacity: number
     base_price_per_night: number
   }
-  floor: number
+  floor_id?: string
+  floor?: number
+  floor_name?: string
   description?: string
   status: RoomStatus
   is_active?: boolean

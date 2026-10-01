@@ -11,6 +11,9 @@
       :hero-image="heroImage"
       :hero-heading="heroHeading"
       :hero-subheading="heroSubheading"
+      :can-order="canOrderRoomService"
+      :eligibility-message="eligibilityMessage"
+      :reservation-status="reservationStatusVal"
       @room-selected="handleRoomSelected"
       @logout="handleLogout"
       @add-to-cart="handleAddToCart"
@@ -457,6 +460,7 @@ interface MenuItem {
   name: string
   description: string
   price: number
+  total_price?: number
   image: string | null
   category: string
   rating?: number
@@ -465,6 +469,14 @@ interface MenuItem {
   calories?: number
   preparationTime?: number
   is_available?: boolean
+  tax_rate?: {
+    id?: string | number
+    name?: string
+    rate: number
+    is_active?: boolean
+  } | null
+  tax_included?: boolean
+  tax_amount?: number
 }
 
 interface CartItem extends MenuItem {
@@ -475,7 +487,12 @@ const route = useRoute()
 const router = useRouter()
 const menuLayoutRef = ref<InstanceType<typeof QRMenuLayout> | null>(null)
 
-const qrToken = ref('')
+const qrToken = ref(
+  (route.params.qrToken as string) ||
+  (route.query.token as string) ||
+  localStorage.getItem('qrToken') ||
+  ''
+)
 const roomNumber = ref('101')
 const guestName = ref('Guest User')
 const guestEmail = ref('guest@royalhorizon.com')
@@ -494,6 +511,9 @@ const estimatedTime = ref(30)
 const orderContext = ref<OrderContext | null>(null)
 const isLoadingContext = ref(true)
 const contextError = ref<string | null>(null)
+const canOrderRoomService = ref(true)
+const eligibilityMessage = ref('')
+const reservationStatusVal = ref('')
 
 const paymentForm = ref({
   first_name: '',
@@ -533,6 +553,10 @@ const handleLogout = () => {
 }
 
 const handleAddToCart = (item: MenuItem, quantity: number) => {
+  if (orderContext.value?.type === 'room' && !canOrderRoomService.value) {
+    alert(eligibilityMessage.value || 'Room service ordering is only available for checked-in guests. Please contact the front desk.')
+    return
+  }
   const existingItem = cartItems.value.find((ci) => ci.id === item.id)
   if (existingItem) {
     existingItem.quantity += quantity
@@ -574,6 +598,10 @@ const formatPrice = (price: number): string => {
 }
 
 const openPaymentDialog = () => {
+  if (orderContext.value?.type === 'room' && !canOrderRoomService.value) {
+    alert(eligibilityMessage.value || 'Room service ordering is only available for checked-in guests.')
+    return
+  }
   if (cartItems.value.length === 0) {
     alert('Your cart is empty')
     return
@@ -613,6 +641,10 @@ const proceedToPayment = () => {
 
 const handlePlaceOrder = async () => {
   if (isPlacingOrder.value) return
+  if (orderContext.value?.type === 'room' && !canOrderRoomService.value) {
+    alert(eligibilityMessage.value || 'Room service ordering is only available for checked-in guests.')
+    return
+  }
   if (cartItems.value.length === 0) {
     alert('Your cart is empty')
     return
@@ -667,54 +699,24 @@ const handlePlaceOrder = async () => {
     }
 
     if (orderContext.value.type === 'room') {
-      const result = await qrService.resolveQRToken(qrToken.value)
-      
-      if (!result.success || !result.data?.guest) {
-        throw new Error('No guest checked into this room. Please contact reception.')
-      }
-      
-      const guestInfo = result.data.guest
-      
-      const paymentInitRequest = {
-        guest_id: guestInfo.guest_id,
-        room_id: result.data.room_id,
+      const orderResponse = await unifiedOrderService.createOrder({
+        qr_token: qrToken.value,
         items: orderItems,
-        first_name: guestInfo.guest_name.split(' ')[0] || 'Guest',
-        last_name: guestInfo.guest_name.split(' ').slice(1).join(' ') || 'User',
-        email: guestInfo.guest_email,
-        phone: guestInfo.guest_phone,
-      }
-      
-      const apiUrl = 'http://127.0.0.1:8000/api'
-      const paymentResponse = await fetch(`${apiUrl}/order-payments/initialize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(paymentInitRequest),
+        special_requests: '',
+        payment_type: 'room_charge',
       })
-      
-      const paymentData = await paymentResponse.json()
-      
-      if (paymentData.success && paymentData.checkout_url) {
-          sessionStorage.setItem('order_payment_data', JSON.stringify({
-            payment_id: paymentData.payment_id,
-            tx_ref: paymentData.tx_ref,
-            amount: paymentData.amount,
-            qr_token: qrToken.value,
-            room_number: result.data.room_number,
-            guest_name: guestInfo.guest_name,
-            items: cartItems.value.map(item => ({
-              name: item.name,
-              quantity: item.quantity,
-              price: item.price,
-              total: item.price * item.quantity,
-            })),
-            calculation: paymentData.calculation,
-          }))
-          
-          window.location.href = paymentData.checkout_url
-          return
+
+      if (orderResponse && orderResponse.success && orderResponse.data) {
+        orderNumber.value = orderResponse.data.order_number
+        roomNumber.value = orderResponse.data.room_number || roomNumber.value
+        estimatedTime.value = 30
+        cartItems.value = []
+        showPaymentDialog.value = false
+        showCartModal.value = false
+        showSuccessModal.value = true
+        return
       } else {
-        throw new Error(paymentData.message || 'Failed to initialize payment')
+        throw new Error(orderResponse.message || 'Failed to place room order')
       }
     }
 
@@ -752,11 +754,23 @@ const detectOrderContext = async () => {
     }
 
     if (result.context === 'room') {
+      const isCheckedIn = result.data.is_checked_in === true || result.data.can_order === true
+      const resStatus = result.data.reservation_status || (isCheckedIn ? 'checked_in' : 'none')
+      const eligMsg = result.data.eligibility_message || (isCheckedIn ? '' : 'Only checked-in guests can place room-service orders.')
+
+      canOrderRoomService.value = isCheckedIn
+      eligibilityMessage.value = eligMsg
+      reservationStatusVal.value = resStatus
+
       orderContext.value = {
         type: 'room',
         id: result.data.room_id!,
         displayName: `Room ${result.data.room_number}`,
         paymentOptions: [{ value: 'room_charge', label: 'Charge to Room' }],
+        isCheckedIn: isCheckedIn,
+        canOrder: isCheckedIn,
+        reservationStatus: resStatus,
+        eligibilityMessage: eligMsg,
       }
       roomNumber.value = result.data.room_number || '101'
       heroHeading.value = 'Room Service Menu'
@@ -770,6 +784,10 @@ const detectOrderContext = async () => {
         guestEmail.value = 'guest@hotel.com'
       }
     } else if (result.context === 'table') {
+      canOrderRoomService.value = true
+      eligibilityMessage.value = ''
+      reservationStatusVal.value = 'not_applicable'
+
       orderContext.value = {
         type: 'table',
         id: result.data.table_id!,
@@ -778,6 +796,10 @@ const detectOrderContext = async () => {
           { value: 'cash', label: 'Pay with Cash' },
           { value: 'card', label: 'Pay with Card' },
         ],
+        isCheckedIn: true,
+        canOrder: true,
+        reservationStatus: 'not_applicable',
+        eligibilityMessage: '',
       }
       roomNumber.value = result.data.table_name || `Table ${result.data.table_number}`
       heroHeading.value = 'Restaurant Menu'
@@ -809,6 +831,16 @@ const detectOrderContext = async () => {
     isLoadingContext.value = false
   }
 }
+
+watch(
+  () => route.params.qrToken,
+  async (newVal) => {
+    if (newVal && newVal !== qrToken.value) {
+      qrToken.value = String(newVal)
+      await detectOrderContext()
+    }
+  },
+)
 
 onMounted(async () => {
   if (route.params.qrToken) {

@@ -17,7 +17,7 @@ export interface FloorResponse {
 export const floorService = {
   async getFloors(): Promise<FloorResponse> {
     try {
-      const response = await axios.get('/api/manager/floors')
+      const response = await axios.get('/manager/floors')
       return response.data
     } catch (error: any) {
       console.error('[FloorService] Error fetching floors:', error)
@@ -27,7 +27,7 @@ export const floorService = {
 
   async getActiveFloors(): Promise<FloorResponse> {
     try {
-      const response = await axios.get('/api/manager/floors', {
+      const response = await axios.get('/manager/floors', {
         params: { is_active: true }
       })
       return response.data
@@ -39,7 +39,7 @@ export const floorService = {
 
   async getFloor(floorId: string): Promise<{ success: boolean; data: Floor }> {
     try {
-      const response = await axios.get(`/api/manager/floors/${floorId}`)
+      const response = await axios.get(`/manager/floors/${floorId}`)
       return response.data
     } catch (error: any) {
       console.error('[FloorService] Error fetching floor:', error)

@@ -18,6 +18,9 @@ const languageStore = useLanguageStore()
 
 const showDeleteModal = ref(false)
 const selectedRoomId = ref<string | null>(null)
+const isDeleting = ref(false)
+const deleteErrorMessage = ref<string | null>(null)
+const canForceDelete = ref(false)
 
 const loadData = async () => {
   try {
@@ -34,27 +37,70 @@ watch(() => hotelStore.hotelId, () => {
 })
 
 const createRoom = () => {
-  router.push('/rooms/create')
+  router.push('/admin/rooms/create')
 }
 
 const viewRoom = (room: any) => {
-  router.push(`/rooms/${room.id}`)
+  router.push(`/admin/rooms/${room.id}`)
 }
 
 const editRoom = (room: any) => {
-  router.push(`/rooms/${room.id}/edit`)
+  router.push(`/admin/rooms/${room.id}/edit`)
 }
 
 const openDeleteModal = (room: any) => {
   selectedRoomId.value = String(room.id)
+  deleteErrorMessage.value = null
+  canForceDelete.value = false
   showDeleteModal.value = true
 }
 
 const deleteRoom = async () => {
-  if (selectedRoomId.value) {
-    await roomStore.deleteRoom(selectedRoomId.value)
+  if (!selectedRoomId.value) return
+  isDeleting.value = true
+  deleteErrorMessage.value = null
+  try {
+    await roomStore.deleteRoom(selectedRoomId.value, false)
+    showDeleteModal.value = false
+    selectedRoomId.value = null
+  } catch (err: any) {
+    const errorData = err.response?.data
+    deleteErrorMessage.value = errorData?.message || err.message || 'Unable to delete room'
+    canForceDelete.value = Boolean(errorData?.can_force)
+  } finally {
+    isDeleting.value = false
   }
-  showDeleteModal.value = false
+}
+
+const forceDeleteRoom = async () => {
+  if (!selectedRoomId.value) return
+  isDeleting.value = true
+  deleteErrorMessage.value = null
+  try {
+    await roomStore.deleteRoom(selectedRoomId.value, true)
+    showDeleteModal.value = false
+    selectedRoomId.value = null
+  } catch (err: any) {
+    const errorData = err.response?.data
+    deleteErrorMessage.value = errorData?.message || err.message || 'Force delete failed'
+  } finally {
+    isDeleting.value = false
+  }
+}
+
+const deactivateRoom = async () => {
+  if (!selectedRoomId.value) return
+  isDeleting.value = true
+  try {
+    await roomStore.toggleStatus(selectedRoomId.value)
+    showDeleteModal.value = false
+    selectedRoomId.value = null
+  } catch (err: any) {
+    const errorData = err.response?.data
+    deleteErrorMessage.value = errorData?.message || err.message || 'Failed to deactivate room'
+  } finally {
+    isDeleting.value = false
+  }
 }
 
 const refresh = async () => {
@@ -110,8 +156,13 @@ const refresh = async () => {
 
       <DeleteRoomModal
         :open="showDeleteModal"
+        :is-deleting="isDeleting"
+        :error-message="deleteErrorMessage"
+        :can-force="canForceDelete"
         @close="showDeleteModal = false"
         @delete="deleteRoom"
+        @force-delete="forceDeleteRoom"
+        @deactivate="deactivateRoom"
       />
     </div>
   </DashboardLayout>

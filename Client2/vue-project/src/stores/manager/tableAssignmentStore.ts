@@ -84,13 +84,7 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
     }
   }
 
-  async function assignWaitersToTables(assignments: Array<{
-    waiter_id: number
-    table_id: string
-    shift_id: string
-    assignment_date: string
-    priority: 'primary' | 'secondary' | 'backup'
-  }>) {
+  async function assignWaitersToTables(assignments: any) {
     loading.value = true
     error.value = null
 
@@ -152,6 +146,7 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
       todayAssignments.value = todayAssignments.value.filter(a => a.id !== assignmentId)
       
       await loadStats()
+      return true
     } catch (err: any) {
       console.error('[tableAssignmentStore] Failed to delete assignment:', err)
       error.value = err.response?.data?.message || err.message || 'Failed to delete assignment'

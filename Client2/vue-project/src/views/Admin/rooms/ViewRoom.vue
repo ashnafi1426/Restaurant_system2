@@ -48,7 +48,7 @@ const loadRoom = async () => {
   } catch (error: any) {
     console.error('[ViewRoom] Error loading room:', error)
     alert('Unable to load room. The room may not exist.')
-    router.push('/rooms')
+    router.push('/admin/rooms')
   } finally {
     loading.page = false
   }
@@ -79,7 +79,7 @@ watch(() => hotelStore.hotelId, loadRoom)
         </div>
 
         <button
-          @click="router.push(`/rooms/${roomId}/edit`)"
+          @click="router.push(`/admin/rooms/${roomId}/edit`)"
           class="rounded-lg bg-amber-500 px-4 sm:px-6 py-2 sm:py-3 font-medium text-white text-sm sm:text-base transition hover:bg-amber-600 cursor-pointer"
         >
           {{ languageStore.t('edit_room', 'Edit Room') }}
@@ -169,7 +169,7 @@ watch(() => hotelStore.hotelId, loadRoom)
 
       <div class="mt-6 sm:mt-8">
         <button
-          @click="router.push('/rooms')"
+          @click="router.push('/admin/rooms')"
           class="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-4 sm:px-6 py-2 sm:py-3 font-medium text-sm sm:text-base transition hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
         >
           ← {{ languageStore.t('back_to_rooms', 'Back to Rooms') }}

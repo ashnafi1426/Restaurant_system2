@@ -117,6 +117,39 @@
           </div>
         </div>
 
+        <!-- Room Service Eligibility Notice -->
+        <div
+          v-if="!canOrder"
+          class="mt-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/60 p-4 shadow-sm"
+        >
+          <div class="flex items-start gap-3.5">
+            <div class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm sm:text-base font-bold text-amber-900 dark:text-amber-200">
+                  Room Service Ordering Locked
+                </h3>
+                <span
+                  v-if="reservationStatus"
+                  class="px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded-md bg-amber-200/60 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300"
+                >
+                  {{ String(reservationStatus).replace('_', ' ') }}
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm text-amber-800 dark:text-amber-300/90 mt-1 leading-relaxed">
+                {{ eligibilityMessage || 'Room service ordering is only available for checked-in guests. Please contact the front desk or complete check-in to place an order.' }}
+              </p>
+              <div class="mt-2 text-[11px] sm:text-xs text-amber-700/80 dark:text-amber-400 font-medium">
+                ℹ️ You can browse our menu. Ordering will be automatically enabled once your reservation is checked in.
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="mt-2.5">
           <MenuSearch
             :menu-items="allMenuItems"
@@ -130,23 +163,10 @@
             v-for="cat in categories"
             :key="cat.id ?? 'all'"
             @click="handleCategorySelected(cat.id)"
-            :class="[
-              'px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 flex-shrink-0',
-              (selectedCategory === cat.id || (cat.slug && selectedCategory === cat.slug) || (cat.id === null && selectedCategory === null))
-                ? 'bg-[#c29353] text-white shadow-xs font-black'
-                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800'
-            ]"
+            :class="getCategoryBtnClass(cat)"
           >
             <span>{{ languageStore.t(cat.name, cat.name) }}</span>
-            <span
-              v-if="cat.count !== undefined"
-              :class="[
-                'px-1.5 py-0.2 rounded-full text-[10px] font-black',
-                (selectedCategory === cat.id || (cat.slug && selectedCategory === cat.slug) || (cat.id === null && selectedCategory === null))
-                  ? 'bg-white/20 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-              ]"
-            >
+            <span v-if="cat.count !== undefined" :class="getCategoryBadgeClass(cat)">
               {{ cat.count }}
             </span>
           </button>
@@ -258,11 +278,18 @@
           </div>
 
           <button
+            v-if="canOrder"
             @click="handleViewCart"
-            class="w-full sm:w-auto rounded-xl bg-amber-500 px-4 sm:px-6 md:px-10 py-2 sm:py-3 md:py-4 text-sm sm:text-base md:text-lg font-semibold text-white transition hover:bg-amber-600"
+            class="w-full sm:w-auto rounded-xl bg-amber-500 px-4 sm:px-6 md:px-10 py-2 sm:py-3 md:py-4 text-sm sm:text-base md:text-lg font-semibold text-white transition hover:bg-amber-600 cursor-pointer"
           >
             {{ languageStore.t('view_cart_checkout', 'View Cart & Checkout →') }}
           </button>
+          <div
+            v-else
+            class="w-full sm:w-auto rounded-xl bg-slate-800 px-4 sm:px-6 py-2.5 sm:py-3.5 text-center text-xs sm:text-sm font-semibold text-amber-300 border border-amber-500/30"
+          >
+            🔒 Check-in Required to Order
+          </div>
         </div>
       </div>
     </Transition>
@@ -288,7 +315,7 @@
 
     <GuestReviewModal
       :is-open="showReviewModal"
-      :menu-item="(selectedMenuItemForReview as any)"
+      :menu-item="selectedMenuItemForReview"
       :guest-name="guestName"
       :guest-email="guestEmail"
       :order-id="qrToken"
@@ -352,6 +379,9 @@ interface Props {
   heroHeading?: string
   heroSubheading?: string
   itemsPerPage?: number
+  canOrder?: boolean
+  eligibilityMessage?: string
+  reservationStatus?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -363,6 +393,9 @@ const props = withDefaults(defineProps<Props>(), {
   heroHeading: 'Good Food, Great Moments',
   heroSubheading: 'LUXURY DINING',
   itemsPerPage: 12,
+  canOrder: true,
+  eligibilityMessage: '',
+  reservationStatus: '',
 })
 
 const languageStore = useLanguageStore()
@@ -386,7 +419,7 @@ const errorMessage = ref('')
 const sidebarOpen = ref(false)
 
 const showReviewModal = ref(false)
-const selectedMenuItemForReview = ref<MenuItem | null>(null)
+const selectedMenuItemForReview = ref<any>(null)
 
 const categories = ref<Category[]>([])
 const loadingCategories = ref(false)
@@ -424,13 +457,18 @@ function deriveCategoriesFromMenuItems() {
 const loadCategories = async () => {
   loadingCategories.value = true
   try {
+    const params: Record<string, any> = {}
+    if (props.qrToken) {
+      params.qr_token = props.qrToken
+    }
+
     let rawCategories: any[] = []
     try {
-      const response = await api.get('/guest/categories')
+      const response = await api.get('/guest/categories', { params })
       rawCategories = response.data?.data || response.data || []
     } catch (guestErr) {
       console.warn('[QRMenuLayout] /guest/categories endpoint unavailable, trying /categories:', guestErr)
-      const response = await api.get('/categories')
+      const response = await api.get('/categories', { params })
       rawCategories = response.data?.data || response.data || []
     }
 
@@ -557,15 +595,39 @@ const loadMenuItems = async () => {
           is_available: item.is_available !== false,
         }
       })
-    } else {
-      errorMessage.value = 'Unexpected data format from server'
     }
+    if (categories.value.length <= 1) {
+      deriveCategoriesFromMenuItems()
+    }
+    updateCategoryCounts()
   } catch (error) {
     console.error('[QRMenuLayout] Error fetching menu items:', error)
     errorMessage.value = 'Failed to load menu items. Please try again.'
   } finally {
     isLoadingMenu.value = false
   }
+}
+
+function isCategoryActive(cat: any): boolean {
+  if (!cat) return false
+  if (cat.id === null && (selectedCategory.value === null || selectedCategory.value === 'all')) return true
+  if (selectedCategory.value === cat.id) return true
+  if (cat.slug && selectedCategory.value === cat.slug) return true
+  return false
+}
+
+function getCategoryBtnClass(cat: any): string {
+  const base = 'px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 flex-shrink-0'
+  return isCategoryActive(cat)
+    ? `${base} bg-[#c29353] text-white shadow-xs font-black`
+    : `${base} bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800`
+}
+
+function getCategoryBadgeClass(cat: any): string {
+  const base = 'px-1.5 py-0.5 rounded-full text-[10px] font-black'
+  return isCategoryActive(cat)
+    ? `${base} bg-white/20 text-white`
+    : `${base} bg-slate-100 dark:bg-slate-800 text-slate-500`
 }
 
 function normalizeCat(str: string | number | null | undefined): string {
@@ -740,6 +802,10 @@ const handleViewModeChanged = (mode: 'grid' | 'list') => {
 const handleFiltersApplied = () => {}
 
 const handleAddToCart = (item: MenuItem, quantity: number) => {
+  if (props.canOrder === false) {
+    alert(props.eligibilityMessage || 'Room service ordering is only available for checked-in guests. Please contact the front desk.')
+    return
+  }
   const existingItem = cartItems.value.find((ci) => ci.id === item.id)
   if (existingItem) {
     existingItem.quantity += quantity
@@ -787,7 +853,22 @@ const formatPrice = (price: number): string => {
   return `$${price.toFixed(2)}`
 }
 
-watch(allMenuItems, updateCategoryCounts, { immediate: true, deep: true })
+watch(allMenuItems, () => {
+  if (categories.value.length <= 1) {
+    deriveCategoriesFromMenuItems()
+  }
+  updateCategoryCounts()
+}, { immediate: true, deep: true })
+
+watch(
+  () => props.qrToken,
+  (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+      loadCategories()
+      loadMenuItems()
+    }
+  },
+)
 
 onMounted(() => {
   loadCategories()

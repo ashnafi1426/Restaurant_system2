@@ -4,13 +4,12 @@ import {
   X,
   Loader2,
   CheckCircle2,
-  User,
-  Clock,
-  Award,
-  Users,
   UtensilsCrossed,
   AlertCircle,
   Edit3,
+  ToggleLeft,
+  ToggleRight,
+  MapPin,
 } from 'lucide-vue-next'
 import api from '@/api/auth'
 import { useTableAssignmentStore } from '@/stores/manager/tableAssignmentStore'
@@ -36,58 +35,41 @@ const tableAssignmentStore = useTableAssignmentStore()
 
 const tables = ref<any[]>([])
 const waiters = ref<any[]>([])
-const shifts = ref<any[]>([])
 
 const selectedTable = ref<string>('')
 const selectedWaiter = ref<number | string>('')
-const selectedShift = ref<string>('')
-const selectedPriority = ref<'primary' | 'secondary' | 'backup'>('primary')
-const selectedStatus = ref<'active' | 'inactive' | 'completed'>('active')
+const isActive = ref<boolean>(true)
 
 const isLoading = ref(false)
 const isSubmitting = ref(false)
 const error = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
 
-const priorities = [
-  { value: 'primary', label: 'Primary', desc: 'Main responsible waiter' },
-  { value: 'secondary', label: 'Secondary', desc: 'Backup support waiter' },
-  { value: 'backup', label: 'Backup', desc: 'On-demand coverage' },
-]
-
-const statuses = [
-  { value: 'active', label: 'Active' },
-  { value: 'inactive', label: 'Inactive' },
-  { value: 'completed', label: 'Completed' },
-]
-
-const isFormValid = computed(() => {
-  return selectedTable.value && selectedWaiter.value && selectedShift.value
+const selectedTableData = computed(() => {
+  return tables.value.find((t) => String(t.id) === String(selectedTable.value)) || null
 })
 
-const formatTime = (timeString?: string): string => {
-  if (!timeString) return ''
-  try {
-    if (timeString.includes('T')) {
-      return new Date(timeString).toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-      })
-    }
-    const timeParts = timeString.split(':')
-    if (timeParts.length >= 2) {
-      let hours = parseInt(timeParts[0])
-      const minutes = timeParts[1]
-      const ampm = hours >= 12 ? 'PM' : 'AM'
-      hours = hours % 12 || 12
-      return `${hours}:${minutes} ${ampm}`
-    }
-    return timeString
-  } catch (error) {
-    console.error('[EditTableAssignmentModal] Error formatting time:', error)
-    return timeString || ''
-  }
+// Only active waiters from the current hotel can be assigned
+const activeWaiters = computed(() => {
+  return waiters.value.filter((w: any) => {
+    const status = (w.status || 'active').toLowerCase()
+    // Always include currently assigned waiter even if inactive for display, but preferred active
+    return status === 'active' || String(w.id) === String(selectedWaiter.value)
+  })
+})
+
+const isFormValid = computed(() => {
+  return Boolean(selectedTable.value) && Boolean(selectedWaiter.value)
+})
+
+const getWaiterDisplayName = (waiter: any): string => {
+  if (!waiter) return 'Unknown Staff'
+  if (waiter.user?.name) return waiter.user.name
+  if (waiter.name) return waiter.name
+  if (waiter.user?.first_name) return `${waiter.user.first_name} ${waiter.user.last_name || ''}`.trim()
+  if (waiter.user?.email) return waiter.user.email.split('@')[0]
+  if (waiter.employee_number) return `Waiter #${waiter.employee_number}`
+  return `Waiter #${waiter.id}`
 }
 
 const loadTables = async () => {
@@ -122,50 +104,18 @@ const loadWaiters = async () => {
   }
 }
 
-const loadShifts = async () => {
-  try {
-    const response = await api.get('/manager/shifts')
-    let list: any[] = []
-    if (Array.isArray(response.data?.data)) {
-      list = response.data.data
-    } else if (Array.isArray(response.data)) {
-      list = response.data
-    }
-    if (list.length > 0) {
-      shifts.value = list
-    } else {
-      shifts.value = [
-        { id: 'morning-shift', name: 'Morning', start_time: '06:00', end_time: '14:00' },
-        { id: 'afternoon-shift', name: 'Afternoon', start_time: '14:00', end_time: '22:00' },
-        { id: 'evening-shift', name: 'Evening', start_time: '17:00', end_time: '23:00' },
-        { id: 'night-shift', name: 'Night', start_time: '22:00', end_time: '06:00' },
-      ]
-    }
-  } catch (err: any) {
-    console.error('[EditTableAssignmentModal] Error loading shifts, using fallback:', err)
-    shifts.value = [
-      { id: 'morning-shift', name: 'Morning', start_time: '06:00', end_time: '14:00' },
-      { id: 'afternoon-shift', name: 'Afternoon', start_time: '14:00', end_time: '22:00' },
-      { id: 'evening-shift', name: 'Evening', start_time: '17:00', end_time: '23:00' },
-      { id: 'night-shift', name: 'Night', start_time: '22:00', end_time: '06:00' },
-    ]
-  }
-}
-
 const populateForm = () => {
   if (!props.assignment) return
   selectedTable.value = props.assignment.table_id || props.assignment.table?.id || ''
   selectedWaiter.value = props.assignment.waiter_id || props.assignment.waiter?.id || ''
-  selectedShift.value = props.assignment.shift_id || props.assignment.shift?.id || ''
-  selectedPriority.value = props.assignment.priority || 'primary'
-  selectedStatus.value = props.assignment.status || 'active'
+  isActive.value = props.assignment.status === 'active' || props.assignment.is_active !== false
 }
 
 const loadData = async () => {
   isLoading.value = true
   error.value = null
   try {
-    await Promise.all([loadTables(), loadWaiters(), loadShifts()])
+    await Promise.all([loadTables(), loadWaiters()])
     populateForm()
   } finally {
     isLoading.value = false
@@ -184,6 +134,16 @@ onMounted(() => {
   loadData()
 })
 
+watch(
+  () => props.isOpen,
+  (open) => {
+    if (open) {
+      loadData()
+      populateForm()
+    }
+  }
+)
+
 const handleUpdate = async () => {
   if (!props.assignment || !isFormValid.value) return
 
@@ -194,9 +154,8 @@ const handleUpdate = async () => {
     const payload = {
       waiter_id: Number(selectedWaiter.value),
       table_id: selectedTable.value,
-      shift_id: selectedShift.value,
-      priority: selectedPriority.value,
-      status: selectedStatus.value,
+      status: isActive.value ? 'active' : 'inactive',
+      is_active: isActive.value,
     }
 
     await tableAssignmentStore.updateAssignment(props.assignment.id, payload)
@@ -233,6 +192,7 @@ const handleClose = () => {
       <div
         class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col transition-all"
       >
+        <!-- Modal Header -->
         <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-500/20">
@@ -240,7 +200,7 @@ const handleClose = () => {
             </div>
             <div>
               <h2 class="text-lg font-black text-slate-900 dark:text-white">Edit Table Assignment</h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Update waiter, shift, priority, or status</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Modify assigned table, waitstaff, or active status</p>
             </div>
           </div>
 
@@ -248,11 +208,13 @@ const handleClose = () => {
             type="button"
             @click="handleClose"
             class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
+            aria-label="Close modal"
           >
             <X class="w-5 h-5" />
           </button>
         </div>
 
+        <!-- Modal Body -->
         <div class="p-6 overflow-y-auto space-y-5 flex-1">
           <div v-if="isLoading" class="py-12 text-center space-y-3">
             <Loader2 class="w-8 h-8 text-blue-600 animate-spin mx-auto" />
@@ -260,6 +222,7 @@ const handleClose = () => {
           </div>
 
           <template v-else>
+            <!-- Error Banner -->
             <div
               v-if="error"
               class="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-2xl text-xs font-bold flex items-center gap-2.5"
@@ -268,6 +231,7 @@ const handleClose = () => {
               <span>{{ error }}</span>
             </div>
 
+            <!-- Success Banner -->
             <div
               v-if="successMessage"
               class="p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl text-xs font-bold flex items-center gap-2.5"
@@ -276,9 +240,10 @@ const handleClose = () => {
               <span>{{ successMessage }}</span>
             </div>
 
+            <!-- Field 1: Restaurant Table -->
             <div>
               <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                Select Restaurant Table *
+                Restaurant Table <span class="text-rose-500">*</span>
               </label>
               <select
                 v-model="selectedTable"
@@ -286,81 +251,70 @@ const handleClose = () => {
               >
                 <option value="" disabled>Choose a table...</option>
                 <option v-for="table in tables" :key="table.id" :value="table.id">
-                  Table {{ table.table_number }} {{ table.table_name ? `(${table.table_name})` : '' }} — {{ table.capacity }} Seats
+                  Table {{ table.table_number }} {{ table.table_name ? `(${table.table_name})` : '' }} — {{ table.section || table.location || 'Main Section' }} ({{ table.capacity }} Seats)
                 </option>
               </select>
+
+              <!-- Table Section Preview -->
+              <div
+                v-if="selectedTableData"
+                class="mt-2.5 p-3 rounded-2xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/60 dark:bg-blue-950/20 flex items-center justify-between gap-3 text-xs"
+              >
+                <div class="flex items-center gap-2">
+                  <MapPin class="w-4 h-4 text-blue-500 flex-shrink-0" />
+                  <span class="font-bold text-slate-900 dark:text-white">
+                    Section: {{ selectedTableData.section || selectedTableData.location || 'Main Dining Room' }}
+                  </span>
+                </div>
+                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  {{ selectedTableData.capacity }} seats
+                </span>
+              </div>
             </div>
 
+            <!-- Field 2: Assigned Waiter -->
             <div>
               <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                Assigned Waitstaff *
+                Assigned Waitstaff <span class="text-rose-500">*</span>
               </label>
               <select
                 v-model="selectedWaiter"
                 class="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white px-3.5 py-2.5 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition cursor-pointer"
               >
                 <option value="" disabled>Choose a waiter...</option>
-                <option v-for="waiter in waiters" :key="waiter.id" :value="waiter.id">
-                  {{ waiter.name || waiter.user?.name || waiter.user?.first_name || `Waiter #${waiter.id}` }} {{ waiter.section ? `(${waiter.section})` : '' }}
+                <option v-for="waiter in activeWaiters" :key="waiter.id" :value="waiter.id">
+                  {{ getWaiterDisplayName(waiter) }} {{ waiter.section ? `(${waiter.section})` : '' }}
                 </option>
               </select>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Field 3: Active Assignment Toggle -->
+            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex items-center justify-between gap-4">
               <div>
-                <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                  Shift Schedule *
+                <label class="block text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                  Active Assignment <span class="text-rose-500">*</span>
                 </label>
-                <select
-                  v-model="selectedShift"
-                  class="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white px-3.5 py-2.5 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition cursor-pointer"
-                >
-                  <option v-for="shift in shifts" :key="shift.id" :value="shift.id">
-                    {{ shift.name }} ({{ formatTime(shift.start_time) }} - {{ formatTime(shift.end_time) }})
-                  </option>
-                </select>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Set whether this waiter is currently active for table orders
+                </p>
               </div>
 
-              <div>
-                <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                  Status
-                </label>
-                <select
-                  v-model="selectedStatus"
-                  class="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white px-3.5 py-2.5 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition cursor-pointer capitalize"
-                >
-                  <option v-for="s in statuses" :key="s.value" :value="s.value">
-                    {{ s.label }}
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                Coverage Priority
-              </label>
-              <div class="grid grid-cols-3 gap-2.5">
-                <button
-                  v-for="p in priorities"
-                  :key="p.value"
-                  type="button"
-                  @click="selectedPriority = p.value as any"
-                  class="p-3 rounded-2xl border text-center transition cursor-pointer"
-                  :class="[
-                    selectedPriority === p.value
-                      ? 'border-blue-600 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-black'
-                      : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 font-semibold'
-                  ]"
-                >
-                  <div class="text-xs capitalize font-bold">{{ p.label }}</div>
-                  <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">{{ p.desc }}</div>
-                </button>
-              </div>
+              <button
+                type="button"
+                @click="isActive = !isActive"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-xl border transition cursor-pointer"
+                :class="isActive
+                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                  : 'border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-500'"
+              >
+                <component :is="isActive ? ToggleRight : ToggleLeft" class="w-5 h-5" />
+                <span class="text-xs font-extrabold">{{ isActive ? 'Active' : 'Inactive' }}</span>
+              </button>
             </div>
           </template>
         </div>
 
+        <!-- Modal Footer -->
         <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex-shrink-0">
           <button
             type="button"

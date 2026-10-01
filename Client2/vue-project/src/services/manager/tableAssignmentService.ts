@@ -4,11 +4,12 @@ export interface TableAssignment {
   id: string
   waiter_id: number
   table_id: string
-  shift_id: string
-  assignment_date: string
-  priority: 'primary' | 'secondary' | 'backup'
+  shift_id?: string | null
+  assignment_date?: string
+  priority?: 'primary' | 'secondary' | 'backup'
   status: 'active' | 'inactive' | 'completed'
-  assigned_by: string | null
+  is_active?: boolean
+  assigned_by?: string | null
   waiter: {
     id: number
     user: {
@@ -40,10 +41,11 @@ export interface TableAssignmentStats {
   total_assignments: number
   total_tables: number
   total_waiters: number
-  primary_assignments: number
-  secondary_assignments: number
-  backup_assignments: number
-  by_shift: Record<string, number>
+  active_assignments?: number
+  primary_assignments?: number
+  secondary_assignments?: number
+  backup_assignments?: number
+  by_shift?: Record<string, number>
 }
 
 class TableAssignmentService {
@@ -71,16 +73,15 @@ class TableAssignmentService {
     }
   }
 
-  async assignWaitersToTables(assignments: Array<{
-    waiter_id: number
-    table_id: string
-    shift_id: string
-    assignment_date: string
-    priority: 'primary' | 'secondary' | 'backup'
-  }>): Promise<any> {
-    const response = await api.post('/manager/table-assignments', {
-      assignments,
-    })
+  async assignWaitersToTables(data: any): Promise<any> {
+    const payload = Array.isArray(data)
+      ? { assignments: data }
+      : (data && data.assignments ? data : {
+          table_id: data.table_id,
+          waiter_ids: data.waiter_ids || (data.waiter_id ? [data.waiter_id] : []),
+          status: data.status || (data.is_active !== false ? 'active' : 'inactive')
+        })
+    const response = await api.post('/manager/table-assignments', payload)
     return response.data
   }
 

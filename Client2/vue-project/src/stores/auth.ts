@@ -121,7 +121,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const can = (permissionSlug: string): boolean => {
     if (!permissionSlug) return true
-    if (isPlatformAdmin.value) return true
+    if (isPlatformAdmin.value || hasRole('admin')) return true
 
     const target = permissionSlug.toLowerCase().trim()
     if (userPermissions.value.includes(target)) return true

@@ -173,15 +173,10 @@ class ManagerService {
     phone?: string
     password?: string
   }): Promise<any> {
-    const response = await api.post('manager/waiters', data)
+    const response = await api.post('/manager/waiters', data)
     return response.data.data
   }
-  async updateWaiter(waiterId: string, data: {
-    section?: string
-    shift?: string
-    status?: string
-    experience_level?: string
-  }): Promise<any> {
+  async updateWaiter(waiterId: string, data: any): Promise<any> {
     const response = await api.put(`/manager/waiters/${waiterId}`, data)
     return response.data.data
   }

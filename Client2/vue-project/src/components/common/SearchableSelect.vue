@@ -19,9 +19,13 @@ const props = withDefaults(
     disabled?: boolean
     clearable?: boolean
     showHotelIcon?: boolean
+    icon?: any
+    itemType?: string
+    hasError?: boolean
     triggerClass?: string
     dropdownClass?: string
     formatOptionLabel?: (option: SelectOption) => string
+    searchFilter?: (option: SelectOption, query: string) => boolean
   }>(),
   {
     labelKey: 'name',
@@ -33,6 +37,8 @@ const props = withDefaults(
     disabled: false,
     clearable: false,
     showHotelIcon: false,
+    itemType: 'item',
+    hasError: false,
     triggerClass: '',
     dropdownClass: '',
   }
@@ -98,11 +104,23 @@ const filteredOptions = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
   if (!query) return props.options
 
+  if (props.searchFilter) {
+    return props.options.filter(opt => props.searchFilter!(opt, query))
+  }
+
   const tokens = query.split(/\s+/).filter(Boolean)
   return props.options.filter(opt => {
     const label = getOptionLabel(opt).toLowerCase()
     const sublabel = getOptionSublabel(opt).toLowerCase()
-    const extra = (opt.address || opt.slug || opt.country || '').toLowerCase()
+    const extra = [
+      opt.floor_number !== undefined ? `floor ${opt.floor_number} ${opt.floor_number}` : '',
+      opt.base_price_per_night !== undefined ? `${opt.base_price_per_night}` : '',
+      opt.price !== undefined ? `${opt.price}` : '',
+      opt.address || '',
+      opt.slug || '',
+      opt.country || '',
+      opt.description || '',
+    ].join(' ').toLowerCase()
     const fullText = `${label} ${sublabel} ${extra}`
 
     return tokens.every(token => fullText.includes(token))
@@ -242,29 +260,36 @@ watch(searchQuery, () => {
       @click="toggleDropdown"
       @keydown.down.prevent="openDropdown"
       @keydown.space.prevent="toggleDropdown"
-      class="w-full flex items-center justify-between gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium text-left transition hover:border-slate-300 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-2xs"
+      class="w-full flex items-center justify-between gap-2 px-3 py-2 bg-white dark:bg-slate-900 border rounded-lg text-slate-900 dark:text-white font-medium text-left transition hover:border-slate-400 dark:hover:border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer shadow-xs text-xs sm:text-sm"
       :class="[
-        isOpen ? 'border-indigo-500 ring-2 ring-indigo-500/20' : '',
+        hasError
+          ? 'border-red-400 bg-red-50/20 dark:bg-red-950/20 ring-1 ring-red-400'
+          : isOpen
+          ? 'border-blue-500 ring-2 ring-blue-500/20'
+          : 'border-slate-300 dark:border-slate-700',
         triggerClass
       ]"
       :aria-expanded="isOpen"
       aria-haspopup="listbox"
     >
-      <div class="flex items-center gap-2 min-w-0 flex-1">
-        <Building2
-          v-if="showHotelIcon"
-          class="w-4 h-4 text-indigo-500 dark:text-indigo-400 flex-shrink-0"
-        />
-        <span
-          v-if="selectedOption"
-          class="truncate text-xs font-semibold text-slate-800 dark:text-slate-100"
-        >
-          {{ formatDisplayValue }}
-        </span>
-        <span v-else class="text-xs text-slate-400 font-normal truncate">
-          {{ placeholder }}
-        </span>
-      </div>
+      <slot name="trigger" :selected="selectedOption">
+        <div class="flex items-center gap-2 min-w-0 flex-1">
+          <component
+            :is="icon || (showHotelIcon ? Building2 : null)"
+            v-if="icon || showHotelIcon"
+            class="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0"
+          />
+          <span
+            v-if="selectedOption"
+            class="truncate text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100"
+          >
+            {{ formatDisplayValue }}
+          </span>
+          <span v-else class="text-xs sm:text-sm text-slate-400 font-normal truncate">
+            {{ placeholder }}
+          </span>
+        </div>
+      </slot>
 
       <div class="flex items-center gap-1 flex-shrink-0">
         <button
@@ -278,7 +303,7 @@ watch(searchQuery, () => {
         </button>
         <ChevronDown
           class="w-4 h-4 text-slate-400 transition-transform duration-200"
-          :class="{ 'rotate-180 text-indigo-500': isOpen }"
+          :class="{ 'rotate-180 text-blue-600 dark:text-blue-400': isOpen }"
         />
       </div>
     </button>
@@ -311,7 +336,7 @@ watch(searchQuery, () => {
               @keydown.up.prevent="navigateUp"
               @keydown.enter.prevent="selectHighlighted"
               @keydown.esc.prevent="closeDropdown"
-              class="w-full pl-8 pr-7 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
+              class="w-full pl-8 pr-7 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium"
             />
             <button
               v-if="searchQuery"
@@ -326,8 +351,8 @@ watch(searchQuery, () => {
             v-if="filteredOptions.length > 0"
             class="flex items-center justify-between px-1 pt-1.5 text-[10px] text-slate-400 font-medium"
           >
-            <span>{{ filteredOptions.length }} {{ filteredOptions.length === 1 ? 'hotel' : 'hotels' }}</span>
-            <span v-if="searchQuery" class="text-indigo-500 font-semibold">Filtered results</span>
+            <span>{{ filteredOptions.length }} {{ filteredOptions.length === 1 ? itemType : `${itemType}s` }}</span>
+            <span v-if="searchQuery" class="text-blue-600 dark:text-blue-400 font-semibold">Filtered results</span>
           </div>
         </div>
 
@@ -346,28 +371,34 @@ watch(searchQuery, () => {
             class="flex items-center justify-between px-2.5 py-2 rounded-xl text-xs cursor-pointer transition"
             :class="[
               isSelected(option)
-                ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200/50 dark:border-indigo-800/50'
+                ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 font-bold border border-blue-200/50 dark:border-blue-800/50'
                 : highlightedIndex === index
                 ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-medium'
                 : 'text-slate-700 dark:text-slate-300 font-medium'
             ]"
           >
-            <div class="flex items-center gap-2 min-w-0 flex-1">
-              <Building2 class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-              <div class="min-w-0 flex-1">
-                <div class="truncate leading-tight">{{ getOptionLabel(option) }}</div>
-                <div
-                  v-if="getOptionSublabel(option)"
-                  class="text-[10px] text-slate-400 dark:text-slate-500 truncate leading-tight mt-0.5"
-                >
-                  {{ getOptionSublabel(option) }}
+            <slot name="option" :option="option" :selected="isSelected(option)">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <component
+                  :is="icon || (showHotelIcon ? Building2 : null)"
+                  v-if="icon || showHotelIcon"
+                  class="w-3.5 h-3.5 text-slate-400 flex-shrink-0"
+                />
+                <div class="min-w-0 flex-1">
+                  <div class="truncate leading-tight">{{ getOptionLabel(option) }}</div>
+                  <div
+                    v-if="getOptionSublabel(option)"
+                    class="text-[10px] text-slate-400 dark:text-slate-500 truncate leading-tight mt-0.5"
+                  >
+                    {{ getOptionSublabel(option) }}
+                  </div>
                 </div>
               </div>
-            </div>
+            </slot>
 
             <Check
               v-if="isSelected(option)"
-              class="w-4 h-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0 ml-2"
+              class="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 ml-2"
             />
           </li>
 
@@ -375,10 +406,13 @@ watch(searchQuery, () => {
             v-if="filteredOptions.length === 0"
             class="py-6 px-4 text-center text-slate-400 text-xs flex flex-col items-center justify-center gap-1"
           >
-            <Building2 class="w-6 h-6 text-slate-300 dark:text-slate-600 mb-1" />
+            <component
+              :is="icon || (showHotelIcon ? Building2 : Search)"
+              class="w-6 h-6 text-slate-300 dark:text-slate-600 mb-1"
+            />
             <p class="font-bold text-slate-600 dark:text-slate-400">{{ emptyText }}</p>
             <p v-if="searchQuery" class="text-[11px] text-slate-400">
-              No matches for "<span class="text-indigo-500 font-semibold">{{ searchQuery }}</span>"
+              No matches for "<span class="text-blue-600 dark:text-blue-400 font-semibold">{{ searchQuery }}</span>"
             </p>
           </li>
         </ul>

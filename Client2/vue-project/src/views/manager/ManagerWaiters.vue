@@ -175,11 +175,18 @@ const closeModal = () => {
 const handleSubmitWaiter = async (formData: any) => {
   try {
     if (isEditMode.value) {
-      const updateData = {
+      const updateData: any = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        phone: formData.phone,
         section: formData.section,
         shift: formData.shift,
         experience_level: formData.experience_level,
         status: formData.status,
+        maximum_orders: formData.maximum_orders,
+        employee_number: formData.employee_number || null,
+        floor_assignments: formData.floor_assignments,
       }
       if (typeof waiterStore.update === 'function') {
         await waiterStore.update(selectedWaiter.value.id, updateData)
@@ -205,7 +212,13 @@ const handleSubmitWaiter = async (formData: any) => {
     await refreshData()
   } catch (err: any) {
     console.error('Operation failed:', err)
-    alert(err.message || 'Operation failed. Please try again.')
+    const errors = err.response?.data?.errors
+    let msg = err.response?.data?.message || err.message || 'Operation failed. Please try again.'
+    if (errors && typeof errors === 'object') {
+      const details = Object.values(errors).flat().join('\n')
+      if (details) msg += `:\n${details}`
+    }
+    alert(msg)
   }
 }
 
@@ -227,6 +240,26 @@ const handleDeleteWaiter = async (waiterId: string) => {
       console.error('[ManagerWaiters] Failed to delete waiter:', err)
       alert(err.message || 'Failed to delete waiter.')
     }
+  }
+}
+
+const handleToggleStatus = async (waiter: any, newStatus: string) => {
+  try {
+    if (typeof waiterStore.updateStatus === 'function') {
+      await waiterStore.updateStatus(waiter.id, newStatus)
+    } else if (typeof waiterStore.update === 'function') {
+      await waiterStore.update(waiter.id, { status: newStatus })
+    }
+    waiter.status = newStatus
+    successMessage.value = `Waiter status updated to ${newStatus.replace('_', ' ')}!`
+    showSuccessAlert.value = true
+    setTimeout(() => {
+      showSuccessAlert.value = false
+    }, 4000)
+    await refreshData()
+  } catch (err: any) {
+    console.error('[ManagerWaiters] Failed to update status:', err)
+    alert(err.message || 'Failed to update status')
   }
 }
 
@@ -506,7 +539,7 @@ onUnmounted(() => {
       <!-- Waiters Table Container -->
       <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
         <!-- Desktop Table View -->
-        <div class="hidden md:block overflow-x-auto w-full">
+        <div class="hidden md:block overflow-x-auto w-full min-h-[220px]">
           <table class="w-full text-left border-collapse">
             <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
@@ -532,7 +565,7 @@ onUnmounted(() => {
               <!-- Data Rows -->
               <template v-else>
                 <tr
-                  v-for="waiter in paginatedWaiters"
+                  v-for="(waiter, index) in paginatedWaiters"
                   :key="waiter.id"
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
@@ -544,7 +577,7 @@ onUnmounted(() => {
                     </div>
                     <div>
                       <div class="font-bold text-slate-900 dark:text-white">{{ waiter.name }}</div>
-                      <div class="text-[10px] text-slate-400">{{ waiter.email || waiter.phone || 'No contact info' }}</div>
+                      <div class="text-[10px] text-slate-400">{{ waiter.user?.email || (waiter as any).email || waiter.phone || 'No contact info' }}</div>
                     </div>
                   </div>
                 </td>
@@ -580,21 +613,79 @@ onUnmounted(() => {
 
                 <!-- Actions -->
                 <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
-                  <div class="flex items-center justify-end gap-1">
+                  <div class="relative inline-block text-left">
                     <button
-                      @click="openEditModal(waiter)"
-                      class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition"
-                      title="Edit Staff"
+                      type="button"
+                      @click.stop="toggleMenu(waiter.id)"
+                      class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 shadow-xs transition cursor-pointer"
+                      :class="{ 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-400 dark:border-blue-500 ring-2 ring-blue-500/20': activeMenuId === waiter.id }"
+                      title="Actions"
                     >
-                      <Edit3 class="w-3.5 h-3.5" />
+                      <MoreVertical class="w-4 h-4 stroke-[2.2]" />
                     </button>
-                    <button
-                      @click="handleDeleteWaiter(waiter.id)"
-                      class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition"
-                      title="Delete Staff"
+
+                    <!-- Dropdown Menu -->
+                    <Transition
+                      enter-active-class="transition duration-100 ease-out"
+                      enter-from-class="transform scale-95 opacity-0"
+                      enter-to-class="transform scale-100 opacity-100"
+                      leave-active-class="transition duration-75 ease-in"
+                      leave-from-class="transform scale-100 opacity-100"
+                      leave-to-class="transform scale-95 opacity-0"
                     >
-                      <Trash2 class="w-3.5 h-3.5" />
-                    </button>
+                      <div
+                        v-if="activeMenuId === waiter.id"
+                        class="absolute right-0 z-50 w-44 rounded-2xl bg-white dark:bg-[#0f1d32] border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-900/15 dark:shadow-slate-950/60 py-1.5 focus:outline-none"
+                        :class="[
+                          index >= paginatedWaiters.length - 2 && paginatedWaiters.length > 2
+                            ? 'bottom-full mb-1.5'
+                            : 'top-full mt-1.5'
+                        ]"
+                      >
+                        <!-- Edit Staff -->
+                        <button
+                          type="button"
+                          @click="openEditModal(waiter); activeMenuId = null"
+                          class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer text-left"
+                        >
+                          <Edit3 class="w-4 h-4 text-blue-500 flex-shrink-0" />
+                          <span>Edit Staff</span>
+                        </button>
+
+                        <!-- Change Status (Quick Action) -->
+                        <button
+                          v-if="waiter.status !== 'active'"
+                          type="button"
+                          @click="handleToggleStatus(waiter, 'active'); activeMenuId = null"
+                          class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer text-left"
+                        >
+                          <CheckCircle2 class="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                          <span>Set Active</span>
+                        </button>
+
+                        <button
+                          v-if="waiter.status === 'active'"
+                          type="button"
+                          @click="handleToggleStatus(waiter, 'on_break'); activeMenuId = null"
+                          class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition cursor-pointer text-left"
+                        >
+                          <Clock class="w-4 h-4 text-amber-500 flex-shrink-0" />
+                          <span>Set On Break</span>
+                        </button>
+
+                        <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+
+                        <!-- Delete Staff -->
+                        <button
+                          type="button"
+                          @click="handleDeleteWaiter(waiter.id); activeMenuId = null"
+                          class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer text-left"
+                        >
+                          <Trash2 class="w-4 h-4 text-rose-500 flex-shrink-0" />
+                          <span>Delete Staff</span>
+                        </button>
+                      </div>
+                    </Transition>
                   </div>
                 </td>
               </tr>
@@ -637,11 +728,58 @@ onUnmounted(() => {
                 {{ waiter.status }}
               </span>
             </div>
-            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-              <span>Section: {{ waiter.section || 'General' }}</span>
-              <div class="flex gap-2">
-                <button @click="openEditModal(waiter)" class="text-blue-600 font-bold">Edit</button>
-                <button @click="handleDeleteWaiter(waiter.id)" class="text-rose-600 font-bold">Delete</button>
+            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60">
+              <span>Section: <strong class="text-slate-800 dark:text-slate-200">{{ waiter.section || 'General' }}</strong></span>
+              <div class="relative inline-block text-left">
+                <button
+                  type="button"
+                  @click.stop="toggleMenu('mobile-' + waiter.id)"
+                  class="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-600 dark:text-slate-300 hover:text-blue-600 transition cursor-pointer"
+                  :class="{ 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-400': activeMenuId === 'mobile-' + waiter.id }"
+                >
+                  <MoreVertical class="w-3.5 h-3.5" />
+                </button>
+
+                <div
+                  v-if="activeMenuId === 'mobile-' + waiter.id"
+                  class="absolute right-0 bottom-full mb-1.5 z-50 w-44 rounded-2xl bg-white dark:bg-[#0f1d32] border border-slate-200 dark:border-slate-800 shadow-xl py-1.5 focus:outline-none"
+                >
+                  <button
+                    type="button"
+                    @click="openEditModal(waiter); activeMenuId = null"
+                    class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-left cursor-pointer"
+                  >
+                    <Edit3 class="w-4 h-4 text-blue-500" />
+                    <span>Edit Staff</span>
+                  </button>
+                  <button
+                    v-if="waiter.status !== 'active'"
+                    type="button"
+                    @click="handleToggleStatus(waiter, 'active'); activeMenuId = null"
+                    class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-left cursor-pointer"
+                  >
+                    <CheckCircle2 class="w-4 h-4 text-emerald-500" />
+                    <span>Set Active</span>
+                  </button>
+                  <button
+                    v-if="waiter.status === 'active'"
+                    type="button"
+                    @click="handleToggleStatus(waiter, 'on_break'); activeMenuId = null"
+                    class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-left cursor-pointer"
+                  >
+                    <Clock class="w-4 h-4 text-amber-500" />
+                    <span>Set On Break</span>
+                  </button>
+                  <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+                  <button
+                    type="button"
+                    @click="handleDeleteWaiter(waiter.id); activeMenuId = null"
+                    class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-left cursor-pointer"
+                  >
+                    <Trash2 class="w-4 h-4 text-rose-500" />
+                    <span>Delete Staff</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -711,7 +849,9 @@ onUnmounted(() => {
       <!-- Waiter Registration/Edit Modal -->
       <WaiterFormModal
         v-if="showModal"
+        :is-open="showModal"
         :is-edit-mode="isEditMode"
+        :waiter-data="selectedWaiter"
         :initial-data="selectedWaiter"
         @close="closeModal"
         @submit="handleSubmitWaiter"

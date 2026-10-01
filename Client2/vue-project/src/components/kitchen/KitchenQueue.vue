@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { CookingPot, Search, Clock, ChefHat, Check, CheckCheck, Loader, Eye, UtensilsCrossed, Inbox } from 'lucide-vue-next'
+import { CookingPot, Search, Clock, ChefHat, Check, CheckCheck, Loader, Eye, UtensilsCrossed, Inbox, BedDouble } from 'lucide-vue-next'
 import { useLanguageStore } from '@/stores/language'
 import type { KitchenOrder } from '@/types/kitchen'
 
@@ -53,10 +53,14 @@ const filteredOrders = computed(() => {
   }
 
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
+    const query = searchQuery.value.toLowerCase().trim()
     filtered = filtered.filter(
       (order) =>
-        order.room?.room_number?.toString().includes(query) ||
+        order.room?.room_number?.toString().toLowerCase().includes(query) ||
+        order.table?.table_number?.toString().toLowerCase().includes(query) ||
+        order.table?.table_name?.toLowerCase().includes(query) ||
+        order.order_number?.toLowerCase().includes(query) ||
+        order.guest?.full_name?.toLowerCase().includes(query) ||
         order.items?.some((item) => item.name?.toLowerCase().includes(query)),
     )
   }
@@ -256,7 +260,7 @@ function getStatusBgRow(status: string): string {
       <table class="w-full text-sm">
         <thead>
           <tr class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800">
-            <th class="px-3 sm:px-4 py-3 text-left font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider">{{ languageStore.t('room', 'Room') }}</th>
+            <th class="px-3 sm:px-4 py-3 text-left font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider">{{ languageStore.t('location', 'Location') }}</th>
             <th class="px-3 sm:px-4 py-3 text-left font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider">{{ languageStore.t('guest', 'Guest') }}</th>
             <th class="px-3 sm:px-4 py-3 text-left font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider">{{ languageStore.t('items', 'Items') }}</th>
             <th class="px-3 sm:px-4 py-3 text-left font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider">{{ languageStore.t('time', 'Time') }}</th>
@@ -276,15 +280,29 @@ function getStatusBgRow(status: string): string {
             @click="emit('view', order)"
           >
             <td class="px-3 sm:px-4 py-3">
-              <div class="font-bold text-slate-900 dark:text-white">
-                {{ order.room?.room_number || '—' }}
+              <div class="flex items-center gap-1.5 font-bold text-slate-900 dark:text-white">
+                <span
+                  v-if="order.table?.table_number || order.order_type === 'walk_in'"
+                  class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-800"
+                >
+                  <UtensilsCrossed class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  {{ order.table?.table_name || `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}` }}
+                </span>
+                <span
+                  v-else-if="order.room?.room_number"
+                  class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold text-xs border border-blue-200 dark:border-blue-800"
+                >
+                  <BedDouble class="w-3.5 h-3.5 text-blue-500" />
+                  {{ languageStore.t('room', 'Room') }} {{ order.room.room_number }}
+                </span>
+                <span v-else class="text-slate-400">—</span>
               </div>
-              <div v-if="order.notes" class="text-xs text-rose-500 font-black">{{ languageStore.t('priority', 'PRIORITY') }}</div>
+              <div v-if="order.notes" class="text-xs text-rose-500 font-black mt-0.5">{{ languageStore.t('priority', 'PRIORITY') }}</div>
             </td>
 
             <td class="px-3 sm:px-4 py-3">
               <div class="text-slate-700 dark:text-slate-300 font-medium">
-                {{ order.room?.guest || languageStore.t('qr_guest', 'QR Guest') }}
+                {{ order.guest?.full_name || (order.table ? languageStore.t('walk_in_guest', 'Walk-in Guest') : languageStore.t('qr_guest', 'QR Guest')) }}
               </div>
             </td>
 

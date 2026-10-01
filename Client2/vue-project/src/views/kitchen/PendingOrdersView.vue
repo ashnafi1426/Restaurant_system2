@@ -17,6 +17,7 @@ import {
   CookingPot,
   ShoppingBag,
   BedDouble,
+  UtensilsCrossed,
   Loader2,
   ChevronLeft,
   ChevronRight,
@@ -53,7 +54,7 @@ const filteredOrders = computed(() => {
     if (selectedType.value === 'room') {
       list = list.filter((order) => Boolean(order.room?.room_number))
     } else if (selectedType.value === 'walk_in') {
-      list = list.filter((order) => !order.room?.room_number)
+      list = list.filter((order) => Boolean(order.table?.table_number) || order.order_type === 'walk_in' || !order.room?.room_number)
     }
   }
 
@@ -61,10 +62,12 @@ const filteredOrders = computed(() => {
     const q = searchQuery.value.toLowerCase().trim()
     list = list.filter((order) => {
       const roomNum = order.room?.room_number ? String(order.room.room_number).toLowerCase() : ''
+      const tableNum = order.table?.table_number ? String(order.table.table_number).toLowerCase() : ''
+      const tableName = order.table?.table_name ? String(order.table.table_name).toLowerCase() : ''
       const ordNum = (order.order_number || '').toLowerCase()
       const guestName = (order.guest?.full_name || '').toLowerCase()
       const itemsMatch = (order.items || []).some((item) => (item.name || '').toLowerCase().includes(q))
-      return roomNum.includes(q) || ordNum.includes(q) || guestName.includes(q) || itemsMatch
+      return roomNum.includes(q) || tableNum.includes(q) || tableName.includes(q) || ordNum.includes(q) || guestName.includes(q) || itemsMatch
     })
   }
 
@@ -331,7 +334,14 @@ const formatTime = (dateTime: string) => {
                   <!-- Room / Service -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <span
-                      v-if="order.room?.room_number"
+                      v-if="order.table?.table_number || order.order_type === 'walk_in'"
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-800"
+                    >
+                      <UtensilsCrossed class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                      {{ order.table?.table_name || `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}` }}
+                    </span>
+                    <span
+                      v-else-if="order.room?.room_number"
                       class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
                     >
                       <BedDouble class="w-3 h-3 text-slate-400" />
@@ -425,8 +435,23 @@ const formatTime = (dateTime: string) => {
                 </button>
               </div>
               <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-                <span>{{ order.guest?.full_name || languageStore.t('walk_in', 'Walk-in') }}</span>
-                <span class="font-extrabold text-slate-900 dark:text-white">${{ parseFloat(String(order.total || 0)).toFixed(2) }}</span>
+                <div class="flex items-center gap-1.5 truncate mr-2">
+                  <span
+                    v-if="order.table?.table_number || order.order_type === 'walk_in'"
+                    class="font-bold text-emerald-600 dark:text-emerald-400"
+                  >
+                    {{ order.table?.table_name || `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}` }}
+                  </span>
+                  <span
+                    v-else-if="order.room?.room_number"
+                    class="font-bold text-blue-600 dark:text-blue-400"
+                  >
+                    {{ languageStore.t('room', 'Room') }} {{ order.room.room_number }}
+                  </span>
+                  <span>•</span>
+                  <span class="truncate">{{ order.guest?.full_name || (order.table ? languageStore.t('walk_in_guest', 'Walk-in Guest') : languageStore.t('qr_guest', 'QR Guest')) }}</span>
+                </div>
+                <span class="font-extrabold text-slate-900 dark:text-white flex-shrink-0">${{ parseFloat(String(order.total || 0)).toFixed(2) }}</span>
               </div>
             </div>
             <div v-if="paginatedOrders.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">

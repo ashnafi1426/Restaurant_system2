@@ -75,4 +75,8 @@ export interface OrderContext {
   id: string
   displayName: string
   paymentOptions: Array<{ value: string; label: string }>
+  isCheckedIn?: boolean
+  canOrder?: boolean
+  reservationStatus?: string
+  eligibilityMessage?: string
 }

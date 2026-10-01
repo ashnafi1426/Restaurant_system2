@@ -33,9 +33,6 @@ import GuestList from '../views/receptionist/guest/guestList.vue'
 import CreateGuest from '../views/receptionist/guest/createGuest.vue'
 import EditGuest from '../views/receptionist/guest/editGuest.vue'
 import GuestDetails from '../views/receptionist/guest/guestDetail.vue'
-import ReservationListPage from '../views/receptionist/reservation/ReservationListpage.vue'
-import ReservationCreatePage from '../views/receptionist/reservation/ReservationCreate.vue'
-import ReservationEditPage from '../views/receptionist/reservation/ReservationEdit.vue'
 import CheckInView from '../views/receptionist/checkIn/checkInView.vue'
 import CheckOutView from '../views/receptionist/checkOut/CheckOutView.vue'
 import ReportsPage from '../views/receptionist/reports/ReportsPage.vue'
@@ -97,11 +94,13 @@ const router = createRouter({
       path: '/rooms',
       name: 'guest-rooms',
       component: roomPage,
+      meta: { public: true }
     },
     {
       path: '/roomsPage',
       name: 'room',
       component: roomPage,
+      meta: { public: true }
     },
     {
       path: '/about',
@@ -304,7 +303,9 @@ const router = createRouter({
       },
     },
     {
-      path: '/rooms/create',
+      path: '/admin/rooms/create',
+      name: 'admin-create-room',
+      alias: ['/rooms/create'],
       component: CreateRoom,
       meta: {
         requiresAuth: true,
@@ -312,7 +313,9 @@ const router = createRouter({
       },
     },
     {
-      path: '/rooms/:id',
+      path: '/admin/rooms/:id',
+      name: 'admin-view-room',
+      alias: ['/rooms/:id'],
       component: ViewRoom,
       meta: {
         requiresAuth: true,
@@ -320,7 +323,9 @@ const router = createRouter({
       },
     },
     {
-      path: '/rooms/:id/edit',
+      path: '/admin/rooms/:id/edit',
+      name: 'admin-edit-room',
+      alias: ['/rooms/:id/edit'],
       component: EditRoom,
       meta: {
         requiresAuth: true,
@@ -328,7 +333,9 @@ const router = createRouter({
       },
     },
     {
-      path: '/room-types',
+      path: '/admin/room-types',
+      name: 'admin-room-types',
+      alias: ['/room-types'],
       component: RoomTypeList,
       meta: {
         requiresAuth: true,
@@ -336,7 +343,9 @@ const router = createRouter({
       },
     },
     {
-      path: '/room-types/create',
+      path: '/admin/room-types/create',
+      name: 'admin-create-room-type',
+      alias: ['/room-types/create'],
       component: CreateRoomType,
       meta: {
         requiresAuth: true,
@@ -344,7 +353,9 @@ const router = createRouter({
       },
     },
     {
-      path: '/room-types/:id',
+      path: '/admin/room-types/:id',
+      name: 'admin-view-room-type',
+      alias: ['/room-types/:id'],
       component: ViewRoomType,
       meta: {
         requiresAuth: true,
@@ -352,7 +363,9 @@ const router = createRouter({
       },
     },
     {
-      path: '/room-types/:id/edit',
+      path: '/admin/room-types/:id/edit',
+      name: 'admin-edit-room-type',
+      alias: ['/room-types/:id/edit'],
       component: EditRoomType,
       meta: {
         requiresAuth: true,
@@ -394,7 +407,7 @@ const router = createRouter({
     {
       path: '/reservations',
       name: 'reservations.index',
-      component: ReservationListPage,
+      component: () => import('../views/receptionist/reservation/ReservationListpage.vue'),
       meta: {
         title: 'Reservations',
         requiresAuth: true,
@@ -404,7 +417,7 @@ const router = createRouter({
     {
       path: '/reservations/create',
       name: 'reservations.create',
-      component: ReservationCreatePage,
+      component: () => import('../views/receptionist/reservation/ReservationCreate.vue'),
       meta: {
         title: 'Create Reservation',
         requiresAuth: true,
@@ -412,9 +425,19 @@ const router = createRouter({
       },
     },
     {
+      path: '/reservations/:id',
+      name: 'reservations.show',
+      component: () => import('../views/receptionist/reservation/ReservationView.vue'),
+      meta: {
+        title: 'View Reservation',
+        requiresAuth: true,
+        permission: 'reservations.view',
+      },
+    },
+    {
       path: '/reservations/:id/edit',
       name: 'reservations.edit',
-      component: ReservationEditPage,
+      component: () => import('../views/receptionist/reservation/ReservationEdit.vue'),
       meta: {
         title: 'Edit Reservation',
         requiresAuth: true,
@@ -658,7 +681,7 @@ router.beforeEach(async (to) => {
     return '/admin'
   }
 
-  if (authStore.isPlatformAdmin) {
+  if (authStore.isPlatformAdmin || authStore.hasRole('admin')) {
     return true
   }
 
@@ -671,9 +694,14 @@ router.beforeEach(async (to) => {
   const hasRole = targetRole ? authStore.hasRole(targetRole) : true
   const hasAnyRole = targetRoles ? targetRoles.some(r => authStore.hasRole(r)) : true
 
-  const isManagerSection = to.path.startsWith('/manager') && (authStore.hasRole('manager') || authStore.currentRole === 'manager' || authStore.user?.role === 'manager')
+  const isAdmin = authStore.hasRole('admin') || authStore.currentRole === 'admin' || authStore.user?.role === 'admin' || authStore.isPlatformAdmin
+  if (isAdmin) {
+    return true
+  }
+
+  const isManagerSection = (to.path.startsWith('/manager') || to.path.startsWith('/admin/rooms') || to.path.startsWith('/admin/room-types')) && (authStore.hasRole('manager') || authStore.currentRole === 'manager' || authStore.user?.role === 'manager')
   const isAdminSection = to.path.startsWith('/admin') && (authStore.hasRole('admin') || authStore.currentRole === 'admin' || authStore.user?.role === 'admin')
-  const isReceptionistSection = to.path.startsWith('/receptionist') && (authStore.hasRole('receptionist') || authStore.currentRole === 'receptionist' || authStore.user?.role === 'receptionist')
+  const isReceptionistSection = (to.path.startsWith('/receptionist') || to.path.startsWith('/reservations') || to.path.startsWith('/check-in') || to.path.startsWith('/check-out') || to.path.startsWith('/guests') || to.path.startsWith('/admin/rooms') || to.path.startsWith('/admin/room-types')) && (authStore.hasRole('receptionist') || authStore.currentRole === 'receptionist' || authStore.user?.role === 'receptionist')
   const isCashierSection = to.path.startsWith('/cashier') && (authStore.hasRole('cashier') || authStore.currentRole === 'cashier' || authStore.user?.role === 'cashier')
   const isChefSection = to.path.startsWith('/chef') && (authStore.hasRole('chef') || authStore.currentRole === 'chef' || authStore.user?.role === 'chef')
   const isWaiterSection = to.path.startsWith('/waiter') && (authStore.hasRole('waiter') || authStore.currentRole === 'waiter' || authStore.user?.role === 'waiter')

@@ -16,6 +16,12 @@ export interface KitchenRoom {
   room_number: string
 }
 
+export interface KitchenTable {
+  id: string
+  table_number: string | number
+  table_name?: string
+}
+
 export interface KitchenReservation {
   id: string
 
@@ -47,15 +53,19 @@ export interface KitchenOrder {
 
   order_number: string
 
+  order_type?: 'room_service' | 'walk_in' | string
+
   status: KitchenOrderStatus
 
   order_time: string
 
   guest: KitchenGuest
 
-  room: KitchenRoom
+  room?: KitchenRoom | null
 
-  reservation: KitchenReservation
+  table?: KitchenTable | null
+
+  reservation?: KitchenReservation | null
 
   items: KitchenMenuItem[]
 

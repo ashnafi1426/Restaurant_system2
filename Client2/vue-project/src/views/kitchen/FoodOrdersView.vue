@@ -74,7 +74,7 @@ const filteredOrders = computed(() => {
     if (selectedType.value === 'room') {
       list = list.filter((order) => Boolean(order.room?.room_number))
     } else if (selectedType.value === 'walk_in') {
-      list = list.filter((order) => !order.room?.room_number)
+      list = list.filter((order) => Boolean(order.table?.table_number) || order.order_type === 'walk_in' || !order.room?.room_number)
     }
   }
 
@@ -83,10 +83,12 @@ const filteredOrders = computed(() => {
     const q = searchQuery.value.toLowerCase().trim()
     list = list.filter((order) => {
       const roomNum = order.room?.room_number ? String(order.room.room_number).toLowerCase() : ''
+      const tableNum = order.table?.table_number ? String(order.table.table_number).toLowerCase() : ''
+      const tableName = order.table?.table_name ? String(order.table.table_name).toLowerCase() : ''
       const ordNum = (order.order_number || '').toLowerCase()
       const guestName = (order.guest?.full_name || '').toLowerCase()
       const itemsMatch = (order.items || []).some((item) => (item.name || '').toLowerCase().includes(q))
-      return roomNum.includes(q) || ordNum.includes(q) || guestName.includes(q) || itemsMatch
+      return roomNum.includes(q) || tableNum.includes(q) || tableName.includes(q) || ordNum.includes(q) || guestName.includes(q) || itemsMatch
     })
   }
 
@@ -426,7 +428,14 @@ const getFoodIcon = (itemName: string, category?: string) => {
                 <!-- Room / Service -->
                 <td class="py-3 px-4 whitespace-nowrap">
                   <span
-                    v-if="order.room?.room_number"
+                    v-if="order.table?.table_number || order.order_type === 'walk_in'"
+                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-800"
+                  >
+                    <UtensilsCrossed class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    {{ order.table?.table_name || `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}` }}
+                  </span>
+                  <span
+                    v-else-if="order.room?.room_number"
                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
                   >
                     <BedDouble class="w-3 h-3 text-slate-400" />

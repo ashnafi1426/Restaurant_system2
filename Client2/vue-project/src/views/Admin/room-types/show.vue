@@ -33,11 +33,11 @@ const filtered = computed(() => {
 })
 
 const view = (rt: RoomType) => {
-  router.push(`/room-types/${rt.id}`)
+  router.push(`/admin/room-types/${rt.id}`)
 }
 
 const edit = (rt: RoomType) => {
-  router.push(`/room-types/${rt.id}/edit`)
+  router.push(`/admin/room-types/${rt.id}/edit`)
 }
 
 const askDelete = (rt: RoomType) => {
@@ -68,7 +68,7 @@ const confirmDelete = async () => {
 
         <button
           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center gap-1.5 font-bold text-sm cursor-pointer"
-          @click="router.push('/room-types/create')"
+          @click="router.push('/admin/room-types/create')"
         >
           <Plus class="w-4 h-4 stroke-[3]" />
           <span>Add Room Type</span>

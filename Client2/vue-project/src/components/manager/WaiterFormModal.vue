@@ -29,27 +29,25 @@
 
               <div class="form-row">
                 <div class="form-group">
-                  <label for="first_name">First Name {{ props.isEditMode ? '(Read-only)' : '*' }}</label>
+                  <label for="first_name">First Name *</label>
                   <input
                     id="first_name"
                     v-model="newUserData.first_name"
                     type="text"
                     placeholder="John"
                     class="form-control"
-                    :disabled="props.isEditMode"
                     required
                   />
                   <span v-if="fieldErrors.first_name" class="error">{{ fieldErrors.first_name }}</span>
                 </div>
                 <div class="form-group">
-                  <label for="last_name">Last Name {{ props.isEditMode ? '(Read-only)' : '*' }}</label>
+                  <label for="last_name">Last Name *</label>
                   <input
                     id="last_name"
                     v-model="newUserData.last_name"
                     type="text"
                     placeholder="Smith"
                     class="form-control"
-                    :disabled="props.isEditMode"
                     required
                   />
                   <span v-if="fieldErrors.last_name" class="error">{{ fieldErrors.last_name }}</span>
@@ -57,28 +55,27 @@
               </div>
 
               <div class="form-group">
-                <label for="email">Email {{ props.isEditMode ? '(Read-only)' : '*' }}</label>
+                <label for="email">Email *</label>
                 <input
                   id="email"
                   v-model="newUserData.email"
                   type="email"
                   placeholder="john@example.com"
                   class="form-control"
-                  :disabled="props.isEditMode"
                   required
                 />
                 <span v-if="fieldErrors.email" class="error">{{ fieldErrors.email }}</span>
               </div>
 
               <div class="form-group">
-                <label for="phone">Phone {{ props.isEditMode ? '(Editable)' : '*' }}</label>
+                <label for="phone">Phone *</label>
                 <input
                   id="phone"
                   v-model="newUserData.phone"
                   type="tel"
                   placeholder="+1 234567890"
                   class="form-control"
-                  :required="!props.isEditMode"
+                  required
                 />
                 <span v-if="fieldErrors.phone" class="error">{{ fieldErrors.phone }}</span>
               </div>
@@ -264,12 +261,14 @@ import { floorService } from '@/services/manager/floorService'
 import { shiftService } from '@/services/manager/shiftService'
 
 interface Props {
-  isOpen: boolean
+  isOpen?: boolean
   isEditMode?: boolean
   waiterData?: any
+  initialData?: any
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  isOpen: true,
   isEditMode: false,
 })
 
@@ -308,7 +307,43 @@ const newUserData = ref({
   phone: '',
 })
 
+const populateForm = () => {
+  const data = props.waiterData || props.initialData
+  if (props.isEditMode && data) {
+    const rawPhone = data.phone || data.user?.phone || ''
+    const rawShift = (data.shift || '').toLowerCase()
+    const rawExp = (data.experience_level || data.experienceLevel || '').toLowerCase()
+    const rawSection = data.section || ''
+
+    formData.value = {
+      section: rawSection === 'Unassigned' || rawSection === 'General Floor' ? '' : rawSection,
+      shift: rawShift === 'n/a' ? '' : rawShift,
+      experience_level: rawExp === 'n/a' ? '' : rawExp,
+      status: data.status || 'active',
+      maximum_orders: Number(data.maximum_orders) || 5,
+      employee_number: data.employee_number || '',
+      floor_assignments: Array.isArray(data.floor_assignments)
+        ? data.floor_assignments.map((fa: any) => ({
+            floor_id: String(fa.floor_id || fa.floor?.id || ''),
+            shift_id: String(fa.shift_id || fa.shift?.id || ''),
+            priority: fa.priority || 'primary',
+            assignment_date: fa.assignment_date || new Date().toISOString().split('T')[0],
+          }))
+        : []
+    }
+    newUserData.value = {
+      first_name: data.user?.first_name || (data.name ? data.name.split(' ')[0] : ''),
+      last_name: data.user?.last_name || (data.name ? data.name.split(' ').slice(1).join(' ') : ''),
+      email: data.user?.email || data.email || '',
+      phone: rawPhone === 'N/A' ? '' : rawPhone,
+    }
+  } else {
+    resetForm()
+  }
+}
+
 onMounted(async () => {
+  populateForm()
   try {
     loadingFloors.value = true
     const [floorsRes, shiftsRes] = await Promise.all([
@@ -317,7 +352,7 @@ onMounted(async () => {
     ])
     
     floors.value = floorsRes.data?.data || floorsRes.data || []
-    shifts.value = shiftsRes.data || []
+    shifts.value = shiftsRes.data?.data || shiftsRes.data || []
   } catch (error) {
     console.error('[WaiterFormModal] Failed to load floors and shifts:', error)
     errorMessage.value = 'Failed to load floors and shifts'
@@ -328,25 +363,13 @@ onMounted(async () => {
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {
-    if (props.isEditMode && props.waiterData) {
-      formData.value = {
-        section: props.waiterData.section || '',
-        shift: props.waiterData.shift || '',
-        experience_level: props.waiterData.experience_level || props.waiterData.experienceLevel || '',
-        status: props.waiterData.status || 'active',
-        maximum_orders: props.waiterData.maximum_orders || 5,
-        employee_number: props.waiterData.employee_number || '',
-        floor_assignments: props.waiterData.floor_assignments || []
-      }
-      newUserData.value = {
-        first_name: props.waiterData.user?.first_name || '',
-        last_name: props.waiterData.user?.last_name || '',
-        email: props.waiterData.user?.email || '',
-        phone: props.waiterData.phone || props.waiterData.user?.phone || '',
-      }
-    } else {
-      resetForm()
-    }
+    populateForm()
+  }
+})
+
+watch(() => [props.waiterData, props.initialData, props.isEditMode], () => {
+  if (props.isOpen) {
+    populateForm()
   }
 })
 
@@ -381,26 +404,6 @@ const resetForm = () => {
 const validateForm = (): boolean => {
   fieldErrors.value = {}
   let isValid = true
-
-  if (props.isEditMode) {
-    if (!formData.value.section?.trim()) {
-      fieldErrors.value.section = 'Required'
-      isValid = false
-    }
-    if (!formData.value.shift) {
-      fieldErrors.value.shift = 'Required'
-      isValid = false
-    }
-    if (!formData.value.experience_level) {
-      fieldErrors.value.experience_level = 'Required'
-      isValid = false
-    }
-    if (!formData.value.maximum_orders) {
-      fieldErrors.value.maximum_orders = 'Required'
-      isValid = false
-    }
-    return isValid
-  }
 
   if (!newUserData.value.first_name?.trim()) {
     fieldErrors.value.first_name = 'Required'

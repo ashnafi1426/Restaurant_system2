@@ -26,6 +26,10 @@ export interface QRResolutionResult {
     capacity?: number
     location?: string | null
     status?: string
+    is_checked_in?: boolean
+    can_order?: boolean
+    reservation_status?: string
+    eligibility_message?: string
   } | null
   message: string
 }

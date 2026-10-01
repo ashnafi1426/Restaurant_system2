@@ -134,7 +134,15 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
         const waiter = waiters.value[index]
         Object.assign(waiter, {
           ...waiter,
+          ...response,
           ...data,
+          user: response?.user || {
+            ...(waiter.user || {}),
+            first_name: data.first_name || waiter.user?.first_name,
+            last_name: data.last_name || waiter.user?.last_name,
+            email: data.email || waiter.user?.email,
+            phone: data.phone || waiter.user?.phone,
+          },
         })
       }
       return response

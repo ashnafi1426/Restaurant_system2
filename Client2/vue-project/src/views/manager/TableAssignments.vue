@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useTableAssignmentStore } from '@/stores/manager/tableAssignmentStore'
+import { useHotelStore } from '@/stores/hotelStore'
 import { useLanguageStore } from '@/stores/language'
 import AssignWaiterToTableModal from '@/components/manager/AssignWaiterToTableModal.vue'
 import EditTableAssignmentModal from '@/components/manager/EditTableAssignmentModal.vue'
@@ -25,9 +26,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  MoreVertical,
 } from 'lucide-vue-next'
 
 const tableAssignmentStore = useTableAssignmentStore()
+const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
 
 const showAssignModal = ref(false)
@@ -38,13 +41,21 @@ const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
 
 const filterDate = ref(new Date().toISOString().split('T')[0])
-const filterShift = ref('')
-const filterPriority = ref('')
+const filterStatus = ref('')
 const searchQuery = ref('')
 
 const selectedAssignment = ref<any>(null)
 const showDeleteConfirm = ref(false)
 const toastMessage = ref<string | null>(null)
+const activeMenuId = ref<string | null>(null)
+
+const toggleMenu = (id: string) => {
+  activeMenuId.value = activeMenuId.value === id ? null : id
+}
+
+const closeMenu = () => {
+  activeMenuId.value = null
+}
 
 // Pagination State
 const currentPage = ref(1)
@@ -91,36 +102,18 @@ const getTableNumber = (assignment: any): string => {
   return '1'
 }
 
+const getTableSection = (assignment: any): string => {
+  return (
+    assignment.table?.section ||
+    assignment.restaurant_table?.section ||
+    assignment.table?.location ||
+    assignment.restaurant_table?.location ||
+    'Main Dining'
+  )
+}
+
 const getTableCapacity = (assignment: any): number | null => {
   return assignment.table?.capacity || assignment.restaurant_table?.capacity || null
-}
-
-const getShiftName = (assignment: any): string => {
-  if (!assignment.shift) return 'Full Day'
-  if (typeof assignment.shift === 'object') {
-    return assignment.shift.name || assignment.shift.description || 'General Shift'
-  }
-  return String(assignment.shift)
-}
-
-const getShiftSchedule = (assignment: any): string => {
-  const startTime = assignment.shift?.start_time || assignment.start_time
-  const endTime = assignment.shift?.end_time || assignment.end_time
-  if (!startTime && !endTime) return 'Standard Shift'
-  return `${formatTime(startTime)} - ${formatTime(endTime)}`
-}
-
-const getPriorityBadgeClass = (priority?: string) => {
-  switch ((priority || '').toLowerCase()) {
-    case 'primary':
-      return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
-    case 'secondary':
-      return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
-    case 'backup':
-      return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-    default:
-      return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
-  }
 }
 
 const filteredAssignments = computed(() => {
@@ -131,18 +124,17 @@ const filteredAssignments = computed(() => {
     list = list.filter((a: any) => {
       const waiterName = getWaiterName(a.waiter).toLowerCase()
       const tableNum = getTableNumber(a).toLowerCase()
-      const priority = String(a.priority || '').toLowerCase()
-      const shiftName = getShiftName(a).toLowerCase()
-      return waiterName.includes(q) || tableNum.includes(q) || priority.includes(q) || shiftName.includes(q)
+      const section = getTableSection(a).toLowerCase()
+      const status = (a.status || 'active').toLowerCase()
+      return waiterName.includes(q) || tableNum.includes(q) || section.includes(q) || status.includes(q)
     })
   }
 
-  if (filterPriority.value) {
-    list = list.filter((a: any) => (a.priority || '').toLowerCase() === filterPriority.value.toLowerCase())
-  }
-
-  if (filterShift.value) {
-    list = list.filter((a: any) => getShiftName(a).toLowerCase().includes(filterShift.value.toLowerCase()))
+  if (filterStatus.value) {
+    list = list.filter((a: any) => {
+      const status = (a.status || 'active').toLowerCase()
+      return status === filterStatus.value.toLowerCase()
+    })
   }
 
   return list
@@ -193,9 +185,19 @@ const loadData = async (dateVal?: string) => {
 
 onMounted(async () => {
   await loadData()
+  document.addEventListener('click', closeMenu)
 })
 
-watch([searchQuery, filterShift, filterPriority], () => {
+onUnmounted(() => {
+  document.removeEventListener('click', closeMenu)
+})
+
+watch(() => hotelStore.hotelId, async () => {
+  currentPage.value = 1
+  await loadData()
+})
+
+watch([searchQuery, filterStatus], () => {
   currentPage.value = 1
 })
 
@@ -210,8 +212,7 @@ const handleRefresh = async () => {
 
 const handleResetFilters = () => {
   searchQuery.value = ''
-  filterShift.value = ''
-  filterPriority.value = ''
+  filterStatus.value = ''
   filterDate.value = new Date().toISOString().split('T')[0]
   currentPage.value = 1
 }
@@ -276,13 +277,11 @@ const confirmDelete = async () => {
   if (!selectedAssignment.value) return
   const id = selectedAssignment.value.id
   try {
-    const success = await tableAssignmentStore.removeAssignment(id)
-    if (success) {
-      showDeleteConfirm.value = false
-      selectedAssignment.value = null
-      await handleRefresh()
-      showToast('Assignment removed successfully')
-    }
+    await tableAssignmentStore.removeAssignment(id)
+    showDeleteConfirm.value = false
+    selectedAssignment.value = null
+    await handleRefresh()
+    showToast('Assignment removed successfully')
   } catch (err: any) {
     console.error('[TableAssignments] Error deleting assignment:', err)
     showToast('Failed to delete assignment')
@@ -356,14 +355,14 @@ const handleAssignSuccess = async () => {
           </div>
         </div>
 
-        <!-- Primary Assignments -->
+        <!-- Active Assignments -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('primary_priority', 'Primary Priority') }}</p>
-            <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ tableAssignmentStore.stats.primary_assignments }}</h3>
+            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('active_assignments', 'Active Assignments') }}</p>
+            <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ tableAssignmentStore.stats.active_assignments ?? tableAssignmentStore.stats.primary_assignments }}</h3>
           </div>
           <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
-            <Award class="w-5 h-5" />
+            <CheckCircle2 class="w-5 h-5" />
           </div>
         </div>
       </div>
@@ -380,7 +379,7 @@ const handleAssignSuccess = async () => {
             <input
               v-model="searchQuery"
               type="text"
-              :placeholder="languageStore.t('search_assignments_placeholder', 'Search assignments by waiter, table, shift...')"
+              :placeholder="languageStore.t('search_assignments_placeholder', 'Search assignments by waiter, table, section...')"
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
@@ -449,7 +448,7 @@ const handleAssignSuccess = async () => {
           v-if="isFilterOpen"
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3.5 sm:gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
             <!-- Date Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
@@ -462,36 +461,18 @@ const handleAssignSuccess = async () => {
               />
             </div>
 
-            <!-- Priority Filter -->
+            <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                {{ languageStore.t('priority_tier', 'Priority Tier') }}
+                {{ languageStore.t('status', 'Status') }}
               </label>
               <select
-                v-model="filterPriority"
+                v-model="filterStatus"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="">{{ languageStore.t('all_priorities', 'All Priorities') }}</option>
-                <option value="primary">{{ languageStore.t('primary', 'Primary') }}</option>
-                <option value="secondary">{{ languageStore.t('secondary', 'Secondary') }}</option>
-                <option value="backup">{{ languageStore.t('backup', 'Backup') }}</option>
-              </select>
-            </div>
-
-            <!-- Shift Filter -->
-            <div>
-              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                {{ languageStore.t('shift', 'Shift') }}
-              </label>
-              <select
-                v-model="filterShift"
-                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
-              >
-                <option value="">{{ languageStore.t('all_shifts', 'All Shifts') }}</option>
-                <option value="morning">{{ languageStore.t('morning', 'Morning') }}</option>
-                <option value="afternoon">{{ languageStore.t('afternoon', 'Afternoon') }}</option>
-                <option value="evening">{{ languageStore.t('evening', 'Evening') }}</option>
-                <option value="night">{{ languageStore.t('night', 'Night') }}</option>
+                <option value="">{{ languageStore.t('all_statuses', 'All Statuses') }}</option>
+                <option value="active">{{ languageStore.t('active', 'Active') }}</option>
+                <option value="inactive">{{ languageStore.t('inactive', 'Inactive') }}</option>
               </select>
             </div>
 
@@ -518,9 +499,8 @@ const handleAssignSuccess = async () => {
             <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
                 <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('table', 'Table') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('section', 'Section / Location') }}</th>
                 <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('assigned_waiter', 'Assigned Waiter') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('shift_schedule', 'Shift & Schedule') }}</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('priority', 'Priority') }}</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('status', 'Status') }}</th>
                 <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('actions', 'Actions') }}</th>
               </tr>
@@ -528,7 +508,7 @@ const handleAssignSuccess = async () => {
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
               <!-- Loading Spinner State -->
               <tr v-if="tableAssignmentStore.loading">
-                <td colspan="6" class="px-6 py-20 text-center">
+                <td colspan="5" class="px-6 py-20 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
                     <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
                     <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_table_assignments', 'Loading table assignments...') }}</span>
@@ -539,7 +519,7 @@ const handleAssignSuccess = async () => {
               <!-- Data Rows -->
               <template v-else>
                 <tr
-                  v-for="assignment in paginatedAssignments"
+                  v-for="(assignment, index) in paginatedAssignments"
                   :key="assignment.id"
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
@@ -555,6 +535,14 @@ const handleAssignSuccess = async () => {
                   </div>
                 </td>
 
+                <!-- Section / Location -->
+                <td class="py-3 px-4 whitespace-nowrap">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    <MapPin class="w-3 h-3 text-blue-500" />
+                    {{ getTableSection(assignment) }}
+                  </span>
+                </td>
+
                 <!-- Assigned Waiter -->
                 <td class="py-3 px-4 whitespace-nowrap">
                   <div class="flex items-center gap-2.5">
@@ -565,53 +553,68 @@ const handleAssignSuccess = async () => {
                   </div>
                 </td>
 
-                <!-- Shift & Schedule -->
-                <td class="py-3 px-4 whitespace-nowrap">
-                  <div class="font-bold text-slate-900 dark:text-white capitalize">
-                    {{ getShiftName(assignment) }}
-                  </div>
-                  <div class="text-[10px] text-slate-400 font-medium mt-0.5">
-                    {{ getShiftSchedule(assignment) }}
-                  </div>
-                </td>
-
-                <!-- Priority -->
-                <td class="py-3 px-4 text-center whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
-                    :class="getPriorityBadgeClass(assignment.priority)"
-                  >
-                    {{ languageStore.t(assignment.priority || 'primary', assignment.priority || 'primary') }}
-                  </span>
-                </td>
-
                 <!-- Status -->
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span
-                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold"
-                    :class="assignment.status === 'active' || assignment.is_active !== false ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-slate-100 text-slate-500 border border-slate-200'"
+                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                    :class="assignment.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-slate-100 text-slate-500 border border-slate-200'"
                   >
-                    {{ languageStore.t(assignment.status || (assignment.is_active !== false ? 'active' : 'inactive'), (assignment.status || (assignment.is_active !== false ? 'active' : 'inactive')).replace('_', ' ')) }}
+                    <span class="w-1.5 h-1.5 rounded-full" :class="assignment.status === 'active' ? 'bg-emerald-500' : 'bg-slate-400'"></span>
+                    {{ languageStore.t(assignment.status || 'active', (assignment.status || 'active').replace('_', ' ')) }}
                   </span>
                 </td>
 
                 <!-- Actions -->
                 <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
-                  <div class="flex items-center justify-end gap-1">
+                  <div class="relative inline-block text-left">
                     <button
-                      @click="handleEdit(assignment)"
-                      class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer"
-                      :title="languageStore.t('edit', 'Edit')"
+                      type="button"
+                      @click.stop="toggleMenu(assignment.id)"
+                      class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 shadow-xs transition cursor-pointer"
+                      :class="{ 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-400 dark:border-blue-500 ring-2 ring-blue-500/20': activeMenuId === assignment.id }"
+                      :title="languageStore.t('actions', 'Actions')"
                     >
-                      <Edit3 class="w-3.5 h-3.5" />
+                      <MoreVertical class="w-4 h-4 stroke-[2.2]" />
                     </button>
-                    <button
-                      @click="handleDeleteClick(assignment)"
-                      class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
-                      :title="languageStore.t('delete', 'Delete')"
+
+                    <!-- Dropdown Menu -->
+                    <Transition
+                      enter-active-class="transition duration-100 ease-out"
+                      enter-from-class="transform scale-95 opacity-0"
+                      enter-to-class="transform scale-100 opacity-100"
+                      leave-active-class="transition duration-75 ease-in"
+                      leave-from-class="transform scale-100 opacity-100"
+                      leave-to-class="transform scale-95 opacity-0"
                     >
-                      <Trash2 class="w-3.5 h-3.5" />
-                    </button>
+                      <div
+                        v-if="activeMenuId === assignment.id"
+                        class="absolute right-0 z-50 w-44 rounded-2xl bg-white dark:bg-[#0f1d32] border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-900/15 dark:shadow-slate-950/60 py-1.5 focus:outline-none"
+                        :class="[
+                          index >= paginatedAssignments.length - 2 && paginatedAssignments.length > 2
+                            ? 'bottom-full mb-1 origin-bottom-right'
+                            : 'top-full mt-1 origin-top-right'
+                        ]"
+                        @click.stop
+                      >
+                        <button
+                          @click="handleEdit(assignment); closeMenu()"
+                          class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#152744] hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer"
+                        >
+                          <Edit3 class="w-3.5 h-3.5 text-blue-500" />
+                          <span>{{ languageStore.t('edit_assignment', 'Edit Assignment') }}</span>
+                        </button>
+
+                        <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+
+                        <button
+                          @click="handleDeleteClick(assignment); closeMenu()"
+                          class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
+                        >
+                          <Trash2 class="w-3.5 h-3.5" />
+                          <span>{{ languageStore.t('delete_assignment', 'Delete Assignment') }}</span>
+                        </button>
+                      </div>
+                    </Transition>
                   </div>
                 </td>
               </tr>
@@ -640,21 +643,33 @@ const handleAssignSuccess = async () => {
             class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
           >
             <div class="flex items-center justify-between">
-              <span class="font-bold text-slate-900 dark:text-white text-sm">
-                {{ languageStore.t('table', 'Table') }} {{ getTableNumber(assignment) }}
-              </span>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-900 dark:text-white text-sm">
+                  {{ languageStore.t('table', 'Table') }} {{ getTableNumber(assignment) }}
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  <MapPin class="w-3 h-3 text-blue-500" />
+                  {{ getTableSection(assignment) }}
+                </span>
+              </div>
               <span
-                class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
-                :class="getPriorityBadgeClass(assignment.priority)"
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                :class="assignment.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-slate-100 text-slate-500 border border-slate-200'"
               >
-                {{ languageStore.t(assignment.priority || 'primary', assignment.priority || 'primary') }}
+                <span class="w-1.5 h-1.5 rounded-full" :class="assignment.status === 'active' ? 'bg-emerald-500' : 'bg-slate-400'"></span>
+                {{ languageStore.t(assignment.status || 'active', (assignment.status || 'active').replace('_', ' ')) }}
               </span>
             </div>
             <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-              <span>{{ languageStore.t('waiter', 'Waiter') }}: {{ getWaiterName(assignment.waiter) }}</span>
-              <div class="flex gap-2">
-                <button @click="handleEdit(assignment)" class="text-blue-600 font-bold cursor-pointer">{{ languageStore.t('edit', 'Edit') }}</button>
-                <button @click="handleDeleteClick(assignment)" class="text-rose-600 font-bold cursor-pointer">{{ languageStore.t('delete', 'Delete') }}</button>
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-[10px]">
+                  {{ getWaiterName(assignment.waiter).charAt(0).toUpperCase() }}
+                </div>
+                <span>{{ getWaiterName(assignment.waiter) }}</span>
+              </div>
+              <div class="flex gap-2.5">
+                <button @click="handleEdit(assignment)" class="text-blue-600 dark:text-blue-400 font-bold cursor-pointer">{{ languageStore.t('edit', 'Edit') }}</button>
+                <button @click="handleDeleteClick(assignment)" class="text-rose-600 dark:text-rose-400 font-bold cursor-pointer">{{ languageStore.t('delete', 'Delete') }}</button>
               </div>
             </div>
           </div>

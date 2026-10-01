@@ -32,11 +32,11 @@ watch(() => hotelStore.hotelId, () => {
 })
 
 const view = (rt: RoomType) => {
-  router.push(`/room-types/${rt.id}`)
+  router.push(`/admin/room-types/${rt.id}`)
 }
 
 const edit = (rt: RoomType) => {
-  router.push(`/room-types/${rt.id}/edit`)
+  router.push(`/admin/room-types/${rt.id}/edit`)
 }
 
 const askDelete = (rt: RoomType) => {
@@ -52,7 +52,7 @@ const confirmDelete = async () => {
 }
 
 const create = () => {
-  router.push('/room-types/create')
+  router.push('/admin/room-types/create')
 }
 
 const refresh = () => {

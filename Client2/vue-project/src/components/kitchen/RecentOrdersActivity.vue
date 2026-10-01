@@ -44,7 +44,13 @@
               <div class="flex items-center justify-between gap-2 mb-1">
                 <div class="flex items-center gap-2">
                   <span class="text-xs font-bold text-slate-900 dark:text-white">
-                    <template v-if="order.room?.room_number">
+                    <template v-if="order.table?.table_number || order.order_type === 'walk_in'">
+                      <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                        <UtensilsCrossed class="w-3.5 h-3.5" />
+                        {{ order.table?.table_name || `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}` }}
+                      </span>
+                    </template>
+                    <template v-else-if="order.room?.room_number">
                       {{ languageStore.t('room', 'Room') }} {{ order.room.room_number }}
                     </template>
                     <template v-else>
@@ -107,7 +113,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Clock, ChefHat, CheckCircle, XCircle, Activity, ListX, ShoppingBag } from 'lucide-vue-next'
+import { Clock, ChefHat, CheckCircle, XCircle, Activity, ListX, ShoppingBag, UtensilsCrossed } from 'lucide-vue-next'
 import { useLanguageStore } from '@/stores/language'
 import type { KitchenOrder } from '@/types/kitchen'
 

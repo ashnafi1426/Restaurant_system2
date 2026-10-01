@@ -32,7 +32,7 @@ const form = ref<Reservation>({
   check_in_date: '',
   check_out_date: '',
   number_of_guests: 1,
-  status: 'pending',
+  status: 'confirmed',
   special_requests: '',
 })
 

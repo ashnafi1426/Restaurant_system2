@@ -37,7 +37,7 @@
           <div v-if="selectedOrder">
             <div class="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
               <div class="p-2 sm:p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ languageStore.t('room', 'Room') }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ selectedOrder?.table ? languageStore.t('table', 'Table') : languageStore.t('room', 'Room') }}</p>
                 <p
                   class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 truncate"
                 >
@@ -213,9 +213,16 @@ const formattedTime = computed(() => {
 })
 
 const roomDisplay = computed(() => {
-  return selectedOrder.value?.room?.room_number
-    ? `${languageStore.t('room', 'ROOM')} ${selectedOrder.value.room.room_number}`
-    : languageStore.t('takeout', 'TAKEOUT')
+  if (selectedOrder.value?.table?.table_number) {
+    return selectedOrder.value.table.table_name || `${languageStore.t('table', 'TABLE')} ${selectedOrder.value.table.table_number}`
+  }
+  if (selectedOrder.value?.room?.room_number) {
+    return `${languageStore.t('room', 'ROOM')} ${selectedOrder.value.room.room_number}`
+  }
+  if (selectedOrder.value?.order_type === 'walk_in') {
+    return languageStore.t('dine_in', 'DINE-IN (TABLE)')
+  }
+  return languageStore.t('takeout', 'TAKEOUT')
 })
 
 const guestName = computed(() => {

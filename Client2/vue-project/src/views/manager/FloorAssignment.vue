@@ -222,11 +222,11 @@ const saveAssignments = async () => {
   isSaving.value = true
   try {
     const assignmentsToSave = assignmentStore.assignments.map((a: any) => ({
-      waiter_id: a.waiter.id,
-      floor_id: a.floor.id,
-      shift_id: a.shift.id,
-      assignment_date: a.assignment_date,
-      priority: a.priority,
+      waiter_id: a.waiter?.id || a.waiter_id,
+      floor_id: a.floor?.id || a.floor_id,
+      shift_id: a.shift?.id || a.shift_id,
+      assignment_date: a.assignment_date || new Date().toISOString().split('T')[0],
+      priority: a.priority || 'primary',
     }))
 
     if (assignmentsToSave.length === 0) {
@@ -539,17 +539,17 @@ watch(() => hotelStore.hotelId, () => {
 
                 <!-- Assigned Staff List -->
                 <td class="py-3 px-4">
-                  <div v-if="assignmentStore.groupedByFloor[floor.id]?.length" class="flex flex-wrap items-center gap-1.5">
+                  <div v-if="assignmentStore.groupedByFloor?.[floor.id]?.length" class="flex flex-wrap items-center gap-1.5">
                     <div
-                      v-for="assignment in assignmentStore.groupedByFloor[floor.id]"
+                      v-for="assignment in (assignmentStore.groupedByFloor?.[floor.id] || [])"
                       :key="assignment.id"
                       class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs"
                     >
                       <div class="w-5 h-5 rounded-full bg-amber-500/10 text-amber-600 font-bold text-[10px] flex items-center justify-center flex-shrink-0">
-                        {{ (assignment.waiter?.user?.name || assignment.waiter?.name || 'W')?.[0]?.toUpperCase() }}
+                        {{ (assignment.waiter?.user?.name || (assignment.waiter as any)?.name || 'W')?.[0]?.toUpperCase() }}
                       </div>
                       <span class="font-bold text-slate-900 dark:text-white">
-                        {{ assignment.waiter?.user?.name || assignment.waiter?.name || languageStore.t('waiter', 'Waiter') }}
+                        {{ assignment.waiter?.user?.name || (assignment.waiter as any)?.name || languageStore.t('waiter', 'Waiter') }}
                       </span>
                       <button
                         @click="removeAssignment(assignment.id)"
@@ -647,6 +647,7 @@ watch(() => hotelStore.hotelId, () => {
         :is-open="showAddStaffModal"
         :floor-id="selectedFloorForModal.id"
         :floor-name="selectedFloorForModal.name"
+        :floors="allFloors"
         @close="showAddStaffModal = false"
         @success="handleStaffAdded"
         @assigned="handleStaffAdded"

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import floorAssignmentService, {
   type FloorAssignment,
   type BulkAssignmentPayload,
@@ -20,13 +20,37 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
   const error = ref<string | null>(null)
   const successMessage = ref<string | null>(null)
 
-  const fetchAssignments = async (date?: string) => {
+  const groupedByFloor = computed<Record<string, FloorAssignment[]>>(() => {
+    const grouped: Record<string, FloorAssignment[]> = {}
+    if (Array.isArray(assignments.value)) {
+      assignments.value.forEach((assignment: any) => {
+        const floorId = assignment.floor_id || assignment.floor?.id
+        if (floorId) {
+          if (!grouped[floorId]) {
+            grouped[floorId] = []
+          }
+          grouped[floorId].push(assignment)
+        }
+      })
+    }
+    return grouped
+  })
+
+  const fetchAssignments = async (paramsOrDate?: string | {
+    page?: number
+    per_page?: number
+    date?: string
+    floor_id?: string
+    waiter_id?: string
+    status?: string
+  }) => {
     loading.value = true
     error.value = null
     try {
-      const data = await floorAssignmentService.getAssignments(date)
-      assignments.value = data
-      return data
+      const queryParams = typeof paramsOrDate === 'string' ? { date: paramsOrDate } : paramsOrDate
+      const data = await floorAssignmentService.getAssignments(queryParams)
+      assignments.value = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : [])
+      return assignments.value
     } catch (err: any) {
       console.error('[FloorAssignmentStore] Error fetching assignments:', err)
       error.value = err.message || 'Failed to load assignments'
@@ -140,6 +164,16 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
     }
   }
 
+  const removeAssignment = async (assignmentId: string) => {
+    assignments.value = assignments.value.filter(a => a.id !== assignmentId)
+    try {
+      await floorAssignmentService.deleteAssignment(assignmentId)
+      await fetchStats()
+    } catch (err: any) {
+      console.warn('[FloorAssignmentStore] deleteAssignment warning:', err)
+    }
+  }
+
   const clearError = () => {
     error.value = null
   }
@@ -154,12 +188,14 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
     loading,
     error,
     successMessage,
+    groupedByFloor,
     fetchAssignments,
     fetchTodayAssignments,
     fetchStats,
     saveAssignments,
     updateAssignment,
     deleteAssignment,
+    removeAssignment,
     clearError,
     clearSuccess,
   }

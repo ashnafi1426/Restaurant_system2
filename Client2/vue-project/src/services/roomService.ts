@@ -19,18 +19,36 @@ function getGuestHotelHeaders() {
 
 export const roomService = {
   getRooms(params: any = {}) {
+    const token = localStorage.getItem('token')
+    if (token) {
+      return api.get('/rooms', { params })
+    }
     return publicAxios.get('/rooms', { params, headers: getGuestHotelHeaders() })
   },
 
-  getAllRooms() {
-    return publicAxios.get('/rooms', { params: { per_page: 1000 }, headers: getGuestHotelHeaders() })
+  getAllRooms(hotelId?: string) {
+    const token = localStorage.getItem('token')
+    const params: any = { per_page: 1000 }
+    if (hotelId) params.hotel_id = hotelId
+    if (token) {
+      return api.get('/rooms', { params })
+    }
+    return publicAxios.get('/rooms', { params, headers: getGuestHotelHeaders() })
   },
 
   searchRooms(searchTerm: string, params: any = {}) {
+    const token = localStorage.getItem('token')
+    if (token) {
+      return api.get('/rooms', { params: { ...params, search: searchTerm } })
+    }
     return publicAxios.get('/rooms', { params: { ...params, search: searchTerm }, headers: getGuestHotelHeaders() })
   },
 
   getRoom(id: string) {
+    const token = localStorage.getItem('token')
+    if (token) {
+      return api.get(`/rooms/${String(id)}`)
+    }
     return publicAxios.get(`/rooms/${String(id)}`, { headers: getGuestHotelHeaders() })
   },
 
@@ -42,8 +60,16 @@ export const roomService = {
     return api.put(`/rooms/${String(id)}`, room)
   },
 
-  deleteRoom(id: string) {
-    return api.delete(`/rooms/${String(id)}`)
+  deleteRoom(id: string, force: boolean = false) {
+    const url = `/rooms/${encodeURIComponent(String(id))}${force ? '?force=1' : ''}`
+    return api.delete(url, {
+      params: force ? { force: 1 } : {},
+      data: force ? { force: true } : {},
+    })
+  },
+
+  toggleStatus(id: string) {
+    return api.patch(`/rooms/${String(id)}/toggle-status`)
   },
 }
 

@@ -126,13 +126,28 @@ export const useRoomStore = defineStore('rooms', {
       }
     },
 
-    async deleteRoom(id: string) {
+    async deleteRoom(id: string, force: boolean = false) {
       try {
-        await roomService.deleteRoom(id)
+        const response = await roomService.deleteRoom(id, force)
         await this.fetchRooms()
+        this.error = null
+        return response.data
       } catch (error: any) {
         console.error('[RoomStore] Error deleting room:', error)
-        this.error = 'Failed to delete room'
+        this.error = error.response?.data?.message || 'Failed to delete room'
+        throw error
+      }
+    },
+
+    async toggleStatus(id: string) {
+      try {
+        const response = await roomService.toggleStatus(id)
+        await this.fetchRooms()
+        this.error = null
+        return response.data
+      } catch (error: any) {
+        console.error('[RoomStore] Error toggling room status:', error)
+        this.error = error.response?.data?.message || 'Failed to update room status'
         throw error
       }
     },
