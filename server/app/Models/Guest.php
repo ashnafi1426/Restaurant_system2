@@ -28,7 +28,6 @@ class Guest extends Model
         'date_of_birth',
         'preferences',
     ];
-
     protected $casts = [
         'preferences' => 'array',
         'date_of_birth' => 'date:Y-m-d',

@@ -14,8 +14,39 @@ class UpdateRoomRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->has('floor') && ($this->floor === '' || $this->floor === null)) {
-            $this->merge(['floor' => null]);
+        if ($this->filled('floor_id')) {
+            $floorNumber = \App\Models\Floor::where('id', $this->floor_id)->value('floor_number');
+            if ($floorNumber !== null) {
+                $this->merge(['floor' => $floorNumber]);
+            }
+        } elseif ($this->filled('floor')) {
+            $hotelId = \App\Services\TenantContext::id()
+                ?: $this->input('hotel_id')
+                ?: $this->query('hotel_id')
+                ?: $this->header('X-Hotel-ID')
+                ?: $this->header('x-hotel-id')
+                ?: $this->user()?->hotel_id
+                ?: \App\Models\Hotel::first()?->id;
+
+            $floorId = \App\Models\Floor::where('floor_number', $this->floor)
+                ->when($hotelId, fn($q) => $q->where(function ($sq) use ($hotelId) {
+                    $sq->where('hotel_id', $hotelId)->orWhereNull('hotel_id');
+                }))
+                ->value('id');
+
+            if (!$floorId && $hotelId) {
+                $createdFloor = \App\Models\HotelFloor::withoutTenant()->firstOrCreate(
+                    ['hotel_id' => $hotelId, 'floor_number' => (int)$this->floor],
+                    ['name' => "Floor {$this->floor}", 'description' => "Floor {$this->floor}", 'is_active' => true]
+                );
+                $floorId = $createdFloor->id;
+            }
+
+            if ($floorId) {
+                $this->merge(['floor_id' => $floorId]);
+            }
+        } elseif ($this->has('floor') && ($this->floor === '' || $this->floor === null)) {
+            $this->merge(['floor' => null, 'floor_id' => null]);
         }
         if ($this->has('is_active')) {
             $this->merge([
@@ -28,17 +59,32 @@ class UpdateRoomRequest extends FormRequest
     {
         $roomParam = $this->route('room');
         $roomId = is_object($roomParam) ? $roomParam->id : $roomParam;
-        $hotelId = \App\Services\TenantContext::id();
+        $roomModel = is_object($roomParam) ? $roomParam : \App\Models\Room::withoutTenant()->find($roomId);
+
+        $hotelId = \App\Services\TenantContext::id()
+            ?: $this->input('hotel_id')
+            ?: $this->query('hotel_id')
+            ?: $this->header('X-Hotel-ID')
+            ?: $this->header('x-hotel-id')
+            ?: $roomModel?->hotel_id
+            ?: $this->user()?->hotel_id
+            ?: $this->user()?->hotelMemberships()->where('is_active', true)->value('hotel_id')
+            ?: \App\Models\Hotel::first()?->id;
 
         $uniqueRoom = Rule::unique('rooms', 'room_number')->ignore($roomId, 'id');
         $existsRoomType = Rule::exists('room_types', 'id');
+        $existsFloor = Rule::exists('floors', 'id');
 
         if ($hotelId) {
             $uniqueRoom = $uniqueRoom->where('hotel_id', $hotelId);
             $existsRoomType = $existsRoomType->where('hotel_id', $hotelId);
+            $existsFloor = $existsFloor->where(function ($q) use ($hotelId) {
+                $q->where('hotel_id', $hotelId)->orWhereNull('hotel_id');
+            });
         }
 
         return [
+            'hotel_id' => ['nullable', 'string'],
             'room_number' => [
                 'required',
                 'string',
@@ -47,6 +93,7 @@ class UpdateRoomRequest extends FormRequest
             ],
 
             'room_type_id' => ['required', $existsRoomType],
+            'floor_id' => ['nullable', $existsFloor],
             'floor' => ['nullable', 'integer'],
             'description' => ['nullable', 'string'],
 
@@ -62,6 +109,16 @@ class UpdateRoomRequest extends FormRequest
             ],
 
             'is_active' => ['nullable', 'boolean'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'room_number.required' => 'Room number is required.',
+            'room_number.unique' => 'This room number is already taken in this hotel.',
+            'room_type_id.required' => 'Please select a room type.',
+            'room_type_id.exists' => 'The selected room type is invalid or does not belong to this hotel.',
         ];
     }
 }

@@ -6,8 +6,10 @@ use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\Order;
 use App\Models\Guest;
+use App\Mail\ReservationConfirmed;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class PaymentService
 {
@@ -80,7 +82,17 @@ class PaymentService
                 'metadata_keys' => array_keys($metadata),
             ]);
 
+            $hotelId = $data['hotel_id'] 
+                ?? ($metadata['hotel_id'] ?? null)
+                ?? (!empty($data['room_id']) ? \App\Models\Room::withoutGlobalScopes()->where('id', $data['room_id'])->value('hotel_id') : null)
+                ?? app(\App\Services\TenantContext::class)->getHotelId();
+
+            if ($hotelId) {
+                $metadata['hotel_id'] = $hotelId;
+            }
+
             $payment = Payment::create([
+                'hotel_id'         => $hotelId,
                 'tx_ref'           => (new ChapaService())->generateTransactionReference(),
                 'amount'           => $data['amount'],
                 'currency'         => 'ETB',
@@ -118,9 +130,51 @@ class PaymentService
     public function handleReservationPaymentSuccess(Payment $payment, array $reservationData): array
     {
         try {
-            $reservation = DB::transaction(function () use ($payment, $reservationData) {
-                $hotelId = $payment->hotel_id ?? ($payment->metadata['hotel_id'] ?? null) ?? ($reservationData['hotel_id'] ?? null);
+            // Check if reservation already created and linked
+            if (!empty($payment->reservation_id)) {
+                $existing = Reservation::withoutGlobalScopes()->find($payment->reservation_id);
+                if ($existing) {
+                    Log::info('[PaymentService] Reservation already exists for payment, returning existing record', [
+                        'payment_id'     => $payment->id,
+                        'reservation_id' => $existing->id,
+                        'booking_ref'    => $existing->booking_reference,
+                    ]);
+                    $existing->loadMissing(['room.roomType', 'guest']);
+                    return [
+                        'success'     => true,
+                        'reservation' => $existing,
+                        'message'     => 'Reservation already created',
+                    ];
+                }
+            }
 
+            // Also check if matching reservation was created in the last 5 minutes for this hotel, guest, room, and dates
+            $hotelId = $payment->hotel_id ?? ($payment->metadata['hotel_id'] ?? null) ?? ($reservationData['hotel_id'] ?? null);
+            $duplicateCheck = Reservation::withoutGlobalScopes()
+                ->where('hotel_id', $hotelId)
+                ->where('guest_id', $reservationData['guest_id'])
+                ->where('room_id', $reservationData['room_id'])
+                ->where('check_in_date', $reservationData['check_in_date'])
+                ->where('check_out_date', $reservationData['check_out_date'])
+                ->where('created_at', '>=', now()->subMinutes(5))
+                ->first();
+
+            if ($duplicateCheck) {
+                Log::info('[PaymentService] Recent matching reservation found, linking to payment to avoid duplicate', [
+                    'payment_id'     => $payment->id,
+                    'reservation_id' => $duplicateCheck->id,
+                    'booking_ref'    => $duplicateCheck->booking_reference,
+                ]);
+                $payment->update(['reservation_id' => $duplicateCheck->id]);
+                $duplicateCheck->loadMissing(['room.roomType', 'guest']);
+                return [
+                    'success'     => true,
+                    'reservation' => $duplicateCheck,
+                    'message'     => 'Reservation already created',
+                ];
+            }
+
+            $reservation = DB::transaction(function () use ($payment, $reservationData, $hotelId) {
                 $reservation = Reservation::create([
                     'hotel_id'          => $hotelId,
                     'booking_reference' => Reservation::generateBookingReference(),
@@ -129,7 +183,7 @@ class PaymentService
                     'check_in_date'     => $reservationData['check_in_date'],
                     'check_out_date'    => $reservationData['check_out_date'],
                     'number_of_guests'  => $reservationData['number_of_guests'],
-                    'status'            => 'pending',
+                    'status'            => 'confirmed',
                     'special_requests'  => $reservationData['special_requests'] ?? null,
                     'total_amount'      => $payment->amount,
                     'created_by'        => auth()->id() ?? null,
@@ -137,11 +191,26 @@ class PaymentService
 
                 $payment->update(['reservation_id' => $reservation->id]);
 
-                Log::info('Reservation Created After Payment', [
+                $reservation->load(['room.roomType', 'guest']);
+                $guestEmail = $reservation->guest?->email;
+                if ($guestEmail) {
+                    try {
+                        Mail::to($guestEmail)->send(new ReservationConfirmed($reservation));
+                        Log::info('Automatic confirmation email sent to guest in PaymentService', [
+                            'reservation_id' => $reservation->id,
+                            'guest_email'    => $guestEmail,
+                        ]);
+                    } catch (\Exception $mailEx) {
+                        Log::error('Failed to send confirmation email in PaymentService: ' . $mailEx->getMessage());
+                    }
+                }
+
+                Log::info('Reservation Created and Confirmed After Payment', [
                     'payment_id'     => $payment->id,
                     'reservation_id' => $reservation->id,
                     'guest_id'       => $reservationData['guest_id'],
                     'total_amount'   => $payment->amount,
+                    'status'         => $reservation->status,
                 ]);
 
                 return $reservation;
@@ -172,7 +241,7 @@ class PaymentService
         try {
             $order = DB::transaction(function () use ($payment, $orderData, $orderItems) {
                 $roomId = $orderData['room_id'] ?? null;
-                $room = $roomId ? \App\Models\Room::find($roomId) : null;
+                $room = $roomId ? \App\Models\Room::withoutGlobalScopes()->find($roomId) : null;
                 $hotelId = $payment->hotel_id 
                     ?? ($room ? $room->hotel_id : null) 
                     ?? ($payment->metadata['hotel_id'] ?? null)
@@ -185,9 +254,10 @@ class PaymentService
 
                 $createdOrder = Order::create([
                     'hotel_id'         => $hotelId,
-                    'order_number'     => Order::generateOrderNumber(),
+                    'order_number'     => Order::generateOrderNumber($hotelId),
                     'guest_id'         => $orderData['guest_id'],
                     'room_id'          => $orderData['room_id'] ?? null,
+                    'order_type'       => Order::TYPE_ROOM_SERVICE,
                     'order_time'       => now(),
                     'status'           => Order::STATUS_PENDING,
                     'source'           => 'guest_qr',
@@ -201,11 +271,18 @@ class PaymentService
                 ]);
 
                 foreach ($orderItems as $item) {
+                    $itemPrice = $item['price'] ?? ($item['item_price_at_order'] ?? 0);
+                    $quantity = $item['quantity'] ?? 1;
+                    $lineTotal = $item['total'] ?? ($item['line_total'] ?? ($itemPrice * $quantity));
+
                     $createdOrder->orderItems()->create([
-                        'menu_item_id'         => $item['menu_item_id'],
-                        'quantity'             => $item['quantity'],
-                        'price'                => $item['price'],
-                        'special_instructions' => $item['special_instructions'] ?? null,
+                        'menu_item_id'        => $item['menu_item_id'],
+                        'quantity'            => $quantity,
+                        'item_price_at_order' => $itemPrice,
+                        'subtotal'            => $lineTotal,
+                        'total'               => $lineTotal,
+                        'line_total'          => $lineTotal,
+                        'notes'               => $item['special_instructions'] ?? ($item['notes'] ?? null),
                     ]);
                 }
 
@@ -220,6 +297,31 @@ class PaymentService
 
                 return $createdOrder;
             });
+
+            try {
+                $targetHotelId = $order->hotel_id;
+                $chefs = \App\Models\User::where('role', 'chef')
+                    ->when($targetHotelId, function ($q) use ($targetHotelId) {
+                        $q->where(function ($sub) use ($targetHotelId) {
+                            $sub->whereHas('hotelMemberships', fn ($hq) => $hq->where('hotel_id', $targetHotelId))
+                                ->orDoesntHave('hotelMemberships');
+                        });
+                    })
+                    ->get();
+
+                $roomNumber = $order->room?->room_number ?? 'Room Service';
+                foreach ($chefs as $chef) {
+                    \App\Models\Notification::create([
+                        'user_id' => $chef->id,
+                        'type' => 'order_created',
+                        'title' => 'New Room Order',
+                        'message' => 'Room order #' . $order->order_number . ' (Room ' . $roomNumber . ') has been received for processing.',
+                        'read' => false,
+                    ]);
+                }
+            } catch (\Throwable $notifyErr) {
+                Log::warning('Failed to notify chefs for room order: ' . $notifyErr->getMessage());
+            }
 
             try {
                 app(\App\Services\Waiter\AutomaticWaiterAssignmentService::class)->assignWaiterToReadyOrder($order);

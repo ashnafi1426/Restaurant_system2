@@ -24,7 +24,7 @@ class QRResolutionService
             $upperToken = strtoupper($rawToken);
             $lowerToken = strtolower($rawToken);
 
-            $room = Room::where(function ($q) use ($rawToken, $upperToken, $lowerToken) {
+            $room = Room::withoutGlobalScopes()->where(function ($q) use ($rawToken, $upperToken, $lowerToken) {
                 $q->where('qr_token', $rawToken)
                   ->orWhere('qr_token', $upperToken)
                   ->orWhere('qr_token', $lowerToken)
@@ -32,21 +32,30 @@ class QRResolutionService
             })->first();
 
             if ($room && $room->is_active !== false) {
-                $activeCheckIn = \App\Models\CheckIn::where('room_id', $room->id)
-                    ->whereNull('checked_out_at')
-                    ->with(['guest', 'reservation'])
-                    ->first();
+                $currentReservation = $room->getCurrentReservation();
+                $reservationStatus = $currentReservation?->status ?? 'none';
+                $canOrder = ($reservationStatus === 'checked_in');
+
+                $eligibilityMessage = match($reservationStatus) {
+                    'checked_in' => 'Guest is checked in and eligible for room service.',
+                    'confirmed' => 'Your reservation is confirmed, but room-service ordering is only available after check-in at the front desk.',
+                    'checked_out' => 'This room has been checked out. Room-service ordering is no longer available.',
+                    'cancelled' => 'This reservation was cancelled. Room-service ordering is unavailable.',
+                    default => 'No active checked-in reservation found for this room. Room-service ordering is only available for checked-in guests.',
+                };
 
                 $guestInfo = null;
-                if ($activeCheckIn && $activeCheckIn->guest) {
+                if ($currentReservation && $currentReservation->guest) {
+                    $guest = $currentReservation->guest;
                     $guestInfo = [
-                        'guest_id' => $activeCheckIn->guest_id,
-                        'guest_name' => $activeCheckIn->guest->first_name . ' ' . $activeCheckIn->guest->last_name,
-                        'guest_email' => $activeCheckIn->guest->email,
-                        'guest_phone' => $activeCheckIn->guest->phone,
-                        'reservation_id' => $activeCheckIn->reservation_id,
-                        'check_in_date' => $activeCheckIn->checked_in_at?->format('Y-m-d'),
-                        'expected_checkout' => $activeCheckIn->expected_check_out_at?->format('Y-m-d'),
+                        'guest_id' => $guest->id,
+                        'guest_name' => trim(($guest->first_name ?? '') . ' ' . ($guest->last_name ?? '')),
+                        'guest_email' => $guest->email,
+                        'guest_phone' => $guest->phone,
+                        'reservation_id' => $currentReservation->id,
+                        'reservation_status' => $reservationStatus,
+                        'check_in_date' => $currentReservation->check_in_date?->format('Y-m-d'),
+                        'expected_checkout' => $currentReservation->check_out_date?->format('Y-m-d'),
                     ];
                 }
 
@@ -54,6 +63,8 @@ class QRResolutionService
                     'token' => $rawToken,
                     'room_id' => $room->id,
                     'room_number' => $room->room_number,
+                    'reservation_status' => $reservationStatus,
+                    'can_order' => $canOrder,
                     'has_guest' => $guestInfo !== null,
                     'guest_name' => $guestInfo['guest_name'] ?? null,
                 ]);
@@ -71,12 +82,19 @@ class QRResolutionService
                         'room_type' => $room->roomType ? $room->roomType->name : null,
                         'status' => $room->status,
                         'guest' => $guestInfo,
+                        'reservation_id' => $currentReservation?->id,
+                        'reservation_status' => $reservationStatus,
+                        'is_checked_in' => $canOrder,
+                        'can_order' => $canOrder,
+                        'eligibility_message' => $eligibilityMessage,
                     ],
-                    'message' => 'QR code belongs to a hotel room',
+                    'message' => $canOrder 
+                        ? 'QR code belongs to a hotel room' 
+                        : $eligibilityMessage,
                 ];
             }
 
-            $table = RestaurantTable::where(function ($q) use ($rawToken, $upperToken, $lowerToken) {
+            $table = RestaurantTable::withoutGlobalScopes()->where(function ($q) use ($rawToken, $upperToken, $lowerToken) {
                 $q->where('qr_token', $rawToken)
                   ->orWhere('qr_token', $upperToken)
                   ->orWhere('qr_token', $lowerToken)
@@ -141,6 +159,10 @@ class QRResolutionService
                         'location' => $table->location,
                         'status' => $table->status,
                         'assigned_waiter' => $assignedWaiter,
+                        'is_checked_in' => true,
+                        'can_order' => true,
+                        'reservation_status' => 'not_applicable',
+                        'eligibility_message' => null,
                     ],
                     'message' => 'QR code belongs to a restaurant table',
                 ];
@@ -177,6 +199,22 @@ class QRResolutionService
         if ($context === 'room') {
             if (empty($orderData['room_id'])) {
                 $errors[] = 'room_id is required for room service orders';
+            } else {
+                $room = Room::withoutGlobalScopes()->find($orderData['room_id']);
+                if (!$room) {
+                    $errors[] = 'Room not found';
+                } else {
+                    $reservation = $room->getCurrentReservation();
+                    if (!$reservation || $reservation->status !== 'checked_in') {
+                        $currentStatus = $reservation ? $reservation->status : 'none';
+                        $errors[] = match($currentStatus) {
+                            'confirmed' => 'Your reservation is confirmed, but room-service ordering is only available after check-in at the front desk.',
+                            'checked_out' => 'This room has been checked out. Room-service ordering is no longer available.',
+                            'cancelled' => 'This reservation was cancelled. Room-service ordering is unavailable.',
+                            default => 'Room service ordering is only allowed for checked-in guests.',
+                        };
+                    }
+                }
             }
 
         } elseif ($context === 'table') {

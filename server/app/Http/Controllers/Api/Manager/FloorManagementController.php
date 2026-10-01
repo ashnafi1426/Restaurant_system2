@@ -24,11 +24,18 @@ class FloorManagementController extends Controller
     protected function getHotelId(): ?string
     {
         $hotelId = request()->header('X-Hotel-ID')
+            ?: request()->header('x-hotel-id')
+            ?: request()->input('hotel_id')
+            ?: request()->query('hotel_id')
             ?: app(\App\Services\TenantContext::class)->getHotelId()
             ?: (auth()->check() ? auth()->user()->hotel_id : null);
 
         if (!$hotelId && auth()->check()) {
             $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
+        }
+
+        if (!$hotelId) {
+            $hotelId = \App\Models\Hotel::first()?->id;
         }
 
         if ($hotelId) {
@@ -42,7 +49,55 @@ class FloorManagementController extends Controller
     {
         try {
             $hotelId = $this->getHotelId();
-            $query = HotelFloor::query();
+
+            // Auto-discover / backfill existing floors from rooms or defaults
+            if ($hotelId) {
+                $floorsCount = HotelFloor::withoutTenant()->where('hotel_id', $hotelId)->count();
+                if ($floorsCount === 0) {
+                    // Check if there are existing rooms with floor numbers
+                    $existingRoomFloors = \App\Models\Room::withoutTenant()
+                        ->where('hotel_id', $hotelId)
+                        ->whereNotNull('floor')
+                        ->distinct()
+                        ->pluck('floor');
+
+                    foreach ($existingRoomFloors as $flNum) {
+                        $num = (int)$flNum;
+                        if ($num > 0) {
+                            $created = HotelFloor::withoutTenant()->firstOrCreate(
+                                ['hotel_id' => $hotelId, 'floor_number' => $num],
+                                ['name' => "Floor {$num}", 'description' => "Floor {$num}", 'is_active' => true]
+                            );
+                            \App\Models\Room::withoutTenant()
+                                ->where('hotel_id', $hotelId)
+                                ->where('floor', $num)
+                                ->whereNull('floor_id')
+                                ->update(['floor_id' => $created->id]);
+                        }
+                    }
+
+                    // Also check if there are floors with hotel_id null
+                    $nullFloors = HotelFloor::withoutTenant()->whereNull('hotel_id')->get();
+                    if ($nullFloors->isNotEmpty()) {
+                        foreach ($nullFloors as $nf) {
+                            HotelFloor::withoutTenant()->firstOrCreate(
+                                ['hotel_id' => $hotelId, 'floor_number' => $nf->floor_number],
+                                ['name' => $nf->name, 'description' => $nf->description ?? null, 'is_active' => true]
+                            );
+                        }
+                    }
+
+                    // If still empty, create standard Floor 1
+                    if (HotelFloor::withoutTenant()->where('hotel_id', $hotelId)->count() === 0) {
+                        HotelFloor::withoutTenant()->firstOrCreate(
+                            ['hotel_id' => $hotelId, 'floor_number' => 1],
+                            ['name' => 'Floor 1', 'description' => 'First Floor', 'is_active' => true]
+                        );
+                    }
+                }
+            }
+
+            $query = HotelFloor::query()->withCount('rooms');
 
             if ($hotelId) {
                 $query->where('hotel_id', $hotelId);
@@ -61,7 +116,7 @@ class FloorManagementController extends Controller
                 });
             }
 
-            $perPage = $request->input('per_page', 20);
+            $perPage = $request->input('per_page', 100);
             $floors = $query->orderBy('floor_number')->paginate($perPage);
 
             return response()->json([
@@ -98,16 +153,16 @@ class FloorManagementController extends Controller
                     'required',
                     'integer',
                     $hotelId 
-                        ? Rule::unique('hotel_floors', 'floor_number')->where('hotel_id', $hotelId)
-                        : 'unique:hotel_floors,floor_number',
+                        ? Rule::unique('floors', 'floor_number')->where('hotel_id', $hotelId)
+                        : 'unique:floors,floor_number',
                 ],
                 'name' => [
                     'required',
                     'string',
                     'max:100',
                     $hotelId 
-                        ? Rule::unique('hotel_floors', 'name')->where('hotel_id', $hotelId)
-                        : 'unique:hotel_floors,name',
+                        ? Rule::unique('floors', 'name')->where('hotel_id', $hotelId)
+                        : 'unique:floors,name',
                 ],
                 'description' => 'nullable|string|max:500',
             ]);
@@ -172,7 +227,7 @@ class FloorManagementController extends Controller
     {
         try {
             $request->validate([
-                'name' => 'sometimes|string|max:100|unique:hotel_floors,name,' . $floor->id,
+                'name' => 'sometimes|string|max:100|unique:floors,name,' . $floor->id,
                 'description' => 'nullable|string|max:500',
                 'is_active' => 'sometimes|boolean',
             ]);

@@ -11,17 +11,41 @@ use Illuminate\Support\Facades\Validator;
 
 class RestaurantTableController extends Controller
 {
+    protected function getHotelId(): ?string
+    {
+        $hotelId = request()->header('X-Hotel-ID')
+            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: (auth()->check() ? auth()->user()->hotel_id : null);
+
+        if (!$hotelId && auth()->check()) {
+            $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
+        }
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
+
     public function index(Request $request): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
+
             Log::info(' RestaurantTable::index called', [
                 'all_params' => $request->all(),
                 'query_params' => $request->query(),
+                'hotel_id' => $hotelId,
                 'user_id' => auth()->id(),
                 'user_role' => auth()->user()->role ?? 'N/A',
             ]);
             
             $query = RestaurantTable::query();
+
+            if ($hotelId) {
+                $query->where('hotel_id', $hotelId);
+            }
 
             if ($request->filled('search')) {
                 $query->search($request->search);
@@ -118,8 +142,16 @@ class RestaurantTableController extends Controller
             'user_id' => auth()->id(),
         ]);
 
+        $hotelId = $this->getHotelId();
+
         $validator = Validator::make($request->all(), [
-            'table_number' => 'required|string|unique:restaurant_tables,table_number',
+            'table_number' => [
+                'required',
+                'string',
+                \Illuminate\Validation\Rule::unique('restaurant_tables', 'table_number')
+                    ->where(fn($q) => $hotelId ? $q->where('hotel_id', $hotelId) : $q)
+                    ->whereNull('deleted_at')
+            ],
             'table_name' => 'nullable|string|max:255',
             'capacity' => 'nullable|integer|min:1|max:20',
             'location' => 'nullable|string|max:255',
@@ -142,6 +174,7 @@ class RestaurantTableController extends Controller
 
         try {
             $table = RestaurantTable::create([
+                'hotel_id' => $hotelId,
                 'table_number' => $request->table_number,
                 'table_name' => $request->table_name,
                 'capacity' => $request->get('capacity', 4),
@@ -334,16 +367,21 @@ class RestaurantTableController extends Controller
     public function statistics(): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
+
+            $baseQuery = RestaurantTable::query()
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId));
+
             $stats = [
-                'total' => RestaurantTable::count(),
-                'active' => RestaurantTable::where('is_active', true)->count(),
-                'available' => RestaurantTable::where('status', RestaurantTable::STATUS_AVAILABLE)
+                'total' => (clone $baseQuery)->count(),
+                'active' => (clone $baseQuery)->where('is_active', true)->count(),
+                'available' => (clone $baseQuery)->where('status', RestaurantTable::STATUS_AVAILABLE)
                                               ->where('is_active', true)
                                               ->count(),
-                'occupied' => RestaurantTable::where('status', RestaurantTable::STATUS_OCCUPIED)->count(),
-                'reserved' => RestaurantTable::where('status', RestaurantTable::STATUS_RESERVED)->count(),
-                'cleaning' => RestaurantTable::where('status', RestaurantTable::STATUS_CLEANING)->count(),
-                'out_of_service' => RestaurantTable::where('status', RestaurantTable::STATUS_OUT_OF_SERVICE)->count(),
+                'occupied' => (clone $baseQuery)->where('status', RestaurantTable::STATUS_OCCUPIED)->count(),
+                'reserved' => (clone $baseQuery)->where('status', RestaurantTable::STATUS_RESERVED)->count(),
+                'cleaning' => (clone $baseQuery)->where('status', RestaurantTable::STATUS_CLEANING)->count(),
+                'out_of_service' => (clone $baseQuery)->where('status', RestaurantTable::STATUS_OUT_OF_SERVICE)->count(),
             ];
 
             return response()->json([

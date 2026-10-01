@@ -56,11 +56,24 @@ class Order extends Model
     public const TYPE_ROOM_SERVICE = 'room_service';
     public const TYPE_WALK_IN = 'walk_in';
 
-    public static function generateOrderNumber(): string
+    public static function generateOrderNumber(?string $hotelId = null): string
     {
         $prefix = 'ORD-' . now()->format('Ymd');
-        $count = static::whereDate('created_at', today())->count() + 1;
-        return sprintf('%s-%04d', $prefix, $count);
+        $count = static::withoutGlobalScopes()->whereDate('created_at', today())->count() + 1;
+        $orderNumber = sprintf('%s-%04d', $prefix, $count);
+
+        $attempts = 0;
+        while (static::withoutGlobalScopes()->where('order_number', $orderNumber)->exists() && $attempts < 1000) {
+            $count++;
+            $orderNumber = sprintf('%s-%04d', $prefix, $count);
+            $attempts++;
+        }
+
+        if ($attempts >= 1000) {
+            $orderNumber = sprintf('%s-%s-%s', $prefix, now()->format('His'), strtoupper(\Illuminate\Support\Str::random(4)));
+        }
+
+        return $orderNumber;
     }
 
     public function reservation()
@@ -86,6 +99,11 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function items()
+    {
+        return $this->orderItems();
     }
 
     public function reviews()

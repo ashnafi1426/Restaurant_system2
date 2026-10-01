@@ -81,9 +81,50 @@ class Room extends Model
         return $this->belongsTo(RoomType::class);
     }
     
+    public function floor()
+    {
+        return $this->belongsTo(Floor::class, 'floor_id', 'id');
+    }
+
     public function hotelFloor()
     {
-        return $this->belongsTo(HotelFloor::class, 'floor_id', 'id');
+        return $this->belongsTo(Floor::class, 'floor_id', 'id');
+    }
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    public function activeReservation()
+    {
+        return $this->hasOne(Reservation::class)
+            ->where('status', 'checked_in')
+            ->latestOfMany('created_at');
+    }
+
+    public function getCurrentReservation(): ?Reservation
+    {
+        // 1. Check for active checked-in reservation first
+        $checkedIn = Reservation::withoutGlobalScopes()
+            ->where('room_id', $this->id)
+            ->when($this->hotel_id, fn($q) => $q->where('hotel_id', $this->hotel_id))
+            ->where('status', 'checked_in')
+            ->with('guest')
+            ->latest('created_at')
+            ->first();
+
+        if ($checkedIn) {
+            return $checkedIn;
+        }
+
+        // 2. Fallback to latest reservation to determine status (confirmed, checked_out, cancelled, etc.)
+        return Reservation::withoutGlobalScopes()
+            ->where('room_id', $this->id)
+            ->when($this->hotel_id, fn($q) => $q->where('hotel_id', $this->hotel_id))
+            ->with('guest')
+            ->latest('created_at')
+            ->first();
     }
     
     public function getQRCodeUrlAttribute()
@@ -131,5 +172,12 @@ class Room extends Model
         }
 
         return null;
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+            ->where($field ?? $this->getRouteKeyName(), $value)
+            ->first();
     }
 }

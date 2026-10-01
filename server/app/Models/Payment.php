@@ -50,12 +50,40 @@ class Payment extends Model
 
     protected static function booted()
     {
+        parent::booted();
+
         static::creating(function ($payment) {
             if (empty($payment->transaction_reference) && !empty($payment->tx_ref)) {
                 $payment->transaction_reference = $payment->tx_ref;
             }
             if (empty($payment->tx_ref) && !empty($payment->transaction_reference)) {
                 $payment->tx_ref = $payment->transaction_reference;
+            }
+            if (empty($payment->guest_id) && !empty($payment->email)) {
+                try {
+                    $hotelId = $payment->hotel_id ?? app(\App\Services\TenantContext::class)->getHotelId();
+                    $guest = \App\Models\Guest::withoutGlobalScopes()
+                        ->where('email', $payment->email)
+                        ->when($hotelId, fn($q) => $q->where(function ($sub) use ($hotelId) {
+                            $sub->where('hotel_id', $hotelId)->orWhereNull('hotel_id');
+                        }))
+                        ->first();
+                    if (!$guest) {
+                        $guest = new \App\Models\Guest();
+                        $guest->id = (string) \Illuminate\Support\Str::uuid();
+                        $guest->hotel_id = $hotelId;
+                        $guest->first_name = $payment->first_name ?: 'Walk-in';
+                        $guest->last_name = $payment->last_name ?: 'Guest';
+                        $guest->email = $payment->email;
+                        $guest->phone = $payment->phone ?: 'N/A';
+                        $guest->save();
+                    }
+                    if ($guest) {
+                        $payment->guest_id = $guest->id;
+                    }
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('[PAYMENT] Auto-resolve guest in booted failed: ' . $e->getMessage());
+                }
             }
         });
     }

@@ -88,8 +88,53 @@ class WalkInOrderPaymentController extends Controller
                 ];
             }
 
+            $hotelId = $table->hotel_id 
+                ?? app(\App\Services\TenantContext::class)->getHotelId()
+                ?? \App\Models\Hotel::value('id');
+
+            if ($table && empty($table->hotel_id) && $hotelId) {
+                $table->update(['hotel_id' => $hotelId]);
+            }
+
+            // Find or create Guest for walk-in customer
+            $guestId = null;
+            try {
+                $guestQuery = \App\Models\Guest::withoutGlobalScopes()
+                    ->where('email', $validated['email']);
+                if ($hotelId) {
+                    $guestQuery->where(function ($q) use ($hotelId) {
+                        $q->where('hotel_id', $hotelId)->orWhereNull('hotel_id');
+                    });
+                }
+                $guest = $guestQuery->first();
+
+                if (!$guest) {
+                    $guest = new \App\Models\Guest();
+                    $guest->id = (string) Str::uuid();
+                    $guest->hotel_id = $hotelId;
+                    $guest->first_name = $validated['first_name'] ?: 'Walk-in';
+                    $guest->last_name = $validated['last_name'] ?: 'Guest';
+                    $guest->email = $validated['email'];
+                    $guest->phone = $validated['phone'] ?: 'N/A';
+                    $guest->save();
+                }
+                $guestId = $guest->id;
+            } catch (\Throwable $guestErr) {
+                Log::warning('Could not resolve or create guest for walk-in order: ' . $guestErr->getMessage());
+            }
+
+            // Ensure payments table schema allows null guest_id and invoice_id
+            try {
+                DB::statement("ALTER TABLE `payments` MODIFY `guest_id` CHAR(36) NULL");
+            } catch (\Throwable $e) {}
+            try {
+                DB::statement("ALTER TABLE `payments` MODIFY `invoice_id` CHAR(36) NULL");
+            } catch (\Throwable $e) {}
+
             $payment = Payment::create([
-                'id'         => Str::uuid(),
+                'id'         => (string) Str::uuid(),
+                'hotel_id'   => $hotelId,
+                'guest_id'   => $guestId,
                 'tx_ref'     => 'WALKIN-' . strtoupper(Str::random(12)),
                 'amount'     => $orderCalculation['total'],
                 'currency'   => 'ETB',
@@ -101,7 +146,10 @@ class WalkInOrderPaymentController extends Controller
                 'payment_method' => 'chapa',
                 'metadata' => [
                     'type'             => 'walk_in_order',
-                    'table_id'         => $validated['table_id'],
+                    'hotel_id'         => $hotelId,
+                    'guest_id'         => $guestId,
+                    'table_id'         => $table->id,
+                    'table_number'     => $table->table_number,
                     'qr_token'         => $validated['qr_token'],
                     'items'            => $orderItemsWithPrices,
                     'special_requests' => $validated['special_requests'] ?? null,
@@ -224,20 +272,25 @@ class WalkInOrderPaymentController extends Controller
             $result = DB::transaction(function () use ($payment, $metadata) {
                 $calculation = $metadata['calculation'];
                 $tableId = $metadata['table_id'] ?? null;
-                $table = $tableId ? RestaurantTable::find($tableId) : null;
+                $table = $tableId ? RestaurantTable::withoutGlobalScopes()->find($tableId) : null;
                 $hotelId = $payment->hotel_id 
                     ?? $table?->hotel_id 
                     ?? ($metadata['hotel_id'] ?? null) 
-                    ?? app(\App\Services\TenantContext::class)->getHotelId();
+                    ?? app(\App\Services\TenantContext::class)->getHotelId()
+                    ?? \App\Models\Hotel::value('id');
+
+                if ($table && empty($table->hotel_id) && $hotelId) {
+                    $table->update(['hotel_id' => $hotelId]);
+                }
 
                 if ($hotelId) {
                     app(\App\Services\TenantContext::class)->setHotelId($hotelId);
                 }
                 $order = Order::create([
                     'hotel_id' => $hotelId,
-                    'order_number' => Order::generateOrderNumber(),
+                    'order_number' => Order::generateOrderNumber($hotelId),
                     'room_id' => null,
-                    'guest_id' => null,
+                    'guest_id' => $payment->guest_id ?? ($metadata['guest_id'] ?? null),
                     'reservation_id' => null,
                     'table_id' => $metadata['table_id'],
                     'order_type' => Order::TYPE_WALK_IN,
@@ -245,7 +298,7 @@ class WalkInOrderPaymentController extends Controller
                     'total' => $calculation['total'],
                     'subtotal' => $calculation['subtotal'],
                     'tax' => $calculation['tax'] ?? 0,
-                    'service_charge' => $calculation['service_charge'] ?? 0,
+                    'service_charge_amount' => $calculation['service_charge'] ?? 0,
                     'discount' => $calculation['discount'] ?? 0,
                     'status' => Order::STATUS_PENDING,
                     'payment_type' => 'card',
@@ -253,12 +306,18 @@ class WalkInOrderPaymentController extends Controller
                 ]);
 
                 foreach ($metadata['items'] as $item) {
+                    $itemPrice = $item['price'] ?? 0;
+                    $itemQty = $item['quantity'] ?? 1;
+                    $itemTotal = $item['total'] ?? ($itemPrice * $itemQty);
+
                     OrderItem::create([
                         'order_id' => $order->id,
                         'menu_item_id' => $item['menu_item_id'],
-                        'quantity' => $item['quantity'],
-                        'item_price_at_order' => $item['price'],
-                        'line_total' => $item['total'],
+                        'quantity' => $itemQty,
+                        'item_price_at_order' => $itemPrice,
+                        'subtotal' => $itemTotal,
+                        'total' => $itemTotal,
+                        'line_total' => $itemTotal,
                     ]);
                 }
 
@@ -266,7 +325,7 @@ class WalkInOrderPaymentController extends Controller
                     'order_id' => $order->id,
                 ]);
 
-                RestaurantTable::where('id', $metadata['table_id'])->update([
+                RestaurantTable::withoutGlobalScopes()->where('id', $metadata['table_id'])->update([
                     'status' => RestaurantTable::STATUS_OCCUPIED,
                 ]);
 
@@ -281,6 +340,30 @@ class WalkInOrderPaymentController extends Controller
                 'order_id'    => $result['order']->id,
                 'table_id'    => $metadata['table_id'],
             ]);
+
+            try {
+                $targetHotelId = $result['order']->hotel_id;
+                $chefs = \App\Models\User::where('role', 'chef')
+                    ->when($targetHotelId, function ($q) use ($targetHotelId) {
+                        $q->where(function ($sub) use ($targetHotelId) {
+                            $sub->whereHas('hotelMemberships', fn ($hq) => $hq->where('hotel_id', $targetHotelId))
+                                ->orDoesntHave('hotelMemberships');
+                        });
+                    })
+                    ->get();
+
+                foreach ($chefs as $chef) {
+                    \App\Models\Notification::create([
+                        'user_id' => $chef->id,
+                        'type' => 'order_created',
+                        'title' => 'New Table Order',
+                        'message' => 'Table order #' . $result['order']->order_number . ' has been received for processing.',
+                        'read' => false,
+                    ]);
+                }
+            } catch (\Throwable $notifyErr) {
+                Log::warning('Failed to notify chefs for walk-in order: ' . $notifyErr->getMessage());
+            }
 
             try {
                 app(\App\Services\Waiter\AutomaticWaiterAssignmentService::class)->assignWaiterToReadyOrder($result['order']);

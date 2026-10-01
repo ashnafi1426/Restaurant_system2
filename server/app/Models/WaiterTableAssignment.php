@@ -11,6 +11,8 @@ class WaiterTableAssignment extends Model
 {
     use HasUuids, BelongsToTenant;
 
+    protected $table = 'waiter_table_assignments';
+
     protected $fillable = [
         'hotel_id',
         'waiter_id',
@@ -128,21 +130,16 @@ class WaiterTableAssignment extends Model
         if ($date) {
             $query->forDate($date);
         } else {
-            $query->today();
+            $query->where(fn($q) => $q->today()->orWhereNull('assignment_date'));
         }
 
         if ($shiftId) {
-            $query->where('shift_id', $shiftId);
+            $query->where(function($q) use ($shiftId) {
+                $q->where('shift_id', $shiftId)->orWhereNull('shift_id');
+            });
         }
 
-        return $query->orderByRaw("
-            CASE 
-                WHEN priority = 'primary' THEN 1
-                WHEN priority = 'secondary' THEN 2
-                WHEN priority = 'backup' THEN 3
-                ELSE 4
-            END
-        ")->first();
+        return $query->orderBy('created_at', 'desc')->first();
     }
 
     public static function getWaiterTables($waiterId, $date = null)
@@ -155,7 +152,7 @@ class WaiterTableAssignment extends Model
         if ($date) {
             $query->forDate($date);
         } else {
-            $query->today();
+            $query->where(fn($q) => $q->today()->orWhereNull('assignment_date'));
         }
 
         return $query->get();

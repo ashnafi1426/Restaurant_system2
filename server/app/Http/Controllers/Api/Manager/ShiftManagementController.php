@@ -19,10 +19,32 @@ class ShiftManagementController extends Controller
         $this->shiftService = $shiftService;
     }
 
+    protected function getHotelId(): ?string
+    {
+        $hotelId = request()->header('X-Hotel-ID')
+            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: (auth()->check() ? auth()->user()->hotel_id : null);
+
+        if (!$hotelId && auth()->check()) {
+            $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
+        }
+
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
+        return $hotelId;
+    }
+
     public function index(Request $request): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
             $query = HotelShift::query();
+
+            if ($hotelId) {
+                $query->where('hotel_id', $hotelId);
+            }
 
             if ($request->has('status')) {
                 $query->where('status', $request->input('status'));
@@ -53,14 +75,23 @@ class ShiftManagementController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
+
             $request->validate([
-                'name' => 'required|string|max:100|unique:hotel_shifts,name',
+                'name' => [
+                    'required',
+                    'string',
+                    'max:100',
+                    \Illuminate\Validation\Rule::unique('hotel_shifts', 'name')
+                        ->where(fn($q) => $hotelId ? $q->where('hotel_id', $hotelId) : $q)
+                ],
                 'start_time' => 'required|date_format:H:i',
                 'end_time' => 'required|date_format:H:i',
             ]);
 
             $shift = HotelShift::create([
                 'id' => Str::uuid(),
+                'hotel_id' => $hotelId,
                 'name' => $request->input('name'),
                 'start_time' => $request->input('start_time'),
                 'end_time' => $request->input('end_time'),

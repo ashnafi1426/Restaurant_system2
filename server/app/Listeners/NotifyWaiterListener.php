@@ -41,7 +41,6 @@ class NotifyWaiterListener implements ShouldQueue
             $notification = WaiterNotification::create([
                 'waiter_id' => $event->waiterId,
                 'delivery_task_id' => $event->deliveryId,
-                'order_id' => $event->orderId,
                 'type' => 'delivery_assigned',
                 'title' => "New Delivery: Order #{$order->order_number}",
                 'message' => "Room {$roomNumber} — {$guestName}\nItems: {$itemsList}\n\nReady for pickup!",
@@ -56,7 +55,7 @@ class NotifyWaiterListener implements ShouldQueue
                     'assignment_type' => $event->assignmentType,
                     'timestamp' => $event->timestamp,
                 ]),
-                'is_read' => false,
+                'read' => false,
                 'created_at' => now(),
             ]);
 

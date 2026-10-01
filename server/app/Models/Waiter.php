@@ -50,6 +50,18 @@ class Waiter extends Model
         return $this->hasMany(WaiterFloorAssignment::class);
     }
 
+    public function floors()
+    {
+        return $this->hasManyThrough(
+            Floor::class,
+            WaiterFloorAssignment::class,
+            'waiter_id', // Foreign key on waiter_floor_assignments
+            'id',        // Foreign key on floors
+            'id',        // Local key on waiters
+            'floor_id'   // Local key on waiter_floor_assignments
+        );
+    }
+
     public function deliveryTasks(): HasMany
     {
         return $this->hasMany(DeliveryTask::class);

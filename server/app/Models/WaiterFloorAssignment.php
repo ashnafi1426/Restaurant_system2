@@ -20,6 +20,8 @@ class WaiterFloorAssignment extends Model
         'hotel_id',
         'waiter_id',
         'floor_id',
+        'is_active',
+        'assigned_at',
         'shift_id',
         'assignment_date',
         'status',
@@ -28,8 +30,15 @@ class WaiterFloorAssignment extends Model
     ];
 
     protected $casts = [
+        'is_active' => 'boolean',
+        'assigned_at' => 'datetime',
         'assignment_date' => 'date',
     ];
+
+    public function hotel(): BelongsTo
+    {
+        return $this->belongsTo(Hotel::class);
+    }
 
     public function waiter(): BelongsTo
     {
@@ -38,7 +47,7 @@ class WaiterFloorAssignment extends Model
 
     public function floor(): BelongsTo
     {
-        return $this->belongsTo(HotelFloor::class);
+        return $this->belongsTo(Floor::class, 'floor_id');
     }
 
     public function shift(): BelongsTo

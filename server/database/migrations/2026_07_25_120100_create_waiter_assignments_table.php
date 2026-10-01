@@ -6,17 +6,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         if (!Schema::hasTable('waiter_assignments')) {
             Schema::create('waiter_assignments', function (Blueprint $table) {
                 $table->id();
                 $table->uuid('waiter_id')->index();
-                $table->uuid('order_id');  // orders table uses UUID primary key
-                $table->uuid('assigned_by')->nullable(); // Manager who assigned
+                $table->uuid('order_id');  
+                $table->uuid('assigned_by')->nullable(); 
                 $table->dateTime('assigned_at')->nullable();
                 $table->dateTime('accepted_at')->nullable();
                 $table->dateTime('rejected_at')->nullable();
@@ -24,9 +21,9 @@ return new class extends Migration
                 $table->dateTime('delivered_at')->nullable();
                 $table->dateTime('failed_at')->nullable();
                 
-                $table->string('status')->default('pending'); // pending, accepted, rejected, ready, picked_up, on_delivery, delivered, failed, cancelled
+                $table->string('status')->default('pending');
                 $table->string('rejection_reason')->nullable();
-                $table->string('failure_reason')->nullable(); // guest_unavailable, wrong_room, guest_refused, order_damaged, other
+                $table->string('failure_reason')->nullable(); 
                 $table->text('remarks')->nullable();
                 $table->timestamps();
 
@@ -38,14 +35,10 @@ return new class extends Migration
                 $table->index(['waiter_id', 'status']);
                 $table->index(['status', 'created_at']);
                 $table->index(['order_id']);
-                $table->unique(['waiter_id', 'order_id']); // One assignment per waiter per order
+                $table->unique(['waiter_id', 'order_id']); 
             });
         }
     }
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('waiter_assignments');

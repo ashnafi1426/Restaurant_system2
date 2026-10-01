@@ -3,517 +3,241 @@
 namespace App\Services\Waiter;
 
 use App\Models\Waiter;
-use App\Models\HotelFloor;
+use App\Models\Floor;
 use App\Models\HotelShift;
+use App\Models\RestaurantTable;
 use App\Models\WaiterFloorAssignment;
+use App\Models\WaiterTableAssignment;
+use App\Services\TenantContext;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class WaiterSelectionEngine
 {
-    public function selectBestWaiter(HotelFloor $floor, HotelShift $shift): ?Waiter
+    /**
+     * Select the best eligible waiter for room service on a specific floor.
+     * Flow: Room -> Floor -> Floor Waiters -> Workload -> Assigned Waiter
+     */
+    public function selectBestWaiter($floor, ?HotelShift $shift = null): ?Waiter
     {
-        Log::info(' [SELECTION ENGINE] Starting waiter selection', [
-            'floor_id' => $floor->id,
-            'floor_number' => $floor->floor_number,
-            'shift_id' => $shift->id,
-            'shift_name' => $shift->name,
-            'timestamp' => now(),
-        ]);
+        $hotelId = $floor->hotel_id ?? app(TenantContext::class)->getHotelId();
+
         try {
-            $waiter = Waiter::query()
+            // 1. Find eligible assigned waiters for this floor
+            $query = Waiter::query()
                 ->select('waiters.*')
                 ->join('waiter_floor_assignments', 'waiter_floor_assignments.waiter_id', '=', 'waiters.id')
                 ->where('waiter_floor_assignments.floor_id', $floor->id)
-                ->where('waiter_floor_assignments.shift_id', $shift->id)
-                ->whereDate('waiter_floor_assignments.assignment_date', today())
-                ->where('waiter_floor_assignments.status', 'active')
+                ->where(function ($q) {
+                    $q->where('waiter_floor_assignments.is_active', true)
+                      ->orWhere('waiter_floor_assignments.status', 'active');
+                })
                 ->where('waiters.status', 'active')
-                ->where('waiters.availability', 'available')
-                ->whereRaw('waiters.current_orders < waiters.maximum_orders')
-                ->with(['user'])
+                ->where(function ($q) {
+                    $q->where('waiters.availability', '!=', 'offline')
+                      ->orWhereNull('waiters.availability');
+                })
+                ->where(function ($q) {
+                    $q->whereNull('waiter_floor_assignments.assignment_date')
+                      ->orWhereDate('waiter_floor_assignments.assignment_date', today());
+                })
+                ->when($hotelId, fn($q) => $q->where('waiters.hotel_id', $hotelId));
+
+            if ($shift && !empty($shift->id)) {
+                $query->where(function ($q) use ($shift) {
+                    $q->where('waiter_floor_assignments.shift_id', $shift->id)
+                      ->orWhereNull('waiter_floor_assignments.shift_id');
+                });
+            }
+
+            // Workload constraint & selection: lowest orders first, then oldest assignment
+            $waiter = $query
+                ->where(function ($q) {
+                    $q->whereNull('waiters.maximum_orders')
+                      ->orWhereRaw('waiters.current_orders < waiters.maximum_orders');
+                })
+                ->with('user')
                 ->orderBy('waiters.current_orders', 'asc')
                 ->orderByRaw("COALESCE(waiters.last_assigned_at, '1970-01-01 00:00:00') ASC")
                 ->orderBy('waiters.id', 'asc')
-                ->sharedLock()
                 ->first();
 
             if ($waiter) {
-                Log::info(' [SELECTION] Best eligible waiter selected', [
-                    'waiter_id' => $waiter->id,
-                    'name' => $waiter->user->name ?? 'Unknown',
+                Log::info('[WaiterSelection] Floor waiter selected', [
                     'floor_id' => $floor->id,
-                    'floor_number' => $floor->floor_number,
-                    'shift_id' => $shift->id,
+                    'waiter_id' => $waiter->id,
                     'current_orders' => $waiter->current_orders,
-                    'last_assigned_at' => $waiter->last_assigned_at?->toDateTimeString() ?? 'never',
                 ]);
-
                 return $waiter;
             }
+
+            // 2. Fallback: Any active assigned waiter on this floor
+            $fallbackFloorWaiter = Waiter::query()
+                ->select('waiters.*')
+                ->join('waiter_floor_assignments', 'waiter_floor_assignments.waiter_id', '=', 'waiters.id')
+                ->where('waiter_floor_assignments.floor_id', $floor->id)
+                ->where('waiters.status', 'active')
+                ->when($hotelId, fn($q) => $q->where('waiters.hotel_id', $hotelId))
+                ->with('user')
+                ->orderBy('waiters.current_orders', 'asc')
+                ->first();
+
+            if ($fallbackFloorWaiter) {
+                return $fallbackFloorWaiter;
+            }
         } catch (Throwable $e) {
-            Log::error(' [SELECTION] Error selecting best waiter', [
-                'error' => $e->getMessage(),
+            Log::error('[WaiterSelection] Error querying floor waiters', [
                 'floor_id' => $floor->id,
-                'shift_id' => $shift->id,
-                'trace' => $e->getTraceAsString(),
+                'error' => $e->getMessage(),
             ]);
         }
 
-        $hotelId = $floor->hotel_id ?? app(\App\Services\TenantContext::class)->getHotelId();
-        $fallbackWaiter = Waiter::query()
-            ->where(function($q) use ($hotelId) {
-                if ($hotelId) {
-                    $q->where('hotel_id', $hotelId);
-                }
-            })
+        // 3. Hotel-wide fallback: active available waiter with lowest workload
+        return Waiter::query()
+            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
             ->where('status', 'active')
+            ->where(function ($q) {
+                $q->where('availability', '!=', 'offline')
+                  ->orWhereNull('availability');
+            })
+            ->with('user')
             ->orderBy('current_orders', 'asc')
+            ->orderByRaw("COALESCE(last_assigned_at, '1970-01-01 00:00:00') ASC")
             ->first();
-
-        if ($fallbackWaiter) {
-            Log::info(' [SELECTION] Active hotel waiter fallback selected', [
-                'waiter_id' => $fallbackWaiter->id,
-                'hotel_id' => $hotelId,
-            ]);
-            return $fallbackWaiter;
-        }
-
-        $anyWaiter = Waiter::where('status', 'active')->orderBy('current_orders', 'asc')->first();
-        if ($anyWaiter) {
-            return $anyWaiter;
-        }
-
-        Log::warning(' [SELECTION] NO ELIGIBLE WAITER AVAILABLE');
-        return null;
     }
 
-    public function selectWaiterForTable($table, HotelShift $shift): ?Waiter
+    /**
+     * Select the best eligible waiter for a restaurant table.
+     * Flow: Restaurant Table -> Section -> Eligible Waiters -> Workload -> Assigned Waiter
+     */
+    public function selectWaiterForTable(RestaurantTable $table, ?HotelShift $shift = null): ?Waiter
     {
-        Log::info(' [SELECTION ENGINE] Starting waiter selection for table', [
-            'table_id' => $table->id,
-            'table_number' => $table->table_number,
-            'shift_id' => $shift->id,
-            'shift_name' => $shift->name,
-            'timestamp' => now(),
-        ]);
+        $hotelId = $table->hotel_id ?? app(TenantContext::class)->getHotelId();
 
         try {
-            $waiter = Waiter::query()
+            // Step 1: Direct Table Assignment
+            $tableAssignmentQuery = Waiter::query()
                 ->select('waiters.*')
                 ->join('waiter_table_assignments', 'waiter_table_assignments.waiter_id', '=', 'waiters.id')
                 ->where('waiter_table_assignments.table_id', $table->id)
-                ->where('waiter_table_assignments.shift_id', $shift->id)
-                ->whereDate('waiter_table_assignments.assignment_date', today())
                 ->where('waiter_table_assignments.status', 'active')
+                ->where(function ($q) {
+                    $q->whereDate('waiter_table_assignments.assignment_date', today())
+                      ->orWhereNull('waiter_table_assignments.assignment_date');
+                })
                 ->where('waiters.status', 'active')
-                ->where('waiters.availability', 'available')
-                ->whereRaw('waiters.current_orders < waiters.maximum_orders')
-                ->with(['user'])
+                ->where(function ($q) {
+                    $q->where('waiters.availability', '!=', 'offline')
+                      ->orWhereNull('waiters.availability');
+                })
+                ->where(function ($q) {
+                    $q->whereNull('waiters.maximum_orders')
+                      ->orWhereRaw('waiters.current_orders < waiters.maximum_orders');
+                })
+                ->when($hotelId, fn($q) => $q->where('waiters.hotel_id', $hotelId));
+
+            if ($shift && !empty($shift->id)) {
+                $tableAssignmentQuery->where(function ($q) use ($shift) {
+                    $q->where('waiter_table_assignments.shift_id', $shift->id)
+                      ->orWhereNull('waiter_table_assignments.shift_id');
+                });
+            }
+
+            $tableWaiter = $tableAssignmentQuery
+                ->with('user')
                 ->orderBy('waiters.current_orders', 'asc')
                 ->orderByRaw("COALESCE(waiters.last_assigned_at, '1970-01-01 00:00:00') ASC")
-                ->orderBy('waiters.id', 'asc')
-                ->sharedLock()
                 ->first();
 
-            if ($waiter) {
-                Log::info(' [SELECTION] Waiter selected for table', [
-                    'waiter_id' => $waiter->id,
-                    'name' => $waiter->user->email ?? 'Unknown',
+            if ($tableWaiter) {
+                Log::info('[WaiterSelection] Direct table waiter selected', [
                     'table_id' => $table->id,
-                    'table_number' => $table->table_number,
-                    'shift_id' => $shift->id,
-                    'current_orders' => $waiter->current_orders,
-                    'last_assigned_at' => $waiter->last_assigned_at?->toDateTimeString() ?? 'never',
+                    'waiter_id' => $tableWaiter->id,
                 ]);
+                return $tableWaiter;
+            }
 
-                return $waiter;
+            // Step 2: Table Section -> Eligible Section Waiters -> Workload
+            $section = $table->section ?: $table->location;
+            if (!empty($section)) {
+                $sectionWaiter = Waiter::query()
+                    ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+                    ->where('status', 'active')
+                    ->where(function ($q) {
+                        $q->where('availability', '!=', 'offline')
+                          ->orWhereNull('availability');
+                    })
+                    ->where(function ($q) use ($section) {
+                        $q->whereRaw('LOWER(section) = ?', [strtolower($section)])
+                          ->orWhereRaw('LOWER(section) LIKE ?', ['%' . strtolower($section) . '%']);
+                    })
+                    ->where(function ($q) {
+                        $q->whereNull('maximum_orders')
+                          ->orWhereRaw('current_orders < maximum_orders');
+                    })
+                    ->with('user')
+                    ->orderBy('current_orders', 'asc')
+                    ->orderByRaw("COALESCE(last_assigned_at, '1970-01-01 00:00:00') ASC")
+                    ->first();
+
+                if ($sectionWaiter) {
+                    Log::info('[WaiterSelection] Section waiter selected for table', [
+                        'table_id' => $table->id,
+                        'section' => $section,
+                        'waiter_id' => $sectionWaiter->id,
+                        'current_orders' => $sectionWaiter->current_orders,
+                    ]);
+                    return $sectionWaiter;
+                }
             }
         } catch (Throwable $e) {
-            Log::error(' [SELECTION] Error selecting waiter for table', [
-                'error' => $e->getMessage(),
+            Log::error('[WaiterSelection] Error selecting waiter for table', [
                 'table_id' => $table->id,
-                'shift_id' => $shift->id,
-                'trace' => $e->getTraceAsString(),
+                'error' => $e->getMessage(),
             ]);
         }
 
-        $hotelId = $table->hotel_id ?? app(\App\Services\TenantContext::class)->getHotelId();
+        // Step 3: Hotel-wide restaurant waiter fallback by lowest workload
         $fallbackWaiter = Waiter::query()
-            ->where(function($q) use ($hotelId) {
-                if ($hotelId) {
-                    $q->where('hotel_id', $hotelId);
-                }
-            })
+            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
             ->where('status', 'active')
+            ->where(function ($q) {
+                $q->where('availability', '!=', 'offline')
+                  ->orWhereNull('availability');
+            })
+            ->where(function ($q) {
+                $q->whereNull('maximum_orders')
+                  ->orWhereRaw('current_orders < maximum_orders');
+            })
+            ->with('user')
             ->orderBy('current_orders', 'asc')
+            ->orderByRaw("COALESCE(last_assigned_at, '1970-01-01 00:00:00') ASC")
             ->first();
 
         if ($fallbackWaiter) {
+            Log::info('[WaiterSelection] Hotel fallback waiter selected for table', [
+                'table_id' => $table->id,
+                'waiter_id' => $fallbackWaiter->id,
+            ]);
             return $fallbackWaiter;
         }
 
-        $anyWaiter = Waiter::where('status', 'active')->orderBy('current_orders', 'asc')->first();
-        if ($anyWaiter) {
-            return $anyWaiter;
-        }
-
-        Log::warning(' [SELECTION] NO WAITER ASSIGNED TO TABLE');
-        return null;
+        // Final safety net: any active waiter in the hotel
+        return Waiter::query()
+            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+            ->where('status', 'active')
+            ->with('user')
+            ->orderBy('current_orders', 'asc')
+            ->first();
     }
 
-    private function selectFromFloorStaff(HotelFloor $floor, HotelShift $shift): ?Waiter
+    /**
+     * Check if a waiter is eligible to receive orders.
+     */
+    public function isWaiterEligible(Waiter $waiter): bool
     {
-        Log::info('🔍 [TIER 1-3] Starting floor staff selection (Primary → Secondary → Backup)', [
-            'floor_id' => $floor->id,
-            'floor_number' => $floor->floor_number,
-            'shift_id' => $shift->id,
-            'shift_name' => $shift->name ?? 'Unknown',
-            'date' => today()->toDateString(),
-            'timestamp' => now(),
-        ]);
-
-        try {
-            $assignments = WaiterFloorAssignment::where('floor_id', $floor->id)
-                ->where('shift_id', $shift->id)
-                ->where('assignment_date', today()->toDateString())
-                ->where('status', 'active')
-                ->orderBy('priority', 'asc')
-                ->with(['waiter.user'])
-                ->get();
-
-            Log::debug('[TIER 1-3] Floor assignment records retrieved', [
-                'floor_id' => $floor->id,
-                'assignment_count' => $assignments->count(),
-                'date' => today()->toDateString(),
-            ]);
-
-            if ($assignments->isEmpty()) {
-                Log::warning(' [TIER 1-3] No floor assignments found - floor may not be staffed', [
-                    'floor_id' => $floor->id,
-                    'floor_number' => $floor->floor_number,
-                    'date' => today()->toDateString(),
-                    'shift_id' => $shift->id,
-                    'action' => 'Will fallback to TIER 7 hotel-wide search',
-                ]);
-                return null;
-            }
-
-        } catch (Throwable $e) {
-            Log::error(' [TIER 1-3] Error fetching floor assignments', [
-                'error' => $e->getMessage(),
-                'floor_id' => $floor->id,
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return null;
-        }
-
-        $tierNumber = 1;
-        foreach ($assignments as $assignment) {
-            $waiter = $assignment->waiter;
-            $priority = $assignment->priority;
-            $waiterName = $waiter?->user?->name ?? 'Unknown';
-
-            $tierLabel = match($priority) {
-                'primary' => 'TIER 1 (PRIMARY)',
-                'secondary' => 'TIER 2 (SECONDARY)',
-                'backup' => 'TIER 3 (BACKUP)',
-                default => "TIER {$tierNumber}",
-            };
-
-            Log::info(" [{$tierLabel}] Evaluating {$priority} waiter", [
-                'waiter_id' => $waiter->id ?? 'NULL',
-                'name' => $waiterName,
-                'priority' => $priority,
-                'floor_id' => $floor->id,
-                'floor_number' => $floor->floor_number,
-            ]);
-
-            if (!$waiter) {
-                Log::warning("[TIER] Waiter record not found for assignment", [
-                    'assignment_id' => $assignment->id,
-                    'priority' => $priority,
-                ]);
-                continue;
-            }
-
-            Log::debug("[{$tierLabel}] Waiter state details", [
-                'waiter_id' => $waiter->id,
-                'name' => $waiterName,
-                'status' => $waiter->status,
-                'availability' => $waiter->availability,
-                'current_orders' => $waiter->current_orders,
-                'maximum_orders' => $waiter->maximum_orders,
-                'capacity_remaining' => $waiter->maximum_orders - $waiter->current_orders,
-                'utilization_percent' => round(($waiter->current_orders / $waiter->maximum_orders) * 100, 2),
-            ]);
-
-            if ($this->isWaiterEligible($waiter, $shift, $priority)) {
-                Log::info(" [{$tierLabel}] Eligible waiter found - ASSIGNMENT WILL PROCEED", [
-                    'waiter_id' => $waiter->id,
-                    'name' => $waiterName,
-                    'priority' => $priority,
-                    'current_orders' => $waiter->current_orders,
-                    'remaining_capacity' => $waiter->maximum_orders - $waiter->current_orders,
-                    'message' => "Order from {$floor->floor_number} will be assigned to {$waiterName}",
-                ]);
-                return $waiter;
-            }
-
-            $reason = $this->getIneligibilityReason($waiter, $shift);
-            Log::warning(" [{$tierLabel}] Waiter rejected - {$priority} unavailable", [
-                'waiter_id' => $waiter->id,
-                'name' => $waiterName,
-                'reason' => $reason,
-                'status' => $waiter->status,
-                'availability' => $waiter->availability,
-                'workload' => "{$waiter->current_orders}/{$waiter->maximum_orders}",
-                'next_check' => $priority === 'primary' ? 'Will try SECONDARY' : 
-                               ($priority === 'secondary' ? 'Will try BACKUP' : 
-                               'Will search TIER 7 (entire hotel)'),
-            ]);
-
-            $tierNumber++;
-        }
-
-        Log::warning(' [TIER 1-3] All floor staff unavailable', [
-            'floor_id' => $floor->id,
-            'floor_number' => $floor->floor_number,
-            'assignments_checked' => $assignments->count(),
-            'all_status' => 'Primary/Secondary/Backup all unavailable or at capacity',
-            'next_action' => 'Fallback to TIER 7 - search entire hotel',
-        ]);
-        
-        return null;
-    }
-
-    private function selectFromHotelStaff(HotelFloor $floor, HotelShift $shift): ?Waiter
-    {
-        Log::warning('🔍 [TIER 7] Floor staff unavailable, searching entire hotel', [
-            'floor_id' => $floor->id,
-            'floor_number' => $floor->floor_number,
-            'shift_id' => $shift->id,
-            'timestamp' => now(),
-            'reason' => 'All primary/secondary/backup waiters for this floor are unavailable',
-        ]);
-
-        try {
-            $totalActive = Waiter::where('status', 'active')->count();
-            
-            Log::debug('[TIER 7] Total active waiters in hotel', [
-                'count' => $totalActive,
-            ]);
-
-            $sameFloorWaiter = Waiter::where('status', 'active')
-                ->where('availability', 'available')
-                ->whereRaw('current_orders < maximum_orders')
-                ->whereHas('floorAssignments', function ($q) use ($floor) {
-                    $q->where('floor_id', $floor->id)
-                      ->where('assignment_date', today())
-                      ->where('status', 'active');
-                })
-                ->with(['user'])
-                ->orderBy('current_orders', 'asc')
-                ->orderByRaw('COALESCE(last_assigned_at, \'1970-01-01\') ASC')
-                ->orderBy('id', 'asc')
-                ->sharedLock()
-                ->first();
-
-            if ($sameFloorWaiter) {
-                Log::info(' [TIER 7A] Found available waiter from SAME FLOOR (non-primary)', [
-                    'waiter_id' => $sameFloorWaiter->id,
-                    'name' => $sameFloorWaiter->user->name ?? 'Unknown',
-                    'current_orders' => $sameFloorWaiter->current_orders,
-                    'maximum_orders' => $sameFloorWaiter->maximum_orders,
-                    'last_assigned_at' => $sameFloorWaiter->last_assigned_at?->toDateTimeString() ?? 'never',
-                    'floor_preference' => 'SAME FLOOR',
-                    'floor_number' => $floor->floor_number,
-                    'reason' => 'Waiter has assignment to this floor but not as primary/secondary/backup',
-                ]);
-                return $sameFloorWaiter;
-            }
-
-            $bestWaiter = Waiter::where('status', 'active')
-                ->where('availability', 'available')
-                ->whereRaw('current_orders < maximum_orders')
-                ->with(['user', 'floorAssignments' => function ($q) {
-                    $q->where('assignment_date', today())
-                      ->where('status', 'active');
-                }])
-                ->orderBy('current_orders', 'asc')
-                ->orderByRaw('COALESCE(last_assigned_at, \'1970-01-01\') ASC')
-                ->orderBy('id', 'asc')
-                ->sharedLock()
-                ->first();
-
-            if (!$bestWaiter) {
-                Log::warning(' [TIER 7] No available waiters in entire hotel', [
-                    'floor_id' => $floor->id,
-                    'total_active_waiters' => $totalActive,
-                    'timestamp' => now(),
-                    'action' => 'Will create waiting_assignment',
-                ]);
-                return null;
-            }
-
-            $assignedFloors = $bestWaiter->floorAssignments->pluck('floor.floor_number')->toArray();
-
-            Log::info(' [TIER 7B] Best available waiter selected from OTHER FLOORS', [
-                'waiter_id' => $bestWaiter->id,
-                'name' => $bestWaiter->user->name ?? 'Unknown',
-                'current_orders' => $bestWaiter->current_orders,
-                'maximum_orders' => $bestWaiter->maximum_orders,
-                'last_assigned_at' => $bestWaiter->last_assigned_at?->toDateTimeString() ?? 'never',
-                'available_slots' => $bestWaiter->maximum_orders - $bestWaiter->current_orders,
-                'workload_percent' => round(($bestWaiter->current_orders / $bestWaiter->maximum_orders) * 100, 2),
-                'selection_reason' => 'Deterministic selection: lowest workload → longest wait → stable ID',
-                'assigned_floors' => $assignedFloors,
-                'delivering_to_floor' => $floor->floor_number,
-                'cross_floor_delivery' => !in_array($floor->floor_number, $assignedFloors),
-            ]);
-
-            return $bestWaiter;
-
-        } catch (Throwable $e) {
-            Log::error('[TIER 7] Error searching hotel staff', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return null;
-        }
-    }
-
-    private function isWaiterEligible(Waiter $waiter, HotelShift $shift, string $priority = ''): bool
-    {
-        if ($waiter->status !== 'active') {
-            Log::debug('[VALIDATION]  Status check failed', [
-                'waiter_id' => $waiter->id,
-                'name' => $waiter->user->name,
-                'status' => $waiter->status,
-                'expected' => 'active',
-                'priority' => $priority,
-            ]);
-            return false;
-        }
-        if ($waiter->availability !== 'available') {
-            Log::debug('[VALIDATION]  Availability check failed', [
-                'waiter_id' => $waiter->id,
-                'name' => $waiter->user->name,
-                'availability' => $waiter->availability,
-                'expected' => 'available',
-                'reason' => 'Cannot deliver while busy/on_break/offline',
-                'priority' => $priority,
-            ]);
-            return false;
-        }
-
-        if ($waiter->current_orders >= $waiter->maximum_orders) {
-            Log::debug('[VALIDATION]  Workload check failed', [
-                'waiter_id' => $waiter->id,
-                'name' => $waiter->user->name,
-                'current_orders' => $waiter->current_orders,
-                'maximum_orders' => $waiter->maximum_orders,
-                'reason' => 'At maximum capacity',
-                'priority' => $priority,
-            ]);
-            return false;
-        }
-
-        Log::debug('[VALIDATION]  All checks passed', [
-            'waiter_id' => $waiter->id,
-            'name' => $waiter->user->name,
-            'status' => $waiter->status,
-            'availability' => $waiter->availability,
-            'workload' => "{$waiter->current_orders}/{$waiter->maximum_orders}",
-            'priority' => $priority,
-        ]);
-
-        return true;
-    }
-
-    private function getIneligibilityReason(Waiter $waiter, HotelShift $shift): string
-    {
-        if ($waiter->status !== 'active') {
-            return "Status: {$waiter->status} (not active)";
-        }
-        
-        if ($waiter->availability !== 'available') {
-            return "Availability: {$waiter->availability} (not available)";
-        }
-        
-        if ($waiter->current_orders >= $waiter->maximum_orders) {
-            return "Workload: {$waiter->current_orders}/{$waiter->maximum_orders} (at capacity)";
-        }
-        
-        return "Unknown reason";
-    }
-
-    public function getSelectionReport(HotelFloor $floor, HotelShift $shift): array
-    {
-        $floorAssignments = WaiterFloorAssignment::where([
-            ['floor_id' => $floor->id],
-            ['shift_id' => $shift->id],
-            ['assignment_date' => today()],
-            ['status' => 'active'],
-        ])
-        ->with(['waiter', 'waiter.user'])
-        ->orderBy('priority', 'asc')
-        ->get();
-
-        $floorStaffReport = $floorAssignments->map(function ($assignment) {
-            $waiter = $assignment->waiter;
-            return [
-                'priority' => $assignment->priority,
-                'waiter_id' => $waiter->id,
-                'name' => $waiter->user->name,
-                'status' => $waiter->status,
-                'availability' => $waiter->availability,
-                'current_orders' => $waiter->current_orders,
-                'maximum_orders' => $waiter->maximum_orders,
-                'eligible' => $waiter->status === 'active' &&
-                            $waiter->availability === 'available' &&
-                            $waiter->current_orders < $waiter->maximum_orders,
-            ];
-        })->toArray();
-
-        $hotelStaff = Waiter::where('status', 'active')
-            ->where('availability', 'available')
-            ->whereRaw('current_orders < maximum_orders')
-            ->with(['user', 'floorAssignments' => function ($q) {
-                $q->where('assignment_date', today());
-            }])
-            ->get()
-            ->sortBy('current_orders');
-
-        $hotelStaffReport = $hotelStaff->map(function ($waiter) {
-            return [
-                'waiter_id' => $waiter->id,
-                'name' => $waiter->user->name,
-                'status' => $waiter->status,
-                'availability' => $waiter->availability,
-                'current_orders' => $waiter->current_orders,
-                'maximum_orders' => $waiter->maximum_orders,
-                'assigned_floor' => $waiter->floorAssignments()->first()?->floor->floor_number ?? 'unassigned',
-            ];
-        })->toArray();
-
-        return [
-            'timestamp' => now(),
-            'floor' => [
-                'id' => $floor->id,
-                'number' => $floor->floor_number,
-                'name' => $floor->name,
-            ],
-            'shift' => [
-                'id' => $shift->id,
-                'name' => $shift->name,
-            ],
-            'floor_staff' => $floorStaffReport,
-            'hotel_staff' => $hotelStaffReport,
-            'available_from_floor' => collect($floorStaffReport)->where('eligible', true)->count(),
-            'available_from_hotel' => count($hotelStaffReport),
-        ];
+        return $waiter->status === 'active'
+            && $waiter->availability !== 'offline'
+            && ($waiter->maximum_orders === null || $waiter->current_orders < $waiter->maximum_orders);
     }
 }

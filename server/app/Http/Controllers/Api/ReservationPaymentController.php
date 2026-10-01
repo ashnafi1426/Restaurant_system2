@@ -380,6 +380,61 @@ class ReservationPaymentController extends Controller
                 ], 400);
             }
 
+            // IDEMPOTENCY CHECK: If a reservation is already associated with this payment, return it immediately
+            $existingReservation = null;
+            if (!empty($payment->reservation_id)) {
+                $existingReservation = Reservation::withoutGlobalScopes()->find($payment->reservation_id);
+            }
+
+            if (!$existingReservation && !empty($payment->metadata['room_id'])) {
+                $existingReservation = Reservation::withoutGlobalScopes()
+                    ->where('guest_id', $payment->guest_id)
+                    ->where('room_id', $payment->metadata['room_id'])
+                    ->where('check_in_date', $payment->metadata['check_in_date'] ?? null)
+                    ->where('check_out_date', $payment->metadata['check_out_date'] ?? null)
+                    ->where('created_at', '>=', now()->subMinutes(5))
+                    ->first();
+                if ($existingReservation) {
+                    $payment->update(['reservation_id' => $existingReservation->id]);
+                }
+            }
+
+            if ($existingReservation) {
+                Log::info(' [COMPLETE] Reservation already exists for payment, returning existing record', [
+                    'payment_id'     => $payment->id,
+                    'reservation_id' => $existingReservation->id,
+                    'booking_ref'    => $existingReservation->booking_reference,
+                ]);
+                $existingReservation->loadMissing(['guest', 'room.roomType']);
+
+                $reservationData = [
+                    'id' => $existingReservation->id,
+                    'booking_reference' => $existingReservation->booking_reference,
+                    'status' => $existingReservation->status,
+                    'check_in_date' => $existingReservation->check_in_date ? $existingReservation->check_in_date->toDateString() : null,
+                    'check_out_date' => $existingReservation->check_out_date ? $existingReservation->check_out_date->toDateString() : null,
+                    'first_name' => $payment->first_name,
+                    'last_name' => $payment->last_name,
+                    'email' => $payment->email,
+                    'phone' => $payment->phone,
+                    'room_id' => $existingReservation->room_id,
+                    'room_number' => $existingReservation->room ? $existingReservation->room->room_number : 'TBD',
+                    'number_of_guests' => $existingReservation->number_of_guests,
+                    'special_requests' => $existingReservation->special_requests,
+                    'total_amount' => (float) $existingReservation->total_amount,
+                    'currency' => 'ETB',
+                    'created_at' => $existingReservation->created_at?->toIso8601String(),
+                    'updated_at' => $existingReservation->updated_at?->toIso8601String(),
+                ];
+
+                return response()->json([
+                    'success'     => true,
+                    'message'     => 'Reservation already completed',
+                    'reservation' => $reservationData,
+                    'payment'     => new PaymentResource($payment->fresh()),
+                ]);
+            }
+
             $metadata = $payment->metadata;
 
             if (!$metadata || !isset($metadata['room_id'])) {

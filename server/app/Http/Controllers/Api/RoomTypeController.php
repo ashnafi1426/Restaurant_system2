@@ -53,13 +53,21 @@ class RoomTypeController extends Controller{
         DB::beginTransaction();
 
         try {
+            $hotelId = \App\Services\TenantContext::id()
+                ?: $request->input('hotel_id')
+                ?: $request->header('X-Hotel-ID')
+                ?: $request->header('x-hotel-id')
+                ?: $request->user()?->hotel_id
+                ?: $request->user()?->hotelMemberships()->where('is_active', true)->value('hotel_id');
+
             $roomType = RoomType::create([
+                'hotel_id' => $hotelId,
                 'name' => $request->name,
                 'description' => $request->description,
                 'base_price_per_night' => $request->base_price_per_night,
                 'capacity' => $request->capacity,
-                'amenities' => $request->amenities,
-                'is_active' => $request->is_active,
+                'amenities' => $request->amenities ?? [],
+                'is_active' => $request->is_active ?? true,
             ]);
             DB::commit();
             return response()->json([

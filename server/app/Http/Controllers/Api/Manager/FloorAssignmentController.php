@@ -80,24 +80,41 @@ class FloorAssignmentController extends Controller
 
             foreach ($assignments as $assignment) {
                 try {
+                    $shiftId = !empty($assignment['shift_id']) ? $assignment['shift_id'] : null;
+                    $status = $assignment['status'] ?? 'active';
+                    $priority = $assignment['priority'] ?? 'primary';
+                    $assignmentDate = $assignment['assignment_date'] ?? now()->format('Y-m-d');
+                    $hotelId = $this->getHotelId();
+
                     \Log::info('[FloorAssignmentController] Processing assignment', [
                         'waiter_id' => $assignment['waiter_id'],
                         'floor_id' => $assignment['floor_id'],
-                        'shift_id' => $assignment['shift_id'],
+                        'shift_id' => $shiftId,
+                        'status' => $status,
                     ]);
 
-                    $hotelId = $this->getHotelId();
-
-                    $existing = WaiterFloorAssignment::where([
+                    $query = WaiterFloorAssignment::where([
                         'waiter_id' => $assignment['waiter_id'],
                         'floor_id' => $assignment['floor_id'],
-                        'shift_id' => $assignment['shift_id'],
-                        'assignment_date' => $assignment['assignment_date'],
-                    ])->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->first();
+                        'assignment_date' => $assignmentDate,
+                    ])->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId));
+
+                    if ($shiftId) {
+                        $query->where('shift_id', $shiftId);
+                    } else {
+                        $query->whereNull('shift_id');
+                    }
+
+                    $existing = $query->first();
+
+                    $isActive = ($status === 'active' || (isset($assignment['is_active']) && $assignment['is_active']));
 
                     if ($existing) {
                         $existing->update([
-                            'priority' => $assignment['priority'],
+                            'status' => $status,
+                            'is_active' => $isActive,
+                            'priority' => $priority,
+                            'assigned_at' => $existing->assigned_at ?? now(),
                             'assigned_by' => auth()->id(),
                         ]);
                         $createdAssignments[] = $existing;
@@ -106,14 +123,16 @@ class FloorAssignmentController extends Controller
                         ]);
                     } else {
                         $newAssignment = WaiterFloorAssignment::create([
-                            'id' => Str::uuid(),
+                            'id' => (string) Str::uuid(),
                             'hotel_id' => $hotelId,
                             'waiter_id' => $assignment['waiter_id'],
                             'floor_id' => $assignment['floor_id'],
-                            'shift_id' => $assignment['shift_id'],
-                            'assignment_date' => $assignment['assignment_date'],
-                            'status' => 'active',
-                            'priority' => $assignment['priority'],
+                            'shift_id' => $shiftId,
+                            'assignment_date' => $assignmentDate,
+                            'status' => $status,
+                            'priority' => $priority,
+                            'is_active' => $isActive,
+                            'assigned_at' => now(),
                             'assigned_by' => auth()->id(),
                         ]);
                         $createdAssignments[] = $newAssignment;
@@ -231,13 +250,27 @@ class FloorAssignmentController extends Controller
     public function update(Request $request, WaiterFloorAssignment $assignment): JsonResponse
     {
         try {
-            $request->validate([
-                'priority' => 'required|in:primary,secondary,backup',
+            $validated = $request->validate([
+                'priority' => 'nullable|in:primary,secondary,backup',
+                'status' => 'nullable|in:active,inactive,completed',
+                'is_active' => 'nullable|boolean',
             ]);
 
-            $assignment->update([
-                'priority' => $request->input('priority'),
-            ]);
+            $updateData = [];
+            if ($request->has('priority')) $updateData['priority'] = $request->input('priority');
+            if ($request->has('status')) {
+                $updateData['status'] = $request->input('status');
+                $updateData['is_active'] = $request->input('status') === 'active';
+            }
+            if ($request->has('is_active')) {
+                $updateData['is_active'] = $request->boolean('is_active');
+                if (!$request->has('status')) {
+                    $updateData['status'] = $updateData['is_active'] ? 'active' : 'inactive';
+                }
+            }
+            if (!empty($updateData)) {
+                $assignment->update($updateData);
+            }
 
             return response()->json([
                 'success' => true,

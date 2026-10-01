@@ -13,13 +13,25 @@ class UpdateRoomTypeRequest extends FormRequest
     }
     public function rules(): array
     {
-        $hotelId = \App\Services\TenantContext::id();
-        $uniqueName = Rule::unique('room_types', 'name')->ignore($this->route('roomType'));
+        $roomTypeParam = $this->route('roomType');
+        $roomTypeId = is_object($roomTypeParam) ? $roomTypeParam->id : $roomTypeParam;
+        $roomTypeModel = is_object($roomTypeParam) ? $roomTypeParam : \App\Models\RoomType::withoutTenant()->find($roomTypeId);
+
+        $hotelId = \App\Services\TenantContext::id()
+            ?: $this->input('hotel_id')
+            ?: $this->header('X-Hotel-ID')
+            ?: $this->header('x-hotel-id')
+            ?: $roomTypeModel?->hotel_id
+            ?: $this->user()?->hotel_id
+            ?: $this->user()?->hotelMemberships()->where('is_active', true)->value('hotel_id');
+
+        $uniqueName = Rule::unique('room_types', 'name')->ignore($roomTypeId, 'id');
         if ($hotelId) {
             $uniqueName = $uniqueName->where('hotel_id', $hotelId);
         }
 
         return [
+            'hotel_id' => ['nullable', 'string'],
             'name' => [
                 'required',
                 'string',

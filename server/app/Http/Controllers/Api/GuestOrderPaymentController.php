@@ -72,15 +72,17 @@ class GuestOrderPaymentController extends Controller
             }
 
             $payment = $this->paymentService->createOrderPayment([
-                'amount'    => $orderCalculation['total'],
+                'hotel_id'   => $room->hotel_id,
+                'amount'     => $orderCalculation['total'],
                 'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'email'     => $validated['email'],
-                'phone'     => $validated['phone'],
-                'guest_id'  => $validated['guest_id'],
-                'room_id'   => $validated['room_id'],
-                'metadata'  => [
+                'last_name'  => $validated['last_name'],
+                'email'      => $validated['email'],
+                'phone'      => $validated['phone'],
+                'guest_id'   => $validated['guest_id'],
+                'room_id'    => $validated['room_id'],
+                'metadata'   => [
                     'type'        => 'order',
+                    'hotel_id'    => $room->hotel_id,
                     'room_id'     => $validated['room_id'],
                     'items'       => $orderItemsWithPrices,
                     'notes'       => $validated['notes'] ?? null,
@@ -184,7 +186,7 @@ class GuestOrderPaymentController extends Controller
     public function completeOrder(string $txRef): JsonResponse
     {
         try {
-            $payment = Payment::where('tx_ref', $txRef)->firstOrFail();
+            $payment = Payment::withoutGlobalScopes()->where('tx_ref', $txRef)->firstOrFail();
 
             if ($payment->order_id && $payment->order) {
                 return response()->json([
@@ -217,6 +219,7 @@ class GuestOrderPaymentController extends Controller
             $result = $this->paymentService->handleOrderPaymentSuccess(
                 $payment,
                 [
+                    'hotel_id'  => $payment->hotel_id ?? ($metadata['hotel_id'] ?? null),
                     'guest_id'  => $payment->guest_id,
                     'room_id'   => $metadata['room_id'] ?? null,
                     'subtotal'  => $calculation['subtotal'],

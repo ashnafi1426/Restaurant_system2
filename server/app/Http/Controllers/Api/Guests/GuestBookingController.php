@@ -8,9 +8,11 @@ use App\Models\Reservation;
 use App\Models\Room;
 use App\Models\Hotel;
 use App\Services\TenantContext;
+use App\Mail\ReservationConfirmed;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class GuestBookingController extends Controller
@@ -355,11 +357,29 @@ class GuestBookingController extends Controller
                     'check_out_date' => $validated['check_out_date'],
                     'number_of_guests' => $validated['num_guests'] ?? 1,
                     'total_amount' => $totalPrice,
-                    'status' => 'pending',
+                    'status' => 'confirmed',
                     'special_requests' => $validated['special_requests'] ?? null,
                 ]);
 
-                Log::info('[GUEST BOOKING] Reservation created successfully', [
+                $reservation->load(['room.roomType', 'guest']);
+
+                if (!empty($guest->email)) {
+                    try {
+                        Mail::to($guest->email)->send(new ReservationConfirmed($reservation));
+                        Log::info('[GUEST BOOKING] Automatic confirmation email sent to guest', [
+                            'reservation_id' => $reservation->id,
+                            'guest_email'    => $guest->email,
+                        ]);
+                    } catch (\Exception $mailEx) {
+                        Log::error('[GUEST BOOKING] Failed to send confirmation email', [
+                            'reservation_id' => $reservation->id,
+                            'guest_email'    => $guest->email,
+                            'error'          => $mailEx->getMessage(),
+                        ]);
+                    }
+                }
+
+                Log::info('[GUEST BOOKING] Reservation created and confirmed successfully', [
                     'reservation_id' => $reservation->id,
                     'booking_reference' => $reservation->booking_reference,
                     'guest_id' => $guest->id,
@@ -369,7 +389,7 @@ class GuestBookingController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Booking created successfully',
+                    'message' => 'Booking created and confirmed successfully',
                     'booking' => [
                         'reservationId' => $reservation->id,
                         'bookingReference' => $reservation->booking_reference,

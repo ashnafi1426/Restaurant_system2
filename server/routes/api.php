@@ -141,11 +141,15 @@ Route::get('/rooms', [RoomController::class, 'index']);
 Route::get('/rooms/{room}', [RoomController::class, 'show']);
 Route::get('/room-types', [RoomTypeController::class, 'index']);
 Route::get('/room-types/{roomType}', [RoomTypeController::class, 'show']);
+Route::get('/floors', [\App\Http\Controllers\Api\Manager\FloorManagementController::class, 'index']);
 Route::post('/guests', [GuestController::class, 'store']);
 Route::get('/guests', [GuestController::class, 'index']);
 Route::get('/reservations/availability', [ReservationController::class, 'availability']);
 Route::get('/qr-codes/download/{roomId}', [QRCodePrintController::class, 'downloadQRCode']);
 Route::get('/qr-codes/print/{roomId}', [QRCodePrintController::class, 'getPrintTemplate']);
+Route::get('/qr/resolve/{qrToken}', [\App\Http\Controllers\Api\QRResolutionController::class, 'resolveFromUrl']);
+Route::post('/qr/resolve', [\App\Http\Controllers\Api\QRResolutionController::class, 'resolveQRToken']);
+Route::post('/qr/validate', [\App\Http\Controllers\Api\QRResolutionController::class, 'validateQRToken']);
 
 Route::prefix('payments')->group(function () {
     Route::post('/initialize', [PaymentController::class, 'initialize']);
@@ -161,13 +165,13 @@ Route::prefix('reservation-payments')->group(function () {
 });
 Route::prefix('order-payments')->group(function () {
     Route::post('/initialize', [GuestOrderPaymentController::class, 'initializePayment']);
-    Route::post('/complete/{txRef}', [GuestOrderPaymentController::class, 'completeOrder']);
+    Route::match(['get', 'post'], '/complete/{txRef}', [GuestOrderPaymentController::class, 'completeOrder']);
     Route::get('/{txRef}', [GuestOrderPaymentController::class, 'getOrderByPayment']);
 });
 
 Route::prefix('walk-in-payments')->group(function () {
     Route::post('/initialize', [WalkInOrderPaymentController::class, 'initializePayment']);
-    Route::post('/complete/{txRef}', [WalkInOrderPaymentController::class, 'completeOrder']);
+    Route::match(['get', 'post'], '/complete/{txRef}', [WalkInOrderPaymentController::class, 'completeOrder']);
     Route::get('/{txRef}', [WalkInOrderPaymentController::class, 'getOrderByPayment']);
 });
 
@@ -319,6 +323,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/rooms/{room}', [RoomController::class, 'update']);
         Route::delete('/rooms/{room}', [RoomController::class, 'destroy']);
         Route::patch('/rooms/{room}/toggle-status', [RoomController::class, 'toggleStatus']);
+
+        Route::get('/floors', [FloorManagementController::class, 'index']);
+        Route::post('/floors', [FloorManagementController::class, 'store']);
 
         Route::prefix('admin/qr-codes')->group(function () {
             Route::get('/{roomId}/image', [QRCodePrintController::class, 'getQRCodeImage']);
@@ -490,7 +497,9 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/laundry', [ManagerOperationsController::class, 'laundry']);
         });
         Route::prefix('waiters')->group(function () {
-            Route::get('/',[WaiterManagementController::class, 'index']);
+            Route::get('/', [WaiterManagementController::class, 'index']);
+            Route::get('/available', [WaiterManagementController::class, 'available']);
+            Route::get('/available-users', [WaiterManagementController::class, 'availableUsers']);
             Route::post('/', [WaiterManagementController::class, 'store']);
             Route::get('/{waiter}', [WaiterManagementController::class, 'show']);
             Route::put('/{waiter}', [WaiterManagementController::class, 'update']);

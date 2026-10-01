@@ -28,20 +28,30 @@ class AssignFloorRequest extends FormRequest
             'assignments.*.floor_id' => [
                 'required',
                 'uuid',
-                'exists:hotel_floors,id'
+                function ($attribute, $value, $fail) {
+                    $existsInFloors = \Illuminate\Support\Facades\Schema::hasTable('floors')
+                        && \Illuminate\Support\Facades\DB::table('floors')->where('id', $value)->exists();
+                    $existsInHotelFloors = \Illuminate\Support\Facades\Schema::hasTable('hotel_floors') 
+                        && \Illuminate\Support\Facades\DB::table('hotel_floors')->where('id', $value)->exists();
+                    if (!$existsInFloors && !$existsInHotelFloors) {
+                        $fail('Selected floor does not exist.');
+                    }
+                }
             ],
             'assignments.*.shift_id' => [
-                'required',
+                'nullable',
                 'uuid',
-                'exists:hotel_shifts,id'
             ],
             'assignments.*.assignment_date' => [
-                'required',
+                'nullable',
                 'date',
-                'after_or_equal:today'
+            ],
+            'assignments.*.status' => [
+                'nullable',
+                Rule::in(['active', 'inactive']),
             ],
             'assignments.*.priority' => [
-                'required',
+                'nullable',
                 Rule::in(['primary', 'secondary', 'backup']),
             ],
         ];
@@ -56,12 +66,6 @@ class AssignFloorRequest extends FormRequest
             'assignments.*.waiter_id.exists' => 'Selected waiter does not exist',
             'assignments.*.floor_id.required' => 'Floor is required',
             'assignments.*.floor_id.exists' => 'Selected floor does not exist',
-            'assignments.*.shift_id.required' => 'Shift is required',
-            'assignments.*.shift_id.exists' => 'Selected shift does not exist',
-            'assignments.*.assignment_date.required' => 'Assignment date is required',
-            'assignments.*.assignment_date.after_or_equal' => 'Assignment date cannot be in the past',
-            'assignments.*.priority.required' => 'Priority is required',
-            'assignments.*.priority.in' => 'Priority must be primary, secondary, or backup',
         ];
     }
 
@@ -71,8 +75,24 @@ class AssignFloorRequest extends FormRequest
             $assignments = $this->assignments;
             
             foreach ($assignments as &$assignment) {
-                if (isset($assignment['priority'])) {
+                if (empty($assignment['priority'])) {
+                    $assignment['priority'] = 'primary';
+                } else {
                     $assignment['priority'] = strtolower($assignment['priority']);
+                }
+
+                if (empty($assignment['status'])) {
+                    $assignment['status'] = 'active';
+                } else {
+                    $assignment['status'] = strtolower($assignment['status']);
+                }
+
+                if (empty($assignment['assignment_date'])) {
+                    $assignment['assignment_date'] = now()->format('Y-m-d');
+                }
+
+                if (empty($assignment['shift_id'])) {
+                    $assignment['shift_id'] = null;
                 }
             }
             

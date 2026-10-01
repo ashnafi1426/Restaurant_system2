@@ -28,6 +28,44 @@ class ReservationController extends Controller
 {
     public function index(Request $request)
     {
+        // Auto-cleanup any duplicate reservations created within seconds for the same guest, room, and stay dates
+        try {
+            $duplicates = Reservation::withoutGlobalScopes()
+                ->select('guest_id', 'room_id', 'check_in_date', 'check_out_date', DB::raw('count(*) as count'))
+                ->where('status', 'confirmed')
+                ->whereNotNull('guest_id')
+                ->whereNotNull('room_id')
+                ->groupBy('guest_id', 'room_id', 'check_in_date', 'check_out_date')
+                ->having('count', '>', 1)
+                ->get();
+
+            foreach ($duplicates as $dup) {
+                $items = Reservation::withoutGlobalScopes()
+                    ->where('guest_id', $dup->guest_id)
+                    ->where('room_id', $dup->room_id)
+                    ->where('check_in_date', $dup->check_in_date)
+                    ->where('check_out_date', $dup->check_out_date)
+                    ->orderBy('created_at', 'asc')
+                    ->get();
+
+                if ($items->count() > 1) {
+                    $keep = $items->first();
+                    $toDelete = $items->slice(1);
+                    foreach ($toDelete as $delItem) {
+                        Log::info('[RESERVATION AUTO-CLEANUP] Removing duplicate reservation', [
+                            'keep_id' => $keep->id,
+                            'delete_id' => $delItem->id,
+                            'booking_reference' => $delItem->booking_reference
+                        ]);
+                        DB::table('payments')->where('reservation_id', $delItem->id)->update(['reservation_id' => $keep->id]);
+                        $delItem->delete();
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('[RESERVATION AUTO-CLEANUP] Could not clean duplicates: ' . $e->getMessage());
+        }
+
         $query = Reservation::with([
             'guest',
             'room.roomType',
@@ -188,16 +226,21 @@ class ReservationController extends Controller
                 'hotel_id'     => $hotelId,
                 'guest_id'     => $guestId,
                 'total_amount' => $totalAmount,
+                'status'       => $data['status'] ?? 'confirmed',
             ]);
 
             $reservation = Reservation::create($reservationData);
             $reservation->load(['guest', 'room.roomType', 'creator']);
             $this->createReservationNotification($reservation);
+            $this->createConfirmationNotification($reservation);
 
             DB::commit();
 
+            // Send confirmation email to guest automatically
+            $this->sendReservationConfirmationMail($reservation);
+
             return response()->json([
-                'message' => 'Reservation created successfully.',
+                'message' => 'Reservation created and automatically confirmed.',
                 'data' => new ReservationResource($reservation)
             ], 201);
 
@@ -210,20 +253,41 @@ class ReservationController extends Controller
         }
     }
 
-    public function show(Reservation $reservation)
+    public function show($reservation)
     {
-        $currentHotelId = TenantContext::id() ?: Auth::user()?->hotel_id;
-        if ($currentHotelId && $reservation->hotel_id && $reservation->hotel_id !== $currentHotelId) {
-            abort(404, 'Reservation not found.');
+        if ($reservation instanceof Reservation) {
+            $model = $reservation;
+        } else {
+            $model = Reservation::withoutGlobalScopes()
+                ->where(function ($q) use ($reservation) {
+                    $q->where('id', $reservation)
+                      ->orWhere('booking_reference', $reservation);
+                })->first();
+
+            if (!$model) {
+                return response()->json([
+                    'message' => 'Reservation not found.'
+                ], 404);
+            }
         }
 
-        $reservation->load([
+        $user = Auth::user();
+        $isPlatformAdmin = $user && ($user->role === 'admin' || (method_exists($user, 'isPlatformAdmin') && $user->isPlatformAdmin()));
+        $currentHotelId = TenantContext::id() ?: $user?->hotel_id;
+
+        if (!$isPlatformAdmin && $currentHotelId && $model->hotel_id && $model->hotel_id !== $currentHotelId) {
+            return response()->json([
+                'message' => 'Reservation not found.'
+            ], 404);
+        }
+
+        $model->loadMissing([
             'guest',
             'room.roomType',
             'creator'
         ]);
 
-        return new ReservationResource($reservation);
+        return new ReservationResource($model);
     }
 
     public function update(
@@ -437,35 +501,7 @@ class ReservationController extends Controller
             ]);
             $this->createConfirmationNotification($reservation);
         });
-        try {
-            $reservation->load(['room', 'room.roomType', 'guest']);
-
-            Log::info('[RESERVATION] Preparing to send confirmation email', [
-                'reservation_id' => $reservation->id,
-                'guest_email' => $reservation->guest->email,
-                'guest_name' => $reservation->guest->first_name . ' ' . $reservation->guest->last_name,
-                'queue_connection' => config('queue.default'),
-                'mail_driver' => config('mail.default'),
-            ]);
-            Mail::to($reservation->guest->email)
-                ->send(new ReservationConfirmed($reservation));
-
-            Log::info('[RESERVATION] Confirmation email sent successfully', [
-                'reservation_id' => $reservation->id,
-                'guest_email' => $reservation->guest->email,
-                'guest_name' => "{$reservation->guest->first_name} {$reservation->guest->last_name}",
-                'timestamp' => now()->toIso8601String(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('[RESERVATION] FAILED to send confirmation email', [
-                'reservation_id' => $reservation->id,
-                'guest_email' => $reservation->guest->email,
-                'error_message' => $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-            ]);
-        }
+        $this->sendReservationConfirmationMail($reservation);
 
         return new ReservationResource(
             $reservation->fresh([
@@ -752,4 +788,39 @@ class ReservationController extends Controller
             Log::error('✗ [RESERVATION] Error creating confirmation notification: ' . $e->getMessage());
         }
     }
+
+    public function sendReservationConfirmationMail(Reservation $reservation): void
+    {
+        try {
+            $reservation->loadMissing(['room.roomType', 'guest']);
+            $guestEmail = $reservation->guest?->email;
+
+            if (!$guestEmail) {
+                Log::info('[RESERVATION] No guest email available for confirmation email', [
+                    'reservation_id' => $reservation->id,
+                ]);
+                return;
+            }
+
+            Log::info('[RESERVATION] Preparing to send automatic confirmation email', [
+                'reservation_id' => $reservation->id,
+                'guest_email'    => $guestEmail,
+                'guest_name'     => "{$reservation->guest?->first_name} {$reservation->guest?->last_name}",
+            ]);
+
+            Mail::to($guestEmail)->send(new ReservationConfirmed($reservation));
+
+            Log::info('[RESERVATION] Confirmation email sent successfully to guest', [
+                'reservation_id' => $reservation->id,
+                'guest_email'    => $guestEmail,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('[RESERVATION] FAILED to send confirmation email', [
+                'reservation_id' => $reservation->id,
+                'guest_email'    => $reservation->guest?->email,
+                'error_message'  => $e->getMessage(),
+            ]);
+        }
+    }
 }
+

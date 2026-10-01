@@ -102,16 +102,37 @@ class OrderService{
 
     public function getStatistics(): array
     {
+        $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+        $query = Order::query();
+        if ($hotelId) {
+            $query->where('hotel_id', $hotelId);
+        }
+
+        $stats = (clone $query)->selectRaw("
+            status,
+            COUNT(*) as count,
+            SUM(total) as revenue
+        ")->groupBy('status')->get()->keyBy('status');
+
+        $pending = $stats->get(Order::STATUS_PENDING);
+        $preparing = $stats->get(Order::STATUS_PREPARING);
+        $ready = $stats->get(Order::STATUS_READY);
+        $served = $stats->get(Order::STATUS_SERVED);
+        $cancelled = $stats->get(Order::STATUS_CANCELLED);
+
+        $totalRevenue = $stats->filter(fn($v, $k) => $k !== Order::STATUS_CANCELLED)->sum('revenue');
+
         return [
-            'total_orders' => Order::count(),
-            'pending_orders' => Order::where('status', Order::STATUS_PENDING)->count(),
-            'preparing_orders' => Order::where('status', Order::STATUS_PREPARING)->count(),
-            'ready_orders' => Order::where('status', Order::STATUS_READY)->count(),
-            'served_orders' => Order::where('status', Order::STATUS_SERVED)->count(),
-            'cancelled_orders' => Order::where('status', Order::STATUS_CANCELLED)->count(),
-            'total_revenue' => (float) Order::where('status', '!=', Order::STATUS_CANCELLED)->sum('total'),
+            'total_orders' => (int) $stats->sum('count'),
+            'pending_orders' => (int) ($pending->count ?? 0),
+            'preparing_orders' => (int) ($preparing->count ?? 0),
+            'ready_orders' => (int) ($ready->count ?? 0),
+            'served_orders' => (int) ($served->count ?? 0),
+            'cancelled_orders' => (int) ($cancelled->count ?? 0),
+            'total_revenue' => (float) $totalRevenue,
         ];
     }
+
     public function show(string $id): Order
     {
         return Order::query()
@@ -124,6 +145,7 @@ class OrderService{
             ])
             ->findOrFail($id);
     }
+
     private function validateReservation(string $reservationId): Reservation
     {
         $reservation = Reservation::query()
@@ -141,28 +163,29 @@ class OrderService{
 
         return $reservation;
     }
+
     private function validateGuest(
         Reservation $reservation,
         string $guestId
     ): void {
-
         if ($reservation->guest_id !== $guestId) {
             throw new Exception(
                 'The selected guest does not belong to this reservation.'
             );
         }
     }
+
     private function validateRoom(
         Reservation $reservation,
         string $roomId
     ): void {
-
         if ($reservation->room_id !== $roomId) {
             throw new Exception(
                 'The selected room does not belong to this reservation.'
             );
         }
     }
+
     private function getMenuItem(string $menuItemId): MenuItem
     {
         $menuItem = MenuItem::query()
@@ -193,11 +216,18 @@ class OrderService{
         return $number;
     }
 
-    private function assignChefToOrder(): ?string
+    private function assignChefToOrder(?string $hotelId = null): ?string
     {
         try {
-            $chefs = User::where('role', 'chef')->pluck('id')->toArray();
-            
+            $chefQuery = User::where('role', 'chef');
+            if ($hotelId) {
+                $chefQuery->where(function ($q) use ($hotelId) {
+                    $q->where('hotel_id', $hotelId)
+                      ->orWhereHas('hotelMemberships', fn($m) => $m->where('hotel_id', $hotelId));
+                });
+            }
+
+            $chefs = $chefQuery->pluck('id')->toArray();
             if (empty($chefs)) {
                 return null;
             }
@@ -205,24 +235,29 @@ class OrderService{
             if (count($chefs) === 1) {
                 return $chefs[0];
             }
-            $chefWorkload = [];
+
+            $workloads = Order::whereIn('chef_id', $chefs)
+                ->whereIn('status', [Order::STATUS_PENDING, Order::STATUS_PREPARING])
+                ->selectRaw('chef_id, count(*) as count')
+                ->groupBy('chef_id')
+                ->pluck('count', 'chef_id')
+                ->toArray();
+
+            $leastWorkload = PHP_INT_MAX;
+            $selectedChef = $chefs[0];
+
             foreach ($chefs as $chefId) {
-                $count = Order::where('chef_id', $chefId)
-                    ->whereIn('status', [Order::STATUS_PENDING, Order::STATUS_PREPARING])
-                    ->count();
-                $chefWorkload[$chefId] = $count;
-            }
-            $selectedChef = array_key_first($chefWorkload);
-            foreach ($chefWorkload as $chefId => $count) {
-                if ($count < $chefWorkload[$selectedChef]) {
+                $count = $workloads[$chefId] ?? 0;
+                if ($count < $leastWorkload) {
+                    $leastWorkload = $count;
                     $selectedChef = $chefId;
                 }
             }
+
             return $selectedChef;
-        } catch (\Exception $e) {
-            \Log::error('Failed to assign chef: ' . $e->getMessage());
-            $firstChef = User::where('role', 'chef')->first();
-            return $firstChef?->id ?? null;
+        } catch (\Throwable $e) {
+            Log::error('Failed to assign chef: ' . $e->getMessage());
+            return null;
         }
     }
 
@@ -298,7 +333,7 @@ class OrderService{
                 'discount' => 0,
                 'total' => 0,
                 'notes' => $data['notes'] ?? null,
-                'chef_id' => $this->assignChefToOrder(),
+                'chef_id' => $this->assignChefToOrder($hotelId),
             ]);
 
             $orderSubtotal = 0;
@@ -355,24 +390,33 @@ class OrderService{
             throw $exception;
         }
     }
-private function notifyChefs(Order $order): void
-{
-    try {
-        $chefs = User::where('role', 'chef')->get();
-        
-        foreach ($chefs as $chef) {
-            Notification::create([
-                'user_id' => $chef->id,
-                'type' => 'order_created',
-                'title' => 'New Order',
-                'message' => 'Order #' . $order->order_number . ' has been created for processing',
-                'read' => false,
-            ]);
+    private function notifyChefs(Order $order): void
+    {
+        try {
+            $hotelId = $order->hotel_id;
+            $chefQuery = User::where('role', 'chef');
+            if ($hotelId) {
+                $chefQuery->where(function ($q) use ($hotelId) {
+                    $q->where('hotel_id', $hotelId)
+                      ->orWhereHas('hotelMemberships', fn($m) => $m->where('hotel_id', $hotelId));
+                });
+            }
+
+            $chefs = $chefQuery->get();
+
+            foreach ($chefs as $chef) {
+                Notification::create([
+                    'user_id' => $chef->id,
+                    'type' => 'order_created',
+                    'title' => 'New Order',
+                    'message' => 'Order #' . $order->order_number . ' has been created for processing',
+                    'read' => false,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Failed to notify chefs of new order: ' . $e->getMessage());
         }
-    } catch (\Exception $e) {
-        \Log::error('Failed to notify chefs of new order: ' . $e->getMessage());
     }
-}
 public function update(string $id, array $data): Order
 {
     DB::beginTransaction();
@@ -483,19 +527,6 @@ public function update(string $id, array $data): Order
             'orderItems.menuItem',
             'orderItems.taxRate',
         ]);
-
-            'reservation',
-
-            'guest',
-
-            'room',
-
-            'orderItems',
-
-            'orderItems.menuItem',
-
-        ]);
-
     } catch (\Throwable $exception) {
 
         DB::rollBack();

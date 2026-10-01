@@ -3,71 +3,117 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Room;
-use App\Models\MenuItem;
 use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Guest;
-use App\Models\Reservation;
+use App\Models\RestaurantTable;
+use App\Models\Room;
+use App\Services\GuestOrderService;
+use App\Services\MenuService;
+use App\Services\QRResolutionService;
+use App\Services\TenantContext;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class GuestOrderController extends Controller
 {
-    public function getRoom($qrToken)
+    protected MenuService $menuService;
+    protected GuestOrderService $guestOrderService;
+
+    public function __construct(MenuService $menuService, GuestOrderService $guestOrderService)
+    {
+        $this->menuService = $menuService;
+        $this->guestOrderService = $guestOrderService;
+    }
+
+    /**
+     * Resolve a room or table QR token and return status and ordering eligibility.
+     */
+    public function getRoom(string $qrToken): JsonResponse
     {
         try {
-            Log::info('[QR ORDER] Fetching room info by token', ['qr_token' => $qrToken]);
-            $room = Room::where('qr_token', $qrToken)->first();
+            $resolution = QRResolutionService::resolveQRToken($qrToken);
+
+            if ($resolution['success']) {
+                $data = $resolution['data'];
+
+                if ($resolution['context'] === 'room') {
+                    return response()->json([
+                        'success' => true,
+                        'data' => [
+                            'id' => $data['room_id'],
+                            'room_number' => $data['room_number'],
+                            'status' => $data['status'] ?? 'available',
+                            'qr_token' => $qrToken,
+                            'context' => 'room',
+                            'hotel_id' => $data['hotel_id'] ?? null,
+                            'hotel_name' => $data['hotel_name'] ?? null,
+                            'is_checked_in' => $data['is_checked_in'] ?? false,
+                            'can_order' => $data['can_order'] ?? false,
+                            'reservation_status' => $data['reservation_status'] ?? 'none',
+                            'eligibility_message' => $data['eligibility_message'] ?? null,
+                            'guest' => $data['guest'] ?? [
+                                'id' => null,
+                                'name' => 'Hotel Guest',
+                                'email' => 'guest@hotel.com',
+                                'phone' => '',
+                            ],
+                        ],
+                    ]);
+                }
+
+                if ($resolution['context'] === 'table') {
+                    return response()->json([
+                        'success' => true,
+                        'data' => [
+                            'id' => $data['table_id'],
+                            'room_number' => $data['table_name'] ?? ('Table ' . $data['table_number']),
+                            'table_number' => $data['table_number'],
+                            'status' => $data['status'] ?? 'available',
+                            'qr_token' => $qrToken,
+                            'context' => 'table',
+                            'hotel_id' => $data['hotel_id'] ?? null,
+                            'hotel_name' => $data['hotel_name'] ?? null,
+                            'is_checked_in' => true,
+                            'can_order' => true,
+                            'reservation_status' => 'not_applicable',
+                            'eligibility_message' => null,
+                            'guest' => [
+                                'id' => null,
+                                'name' => 'Walk-in Guest',
+                                'email' => 'walkin@restaurant.com',
+                                'phone' => '',
+                            ],
+                        ],
+                    ]);
+                }
+            }
+
+            // Direct room lookup fallback
+            $room = Room::withoutGlobalScopes()->where('qr_token', $qrToken)->first();
             if (!$room) {
-                Log::warning('[QR ORDER] Token not found', ['qr_token' => $qrToken]);
                 return response()->json([
                     'success' => false,
                     'error' => 'Invalid QR code',
-                    'message' => trans_msg('invalid_qr_code', default: 'This QR code is not valid.'),
+                    'message' => 'This QR code is not valid.',
                 ], 404);
             }
-            Log::info('[QR ORDER] Room found by token', [
-                'room_id' => $room->id,
-                'room_number' => $room->room_number,
-                'room_status' => $room->status,
-            ]);
-            $activeReservation = DB::table('reservations')
-                ->join('guests', 'reservations.guest_id', '=', 'guests.id')
-                ->where('reservations.room_id', $room->id)
-                ->whereIn('reservations.status', ['confirmed', 'checked_in'])
-                ->orderBy('reservations.created_at', 'desc')
-                ->select('reservations.id', 'guests.id as guest_id', 'guests.first_name', 'guests.last_name', 'guests.email', 'guests.phone')
-                ->first();
-            if (!$activeReservation) {
-                Log::warning('[QR ORDER] No active reservation found', [
-                    'qr_token' => $qrToken,
-                    'room_number' => $room->room_number,
-                    'room_id' => $room->id,
-                ]);
-                $allReservations = DB::table('reservations')
-                    ->where('reservations.room_id', $room->id)
-                    ->select('id', 'status', 'created_at')
-                    ->get();
-                Log::warning('[QR ORDER] Existing reservations for room', [
-                    'room_id' => $room->id,
-                    'reservations' => $allReservations,
-                ]);
-                return response()->json([
-                    'success' => false,
-                    'error' => 'No active reservation',
-                    'message' => trans_msg('no_active_reservation', default: 'There is no active reservation for this room. Please check in first.'),
-                ], 422);
-            }
 
-            Log::info('[QR ORDER] Room & reservation validated successfully', [
-                'qr_token' => $qrToken,
-                'room_number' => $room->room_number,
-                'guest_id' => $activeReservation->guest_id,
-                'reservation_id' => $activeReservation->id,
-            ]);
+            $currentReservation = $room->getCurrentReservation();
+            $reservationStatus = $currentReservation?->status ?? 'none';
+            $canOrder = ($reservationStatus === 'checked_in');
+
+            $eligibilityMessage = match ($reservationStatus) {
+                'checked_in' => 'Guest is checked in and eligible for room service.',
+                'confirmed' => 'Your reservation is confirmed, but room-service ordering is only available after check-in at the front desk.',
+                'checked_out' => 'This room has been checked out. Room-service ordering is no longer available.',
+                'cancelled' => 'This reservation was cancelled. Room-service ordering is unavailable.',
+                default => 'No active checked-in reservation found for this room. Room-service ordering is only available for checked-in guests.',
+         
+            };
+
+            $guest = $currentReservation?->guest;
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -75,20 +121,29 @@ class GuestOrderController extends Controller
                     'room_number' => $room->room_number,
                     'status' => $room->status,
                     'qr_token' => $qrToken,
-                    'guest' => [
-                        'id' => $activeReservation->guest_id,
-                        'name' => "{$activeReservation->first_name} {$activeReservation->last_name}",
-                        'email' => $activeReservation->email,
-                        'phone' => $activeReservation->phone,
+                    'context' => 'room',
+                    'hotel_id' => $room->hotel_id,
+                    'hotel_name' => $room->hotel?->name,
+                    'is_checked_in' => $canOrder,
+                    'can_order' => $canOrder,
+                    'reservation_status' => $reservationStatus,
+                    'eligibility_message' => $eligibilityMessage,
+                    'guest' => $guest ? [
+                        'id' => $guest->id,
+                        'name' => trim(($guest->first_name ?? '') . ' ' . ($guest->last_name ?? '')),
+                        'email' => $guest->email,
+                        'phone' => $guest->phone,
+                    ] : [
+                        'id' => null,
+                        'name' => 'Hotel Guest',
+                        'email' => 'guest@hotel.com',
+                        'phone' => '',
                     ],
                 ],
             ]);
-        } catch (\Exception $e) {
-            Log::error('[QR ORDER] Error validating token', [
-                'qr_token' => $qrToken,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+        } catch (Throwable $e) {
+            \Log::error('[GUEST ORDER] Error resolving QR token: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'error' => 'Server error',
@@ -97,116 +152,40 @@ class GuestOrderController extends Controller
         }
     }
 
-    private function formatMenuItemForGuest($item): array
-    {
-        $imageUrl = null;
-        if ($item->image) {
-            if (filter_var($item->image, FILTER_VALIDATE_URL)) {
-                $imageUrl = $item->image;
-            } else {
-                $imageUrl = asset('storage/' . $item->image);
-            }
-        }
-
-        $price = (float) $item->price;
-        $taxRateModel = $item->relationLoaded('taxRate') ? $item->taxRate : $item->taxRate;
-        $rate = $taxRateModel ? (float) $taxRateModel->rate : 0.0;
-        $taxIncluded = (bool) ($item->tax_included ?? false);
-
-        if ($rate > 0) {
-            if ($taxIncluded) {
-                $basePrice = round($price / (1 + ($rate / 100)), 2);
-                $taxAmount = round($price - $basePrice, 2);
-                $totalPrice = $price;
-            } else {
-                $basePrice = $price;
-                $taxAmount = round($price * ($rate / 100), 2);
-                $totalPrice = round($price + $taxAmount, 2);
-            }
-        } else {
-            $basePrice = $price;
-            $taxAmount = 0.0;
-            $totalPrice = $price;
-        }
-
-        return [
-            'id' => $item->id,
-            'name' => $item->name,
-            'description' => $item->description,
-            'price' => $price,
-            'base_price' => $basePrice,
-            'tax_amount' => $taxAmount,
-            'total_price' => $totalPrice,
-            'formatted_price' => number_format($price, 2),
-            'formatted_total_price' => number_format($totalPrice, 2),
-            'tax_rate_id' => $item->tax_rate_id,
-            'tax_included' => $taxIncluded,
-            'tax_rate' => $taxRateModel ? [
-                'id' => $taxRateModel->id,
-                'name' => $taxRateModel->name,
-                'rate' => (float) $taxRateModel->rate,
-                'type' => $taxRateModel->type,
-            ] : null,
-            'image' => $imageUrl,
-            'category' => $item->category,
-            'is_available' => (bool) $item->is_available,
-        ];
-    }
-
-    public function getMenuItems($qrToken)
+    /**
+     * Get menu items for a specific scanned QR token (room or table).
+     */
+    public function getMenuItems(string $qrToken): JsonResponse
     {
         try {
-            Log::info('[GUEST ORDER] Fetching menu items for token', ['qr_token' => $qrToken]);
-            $room = Room::where('qr_token', $qrToken)->first();
-            if (!$room) {
-                Log::warning('[GUEST ORDER] Token not found when fetching menu', ['qr_token' => $qrToken]);
-                return response()->json([
-                    'error' => 'Invalid QR code',
-                ], 404);
+            $resolution = QRResolutionService::resolveQRToken($qrToken);
+            $hotelId = null;
+
+            if ($resolution['success'] && !empty($resolution['data']['hotel_id'])) {
+                $hotelId = $resolution['data']['hotel_id'];
+            } else {
+                $room = Room::withoutGlobalScopes()->where('qr_token', $qrToken)->first();
+                $table = RestaurantTable::withoutGlobalScopes()->where('qr_token', $qrToken)->first();
+                $hotelId = $room?->hotel_id ?? $table?->hotel_id ?? \App\Models\Hotel::value('id');
             }
 
-            if ($room->hotel_id) {
-                app(\App\Services\TenantContext::class)->setHotelId($room->hotel_id);
+            if (!$hotelId && !$resolution['success']) {
+                return response()->json(['error' => 'Invalid QR code'], 404);
             }
 
-            $query = MenuItem::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
-                ->with('taxRate')
-                ->where('is_available', true);
-
-            if ($room->hotel_id) {
-                $query->where(function ($q) use ($room) {
-                    $q->where('hotel_id', $room->hotel_id)
-                      ->orWhereNull('hotel_id');
-                });
+            if ($hotelId) {
+                app(TenantContext::class)->setHotelId($hotelId);
             }
 
-            $menuItems = $query
-                ->orderBy('category')
-                ->orderBy('name')
-                ->get();
-            $categorized = $menuItems->groupBy('category')
-                ->map(fn($items, $category) => [
-                    'category' => $category,
-                    'items' => $items->map(fn($item) => $this->formatMenuItemForGuest($item))->values(),
-                ])
-                ->values();
-            $itemsWithImages = $menuItems->whereNotNull('image')->count();
-            Log::info('[GUEST ORDER] Menu items retrieved', [
-                'qr_token' => $qrToken,
-                'total_items' => $menuItems->count(),
-                'total_categories' => $categorized->count(),
-                'items_with_images' => $itemsWithImages,
-            ]);
+            $categorized = $this->menuService->getCategorizedMenuItems($hotelId);
+
             return response()->json([
                 'success' => true,
                 'data' => $categorized,
             ]);
-        } catch (\Exception $e) {
-            Log::error('[GUEST ORDER] Error fetching menu', [
-                'qr_token' => $qrToken,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+        } catch (Throwable $e) {
+            \Log::error('[GUEST ORDER] Error fetching menu items: ' . $e->getMessage());
+
             return response()->json([
                 'error' => 'Server error',
                 'message' => 'Unable to fetch menu items.',
@@ -214,56 +193,49 @@ class GuestOrderController extends Controller
         }
     }
 
-    public function getAllMenuItems(Request $request)
+    /**
+     * Public/guest endpoint to get menu items with optional category filtering or flat listing.
+     */
+    public function getAllMenuItems(Request $request): JsonResponse
     {
         try {
-            $hotelId = $request->header('X-Hotel-ID') ?? $request->query('hotel_id');
-            Log::info('[GUEST ORDER] Fetching all menu items (public)', ['hotel_id' => $hotelId]);
+            $hotelId = $request->header('X-Hotel-ID')
+                ?? $request->header('x-hotel-id')
+                ?? $request->query('hotel_id');
 
-            $query = MenuItem::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
-                ->with('taxRate')
-                ->where('is_available', true);
-
-            if ($hotelId) {
-                $query->where(function ($q) use ($hotelId) {
-                    $q->where('hotel_id', $hotelId)
-                      ->orWhereNull('hotel_id');
-                });
+            $qrToken = $request->query('qr_token') ?? $request->header('X-QR-Token');
+            if (!$hotelId && $qrToken) {
+                $resolution = QRResolutionService::resolveQRToken($qrToken);
+                if (!empty($resolution['data']['hotel_id'])) {
+                    $hotelId = $resolution['data']['hotel_id'];
+                }
             }
 
-            $menuItems = $query
-                ->orderBy('category')
-                ->orderBy('name')
-                ->get();
+            if ($hotelId) {
+                app(TenantContext::class)->setHotelId($hotelId);
+            }
 
-            // If flat is requested or per_page
+            $categorized = $this->menuService->getCategorizedMenuItems($hotelId);
+
             if ($request->has('per_page') || $request->query('flat')) {
-                $flatItems = $menuItems->map(fn($item) => $this->formatMenuItemForGuest($item))->values();
+                $flatItems = $categorized->flatMap(fn($cat) => $cat['items'])->values();
                 if ($request->has('per_page')) {
-                    $flatItems = $flatItems->take((int)$request->query('per_page'));
+                    $flatItems = $flatItems->take((int) $request->query('per_page'));
                 }
+
                 return response()->json([
                     'success' => true,
                     'data' => $flatItems,
                 ]);
             }
 
-            $categorized = $menuItems->groupBy('category')
-                ->map(fn($items, $category) => [
-                    'category' => $category,
-                    'items' => $items->map(fn($item) => $this->formatMenuItemForGuest($item))->values(),
-                ])
-                ->values();
-
             return response()->json([
                 'success' => true,
                 'data' => $categorized,
             ]);
-        } catch (\Exception $e) {
-            Log::error('[GUEST ORDER] Error fetching menu', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+        } catch (Throwable $e) {
+            \Log::error('[GUEST ORDER] Error fetching all menu items: ' . $e->getMessage());
+
             return response()->json([
                 'error' => 'Server error',
                 'message' => 'Unable to fetch menu items.',
@@ -271,77 +243,37 @@ class GuestOrderController extends Controller
         }
     }
 
-    public static function guessCategoryIcon($nameOrSlug)
-    {
-        $key = strtolower(trim(str_replace([' ', '_'], '-', $nameOrSlug ?? '')));
-        return match (true) {
-            str_contains($key, 'breakfast') || str_contains($key, 'morning') => 'clock',
-            str_contains($key, 'soup') => 'soup',
-            str_contains($key, 'appetizer') || str_contains($key, 'starter') => 'leaf',
-            str_contains($key, 'salad') => 'salad',
-            str_contains($key, 'main') || str_contains($key, 'entree') => 'utensils',
-            str_contains($key, 'sandwich') || str_contains($key, 'burger') => 'sandwich',
-            str_contains($key, 'pasta') || str_contains($key, 'noodle') => 'layers',
-            str_contains($key, 'pizza') => 'pizza',
-            str_contains($key, 'dessert') || str_contains($key, 'sweet') || str_contains($key, 'cake') => 'cake',
-            str_contains($key, 'drink') || str_contains($key, 'beverage') || str_contains($key, 'wine') || str_contains($key, 'bar') || str_contains($key, 'coffee') => 'wine',
-            default => 'utensils',
-        };
-    }
-
-    public function getPublicCategories()
+    /**
+     * Get active categories with accurate item counts for the hotel.
+     */
+    public function getPublicCategories(Request $request): JsonResponse
     {
         try {
-            $dbCategories = \App\Models\Category::all();
+            $hotelId = $request->header('X-Hotel-ID')
+                ?? $request->header('x-hotel-id')
+                ?? $request->query('hotel_id');
 
-            $itemCategories = MenuItem::select('category')->whereNotNull('category')->distinct()->pluck('category')->toArray();
-
-            $categoryMap = [];
-
-            foreach ($dbCategories as $c) {
-                $slug = $c->slug ?: Str::slug($c->name);
-                $cnt = MenuItem::where('category', $slug)
-                    ->orWhere('category', $c->name)
-                    ->orWhere('category_id', $c->id)
-                    ->count();
-
-                $icon = $c->icon;
-                if (!$icon || $icon === 'grid' || $icon === 'menu') {
-                    $icon = self::guessCategoryIcon($slug ?: $c->name);
-                }
-
-                $categoryMap[$slug] = [
-                    'id' => $c->id ?: $slug,
-                    'name' => $c->name,
-                    'slug' => $slug,
-                    'icon' => $icon,
-                    'count' => $cnt,
-                ];
-            }
-
-            foreach ($itemCategories as $rawCat) {
-                if (!$rawCat) continue;
-                $slug = Str::slug($rawCat);
-                if (!isset($categoryMap[$slug])) {
-                    $cnt = MenuItem::where('category', $rawCat)->count();
-                    $categoryMap[$slug] = [
-                        'id' => $slug,
-                        'name' => ucwords(str_replace('-', ' ', $rawCat)),
-                        'slug' => $slug,
-                        'icon' => self::guessCategoryIcon($slug),
-                        'count' => $cnt,
-                    ];
+            $qrToken = $request->query('qr_token') ?? $request->header('X-QR-Token');
+            if (!$hotelId && $qrToken) {
+                $resolution = QRResolutionService::resolveQRToken($qrToken);
+                if (!empty($resolution['data']['hotel_id'])) {
+                    $hotelId = $resolution['data']['hotel_id'];
                 }
             }
 
-            $result = array_values($categoryMap);
+            if ($hotelId) {
+                app(TenantContext::class)->setHotelId($hotelId);
+            }
+
+            $categories = $this->menuService->getCategoriesWithCounts($hotelId);
 
             return response()->json([
                 'success' => true,
-                'data' => $result,
+                'data' => $categories,
             ]);
-        } catch (\Exception $e) {
-            Log::error('[GUEST ORDER] Error fetching public categories', ['error' => $e->getMessage()]);
+        } catch (Throwable $e) {
+            \Log::error('[GUEST ORDER] Error fetching public categories: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Unable to fetch categories.',
@@ -349,218 +281,74 @@ class GuestOrderController extends Controller
         }
     }
 
-    public function createOrder(Request $request)
+    /**
+     * Create an order from guest QR (handles both room service and walk-in table orders).
+     */
+    public function createOrder(Request $request): JsonResponse
     {
         try {
-            Log::info('[QR ORDER] Creating order from guest', [
-                'qr_token' => $request->qr_token,
-                'request_data' => $request->all(),
-                'items_count' => count($request->get('items', [])),
-            ]);
             $validated = $request->validate([
-                'qr_token' => 'required|string|exists:rooms,qr_token',
+                'qr_token' => 'required|string',
                 'items' => 'required|array|min:1',
                 'items.*.menu_item_id' => 'required|uuid|exists:menu_items,id',
                 'items.*.quantity' => 'required|integer|min:1|max:100',
                 'special_requests' => 'nullable|string|max:500',
+                'payment_type' => 'nullable|string|in:room_charge,cash,card',
             ], [
                 'items.*.menu_item_id.exists' => 'One or more menu items do not exist in our system.',
                 'items.*.menu_item_id.uuid' => 'Invalid menu item format.',
-                'qr_token.exists' => 'Invalid QR code token.',
             ]);
 
-            Log::info('[QR ORDER] Validation passed', [
-                'qr_token' => $validated['qr_token'],
-                'items_count' => count($validated['items']),
-            ]);
-            return DB::transaction(function () use ($validated) {
-                $room = Room::where('qr_token', $validated['qr_token'])->first();
-                if (!$room) {
-                    Log::warning('[QR ORDER] Token not found during order creation', [
-                        'qr_token' => $validated['qr_token'],
-                    ]);
-                    return response()->json([
-                        'error' => 'Invalid QR code',
-                    ], 404);
-                }
-                $reservation = DB::table('reservations')
-                    ->where('room_id', $room->id)
-                    ->orderBy('created_at', 'desc')
-                    ->first();
-                $hotelId = $room->hotel_id 
-                    ?? $request->input('hotel_id') 
-                    ?? $request->header('X-Hotel-ID') 
-                    ?? app(\App\Services\TenantContext::class)->getHotelId();
+            $result = $this->guestOrderService->placeOrder($validated);
 
-                if ($hotelId) {
-                    app(\App\Services\TenantContext::class)->setHotelId($hotelId);
-                }
-
-                if (!$reservation) {
-                    Log::info('[QR ORDER] Creating guest and reservation for QR order', [
-                        'qr_token' => $validated['qr_token'],
-                        'room_id' => $room->id,
-                        'hotel_id' => $hotelId,
-                    ]);
-                    
-                    $guest = Guest::create([
-                        'id' => Str::uuid(),
-                        'hotel_id' => $hotelId,
-                        'first_name' => 'QR Guest',
-                        'last_name' => $room->room_number,
-                        'email' => 'qr-' . $room->room_number . '@hotel.local',
-                        'phone' => '0000000000'
-                    ]);
-                    
-                    $reservationId = Str::uuid();
-                    DB::table('reservations')->insert([
-                        'id' => $reservationId,
-                        'hotel_id' => $hotelId,
-                        'booking_reference' => Reservation::generateBookingReference(),
-                        'room_id' => $room->id,
-                        'guest_id' => $guest->id,
-                        'check_in_date' => now()->format('Y-m-d'),
-                        'check_out_date' => now()->addDays(1)->format('Y-m-d'),
-                        'status' => 'confirmed',
-                        'number_of_guests' => 1,
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-                    
-                    $reservation = DB::table('reservations')
-                        ->where('id', $reservationId)
-                        ->first();
-                    
-                    Log::info('[QR ORDER] Guest and reservation created', [
-                        'guest_id' => $guest->id,
-                        'reservation_id' => $reservation->id,
-                    ]);
-                }
-                
-                $guest_id = $reservation->guest_id;
-                $reservation_id = $reservation->id;
-
-                $items = $validated['items'];
-                $total = 0;
-                $orderItems = [];
-
-                foreach ($items as $item) {
-                    $menuItem = MenuItem::findOrFail($item['menu_item_id']);
-                    $lineTotal = $menuItem->price * $item['quantity'];
-                    $total += $lineTotal;
-
-                    $orderItems[] = [
-                        'menu_item_id' => $menuItem->id,
-                        'quantity' => $item['quantity'],
-                        'item_price_at_order' => $menuItem->price,
-                        'line_total' => $lineTotal,
-                    ];
-                }
-
-                $orderNumber = 'ORD-' . now()->format('YmdHis') . '-' . str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);
-                $order = Order::create([
-                    'hotel_id' => $hotelId,
-                    'order_number' => $orderNumber,
-                    'room_id' => $room->id,
-                    'guest_id' => $guest_id,
-                    'reservation_id' => $reservation_id,
-                    'order_time' => now(),
-                    'total' => $total,
-                    'status' => Order::STATUS_PENDING,
-                    'source' => 'guest_qr',
-                    'special_requests' => $validated['special_requests'] ?? null,
-                ]);
-
-                Log::info('[QR ORDER] Order created successfully', [
-                    'order_id' => $order->id,
-                    'qr_token' => $validated['qr_token'],
-                    'room_number' => $room->room_number,
-                    'reservation_id' => $reservation->id,
-                    'guest_id' => $reservation->guest_id,
-                    'total' => $total,
-                    'items_count' => count($orderItems),
-                ]);
-
-                foreach ($orderItems as $item) {
-                    OrderItem::create([
-                        'order_id' => $order->id,
-                        'menu_item_id' => $item['menu_item_id'],
-                        'quantity' => $item['quantity'],
-                        'item_price_at_order' => $item['item_price_at_order'],
-                        'line_total' => $item['line_total'],
-                    ]);
-                }
-
-                $order->load('orderItems', 'room');
-
-                return response()->json([
-                    'success' => true,
-                    'message' => trans_msg('order_placed', default: 'Order placed successfully'),
-                    'data' => [
-                        'id' => $order->id,
-                        'room_number' => $order->room->room_number,
-                        'total' => (float) $order->total,
-                        'status' => $order->status,
-                        'items' => $order->orderItems->map(function ($item) {
-                            return [
-                                'menu_item_id' => $item->menu_item_id,
-                                'quantity' => $item->quantity,
-                                'item_price_at_order' => (float) $item->item_price_at_order,
-                                'line_total' => (float) $item->line_total,
-                            ];
-                        }),
-                        'created_at' => $order->created_at->toIso8601String(),
-                    ],
-                ], 201);
-            });
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::warning('[QR ORDER] Validation error', [
-                'errors' => $e->errors(),
-                'request_data' => $request->all(),
-            ]);
+            return response()->json($result['response'], $result['status_code']);
+        } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
                 'messages' => $e->errors(),
-                'debug_data' => [
-                    'qr_token_provided' => $request->filled('qr_token'),
-                    'items_count' => count($request->get('items', [])),
-                    'first_item_keys' => count($request->get('items', [])) > 0 ? array_keys($request->get('items')[0]) : [],
-                ]
             ], 422);
-        } catch (\Exception $e) {
-            Log::error('[QR ORDER] Error creating order', [
-                'qr_token' => $request->qr_token,
-                'error' => $e->getMessage(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-            ]);
+        } catch (Throwable $e) {
+            \Log::error('[GUEST ORDER] Error creating order: ' . $e->getMessage());
+
             return response()->json([
                 'error' => 'Server error',
-                'message' => 'Unable to create order.',
+                'message' => 'Unable to create order: ' . $e->getMessage(),
             ], 500);
         }
     }
 
-    public function getOrderStatus($roomNumber)
+    /**
+     * Query latest order statuses for a room or table.
+     */
+    public function getOrderStatus(string $roomOrTableNumber): JsonResponse
     {
         try {
-            Log::info('[GUEST ORDER] Fetching order status', ['room_number' => $roomNumber]);
+            $room = Room::withoutGlobalScopes()
+                ->where('room_number', $roomOrTableNumber)
+                ->orWhere('qr_token', $roomOrTableNumber)
+                ->first();
 
-            $room = Room::where('room_number', $roomNumber)->first();
-
+            $table = null;
             if (!$room) {
-                return response()->json(['error' => 'Room not found'], 404);
+                $table = RestaurantTable::withoutGlobalScopes()
+                    ->where('table_number', $roomOrTableNumber)
+                    ->orWhere('qr_token', $roomOrTableNumber)
+                    ->orWhere('id', $roomOrTableNumber)
+                    ->first();
             }
 
-            $orders = Order::where('room_id', $room->id)
-                ->orderBy('created_at', 'desc')
-                ->limit(5)
-                ->get();
+            if (!$room && !$table) {
+                return response()->json(['error' => 'Room or table not found'], 404);
+            }
 
-            Log::info('[GUEST ORDER] Order status retrieved', [
-                'room_number' => $roomNumber,
-                'orders_count' => $orders->count(),
-            ]);
+            $orderQuery = Order::query()->orderBy('created_at', 'desc')->limit(5);
+            if ($room) {
+                $orderQuery->where('room_id', $room->id);
+            } else {
+                $orderQuery->where('table_id', $table->id);
+            }
+
+            $orders = $orderQuery->get();
 
             return response()->json([
                 'success' => true,
@@ -573,11 +361,9 @@ class GuestOrderController extends Controller
                     ];
                 }),
             ]);
-        } catch (\Exception $e) {
-            Log::error('[GUEST ORDER] Error fetching order status', [
-                'room_number' => $roomNumber,
-                'error' => $e->getMessage(),
-            ]);
+        } catch (Throwable $e) {
+            \Log::error('[GUEST ORDER] Error fetching order status: ' . $e->getMessage());
+
             return response()->json(['error' => 'Server error'], 500);
         }
     }

@@ -160,47 +160,91 @@ class PaymentController extends Controller
                     'status'     => $payment->fresh()->status,
                 ]);
                 if ($payment->metadata && isset($payment->metadata['type']) && $payment->metadata['type'] === 'reservation') {
-                    Log::info('Creating reservation after payment verification', [
-                        'payment_id' => $payment->id,
-                        'tx_ref'     => $txRef,
+                    Log::info('Checking reservation status after payment verification', [
+                        'payment_id'     => $payment->id,
+                        'tx_ref'         => $txRef,
+                        'reservation_id' => $payment->reservation_id,
                     ]);
                     
                     try {
                         $paymentHotelId = $payment->hotel_id ?? ($payment->metadata['hotel_id'] ?? null);
 
-                        if ($paymentHotelId && !empty($payment->metadata['room_id'])) {
-                            $roomBelongs = Room::where('hotel_id', $paymentHotelId)
-                                ->where('id', $payment->metadata['room_id'])
-                                ->exists();
-                            if (!$roomBelongs) {
-                                throw new \Exception("Room {$payment->metadata['room_id']} does not belong to hotel {$paymentHotelId}");
-                            }
+                        // 1. If payment is already linked to a reservation, skip duplicate creation
+                        $existingReservation = null;
+                        if (!empty($payment->reservation_id)) {
+                            $existingReservation = Reservation::withoutGlobalScopes()->find($payment->reservation_id);
                         }
 
-                        $reservation = Reservation::create([
-                            'hotel_id'          => $paymentHotelId,
-                            'booking_reference' => Reservation::generateBookingReference(),
-                            'guest_id'          => $payment->guest_id,
-                            'room_id'           => $payment->metadata['room_id'],
-                            'check_in_date'     => $payment->metadata['check_in_date'],
-                            'check_out_date'    => $payment->metadata['check_out_date'],
-                            'number_of_guests'  => $payment->metadata['number_of_guests'],
-                            'total_amount'      => $payment->amount,
-                            'status'            => 'pending',
-                            'special_requests'  => $payment->metadata['special_requests'] ?? null,
-                            'created_by'        => null,
-                        ]);
-                        
-                        $payment->update(['reservation_id' => $reservation->id]);
-                        
-                        Log::info('Reservation created successfully after payment', [
-                            'payment_id'       => $payment->id,
-                            'reservation_id'   => $reservation->id,
-                            'hotel_id'         => $reservation->hotel_id,
-                            'booking_reference' => $reservation->booking_reference,
-                            'status'           => $reservation->status,
-                        ]);
-                        
+                        // 2. If not linked, check if a reservation with same guest, room, and dates was created in the last 5 minutes
+                        if (!$existingReservation && !empty($payment->metadata['room_id'])) {
+                            $existingReservation = Reservation::withoutGlobalScopes()
+                                ->where('hotel_id', $paymentHotelId)
+                                ->where('guest_id', $payment->guest_id)
+                                ->where('room_id', $payment->metadata['room_id'])
+                                ->where('check_in_date', $payment->metadata['check_in_date'])
+                                ->where('check_out_date', $payment->metadata['check_out_date'])
+                                ->where('created_at', '>=', now()->subMinutes(5))
+                                ->first();
+                        }
+
+                        if ($existingReservation) {
+                            Log::info('[RESERVATION] Existing reservation found for payment, skipping duplicate creation', [
+                                'payment_id'     => $payment->id,
+                                'reservation_id' => $existingReservation->id,
+                                'booking_ref'    => $existingReservation->booking_reference,
+                            ]);
+                            if ($payment->reservation_id !== $existingReservation->id) {
+                                $payment->update(['reservation_id' => $existingReservation->id]);
+                            }
+                        } else {
+                            if ($paymentHotelId && !empty($payment->metadata['room_id'])) {
+                                $roomBelongs = Room::where('hotel_id', $paymentHotelId)
+                                    ->where('id', $payment->metadata['room_id'])
+                                    ->exists();
+                                if (!$roomBelongs) {
+                                    throw new \Exception("Room {$payment->metadata['room_id']} does not belong to hotel {$paymentHotelId}");
+                                }
+                            }
+
+                            $reservation = Reservation::create([
+                                'hotel_id'          => $paymentHotelId,
+                                'booking_reference' => Reservation::generateBookingReference(),
+                                'guest_id'          => $payment->guest_id,
+                                'room_id'           => $payment->metadata['room_id'],
+                                'check_in_date'     => $payment->metadata['check_in_date'],
+                                'check_out_date'    => $payment->metadata['check_out_date'],
+                                'number_of_guests'  => $payment->metadata['number_of_guests'],
+                                'total_amount'      => $payment->amount,
+                                'status'            => 'confirmed',
+                                'special_requests'  => $payment->metadata['special_requests'] ?? null,
+                                'created_by'        => null,
+                            ]);
+                            
+                            $payment->update(['reservation_id' => $reservation->id]);
+                            
+                            $reservation->load(['room.roomType', 'guest']);
+                            $guestEmail = $reservation->guest?->email ?? ($payment->metadata['email'] ?? null);
+
+                            if ($guestEmail) {
+                                try {
+                                    \Illuminate\Support\Facades\Mail::to($guestEmail)->send(new \App\Mail\ReservationConfirmed($reservation));
+                                    Log::info('Automatic confirmation email sent after payment', [
+                                        'reservation_id' => $reservation->id,
+                                        'guest_email'    => $guestEmail,
+                                    ]);
+                                } catch (\Exception $mailEx) {
+                                    Log::error('Failed to send confirmation email after payment: ' . $mailEx->getMessage());
+                                }
+                            }
+
+                            Log::info('Reservation created and confirmed successfully after payment', [
+                                'payment_id'       => $payment->id,
+                                'reservation_id'   => $reservation->id,
+                                'hotel_id'         => $reservation->hotel_id,
+                                'booking_reference' => $reservation->booking_reference,
+                                'status'           => $reservation->status,
+                            ]);
+                        }
                     } catch (\Exception $e) {
                         Log::error('Failed to create reservation after payment verification', [
                             'payment_id' => $payment->id,
@@ -242,7 +286,7 @@ class PaymentController extends Controller
 
                             $order = Order::create([
                                 'hotel_id'         => $payment->hotel_id ?? ($payment->metadata['hotel_id'] ?? null),
-                                'order_number'     => Order::generateOrderNumber(),
+                                'order_number'     => Order::generateOrderNumber($payment->hotel_id ?? ($payment->metadata['hotel_id'] ?? null)),
                                 'reservation_id'   => null,
                                 'guest_id'         => $payment->guest_id,
                                 'room_id'          => $roomId,

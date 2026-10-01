@@ -56,10 +56,10 @@ class QRResolutionController extends Controller
     public function validateQRToken(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'qr_token' => 'required|string|size:8',
+            'qr_token' => 'required|string|min:1|max:100',
         ]);
 
-        $qrToken = strtoupper($validated['qr_token']);
+        $qrToken = trim($validated['qr_token']);
 
         $result = QRResolutionService::resolveQRToken($qrToken);
 

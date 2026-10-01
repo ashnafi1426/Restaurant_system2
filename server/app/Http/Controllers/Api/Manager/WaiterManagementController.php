@@ -103,13 +103,100 @@ class WaiterManagementController extends Controller
         } catch (\Exception $e) {
             Log::error('Error fetching waiters', [
                 'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load waiters: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function available(Request $request): JsonResponse
+    {
+        try {
+            $hotelId = $this->getHotelId();
+
+            $waitersQuery = Waiter::with(['user'])
+                ->where('status', 'active');
+
+            if ($hotelId) {
+                $waitersQuery->where('hotel_id', $hotelId);
+            }
+
+            $waiters = $waitersQuery
+                ->orderBy('section')
+                ->get()
+                ->map(function ($waiter) {
+                    return [
+                        'id' => $waiter->id,
+                        'user_id' => $waiter->user_id,
+                        'user' => $waiter->user ? [
+                            'id' => $waiter->user->id,
+                            'name' => $waiter->user->name,
+                            'email' => $waiter->user->email,
+                            'phone' => $waiter->user->phone,
+                        ] : null,
+                        'name' => $waiter->user?->name ?? "Waiter #{$waiter->id}",
+                        'email' => $waiter->user?->email,
+                        'phone' => $waiter->user?->phone,
+                        'employment_type' => $waiter->employment_type,
+                        'section' => $waiter->section,
+                        'status' => $waiter->status,
+                        'availability' => $waiter->availability,
+                        'current_orders' => $waiter->current_orders,
+                        'maximum_orders' => $waiter->maximum_orders,
+                        'is_active' => $waiter->status === 'active',
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $waiters,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching available waiters', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load available waiters: ' . $e->getMessage(),
+                'data' => [],
+            ], 500);
+        }
+    }
+
+    public function availableUsers(Request $request): JsonResponse
+    {
+        try {
+            $hotelId = $this->getHotelId();
+
+            $existingUserIds = Waiter::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+                ->pluck('user_id')
+                ->filter();
+
+            $usersQuery = User::whereNotIn('id', $existingUserIds)
+                ->where('status', 'active');
+
+            if ($hotelId) {
+                $usersQuery->where(function ($q) use ($hotelId) {
+                    $q->where('hotel_id', $hotelId)
+                      ->orWhereHas('hotelMemberships', fn($m) => $m->where('hotel_id', $hotelId)->where('is_active', true));
+                });
+            }
+
+            $users = $usersQuery->select('id', 'name', 'email', 'phone')->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $users,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load available users',
+                'data' => [],
             ], 500);
         }
     }
@@ -427,21 +514,24 @@ class WaiterManagementController extends Controller
     {
         try {
             $validated = $request->validate([
+                'first_name' => 'sometimes|string|max:255',
+                'last_name' => 'sometimes|string|max:255',
+                'email' => 'sometimes|email',
+                'phone' => 'sometimes|nullable|string|max:20',
                 'section' => 'sometimes|string|max:100',
                 'shift' => 'sometimes|in:morning,afternoon,evening,night',
                 'experience_level' => 'sometimes|in:junior,senior,head',
                 'status' => 'sometimes|in:active,inactive,on_break',
-                'phone' => 'sometimes|string|max:20',
                 'employment_type' => 'sometimes|in:full_time,part_time,contract',
                 'maximum_orders' => 'sometimes|integer|min:1|max:20',
                 'current_orders' => 'sometimes|integer|min:0',
                 'availability' => 'sometimes|in:available,busy,break,offline',
-                'employee_number' => 'sometimes|string|max:50|unique:waiters,employee_number,' . $waiter->id,
-                'floor_assignments' => 'sometimes|array',
+                'employee_number' => 'sometimes|nullable|string|max:50|unique:waiters,employee_number,' . $waiter->id,
+                'floor_assignments' => 'sometimes|nullable|array',
                 'floor_assignments.*.floor_id' => 'required_with:floor_assignments|exists:hotel_floors,id',
                 'floor_assignments.*.shift_id' => 'required_with:floor_assignments|exists:hotel_shifts,id',
                 'floor_assignments.*.priority' => 'required_with:floor_assignments|in:primary,secondary,backup',
-                'floor_assignments.*.assignment_date' => 'sometimes|date',
+                'floor_assignments.*.assignment_date' => 'sometimes|nullable|date',
             ]);
 
             Log::info('Updating waiter', [
@@ -449,7 +539,22 @@ class WaiterManagementController extends Controller
                 'updates' => $validated,
             ]);
 
-            $waiter->update(collect($validated)->except('floor_assignments')->toArray());
+            if ($waiter->user) {
+                $userUpdates = [];
+                if (isset($validated['first_name'])) $userUpdates['first_name'] = $validated['first_name'];
+                if (isset($validated['last_name'])) $userUpdates['last_name'] = $validated['last_name'];
+                if (isset($validated['email'])) $userUpdates['email'] = $validated['email'];
+                if (isset($validated['phone'])) $userUpdates['phone'] = $validated['phone'];
+                if (!empty($userUpdates)) {
+                    $waiter->user->update($userUpdates);
+                }
+            }
+
+            $waiterUpdates = collect($validated)->except(['floor_assignments', 'first_name', 'last_name', 'email'])->toArray();
+            if (isset($validated['phone'])) {
+                $waiterUpdates['phone'] = $validated['phone'];
+            }
+            $waiter->update($waiterUpdates);
 
             if (isset($validated['floor_assignments'])) {
                 $this->syncFloorAssignments($waiter, $validated['floor_assignments']);
@@ -465,6 +570,12 @@ class WaiterManagementController extends Controller
                 'data' => $waiter->load('user', 'floorAssignments.floor', 'floorAssignments.shift'),
                 'message' => 'Waiter updated successfully',
             ]);
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $ve->errors(),
+            ], 422);
         } catch (\Exception $e) {
             Log::error('Error updating waiter', [
                 'waiter_id' => $waiter->id,
@@ -659,13 +770,19 @@ class WaiterManagementController extends Controller
             ->whereIn('assignment_date', $dates)
             ->delete();
         
+        $hotelId = $waiter->hotel_id ?? $this->getHotelId();
+
         foreach ($assignments as $assignment) {
+            if (empty($assignment['floor_id']) || empty($assignment['shift_id'])) {
+                continue;
+            }
             \App\Models\WaiterFloorAssignment::create([
                 'id' => \Illuminate\Support\Str::uuid(),
+                'hotel_id' => $hotelId,
                 'waiter_id' => $waiter->id,
                 'floor_id' => $assignment['floor_id'],
                 'shift_id' => $assignment['shift_id'],
-                'priority' => $assignment['priority'],
+                'priority' => $assignment['priority'] ?? 'primary',
                 'assignment_date' => $assignment['assignment_date'] ?? today()->toDateString(),
                 'status' => 'active',
                 'assigned_by' => auth()->id(),

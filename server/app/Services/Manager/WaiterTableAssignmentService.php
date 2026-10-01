@@ -20,73 +20,77 @@ class WaiterTableAssignmentService
             if (!Schema::hasTable('waiter_table_assignments')) {
                 Schema::create('waiter_table_assignments', function (Blueprint $table) {
                     $table->uuid('id')->primary();
-                    $table->unsignedBigInteger('waiter_id');
-                    $table->foreignUuid('table_id')->constrained('restaurant_tables')->onDelete('cascade');
-                    $table->foreignUuid('shift_id')->nullable()->constrained('hotel_shifts')->onDelete('set null');
-                    $table->date('assignment_date');
+                    $table->uuid('hotel_id')->nullable()->index();
+                    $table->unsignedBigInteger('waiter_id')->index();
+                    $table->uuid('table_id')->index();
+                    $table->uuid('shift_id')->nullable()->index();
+                    $table->date('assignment_date')->index();
                     $table->string('priority', 50)->default('primary');
-                    $table->string('status', 50)->default('active');
-                    $table->foreignUuid('assigned_by')->nullable()->constrained('users')->onDelete('set null');
+                    $table->string('status', 50)->default('active')->index();
+                    $table->uuid('assigned_by')->nullable();
                     $table->timestamps();
-                    $table->index('waiter_id');
-                    $table->index('table_id');
-                    $table->index('shift_id');
-                    $table->index('assignment_date');
-                    $table->index('status');
+                });
+
+                Log::info('Created waiter_table_assignments table successfully');
+            }
+
+            if (!Schema::hasColumn('waiter_table_assignments', 'hotel_id')) {
+                Schema::table('waiter_table_assignments', function (Blueprint $table) {
+                    $table->uuid('hotel_id')->nullable()->after('id')->index();
                 });
             }
+
+            if (!Schema::hasColumn('waiter_table_assignments', 'assigned_by')) {
+                Schema::table('waiter_table_assignments', function (Blueprint $table) {
+                    $table->uuid('assigned_by')->nullable()->after('status');
+                });
+            }
+
+            // Ensure shift_id is nullable
+            try {
+                DB::statement("ALTER TABLE `waiter_table_assignments` MODIFY `shift_id` CHAR(36) NULL");
+            } catch (\Throwable $e) {
+                // Ignore if already nullable or driver difference
+            }
+
+            // Drop legacy restrictive unique index if exists to allow multiple waiters on the same table
+            try {
+                $indexes = DB::select("
+                    SELECT INDEX_NAME 
+                    FROM INFORMATION_SCHEMA.STATISTICS 
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                      AND TABLE_NAME = 'waiter_table_assignments' 
+                      AND INDEX_NAME = 'unique_table_shift_date_priority'
+                ");
+                if (!empty($indexes)) {
+                    Schema::table('waiter_table_assignments', function (Blueprint $table) {
+                        $table->dropUnique('unique_table_shift_date_priority');
+                    });
+                }
+            } catch (\Throwable $e) {
+                // Ignore if driver or syntax differences
+            }
+
+            // Synchronize any existing assignments where hotel_id is null with their table's hotel_id
+            try {
+                DB::statement("
+                    UPDATE waiter_table_assignments wta
+                    INNER JOIN restaurant_tables rt ON wta.table_id = rt.id
+                    SET wta.hotel_id = rt.hotel_id
+                    WHERE wta.hotel_id IS NULL OR wta.hotel_id = ''
+                ");
+            } catch (\Throwable $e) {
+                // Ignore if driver or syntax differences
+            }
         } catch (\Throwable $e) {
-            Log::warning('ensureTableExists error: ' . $e->getMessage());
+            Log::error('ensureTableExists error: ' . $e->getMessage());
         }
     }
 
     public function autoSeedAssignmentsIfEmpty()
     {
-        $this->ensureTableExists();
-
-        try {
-            if (!Schema::hasTable('waiter_table_assignments')) {
-                return;
-            }
-
-            $shift = HotelShift::first();
-            if (!$shift) {
-                $shift = HotelShift::create([
-                    'name' => 'Morning',
-                    'start_time' => '06:00',
-                    'end_time' => '14:00',
-                    'status' => 'active',
-                    'description' => 'Morning shift',
-                ]);
-            }
-
-            $tables = RestaurantTable::get();
-            $waiters = Waiter::with('user')->get();
-
-            if ($tables->isEmpty() || $waiters->isEmpty()) {
-                return;
-            }
-
-            $today = Carbon::today()->format('Y-m-d');
-            $existingTableIds = WaiterTableAssignment::where('assignment_date', $today)->pluck('table_id')->toArray();
-
-            foreach ($tables as $index => $table) {
-                if (in_array($table->id, $existingTableIds)) {
-                    continue;
-                }
-                $waiter = $waiters[$index % $waiters->count()];
-                WaiterTableAssignment::create([
-                    'waiter_id' => $waiter->id,
-                    'table_id' => $table->id,
-                    'shift_id' => $shift->id,
-                    'assignment_date' => $today,
-                    'priority' => ($index % 3 === 0) ? 'primary' : (($index % 3 === 1) ? 'secondary' : 'backup'),
-                    'status' => 'active',
-                ]);
-            }
-        } catch (\Throwable $e) {
-            Log::warning('autoSeedAssignmentsIfEmpty error: ' . $e->getMessage());
-        }
+        // Auto-seeding disabled to prevent un-scoped cross-tenant pollution
+        return;
     }
 
     protected function getHotelId(): ?string
@@ -99,13 +103,16 @@ class WaiterTableAssignmentService
             $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
         }
 
+        if ($hotelId) {
+            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+        }
+
         return $hotelId;
     }
 
     public function getAssignments(array $filters = [])
     {
         $this->ensureTableExists();
-        $this->autoSeedAssignmentsIfEmpty();
 
         $perPage = $filters['per_page'] ?? 100;
 
@@ -117,11 +124,10 @@ class WaiterTableAssignmentService
 
         $query = WaiterTableAssignment::query()
             ->when($hotelId, function($q) use ($hotelId) {
-                if (Schema::hasColumn('waiter_table_assignments', 'hotel_id')) {
-                    $q->where('waiter_table_assignments.hotel_id', $hotelId);
-                } else {
-                    $q->whereHas('table', fn($t) => $t->where('hotel_id', $hotelId));
-                }
+                $q->where(function($sub) use ($hotelId) {
+                    $sub->where('waiter_table_assignments.hotel_id', $hotelId)
+                        ->orWhereHas('table', fn($t) => $t->where('hotel_id', $hotelId));
+                });
             })
             ->with([
                 'waiter.user',
@@ -184,11 +190,10 @@ class WaiterTableAssignmentService
             'shift'
         ])
         ->when($hotelId, function($q) use ($hotelId) {
-            if (Schema::hasColumn('waiter_table_assignments', 'hotel_id')) {
-                $q->where('waiter_table_assignments.hotel_id', $hotelId);
-            } else {
-                $q->whereHas('table', fn($t) => $t->where('hotel_id', $hotelId));
-            }
+            $q->where(function($sub) use ($hotelId) {
+                $sub->where('waiter_table_assignments.hotel_id', $hotelId)
+                    ->orWhereHas('table', fn($t) => $t->where('hotel_id', $hotelId));
+            });
         })
         ->active()
         ->today()
@@ -217,34 +222,43 @@ class WaiterTableAssignmentService
                 try {
                     $this->validateAssignment($assignmentData);
 
-                    $exists = WaiterTableAssignment::where('table_id', $assignmentData['table_id'])
-                        ->where('shift_id', $assignmentData['shift_id'])
-                        ->where('assignment_date', $assignmentData['assignment_date'])
-                        ->where('priority', $assignmentData['priority'])
-                        ->where('status', WaiterTableAssignment::STATUS_ACTIVE)
-                        ->when($hotelId && Schema::hasColumn('waiter_table_assignments', 'hotel_id'), fn($q) => $q->where('hotel_id', $hotelId))
-                        ->exists();
+                    $table = RestaurantTable::withoutTenant()->find($assignmentData['table_id']);
+                    $effectiveHotelId = $hotelId ?: ($table ? $table->hotel_id : null);
 
-                    if ($exists) {
-                        $errors[] = [
-                            'index' => $index,
-                            'error' => 'Assignment already exists for this table, shift, and priority'
-                        ];
+                    $existing = WaiterTableAssignment::where('table_id', $assignmentData['table_id'])
+                        ->where('waiter_id', $assignmentData['waiter_id'])
+                        ->when($effectiveHotelId && Schema::hasColumn('waiter_table_assignments', 'hotel_id'), fn($q) => $q->where('hotel_id', $effectiveHotelId))
+                        ->first();
+
+                    if ($existing) {
+                        $existing->update([
+                            'status' => $assignmentData['status'] ?? WaiterTableAssignment::STATUS_ACTIVE,
+                            'assigned_by' => $assignedBy,
+                            'assignment_date' => $assignmentData['assignment_date'] ?? today()->toDateString(),
+                            'shift_id' => $assignmentData['shift_id'] ?? $existing->shift_id,
+                            'priority' => $assignmentData['priority'] ?? $existing->priority ?? WaiterTableAssignment::PRIORITY_PRIMARY,
+                        ]);
+                        $existing->load(['waiter.user', 'table', 'shift', 'assignedByUser']);
+                        $created[] = $existing;
                         continue;
                     }
+
+                    $resolvedShiftId = !empty($assignmentData['shift_id']) 
+                        ? $assignmentData['shift_id'] 
+                        : HotelShift::where('is_active', true)->when($effectiveHotelId, fn($q) => $q->where('hotel_id', $effectiveHotelId))->value('id');
 
                     $createPayload = [
                         'waiter_id' => $assignmentData['waiter_id'],
                         'table_id' => $assignmentData['table_id'],
-                        'shift_id' => $assignmentData['shift_id'],
-                        'assignment_date' => $assignmentData['assignment_date'],
+                        'shift_id' => $resolvedShiftId,
+                        'assignment_date' => $assignmentData['assignment_date'] ?? today()->toDateString(),
                         'priority' => $assignmentData['priority'] ?? WaiterTableAssignment::PRIORITY_PRIMARY,
-                        'status' => WaiterTableAssignment::STATUS_ACTIVE,
+                        'status' => $assignmentData['status'] ?? WaiterTableAssignment::STATUS_ACTIVE,
                         'assigned_by' => $assignedBy,
                     ];
 
-                    if ($hotelId && Schema::hasColumn('waiter_table_assignments', 'hotel_id')) {
-                        $createPayload['hotel_id'] = $hotelId;
+                    if ($effectiveHotelId && Schema::hasColumn('waiter_table_assignments', 'hotel_id')) {
+                        $createPayload['hotel_id'] = $effectiveHotelId;
                     }
 
                     $assignment = WaiterTableAssignment::create($createPayload);
@@ -256,7 +270,7 @@ class WaiterTableAssignmentService
                         'assignment_id' => $assignment->id,
                         'waiter_id' => $assignment->waiter_id,
                         'table_id' => $assignment->table_id,
-                        'shift_id' => $assignment->shift_id,
+                        'hotel_id' => $createPayload['hotel_id'] ?? null,
                     ]);
 
                 } catch (\Exception $e) {
@@ -333,10 +347,10 @@ class WaiterTableAssignmentService
 
     public function getAssignmentStats(?string $date = null)
     {
-        $this->autoSeedAssignmentsIfEmpty();
+        $hotelId = $this->getHotelId();
 
-        $totalTablesCount = RestaurantTable::count();
-        $totalWaitersCount = Waiter::count();
+        $totalTablesCount = RestaurantTable::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->count();
+        $totalWaitersCount = Waiter::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))->count();
 
         if (!Schema::hasTable('waiter_table_assignments')) {
             return [
@@ -350,21 +364,25 @@ class WaiterTableAssignmentService
             ];
         }
 
-        $query = WaiterTableAssignment::query();
+        $query = WaiterTableAssignment::query()
+            ->when($hotelId, function($q) use ($hotelId) {
+                $q->where(function($sub) use ($hotelId) {
+                    $sub->where('waiter_table_assignments.hotel_id', $hotelId)
+                        ->orWhereHas('table', fn($t) => $t->where('hotel_id', $hotelId));
+                });
+            });
 
         if ($date && $date !== 'all') {
-            $filteredQuery = (clone $query)->where('assignment_date', $date);
-            if ($filteredQuery->count() > 0) {
-                $query = $filteredQuery;
-            }
+            $query->whereDate('assignment_date', $date);
         }
 
         $assignments = $query->get();
 
         return [
             'total_assignments' => $assignments->count(),
-            'total_tables' => max($assignments->pluck('table_id')->unique()->count(), $totalTablesCount),
-            'total_waiters' => max($assignments->pluck('waiter_id')->unique()->count(), $totalWaitersCount),
+            'total_tables' => $totalTablesCount,
+            'total_waiters' => $totalWaitersCount > 0 ? $totalWaitersCount : $assignments->pluck('waiter_id')->unique()->count(),
+            'active_assignments' => $assignments->where('status', WaiterTableAssignment::STATUS_ACTIVE)->count(),
             'primary_assignments' => $assignments->where('priority', WaiterTableAssignment::PRIORITY_PRIMARY)->count(),
             'secondary_assignments' => $assignments->where('priority', WaiterTableAssignment::PRIORITY_SECONDARY)->count(),
             'backup_assignments' => $assignments->where('priority', WaiterTableAssignment::PRIORITY_BACKUP)->count(),
@@ -381,13 +399,9 @@ class WaiterTableAssignmentService
             ->where('end_time', '>=', $currentTime)
             ->first();
 
-        if (!$currentShift) {
-            return null;
-        }
-
         return WaiterTableAssignment::getAssignedWaiter(
             $tableId,
-            $currentShift->id,
+            $currentShift?->id,
             today()
         );
     }
@@ -407,23 +421,32 @@ class WaiterTableAssignmentService
             throw new \Exception('table_id is required');
         }
 
-        if (!isset($data['shift_id'])) {
-            throw new \Exception('shift_id is required');
-        }
-
-        if (!isset($data['assignment_date'])) {
-            throw new \Exception('assignment_date is required');
-        }
-
-        if (!Waiter::find($data['waiter_id'])) {
+        $waiter = Waiter::find($data['waiter_id']);
+        if (!$waiter) {
             throw new \Exception('Waiter not found');
         }
 
-        if (!RestaurantTable::find($data['table_id'])) {
+        // Only active waiters can be assigned
+        if (strtolower($waiter->status ?? 'active') !== 'active') {
+            throw new \Exception("Waiter '{$waiter->name}' is inactive. Only active waiters can be assigned.");
+        }
+
+        $table = RestaurantTable::withoutTenant()->find($data['table_id']);
+        if (!$table) {
             throw new \Exception('Table not found');
         }
 
-        if (!HotelShift::find($data['shift_id'])) {
+        $hotelId = $this->getHotelId();
+        if ($hotelId) {
+            if ($table->hotel_id && $table->hotel_id !== $hotelId) {
+                throw new \Exception('Table belongs to a different hotel');
+            }
+            if ($waiter->hotel_id && $waiter->hotel_id !== $hotelId) {
+                throw new \Exception('Waiter belongs to a different hotel');
+            }
+        }
+
+        if (!empty($data['shift_id']) && !HotelShift::find($data['shift_id'])) {
             throw new \Exception('Shift not found');
         }
 

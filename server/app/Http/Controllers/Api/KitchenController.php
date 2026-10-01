@@ -2,21 +2,20 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Services\KitchenService;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\KitchenOrderResource;
 use App\Models\Order;
+use App\Services\KitchenService;
+use App\Services\TenantContext;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Throwable;
 
 class KitchenController extends Controller
 {
     protected KitchenService $kitchenService;
 
-    public function __construct(
-        KitchenService $kitchenService
-    )
+    public function __construct(KitchenService $kitchenService)
     {
         $this->kitchenService = $kitchenService;
     }
@@ -25,10 +24,10 @@ class KitchenController extends Controller
     {
         $hotelId = $request->input('hotel_id') 
             ?: $request->header('X-Hotel-ID') 
-            ?: app(\App\Services\TenantContext::class)->getHotelId();
+            ?: app(TenantContext::class)->getHotelId();
 
         if ($hotelId) {
-            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+            app(TenantContext::class)->setHotelId($hotelId);
         }
 
         return $hotelId;
@@ -38,180 +37,80 @@ class KitchenController extends Controller
     {
         try {
             $this->resolveTenant($request);
-
-            \Log::info('🔍 [KITCHEN] Orders Request', [
-                'user_id' => auth()->id(),
-                'user_role' => auth()->user()->role ?? 'unknown',
-            ]);
-
-            $orders = $this
-                ->kitchenService
-                ->getKitchenOrders(auth()->user());
-
-            \Log::info(' [KITCHEN] Orders Retrieved', [
-                'pending_count' => count($orders['pending']),
-                'preparing_count' => count($orders['preparing']),
-                'ready_count' => count($orders['ready']),
-                'served_count' => count($orders['served']),
-            ]);
+            $orders = $this->kitchenService->getKitchenOrders(auth()->user());
 
             return response()->json([
                 'success' => true,
                 'message' => 'Kitchen orders retrieved successfully.',
                 'data' => [
-                    'pending' =>
-                        KitchenOrderResource::collection(
-                            $orders['pending']
-                        ),
-                    'preparing' =>
-                        KitchenOrderResource::collection(
-                            $orders['preparing']
-                        ),
-                    'ready' =>
-                        KitchenOrderResource::collection(
-                            $orders['ready']
-                        ),
-                    'served' =>
-                        KitchenOrderResource::collection(
-                            $orders['served']
-                        ),
+                    'pending' => KitchenOrderResource::collection($orders['pending']),
+                    'preparing' => KitchenOrderResource::collection($orders['preparing']),
+                    'ready' => KitchenOrderResource::collection($orders['ready']),
+                    'served' => KitchenOrderResource::collection($orders['served']),
                 ]
             ]);
-        } catch(Throwable $e){
-            \Log::error(' [KITCHEN] Orders Error', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+        } catch (Throwable $e) {
+            \Log::error('[KITCHEN] Failed to load orders: ' . $e->getMessage());
 
             return response()->json([
-                'success'=>false,
-                'message'=>'Failed to load kitchen orders.',
-                'error'=>$e->getMessage()
-            ],500);
+                'success' => false,
+                'message' => 'Failed to load kitchen orders.',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
     public function start(Order $order): JsonResponse
     {
         try {
-            \Log::info('🟢 [KITCHEN] START Action Received', [
-                'order_id' => $order->id,
-                'order_number' => $order->order_number,
-                'current_status' => $order->status,
-            ]);
-
-            $updatedOrder =
-                $this
-                ->kitchenService
-                ->startPreparing($order);
-
-            \Log::info(' [KITCHEN] START Action Completed', [
-                'order_id' => $updatedOrder->id,
-                'new_status' => $updatedOrder->status,
-            ]);
+            $updatedOrder = $this->kitchenService->startPreparing($order);
 
             return response()->json([
-                'success'=>true,
-                'message'=>
-                    'Order started preparing successfully.',
-                'data'=>
-                    new KitchenOrderResource(
-                        $updatedOrder
-                    )
+                'success' => true,
+                'message' => 'Order started preparing successfully.',
+                'data' => new KitchenOrderResource($updatedOrder)
             ]);
-        } catch(Throwable $e){
-            \Log::error(' [KITCHEN] START Action Failed', [
-                'order_id' => $order->id ?? 'unknown',
-                'error_message' => $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
+        } catch (Throwable $e) {
             return response()->json([
-                'success'=>false,
-                'message'=>$e->getMessage()
-            ],500);
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
         }
     }
 
     public function ready(Order $order): JsonResponse
     {
         try {
-            \Log::info('[KITCHEN] READY Action Received', [
-                'order_id' => $order->id,
-                'order_number' => $order->order_number,
-                'current_status' => $order->status,
-            ]);
-            $updatedOrder =
-                $this
-                ->kitchenService
-                ->markReady($order);
-
-            \Log::info(' [KITCHEN] READY Action Completed', [
-                'order_id' => $updatedOrder->id,
-                'new_status' => $updatedOrder->status,
-            ]);
+            $updatedOrder = $this->kitchenService->markReady($order);
 
             return response()->json([
-                'success'=>true,
-                'message'=>
-                    'Order marked as ready.',
-                'data'=>
-                    new KitchenOrderResource(
-                        $updatedOrder
-                    )
+                'success' => true,
+                'message' => 'Order marked as ready.',
+                'data' => new KitchenOrderResource($updatedOrder)
             ]);
-        } catch(Throwable $e){
-            \Log::error(' [KITCHEN] READY Action Failed', [
-                'order_id' => $order->id ?? 'unknown',
-                'error_message' => $e->getMessage(),
-            ]);
-
+        } catch (Throwable $e) {
             return response()->json([
-                'success'=>false,
-                'message'=>$e->getMessage()
-            ],500);
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
         }
     }
 
     public function complete(Order $order): JsonResponse
     {
         try {
-            \Log::info('🟢 [KITCHEN] COMPLETE Action Received', [
-                'order_id' => $order->id,
-                'order_number' => $order->order_number,
-                'current_status' => $order->status,
-            ]);
-
-            $updatedOrder =
-                $this
-                ->kitchenService
-                ->markServed($order);
-
-            \Log::info(' [KITCHEN] COMPLETE Action Completed', [
-                'order_id' => $updatedOrder->id,
-                'new_status' => $updatedOrder->status,
-            ]);
+            $updatedOrder = $this->kitchenService->markServed($order);
 
             return response()->json([
-                'success'=>true,
-                'message'=>
-                    'Order completed successfully.',
-                'data'=>
-                    new KitchenOrderResource(
-                        $updatedOrder
-                    )
+                'success' => true,
+                'message' => 'Order completed successfully.',
+                'data' => new KitchenOrderResource($updatedOrder)
             ]);
-        } catch(Throwable $e){
-            \Log::error(' [KITCHEN] COMPLETE Action Failed', [
-                'order_id' => $order->id ?? 'unknown',
-                'error_message' => $e->getMessage(),
-            ]);
-
+        } catch (Throwable $e) {
             return response()->json([
-                'success'=>false,
-                'message'=>$e->getMessage()
-            ],500);
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
         }
     }
 
@@ -219,21 +118,17 @@ class KitchenController extends Controller
     {
         try {
             $this->resolveTenant($request);
-
-            $statistics =
-                $this
-                ->kitchenService
-                ->statistics(auth()->user());
+            $statistics = $this->kitchenService->statistics(auth()->user());
 
             return response()->json([
-                'success'=>true,
-                'data'=>$statistics
+                'success' => true,
+                'data' => $statistics
             ]);
-        } catch(Throwable $e){
+        } catch (Throwable $e) {
             return response()->json([
-                'success'=>false,
-                'message'=>$e->getMessage()
-            ],500);
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 }

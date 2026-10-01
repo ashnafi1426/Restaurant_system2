@@ -14,13 +14,20 @@ class StoreRoomTypeRequest extends FormRequest
 
     public function rules(): array
     {
-        $hotelId = \App\Services\TenantContext::id();
+        $hotelId = \App\Services\TenantContext::id()
+            ?: $this->input('hotel_id')
+            ?: $this->header('X-Hotel-ID')
+            ?: $this->header('x-hotel-id')
+            ?: $this->user()?->hotel_id
+            ?: $this->user()?->hotelMemberships()->where('is_active', true)->value('hotel_id');
+
         $uniqueName = Rule::unique('room_types', 'name');
         if ($hotelId) {
             $uniqueName = $uniqueName->where('hotel_id', $hotelId);
         }
 
         return [
+            'hotel_id' => ['nullable', 'string'],
             'name' => [
                 'required',
                 'string',

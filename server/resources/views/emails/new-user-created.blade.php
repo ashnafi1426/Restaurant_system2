@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +13,6 @@
             margin: 0 auto;
             padding: 20px;
         }
-
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -22,13 +20,11 @@
             text-align: center;
             border-radius: 10px 10px 0 0;
         }
-
         .content {
             background: #f9f9f9;
             padding: 30px;
             border-radius: 0 0 10px 10px;
         }
-
         .credentials-box {
             background: white;
             border: 2px solid #667eea;
@@ -36,18 +32,15 @@
             padding: 20px;
             margin: 20px 0;
         }
-
         .credential-item {
             margin: 15px 0;
         }
-
         .credential-label {
             font-weight: bold;
             color: #667eea;
             display: block;
             margin-bottom: 5px;
         }
-
         .credential-value {
             font-size: 18px;
             color: #333;
@@ -56,7 +49,6 @@
             border-radius: 5px;
             font-family: monospace;
         }
-
         .password-highlight {
             background: #fff3cd;
             border: 2px dashed #ff6b6b;
@@ -64,13 +56,11 @@
             border-radius: 8px;
             margin: 20px 0;
         }
-
         .warning {
             color: #ff6b6b;
             font-weight: bold;
             margin-top: 10px;
         }
-
         .btn {
             display: inline-block;
             padding: 12px 30px;
@@ -81,20 +71,17 @@
             margin: 20px 0;
             font-weight: bold;
         }
-
         .steps {
             background: white;
             padding: 20px;
             border-radius: 8px;
             margin: 20px 0;
         }
-
         .step {
             margin: 15px 0;
             padding-left: 30px;
             position: relative;
         }
-
         .step-number {
             position: absolute;
             left: 0;
@@ -109,7 +96,6 @@
             justify-content: center;
             font-weight: bold;
         }
-
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -118,7 +104,6 @@
         }
     </style>
 </head>
-
 <body>
     <div class="header">
         <h1>Welcome to {{ config('app.name') }}!</h1>
@@ -132,9 +117,9 @@
 
         <div class="credentials-box">
             <h3 style="margin-top: 0; color: #667eea;">Your Login Credentials</h3>
-
+            
             <div class="credential-item">
-                <span class="credential-label"> Email:</span>
+                <span class="credential-label">📧 Email:</span>
                 <div class="credential-value">{{ $email }}</div>
             </div>
 
@@ -149,22 +134,19 @@
             <p style="margin: 10px 0;">This is a <strong>temporary password</strong>. For security reasons, please change it immediately after your first login.</p>
             <p class="warning">Do not share this password with anyone!</p>
         </div>
-
         <div class="steps">
             <h3 style="margin-top: 0; color: #667eea;">Getting Started</h3>
-
+            
             <div class="step">
                 <div class="step-number">1</div>
                 <strong>Login to your account</strong><br>
                 Click the button below to access the login page
             </div>
-
             <div class="step">
                 <div class="step-number">2</div>
                 <strong>Use your credentials</strong><br>
                 Enter your email and the temporary password provided above
             </div>
-
             <div class="step">
                 <div class="step-number">3</div>
                 <strong>Change your password</strong><br>
@@ -185,8 +167,7 @@
         <p style="margin-top: 30px;">If you have any questions or need assistance, please contact your system administrator.</p>
 
         <p>Best regards,<br>
-            <strong>{{ config('app.name') }} Team</strong>
-        </p>
+        <strong>{{ config('app.name') }} Team</strong></p>
     </div>
 
     <div class="footer">
@@ -194,5 +175,4 @@
         <p>&copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
     </div>
 </body>
-
 </html>

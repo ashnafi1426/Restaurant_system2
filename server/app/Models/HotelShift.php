@@ -74,4 +74,70 @@ class HotelShift extends Model
     {
         return $this->start_time->diffInHours($this->end_time);
     }
+
+    public static function seedDefaultShiftsForHotel(?string $hotelId = null): void
+    {
+        $hotelIds = [];
+        if ($hotelId) {
+            $hotelIds[] = $hotelId;
+        } else {
+            $hotelIds = \App\Models\Hotel::pluck('id')->toArray();
+        }
+
+        if (empty($hotelIds)) {
+            return;
+        }
+
+        $defaultShifts = [
+            [
+                'name' => 'Morning',
+                'start_time' => '06:00',
+                'end_time' => '14:00',
+                'status' => 'active',
+                'description' => 'Morning shift',
+            ],
+            [
+                'name' => 'Afternoon',
+                'start_time' => '14:00',
+                'end_time' => '22:00',
+                'status' => 'active',
+                'description' => 'Afternoon shift',
+            ],
+            [
+                'name' => 'Evening',
+                'start_time' => '17:00',
+                'end_time' => '23:00',
+                'status' => 'active',
+                'description' => 'Evening shift',
+            ],
+            [
+                'name' => 'Night',
+                'start_time' => '22:00',
+                'end_time' => '06:00',
+                'status' => 'active',
+                'description' => 'Night shift',
+            ],
+        ];
+
+        foreach ($hotelIds as $hId) {
+            $hasShifts = self::withoutTenant()->where('hotel_id', $hId)->exists();
+            if (!$hasShifts) {
+                foreach ($defaultShifts as $shiftData) {
+                    try {
+                        self::withoutTenant()->create([
+                            'id' => \Illuminate\Support\Str::uuid(),
+                            'hotel_id' => $hId,
+                            'name' => $shiftData['name'],
+                            'start_time' => $shiftData['start_time'],
+                            'end_time' => $shiftData['end_time'],
+                            'status' => $shiftData['status'],
+                            'description' => $shiftData['description'],
+                        ]);
+                    } catch (\Throwable $e) {
+                        \Log::warning("seedDefaultShiftsForHotel error: " . $e->getMessage());
+                    }
+                }
+            }
+        }
+    }
 }

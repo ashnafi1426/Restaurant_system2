@@ -20,7 +20,10 @@ class IdentifyTenant
 
     public function handle(Request $request, Closure $next): Response
     {
-        $hotelId = $request->header('X-Hotel-ID') ?: $request->query('hotel_id') ?: $request->input('hotel_id');
+        $hotelId = $request->header('X-Hotel-ID') 
+            ?: $request->header('x-hotel-id')
+            ?: $request->query('hotel_id') 
+            ?: $request->input('hotel_id');
         $user = $request->user();
 
         if (!$user && ($token = $request->bearerToken())) {
@@ -32,7 +35,16 @@ class IdentifyTenant
         }
 
         // 1. Bypass tenant requirement for public, auth, and global permissions catalog endpoints
-        if ($request->is(
+        $isPublicRead = $request->isMethod('GET') && $request->is(
+            'api/rooms',
+            'api/rooms/*',
+            'api/room-types',
+            'api/room-types/*',
+            'api/reservations/availability',
+            'api/qr-codes/*'
+        );
+
+        if ($isPublicRead || $request->is(
             'api/login',
             'api/register',
             'api/forgot-password',
@@ -46,12 +58,6 @@ class IdentifyTenant
             'api/me',
             'api/auth/*',
             'api/guest/*',  // Guest endpoints bypass authentication
-            'api/reservations/availability',
-            'api/rooms',
-            'api/rooms/*',
-            'api/room-types',
-            'api/room-types/*',
-            'api/qr-codes/*',
             'api/payments/*',
             'api/reservation-payments/*',
             'api/order-payments/*',
@@ -62,6 +68,11 @@ class IdentifyTenant
                 if ($hotel) {
                     $membership = $user ? HotelUser::where('hotel_id', $hotelId)->where('user_id', $user->id)->first() : null;
                     $this->tenantContext->setHotel($hotel, $membership);
+                }
+            } elseif ($user) {
+                $membership = $user->hotelMemberships()->where('is_active', true)->first();
+                if ($membership && $membership->hotel) {
+                    $this->tenantContext->setHotel($membership->hotel, $membership);
                 }
             }
             return $next($request);

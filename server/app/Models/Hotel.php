@@ -74,4 +74,9 @@ class Hotel extends Model
     {
         return $this->hasMany(Role::class, 'hotel_id');
     }
+
+    public function floors()
+    {
+        return $this->hasMany(Floor::class, 'hotel_id');
+    }
 }
