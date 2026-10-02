@@ -48,7 +48,7 @@ import { useLanguageStore } from '@/stores/language'
 
 const languageStore = useLanguageStore()
 
-defineProps<{
+const props = defineProps<{
   statistics?: {
     pending_orders: number
     preparing_orders: number
@@ -60,10 +60,13 @@ defineProps<{
     today_pending?: number
     today_preparing?: number
     today_ready?: number
+    avg_prep_time_minutes?: number
   }
 }>()
 
-const avgPrepTime = computed(() => 14.37)
+const avgPrepTime = computed(() => {
+  return Number(props.statistics?.avg_prep_time_minutes ?? 0)
+})
 
 const avgPrepTimeMinutes = computed(() => Math.floor(avgPrepTime.value))
 const avgPrepTimeSeconds = computed(() =>
@@ -72,5 +75,5 @@ const avgPrepTimeSeconds = computed(() =>
     .padStart(2, '0'),
 )
 
-const prepTimeTrend = computed(() => -12)
+const prepTimeTrend = computed(() => null)
 </script>

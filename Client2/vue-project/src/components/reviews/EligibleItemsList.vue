@@ -82,7 +82,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import reviewService from '@/services/reviewService'
-import { EligibleMenuItem } from '@/types/review'
+import type { EligibleMenuItem } from '@/types/review'
 import { useLanguageStore } from '@/stores/language'
 
 interface Props {

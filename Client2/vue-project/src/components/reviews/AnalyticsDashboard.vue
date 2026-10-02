@@ -117,7 +117,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import reviewService from '@/services/reviewService'
-import { TopRatedItem, ReviewTrend } from '@/types/review'
+import type { TopRatedItem, ReviewTrend } from '@/types/review'
 import { useLanguageStore } from '@/stores/language'
 
 const languageStore = useLanguageStore()

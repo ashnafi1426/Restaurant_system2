@@ -1,9 +1,15 @@
+import type { RestaurantSection } from './restaurantSection'
+
 export interface RestaurantTable {
   id: string
   table_number: string
   table_name: string | null
   capacity: number
   location: string | null
+  section_id?: string | null
+  section?: string | null
+  section_name?: string | null
+  restaurant_section?: RestaurantSection | null
   status: 'available' | 'occupied' | 'reserved' | 'cleaning' | 'out_of_service'
   is_active: boolean
   qr_token: string
@@ -20,6 +26,8 @@ export interface CreateTableRequest {
   table_name?: string | null
   capacity?: number
   location?: string | null
+  section_id?: string | null
+  section?: string | null
   status?: 'available' | 'occupied' | 'reserved' | 'cleaning' | 'out_of_service'
   is_active?: boolean
 }
@@ -29,6 +37,8 @@ export interface UpdateTableRequest {
   table_name?: string | null
   capacity?: number
   location?: string | null
+  section_id?: string | null
+  section?: string | null
   status?: 'available' | 'occupied' | 'reserved' | 'cleaning' | 'out_of_service'
   is_active?: boolean
 }
@@ -37,6 +47,8 @@ export interface TableFilters {
   search?: string
   status?: 'available' | 'occupied' | 'reserved' | 'cleaning' | 'out_of_service' | ''
   location?: string
+  section_id?: string
+  section?: string
   is_active?: boolean | null
   sort_by?: string
   sort_order?: 'asc' | 'desc'

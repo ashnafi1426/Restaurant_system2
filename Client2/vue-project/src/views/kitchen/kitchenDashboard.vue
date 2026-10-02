@@ -107,9 +107,19 @@ function stopAutoRefresh() {
   }
 }
 
+function handleVisibilityChange() {
+  if (document.hidden) {
+    stopAutoRefresh()
+  } else if (autoRefresh.value) {
+    startAutoRefresh()
+    refreshDashboard()
+  }
+}
+
 onMounted(async () => {
   await kitchenStore.refreshDashboard()
   startAutoRefresh()
+  document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
 watch(() => hotelStore.hotelId, async () => {
@@ -118,6 +128,7 @@ watch(() => hotelStore.hotelId, async () => {
 
 onBeforeUnmount(() => {
   stopAutoRefresh()
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>
 

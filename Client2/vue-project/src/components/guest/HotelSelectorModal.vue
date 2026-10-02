@@ -209,7 +209,7 @@ onMounted(() => {
                     v-if="getHotelLogoUrl(hotel)" 
                     :src="getHotelLogoUrl(hotel)!" 
                     :alt="hotel.name" 
-                    class="w-full h-full object-cover"
+                    class="w-full h-full object-contain p-1"
                     @error="(e: any) => { e.target.style.display = 'none'; if (e.target.nextElementSibling) e.target.nextElementSibling.style.display = 'block'; }" 
                   />
                   <span :style="{ display: getHotelLogoUrl(hotel) ? 'none' : 'block' }">{{ (hotel.name || 'H').charAt(0).toUpperCase() }}</span>

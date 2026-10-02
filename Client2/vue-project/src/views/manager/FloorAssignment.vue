@@ -50,7 +50,7 @@ const selectedStaffing = ref('all')
 
 // Modal state
 const showAddStaffModal = ref(false)
-const selectedFloorForModal = ref<{ id: string; name: string } | null>(null)
+const selectedFloorForModal = ref<{ id: string; name: string; hotel_id?: string } | null>(null)
 
 // Pagination State
 const currentPage = ref(1)
@@ -190,6 +190,7 @@ const openAddStaff = (floor: any) => {
   selectedFloorForModal.value = {
     id: floor.id,
     name: floor.name || `Floor ${floor.floor_number}`,
+    hotel_id: floor.hotel_id,
   }
   showAddStaffModal.value = true
 }
@@ -647,6 +648,7 @@ watch(() => hotelStore.hotelId, () => {
         :is-open="showAddStaffModal"
         :floor-id="selectedFloorForModal.id"
         :floor-name="selectedFloorForModal.name"
+        :hotel-id="selectedFloorForModal.hotel_id || hotelStore.hotelId"
         :floors="allFloors"
         @close="showAddStaffModal = false"
         @success="handleStaffAdded"

@@ -23,8 +23,8 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
   const groupedByFloor = computed<Record<string, FloorAssignment[]>>(() => {
     const grouped: Record<string, FloorAssignment[]> = {}
     if (Array.isArray(assignments.value)) {
-      assignments.value.forEach((assignment: any) => {
-        const floorId = assignment.floor_id || assignment.floor?.id
+      assignments.value.forEach((assignment: FloorAssignment) => {
+        const floorId = assignment.floor?.id
         if (floorId) {
           if (!grouped[floorId]) {
             grouped[floorId] = []
@@ -41,7 +41,7 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
     per_page?: number
     date?: string
     floor_id?: string
-    waiter_id?: string
+    waiter_id?: string | number
     status?: string
   }) => {
     loading.value = true
@@ -49,11 +49,11 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
     try {
       const queryParams = typeof paramsOrDate === 'string' ? { date: paramsOrDate } : paramsOrDate
       const data = await floorAssignmentService.getAssignments(queryParams)
-      assignments.value = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : [])
+      assignments.value = Array.isArray(data?.data) ? data.data : []
       return assignments.value
     } catch (err: any) {
       console.error('[FloorAssignmentStore] Error fetching assignments:', err)
-      error.value = err.message || 'Failed to load assignments'
+      error.value = err?.message || 'Failed to load assignments'
       assignments.value = []
       return []
     } finally {
@@ -68,11 +68,11 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
       const data = await floorAssignmentService.getTodayAssignments()
       assignments.value = data
       successMessage.value = data.length > 0 ? `${data.length} assignment(s) loaded` : 'No assignments for today'
-      setTimeout(() => successMessage.value = null, 3000)
+      setTimeout(() => { successMessage.value = null }, 3000)
       return data
     } catch (err: any) {
       console.error('[FloorAssignmentStore] Error fetching today assignments:', err)
-      error.value = err.message || 'Failed to load assignments'
+      error.value = err?.message || 'Failed to load assignments'
       assignments.value = []
       return []
     } finally {
@@ -105,14 +105,14 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
       const data = await floorAssignmentService.bulkAssign(payload)
       assignments.value = data
       successMessage.value = `${data.length} assignment(s) saved successfully`
-      setTimeout(() => successMessage.value = null, 3000)
+      setTimeout(() => { successMessage.value = null }, 3000)
       
       await fetchStats()
       
       return data
     } catch (err: any) {
       console.error('[FloorAssignmentStore] Error saving assignments:', err)
-      error.value = err.message || 'Failed to save assignments'
+      error.value = err?.message || 'Failed to save assignments'
       throw err
     } finally {
       loading.value = false
@@ -135,12 +135,12 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
       }
       
       successMessage.value = 'Assignment updated successfully'
-      setTimeout(() => successMessage.value = null, 3000)
+      setTimeout(() => { successMessage.value = null }, 3000)
       
       return updated
     } catch (err: any) {
       console.error('[FloorAssignmentStore] Error updating assignment:', err)
-      error.value = err.message || 'Failed to update assignment'
+      error.value = err?.message || 'Failed to update assignment'
       throw err
     }
   }
@@ -152,14 +152,14 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
       assignments.value = assignments.value.filter(a => a.id !== assignmentId)
       
       successMessage.value = 'Assignment deleted successfully'
-      setTimeout(() => successMessage.value = null, 3000)
+      setTimeout(() => { successMessage.value = null }, 3000)
       
       await fetchStats()
       
       return true
     } catch (err: any) {
       console.error('[FloorAssignmentStore] Error deleting assignment:', err)
-      error.value = err.message || 'Failed to delete assignment'
+      error.value = err?.message || 'Failed to delete assignment'
       throw err
     }
   }

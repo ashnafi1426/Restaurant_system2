@@ -1,318 +1,252 @@
 <template>
-  <div class="success-container min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-12 flex items-center justify-center">
-    <div class="max-w-2xl w-full mx-auto px-4">
-      <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
-        <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-12 text-center transition-all duration-500" :class="showHeader ? 'opacity-100 scale-100' : 'opacity-0 scale-95'">
-          <div class="flex justify-center mb-6">
-            <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center animate-pulse-success">
-              <svg
-                class="w-12 h-12 text-green-600"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </div>
-          </div>
+  <div class="min-h-screen w-full bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950 flex flex-col justify-center py-2 sm:py-4 lg:py-6 px-3 sm:px-6 transition-colors duration-300">
 
-          <h1 class="text-4xl font-bold text-white mb-3">Payment Successful!</h1>
-          <p class="text-green-50 text-lg">
-            Your reservation has been confirmed
-          </p>
-        </div>
+    <div class="max-w-4xl w-full mx-auto">
+      <!-- Main single-page ticket card -->
+      <div
+        class="relative bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-[0_15px_50px_-15px_rgba(16,185,129,0.25)] border border-slate-200/80 dark:border-slate-800 overflow-hidden transition-all duration-500 ease-out"
+        :class="showHeader ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]'"
+      >
+        <!-- Top decorative micro accent bar -->
+        <div class="h-1.5 w-full bg-gradient-to-r from-emerald-400 via-teal-500 to-green-500"></div>
 
-        <div class="p-8">
-          <div class="mb-8 text-center transition-all duration-500" :class="showHeader ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
-            <h2 class="text-2xl font-semibold text-slate-900 mb-3">
-              Thank you for your booking
-            </h2>
-            <p class="text-slate-600">
-              Your reservation has been successfully created and payment has been processed.
-            </p>
-          </div>
+        <!-- ====================================================== -->
+        <!-- COMPACT SUCCESS HEADER BAR                             -->
+        <!-- ====================================================== -->
+        <div class="relative bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 px-4 sm:px-6 py-3.5 sm:py-4 text-white overflow-hidden">
+          <!-- Subtle background decorative glow -->
+          <div class="absolute -right-10 -top-10 w-44 h-44 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
 
-          <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-8 transition-all duration-500" :class="showSuccess ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
-            <div class="flex items-start gap-3">
-              <svg
-                class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clip-rule="evenodd"
-                />
-              </svg>
+          <div class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 sm:w-11 sm:h-11 bg-white rounded-full flex items-center justify-center shadow-md flex-shrink-0">
+                <svg class="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+              </div>
               <div>
-                <h3 class="font-semibold text-green-900">Payment Verified</h3>
-                <p class="text-green-700 text-sm mt-1">
-                  Your payment has been securely processed and your reservation is confirmed.
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white leading-tight">
+                    Payment Successful!
+                  </h1>
+                  <span class="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full text-[10px] font-semibold text-emerald-100">
+                    <svg class="w-3 h-3 text-emerald-200" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    Verified & Confirmed
+                  </span>
+                </div>
+                <p class="text-emerald-100 text-xs mt-0.5">
+                  Your reservation is confirmed. Download your receipt or return home below.
                 </p>
               </div>
             </div>
-          </div>
 
-          <div v-if="reservationData" class="space-y-6 transition-all duration-500" :class="showDetails ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
-            <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
-              <h3 class="font-bold text-green-900 text-lg mb-2">✓ BOOKING CONFIRMED</h3>
-              <p class="text-green-700 text-sm">Your reservation has been successfully created</p>
-            </div>
-
-            <div class="border-b pb-6">
-              <h3 class="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
-                </svg>
-                Booking Details
-              </h3>
-              <div class="grid grid-cols-2 gap-4">
-                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                  <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Reference Number</p>
-                  <p class="text-slate-900 font-mono text-sm font-bold break-all">
-                    {{ reservationData.booking_reference || 'REF-' + txRef?.substring(0, 8).toUpperCase() }}
-                  </p>
-                </div>
-
-                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                  <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Status</p>
-                  <span class="inline-block px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-bold">
-                    ✓ CONFIRMED
-                  </span>
-                </div>
-
-                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                  <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Check-in Date</p>
-                  <p class="text-slate-900 font-medium text-base">
-                    {{ formatDate(reservationData.check_in_date) }}
-                  </p>
-                </div>
-
-                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                  <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Check-out Date</p>
-                  <p class="text-slate-900 font-medium text-base">
-                    {{ formatDate(reservationData.check_out_date) }}
-                  </p>
-                </div>
-
-                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                  <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Room Number</p>
-                  <p class="text-slate-900 font-medium text-base">
-                    {{ reservationData.room_number || 'Room ' + reservationData.room_id?.substring(0, 4).toUpperCase() }}
-                  </p>
-                </div>
-
-                <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                  <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Number of Guests</p>
-                  <p class="text-slate-900 font-medium text-base">
-                    {{ reservationData.number_of_guests || 1 }} {{ reservationData.number_of_guests === 1 ? 'Guest' : 'Guests' }}
-                  </p>
-                </div>
+            <!-- Total Paid Hero badge on right -->
+            <div class="flex items-center sm:items-end justify-between sm:justify-center sm:flex-col bg-white/15 backdrop-blur-md rounded-xl px-3 py-1.5 border border-white/20 self-start sm:self-auto w-full sm:w-auto">
+              <span class="text-[10px] font-semibold tracking-wider text-emerald-100 uppercase">Amount Paid</span>
+              <div class="flex items-baseline gap-1">
+                <span class="text-lg sm:text-xl font-black text-white tracking-tight">
+                  {{ Number(reservationData?.total_amount || 0).toLocaleString() }}
+                </span>
+                <span class="text-xs font-bold text-emerald-200">ETB</span>
               </div>
             </div>
-
-            <div class="border-b pb-6">
-              <h3 class="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
-                </svg>
-                Guest Information
-              </h3>
-              <div class="grid grid-cols-2 gap-4">
-                <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <p class="text-blue-600 text-xs font-semibold uppercase tracking-wide mb-2">Guest Name</p>
-                  <p class="text-slate-900 font-medium text-base">
-                    {{ reservationData.first_name }} {{ reservationData.last_name }}
-                  </p>
-                </div>
-                <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <p class="text-blue-600 text-xs font-semibold uppercase tracking-wide mb-2">Email Address</p>
-                  <p class="text-slate-900 break-all text-sm">
-                    {{ reservationData.email }}
-                  </p>
-                </div>
-                <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <p class="text-blue-600 text-xs font-semibold uppercase tracking-wide mb-2">Phone Number</p>
-                  <p class="text-slate-900 font-medium text-base">
-                    {{ reservationData.phone }}
-                  </p>
-                </div>
-                <div v-if="reservationData.special_requests" class="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <p class="text-blue-600 text-xs font-semibold uppercase tracking-wide mb-2">Special Requests</p>
-                  <p class="text-slate-900 text-sm">
-                    {{ reservationData.special_requests }}
-                  </p>
-                </div>
-                <div v-else class="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <p class="text-blue-600 text-xs font-semibold uppercase tracking-wide mb-2">Special Requests</p>
-                  <p class="text-slate-500 italic text-sm">
-                    None specified
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div class="border-b pb-6 transition-all duration-500" :class="showPayment ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
-              <h3 class="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"/>
-                </svg>
-                Payment Information
-              </h3>
-              <div class="grid grid-cols-1 gap-4">
-                <div class="bg-orange-50 rounded-lg p-5 border border-orange-200">
-                  <p class="text-orange-600 text-xs font-semibold uppercase tracking-wide mb-2">Transaction Reference</p>
-                  <p class="text-slate-900 font-mono text-sm break-all font-bold bg-white rounded px-3 py-2">
-                    {{ txRef }}
-                  </p>
-                </div>
-
-                <div class="bg-gradient-to-r from-orange-100 to-amber-100 rounded-lg p-6 border-2 border-orange-300">
-                  <p class="text-orange-600 text-xs font-semibold uppercase tracking-wider mb-3">Total Amount Paid</p>
-                  <div class="flex items-baseline justify-between">
-                    <p class="text-5xl font-bold text-orange-600">
-                      {{ reservationData.total_amount || 0 }}
-                    </p>
-                    <span class="text-2xl font-bold text-orange-600">ETB</span>
-                  </div>
-                  <p class="text-orange-700 text-sm mt-2 font-medium">✓ Payment Confirmed and Secure</p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                    <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Payment Gateway</p>
-                    <p class="text-slate-900 font-medium text-base">Chapa</p>
-                  </div>
-                  <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                    <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Payment Status</p>
-                    <p class="text-green-700 font-bold text-base">✓ PAID</p>
-                  </div>
-                  <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                    <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Payment Date</p>
-                    <p class="text-slate-900 font-medium text-sm">
-                      {{ new Date().toLocaleDateString('en-ET', { year: 'numeric', month: 'long', day: 'numeric' }) }}
-                    </p>
-                  </div>
-                  <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                    <p class="text-slate-600 text-xs font-semibold uppercase tracking-wide mb-2">Payment Time</p>
-                    <p class="text-slate-900 font-medium text-sm">
-                      {{ new Date().toLocaleTimeString('en-ET', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="mb-8 transition-all duration-500" :class="showNextSteps ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
-            <h3 class="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-              <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM14 4a1 1 0 01.82.4l2.763 3.627a1 1 0 11-1.64 1.246L13.86 5.5a1 1 0 010-1.5zm2.05 5.463a1 1 0 00-1.415 0l-8.667 8.667a1 1 0 001.414 1.414l8.667-8.667a1 1 0 000-1.414z" clip-rule="evenodd"/>
-              </svg>
-              What's Next?
-            </h3>
-            <div class="space-y-3">
-              <div class="flex items-start gap-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
-                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-1">
-                  1
-                </div>
-                <div>
-                  <p class="font-semibold text-slate-900">Confirmation Email</p>
-                  <p class="text-slate-600 text-sm">Check your email for booking confirmation and receipt (usually arrives within minutes)</p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-4 border border-blue-200">
-                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-1">
-                  2
-                </div>
-                <div>
-                  <p class="font-semibold text-slate-900">Check-in Instructions</p>
-                  <p class="text-slate-600 text-sm">You will receive detailed check-in instructions before your arrival date</p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
-                <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-1">
-                  3
-                </div>
-                <div>
-                  <p class="font-semibold text-slate-900">Enjoy Your Stay</p>
-                  <p class="text-slate-600 text-sm">We look forward to welcoming you to our hotel. Have a wonderful experience!</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-5 border-2 border-blue-300 mb-8 transition-all duration-500" :class="showNextSteps ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
-            <h4 class="font-bold text-blue-900 mb-4 flex items-center gap-2 text-lg">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1a1 1 0 11-2 0 1 1 0 012 0zM8 8a1 1 0 000 2h6a1 1 0 000-2H8zm0 3a1 1 0 000 2h6a1 1 0 000-2H8z" clip-rule="evenodd"/>
-              </svg>
-              Important Information
-            </h4>
-            <ul class="text-blue-800 text-sm space-y-3">
-              <li class="flex items-start gap-3">
-                <span class="text-blue-600 font-bold flex-shrink-0">✓</span>
-                <span>Your booking reference has been sent to your email address</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <span class="text-blue-600 font-bold flex-shrink-0">✓</span>
-                <span>Please arrive <strong>30 minutes before your check-in time</strong></span>
-              </li>
-              <li class="flex items-start gap-3">
-                <span class="text-blue-600 font-bold flex-shrink-0">✓</span>
-                <span>Keep your <strong>booking reference</strong> handy for check-in</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <span class="text-blue-600 font-bold flex-shrink-0">✓</span>
-                <span>For cancellations or changes, contact us <strong>at least 48 hours</strong> before check-in</span>
-              </li>
-              <li class="flex items-start gap-3">
-                <span class="text-blue-600 font-bold flex-shrink-0">✓</span>
-                <span>Your receipt is available for download and can also be printed</span>
-              </li>
-            </ul>
-          </div>
-
-          <div class="space-y-3 transition-all duration-500" :class="showButtons ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
-            <button
-              @click="downloadReceipt"
-              :disabled="isLoading"
-              class="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
-            >
-              <svg v-if="!isLoading" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
-              </svg>
-              <svg v-else class="w-5 h-5 animate-spin" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M4.293 5.293a1 1 0 011.414 0A7 7 0 0116.414 11a1 1 0 11-1.415 1.414A5 5 0 105.707 6.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
-              {{ isLoading ? 'Generating Receipt...' : '💳 Download Receipt' }}
-            </button>
-            <button
-              @click="goHome"
-              :disabled="isLoading"
-              class="w-full bg-slate-200 hover:bg-slate-300 disabled:bg-slate-100 disabled:cursor-not-allowed text-slate-900 font-semibold py-3 rounded-lg transition"
-            >
-              Back to Home
-            </button>
           </div>
         </div>
+
+        <!-- ====================================================== -->
+        <!-- COMPACT 2-COLUMN BODY (FIT-TO-PAGE)                    -->
+        <!-- ====================================================== -->
+        <div class="p-3.5 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+
+          <!-- LEFT COLUMN: Booking & Payment Information (7 cols) -->
+          <div class="lg:col-span-7 space-y-2.5 sm:space-y-3">
+
+            <!-- Booking Overview Card -->
+            <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 border border-slate-200/80 dark:border-slate-700/60">
+              <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200 dark:border-slate-700">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-5 h-5 rounded bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-700 dark:text-emerald-300">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+                    </svg>
+                  </span>
+                  <span class="text-xs font-bold text-slate-900 dark:text-white">Booking Details</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase">Ref:</span>
+                  <span class="font-mono text-xs font-bold text-slate-900 dark:text-emerald-300 bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+                    {{ reservationData?.booking_reference || 'REF-' + (txRef?.substring(0, 8).toUpperCase() || 'CONFIRMED') }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Itinerary bar (Check-in & Check-out) -->
+              <div class="grid grid-cols-2 gap-2 bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200/70 dark:border-slate-800 mb-2">
+                <div>
+                  <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Check-in</p>
+                  <p class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                    {{ formatDate(reservationData?.check_in_date) }}
+                  </p>
+                </div>
+                <div class="border-l border-slate-100 dark:border-slate-800 pl-2">
+                  <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Check-out</p>
+                  <p class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                    {{ formatDate(reservationData?.check_out_date) }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Room & Guest Specs -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
+                <div class="bg-white dark:bg-slate-900 p-1.5 rounded-lg border border-slate-200/60 dark:border-slate-800">
+                  <span class="text-[10px] text-slate-400 uppercase font-semibold block">Room</span>
+                  <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                    {{ reservationData?.room_number || (reservationData?.room_id ? 'Room ' + reservationData.room_id.substring(0, 4) : 'Deluxe Room') }}
+                  </span>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-1.5 rounded-lg border border-slate-200/60 dark:border-slate-800">
+                  <span class="text-[10px] text-slate-400 uppercase font-semibold block">Guests</span>
+                  <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                    {{ reservationData?.number_of_guests || 1 }} {{ reservationData?.number_of_guests === 1 ? 'Guest' : 'Guests' }}
+                  </span>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-1.5 rounded-lg border border-slate-200/60 dark:border-slate-800">
+                  <span class="text-[10px] text-slate-400 uppercase font-semibold block">Status</span>
+                  <span class="font-bold text-emerald-600 dark:text-emerald-400 text-xs">✓ Confirmed</span>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-1.5 rounded-lg border border-slate-200/60 dark:border-slate-800">
+                  <span class="text-[10px] text-slate-400 uppercase font-semibold block">Gateway</span>
+                  <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">Chapa</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Guest & Contact Info Card -->
+            <div class="bg-blue-50/50 dark:bg-blue-950/20 rounded-xl p-3 border border-blue-100 dark:border-blue-900/40">
+              <div class="flex items-center gap-1.5 mb-1.5">
+                <span class="w-4 h-4 rounded bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+                  </svg>
+                </span>
+                <span class="text-xs font-bold text-slate-900 dark:text-white">Guest Information</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                <div>
+                  <span class="text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider block">Name</span>
+                  <span class="font-semibold text-slate-900 dark:text-slate-100 truncate block text-xs">
+                    {{ reservationData?.first_name || 'Guest' }} {{ reservationData?.last_name || '' }}
+                  </span>
+                </div>
+                <div>
+                  <span class="text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider block">Email</span>
+                  <span class="text-slate-800 dark:text-slate-200 truncate block font-mono text-[11px]">
+                    {{ reservationData?.email || 'N/A' }}
+                  </span>
+                </div>
+                <div class="col-span-2 sm:col-span-1">
+                  <span class="text-[10px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider block">Phone</span>
+                  <span class="text-slate-800 dark:text-slate-200 block text-xs">
+                    {{ reservationData?.phone || 'N/A' }}
+                  </span>
+                </div>
+              </div>
+              <div v-if="reservationData?.special_requests" class="mt-1.5 pt-1.5 border-t border-blue-100/70 dark:border-blue-900/30 text-[11px]">
+                <span class="font-semibold text-blue-700 dark:text-blue-400">Requests:</span>
+                <span class="text-slate-700 dark:text-slate-300 ml-1">{{ reservationData.special_requests }}</span>
+              </div>
+            </div>
+
+            <!-- Transaction Reference snippet -->
+            <div class="bg-amber-50/60 dark:bg-amber-950/20 rounded-xl px-3 py-1.5 border border-amber-200/70 dark:border-amber-900/40 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-1.5 truncate">
+                <span class="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase">TX Ref:</span>
+                <span class="font-mono text-[11px] font-semibold text-slate-800 dark:text-slate-200 truncate">{{ txRef || 'TX-CHAPA-SUCCESS' }}</span>
+              </div>
+              <span class="text-[10px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50 px-2 py-0.5 rounded-full flex-shrink-0">
+                {{ new Date().toLocaleDateString('en-ET', { month: 'short', day: 'numeric' }) }} • {{ new Date().toLocaleTimeString('en-ET', { hour: '2-digit', minute: '2-digit' }) }}
+              </span>
+            </div>
+
+          </div>
+
+          <!-- RIGHT COLUMN: Next Steps, Key Notes & Action Buttons (5 cols) -->
+          <div class="lg:col-span-5 flex flex-col justify-between space-y-2.5 sm:space-y-3">
+
+            <!-- What's Next 3-step checklist -->
+            <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 border border-slate-200/80 dark:border-slate-700/60">
+              <h3 class="text-xs font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-1.5">
+                <span class="w-4 h-4 rounded bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                  <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+                </span>
+                What's Next?
+              </h3>
+              <div class="space-y-1.5 text-xs">
+                <div class="flex items-center gap-2 bg-white dark:bg-slate-900 p-1.5 rounded-lg border border-slate-100 dark:border-slate-800">
+                  <span class="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">1</span>
+                  <span class="text-slate-700 dark:text-slate-200 font-medium">Receipt & confirmation sent to your email</span>
+                </div>
+                <div class="flex items-center gap-2 bg-white dark:bg-slate-900 p-1.5 rounded-lg border border-slate-100 dark:border-slate-800">
+                  <span class="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">2</span>
+                  <span class="text-slate-700 dark:text-slate-200 font-medium">Arrive 30 mins before check-in time</span>
+                </div>
+                <div class="flex items-center gap-2 bg-white dark:bg-slate-900 p-1.5 rounded-lg border border-slate-100 dark:border-slate-800">
+                  <span class="w-4 h-4 rounded-full bg-purple-500 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">3</span>
+                  <span class="text-slate-700 dark:text-slate-200 font-medium">Present your Ref at reception desk</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Important Information Micro Callout -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-2.5 border border-blue-200 dark:border-blue-800/50 text-[11px] text-blue-900 dark:text-blue-200 leading-snug">
+              <div class="font-bold flex items-center gap-1 text-xs text-blue-950 dark:text-blue-100 mb-0.5">
+                <span>ℹ️</span> Important Notice
+              </div>
+              <p>Keep your reference handy for check-in. For cancellations or changes, contact front desk at least 48 hours ahead.</p>
+            </div>
+
+            <!-- Primary and Secondary Actions -->
+            <div class="space-y-2 pt-0.5">
+              <button
+                @click="downloadReceipt"
+                :disabled="isLoading"
+                class="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 hover:from-emerald-700 hover:to-green-700 disabled:from-emerald-400 disabled:to-green-400 text-white font-bold py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 text-xs sm:text-sm active:scale-[0.99] cursor-pointer"
+              >
+                <svg v-if="!isLoading" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+                </svg>
+                <svg v-else class="w-4 h-4 animate-spin" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 5.293a1 1 0 011.414 0A7 7 0 0116.414 11a1 1 0 11-1.415 1.414A5 5 0 105.707 6.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+                <span>{{ isLoading ? 'Generating Receipt...' : '💳 Download Official PDF Receipt' }}</span>
+              </button>
+
+              <button
+                @click="goHome"
+                :disabled="isLoading"
+                class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold py-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-all text-xs sm:text-sm active:scale-[0.99] cursor-pointer"
+              >
+                Back to Home
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
 
-      <div class="mt-6 text-center text-slate-600 text-sm">
-        <p>Thank you for choosing our hotel for your stay!</p>
+      <!-- Compact Single-Line Footer -->
+      <div class="mt-2.5 text-center text-[11px] text-slate-500 dark:text-slate-400">
+        Thank you for choosing our hotel! Need assistance? Our 24/7 support team is here to help.
       </div>
     </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { generateAndDownloadReceipt } from '@/services/receiptService'
 
@@ -353,34 +287,22 @@ onMounted(async () => {
 
   setTimeout(() => {
     showHeader.value = true
-  }, 200)
+  }, 100)
 
   setTimeout(() => {
     showSuccess.value = true
-  }, 400)
-
-  setTimeout(() => {
     showDetails.value = true
-  }, 600)
-
-  setTimeout(() => {
     showPayment.value = true
-  }, 800)
-
-  setTimeout(() => {
     showNextSteps.value = true
-  }, 1000)
-
-  setTimeout(() => {
     showButtons.value = true
-  }, 1200)
+  }, 250)
 
   if (txRef.value) {
     setTimeout(() => {
       completeReservationAndFetchDetails().catch((err) => {
         console.error('[PaymentSuccess] Error completing reservation:', err)
       })
-    }, 1500)
+    }, 800)
   }
 })
 
@@ -482,7 +404,7 @@ function formatDate(dateString: string): string {
   if (!dateString) return 'N/A'
   return new Intl.DateTimeFormat('en-ET', {
     year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
   }).format(new Date(dateString))
 }
@@ -533,62 +455,8 @@ async function downloadReceipt(): Promise<void> {
 </script>
 
 <style scoped>
-@keyframes pulse-success {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-}
-
-.animate-pulse-success {
-  animation: pulse-success 2s ease-in-out infinite;
-}
-
-@keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(1rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.transition-all {
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.duration-500 {
-  transition-duration: 500ms;
-}
-
-.scale-95 {
-  transform: scale(0.95);
-}
-
-.scale-100 {
-  transform: scale(1);
-}
-
-.translate-y-0 {
-  transform: translateY(0);
-}
-
-.translate-y-4 {
-  transform: translateY(1rem);
-}
-
-.opacity-0 {
-  opacity: 0;
-}
-
-.opacity-100 {
-  opacity: 1;
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
 }
 </style>

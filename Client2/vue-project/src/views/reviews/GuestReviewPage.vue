@@ -135,7 +135,7 @@ import { useReviewStore } from '@/stores/reviewStore'
 import { useAuthStore } from '@/stores/auth'
 import ReviewSubmissionForm from '@/components/reviews/ReviewSubmissionForm.vue'
 import EligibleItemsList from '@/components/reviews/EligibleItemsList.vue'
-import { EligibleMenuItem } from '@/types/review'
+import type { EligibleMenuItem } from '@/types/review'
 import { useLanguageStore } from '@/stores/language'
 
 const languageStore = useLanguageStore()

@@ -82,8 +82,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import reviewService from '@/services/reviewService'
-import { MenuItem } from '@/types/menu'
-import { CreateReviewRequest } from '@/types/review'
+import type { MenuItem } from '@/types/menu'
+import type { CreateReviewRequest } from '@/types/review'
 import { useLanguageStore } from '@/stores/language'
 
 interface Props {

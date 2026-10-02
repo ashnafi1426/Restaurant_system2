@@ -130,7 +130,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import reviewService from '@/services/reviewService'
-import { PublicReview, ReviewStats, PaginatedReviews } from '@/types/review'
+import type { PublicReview, ReviewStats, PaginatedReviews } from '@/types/review'
 import { useLanguageStore } from '@/stores/language'
 
 interface Props {

@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import MenuStats from '@/components/menu/MenuStats.vue'
 import MenuTable from '@/components/menu/MenuTable.vue'
 import { useMenuStore } from '@/stores/menuStore'
+import { useAuthStore } from '@/stores/auth'
 import {
   UtensilsCrossed,
   Search,
@@ -21,8 +22,10 @@ import {
 } from 'lucide-vue-next'
 import type { MenuItem } from '@/types/menu'
 
+const route = useRoute()
 const router = useRouter()
 const store = useMenuStore()
+const authStore = useAuthStore()
 
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
@@ -40,11 +43,14 @@ function filterByCategory(category: string | null) {
 }
 
 function navigateToCreate() {
-  router.push('/admin/menu/add')
+  const isMenuMgmt = route.path.startsWith('/menu-management') || (!authStore.isPlatformAdmin && !authStore.hasRole('admin'))
+  router.push(isMenuMgmt ? '/menu-management/add' : '/admin/menu/add')
 }
 
 function editMenu(item: MenuItem) {
-  router.push(`/admin/menu/add?id=${item.id}`)
+  const isMenuMgmt = route.path.startsWith('/menu-management') || (!authStore.isPlatformAdmin && !authStore.hasRole('admin'))
+  const base = isMenuMgmt ? '/menu-management/add' : '/admin/menu/add'
+  router.push(`${base}?id=${item.id}`)
 }
 
 async function deleteMenu(item: MenuItem) {

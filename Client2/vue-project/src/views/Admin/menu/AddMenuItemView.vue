@@ -440,6 +440,7 @@ import menuService from '@/services/menuService'
 import categoryService from '@/services/categoryService'
 import { useMenuStore } from '@/stores/menuStore'
 import { useTaxRateStore } from '@/stores/taxRateStore'
+import { useAuthStore } from '@/stores/auth'
 import type { MenuItem } from '@/types/menu'
 
 const route = useRoute()
@@ -447,6 +448,11 @@ const router = useRouter()
 
 const menuStore = useMenuStore()
 const taxRateStore = useTaxRateStore()
+const authStore = useAuthStore()
+
+const isMenuManagement = computed(() => {
+  return route.path.startsWith('/menu-management') || (!authStore.isPlatformAdmin && !authStore.hasRole('admin'))
+})
 
 const formData = ref({
   name: '',
@@ -725,7 +731,11 @@ const submitForm = async () => {
     }
 
     await menuStore.fetchMenuItems()
-    router.push({ name: 'admin-menu' })
+    if (isMenuManagement.value) {
+      router.push('/menu-management')
+    } else {
+      router.push({ name: 'admin-menu' })
+    }
   } catch (error: any) {
     console.error('[AddMenuItemView] Error saving menu item:', error)
     errors.value.general = error.response?.data?.message || 'Failed to save menu item'
@@ -735,11 +745,19 @@ const submitForm = async () => {
 }
 
 const goBack = () => {
-  router.push({ name: 'admin-menu' })
+  if (isMenuManagement.value) {
+    router.push('/menu-management')
+  } else {
+    router.push({ name: 'admin-menu' })
+  }
 }
 
 const navigateToAddCategory = () => {
-  router.push({ name: 'admin-menu-add-category' })
+  if (isMenuManagement.value) {
+    router.push('/menu-management/add-category')
+  } else {
+    router.push({ name: 'admin-menu-add-category' })
+  }
 }
 
 const loadCategories = async () => {

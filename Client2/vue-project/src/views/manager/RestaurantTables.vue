@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRestaurantTableStore } from '@/stores/restaurantTableStore'
+import { useRestaurantSectionStore } from '@/stores/restaurantSectionStore'
 import { useLanguageStore } from '@/stores/language'
 import { storeToRefs } from 'pinia'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import RestaurantTableFormModal from '@/components/manager/RestaurantTableFormModal.vue'
+import RestaurantSectionModal from '@/components/manager/RestaurantSectionModal.vue'
 import type { RestaurantTable } from '@/types/restaurantTable'
 import {
   UtensilsCrossed,
@@ -27,9 +29,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Layers,
 } from 'lucide-vue-next'
 
 const tableStore = useRestaurantTableStore()
+const sectionStore = useRestaurantSectionStore()
 const languageStore = useLanguageStore()
 const { tables, statistics, pagination, loading } = storeToRefs(tableStore)
 
@@ -39,10 +43,11 @@ const isFullscreen = ref(false)
 const searchQuery = ref('')
 const statusFilter = ref('')
 const activeFilter = ref<boolean | null>(null)
-const floorFilter = ref('')
+const sectionFilter = ref('')
 const localPerPage = ref(10)
 
 const showFormModal = ref(false)
+const showSectionModal = ref(false)
 const showQRModal = ref(false)
 const showDeleteModal = ref(false)
 const selectedTable = ref<RestaurantTable | null>(null)
@@ -71,6 +76,7 @@ const handleFilterChange = () => {
   tableStore.setFilters({
     status: statusFilter.value as any,
     is_active: activeFilter.value,
+    section_id: sectionFilter.value || undefined,
     page: 1,
   })
   tableStore.fetchTables()
@@ -80,9 +86,25 @@ const resetFilters = () => {
   searchQuery.value = ''
   statusFilter.value = ''
   activeFilter.value = null
-  floorFilter.value = ''
-  tableStore.setFilters({ search: '', status: undefined, is_active: undefined, page: 1 })
+  sectionFilter.value = ''
+  tableStore.setFilters({ search: '', status: undefined, is_active: undefined, section_id: undefined, page: 1 })
   tableStore.fetchTables()
+}
+
+const handleSectionUpdated = async () => {
+  await Promise.all([
+    sectionStore.fetchSections(),
+    tableStore.fetchTables(),
+    tableStore.fetchStatistics(),
+  ])
+}
+
+const refreshData = async () => {
+  await Promise.all([
+    sectionStore.fetchSections(),
+    tableStore.fetchTables(),
+    tableStore.fetchStatistics(),
+  ])
 }
 
 const toggleFilter = () => {
@@ -91,10 +113,6 @@ const toggleFilter = () => {
 
 const toggleFullscreen = () => {
   isFullscreen.value = !isFullscreen.value
-}
-
-const refreshData = async () => {
-  await Promise.all([tableStore.fetchTables(), tableStore.fetchStatistics()])
 }
 
 const changePerPage = (event: Event) => {
@@ -199,6 +217,7 @@ const paginationPages = computed(() => {
 onMounted(() => {
   tableStore.fetchTables()
   tableStore.fetchStatistics()
+  sectionStore.fetchSections()
 })
 </script>
 
@@ -363,6 +382,16 @@ onMounted(() => {
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
           </button>
 
+          <!-- Manage Sections Button -->
+          <button
+            type="button"
+            @click="showSectionModal = true"
+            class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white px-3.5 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+          >
+            <Layers class="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <span>Manage Sections</span>
+          </button>
+
           <!-- Create Table Primary Button -->
           <button
             type="button"
@@ -388,7 +417,28 @@ onMounted(() => {
           v-if="isFilterOpen"
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3.5 sm:gap-4">
+            <!-- Section Filter -->
+            <div>
+              <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Restaurant Section
+              </label>
+              <select
+                v-model="sectionFilter"
+                @change="handleFilterChange"
+                class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
+              >
+                <option value="">All Sections</option>
+                <option
+                  v-for="sec in sectionStore.sections"
+                  :key="sec.id"
+                  :value="sec.id"
+                >
+                  {{ sec.name }}
+                </option>
+              </select>
+            </div>
+
             <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
@@ -449,7 +499,7 @@ onMounted(() => {
                 <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('table_number', 'Table #') }}</th>
                 <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('table', 'Table Name') }}</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('Capacity', 'Capacity') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('Floor', 'Location / Floor') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">Section</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('Status', 'Status') }}</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('Active', 'Active') }}</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap">QR</th>
@@ -468,12 +518,11 @@ onMounted(() => {
               </tr>
 
               <!-- Data Rows -->
-              <template v-else>
-                <tr
-                  v-for="table in tables"
-                  :key="table.id"
-                  class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
-                >
+              <tr
+                v-for="table in (loading ? [] : tables)"
+                :key="table.id"
+                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+              >
                 <!-- Table Number -->
                 <td class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-black text-slate-900 dark:text-white text-xs sm:text-sm">
                   {{ table.table_number }}
@@ -492,9 +541,12 @@ onMounted(() => {
                   </span>
                 </td>
 
-                <!-- Location -->
-                <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-medium">
-                  {{ table.location_description || (table.floor ? `${languageStore.t('Floor', 'Floor')} ${table.floor}` : languageStore.t('Main Dining Area', 'Main Dining Area')) }}
+                <!-- Section -->
+                <td class="py-3 px-4 whitespace-nowrap text-slate-700 dark:text-slate-300 font-medium">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-semibold text-xs border border-blue-100 dark:border-blue-900/40">
+                    <Layers class="w-3 h-3 text-blue-500" />
+                    {{ table.section_name || table.section || table.location || 'Main Dining' }}
+                  </span>
                 </td>
 
                 <!-- Status -->
@@ -550,49 +602,55 @@ onMounted(() => {
               </tr>
 
               <!-- Empty State -->
-              <tr v-if="tables.length === 0">
+              <tr v-if="!loading && tables.length === 0">
                 <td colspan="8" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
                   {{ languageStore.t('no_items_found', 'No restaurant tables found.') }}
                 </td>
               </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Mobile Card View -->
-      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-        <div v-if="loading" class="py-16 text-center flex flex-col items-center justify-center gap-3">
-          <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('Loading...', 'Loading restaurant tables...') }}</span>
+            </tbody>
+          </table>
         </div>
-        <template v-else>
-          <div
-            v-for="table in tables"
-            :key="table.id"
-            class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
-          >
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-slate-900 dark:text-white text-sm">
-                {{ languageStore.t('table', 'Table') }} {{ table.table_number }}
-              </span>
-              <span
-                class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
-                :class="getStatusBadgeClass(table.status)"
-              >
-                {{ languageStore.t(table.status, table.status) }}
-              </span>
-            </div>
-            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-              <span>{{ table.capacity }} {{ languageStore.t('capacity', 'Seats') }}</span>
-              <div class="flex gap-2">
-                <button @click="viewQRCode(table)" class="text-blue-600 font-bold cursor-pointer">QR</button>
-                <button @click="editTable(table)" class="text-amber-600 font-bold cursor-pointer">{{ languageStore.t('Edit', 'Edit') }}</button>
+
+        <!-- Mobile Card View -->
+        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+          <div v-if="loading" class="py-16 text-center flex flex-col items-center justify-center gap-3">
+            <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('Loading...', 'Loading restaurant tables...') }}</span>
+          </div>
+          <div v-else-if="tables.length === 0" class="py-12 text-center text-slate-500 text-xs font-bold">
+            {{ languageStore.t('no_items_found', 'No restaurant tables found.') }}
+          </div>
+          <div v-else>
+            <div
+              v-for="table in tables"
+              :key="table.id"
+              class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition border-b border-slate-100 dark:border-slate-800/60 last:border-b-0"
+            >
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900 dark:text-white text-sm">
+                  {{ languageStore.t('table', 'Table') }} {{ table.table_number }}
+                </span>
+                <span
+                  class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
+                  :class="getStatusBadgeClass(table.status)"
+                >
+                  {{ languageStore.t(table.status, table.status) }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+                <div class="flex items-center gap-1.5">
+                  <span>{{ table.capacity }} {{ languageStore.t('capacity', 'Seats') }}</span>
+                  <span class="text-slate-300">•</span>
+                  <span class="font-semibold text-blue-600 dark:text-blue-400">{{ table.section_name || table.section || table.location || 'Main Dining' }}</span>
+                </div>
+                <div class="flex gap-2">
+                  <button @click="viewQRCode(table)" class="text-blue-600 font-bold cursor-pointer">QR</button>
+                  <button @click="editTable(table)" class="text-amber-600 font-bold cursor-pointer">{{ languageStore.t('Edit', 'Edit') }}</button>
+                </div>
               </div>
             </div>
           </div>
-        </template>
-      </div>
+        </div>
 
         <!-- Pagination Footer -->
         <div
@@ -654,12 +712,19 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Create/Edit Modal -->
+      <!-- Create/Edit Table Modal -->
       <RestaurantTableFormModal
         v-if="showFormModal"
         :table="selectedTable"
         @close="closeFormModal"
         @success="handleFormSuccess"
+      />
+
+      <!-- Section Management Modal -->
+      <RestaurantSectionModal
+        v-if="showSectionModal"
+        @close="showSectionModal = false"
+        @updated="handleSectionUpdated"
       />
 
       <!-- QR Code Modal -->
@@ -690,6 +755,7 @@ onMounted(() => {
                 <div class="text-center text-xs text-slate-500 dark:text-slate-400">
                   <p>Token: <code class="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white px-2 py-0.5 rounded-lg font-mono font-bold">{{ selectedTable.qr_token }}</code></p>
                   <p v-if="selectedTable.table_name" class="mt-1 font-bold text-slate-900 dark:text-white">{{ selectedTable.table_name }}</p>
+                  <p class="mt-0.5 text-[11px] text-blue-600 dark:text-blue-400 font-semibold">Section: {{ selectedTable.section_name || selectedTable.section || 'Main Dining' }}</p>
                 </div>
                 <div class="flex gap-3">
                   <button
@@ -729,9 +795,9 @@ onMounted(() => {
                 <div class="w-12 h-12 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-2xl flex items-center justify-center mx-auto">
                   <AlertCircle class="w-6 h-6" />
                 </div>
-                <h3 class="text-base font-black text-slate-900 dark:text-white">{{ languageStore.t('delete_room', 'Delete Table?') }}</h3>
+                <h3 class="text-base font-black text-slate-900 dark:text-white">Delete Table {{ selectedTable?.table_number }}?</h3>
                 <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                  {{ languageStore.t('delete_room_confirm', 'Are you sure you want to delete this table?') }}
+                  Are you sure you want to delete this table? Its QR code will become inactive and will no longer resolve orders.
                 </p>
               </div>
               <div class="flex gap-3 pt-2">

@@ -3,10 +3,37 @@ import { computed } from 'vue'
 import { Plus, Clock, CheckCircle, AlertTriangle, User } from 'lucide-vue-next'
 import { useManagerStore } from '@/stores/managerStore'
 
+interface TaskItem {
+  id: string | number
+  title: string
+  department: string
+  employee: string
+  status: string
+  priority?: string
+}
+
 const manager = useManagerStore()
 
-const tasks = computed(() => {
-  return manager.tasks ?? []
+const tasks = computed<TaskItem[]>(() => {
+  const housekeepingTasks: TaskItem[] = (manager.housekeeping ?? []).map((h) => ({
+    id: h.id,
+    title: `${h.taskType || 'Housekeeping'} - Room ${h.roomNumber}`,
+    department: 'Housekeeping',
+    employee: h.assignedTo || 'Unassigned',
+    status: h.status,
+    priority: h.priority,
+  }))
+
+  const laundryTasks: TaskItem[] = (manager.laundryRequests ?? []).map((l) => ({
+    id: l.id,
+    title: `Laundry (${l.itemCount} items) - Room ${l.roomNumber}`,
+    department: 'Laundry',
+    employee: l.guestName || 'Staff',
+    status: l.status,
+    priority: l.priority || 'normal',
+  }))
+
+  return [...housekeepingTasks, ...laundryTasks]
 })
 
 const statistics = computed(() => {

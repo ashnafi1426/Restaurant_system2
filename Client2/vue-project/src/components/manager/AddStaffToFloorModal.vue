@@ -14,11 +14,13 @@ import {
   UserCheck
 } from 'lucide-vue-next'
 import api from '@/api/auth'
+import { useHotelStore } from '@/stores/hotelStore'
 
 interface Props {
   isOpen?: boolean
   floorId: string
   floorName?: string
+  hotelId?: string
   floors?: any[]
 }
 
@@ -31,10 +33,12 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   isOpen: true,
   floorName: '',
+  hotelId: '',
   floors: () => [],
 })
 
 const emit = defineEmits<Emits>()
+const hotelStore = useHotelStore()
 
 // State
 const availableFloors = ref<any[]>([])
@@ -48,6 +52,16 @@ const isLoading = ref<boolean>(false)
 const isSubmitting = ref<boolean>(false)
 const error = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
+
+const getWaiterName = (w: any): string => {
+  if (w?.user?.name && w.user.name.trim()) return w.user.name.trim()
+  if (w?.name && w.name.trim() && !w.name.startsWith('Waiter #')) return w.name.trim()
+  const fullName = `${w?.user?.first_name || ''} ${w?.user?.last_name || ''}`.trim()
+  if (fullName) return fullName
+  if (w?.user?.email) return w.user.email
+  if (w?.employee_number) return `Waiter #${w.employee_number}`
+  return `Waiter #${w?.id || '?'}`
+}
 
 // Computed
 const currentFloor = computed(() => {
@@ -63,10 +77,11 @@ const filteredWaiters = computed(() => {
   if (waiterSearch.value.trim()) {
     const q = waiterSearch.value.toLowerCase().trim()
     list = list.filter(w => {
-      const name = (w.user?.name || w.name || '').toLowerCase()
+      const name = getWaiterName(w).toLowerCase()
       const email = (w.user?.email || w.email || '').toLowerCase()
       const section = (w.section || '').toLowerCase()
-      return name.includes(q) || email.includes(q) || section.includes(q)
+      const empNum = String(w.employee_number || '').toLowerCase()
+      return name.includes(q) || email.includes(q) || section.includes(q) || empNum.includes(q)
     })
   }
   return list
@@ -106,11 +121,13 @@ const loadFloors = async () => {
 
 const loadWaiters = async () => {
   try {
-    const response = await api.get('/manager/waiters')
+    const targetHotelId = props.hotelId || hotelStore.hotelId || localStorage.getItem('hotel_id') || ''
+    const response = await api.get('/manager/waiters', {
+      params: targetHotelId ? { hotel_id: targetHotelId } : {}
+    })
     const data = response.data?.data || response.data
     const all = Array.isArray(data) ? data : []
-    const activeOnly = all.filter((w: any) => (w.status || 'active').toLowerCase() === 'active')
-    waiters.value = activeOnly.length > 0 ? activeOnly : all
+    waiters.value = all
   } catch (err: any) {
     console.error('[AddStaffToFloorModal] Error loading waiters:', err)
     error.value = 'Failed to load waiters: ' + (err.response?.data?.message || err.message)
@@ -350,7 +367,7 @@ onMounted(async () => {
                 :key="waiter.id"
                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 text-xs font-bold animate-in fade-in"
               >
-                <span>{{ waiter.user?.name || waiter.name || `Waiter #${waiter.id}` }}</span>
+                <span>{{ getWaiterName(waiter) }}</span>
                 <button
                   type="button"
                   @click.stop="removeWaiter(waiter.id)"
@@ -377,7 +394,7 @@ onMounted(async () => {
               <!-- Scrollable Waiter Checkbox List -->
               <div class="max-h-48 overflow-y-auto p-1.5 divide-y divide-slate-100 dark:divide-slate-850">
                 <div v-if="filteredWaiters.length === 0" class="py-6 text-center text-xs text-slate-400 italic">
-                  No active waiters found
+                  No waiters found
                 </div>
 
                 <div
@@ -402,22 +419,32 @@ onMounted(async () => {
 
                     <!-- Waiter Avatar & Details -->
                     <div class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-600 font-bold text-[10px] flex items-center justify-center flex-shrink-0">
-                      {{ (waiter.user?.name || waiter.name || 'W').charAt(0).toUpperCase() }}
+                      {{ (getWaiterName(waiter) || 'W').charAt(0).toUpperCase() }}
                     </div>
 
                     <div class="truncate">
                       <div class="text-xs font-bold text-slate-900 dark:text-white truncate">
-                        {{ waiter.user?.name || waiter.name || `Waiter #${waiter.id}` }}
+                        {{ getWaiterName(waiter) }}
                       </div>
                       <div class="text-[10px] text-slate-400 truncate">
                         {{ waiter.user?.email || waiter.email || 'Staff' }}
+                        <span v-if="waiter.section && waiter.section !== 'All Sections'" class="ml-1 text-slate-500">
+                          • {{ waiter.section }}
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
-                    <span class="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                      Active
+                    <span
+                      class="px-1.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider"
+                      :class="[
+                        (waiter.status || 'active').toLowerCase() === 'active'
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                      ]"
+                    >
+                      {{ waiter.status || 'Active' }}
                     </span>
                   </div>
                 </div>

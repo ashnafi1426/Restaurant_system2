@@ -27,7 +27,7 @@ export interface OrderResponse {
   data: {
     order_id: string
     order_number: string
-    order_type: 'room_service' | 'walk_in'
+    order_type: 'room_service' | 'dine_in' | 'walk_in'
     room_number?: string
     table_number?: string
     total: number

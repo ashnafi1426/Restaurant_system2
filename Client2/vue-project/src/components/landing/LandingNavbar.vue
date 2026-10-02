@@ -7,13 +7,16 @@
 
       <ul class="nav-menu" :class="{ active: menuOpen }">
         <li class="nav-item">
-          <a href="#home" class="nav-link">HOME</a>
+          <a href="#home" class="nav-link active">HOME</a>
         </li>
         <li class="nav-item">
           <a href="#rooms" class="nav-link">ROOMS</a>
         </li>
         <li class="nav-item">
-          <a href="#about" class="nav-link">ABOUT US</a>
+          <a href="#gallery" class="nav-link">GALLERY</a>
+        </li>
+        <li class="nav-item">
+          <a href="#about" class="nav-link">ABOUT</a>
         </li>
         <li class="nav-item">
           <a href="#contact" class="nav-link">CONTACT</a>

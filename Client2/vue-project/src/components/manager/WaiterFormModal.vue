@@ -201,8 +201,8 @@
                     </option>
                   </select>
                   
-                  <select v-model="assignment.shift_id" class="form-control" required>
-                    <option value="">Select Shift...</option>
+                  <select v-model="assignment.shift_id" class="form-control">
+                    <option value="">All Shifts / Default</option>
                     <option v-for="shift in shifts" :key="shift.id" :value="shift.id">
                       {{ shift.name }} ({{ shift.start_time }} - {{ shift.end_time }})
                     </option>
@@ -450,9 +450,20 @@ const submitForm = async () => {
     }
 
     submitting.value = true
+
+    const cleanedFloorAssignments = (formData.value.floor_assignments || [])
+      .filter((fa: any) => fa && fa.floor_id && String(fa.floor_id).trim() !== '')
+      .map((fa: any) => ({
+        floor_id: String(fa.floor_id).trim(),
+        shift_id: fa.shift_id && String(fa.shift_id).trim() !== '' ? String(fa.shift_id).trim() : null,
+        priority: fa.priority || 'primary',
+        assignment_date: fa.assignment_date || new Date().toISOString().split('T')[0],
+      }))
+
     const submitData = {
       ...formData.value,
       ...newUserData.value,
+      floor_assignments: cleanedFloorAssignments,
     }
 
     emit('submit', submitData)

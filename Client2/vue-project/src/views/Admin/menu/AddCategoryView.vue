@@ -162,11 +162,18 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import categoryService, { type CreateCategoryData } from '@/services/categoryService'
+import { useAuthStore } from '@/stores/auth'
 
+const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
+
+const isMenuManagement = computed(() => {
+  return route.path.startsWith('/menu-management') || (!authStore.isPlatformAdmin && !authStore.hasRole('admin'))
+})
 
 const formData = ref({
   name: '',
@@ -211,7 +218,11 @@ const submitForm = async () => {
     }
     await categoryService.createCategory(payload)
 
-    router.push({ name: 'admin-menu' })
+    if (isMenuManagement.value) {
+      router.push('/menu-management')
+    } else {
+      router.push({ name: 'admin-menu' })
+    }
   } catch (error: any) {
     console.error('[AddCategoryView] Error creating category:', error)
     if (error.response?.data?.message) {
@@ -227,7 +238,11 @@ const submitForm = async () => {
 }
 
 const goBack = () => {
-  router.push({ name: 'admin-menu' })
+  if (isMenuManagement.value) {
+    router.push('/menu-management')
+  } else {
+    router.push({ name: 'admin-menu' })
+  }
 }
 </script>
 

@@ -16,10 +16,12 @@ import {
 } from 'lucide-vue-next'
 import api from '@/api/auth'
 import { useTableAssignmentStore } from '@/stores/manager/tableAssignmentStore'
+import { useHotelStore } from '@/stores/hotelStore'
 
 interface Props {
   isOpen?: boolean
   initialTableId?: string
+  hotelId?: string
 }
 
 interface Emits {
@@ -31,11 +33,13 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   isOpen: true,
   initialTableId: '',
+  hotelId: '',
 })
 
 const emit = defineEmits<Emits>()
 
 const tableAssignmentStore = useTableAssignmentStore()
+const hotelStore = useHotelStore()
 
 // State
 const tables = ref<any[]>([])
@@ -55,12 +59,9 @@ const selectedTableData = computed(() => {
   return tables.value.find((t) => String(t.id) === String(selectedTable.value)) || null
 })
 
-// Only active waiters from the current hotel can be assigned
+// Waiters from current hotel
 const activeWaiters = computed(() => {
-  return waiters.value.filter((w: any) => {
-    const status = (w.status || 'active').toLowerCase()
-    return status === 'active'
-  })
+  return waiters.value
 })
 
 const filteredWaiters = computed(() => {
@@ -88,10 +89,11 @@ const isFormValid = computed(() => {
 
 const getWaiterDisplayName = (waiter: any): string => {
   if (!waiter) return 'Unknown Staff'
-  if (waiter.user?.name) return waiter.user.name
-  if (waiter.name) return waiter.name
-  if (waiter.user?.first_name) return `${waiter.user.first_name} ${waiter.user.last_name || ''}`.trim()
-  if (waiter.user?.email) return waiter.user.email.split('@')[0]
+  if (waiter.user?.name && waiter.user.name.trim()) return waiter.user.name.trim()
+  if (waiter.name && waiter.name.trim() && !waiter.name.startsWith('Waiter #')) return waiter.name.trim()
+  const fullName = `${waiter.user?.first_name || ''} ${waiter.user?.last_name || ''}`.trim()
+  if (fullName) return fullName
+  if (waiter.user?.email) return waiter.user.email
   if (waiter.employee_number) return `Waiter #${waiter.employee_number}`
   return `Waiter #${waiter.id}`
 }
@@ -116,16 +118,17 @@ const loadTables = async () => {
 
 const loadWaiters = async () => {
   try {
-    const response = await api.get('/manager/waiters')
+    const targetHotelId = props.hotelId || hotelStore.hotelId || localStorage.getItem('hotel_id') || ''
+    const response = await api.get('/manager/waiters', {
+      params: targetHotelId ? { hotel_id: targetHotelId } : {}
+    })
     let list: any[] = []
     if (Array.isArray(response.data?.data)) {
       list = response.data.data
     } else if (Array.isArray(response.data)) {
       list = response.data
     }
-    // Filter to ensure only active waiters from current hotel
-    const active = list.filter((w: any) => (w.status || 'active').toLowerCase() === 'active')
-    waiters.value = active.length > 0 ? active : list
+    waiters.value = list
   } catch (err: any) {
     console.error('[AssignWaiterToTableModal] Error loading waiters:', err)
   }

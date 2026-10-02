@@ -21,7 +21,7 @@ defineProps<{
 }>()
 
 const ticketsNeeding = computed(() => {
-  return 4
+  return props.statistics?.pending_orders ?? 0
 })
 </script>
 

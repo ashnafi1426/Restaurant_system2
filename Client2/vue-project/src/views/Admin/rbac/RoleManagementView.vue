@@ -65,6 +65,7 @@ const loading = ref(true)
 const isRefreshing = ref(false)
 const saving = ref(false)
 const loadingPermissions = ref(false)
+const loadingUsers = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 
@@ -130,22 +131,29 @@ const fetchRolesAndPermissions = async (silent = false) => {
     isRefreshing.value = true
   }
   errorMessage.value = ''
-  try {
-    const rolesPromise = rbacService.getRoles()
-    const permsPromise = permissions.value.length === 0 ? rbacService.getPermissions() : Promise.resolve({ data: permissions.value })
-    const usersPromise = userSummaries.value.length === 0 ? rbacService.getUserRoleSummaries().catch((err) => { console.error('[RoleManagement] getUserRoleSummaries error:', err); return []; }) : Promise.resolve(userSummaries.value)
 
-    const [rolesData, permsData, usersData] = await Promise.all([
-      rolesPromise,
-      permsPromise,
-      usersPromise
-    ])
+  try {
+    // 1. Fetch roles fast & display them immediately so page renders with zero wait time
+    const rolesData = await rbacService.getRoles()
     roles.value = rolesData || []
-    if (permsData?.data) permissions.value = permsData.data
-    if (usersData) userSummaries.value = usersData
+
+    // Immediately stop page-level loading state
+    loading.value = false
+    isRefreshing.value = false
+
+    // 2. Pre-fetch permissions in the background so modals & filters are snappy
+    if (permissions.value.length === 0) {
+      rbacService.getPermissions()
+        .then(permsData => {
+          if (permsData?.data) permissions.value = permsData.data
+        })
+        .catch(err => {
+          console.warn('[RoleManagement] Background permissions fetch:', err)
+        })
+    }
   } catch (err: any) {
     console.error('[RoleManagement] Fetch error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to load system roles and permissions.'
+    errorMessage.value = err?.response?.data?.message || 'Failed to load system roles.'
   } finally {
     loading.value = false
     isRefreshing.value = false
@@ -195,9 +203,19 @@ onUnmounted(() => {
   document.removeEventListener('click', handleGlobalClick)
 })
 
-watch(() => hotelStore.hotelId, async () => {
-  await fetchRolesAndPermissions(true)
-})
+let lastHotelId = hotelStore.hotelId
+
+watch(
+  () => hotelStore.hotelId,
+  async (newVal, oldVal) => {
+    // Only re-fetch if hotelId actually changed to a valid different hotel
+    if (newVal && newVal !== oldVal && oldVal !== undefined) {
+      lastHotelId = newVal
+      userSummaries.value = [] // Invalidate previous hotel users cache
+      await fetchRolesAndPermissions(true)
+    }
+  }
+)
 
 // Metrics summary calculations (matching the screenshot cards)
 const allRolesCount = computed(() => roles.value.length)
@@ -249,11 +267,24 @@ const isAllSelected = computed(() => {
   return filteredRoles.value.length > 0 && selectedRoleIds.value.length === filteredRoles.value.length
 })
 
-const openCreateModal = () => {
+const openCreateModal = async () => {
   editingRole.value = null
   initialPermissionIds.value = []
-  loadingPermissions.value = false
   showModal.value = true
+
+  if (permissions.value.length === 0) {
+    loadingPermissions.value = true
+    try {
+      const permsData = await rbacService.getPermissions()
+      if (permsData?.data) permissions.value = permsData.data
+    } catch (err) {
+      console.error('[RoleManagement] Failed to load permissions for modal:', err)
+    } finally {
+      loadingPermissions.value = false
+    }
+  } else {
+    loadingPermissions.value = false
+  }
 }
 
 const openEditModal = async (role: Role) => {
@@ -261,6 +292,12 @@ const openEditModal = async (role: Role) => {
   initialPermissionIds.value = []
   loadingPermissions.value = true
   showModal.value = true
+
+  if (permissions.value.length === 0) {
+    rbacService.getPermissions().then(permsData => {
+      if (permsData?.data) permissions.value = permsData.data
+    }).catch(err => console.warn(err))
+  }
 
   try {
     const permData = await rbacService.getRolePermissions(role.id)
@@ -282,6 +319,12 @@ const openCloneModal = async (role: Role) => {
   loadingPermissions.value = true
   showModal.value = true
 
+  if (permissions.value.length === 0) {
+    rbacService.getPermissions().then(permsData => {
+      if (permsData?.data) permissions.value = permsData.data
+    }).catch(err => console.warn(err))
+  }
+
   try {
     const permData = await rbacService.getRolePermissions(role.id)
     let permIds: number[] = []
@@ -298,9 +341,22 @@ const openCloneModal = async (role: Role) => {
   }
 }
 
-const openUsersModal = (role: Role) => {
+const openUsersModal = async (role: Role) => {
   selectedRoleForUsers.value = role
   showUsersModal.value = true
+
+  // Lazily load user summaries on demand when modal is viewed
+  if (userSummaries.value.length === 0) {
+    loadingUsers.value = true
+    try {
+      const usersData = await rbacService.getUserRoleSummaries()
+      if (usersData) userSummaries.value = usersData
+    } catch (err) {
+      console.error('[RoleManagement] Error loading staff for modal:', err)
+    } finally {
+      loadingUsers.value = false
+    }
+  }
 }
 
 const toggleRoleActive = async (role: Role) => {
@@ -916,6 +972,7 @@ const navigateToUserAssignments = () => {
         :show="showUsersModal"
         :role="selectedRoleForUsers"
         :users="userSummaries"
+        :loading="loadingUsers"
         @close="showUsersModal = false"
         @navigate-user-roles="navigateToUserAssignments"
       />

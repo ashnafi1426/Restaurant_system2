@@ -6,28 +6,28 @@
     >
       <div class="relative mb-8">
         <div class="absolute inset-0 flex items-center justify-center">
-          <div class="w-48 h-48 rounded-full border-4 border-red-100 dark:border-red-900/30"></div>
-          <div class="absolute w-48 h-48 rounded-full border-4 border-t-red-600 dark:border-t-red-500 animate-spin"></div>
+          <div class="w-48 h-48 rounded-full border-4 border-amber-100 dark:border-amber-900/30"></div>
+          <div class="absolute w-48 h-48 rounded-full border-4 border-t-amber-500 dark:border-t-amber-400 animate-spin"></div>
         </div>
         
         <div class="relative flex items-center justify-center w-48 h-48">
           <img 
             src="/images/Hotel logo.png" 
-            alt="Hotel Logo" 
-            class="w-32 h-32 object-contain animate-pulse"
+            alt="Metropolitan Hotels Logo" 
+            class="w-32 h-32 object-contain animate-pulse drop-shadow-md"
           />
         </div>
       </div>
 
-      <h1 class="text-3xl font-bold text-red-800 dark:text-red-500 mb-2 animate-fade-in">
-        LUXURY HOTEL
+      <h1 class="text-3xl font-black text-slate-900 dark:text-white tracking-wider mb-1 animate-fade-in uppercase">
+        Metropolitan Hotels
       </h1>
-      <p class="text-xl text-gray-600 dark:text-gray-400 mb-6 animate-fade-in-delay">
-        Experience Excellence
+      <p class="text-sm font-bold tracking-widest text-amber-600 dark:text-amber-400 mb-6 animate-fade-in-delay uppercase">
+        Crafting Premier Stays
       </p>
 
       <div class="flex gap-1 mb-8 animate-fade-in-delay-2">
-        <span v-for="i in 5" :key="i" class="text-red-600 dark:text-red-500 text-2xl">★</span>
+        <span v-for="i in 5" :key="i" class="text-amber-500 dark:text-amber-400 text-xl">★</span>
       </div>
 
       <div class="w-80 space-y-4">

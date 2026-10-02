@@ -56,12 +56,12 @@ const hotelLogoUrl = computed(() => {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         <div class="space-y-4">
           <div class="flex items-center gap-2.5">
-            <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-black text-lg shadow-md overflow-hidden">
+            <div class="w-11 h-11 rounded-2xl bg-white dark:bg-slate-950 border border-slate-700/80 text-amber-400 flex items-center justify-center font-black text-lg shadow-md overflow-hidden p-1">
               <img 
                 v-if="hotelLogoUrl && !imageLoadFailed" 
                 :src="hotelLogoUrl" 
                 :alt="guestHotelStore.hotelName" 
-                class="w-full h-full object-cover" 
+                class="w-full h-full object-contain" 
                 @error="imageLoadFailed = true" 
               />
               <span v-else>{{ (guestHotelStore.hotelName || 'H').charAt(0).toUpperCase() }}</span>

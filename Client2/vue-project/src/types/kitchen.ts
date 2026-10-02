@@ -104,6 +104,7 @@ export interface KitchenStatistics {
   today_ready: number
 
   today_served: number
+  avg_prep_time_minutes?: number
 }
 
 export interface KitchenDashboardResponse {

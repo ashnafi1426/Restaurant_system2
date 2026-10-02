@@ -3,17 +3,43 @@ import { computed } from 'vue'
 import { Plus, Building2, Users, CheckCircle } from 'lucide-vue-next'
 import { useManagerStore } from '@/stores/managerStore'
 
+interface DepartmentItem {
+  id: string | number
+  name: string
+  description?: string
+  status: string
+  employee_count: number
+}
+
 const manager = useManagerStore()
 
-const departments = computed(() => {
-  return manager.departments ?? []
+const departments = computed<DepartmentItem[]>(() => {
+  const staffList = manager.staff ?? []
+  if (!staffList.length) return []
+
+  const deptMap = new Map<string, { total: number; active: number }>()
+  for (const s of staffList) {
+    const dept = s.department || 'General'
+    const cur = deptMap.get(dept) || { total: 0, active: 0 }
+    cur.total += 1
+    if (s.status === 'active') cur.active += 1
+    deptMap.set(dept, cur)
+  }
+
+  return Array.from(deptMap.entries()).map(([name, stats], idx) => ({
+    id: idx + 1,
+    name,
+    description: `${name} department operations and team`,
+    status: stats.active > 0 ? 'active' : 'inactive',
+    employee_count: stats.total,
+  }))
 })
 
 const statistics = computed(() => {
   return {
     total: departments.value.length,
     active: departments.value.filter((d) => d.status === 'active').length,
-    employees: departments.value.reduce((sum, d) => sum + d.employee_count, 0),
+    employees: departments.value.reduce((sum, d) => sum + (d.employee_count || 0), 0),
   }
 })
 </script>

@@ -4,7 +4,7 @@ import { useLanguageStore, type LanguageCode } from '@/stores/language'
 import { ChevronDown, Check, Globe } from 'lucide-vue-next'
 
 interface Props {
-  variant?: 'pill' | 'compact' | 'minimal'
+  variant?: 'pill' | 'compact' | 'minimal' | 'header'
   showLabel?: boolean
 }
 
@@ -48,23 +48,25 @@ onUnmounted(() => {
       @click.stop="toggleDropdown"
       type="button"
       :class="[
-        'flex items-center gap-1.5 h-10 rounded-xl transition-all cursor-pointer font-bold select-none border whitespace-nowrap',
-        variant === 'pill'
-          ? 'px-3 text-xs border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-amber-500 shadow-xs'
+        'flex items-center gap-2 transition-all duration-200 cursor-pointer select-none whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A] focus-visible:ring-offset-2',
+        variant === 'header'
+          ? 'h-10 px-3.5 rounded-full border border-slate-200 dark:border-slate-700 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-200 hover:text-[#0B1B35] dark:hover:text-white text-[12px] font-semibold'
+          : variant === 'pill'
+          ? 'h-10 px-3.5 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-[#E9A11A]'
           : variant === 'compact'
-          ? 'px-2.5 text-xs border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-amber-500 text-slate-700 dark:text-slate-200 shadow-xs'
-          : 'p-2 border-transparent text-slate-600 dark:text-slate-300 hover:text-amber-500'
+          ? 'h-9 px-2.5 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#E9A11A] text-slate-700 dark:text-slate-200'
+          : 'h-10 p-2 rounded-full border border-transparent text-slate-600 dark:text-slate-300 hover:text-[#E9A11A]'
       ]"
       :title="`Current language: ${languageStore.currentOption.nativeName}. Click to change.`"
       aria-haspopup="true"
       :aria-expanded="isOpen"
     >
-      <Globe class="w-3.5 h-3.5 text-amber-500 shrink-0" />
-      <span v-if="showLabel" class="text-xs font-black tracking-wider uppercase">
+      <Globe class="w-4 h-4 text-[#E9A11A] shrink-0" />
+      <span v-if="showLabel" class="text-[12px] font-semibold tracking-wider uppercase">
         {{ languageStore.currentLanguage === 'am' ? 'አማ' : 'EN' }}
       </span>
       <ChevronDown
-        class="w-3.5 h-3.5 opacity-60 transition-transform duration-200 shrink-0"
+        class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0"
         :class="{ 'rotate-180': isOpen }"
       />
     </button>
@@ -80,10 +82,10 @@ onUnmounted(() => {
     >
       <div
         v-if="isOpen"
-        class="absolute right-0 mt-2 w-44 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xl py-1.5 z-50 overflow-hidden font-sans"
+        class="absolute right-0 mt-2 w-44 rounded-2xl bg-white dark:bg-[#0B1B35] border border-slate-200 dark:border-slate-700 shadow-xl py-1.5 z-50 overflow-hidden font-sans"
       >
-        <div class="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5">
-          <Globe class="w-3 h-3 text-amber-500" />
+        <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5">
+          <Globe class="w-3 h-3 text-[#E9A11A]" />
           <span>{{ languageStore.t('language', 'Language') }}</span>
         </div>
 
@@ -92,26 +94,26 @@ onUnmounted(() => {
             v-for="opt in languageStore.options"
             :key="opt.code"
             @click.stop="selectLanguage(opt.code)"
-            class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+            class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer"
             :class="[
               languageStore.currentLanguage === opt.code
-                ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                ? 'bg-[#E9A11A]/10 text-[#E9A11A] font-semibold'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
             ]"
           >
             <div class="flex items-center gap-2.5">
-              <span class="w-6 h-5 rounded flex items-center justify-center text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-black">
+              <span class="w-6 h-5 rounded flex items-center justify-center text-[11px] bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold">
                 {{ opt.code === 'am' ? 'አማ' : 'EN' }}
               </span>
               <div class="flex flex-col text-left leading-tight">
-                <span class="text-xs font-black">{{ opt.nativeName }}</span>
+                <span class="text-xs font-semibold">{{ opt.nativeName }}</span>
                 <span class="text-[10px] text-slate-400 font-normal">{{ opt.name }}</span>
               </div>
             </div>
 
             <Check
               v-if="languageStore.currentLanguage === opt.code"
-              class="w-4 h-4 text-amber-500 shrink-0"
+              class="w-4 h-4 text-[#E9A11A] shrink-0"
             />
           </button>
         </div>

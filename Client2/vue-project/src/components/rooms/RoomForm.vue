@@ -34,8 +34,9 @@ const languageStore = useLanguageStore()
 const roomTypes = ref<any[]>([])
 const floors = ref<any[]>([])
 const existingRoomNumbers = ref<string[]>([])
-const loadingRooms = ref(false)
+const loadingRoomTypes = ref(false)
 const loadingFloors = ref(false)
+const loadingRoomNumbers = ref(false)
 
 const showAddFloorInline = ref(false)
 const newFloorNumber = ref<number | null>(null)
@@ -69,63 +70,88 @@ const populateInitial = (data: any) => {
   }
 }
 
-const loadHotelData = async () => {
-  loadingRooms.value = true
+const loadRoomTypes = async (activeHotelId?: string) => {
+  loadingRoomTypes.value = true
+  try {
+    await roomTypeStore.fetchRoomTypes({
+      hotel_id: activeHotelId || undefined,
+      per_page: 100,
+      is_active: 1,
+    })
+    roomTypes.value = roomTypeStore.roomTypes || []
+  } catch (e) {
+    console.error('[RoomForm] Error fetching room types:', e)
+  } finally {
+    loadingRoomTypes.value = false
+  }
+}
+
+const loadFloors = async (activeHotelId?: string) => {
   loadingFloors.value = true
   try {
-    const activeHotelId = hotelStore.hotelId
-    await roomTypeStore.fetchRoomTypes({ hotel_id: activeHotelId, per_page: 100 })
-    roomTypes.value = roomTypeStore.roomTypes || []
-
-    // Fetch existing floors for hotel
-    try {
-      let res: any
-      const floorParams = {
-        is_active: 1,
-        per_page: 100,
-        hotel_id: activeHotelId || undefined,
-      }
-      try {
-        res = await axios.get('/floors', { params: floorParams })
-      } catch {
-        res = await axios.get('/manager/floors', { params: floorParams })
-      }
-      const rawFloors = res.data?.data?.data || res.data?.data || res.data || []
-      floors.value = Array.isArray(rawFloors) ? rawFloors : []
-
-      // Auto-match or auto-select floor
-      if (form.floor_id) {
-        // Already selected
-      } else if (form.floor !== null && floors.value.length > 0) {
-        const matched = floors.value.find((f: any) => Number(f.floor_number) === Number(form.floor))
-        if (matched) form.floor_id = String(matched.id)
-      } else if (floors.value.length === 1) {
-        form.floor_id = String(floors.value[0].id)
-        form.floor = Number(floors.value[0].floor_number)
-      }
-    } catch (err) {
-      console.error('[RoomForm] Error fetching floors:', err)
-      floors.value = []
+    const floorParams = {
+      is_active: 1,
+      per_page: 100,
+      hotel_id: activeHotelId || undefined,
     }
+    let res: any
+    try {
+      res = await axios.get('/floors', { params: floorParams })
+    } catch {
+      res = await axios.get('/manager/floors', { params: floorParams })
+    }
+    const rawFloors = res.data?.data?.data || res.data?.data || res.data || []
+    floors.value = Array.isArray(rawFloors) ? rawFloors : []
 
+    // Auto-match or auto-select floor
+    if (form.floor_id) {
+      // Already selected
+    } else if (form.floor !== null && floors.value.length > 0) {
+      const matched = floors.value.find((f: any) => Number(f.floor_number) === Number(form.floor))
+      if (matched) form.floor_id = String(matched.id)
+    } else if (floors.value.length === 1) {
+      form.floor_id = String(floors.value[0].id)
+      form.floor = Number(floors.value[0].floor_number)
+    }
+  } catch (err) {
+    console.error('[RoomForm] Error fetching floors:', err)
+    floors.value = []
+  } finally {
+    loadingFloors.value = false
+  }
+}
+
+const loadExistingRoomNumbers = async (activeHotelId?: string) => {
+  loadingRoomNumbers.value = true
+  try {
     const response = await roomService.getRooms({
-      hotel_id: activeHotelId,
-      per_page: 1000,
+      hotel_id: activeHotelId || undefined,
+      per_page: 100,
     })
     const rooms = response.data?.data || response.data || []
     existingRoomNumbers.value = Array.isArray(rooms)
       ? rooms.map((room: any) => String(room.room_number || '').trim()).filter(Boolean)
       : []
+  } catch (err) {
+    console.error('[RoomForm] Error fetching existing rooms:', err)
+  } finally {
+    loadingRoomNumbers.value = false
+  }
+}
 
+const loadHotelData = () => {
+  const activeHotelId = hotelStore.hotelId
+
+  // Fire parallel requests so each dropdown unlocks as soon as its data is ready
+  Promise.allSettled([
+    loadRoomTypes(activeHotelId),
+    loadFloors(activeHotelId),
+    loadExistingRoomNumbers(activeHotelId),
+  ]).then(() => {
     if (props.initialData) {
       populateInitial(props.initialData)
     }
-  } catch (error) {
-    console.error('[RoomForm] Error fetching rooms & room types:', error)
-  } finally {
-    loadingRooms.value = false
-    loadingFloors.value = false
-  }
+  })
 }
 
 const quickCreateFloor = async () => {
@@ -271,7 +297,7 @@ const save = () => {
 
     <!-- Notice for No Room Types in Active Hotel -->
     <div
-      v-if="roomTypes.length === 0 && !loadingRooms"
+      v-if="roomTypes.length === 0 && !loadingRoomTypes"
       class="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-800 dark:text-amber-300 text-xs sm:text-sm"
     >
       <div class="flex items-center gap-2">
@@ -461,10 +487,10 @@ const save = () => {
           value-key="id"
           :icon="BedDouble"
           item-type="room type"
-          :placeholder="loadingRooms ? 'Loading room types...' : languageStore.t('select_room_type', 'Select Room Type')"
+          :placeholder="loadingRoomTypes ? 'Loading room types...' : languageStore.t('select_room_type', 'Select Room Type')"
           search-placeholder="Search room types or price..."
           empty-text="No room types matching search"
-          :disabled="loadingRooms"
+          :disabled="loadingRoomTypes"
           :has-error="Boolean(serverErrors?.room_type_id)"
           :format-option-label="(type) => `${type.name} - ${parseFloat(type.base_price_per_night || 0).toLocaleString('en-US')} ${hotelStore.currency || 'ETB'}/night`"
         >

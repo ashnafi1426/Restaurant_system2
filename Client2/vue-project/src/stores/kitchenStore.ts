@@ -66,11 +66,14 @@ export const useKitchenStore = defineStore('kitchen', () => {
     try {
       const updatedOrder = await kitchenService.startPreparing(orderId)
       updateOrder(updatedOrder)
+      syncStatistics()
+      return updatedOrder
     } catch (err: any) {
       console.error('[kitchenStore] Failed to start preparing order:', err)
       const errorMsg =
         err?.response?.data?.message ?? err.message ?? 'Failed to start preparing order'
       error.value = errorMsg
+      throw err
     } finally {
       actionLoading.value = null
     }
@@ -78,16 +81,18 @@ export const useKitchenStore = defineStore('kitchen', () => {
 
   async function markReady(orderId: string) {
     actionLoading.value = orderId
-
     error.value = null
 
     try {
       const updatedOrder = await kitchenService.markReady(orderId)
       updateOrder(updatedOrder)
+      syncStatistics()
+      return updatedOrder
     } catch (err: any) {
       console.error('[kitchenStore] Failed to mark order ready:', err)
       const errorMsg = err?.response?.data?.message ?? err.message ?? 'Failed to mark order ready'
       error.value = errorMsg
+      throw err
     } finally {
       actionLoading.value = null
     }
@@ -95,19 +100,27 @@ export const useKitchenStore = defineStore('kitchen', () => {
 
   async function markServed(orderId: string) {
     actionLoading.value = orderId
-
     error.value = null
 
     try {
       const updatedOrder = await kitchenService.markServed(orderId)
       updateOrder(updatedOrder)
+      syncStatistics()
+      return updatedOrder
     } catch (err: any) {
       console.error('[kitchenStore] Failed to complete order:', err)
       const errorMsg = err?.response?.data?.message ?? err.message ?? 'Failed to complete order'
       error.value = errorMsg
+      throw err
     } finally {
       actionLoading.value = null
     }
+  }
+
+  function syncStatistics() {
+    kitchenService.getStatistics().then((stats) => {
+      if (stats) statistics.value = stats
+    }).catch(() => {})
   }
 
   function updateOrder(updatedOrder: KitchenOrder) {
@@ -115,6 +128,8 @@ export const useKitchenStore = defineStore('kitchen', () => {
 
     if (index !== -1) {
       orders.value[index] = updatedOrder
+    } else {
+      orders.value.unshift(updatedOrder)
     }
   }
 

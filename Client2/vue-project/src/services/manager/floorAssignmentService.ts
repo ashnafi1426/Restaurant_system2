@@ -2,20 +2,21 @@ import api from '@/api/auth'
 
 export interface FloorAssignment {
   id: string
-  waiter: {
-    id: string
-    user: { name: string; email: string }
-    employment_type: string
-    status: string
-    availability: string
+  hotel_id?: string
+  waiter?: {
+    id: string | number
+    user?: { name: string; email?: string }
+    employment_type?: string
+    status?: string
+    availability?: string
   }
-  floor: {
+  floor?: {
     id: string
     floor_number: number
     name: string
-    description: string
+    description?: string
   }
-  shift: {
+  shift?: {
     id: string
     name: string
     start_time: string
@@ -24,7 +25,14 @@ export interface FloorAssignment {
   assignment_date: string
   status: string
   priority: 'primary' | 'secondary' | 'backup'
-  created_at: string
+  is_active?: boolean
+  assigned_at?: string
+  assigned_by?: {
+    id?: string
+    name?: string
+  }
+  created_at?: string
+  updated_at?: string
 }
 
 export interface AssignmentStats {
@@ -37,14 +45,25 @@ export interface AssignmentStats {
 }
 
 export type FloorAssignmentStats = AssignmentStats
-export type BulkAssignmentPayload = any
+
+export interface AssignmentItem {
+  waiter_id: string | number
+  floor_id: string
+  shift_id?: string | null
+  assignment_date?: string
+  priority?: 'primary' | 'secondary' | 'backup'
+  status?: string
+  is_active?: boolean
+}
+
+export type BulkAssignmentPayload = AssignmentItem[] | { assignments: AssignmentItem[] }
 
 class FloorAssignmentService {
   async getTodayAssignments(): Promise<FloorAssignment[]> {
     try {
       const response = await api.get('/manager/floors/assignments/today')
       return response.data.data || response.data
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[FloorAssignmentService] Error fetching today assignments:', error)
       return []
     }
@@ -55,34 +74,28 @@ class FloorAssignmentService {
     per_page?: number
     date?: string
     floor_id?: string
-    waiter_id?: string
+    waiter_id?: string | number
     status?: string
-  }): Promise<any> {
+  }): Promise<{ data: FloorAssignment[]; pagination?: unknown }> {
     const queryParams = typeof params === 'string' ? { date: params } : params
     const response = await api.get('/manager/floors/assignments', { params: queryParams })
     return response.data
   }
 
-  async assignWaitersToFloors(assignments: Array<{
-    waiter_id: string | number
-    floor_id: string
-    shift_id: string
-    assignment_date: string
-    priority: 'primary' | 'secondary' | 'backup'
-  }>): Promise<FloorAssignment[]> {
+  async assignWaitersToFloors(assignments: AssignmentItem[]): Promise<FloorAssignment[]> {
     try {
       const response = await api.post('/manager/floors/assignments', {
         assignments,
       })
       const data = response.data.data || response.data
       return Array.isArray(data) ? data : [data]
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[FloorAssignmentService] Error assigning waiters to floors:', error)
       throw error
     }
   }
 
-  async bulkAssign(payload: any): Promise<FloorAssignment[]> {
+  async bulkAssign(payload: BulkAssignmentPayload): Promise<FloorAssignment[]> {
     const list = Array.isArray(payload) ? payload : (payload?.assignments || [])
     return this.assignWaitersToFloors(list)
   }
@@ -107,7 +120,7 @@ class FloorAssignmentService {
         params: date ? { date } : {},
       })
       return response.data.data || response.data
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[FloorAssignmentService] Error fetching assignment stats:', error)
       return {
         total_assignments: 0,
@@ -120,7 +133,7 @@ class FloorAssignmentService {
     }
   }
 
-  async getShifts(): Promise<any[]> {
+  async getShifts(): Promise<Array<{ id: string; name: string; start_time: string; end_time: string; is_active: boolean }>> {
     try {
       const response = await api.get('/manager/shifts', { params: { status: 'active' } })
       const shifts = response.data.data || response.data
@@ -131,7 +144,7 @@ class FloorAssignmentService {
         return shifts.data
       }
       return []
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[FloorAssignmentService] Error fetching shifts:', error)
       return []
     }

@@ -77,6 +77,6 @@ export default {
   },
 
   categories() {
-    return api.get('/menu-categories')
+    return api.get('/categories')
   },
 }

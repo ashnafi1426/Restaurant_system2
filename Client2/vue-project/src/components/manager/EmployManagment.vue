@@ -6,7 +6,7 @@ import { useManagerStore } from '@/stores/managerStore'
 const manager = useManagerStore()
 
 const employees = computed(() => {
-  return manager.employees ?? []
+  return manager.staff ?? []
 })
 
 const statistics = computed(() => {

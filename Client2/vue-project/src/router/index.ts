@@ -151,6 +151,24 @@ const router = createRouter({
       },
     },
     {
+      path: '/menu-management/add',
+      name: 'menu-management-add',
+      component: AddMenuItemView,
+      meta: {
+        requiresAuth: true,
+        permission: 'menu.create',
+      },
+    },
+    {
+      path: '/menu-management/add-category',
+      name: 'menu-management-add-category',
+      component: AddCategoryView,
+      meta: {
+        requiresAuth: true,
+        permission: 'menu.create',
+      },
+    },
+    {
       path: '/admin/menu',
       name: 'admin-menu',
       component: MenuManagement,

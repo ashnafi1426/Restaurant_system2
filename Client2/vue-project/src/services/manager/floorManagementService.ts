@@ -2,20 +2,47 @@ import api from '@/api/auth'
 
 export interface Floor {
   id: string
+  hotel_id?: string
   floor_number: number
   name: string
   description?: string
   is_active: boolean
+  total_rooms?: number
+  room_count?: number
   created_at?: string
   updated_at?: string
 }
 
 export interface FloorStats {
+  floor_id?: string
+  floor_number?: number
+  name?: string
+  is_active?: boolean
   total_rooms: number
   occupied_rooms: number
   available_rooms: number
   total_assignments: number
   active_waiters: number
+  assigned_waiters?: number
+  total_deliveries?: number
+  completed_deliveries?: number
+  pending_deliveries?: number
+  cancelled_deliveries?: number
+  average_delivery_time?: number
+}
+
+export interface FloorPagination {
+  total: number
+  per_page: number
+  current_page: number
+  last_page: number
+}
+
+export interface FloorListResponse {
+  success: boolean
+  message: string
+  data: Floor[]
+  pagination?: FloorPagination
 }
 
 class FloorManagementService {
@@ -24,7 +51,7 @@ class FloorManagementService {
     per_page?: number
     is_active?: boolean
     search?: string
-  }): Promise<any> {
+  }): Promise<FloorListResponse> {
     const response = await api.get('/manager/floors', { params })
     return response.data
   }
@@ -33,14 +60,10 @@ class FloorManagementService {
     floor_number: number
     name: string
     description?: string
+    total_rooms?: number
   }): Promise<Floor> {
-    try {
-      const response = await api.post('/manager/floors', data)
-      return response.data.data
-    } catch (error: any) {
-      console.error('[FloorManagementService] Error creating floor:', error)
-      throw error
-    }
+    const response = await api.post('/manager/floors', data)
+    return response.data.data
   }
 
   async getFloor(floorId: string): Promise<Floor> {
@@ -51,9 +74,11 @@ class FloorManagementService {
   async updateFloor(
     floorId: string,
     data: {
+      floor_number?: number
       name?: string
       description?: string
       is_active?: boolean
+      total_rooms?: number
     }
   ): Promise<Floor> {
     const response = await api.put(`/manager/floors/${floorId}`, data)
@@ -78,7 +103,7 @@ class FloorManagementService {
     try {
       const response = await api.get(`/manager/floors/${floorId}/stats`)
       return response.data.data
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[FloorManagementService] Error fetching floor stats:', err)
       return {
         total_rooms: 0,
@@ -95,28 +120,28 @@ class FloorManagementService {
       const response = await api.get('/manager/floors', {
         params: { search: String(floorNumber) },
       })
-      const exists = response.data.data.some((f: Floor) => f.floor_number === floorNumber)
+      const floors: Floor[] = response.data.data || []
+      const exists = floors.some((f: Floor) => f.floor_number === floorNumber)
       return !exists
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[FloorManagementService] Error validating floor number:', err)
       return true
     }
   }
 
-  async getAvailableWaiters(): Promise<any[]> {
+  async getAvailableWaiters(): Promise<unknown[]> {
     try {
       try {
         const response = await api.get('/manager/waiters/available')
         return response.data.data || []
       } catch (error: any) {
-        console.warn('[FloorManagementService] /manager/waiters/available failed, trying fallback:', error)
         if (error.response?.status === 404) {
           const response = await api.get('/manager/waiters')
-          return (response.data.data || []).filter((w: any) => w.is_active)
+          return (response.data.data || []).filter((w: { is_active?: boolean }) => w.is_active)
         }
         throw error
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[FloorManagementService] Error fetching available waiters:', err)
       return []
     }

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { publicAxios } from '../services/axios'
+import { useThemeStore } from './theme'
 
 export interface PublicHotel {
   id: string
@@ -82,6 +83,15 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       this.currentHotel = hotel
       this.isSelectorOpen = false
       localStorage.setItem('guest_current_hotel', JSON.stringify(hotel))
+      
+      // Dynamically adapt platform brand theme to the selected hotel property
+      try {
+        const themeStore = useThemeStore()
+        themeStore.syncWithHotel(hotel)
+      } catch (e) {
+        console.warn('[guestHotelStore] Could not auto-sync theme:', e)
+      }
+
       window.dispatchEvent(new CustomEvent('guest-hotel-selected', { detail: { hotel } }))
     },
 

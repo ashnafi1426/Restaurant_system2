@@ -168,7 +168,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useLanguageStore } from '@/stores/language'
 import reviewService from '@/services/reviewService'
-import { ReviewStats } from '@/types/review'
+import type { ReviewStats } from '@/types/review'
 import PublicReviewsList from '@/components/reviews/PublicReviewsList.vue'
 import ReviewSubmissionForm from '@/components/reviews/ReviewSubmissionForm.vue'
 

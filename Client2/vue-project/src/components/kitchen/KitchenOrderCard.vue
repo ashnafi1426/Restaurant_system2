@@ -100,29 +100,18 @@
 <script setup lang="ts">
 import { MoreVertical, CookingPot, CheckCircle2, Clock } from 'lucide-vue-next'
 import { useLanguageStore } from '@/stores/language'
+import type { KitchenOrder } from '@/types/kitchen'
 
 const languageStore = useLanguageStore()
 
 defineProps<{
-  order: {
-    id: number
-    room: string
-    priority: boolean
-    time: string
-    items: Array<{
-      name: string
-      quantity: number
-      note?: string
-    }>
-    status: 'pending' | 'preparing' | 'ready' | 'served'
-    customer?: string
-  }
+  order: KitchenOrder & { priority?: boolean; time?: string; customer?: string }
 }>()
 
 defineEmits<{
-  (e: 'view-details', order: any): void
-  (e: 'start-preparing', order: any): void
-  (e: 'mark-ready', order: any): void
-  (e: 'mark-served', order: any): void
+  (e: 'view-details', order: KitchenOrder): void
+  (e: 'start-preparing', order: KitchenOrder): void
+  (e: 'mark-ready', order: KitchenOrder): void
+  (e: 'mark-served', order: KitchenOrder): void
 }>()
 </script>

@@ -50,6 +50,7 @@ import {
   X,
   Star,
   Building2,
+  SlidersHorizontal,
 } from 'lucide-vue-next'
 
 const emit = defineEmits<{
@@ -117,7 +118,7 @@ const menuIcons: Record<string, Component> = {
 const sectionIcons: Record<string, Component> = {
   'General': LayoutDashboard,
   'Platform': Building2,
-  'Administration': ShieldCheck,
+  'Administration': SlidersHorizontal,
   'Property Management': BedDouble,
   'Front Desk': LogIn,
   'Dining & Kitchen': Utensils,
@@ -211,8 +212,7 @@ const isAdminUser = computed(() => {
     userRole.includes('admin') ||
     auth.hasRole('admin') ||
     auth.hasRole('hotel_admin') ||
-    auth.hasRole('hotel-admin') ||
-    route.path.startsWith('/admin')
+    auth.hasRole('hotel-admin')
   )
 })
 
@@ -248,6 +248,15 @@ const menus = computed(() => {
 
     if (auth.isPlatformAdmin) {
       return true
+    }
+
+    if (item.roleSlug) {
+      const allowedRoles = Array.isArray(item.roleSlug) ? item.roleSlug : [item.roleSlug]
+      const currentRole = userRoleSlug.value
+      const hasMatchingRole = allowedRoles.some(r => r.toLowerCase() === currentRole)
+      if (!hasMatchingRole && !auth.isPlatformAdmin && !isAdminUser.value) {
+        return false
+      }
     }
 
     if (isAdminUser.value && !item.superAdminOnly) {
@@ -290,16 +299,16 @@ const searchQuery = ref('')
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const openSections = ref<Record<string, boolean>>({
   'General': true,
-  'Platform': true,
-  'Administration': true,
-  'Property Management': true,
-  'Front Desk': true,
-  'Dining & Kitchen': true,
-  'Operations': true,
-  'Deliveries': true,
-  'Billing': true,
-  'Reports & Analytics': true,
-  'Account': true,
+  'Platform': false,
+  'Administration': false,
+  'Property Management': false,
+  'Front Desk': false,
+  'Dining & Kitchen': false,
+  'Operations': false,
+  'Deliveries': false,
+  'Billing': false,
+  'Reports & Analytics': false,
+  'Account': false,
 })
 
 const toggleSection = (section: string) => {
@@ -310,6 +319,9 @@ function isActive(path: string): boolean {
   const current = route.path
   if (path === '/admin' || path === '/manager' || path === '/receptionist' || path === '/chef' || path === '/waiter' || path === '/cashier/dashboard') {
     return current === path
+  }
+  if (path === '/menu-management') {
+    return current.startsWith('/menu-management') || current.startsWith('/admin/menu')
   }
   return current === path || current.startsWith(path + '/')
 }
@@ -409,23 +421,23 @@ onUnmounted(() => {
   >
     <div
       class="flex items-center bg-white dark:bg-slate-950 transition-all duration-300 border-b border-slate-200/80 dark:border-slate-800/80 flex-shrink-0"
-      :class="isSidebarExpanded ? 'h-16 px-5 justify-between' : 'h-16 py-3 px-3 flex-col justify-center'"
+      :class="isSidebarExpanded ? 'h-16 px-4 justify-between' : 'h-16 py-2 px-2 flex-col justify-center'"
     >
       <template v-if="isSidebarExpanded">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center p-1.5 shadow-xs dark:shadow-slate-950/50 flex-shrink-0">
+        <div class="flex items-center min-w-0">
+          <div class="w-10 h-10 flex items-center justify-center flex-shrink-0">
             <img 
               src="/images/Hotel logo.png" 
-              alt="Grand Horizon Hotel Logo" 
-              class="w-full h-full object-contain"
+              alt="Hotel Logo" 
+              class="w-full h-full object-contain select-none"
             />
           </div>
         </div>
         
-        <!-- Desktop Collapse Button -->
+        <!-- Desktop Collapse Button (Circular style matching reference) -->
         <button
           @click="sidebarStore.toggleCollapse()"
-          class="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer flex-shrink-0"
+          class="hidden lg:flex items-center justify-center w-8.5 h-8.5 rounded-full border border-slate-200/70 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer flex-shrink-0 shadow-xs"
           :title="sidebarStore.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
         >
           <PanelLeft
@@ -437,20 +449,20 @@ onUnmounted(() => {
         <!-- Mobile Close Button -->
         <button
           @click="sidebarStore.closeMobile()"
-          class="flex lg:hidden items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer flex-shrink-0"
+          class="flex lg:hidden items-center justify-center w-8 h-8 rounded-full border border-slate-200/70 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer flex-shrink-0"
           title="Close sidebar"
         >
-          <X class="w-4.5 h-4.5" />
+          <X class="w-4 h-4" />
         </button>
       </template>
 
       <template v-else>
         <button
           @click="sidebarStore.toggleCollapse()"
-          class="hidden lg:flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition mx-auto cursor-pointer"
+          class="flex items-center justify-center w-8.5 h-8.5 rounded-full border border-slate-200/80 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer mx-auto shadow-xs"
           title="Expand sidebar"
         >
-          <PanelLeft class="w-4.5 h-4.5 transform rotate-180" />
+          <PanelLeft class="w-4 h-4 transform rotate-180" />
         </button>
       </template>
     </div>
@@ -568,6 +580,12 @@ onUnmounted(() => {
               {{ languageStore.t(section, section) }}
             </p>
           </div>
+          <div
+            v-else
+            class="flex items-center justify-center py-2 text-slate-300 dark:text-slate-600 select-none text-[8px] tracking-[0.25em]"
+          >
+            •••
+          </div>
 
           <template v-if="!isSidebarExpanded">
             <router-link
@@ -607,7 +625,7 @@ onUnmounted(() => {
             >
               <div class="flex items-center gap-3">
                 <component
-                  :is="sectionIcons[section] || ShieldCheck"
+                  :is="sectionIcons[section] || SlidersHorizontal"
                   class="w-5 h-5 text-slate-500 dark:text-slate-500 flex-shrink-0"
                   :stroke-width="1.75"
                 />

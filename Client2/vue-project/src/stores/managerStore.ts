@@ -19,7 +19,7 @@ import type {
   RevenueChartItem,
   OccupancyChartItem,
   Waiter,
-  WaiterStatus,
+  WaiterStatus
 } from '@/types/manager'
 
 export const useManagerStore = defineStore('manager', () => {

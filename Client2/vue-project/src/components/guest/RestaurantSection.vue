@@ -21,11 +21,7 @@ interface MenuItem {
 const featuredMenu = ref<MenuItem[]>([])
 const loading = ref(false)
 
-const fallbackMenuItems: MenuItem[] = [
-  { id: 'm1', name: 'Traditional Ethiopian Platter', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&h=600&fit=crop', description: 'Assorted Injera with Doro Wat, Kitfo, Alicha, and fresh Ayib cheese.', price: 650 },
-  { id: 'm2', name: 'Grilled Prime Ribeye Steak', image: 'https://images.unsplash.com/photo-1558030006-450675393462?w=800&h=600&fit=crop', description: 'Aged Ethiopian beef steak served with truffle mash and red wine jus.', price: 950 },
-  { id: 'm3', name: 'Seafood Symphony Pasta', image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&h=600&fit=crop', description: 'Fresh prawns, calamari, and salmon tossed in garlic cream sauce.', price: 820 },
-]
+const defaultDishPlaceholder = 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&h=600&fit=crop'
 
 function reserveTable() {
   router.push('/contact')
@@ -49,16 +45,16 @@ async function loadFeaturedMenu() {
       featuredMenu.value = items.slice(0, 3).map((item: any) => ({
         id: item.id || String(Math.random()),
         name: item.name,
-        image: item.image || item.image_url || fallbackMenuItems[0].image,
+        image: item.image || item.image_url || defaultDishPlaceholder,
         description: item.description || 'Delicious gourmet chef specialty dish.',
-        price: item.total_price != null ? item.total_price : (item.price || 450),
+        price: item.total_price != null ? item.total_price : (item.price || 0),
       }))
     } else {
-      featuredMenu.value = fallbackMenuItems
+      featuredMenu.value = []
     }
   } catch (err) {
     console.error('[RestaurantSection] Failed to load featured menu:', err)
-    featuredMenu.value = fallbackMenuItems
+    featuredMenu.value = []
   } finally {
     loading.value = false
   }
@@ -109,7 +105,7 @@ watch(() => guestHotelStore.hotelId, () => {
       </div>
 
       <!-- Menu Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div v-if="featuredMenu.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div
           v-for="item in featuredMenu"
           :key="item.id"

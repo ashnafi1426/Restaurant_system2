@@ -202,13 +202,13 @@ const login = async (): Promise<void> => {
       </button>
 
       <!-- Center Brand Badge -->
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-        <div class="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400">
-          <Hotel class="w-3.5 h-3.5" />
+      <div class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+        <div class="flex h-7 w-7 items-center justify-center rounded-lg overflow-hidden p-0.5 bg-amber-500/10 border border-amber-500/20">
+          <img src="/images/Hotel logo.png" alt="Metropolitan Hotels Logo" class="w-full h-full object-contain" />
         </div>
-        <span class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">Grand Horizon</span>
+        <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight">Metropolitan Hotels</span>
         <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
-          POS
+          Portal
         </span>
       </div>
 
@@ -233,16 +233,20 @@ const login = async (): Promise<void> => {
     <main class="my-auto w-full max-w-md z-10 py-2 sm:py-4">
       <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl dark:shadow-2xl dark:shadow-slate-950/80 space-y-4 sm:space-y-5 transition-colors duration-300">
         
-        <!-- Form Header -->
-        <div class="space-y-1 text-center">
-          <div class="mx-auto w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-2 shadow-xs">
-            <ShieldCheck class="w-5 h-5" />
+        <!-- Form Header with Branded Emblem -->
+        <div class="space-y-2 text-center">
+          <div class="mx-auto w-16 h-16 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200/90 dark:border-slate-800 p-2 shadow-sm flex items-center justify-center mb-1 overflow-hidden ring-1 ring-amber-500/20">
+            <img 
+              src="/images/Hotel logo.png" 
+              alt="Metropolitan Hotels Logo" 
+              class="w-full h-full object-contain"
+            />
           </div>
           <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             {{ languageStore.t('staff_admin_portal', 'Staff & Admin Portal') }}
           </h2>
-          <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
-            {{ languageStore.t('sign_in_subtitle', 'Enter your official credentials to access system features.') }}
+          <p class="text-xs text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider">
+            Metropolitan Hotels &mdash; Crafting Premier Stays
           </p>
         </div>
 

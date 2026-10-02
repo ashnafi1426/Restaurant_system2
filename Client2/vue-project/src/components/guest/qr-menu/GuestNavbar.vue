@@ -8,25 +8,25 @@
       ></div>
 
       <div class="px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <div
-            class="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 shadow-xs flex items-center justify-center flex-shrink-0 overflow-hidden"
-          >
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center flex-shrink-0">
             <img 
               v-if="hotelLogoUrl && !imageLoadFailed" 
               :src="hotelLogoUrl" 
               :alt="guestHotelStore.hotelName" 
-              class="w-full h-full object-cover" 
+              class="w-full h-full object-contain select-none" 
               @error="imageLoadFailed = true" 
             />
-            <span v-else class="text-amber-600 dark:text-amber-400 font-black text-lg">
+            <span v-else class="text-amber-600 dark:text-amber-400 font-serif font-black text-xl">
               {{ (guestHotelStore.hotelName || 'H').charAt(0).toUpperCase() }}
             </span>
           </div>
           <div class="hidden sm:block">
-            <h1 class="text-sm md:text-lg font-bold text-slate-900 dark:text-slate-100 transition-colors">{{ guestHotelStore.hotelName }}</h1>
+            <h1 class="text-sm md:text-base font-bold text-slate-900 dark:text-slate-100 transition-colors uppercase tracking-[0.14em] font-serif leading-tight">
+              {{ guestHotelStore.hotelName }}
+            </h1>
             <p
-              class="text-[8px] md:text-[10px] text-amber-600 dark:text-amber-400 font-semibold tracking-[2px] uppercase transition-colors"
+              class="text-[8px] md:text-[9.5px] text-amber-600 dark:text-amber-400 font-semibold tracking-[0.25em] uppercase transition-colors mt-0.5"
             >
               {{ guestHotelStore.currentHotel?.city || 'Hotel & Resort' }}
             </p>
@@ -39,23 +39,23 @@
         </div>
 
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <div class="flex items-center gap-2 sm:gap-2.5">
+          <div class="flex items-center gap-1.5 sm:gap-2">
             <button
               @click="handleThemeToggle"
-              class="flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-amber-500 transition cursor-pointer shadow-xs shrink-0"
+              class="flex items-center justify-center w-9 h-9 rounded-full border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 transition cursor-pointer shadow-2xs shrink-0"
               :title="theme.isDark ? languageStore.t('light_mode', 'Switch to Light Mode') : languageStore.t('dark_mode', 'Switch to Dark Mode')"
             >
-              <Sun v-if="theme.isDark" class="w-4.5 h-4.5 text-amber-400" />
-              <Moon v-else class="w-4.5 h-4.5 text-slate-700" />
+              <Sun v-if="theme.isDark" class="w-4 h-4 text-amber-400" />
+              <Moon v-else class="w-4 h-4 text-slate-700" />
             </button>
 
             <button
               @click="toggleFullscreen"
-              class="flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-amber-500 hover:scale-105 transition-all cursor-pointer shadow-xs shrink-0"
+              class="flex items-center justify-center w-9 h-9 rounded-full border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 transition-all cursor-pointer shadow-2xs shrink-0"
               :title="isFullscreen ? languageStore.t('exit_fullscreen', 'Exit Fullscreen') : languageStore.t('fullscreen', 'Enter Fullscreen')"
             >
-              <Maximize v-if="!isFullscreen" class="w-4.5 h-4.5 text-amber-500 stroke-[2.5]" />
-              <Minimize v-else class="w-4.5 h-4.5 text-amber-500 stroke-[2.5]" />
+              <Maximize v-if="!isFullscreen" class="w-4 h-4 text-amber-500" />
+              <Minimize v-else class="w-4 h-4 text-amber-500" />
             </button>
 
             <!-- Language Selector -->
@@ -63,11 +63,11 @@
 
             <button
               @click="toggleProfileDropdown"
-              class="flex items-center gap-2 h-10 px-3.5 sm:px-4 rounded-xl bg-[#c29353] hover:bg-[#b08244] text-white text-xs font-black shadow-md transition cursor-pointer shrink-0"
+              class="flex items-center gap-2 h-9 px-4 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black shadow-sm transition cursor-pointer shrink-0"
             >
-              <User class="w-4 h-4 text-white" />
+              <User class="w-3.5 h-3.5" />
               <span class="max-w-[120px] truncate">{{ guestName || languageStore.t('walk_in_guest', 'Walk-in Guest') }}</span>
-              <ChevronDown class="w-3.5 h-3.5 text-white/80" />
+              <ChevronDown class="w-3 h-3 text-slate-950/70" />
             </button>
 
             <Transition name="dropdown">

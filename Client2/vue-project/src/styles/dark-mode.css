@@ -64,15 +64,15 @@ html.dark h6 {
   color: #f1f5f9;
 }
 
-p, span, label, li {
+p:not([class*="text-"]), span:not([class*="text-"]), label:not([class*="text-"]), li:not([class*="text-"]) {
   color: #4b5563;
   transition: color 0.3s ease;
 }
 
-html.dark p,
-html.dark span,
-html.dark label,
-html.dark li {
+html.dark p:not([class*="text-"]),
+html.dark span:not([class*="text-"]),
+html.dark label:not([class*="text-"]),
+html.dark li:not([class*="text-"]) {
   color: #cbd5e1;
 }
 
@@ -114,7 +114,7 @@ html.dark .text-gray-400 {
   transition: background-color 0.3s ease;
 }
 
-html.dark .bg-white {
+html.dark .bg-white:not([class*="dark:bg-"]) {
   background-color: #0f172a;
 }
 
@@ -123,8 +123,8 @@ html.dark .bg-white {
   transition: background-color 0.3s ease;
 }
 
-html.dark .bg-gray-50,
-html.dark .bg-slate-50 {
+html.dark .bg-gray-50:not([class*="dark:bg-"]),
+html.dark .bg-slate-50:not([class*="dark:bg-"]) {
   background-color: #1e293b;
 }
 
@@ -133,8 +133,8 @@ html.dark .bg-slate-50 {
   transition: background-color 0.3s ease;
 }
 
-html.dark .bg-gray-100,
-html.dark .bg-slate-100 {
+html.dark .bg-gray-100:not([class*="dark:bg-"]),
+html.dark .bg-slate-100:not([class*="dark:bg-"]) {
   background-color: #334155;
 }
 

@@ -170,7 +170,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import reviewService from '@/services/reviewService'
-import { Review } from '@/types/review'
+import type { Review } from '@/types/review'
 import { useLanguageStore } from '@/stores/language'
 
 const languageStore = useLanguageStore()

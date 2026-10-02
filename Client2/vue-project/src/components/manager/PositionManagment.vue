@@ -3,17 +3,43 @@ import { computed } from 'vue'
 import { Plus, BriefcaseBusiness, Building2, Users, CheckCircle } from 'lucide-vue-next'
 import { useManagerStore } from '@/stores/managerStore'
 
+interface PositionItem {
+  id: string | number
+  name: string
+  department: string
+  status: string
+  employee_count: number
+}
+
 const manager = useManagerStore()
 
-const positions = computed(() => {
-  return manager.positions ?? []
+const positions = computed<PositionItem[]>(() => {
+  const staffList = manager.staff ?? []
+  if (!staffList.length) return []
+
+  const posMap = new Map<string, { department: string; total: number; active: number }>()
+  for (const s of staffList) {
+    const posName = s.position || 'General Staff'
+    const cur = posMap.get(posName) || { department: s.department || 'General', total: 0, active: 0 }
+    cur.total += 1
+    if (s.status === 'active') cur.active += 1
+    posMap.set(posName, cur)
+  }
+
+  return Array.from(posMap.entries()).map(([name, data], idx) => ({
+    id: idx + 1,
+    name,
+    department: data.department,
+    status: data.active > 0 ? 'active' : 'inactive',
+    employee_count: data.total,
+  }))
 })
 
 const statistics = computed(() => {
   return {
     total: positions.value.length,
     active: positions.value.filter((p) => p.status === 'active').length,
-    employees: positions.value.reduce((sum, p) => sum + p.employee_count, 0),
+    employees: positions.value.reduce((sum, p) => sum + (p.employee_count || 0), 0),
   }
 })
 </script>
