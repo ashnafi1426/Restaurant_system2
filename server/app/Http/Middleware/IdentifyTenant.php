@@ -40,6 +40,8 @@ class IdentifyTenant
             'api/rooms/*',
             'api/room-types',
             'api/room-types/*',
+            'api/floors',
+            'api/floors/*',
             'api/reservations/availability',
             'api/qr-codes/*'
         );

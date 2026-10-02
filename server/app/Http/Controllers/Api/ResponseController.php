@@ -5,17 +5,17 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateResponseRequest;
 use App\Services\ResponseService;
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 class ResponseController extends Controller
 {
-    protected ResponseService $responseService;
-
-    public function __construct(ResponseService $responseService)
-    {
-        $this->responseService = $responseService;
-    }
+    public function __construct(
+        protected ResponseService $responseService
+    ) {}
 
     public function store(CreateResponseRequest $request, string $reviewId): JsonResponse
     {
@@ -31,12 +31,19 @@ class ResponseController extends Controller
                 'message' => 'Response created successfully',
                 'data' => $response->load('responder'),
             ], 201);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return response()->json([
                 'error' => 'Validation error',
                 'message' => $e->getMessage(),
             ], 422);
-        } catch (\Exception $e) {
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'Not found',
+                'message' => 'Review not found.',
+            ], 404);
+        } catch (Exception $e) {
+            Log::error('Create Response Error', ['review_id' => $reviewId, 'error' => $e->getMessage()]);
+
             return response()->json([
                 'error' => 'Server error',
                 'message' => 'Unable to create response',
@@ -56,12 +63,19 @@ class ResponseController extends Controller
                 'message' => 'Response updated successfully',
                 'data' => $response,
             ]);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return response()->json([
                 'error' => 'Validation error',
                 'message' => $e->getMessage(),
             ], 422);
-        } catch (\Exception $e) {
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'Not found',
+                'message' => 'Response not found.',
+            ], 404);
+        } catch (Exception $e) {
+            Log::error('Update Response Error', ['response_id' => $id, 'error' => $e->getMessage()]);
+
             return response()->json([
                 'error' => 'Server error',
                 'message' => 'Unable to update response',
@@ -76,8 +90,15 @@ class ResponseController extends Controller
             
             return response()->json([
                 'message' => 'Response deleted successfully',
-            ], 204);
-        } catch (\Exception $e) {
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'Not found',
+                'message' => 'Response not found.',
+            ], 404);
+        } catch (Exception $e) {
+            Log::error('Delete Response Error', ['response_id' => $id, 'error' => $e->getMessage()]);
+
             return response()->json([
                 'error' => 'Server error',
                 'message' => 'Unable to delete response',

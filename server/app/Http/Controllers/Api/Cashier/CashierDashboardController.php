@@ -4,17 +4,18 @@ namespace App\Http\Controllers\Api\Cashier;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
-use App\Models\Reservation;
-use App\Models\Order;
+use App\Services\TenantContext;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CashierDashboardController extends Controller
 {
     protected function getHotelId(): ?string
     {
         $hotelId = request()->header('X-Hotel-ID')
-            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: TenantContext::id()
             ?: (auth()->check() ? auth()->user()->hotel_id : null);
 
         if (!$hotelId && auth()->check()) {
@@ -22,7 +23,7 @@ class CashierDashboardController extends Controller
         }
 
         if ($hotelId) {
-            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+            app(TenantContext::class)->setHotelId($hotelId);
         }
 
         return $hotelId;
@@ -33,21 +34,56 @@ class CashierDashboardController extends Controller
         try {
             $hotelId = $this->getHotelId();
 
+            $baseQuery = Payment::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId));
+
+            // Consolidated counts in a single query
+            $counts = (clone $baseQuery)->selectRaw("
+                COUNT(*) as total_transactions,
+                SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as completed_payments,
+                SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as pending_payments,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as failed_payments,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as refund_requests
+            ", [
+                Payment::STATUS_PAID, Payment::STATUS_VERIFIED,
+                Payment::STATUS_PENDING, Payment::STATUS_INITIALIZED,
+                Payment::STATUS_FAILED,
+                Payment::STATUS_REFUNDED,
+            ])->first();
+
+            $todayRevenue = (float) (clone $baseQuery)
+                ->whereDate('paid_at', today())
+                ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
+                ->sum('amount');
+
+            $weeklyRevenue = (float) (clone $baseQuery)
+                ->whereBetween('paid_at', [now()->startOfWeek(), now()->endOfWeek()])
+                ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
+                ->sum('amount');
+
+            $monthlyRevenue = (float) (clone $baseQuery)
+                ->whereMonth('paid_at', now()->month)
+                ->whereYear('paid_at', now()->year)
+                ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
+                ->sum('amount');
+
             $stats = [
-                'today_revenue' => $this->getTodayRevenue($hotelId),
-                'weekly_revenue' => $this->getWeeklyRevenue($hotelId),
-                'monthly_revenue' => $this->getMonthlyRevenue($hotelId),
-                'pending_payments' => $this->getPendingPaymentsCount($hotelId),
-                'completed_payments' => $this->getCompletedPaymentsCount($hotelId),
-                'failed_payments' => $this->getFailedPaymentsCount($hotelId),
-                'refund_requests' => $this->getRefundRequestsCount($hotelId),
-                'total_transactions' => $this->getTotalTransactionsCount($hotelId),
+                'today_revenue' => $todayRevenue,
+                'weekly_revenue' => $weeklyRevenue,
+                'monthly_revenue' => $monthlyRevenue,
+                'pending_payments' => (int) ($counts->pending_payments ?? 0),
+                'completed_payments' => (int) ($counts->completed_payments ?? 0),
+                'failed_payments' => (int) ($counts->failed_payments ?? 0),
+                'refund_requests' => (int) ($counts->refund_requests ?? 0),
+                'total_transactions' => (int) ($counts->completed_payments ?? 0),
             ];
+
             return response()->json([
                 'success' => true,
                 'data' => $stats,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Cashier dashboard index error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch dashboard statistics',
@@ -55,6 +91,7 @@ class CashierDashboardController extends Controller
             ], 500);
         }
     }
+
     public function recentPayments(): JsonResponse
     {
         try {
@@ -65,31 +102,31 @@ class CashierDashboardController extends Controller
                 ->latest()
                 ->limit(10)
                 ->get()
-                ->map(function ($payment) {
-                    return [
-                        'id' => $payment->id,
-                        'tx_ref' => $payment->tx_ref,
-                        'amount' => $payment->amount,
-                        'currency' => $payment->currency,
-                        'customer_name' => $payment->customer_name,
-                        'email' => $payment->email,
-                        'status' => $payment->status,
-                        'payment_provider' => $payment->payment_provider,
-                        'payment_method' => $payment->payment_method,
-                        'type' => $payment->reservation_id ? 'Reservation' : 'Restaurant Order',
-                        'reference' => $payment->reservation_id 
-                            ? $payment->reservation?->id 
-                            : $payment->order?->id,
-                        'paid_at' => $payment->paid_at?->format('Y-m-d H:i:s'),
-                        'created_at' => $payment->created_at->format('Y-m-d H:i:s'),
-                    ];
-                });
+                ->map(fn ($payment) => [
+                    'id' => $payment->id,
+                    'tx_ref' => $payment->tx_ref,
+                    'amount' => $payment->amount,
+                    'currency' => $payment->currency,
+                    'customer_name' => $payment->customer_name,
+                    'email' => $payment->email,
+                    'status' => $payment->status,
+                    'payment_provider' => $payment->payment_provider,
+                    'payment_method' => $payment->payment_method,
+                    'type' => $payment->reservation_id ? 'Reservation' : 'Restaurant Order',
+                    'reference' => $payment->reservation_id 
+                        ? $payment->reservation?->id 
+                        : $payment->order?->id,
+                    'paid_at' => $payment->paid_at?->format('Y-m-d H:i:s'),
+                    'created_at' => $payment->created_at->format('Y-m-d H:i:s'),
+                ]);
 
             return response()->json([
                 'success' => true,
                 'data' => $payments,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Cashier recent payments error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch recent payments',
@@ -109,25 +146,25 @@ class CashierDashboardController extends Controller
                 ->latest()
                 ->limit(10)
                 ->get()
-                ->map(function ($payment) {
-                    return [
-                        'id' => $payment->id,
-                        'tx_ref' => $payment->tx_ref,
-                        'amount' => $payment->amount,
-                        'currency' => $payment->currency,
-                        'customer_name' => $payment->customer_name,
-                        'email' => $payment->email,
-                        'status' => $payment->status,
-                        'type' => $payment->reservation_id ? 'Reservation' : 'Restaurant Order',
-                        'created_at' => $payment->created_at->format('Y-m-d H:i:s'),
-                    ];
-                });
+                ->map(fn ($payment) => [
+                    'id' => $payment->id,
+                    'tx_ref' => $payment->tx_ref,
+                    'amount' => $payment->amount,
+                    'currency' => $payment->currency,
+                    'customer_name' => $payment->customer_name,
+                    'email' => $payment->email,
+                    'status' => $payment->status,
+                    'type' => $payment->reservation_id ? 'Reservation' : 'Restaurant Order',
+                    'created_at' => $payment->created_at->format('Y-m-d H:i:s'),
+                ]);
 
             return response()->json([
                 'success' => true,
                 'data' => $payments,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Cashier pending payments error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch pending payments',
@@ -147,28 +184,28 @@ class CashierDashboardController extends Controller
                 ->latest('paid_at')
                 ->limit(10)
                 ->get()
-                ->map(function ($payment) {
-                    return [
-                        'id' => $payment->id,
-                        'tx_ref' => $payment->tx_ref,
-                        'chapa_transaction_id' => $payment->chapa_transaction_id,
-                        'amount' => $payment->amount,
-                        'currency' => $payment->currency,
-                        'customer_name' => $payment->customer_name,
-                        'status' => $payment->status,
-                        'payment_provider' => $payment->payment_provider,
-                        'payment_method' => $payment->payment_method,
-                        'type' => $payment->reservation_id ? 'Reservation' : 'Restaurant Order',
-                        'paid_at' => $payment->paid_at?->format('Y-m-d H:i:s'),
-                        'verified_at' => $payment->verified_at?->format('Y-m-d H:i:s'),
-                    ];
-                });
+                ->map(fn ($payment) => [
+                    'id' => $payment->id,
+                    'tx_ref' => $payment->tx_ref,
+                    'chapa_transaction_id' => $payment->chapa_transaction_id,
+                    'amount' => $payment->amount,
+                    'currency' => $payment->currency,
+                    'customer_name' => $payment->customer_name,
+                    'status' => $payment->status,
+                    'payment_provider' => $payment->payment_provider,
+                    'payment_method' => $payment->payment_method,
+                    'type' => $payment->reservation_id ? 'Reservation' : 'Restaurant Order',
+                    'paid_at' => $payment->paid_at?->format('Y-m-d H:i:s'),
+                    'verified_at' => $payment->verified_at?->format('Y-m-d H:i:s'),
+                ]);
 
             return response()->json([
                 'success' => true,
                 'data' => $transactions,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Cashier recent transactions error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch recent transactions',
@@ -181,19 +218,23 @@ class CashierDashboardController extends Controller
     {
         try {
             $hotelId = $this->getHotelId();
+
+            // Single query grouped by date for past 7 days
+            $revenues = Payment::whereBetween('paid_at', [now()->subDays(6)->startOfDay(), now()->endOfDay()])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+                ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
+                ->selectRaw('DATE(paid_at) as date, SUM(amount) as total')
+                ->groupBy('date')
+                ->pluck('total', 'date');
+
             $last7Days = [];
-
             for ($i = 6; $i >= 0; $i--) {
-                $date = now()->subDays($i)->format('Y-m-d');
-                $revenue = Payment::whereDate('paid_at', $date)
-                    ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
-                    ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
-                    ->sum('amount');
-
+                $dayObj = now()->subDays($i);
+                $date = $dayObj->format('Y-m-d');
                 $last7Days[] = [
                     'date' => $date,
-                    'label' => now()->subDays($i)->format('D'),
-                    'revenue' => (float) $revenue,
+                    'label' => $dayObj->format('D'),
+                    'revenue' => (float) ($revenues[$date] ?? 0),
                 ];
             }
 
@@ -201,7 +242,9 @@ class CashierDashboardController extends Controller
                 'success' => true,
                 'data' => $last7Days,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Cashier revenue chart error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch revenue chart data',
@@ -221,18 +264,18 @@ class CashierDashboardController extends Controller
                 ->select('payment_method', DB::raw('count(*) as count'))
                 ->groupBy('payment_method')
                 ->get()
-                ->map(function ($item) {
-                    return [
-                        'method' => $item->payment_method ?? 'Unknown',
-                        'count' => $item->count,
-                    ];
-                });
+                ->map(fn ($item) => [
+                    'method' => $item->payment_method ?? 'Unknown',
+                    'count' => (int) $item->count,
+                ]);
 
             return response()->json([
                 'success' => true,
                 'data' => $methods,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Cashier payment method chart error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch payment method distribution',
@@ -252,88 +295,28 @@ class CashierDashboardController extends Controller
                 ->latest()
                 ->limit(10)
                 ->get()
-                ->map(function ($payment) {
-                    return [
-                        'id' => $payment->id,
-                        'tx_ref' => $payment->tx_ref,
-                        'amount' => $payment->amount,
-                        'currency' => $payment->currency,
-                        'customer_name' => $payment->customer_name,
-                        'type' => $payment->reservation_id ? 'Reservation' : 'Restaurant Order',
-                        'refunded_at' => $payment->updated_at->format('Y-m-d H:i:s'),
-                    ];
-                });
+                ->map(fn ($payment) => [
+                    'id' => $payment->id,
+                    'tx_ref' => $payment->tx_ref,
+                    'amount' => $payment->amount,
+                    'currency' => $payment->currency,
+                    'customer_name' => $payment->customer_name,
+                    'type' => $payment->reservation_id ? 'Reservation' : 'Restaurant Order',
+                    'refunded_at' => $payment->updated_at->format('Y-m-d H:i:s'),
+                ]);
 
             return response()->json([
                 'success' => true,
                 'data' => $refunds,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Cashier refund requests error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch refund requests',
                 'error' => $e->getMessage(),
             ], 500);
         }
-    }
-
-    private function getTodayRevenue(?string $hotelId): float
-    {
-        return (float) Payment::whereDate('paid_at', today())
-            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
-            ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
-            ->sum('amount');
-    }
-
-    private function getWeeklyRevenue(?string $hotelId): float
-    {
-        return (float) Payment::whereBetween('paid_at', [now()->startOfWeek(), now()->endOfWeek()])
-            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
-            ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
-            ->sum('amount');
-    }
-
-    private function getMonthlyRevenue(?string $hotelId): float
-    {
-        return (float) Payment::whereMonth('paid_at', now()->month)
-            ->whereYear('paid_at', now()->year)
-            ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
-            ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
-            ->sum('amount');
-    }
-
-    private function getPendingPaymentsCount(?string $hotelId): int
-    {
-        return Payment::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
-            ->whereIn('status', [Payment::STATUS_PENDING, Payment::STATUS_INITIALIZED])
-            ->count();
-    }
-
-    private function getCompletedPaymentsCount(?string $hotelId): int
-    {
-        return Payment::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
-            ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
-            ->count();
-    }
-
-    private function getFailedPaymentsCount(?string $hotelId): int
-    {
-        return Payment::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
-            ->where('status', Payment::STATUS_FAILED)
-            ->count();
-    }
-
-    private function getRefundRequestsCount(?string $hotelId): int
-    {
-        return Payment::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
-            ->where('status', Payment::STATUS_REFUNDED)
-            ->count();
-    }
-
-    private function getTotalTransactionsCount(?string $hotelId): int
-    {
-        return Payment::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
-            ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
-            ->count();
     }
 }

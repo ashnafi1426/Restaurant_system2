@@ -2,6 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Floor;
+use App\Models\Hotel;
+use App\Models\Room;
+use App\Services\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,33 +18,22 @@ class UpdateRoomRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $hotelId = TenantContext::id()
+            ?: $this->header('X-Hotel-ID')
+            ?: $this->user()?->hotelMemberships()->where('is_active', true)->value('hotel_id')
+            ?: Hotel::first()?->id;
+
         if ($this->filled('floor_id')) {
-            $floorNumber = \App\Models\Floor::where('id', $this->floor_id)->value('floor_number');
+            $floorNumber = Floor::where('id', $this->floor_id)->value('floor_number');
             if ($floorNumber !== null) {
                 $this->merge(['floor' => $floorNumber]);
             }
         } elseif ($this->filled('floor')) {
-            $hotelId = \App\Services\TenantContext::id()
-                ?: $this->input('hotel_id')
-                ?: $this->query('hotel_id')
-                ?: $this->header('X-Hotel-ID')
-                ?: $this->header('x-hotel-id')
-                ?: $this->user()?->hotel_id
-                ?: \App\Models\Hotel::first()?->id;
-
-            $floorId = \App\Models\Floor::where('floor_number', $this->floor)
+            $floorId = Floor::where('floor_number', $this->floor)
                 ->when($hotelId, fn($q) => $q->where(function ($sq) use ($hotelId) {
                     $sq->where('hotel_id', $hotelId)->orWhereNull('hotel_id');
                 }))
                 ->value('id');
-
-            if (!$floorId && $hotelId) {
-                $createdFloor = \App\Models\HotelFloor::withoutTenant()->firstOrCreate(
-                    ['hotel_id' => $hotelId, 'floor_number' => (int)$this->floor],
-                    ['name' => "Floor {$this->floor}", 'description' => "Floor {$this->floor}", 'is_active' => true]
-                );
-                $floorId = $createdFloor->id;
-            }
 
             if ($floorId) {
                 $this->merge(['floor_id' => $floorId]);
@@ -48,6 +41,7 @@ class UpdateRoomRequest extends FormRequest
         } elseif ($this->has('floor') && ($this->floor === '' || $this->floor === null)) {
             $this->merge(['floor' => null, 'floor_id' => null]);
         }
+
         if ($this->has('is_active')) {
             $this->merge([
                 'is_active' => filter_var($this->is_active, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true,
@@ -59,17 +53,13 @@ class UpdateRoomRequest extends FormRequest
     {
         $roomParam = $this->route('room');
         $roomId = is_object($roomParam) ? $roomParam->id : $roomParam;
-        $roomModel = is_object($roomParam) ? $roomParam : \App\Models\Room::withoutTenant()->find($roomId);
+        $roomModel = is_object($roomParam) ? $roomParam : Room::withoutTenant()->find($roomId);
 
-        $hotelId = \App\Services\TenantContext::id()
-            ?: $this->input('hotel_id')
-            ?: $this->query('hotel_id')
+        $hotelId = TenantContext::id()
             ?: $this->header('X-Hotel-ID')
-            ?: $this->header('x-hotel-id')
             ?: $roomModel?->hotel_id
-            ?: $this->user()?->hotel_id
             ?: $this->user()?->hotelMemberships()->where('is_active', true)->value('hotel_id')
-            ?: \App\Models\Hotel::first()?->id;
+            ?: Hotel::first()?->id;
 
         $uniqueRoom = Rule::unique('rooms', 'room_number')->ignore($roomId, 'id');
         $existsRoomType = Rule::exists('room_types', 'id');
@@ -91,12 +81,10 @@ class UpdateRoomRequest extends FormRequest
                 'max:50',
                 $uniqueRoom,
             ],
-
             'room_type_id' => ['required', $existsRoomType],
             'floor_id' => ['nullable', $existsFloor],
             'floor' => ['nullable', 'integer'],
             'description' => ['nullable', 'string'],
-
             'status' => [
                 'required',
                 Rule::in([
@@ -107,7 +95,6 @@ class UpdateRoomRequest extends FormRequest
                     'maintenance'
                 ])
             ],
-
             'is_active' => ['nullable', 'boolean'],
         ];
     }
@@ -119,6 +106,7 @@ class UpdateRoomRequest extends FormRequest
             'room_number.unique' => 'This room number is already taken in this hotel.',
             'room_type_id.required' => 'Please select a room type.',
             'room_type_id.exists' => 'The selected room type is invalid or does not belong to this hotel.',
+            'status.required' => 'Room status is required.',
         ];
     }
 }

@@ -3,62 +3,27 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
 use App\Models\Category;
+use App\Services\CategoryService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class CategoryController extends Controller
 {
-    public function __construct()
+    public function __construct(
+        protected CategoryService $categoryService
+    ) {}
+
+    /**
+     * Display a listing of categories for the current hotel.
+     */
+    public function index(Request $request): JsonResponse
     {
-    }
-
-    public function index(Request $request)
-    {
-        $query = Category::query();
-
-        if ($request->filled('is_active')) {
-            $query->where('is_active', filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN));
-        }
-
-        if ($request->filled('search')) {
-            $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhere('description', 'LIKE', "%{$search}%");
-            });
-        }
-
-        $categories = $query->withCount('menuItems')->get();
-
-        if ($categories->count() < 8) {
-            $defaults = [
-                ['name' => 'Breakfast', 'slug' => 'breakfast', 'icon' => 'clock', 'display_order' => 1, 'is_active' => true],
-                ['name' => 'Soups', 'slug' => 'soups', 'icon' => 'soup', 'display_order' => 2, 'is_active' => true],
-                ['name' => 'Appetizers', 'slug' => 'appetizers', 'icon' => 'leaf', 'display_order' => 3, 'is_active' => true],
-                ['name' => 'Main Courses', 'slug' => 'main-courses', 'icon' => 'utensils', 'display_order' => 4, 'is_active' => true],
-                ['name' => 'Sandwiches', 'slug' => 'sandwiches', 'icon' => 'sandwich', 'display_order' => 5, 'is_active' => true],
-                ['name' => 'Pasta', 'slug' => 'pasta', 'icon' => 'layers', 'display_order' => 6, 'is_active' => true],
-                ['name' => 'Desserts', 'slug' => 'desserts', 'icon' => 'cake', 'display_order' => 7, 'is_active' => true],
-                ['name' => 'Beverages', 'slug' => 'beverages', 'icon' => 'wine', 'display_order' => 8, 'is_active' => true],
-            ];
-
-            foreach ($defaults as $cat) {
-                Category::firstOrCreate(['slug' => $cat['slug']], $cat);
-            }
-
-            $categories = Category::orderBy('display_order', 'asc')->orderBy('name', 'asc')->withCount('menuItems')->get();
-        }
-
-        $categories->each(function ($cat) {
-            if (!$cat->icon || $cat->icon === 'grid' || $cat->icon === 'menu') {
-                $cat->icon = GuestOrderController::guessCategoryIcon($cat->slug ?: $cat->name);
-            }
-            $cat->name_am = \App\Translations\FrontLang::trans($cat->name, 'am', $cat->name);
-            $cat->name_en = $cat->name;
-            $cat->name_localized = \App\Translations\FrontLang::trans($cat->name, default: $cat->name);
-        });
+        $categories = $this->categoryService->listCategories($request->only(['is_active', 'search']));
 
         return response()->json([
             'success' => true,
@@ -66,48 +31,31 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    /**
+     * Store a newly created category in storage.
+     */
+    public function store(StoreCategoryRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:categories,name',
-            'description' => 'nullable|string|max:500',
-            'icon' => 'nullable|string|max:50',
-            'display_order' => 'nullable|integer|min:0',
-            'is_active' => 'nullable|boolean',
-        ]);
-
-        DB::beginTransaction();
-
         try {
-            $category = Category::create([
-                'name' => $validated['name'],
-                'slug' => Str::slug($validated['name']),
-                'description' => $validated['description'] ?? null,
-                'icon' => $validated['icon'] ?? null,
-                'display_order' => $validated['display_order'] ?? 0,
-                'is_active' => $validated['is_active'] ?? true,
-            ]);
-
-            DB::commit();
+            $category = $this->categoryService->createCategory($request->validated());
 
             return response()->json([
                 'success' => true,
                 'message' => trans_msg('category_created', default: 'Category created successfully.'),
                 'data' => $category,
             ], 201);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
+        } catch (Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create category.',
-                'error' => $e->getMessage(),
+                'message' => 'Failed to create category: ' . $e->getMessage(),
             ], 500);
         }
     }
 
-    public function show(Category $category)
+    /**
+     * Display the specified category.
+     */
+    public function show(Category $category): JsonResponse
     {
         $category->loadCount('menuItems');
 
@@ -117,109 +65,80 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function update(Request $request, Category $category)
+    /**
+     * Update the specified category in storage.
+     */
+    public function update(UpdateCategoryRequest $request, Category $category): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:categories,name,' . $category->id . ',id',
-            'description' => 'nullable|string|max:500',
-            'icon' => 'nullable|string|max:50',
-            'display_order' => 'nullable|integer|min:0',
-            'is_active' => 'nullable|boolean',
-        ]);
-
-        DB::beginTransaction();
-
         try {
-            $category->update([
-                'name' => $validated['name'],
-                'description' => $validated['description'] ?? $category->description,
-                'icon' => $validated['icon'] ?? $category->icon,
-                'display_order' => $validated['display_order'] ?? $category->display_order,
-                'is_active' => $validated['is_active'] ?? $category->is_active,
-            ]);
-
-            DB::commit();
+            $updated = $this->categoryService->updateCategory($category, $request->validated());
 
             return response()->json([
                 'success' => true,
                 'message' => trans_msg('category_updated', default: 'Category updated successfully.'),
-                'data' => $category->fresh()->loadCount('menuItems'),
+                'data' => $updated,
             ]);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
+        } catch (Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update category.',
-                'error' => $e->getMessage(),
+                'message' => 'Failed to update category: ' . $e->getMessage(),
             ], 500);
         }
     }
 
-    public function destroy(Category $category)
+    /**
+     * Remove the specified category from storage.
+     */
+    public function destroy(Category $category): JsonResponse
     {
-        DB::beginTransaction();
-
         try {
-            if ($category->menuItems()->count() > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot delete category with existing menu items. Please reassign or delete menu items first.',
-                ], 422);
-            }
-
-            $category->delete();
-
-            DB::commit();
+            $this->categoryService->deleteCategory($category);
 
             return response()->json([
                 'success' => true,
                 'message' => trans_msg('category_deleted', default: 'Category deleted successfully.'),
             ]);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete category.',
-                'error' => $e->getMessage(),
+                'message' => $e->validator->errors()->first() ?: 'Cannot delete category.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete category: ' . $e->getMessage(),
             ], 500);
         }
     }
 
-    public function toggle(Category $category)
+    /**
+     * Toggle category active status.
+     */
+    public function toggle(Category $category): JsonResponse
     {
-        DB::beginTransaction();
-
         try {
-            $category->update([
-                'is_active' => !$category->is_active,
-            ]);
-
-            DB::commit();
+            $updated = $this->categoryService->toggleCategory($category);
 
             return response()->json([
                 'success' => true,
-                'message' => $category->is_active 
+                'message' => $updated->is_active 
                     ? 'Category is now active.' 
                     : 'Category has been deactivated.',
-                'data' => $category,
+                'data' => $updated,
             ]);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
+        } catch (Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to toggle category status.',
-                'error' => $e->getMessage(),
+                'message' => 'Failed to toggle category: ' . $e->getMessage(),
             ], 500);
         }
     }
 
-    public function reorder(Request $request)
+    /**
+     * Reorder categories.
+     */
+    public function reorder(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'categories' => 'required|array',
@@ -227,29 +146,17 @@ class CategoryController extends Controller
             'categories.*.display_order' => 'required|integer|min:0',
         ]);
 
-        DB::beginTransaction();
-
         try {
-            foreach ($validated['categories'] as $item) {
-                Category::find($item['id'])->update([
-                    'display_order' => $item['display_order'],
-                ]);
-            }
-
-            DB::commit();
+            $this->categoryService->reorderCategories($validated['categories']);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Categories reordered successfully.',
             ]);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
+        } catch (Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to reorder categories.',
-                'error' => $e->getMessage(),
+                'message' => 'Failed to reorder categories: ' . $e->getMessage(),
             ], 500);
         }
     }

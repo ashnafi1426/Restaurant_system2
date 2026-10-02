@@ -12,10 +12,8 @@ class OrderItemResource extends JsonResource
         return [
             'id' => $this->id,
             'menu_item_id' => $this->menu_item_id,
-            'menu_item_name' => $this->whenLoaded(
-                'menuItem',
-                fn () => $this->menuItem->name
-            ),
+            'item_name' => $this->item_name ?: ($this->relationLoaded('menuItem') ? $this->menuItem?->name : ($this->item_name ?? 'Menu Item')),
+            'menu_item_name' => $this->item_name ?: ($this->relationLoaded('menuItem') ? $this->menuItem?->name : ($this->item_name ?? 'Menu Item')),
             'menu_item_image' => $this->whenLoaded(
                 'menuItem',
                 fn () => $this->menuItem->image

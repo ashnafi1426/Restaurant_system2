@@ -4,14 +4,20 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class NotificationController extends Controller
 {
+    /**
+     * Display a listing of notifications for the authenticated user.
+     */
     public function index(Request $request): JsonResponse
     {
-        $limit = $request->get('limit', 10);
+        $limit = (int) $request->get('limit', 10);
         $userId = auth()->id();
 
         try {
@@ -25,8 +31,9 @@ class NotificationController extends Controller
                 'data' => $notifications,
                 'count' => count($notifications),
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Error fetching notifications: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            Log::error('Error fetching notifications: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch notifications',
@@ -35,6 +42,9 @@ class NotificationController extends Controller
         }
     }
 
+    /**
+     * Get the latest unread notification.
+     */
     public function latest(): JsonResponse
     {
         $userId = auth()->id();
@@ -45,19 +55,13 @@ class NotificationController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->first();
 
-            if (!$notification) {
-                return response()->json([
-                    'success' => true,
-                    'data' => null,
-                ]);
-            }
-
             return response()->json([
                 'success' => true,
                 'data' => $notification,
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Error fetching latest notification: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            Log::error('Error fetching latest notification: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch latest notification',
@@ -66,6 +70,9 @@ class NotificationController extends Controller
         }
     }
 
+    /**
+     * Get unread notification count.
+     */
     public function unreadCount(): JsonResponse
     {
         $userId = auth()->id();
@@ -79,8 +86,9 @@ class NotificationController extends Controller
                 'success' => true,
                 'count' => $count,
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Error fetching unread count: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            Log::error('Error fetching unread count: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch unread count',
@@ -89,6 +97,9 @@ class NotificationController extends Controller
         }
     }
 
+    /**
+     * Mark a specific notification as read.
+     */
     public function markAsRead(string $id): JsonResponse
     {
         $userId = auth()->id();
@@ -105,8 +116,14 @@ class NotificationController extends Controller
                 'message' => 'Notification marked as read',
                 'data' => $notification,
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Error marking notification as read: ' . $e->getMessage());
+        } catch (ModelNotFoundException) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Notification not found',
+            ], 404);
+        } catch (Throwable $e) {
+            Log::error('Error marking notification as read: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to mark notification as read',
@@ -115,6 +132,9 @@ class NotificationController extends Controller
         }
     }
 
+    /**
+     * Mark all unread notifications as read.
+     */
     public function markAllAsRead(): JsonResponse
     {
         $userId = auth()->id();
@@ -128,8 +148,9 @@ class NotificationController extends Controller
                 'success' => true,
                 'message' => 'All notifications marked as read',
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Error marking all as read: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            Log::error('Error marking all as read: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to mark all as read',
@@ -138,6 +159,9 @@ class NotificationController extends Controller
         }
     }
 
+    /**
+     * Delete a notification.
+     */
     public function destroy(string $id): JsonResponse
     {
         $userId = auth()->id();
@@ -153,8 +177,14 @@ class NotificationController extends Controller
                 'success' => true,
                 'message' => 'Notification deleted',
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Error deleting notification: ' . $e->getMessage());
+        } catch (ModelNotFoundException) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Notification not found',
+            ], 404);
+        } catch (Throwable $e) {
+            Log::error('Error deleting notification: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete notification',
@@ -163,6 +193,9 @@ class NotificationController extends Controller
         }
     }
 
+    /**
+     * Clear all notifications for authenticated user.
+     */
     public function clearAll(): JsonResponse
     {
         $userId = auth()->id();
@@ -174,8 +207,9 @@ class NotificationController extends Controller
                 'success' => true,
                 'message' => 'All notifications cleared',
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Error clearing all notifications: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            Log::error('Error clearing all notifications: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to clear notifications',
@@ -184,8 +218,11 @@ class NotificationController extends Controller
         }
     }
 
+    /**
+     * Create a system notification record.
+     */
     public static function createNotification(
-        $userId,
+        mixed $userId,
         string $type,
         string $title,
         string $message,
@@ -205,8 +242,9 @@ class NotificationController extends Controller
                 'check_out_date' => $data['check_out_date'] ?? null,
                 'read' => false,
             ]);
-        } catch (\Exception $e) {
-            \Log::error('Error creating notification: ' . $e->getMessage());
+        } catch (Throwable $e) {
+            Log::error('Error creating notification: ' . $e->getMessage());
+
             return null;
         }
     }

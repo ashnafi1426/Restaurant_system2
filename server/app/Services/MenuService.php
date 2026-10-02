@@ -21,27 +21,14 @@ class MenuService
         }
 
         $query = MenuItem::withoutGlobalScope(TenantScope::class)
-            ->with('taxRate')
+            ->with(['taxRate', 'categoryRelation'])
             ->where('is_available', true);
 
         if ($hotelId) {
-            $query->where(function ($q) use ($hotelId) {
-                $q->where('hotel_id', $hotelId)
-                  ->orWhereNull('hotel_id');
-            });
+            $query->where('hotel_id', $hotelId);
         }
 
         $menuItems = $query->orderBy('category')->orderBy('name')->get();
-
-        // Fallback to global items if hotel has none yet
-        if ($menuItems->isEmpty() && $hotelId) {
-            $menuItems = MenuItem::withoutGlobalScope(TenantScope::class)
-                ->with('taxRate')
-                ->where('is_available', true)
-                ->orderBy('category')
-                ->orderBy('name')
-                ->get();
-        }
 
         return $menuItems->groupBy('category')
             ->map(fn($items, $category) => [
@@ -66,9 +53,7 @@ class MenuService
             ->selectRaw('category, category_id, COUNT(*) as item_count');
 
         if ($hotelId) {
-            $itemCountQuery->where(function ($q) use ($hotelId) {
-                $q->where('hotel_id', $hotelId)->orWhereNull('hotel_id');
-            });
+            $itemCountQuery->where('hotel_id', $hotelId);
         }
 
         $itemCounts = $itemCountQuery->groupBy('category', 'category_id')->get();
@@ -88,18 +73,9 @@ class MenuService
         // 2. Query categories
         $catQuery = Category::withoutGlobalScope(TenantScope::class)->where('is_active', true);
         if ($hotelId) {
-            $catQuery->where(function ($q) use ($hotelId) {
-                $q->where('hotel_id', $hotelId)->orWhereNull('hotel_id');
-            });
+            $catQuery->where('hotel_id', $hotelId);
         }
         $dbCategories = $catQuery->orderBy('display_order')->get();
-
-        if ($dbCategories->isEmpty()) {
-            $dbCategories = Category::withoutGlobalScope(TenantScope::class)
-                ->where('is_active', true)
-                ->orderBy('display_order')
-                ->get();
-        }
 
         $resultMap = [];
 

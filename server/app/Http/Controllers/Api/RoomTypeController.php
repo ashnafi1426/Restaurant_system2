@@ -7,247 +7,142 @@ use App\Http\Requests\StoreRoomTypeRequest;
 use App\Http\Requests\UpdateRoomTypeRequest;
 use App\Http\Resources\RoomTypeResource;
 use App\Models\RoomType;
+use App\Services\TenantContext;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Throwable;
 
-class RoomTypeController extends Controller{
-    public function index(Request $request)
+class RoomTypeController extends Controller
+{
+    /**
+     * Display a listing of room types with search and status filters.
+     */
+    public function index(Request $request): AnonymousResourceCollection
     {
-        $query = RoomType::query();
+        $hotelId = TenantContext::id()
+            ?: $request->input('hotel_id')
+            ?: $request->header('X-Hotel-ID')
+            ?: $request->header('x-hotel-id')
+            ?: auth()->user()?->hotel_id;
+
+        $query = RoomType::query()->withCount('rooms');
+
+        if ($hotelId) {
+            $query->where('hotel_id', $hotelId);
+        }
+
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->input('search'));
             $query->where(function ($q) use ($search) {
-                $q->where(
-                    'name',
-                    'like',
-                    "%{$search}%"
-                )
-                ->orWhere(
-                    'description',
-                    'like',
-                    "%{$search}%"
-                );
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
             });
         }
+
         if ($request->filled('is_active')) {
-            $query->where(
-                'is_active',
-                $request->boolean('is_active')
-
-            );
+            $query->where('is_active', $request->boolean('is_active'));
         }
-        $query->withCount('rooms');
-        $query->latest();
-        $roomTypes = $query->paginate(
-            $request->get('per_page', 10)
 
-        );
-        return RoomTypeResource::collection(
+        $perPage = (int) $request->input('per_page', 10);
+        $roomTypes = $query->latest()->paginate($perPage);
 
-            $roomTypes
-
-        );
+        return RoomTypeResource::collection($roomTypes);
     }
-    public function store(StoreRoomTypeRequest $request)
-    {
-        DB::beginTransaction();
 
+    /**
+     * Store a newly created room type.
+     */
+    public function store(StoreRoomTypeRequest $request): JsonResponse
+    {
         try {
-            $hotelId = \App\Services\TenantContext::id()
+            $hotelId = TenantContext::id()
                 ?: $request->input('hotel_id')
                 ?: $request->header('X-Hotel-ID')
-                ?: $request->header('x-hotel-id')
-                ?: $request->user()?->hotel_id
-                ?: $request->user()?->hotelMemberships()->where('is_active', true)->value('hotel_id');
+                ?: $request->header('x-hotel-id');
 
-            $roomType = RoomType::create([
-                'hotel_id' => $hotelId,
-                'name' => $request->name,
-                'description' => $request->description,
-                'base_price_per_night' => $request->base_price_per_night,
-                'capacity' => $request->capacity,
-                'amenities' => $request->amenities ?? [],
-                'is_active' => $request->is_active ?? true,
-            ]);
-            DB::commit();
+            $validated = $request->validated();
+            $validated['hotel_id'] = $hotelId;
+            $validated['amenities'] = $validated['amenities'] ?? [];
+            $validated['is_active'] = $validated['is_active'] ?? true;
+
+            $roomType = RoomType::create($validated);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Room type created successfully.',
-                'data' => new RoomTypeResource($roomType)
+                'data' => new RoomTypeResource($roomType),
             ], 201);
-        } catch (\Exception $exception) {
-            DB::rollBack();
+        } catch (Throwable $e) {
             return response()->json([
-
                 'success' => false,
-
                 'message' => 'Unable to create room type.',
-
-                'error' => $exception->getMessage()
-
+                'error' => $e->getMessage(),
             ], 500);
-
         }
-
     }
-    public function show(RoomType $roomType)
+
+    /**
+     * Display the specified room type with room counts.
+     */
+    public function show(RoomType $roomType): JsonResponse
     {
+        $roomType->loadCount('rooms');
 
         return response()->json([
-
             'success' => true,
-
             'message' => 'Room type retrieved successfully.',
-
-            'data' => new RoomTypeResource($roomType)
-
-        ], 200);
-
+            'data' => new RoomTypeResource($roomType),
+        ]);
     }
-    public function update(
-        UpdateRoomTypeRequest $request,
-        RoomType $roomType
-    )
+
+    /**
+     * Update the specified room type.
+     */
+    public function update(UpdateRoomTypeRequest $request, RoomType $roomType): JsonResponse
     {
-
-        DB::beginTransaction();
-
         try {
-            $roomType->name = $request->name;
+            $roomType->update($request->validated());
 
-            $roomType->description = $request->description;
-
-            $roomType->base_price_per_night =
-                $request->base_price_per_night;
-
-            $roomType->capacity =
-                $request->capacity;
-
-            $roomType->amenities =
-                $request->amenities;
-
-            $roomType->is_active =
-                $request->is_active;
-
-            $roomType->save();
-            DB::commit();
             return response()->json([
-
                 'success' => true,
-
                 'message' => 'Room type updated successfully.',
-
-                'data' => new RoomTypeResource($roomType)
-
-            ], 200);
-
-        }
-
-        catch (\Exception $exception) {
-
-            DB::rollBack();
-
+                'data' => new RoomTypeResource($roomType),
+            ]);
+        } catch (Throwable $e) {
             return response()->json([
-
                 'success' => false,
-
                 'message' => 'Unable to update room type.',
-
-                'error' => $exception->getMessage()
-
+                'error' => $e->getMessage(),
             ], 500);
-
         }
-
     }
-public function destroy(RoomType $roomType)
+
+    /**
+     * Remove the specified room type from storage.
+     */
+    public function destroy(RoomType $roomType): JsonResponse
     {
-        DB::beginTransaction();
-
         try {
-    if ($roomType->rooms()->exists()) {
-
+            if ($roomType->rooms()->exists()) {
                 return response()->json([
-
                     'success' => false,
-
-                    'message' =>
-                        'Cannot delete this room type because it has assigned rooms.'
-
+                    'message' => 'Cannot delete this room type because it has assigned rooms.',
                 ], 422);
-
             }
+
             $roomType->delete();
-            DB::commit();
-            return response()->json([
 
+            return response()->json([
                 'success' => true,
-
-                'message' => 'Room type deleted successfully.'
-
-            ], 200);
-
-        }
-
-        catch (\Exception $exception) {
-
-            DB::rollBack();
-
+                'message' => 'Room type deleted successfully.',
+            ]);
+        } catch (Throwable $e) {
             return response()->json([
-
                 'success' => false,
-
                 'message' => 'Unable to delete room type.',
-
-                'error' => $exception->getMessage()
-
+                'error' => $e->getMessage(),
             ], 500);
-
         }
-
     }
-protected function successResponse(
-
-    string $message,
-
-    mixed $data = null,
-
-    int $status = 200
-
-) {
-
-    return response()->json([
-
-        'success' => true,
-
-        'message' => $message,
-
-        'data' => $data
-
-    ], $status);
-
 }
-
-protected function errorResponse(
-
-    string $message,
-
-    mixed $error = null,
-
-    int $status = 500
-
-) {
-
-    return response()->json([
-
-        'success' => false,
-
-        'message' => $message,
-
-        'error' => $error
-
-    ], $status);
-
-}
-}
-    

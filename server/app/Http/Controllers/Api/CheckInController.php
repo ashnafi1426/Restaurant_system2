@@ -2,397 +2,119 @@
 
 namespace App\Http\Controllers\Api;
 
-use Exception;
-use App\Models\CheckIn;
-use App\Models\Reservation;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCheckInRequest;
 use App\Http\Resources\CheckInResource;
+use App\Models\CheckIn;
+use App\Services\CheckInService;
+use App\Services\TenantContext;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\ValidationException;
 
 class CheckInController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        protected CheckInService $checkInService
+    ) {}
+
+    /**
+     * List paginated check-in records for current hotel.
+     */
+    public function index(Request $request): AnonymousResourceCollection
     {
-        \Log::info(' [CHECK-IN] Index called', [
-            'params' => $request->all(),
-            'per_page' => $request->integer('per_page', 10),
-        ]);
+        $hotelId = TenantContext::id();
+        $perPage = $request->integer('per_page', 10);
 
-        $query = CheckIn::with([
-            'guest',
-            'room.roomType',
-            'reservation',
-        ]);
-
-        if ($request->filled('search')) {
-            $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('guest', function ($g) use ($search) {
-                    $g->where('first_name', 'like', "%{$search}%")
-                      ->orWhere('last_name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhere('phone', 'like', "%{$search}%");
-                })
-                ->orWhereHas('room', function ($r) use ($search) {
-                    $r->where('room_number', 'like', "%{$search}%");
-                })
-                ->orWhereHas('reservation', function ($res) use ($search) {
-                    $res->where('booking_reference', 'like', "%{$search}%");
-                });
-            });
-        }
-
-        if ($request->filled('guest_id')) {
-            $query->where('guest_id', $request->guest_id);
-        }
-
-        if ($request->filled('room_id')) {
-            $query->where('room_id', $request->room_id);
-        }
-
-        if ($request->filled('status')) {
-            $status = strtolower($request->status);
-            if ($status === 'active' || $status === 'checked_in') {
-                $query->whereNull('checked_out_at');
-            } elseif ($status === 'checked_out') {
-                $query->whereNotNull('checked_out_at');
-            }
-        }
-
-        $checkIns = $query
-            ->latest('checked_in_at')
-            ->paginate($request->integer('per_page', 10));
-
-        \Log::info('[CHECK-IN] Paginated results', [
-            'count' => $checkIns->count(),
-            'total' => $checkIns->total(),
-            'page' => $checkIns->currentPage(),
-            'per_page' => $checkIns->perPage(),
-        ]);
+        $checkIns = $this->checkInService->getCheckIns($request->all(), $perPage, $hotelId);
 
         return CheckInResource::collection($checkIns);
     }
 
-    public function store(StoreCheckInRequest $request)
+    /**
+     * Create a check-in record from a confirmed reservation.
+     */
+    public function store(StoreCheckInRequest $request): JsonResponse
     {
-        \Log::info('[CHECK-IN] POST request received', [
-            'reservation_id' => $request->reservation_id,
-            'reservation_id_type' => gettype($request->reservation_id),
-            'request_data' => $request->all(),
-            'all_inputs' => $request->all(),
-        ]);
-
-        if (!$request->has('reservation_id')) {
-            \Log::error('[CHECK-IN] WARNING: reservation_id is missing from request!', [
-                'keys' => array_keys($request->all()),
-            ]);
-        }
-
-        DB::beginTransaction();
+        $hotelId = TenantContext::id();
 
         try {
-
-            $reservation = Reservation::with([
-                'guest',
-                'room',
-            ])->findOrFail($request->reservation_id);
-
-            \Log::info(' [CHECK-IN] Reservation found', [
-                'id' => $reservation->id,
-                'status' => $reservation->status,
-                'room_id' => $reservation->room_id,
-                'room_status' => $reservation->room->status,
-                'check_in_date' => $reservation->check_in_date,
-                'check_out_date' => $reservation->check_out_date,
-                'guest_id' => $reservation->guest_id,
-                'room_details' => [
-                    'number' => $reservation->room->room_number,
-                    'is_active' => $reservation->room->is_active,
-                ],
-            ]);
-
-            \Log::info('[CHECK-IN] Starting validation checks');
-
-            if ($reservation->status !== 'confirmed') {
-                $msg = "Only confirmed reservations can be checked in. Status is: {$reservation->status}";
-                \Log::error(' [CHECK-IN] Validation failed: reservation status', ['status' => $reservation->status, 'message' => $msg]);
-                throw new Exception($msg);
-            }
-            \Log::info(' [CHECK-IN] Validation 1 passed: reservation status is confirmed');
-
-            $allowedStatuses = ['available', 'reserved'];
-            if (!in_array($reservation->room->status, $allowedStatuses)) {
-                $msg = "Selected room is not available. Room status is: {$reservation->room->status}";
-                \Log::error(' [CHECK-IN] Validation failed: room status', ['room_status' => $reservation->room->status, 'allowed_statuses' => $allowedStatuses, 'message' => $msg]);
-                throw new Exception($msg);
-            }
-            \Log::info(' [CHECK-IN] Validation 2 passed: room status is available or reserved', ['room_status' => $reservation->room->status]);
-
-            if (
-                CheckIn::where(
-                    'reservation_id',
-                    $reservation->id
-                )->exists()
-            ) {
-                $msg = 'This reservation has already been checked in.';
-                \Log::error(' [CHECK-IN] Validation failed: already checked in', ['message' => $msg]);
-                throw new Exception($msg);
-            }
-            \Log::info(' [CHECK-IN] Validation 3 passed: not already checked in');
-
-            \Log::info(' [CHECK-IN] All validations passed, creating check-in record');
-
-            $checkIn = CheckIn::create([
-                'reservation_id' => $reservation->id,
-                'guest_id' => $reservation->guest_id,
-                'room_id' => $reservation->room_id,
-                'checked_in_at' => now(),
-                'expected_check_out_at' => $reservation->check_out_date,
-            ]);
-
-            \Log::info(' [CHECK-IN] Check-in record created', [
-                'check_in_id' => $checkIn->id,
-                'checked_in_at' => $checkIn->checked_in_at,
-            ]);
-
-            $reservation->update([
-                'status' => 'checked_in',
-            ]);
-
-            \Log::info(' [CHECK-IN] Reservation status updated to checked_in');
-
-            $reservation->room->update([
-                'status' => 'occupied',
-            ]);
-
-            \Log::info(' [CHECK-IN] Room status updated to occupied');
-
-            DB::commit();
-
-            \Log::info(' [CHECK-IN] Transaction committed - check-in successful');
-
-            try {
-                \Log::info(' [CHECK-IN] Preparing to send check-in confirmation email', [
-                    'guest_email' => $reservation->guest->email,
-                    'guest_name' => $reservation->guest->first_name . ' ' . $reservation->guest->last_name,
-                ]);
-
-                \Mail::to($reservation->guest->email)
-                    ->send(new \App\Mail\CheckInConfirmationMail($checkIn));
-
-                \Log::info(' [CHECK-IN] Check-in confirmation email sent successfully');
-            } catch (\Exception $e) {
-                \Log::error(' [CHECK-IN] Failed to send check-in confirmation email', [
-                    'error' => $e->getMessage(),
-                    'guest_email' => $reservation->guest->email,
-                ]);
-            }
+            $checkIn = $this->checkInService->checkIn($request->validated('reservation_id'), $hotelId);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Guest checked in successfully.',
-                'data' => new CheckInResource(
-                    $checkIn->load([
-                        'guest',
-                        'room',
-                        'reservation',
-                    ])
-                ),
+                'data'    => new CheckInResource($checkIn),
             ], 201);
-
-        } catch (Exception $exception) {
-
-            DB::rollBack();
-
-            \Log::error(' [CHECK-IN] Exception caught, rolling back', [
-                'error_message' => $exception->getMessage(),
-                'error_file' => $exception->getFile(),
-                'error_line' => $exception->getLine(),
-            ]);
-
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $exception->getMessage(),
+                'message' => $e->getMessage(),
+                'errors'  => $e->errors(),
             ], 422);
         }
     }
 
-    public function show(CheckIn $checkIn)
+    /**
+     * Show single check-in record.
+     */
+    public function show(CheckIn $checkIn): CheckInResource
     {
-        $checkIn->load([
+        $checkIn->loadMissing([
             'guest',
-            'room',
+            'room.roomType',
             'reservation',
         ]);
 
         return new CheckInResource($checkIn);
     }
 
-    public function destroy(CheckIn $checkIn)
+    /**
+     * Perform guest checkout for an active check-in record.
+     */
+    public function checkout(CheckIn $checkIn): JsonResponse
     {
-        try {
-            Log::info('🗑️ [CHECK-IN DELETE] Starting deletion process', [
-                'checkin_id' => $checkIn->id,
-                'reservation_id' => $checkIn->reservation_id,
-                'guest_id' => $checkIn->guest_id,
-                'room_id' => $checkIn->room_id,
-                'checked_out_at' => $checkIn->checked_out_at,
-                'is_checked_out' => $checkIn->checked_out_at !== null,
-            ]);
-
-            DB::beginTransaction();
-
-            try {
-                if ($checkIn->room) {
-                    $oldStatus = $checkIn->room->status;
-                    $checkIn->room->update([
-                        'status' => 'available',
-                    ]);
-                    Log::info(' [CHECK-IN DELETE] Room status updated', [
-                        'room_id' => $checkIn->room->id,
-                        'room_number' => $checkIn->room->room_number,
-                        'old_status' => $oldStatus,
-                        'new_status' => 'available',
-                    ]);
-                }
-
-                if ($checkIn->reservation) {
-                    $newReservationStatus = $checkIn->checked_out_at ? 'checked_out' : 'confirmed';
-                    
-                    $checkIn->reservation->update([
-                        'status' => $newReservationStatus,
-                    ]);
-                    
-                    Log::info(' [CHECK-IN DELETE] Reservation status updated', [
-                        'reservation_id' => $checkIn->reservation->id,
-                        'booking_reference' => $checkIn->reservation->booking_reference,
-                        'new_status' => $newReservationStatus,
-                    ]);
-                }
-
-                $checkIn->delete();
-                Log::info(' [CHECK-IN DELETE] Check-in deleted successfully', [
-                    'checkin_id' => $checkIn->id,
-                ]);
-
-                DB::commit();
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Check-in deleted successfully.',
-                ]);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                throw $e;
-            }
-        } catch (\Exception $e) {
-            Log::error(' [CHECK-IN DELETE] Failed to delete check-in', [
-                'checkin_id' => $checkIn->id ?? 'unknown',
-                'error' => $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to delete check-in. Please contact support if this persists.',
-                'error' => config('app.debug') ? $e->getMessage() : null,
-            ], 500);
-        }
-    }
-
-    public function checkout(CheckIn $checkIn)
-    {
-        DB::beginTransaction();
+        $hotelId = TenantContext::id();
 
         try {
-            if ($checkIn->checked_out_at) {
-                throw new Exception('Guest already checked out.');
-            }
-
-            $room = $checkIn->room;
-            
-            \Log::info('🔍 [CHECKOUT] Starting checkout process', [
-                'check_in_id' => $checkIn->id,
-                'room_id' => $room->id,
-                'room_number' => $room->room_number,
-                'room_status_before' => $room->status,
-            ]);
-
-            $checkIn->update([
-                'checked_out_at' => now(),
-            ]);
-
-            $reservation = $checkIn->reservation;
-            $reservation->update([
-                'status' => 'checked_out',
-            ]);
-
-            $room->update([
-                'status' => 'available',
-            ]);
-
-            $room->refresh();
-            
-            \Log::info(' [CHECKOUT] Room status updated', [
-                'room_id' => $room->id,
-                'room_number' => $room->room_number,
-                'room_status_after' => $room->status,
-                'verified' => $room->status === 'available' ? 'YES' : 'NO',
-            ]);
-
-            if ($room->status !== 'available') {
-                throw new Exception('Failed to update room status to available. Current status: ' . $room->status);
-            }
-
-            DB::commit();
-
-            \Log::info('[CHECKOUT] Checkout completed successfully', [
-                'check_in_id' => $checkIn->id,
-                'room_id' => $room->id,
-                'room_status' => $room->status,
-            ]);
+            $updated = $this->checkInService->checkOut($checkIn, $hotelId);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Guest checked out successfully.',
-                'data' => new CheckInResource($checkIn->fresh(['guest', 'room', 'reservation'])),
+                'data'    => new CheckInResource($updated),
             ], 200);
-        } catch (Exception $exception) {
-            DB::rollBack();
-
-            \Log::error(' [CHECKOUT] Checkout failed', [
-                'check_in_id' => $checkIn->id,
-                'error_message' => $exception->getMessage(),
-                'error_file' => $exception->getFile(),
-                'error_line' => $exception->getLine(),
-            ]);
-
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $exception->getMessage(),
+                'message' => $e->getMessage(),
+                'errors'  => $e->errors(),
             ], 422);
         }
     }
 
-    public function statistics()
+    /**
+     * Delete a check-in record.
+     */
+    public function destroy(CheckIn $checkIn): JsonResponse
     {
+        $this->checkInService->deleteCheckIn($checkIn);
+
         return response()->json([
-            'total_check_ins' => CheckIn::count(),
-            'today_check_ins' => CheckIn::whereDate(
-                'checked_in_at',
-                today()
-            )->count(),
-            'active_guests' => CheckIn::whereNull(
-                'checked_out_at'
-            )->count(),
-            'expected_today' => CheckIn::whereDate(
-                'expected_check_out_at',
-                today()
-            )->count(),
+            'success' => true,
+            'message' => 'Check-in deleted successfully.',
         ]);
+    }
+
+    /**
+     * Check-in statistics scoped to the hotel.
+     */
+    public function statistics(): JsonResponse
+    {
+        $hotelId = TenantContext::id();
+        $statistics = $this->checkInService->getStatistics($hotelId);
+
+        return response()->json($statistics);
     }
 }

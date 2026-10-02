@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Services\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -9,34 +10,33 @@ class UpdateOrderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return auth()->check();
     }
 
     public function rules(): array
     {
+        $hotelId = app(TenantContext::class)->getHotelId()
+            ?? auth()->user()?->hotel_id
+            ?? auth()->user()?->hotelMemberships()->first()?->id;
+
         return [
-            'reservation_id' => [
-                'required',
-                'uuid',
-                Rule::exists('reservations', 'id'),
-            ],
-            'guest_id' => [
-                'required',
-                'uuid',
-                Rule::exists('guests', 'id'),
-            ],
-            'room_id' => [
-                'required',
-                'uuid',
-                Rule::exists('rooms', 'id'),
-            ],
             'notes' => [
                 'nullable',
                 'string',
                 'max:1000',
             ],
+            'payment_type' => [
+                'nullable',
+                'string',
+                Rule::in(['room_charge', 'cash', 'card', 'chapa', 'online']),
+            ],
+            'discount' => [
+                'nullable',
+                'numeric',
+                'min:0',
+            ],
             'items' => [
-                'required',
+                'sometimes',
                 'array',
                 'min:1',
             ],
@@ -46,12 +46,12 @@ class UpdateOrderRequest extends FormRequest
                 Rule::exists('order_items', 'id'),
             ],
             'items.*.menu_item_id' => [
-                'required',
+                'required_with:items',
                 'uuid',
-                Rule::exists('menu_items', 'id'),
+                Rule::exists('menu_items', 'id')->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId)),
             ],
             'items.*.quantity' => [
-                'required',
+                'required_with:items',
                 'integer',
                 'min:1',
                 'max:100',
@@ -61,42 +61,6 @@ class UpdateOrderRequest extends FormRequest
                 'string',
                 'max:255',
             ],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'reservation_id.required' => 'Reservation is required.',
-            'reservation_id.exists' => 'The selected reservation does not exist.',
-            'guest_id.required' => 'Guest is required.',
-            'guest_id.exists' => 'The selected guest does not exist.',
-            'room_id.required' => 'Room is required.',
-            'room_id.exists' => 'The selected room does not exist.',
-            'items.required' => 'At least one order item is required.',
-            'items.array' => 'Items must be an array.',
-            'items.min' => 'The order must contain at least one item.',
-            'items.*.id.exists' => 'The selected order item does not exist.',
-            'items.*.menu_item_id.required' => 'Menu item is required.',
-            'items.*.menu_item_id.exists' => 'The selected menu item does not exist.',
-            'items.*.quantity.required' => 'Quantity is required.',
-            'items.*.quantity.integer' => 'Quantity must be an integer.',
-            'items.*.quantity.min' => 'Quantity must be at least 1.',
-            'items.*.quantity.max' => 'Quantity cannot exceed 100.',
-        ];
-    }
-
-    public function attributes(): array
-    {
-        return [
-            'reservation_id' => 'reservation',
-            'guest_id' => 'guest',
-            'room_id' => 'room',
-            'items' => 'order items',
-            'items.*.id' => 'order item',
-            'items.*.menu_item_id' => 'menu item',
-            'items.*.quantity' => 'quantity',
-            'items.*.notes' => 'item note',
         ];
     }
 }

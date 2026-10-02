@@ -19,6 +19,7 @@ class RestaurantTable extends Model
         'table_name',
         'capacity',
         'location',
+        'section_id',
         'section',
         'status',
         'is_active',
@@ -132,6 +133,21 @@ class RestaurantTable extends Model
     public function orders()
     {
         return $this->hasMany(Order::class, 'table_id');
+    }
+
+    public function restaurantSection()
+    {
+        return $this->belongsTo(RestaurantSection::class, 'section_id');
+    }
+
+    public function sectionRel()
+    {
+        return $this->belongsTo(RestaurantSection::class, 'section_id');
+    }
+
+    public function getSectionNameAttribute(): string
+    {
+        return $this->restaurantSection?->name ?? $this->section ?? $this->location ?? 'Main Dining';
     }
 
     public function waiterAssignments()

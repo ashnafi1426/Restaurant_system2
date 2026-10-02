@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use App\Services\QRCodeService;
-use Illuminate\Support\Str;
 use App\Models\Traits\BelongsToTenant;
+use App\Services\QRCodeService;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class Room extends Model
 {
@@ -25,12 +29,14 @@ class Room extends Model
         'qr_image_path',
         'qr_generated_at',
     ];
+
     protected $casts = [
         'is_active' => 'boolean',
         'qr_generated_at' => 'datetime',
+        'floor' => 'integer',
         'floor_id' => 'string',
     ];
-    
+
     protected static function booted()
     {
         static::creating(function ($room) {
@@ -38,6 +44,7 @@ class Room extends Model
                 $room->qr_token = self::generateUniqueToken();
             }
         });
+
         static::created(function ($room) {
             try {
                 $qrImagePath = QRCodeService::generateAndSaveQRCode(
@@ -46,69 +53,70 @@ class Room extends Model
                     $room->qr_token,
                     config('app.frontend_url', 'http://localhost:5173')
                 );
-                
-                $room->update([
+
+                $room->updateQuietly([
                     'qr_image_path' => $qrImagePath,
                     'qr_generated_at' => now(),
                 ]);
-                
-                \Log::info('QR Code Generated for Room', [
-                    'room_id' => $room->id,
-                    'room_number' => $room->room_number,
-                    'token' => $room->qr_token,
-                    'image_path' => $qrImagePath,
-                ]);
-            } catch (\Exception $e) {
-                \Log::error('Failed to generate QR code for room', [
+            } catch (\Throwable $e) {
+                Log::error('Failed to generate QR code for room', [
                     'room_id' => $room->id,
                     'error' => $e->getMessage(),
                 ]);
             }
         });
     }
-    
-    public static function generateUniqueToken()
+
+    public static function generateUniqueToken(): string
     {
         do {
             $token = strtoupper(Str::random(8));
-        } while (self::where('qr_token', $token)->exists());
-        
+        } while (self::withoutGlobalScopes()->where('qr_token', $token)->exists());
+
         return $token;
     }
-    
-    public function roomType()
+
+    public function hotel(): BelongsTo
     {
-        return $this->belongsTo(RoomType::class);
+        return $this->belongsTo(Hotel::class, 'hotel_id');
     }
-    
-    public function floor()
+
+    public function roomType(): BelongsTo
+    {
+        return $this->belongsTo(RoomType::class, 'room_type_id');
+    }
+
+    public function floor(): BelongsTo
     {
         return $this->belongsTo(Floor::class, 'floor_id', 'id');
     }
 
-    public function hotelFloor()
+    public function hotelFloor(): BelongsTo
     {
-        return $this->belongsTo(Floor::class, 'floor_id', 'id');
+        return $this->floor();
     }
 
-    public function reservations()
+    public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);
     }
 
-    public function activeReservation()
+    public function activeReservation(): HasOne
     {
         return $this->hasOne(Reservation::class)
             ->where('status', 'checked_in')
             ->latestOfMany('created_at');
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'room_id');
+    }
+
     public function getCurrentReservation(): ?Reservation
     {
-        // 1. Check for active checked-in reservation first
-        $checkedIn = Reservation::withoutGlobalScopes()
-            ->where('room_id', $this->id)
-            ->when($this->hotel_id, fn($q) => $q->where('hotel_id', $this->hotel_id))
+        $checkedIn = $this->reservations()
+            ->withoutGlobalScopes()
             ->where('status', 'checked_in')
             ->with('guest')
             ->latest('created_at')
@@ -118,60 +126,41 @@ class Room extends Model
             return $checkedIn;
         }
 
-        // 2. Fallback to latest reservation to determine status (confirmed, checked_out, cancelled, etc.)
-        return Reservation::withoutGlobalScopes()
-            ->where('room_id', $this->id)
-            ->when($this->hotel_id, fn($q) => $q->where('hotel_id', $this->hotel_id))
+        return $this->reservations()
+            ->withoutGlobalScopes()
             ->with('guest')
             ->latest('created_at')
             ->first();
-    }
-    
-    public function getQRCodeUrlAttribute()
-    {
-        if (!$this->qr_image_path) {
-            return null;
-        }
-        return url("storage/{$this->qr_image_path}");
-    }
-
-    public function scopeSearch($query, $searchTerm)
-    {
-        if (!$searchTerm) {
-            return $query;
-        }
-
-        return $query->where(function ($q) use ($searchTerm) {
-            $q->whereRaw('LOWER(room_number) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
-              ->orWhereRaw('LOWER(description) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
-              ->orWhereRaw('LOWER(status) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
-              ->orWhere('floor', 'LIKE', '%' . $searchTerm . '%')
-              ->orWhereHas('roomType', function ($query) use ($searchTerm) {
-                  $query->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($searchTerm) . '%']);
-              });
-        });
     }
 
     public function getFloorId(): ?string
     {
         if ($this->floor_id) {
-            return $this->floor_id;
+            return (string) $this->floor_id;
         }
 
-        if ($this->hotelFloor) {
-            return $this->hotelFloor->id;
+        $floorRel = $this->relationLoaded('hotelFloor') ? $this->getRelation('hotelFloor') : ($this->relationLoaded('floor') ? $this->getRelation('floor') : null);
+        if ($floorRel && is_object($floorRel) && isset($floorRel->id)) {
+            return (string) $floorRel->id;
         }
 
-        if ($this->floor) {
-            $hotelFloor = HotelFloor::where('floor_number', $this->floor)
-                                    ->orWhere('name', $this->floor)
-                                    ->first();
-            if ($hotelFloor) {
-                return $hotelFloor->id;
-            }
+        $floorNum = $this->getAttribute('floor');
+        if ($floorNum !== null) {
+            return Floor::where('floor_number', $floorNum)
+                ->when($this->hotel_id, fn($q) => $q->where('hotel_id', $this->hotel_id))
+                ->value('id');
         }
 
         return null;
+    }
+
+    public function getQRCodeUrlAttribute(): ?string
+    {
+        if (!$this->qr_image_path) {
+            return null;
+        }
+
+        return url("storage/{$this->qr_image_path}");
     }
 
     public function resolveRouteBinding($value, $field = null)

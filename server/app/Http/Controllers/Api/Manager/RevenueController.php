@@ -4,17 +4,16 @@ namespace App\Http\Controllers\Api\Manager;
 
 use App\Http\Controllers\Controller;
 use App\Services\Manager\ManagerDashboardService;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class RevenueController extends Controller
 {
-    protected ManagerDashboardService $dashboardService;
-
-    public function __construct(ManagerDashboardService $dashboardService)
-    {
-        $this->dashboardService = $dashboardService;
-    }
+    public function __construct(
+        protected ManagerDashboardService $dashboardService
+    ) {}
 
     public function summary(Request $request): JsonResponse
     {
@@ -25,7 +24,9 @@ class RevenueController extends Controller
                 'success' => true,
                 'data' => $revenueSummary,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Manager revenue summary error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load revenue summary: ' . $e->getMessage(),
@@ -44,7 +45,9 @@ class RevenueController extends Controller
                 'data' => $revenueChart,
                 'period' => $period,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Manager revenue chart error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load revenue chart: ' . $e->getMessage(),

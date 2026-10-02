@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class GuestStoreOrderRequest extends FormRequest
 {
@@ -18,8 +17,8 @@ class GuestStoreOrderRequest extends FormRequest
             'qr_token' => [
                 'required',
                 'string',
+                'min:6',
                 'max:255',
-                Rule::exists('rooms', 'qr_token'),
             ],
             'items' => [
                 'required',
@@ -29,7 +28,7 @@ class GuestStoreOrderRequest extends FormRequest
             'items.*.menu_item_id' => [
                 'required',
                 'uuid',
-                Rule::exists('menu_items', 'id'),
+                'exists:menu_items,id',
             ],
             'items.*.quantity' => [
                 'required',
@@ -42,10 +41,20 @@ class GuestStoreOrderRequest extends FormRequest
                 'string',
                 'max:255',
             ],
+            'special_requests' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
             'notes' => [
                 'nullable',
                 'string',
                 'max:1000',
+            ],
+            'payment_type' => [
+                'nullable',
+                'string',
+                'in:room_charge,cash,card,chapa',
             ],
         ];
     }
@@ -53,29 +62,13 @@ class GuestStoreOrderRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'qr_token.required' => 'QR token is required.',
-            'qr_token.exists' => 'Invalid QR code.',
+            'qr_token.required' => 'QR code is required.',
             'items.required' => 'Please select at least one menu item.',
-            'items.array' => 'Items must be an array.',
             'items.min' => 'At least one menu item is required.',
             'items.*.menu_item_id.required' => 'Menu item is required.',
             'items.*.menu_item_id.exists' => 'Selected menu item does not exist.',
             'items.*.quantity.required' => 'Quantity is required.',
-            'items.*.quantity.integer' => 'Quantity must be an integer.',
             'items.*.quantity.min' => 'Quantity must be at least 1.',
-            'items.*.quantity.max' => 'Quantity cannot exceed 100.',
-        ];
-    }
-
-    public function attributes(): array
-    {
-        return [
-            'qr_token' => 'QR code',
-            'items' => 'order items',
-            'items.*.menu_item_id' => 'menu item',
-            'items.*.quantity' => 'quantity',
-            'items.*.notes' => 'item note',
-            'notes' => 'order note',
         ];
     }
 }

@@ -4,17 +4,16 @@ namespace App\Http\Controllers\Api\Manager;
 
 use App\Http\Controllers\Controller;
 use App\Services\Manager\ManagerDashboardService;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class StaffController extends Controller
 {
-    protected ManagerDashboardService $dashboardService;
-
-    public function __construct(ManagerDashboardService $dashboardService)
-    {
-        $this->dashboardService = $dashboardService;
-    }
+    public function __construct(
+        protected ManagerDashboardService $dashboardService
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -25,7 +24,9 @@ class StaffController extends Controller
                 'success' => true,
                 'data' => $staff,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Manager staff error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load staff data: ' . $e->getMessage(),

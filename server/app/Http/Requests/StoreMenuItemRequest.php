@@ -2,17 +2,23 @@
 
 namespace App\Http\Requests;
 
+use App\Services\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreMenuItemRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return auth()->check();
     }
 
     public function rules(): array
     {
+        $hotelId = app(TenantContext::class)->getHotelId()
+            ?? auth()->user()?->hotel_id
+            ?? auth()->user()?->hotelMemberships()->first()?->id;
+
         return [
             'name' => [
                 'required',
@@ -22,26 +28,37 @@ class StoreMenuItemRequest extends FormRequest
             'description' => [
                 'nullable',
                 'string',
+                'max:1000',
             ],
             'category' => [
                 'required',
                 'string',
-                'exists:categories,slug,is_active,1',
+                Rule::exists('categories', 'slug')
+                    ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+                    ->where('is_active', true),
+            ],
+            'category_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('categories', 'id')
+                    ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId)),
             ],
             'price' => [
                 'required',
                 'numeric',
-                'min:0',
+                'min:0.01',
+                'max:999999.99',
             ],
             'image' => [
                 'nullable',
                 'image',
                 'mimes:jpg,jpeg,png,webp',
-                'max:2048',
+                'max:5120',
             ],
             'image_url' => [
                 'nullable',
                 'url',
+                'max:2048',
             ],
             'is_available' => [
                 'sometimes',
@@ -50,11 +67,21 @@ class StoreMenuItemRequest extends FormRequest
             'tax_rate_id' => [
                 'nullable',
                 'uuid',
-                'exists:tax_rates,id',
+                Rule::exists('tax_rates', 'id')
+                    ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+                    ->where('is_active', true),
             ],
             'tax_included' => [
                 'sometimes',
                 'boolean',
+            ],
+            'dietary_tags' => [
+                'sometimes',
+                'array',
+            ],
+            'dietary_tags.*' => [
+                'string',
+                'max:50',
             ],
         ];
     }
@@ -64,15 +91,15 @@ class StoreMenuItemRequest extends FormRequest
         return [
             'name.required' => 'Menu item name is required.',
             'category.required' => 'Please select a category.',
-            'category.exists' => 'The selected category is invalid or inactive.',
+            'category.exists' => 'The selected category does not exist in your hotel or is inactive.',
             'price.required' => 'Price is required.',
             'price.numeric' => 'Price must be a valid number.',
-            'price.min' => 'Price cannot be negative.',
+            'price.min' => 'Price must be greater than zero.',
+            'tax_rate_id.exists' => 'The selected tax rate does not belong to your hotel or is inactive.',
             'image.image' => 'The file must be an image.',
             'image.mimes' => 'The image must be a JPG, JPEG, PNG, or WebP file.',
-            'image.max' => 'The image cannot exceed 2MB.',
+            'image.max' => 'The image cannot exceed 5MB.',
             'image_url.url' => 'Please provide a valid image URL.',
-            'is_available.boolean' => 'Availability must be true or false.',
         ];
     }
 
@@ -80,32 +107,14 @@ class StoreMenuItemRequest extends FormRequest
     {
         return [
             function ($validator) {
-                \Log::info(' Validation check in after() method', [
-                    'has_file_image' => $this->hasFile('image'),
-                    'filled_image_url' => $this->filled('image_url'),
-                    'all_keys' => array_keys($this->all()),
-                ]);
-
                 $hasImage = $this->hasFile('image');
                 $hasImageUrl = $this->filled('image_url');
 
                 if (!$hasImage && !$hasImageUrl) {
-                    \Log::error(' Validation failed: No image provided', [
-                        'has_file_image' => $hasImage,
-                        'filled_image_url' => $hasImageUrl,
-                        'image_value' => $this->input('image'),
-                        'image_url_value' => $this->input('image_url'),
-                    ]);
-                    
                     $validator->errors()->add(
                         'image',
                         'Either upload an image file or provide an image URL.'
                     );
-                } else {
-                    \Log::info(' Image validation passed', [
-                        'has_image' => $hasImage,
-                        'has_image_url' => $hasImageUrl,
-                    ]);
                 }
             },
         ];

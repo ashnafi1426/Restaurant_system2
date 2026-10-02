@@ -2,6 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Order;
+use App\Models\RestaurantTable;
+use App\Models\Room;
+use App\Services\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -9,26 +13,56 @@ class StoreOrderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return auth()->check();
     }
 
     public function rules(): array
     {
+        $hotelId = TenantContext::id()
+            ?? app(TenantContext::class)->getHotelId()
+            ?? auth()->user()?->hotelMemberships()->first()?->id;
+
         return [
-            'reservation_id' => [
-                'required',
+            'order_type' => [
+                'nullable',
+                'string',
+                Rule::in([
+                    Order::TYPE_ROOM_SERVICE,
+                    Order::TYPE_DINE_IN,
+                    Order::TYPE_WALK_IN,
+                ]),
+            ],
+            'room_id' => [
+                Rule::requiredIf(fn() => $this->input('order_type') === Order::TYPE_ROOM_SERVICE),
+                'nullable',
                 'uuid',
-                Rule::exists('reservations', 'id'),
+                Rule::exists('rooms', 'id')->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId)),
+            ],
+            'reservation_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('reservations', 'id')->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId)),
             ],
             'guest_id' => [
-                'required',
+                'nullable',
                 'uuid',
                 Rule::exists('guests', 'id'),
             ],
-            'room_id' => [
-                'required',
+            'table_id' => [
+                Rule::requiredIf(fn() => $this->input('order_type') === Order::TYPE_DINE_IN),
+                'nullable',
                 'uuid',
-                Rule::exists('rooms', 'id'),
+                Rule::exists('restaurant_tables', 'id')->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId)),
+            ],
+            'payment_type' => [
+                'nullable',
+                'string',
+                Rule::in(['room_charge', 'cash', 'card', 'chapa', 'online']),
+            ],
+            'discount' => [
+                'nullable',
+                'numeric',
+                'min:0',
             ],
             'notes' => [
                 'nullable',
@@ -43,7 +77,7 @@ class StoreOrderRequest extends FormRequest
             'items.*.menu_item_id' => [
                 'required',
                 'uuid',
-                Rule::exists('menu_items', 'id'),
+                Rule::exists('menu_items', 'id')->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId)),
             ],
             'items.*.quantity' => [
                 'required',
@@ -62,34 +96,16 @@ class StoreOrderRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'reservation_id.required' => 'Reservation is required.',
-            'reservation_id.exists'   => 'The selected reservation does not exist.',
-            'guest_id.required'       => 'Guest is required.',
-            'guest_id.exists'         => 'The selected guest does not exist.',
-            'room_id.required'        => 'Room is required.',
-            'room_id.exists'          => 'The selected room does not exist.',
-            'items.required'          => 'Please select at least one menu item.',
-            'items.array'             => 'Items must be an array.',
-            'items.min'               => 'At least one menu item is required.',
+            'room_id.required' => 'Room is required for room service orders.',
+            'room_id.exists' => 'The selected room is invalid or belongs to another hotel.',
+            'table_id.required' => 'Table is required for dine-in orders.',
+            'table_id.exists' => 'The selected table is invalid or belongs to another hotel.',
+            'items.required' => 'Please select at least one menu item.',
+            'items.min' => 'At least one menu item is required.',
             'items.*.menu_item_id.required' => 'Menu item is required.',
-            'items.*.menu_item_id.exists'   => 'Selected menu item does not exist.',
+            'items.*.menu_item_id.exists' => 'Selected menu item does not exist or belongs to another hotel.',
             'items.*.quantity.required' => 'Quantity is required.',
-            'items.*.quantity.integer'  => 'Quantity must be a whole number.',
-            'items.*.quantity.min'      => 'Quantity must be at least 1.',
-            'items.*.quantity.max'      => 'Quantity cannot exceed 100.',
-        ];
-    }
-
-    public function attributes(): array
-    {
-        return [
-            'reservation_id' => 'reservation',
-            'guest_id' => 'guest',
-            'room_id' => 'room',
-            'items' => 'order items',
-            'items.*.menu_item_id' => 'menu item',
-            'items.*.quantity' => 'quantity',
-            'items.*.notes' => 'item note',
+            'items.*.quantity.min' => 'Quantity must be at least 1.',
         ];
     }
 }

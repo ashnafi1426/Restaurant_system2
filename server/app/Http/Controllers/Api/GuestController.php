@@ -8,125 +8,112 @@ use App\Http\Resources\GuestCollection;
 use App\Http\Resources\GuestResource;
 use App\Http\Resources\ReservationCollection;
 use App\Models\Guest;
+use App\Services\GuestService;
+use App\Services\TenantContext;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class GuestController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        protected GuestService $guestService
+    ) {}
+
+    /**
+     * Display a listing of guests for current hotel.
+     */
+    public function index(Request $request): GuestCollection
     {
-        $query = Guest::query();
-        if ($request->filled('search')) {
-            $search = trim($request->search);
+        $hotelId = TenantContext::id();
+        $perPage = $request->integer('per_page', 10);
 
-            $query->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('passport_number', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('nationality')) {
-            $query->where('nationality', $request->nationality);
-        }
-        $query->latest();
-        $guests = $query->paginate(
-            $request->get('per_page', 10)
-        );
+        $guests = $this->guestService->getGuests($request->all(), $perPage, $hotelId);
 
         return new GuestCollection($guests);
     }
 
-    public function store(GuestRequest $request)
+    /**
+     * Store or update guest profile with tenant isolation.
+     */
+    public function store(GuestRequest $request): JsonResponse
     {
-        return DB::transaction(function () use ($request) {
-            $validated = $request->validated();
-            $existingGuest = null;
+        $hotelId = TenantContext::id();
 
-            if (!empty($validated['email'])) {
-                $existingGuest = Guest::where('email', strtolower(trim($validated['email'])))->first();
-            }
+        $guest = $this->guestService->findOrCreateGuest($request->validated(), $hotelId);
 
-            if (!$existingGuest && !empty($validated['passport_number'])) {
-                $existingGuest = Guest::where('passport_number', trim($validated['passport_number']))->first();
-            }
-
-            if ($existingGuest) {
-                $existingGuest->update(array_filter($validated, fn($val) => !is_null($val) && $val !== ''));
-                return response()->json([
-                    'message' => 'Existing guest record found and updated successfully.',
-                    'data' => new GuestResource($existingGuest)
-                ], 200);
-            }
-
-            $guest = Guest::create($validated);
-
-            return response()->json([
-                'message' => 'Guest created successfully.',
-                'data' => new GuestResource($guest)
-            ], 201);
-        });
+        return response()->json([
+            'success' => true,
+            'message' => 'Guest record saved successfully.',
+            'data'    => new GuestResource($guest),
+        ], 201);
     }
 
-    public function show(Guest $guest)
+    /**
+     * Display the specified guest.
+     */
+    public function show(Guest $guest): JsonResponse
     {
+        $this->authorizeGuest($guest);
+
         return response()->json([
-            'data' => new GuestResource($guest)
+            'success' => true,
+            'data'    => new GuestResource($guest),
         ]);
     }
 
-    public function reservations(Guest $guest, Request $request)
+    /**
+     * Get reservations for a guest.
+     */
+    public function reservations(Guest $guest, Request $request): ReservationCollection
     {
-        $query = $guest->reservations();
+        $this->authorizeGuest($guest);
 
-        if ($request->filled('search')) {
-            $search = trim($request->search);
-            $query->where('booking_reference', 'LIKE', "%{$search}%");
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('check_in_date', [
-                $request->start_date,
-                $request->end_date
-            ]);
-        }
-
-        $reservations = $query
-            ->with(['room', 'creator'])
-            ->latest()
-            ->paginate(
-                $request->integer('per_page', 10)
-            );
+        $perPage = $request->integer('per_page', 10);
+        $reservations = $this->guestService->getGuestReservations($guest, $request->all(), $perPage);
 
         return new ReservationCollection($reservations);
     }
 
-    public function update(
-        GuestRequest $request,
-        Guest $guest
-    ) {
-        $guest->update(
-            $request->validated()
-        );
+    /**
+     * Update the specified guest.
+     */
+    public function update(GuestRequest $request, Guest $guest): JsonResponse
+    {
+        $this->authorizeGuest($guest);
+
+        $guest->update($request->validated());
 
         return response()->json([
+            'success' => true,
             'message' => 'Guest updated successfully.',
-            'data' => new GuestResource($guest)
+            'data'    => new GuestResource($guest->fresh()),
         ]);
     }
 
-    public function destroy(Guest $guest)
+    /**
+     * Remove the specified guest.
+     */
+    public function destroy(Guest $guest): JsonResponse
     {
+        $this->authorizeGuest($guest);
+
         $guest->delete();
 
         return response()->json([
-            'message' => 'Guest deleted successfully.'
+            'success' => true,
+            'message' => 'Guest deleted successfully.',
         ]);
+    }
+
+    /**
+     * Ensure guest belongs to the active tenant hotel.
+     */
+    protected function authorizeGuest(Guest $guest): void
+    {
+        $hotelId = TenantContext::id();
+
+        if ($hotelId && $guest->hotel_id && $guest->hotel_id !== $hotelId) {
+            abort(404, 'Guest not found.');
+        }
     }
 }

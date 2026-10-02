@@ -14,12 +14,17 @@ class WaiterManagementController extends Controller
 {
     protected function getHotelId(): ?string
     {
-        $hotelId = request()->header('X-Hotel-ID')
-            ?: app(\App\Services\TenantContext::class)->getHotelId()
-            ?: (auth()->check() ? auth()->user()->hotel_id : null);
+        $hotelId = request()->input('hotel_id')
+            ?: request()->query('hotel_id')
+            ?: request()->header('X-Hotel-ID');
 
         if (!$hotelId && auth()->check()) {
-            $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
+            $hotelId = auth()->user()->hotel_id
+                ?: auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
+        }
+
+        if (!$hotelId) {
+            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
         }
 
         if ($hotelId) {
@@ -34,6 +39,40 @@ class WaiterManagementController extends Controller
         try {
             $hotelId = $this->getHotelId();
 
+            // Auto-sync any hotel users with role 'waiter' into the waiters table if missing
+            try {
+                $waiterUsersQuery = User::where(function ($q) {
+                    $q->where('role', 'waiter')
+                      ->orWhereHas('hotelMemberships', fn($m) => $m->where('role', 'waiter'));
+                });
+
+                if ($hotelId) {
+                    $waiterUsersQuery->where(function ($q) use ($hotelId) {
+                        $q->where('hotel_id', $hotelId)
+                          ->orWhereHas('hotelMemberships', fn($m) => $m->where('hotel_id', $hotelId));
+                    });
+                }
+
+                $missingUsers = $waiterUsersQuery->get();
+                foreach ($missingUsers as $mu) {
+                    $targetHotel = $hotelId ?: ($mu->hotel_id ?: $mu->hotelMemberships()->value('hotel_id'));
+                    Waiter::firstOrCreate(
+                        ['user_id' => $mu->id],
+                        [
+                            'hotel_id' => $targetHotel,
+                            'section' => 'All Sections',
+                            'shift' => 'morning',
+                            'experience_level' => 'junior',
+                            'status' => 'active',
+                            'availability' => 'available',
+                            'maximum_orders' => 5,
+                        ]
+                    );
+                }
+            } catch (\Throwable $syncErr) {
+                Log::warning('[WaiterManagementController] Waiter sync notice: ' . $syncErr->getMessage());
+            }
+
             $waitersQuery = Waiter::with([
                 'user',
                 'floorAssignments' => function ($q) use ($hotelId) {
@@ -46,13 +85,20 @@ class WaiterManagementController extends Controller
             ]);
 
             if ($hotelId) {
-                $waitersQuery->where('hotel_id', $hotelId);
+                $waitersQuery->where(function ($q) use ($hotelId) {
+                    $q->where('hotel_id', $hotelId)
+                      ->orWhereNull('hotel_id');
+                });
             }
 
             $waiters = $waitersQuery
                 ->orderBy('section')
                 ->get()
                 ->map(function ($waiter) {
+                    $userName = $waiter->user ? trim(($waiter->user->first_name ?? '') . ' ' . ($waiter->user->last_name ?? '')) : '';
+                    if (empty($userName)) {
+                        $userName = $waiter->user?->name ?: ($waiter->user?->email ?: "Waiter #{$waiter->id}");
+                    }
                     return [
                         'id' => $waiter->id,
                         'user_id' => $waiter->user_id,
@@ -60,20 +106,22 @@ class WaiterManagementController extends Controller
                             'id' => $waiter->user->id,
                             'first_name' => $waiter->user->first_name,
                             'last_name' => $waiter->user->last_name,
-                            'name' => $waiter->user->first_name . ' ' . $waiter->user->last_name,
+                            'name' => $userName,
                             'email' => $waiter->user->email,
                             'phone' => $waiter->user->phone,
                         ] : null,
-                        'section' => $waiter->section,
-                        'shift' => $waiter->shift,
-                        'status' => $waiter->status,
-                        'experience_level' => $waiter->experience_level,
-                        'employment_type' => $waiter->employment_type,
-                        'availability' => $waiter->availability,
-                        'current_orders' => $waiter->current_orders,
-                        'maximum_orders' => $waiter->maximum_orders,
+                        'name' => $userName,
+                        'email' => $waiter->user?->email,
+                        'section' => $waiter->section ?: 'All Sections',
+                        'shift' => $waiter->shift ?: 'morning',
+                        'status' => $waiter->status ?: 'active',
+                        'experience_level' => $waiter->experience_level ?: 'junior',
+                        'employment_type' => $waiter->employment_type ?: 'full_time',
+                        'availability' => $waiter->availability ?: 'available',
+                        'current_orders' => $waiter->current_orders ?? 0,
+                        'maximum_orders' => $waiter->maximum_orders ?? 5,
                         'employee_number' => $waiter->employee_number,
-                        'phone' => $waiter->phone,
+                        'phone' => $waiter->phone ?: $waiter->user?->phone,
                         'hire_date' => $waiter->hire_date,
                         'floor_assignments' => $waiter->floorAssignments->map(function ($assignment) {
                             return [
@@ -94,6 +142,7 @@ class WaiterManagementController extends Controller
             
             Log::info('Waiters fetched successfully', [
                 'count' => $waiters->count(),
+                'hotel_id' => $hotelId,
             ]);
             
             return response()->json([
@@ -121,23 +170,30 @@ class WaiterManagementController extends Controller
                 ->where('status', 'active');
 
             if ($hotelId) {
-                $waitersQuery->where('hotel_id', $hotelId);
+                $waitersQuery->where(function ($q) use ($hotelId) {
+                    $q->where('hotel_id', $hotelId)
+                      ->orWhereNull('hotel_id');
+                });
             }
 
             $waiters = $waitersQuery
                 ->orderBy('section')
                 ->get()
                 ->map(function ($waiter) {
+                    $userName = $waiter->user ? trim(($waiter->user->first_name ?? '') . ' ' . ($waiter->user->last_name ?? '')) : '';
+                    if (empty($userName)) {
+                        $userName = $waiter->user?->name ?: ($waiter->user?->email ?: "Waiter #{$waiter->id}");
+                    }
                     return [
                         'id' => $waiter->id,
                         'user_id' => $waiter->user_id,
                         'user' => $waiter->user ? [
                             'id' => $waiter->user->id,
-                            'name' => $waiter->user->name,
+                            'name' => $userName,
                             'email' => $waiter->user->email,
                             'phone' => $waiter->user->phone,
                         ] : null,
-                        'name' => $waiter->user?->name ?? "Waiter #{$waiter->id}",
+                        'name' => $userName,
                         'email' => $waiter->user?->email,
                         'phone' => $waiter->user?->phone,
                         'employment_type' => $waiter->employment_type,
@@ -177,7 +233,7 @@ class WaiterManagementController extends Controller
                 ->filter();
 
             $usersQuery = User::whereNotIn('id', $existingUserIds)
-                ->where('status', 'active');
+                ->where('is_active', true);
 
             if ($hotelId) {
                 $usersQuery->where(function ($q) use ($hotelId) {
@@ -186,7 +242,16 @@ class WaiterManagementController extends Controller
                 });
             }
 
-            $users = $usersQuery->select('id', 'name', 'email', 'phone')->get();
+            $users = $usersQuery->select('id', 'first_name', 'last_name', 'email', 'phone')->get()
+                ->map(function ($u) {
+                    $userName = trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')) ?: ($u->email ?? 'User');
+                    return [
+                        'id' => $u->id,
+                        'name' => $userName,
+                        'email' => $u->email,
+                        'phone' => $u->phone,
+                    ];
+                });
 
             return response()->json([
                 'success' => true,
@@ -195,7 +260,7 @@ class WaiterManagementController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to load available users',
+                'message' => 'Failed to load available users: ' . $e->getMessage(),
                 'data' => [],
             ], 500);
         }
@@ -218,11 +283,11 @@ class WaiterManagementController extends Controller
                 'maximum_orders' => 'required|integer|min:1|max:20',
                 'employment_type' => 'sometimes|in:full_time,part_time,contract',
                 'employee_number' => 'sometimes|string|max:50',
-                'floor_assignments' => 'sometimes|array',
-                'floor_assignments.*.floor_id' => 'required_with:floor_assignments|exists:hotel_floors,id',
-                'floor_assignments.*.shift_id' => 'required_with:floor_assignments|exists:hotel_shifts,id',
-                'floor_assignments.*.priority' => 'required_with:floor_assignments|in:primary,secondary,backup',
-                'floor_assignments.*.assignment_date' => 'sometimes|date',
+                'floor_assignments' => 'sometimes|nullable|array',
+                'floor_assignments.*.floor_id' => 'required_with:floor_assignments|string',
+                'floor_assignments.*.shift_id' => 'nullable|string',
+                'floor_assignments.*.priority' => 'nullable|string|in:primary,secondary,backup',
+                'floor_assignments.*.assignment_date' => 'sometimes|nullable|date',
             ];
             
             if ($isNewUser) {
@@ -528,9 +593,9 @@ class WaiterManagementController extends Controller
                 'availability' => 'sometimes|in:available,busy,break,offline',
                 'employee_number' => 'sometimes|nullable|string|max:50|unique:waiters,employee_number,' . $waiter->id,
                 'floor_assignments' => 'sometimes|nullable|array',
-                'floor_assignments.*.floor_id' => 'required_with:floor_assignments|exists:hotel_floors,id',
-                'floor_assignments.*.shift_id' => 'required_with:floor_assignments|exists:hotel_shifts,id',
-                'floor_assignments.*.priority' => 'required_with:floor_assignments|in:primary,secondary,backup',
+                'floor_assignments.*.floor_id' => 'required_with:floor_assignments|string',
+                'floor_assignments.*.shift_id' => 'nullable|string',
+                'floor_assignments.*.priority' => 'nullable|string|in:primary,secondary,backup',
                 'floor_assignments.*.assignment_date' => 'sometimes|nullable|date',
             ]);
 
@@ -761,30 +826,26 @@ class WaiterManagementController extends Controller
 
     private function syncFloorAssignments(Waiter $waiter, array $assignments): void
     {
-        $dates = collect($assignments)->pluck('assignment_date')
-            ->map(fn($date) => $date ?? today()->toDateString())
-            ->unique()
-            ->toArray();
-        
-        \App\Models\WaiterFloorAssignment::where('waiter_id', $waiter->id)
-            ->whereIn('assignment_date', $dates)
-            ->delete();
+        // Delete existing floor assignments for this waiter
+        \App\Models\WaiterFloorAssignment::where('waiter_id', $waiter->id)->delete();
         
         $hotelId = $waiter->hotel_id ?? $this->getHotelId();
 
         foreach ($assignments as $assignment) {
-            if (empty($assignment['floor_id']) || empty($assignment['shift_id'])) {
+            if (empty($assignment['floor_id'])) {
                 continue;
             }
             \App\Models\WaiterFloorAssignment::create([
-                'id' => \Illuminate\Support\Str::uuid(),
+                'id' => (string) \Illuminate\Support\Str::uuid(),
                 'hotel_id' => $hotelId,
                 'waiter_id' => $waiter->id,
                 'floor_id' => $assignment['floor_id'],
-                'shift_id' => $assignment['shift_id'],
+                'shift_id' => !empty($assignment['shift_id']) ? $assignment['shift_id'] : null,
                 'priority' => $assignment['priority'] ?? 'primary',
                 'assignment_date' => $assignment['assignment_date'] ?? today()->toDateString(),
                 'status' => 'active',
+                'is_active' => true,
+                'assigned_at' => now(),
                 'assigned_by' => auth()->id(),
             ]);
         }

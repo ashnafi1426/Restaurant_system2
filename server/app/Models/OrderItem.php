@@ -15,6 +15,7 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'menu_item_id',
+        'item_name',
         'quantity',
         'item_price_at_order',
         'tax_rate_id',
@@ -25,6 +26,23 @@ class OrderItem extends Model
         'line_total',
         'notes',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($item) {
+            if (empty($item->item_name) && !empty($item->menu_item_id)) {
+                $menuItem = MenuItem::withoutGlobalScopes()->find($item->menu_item_id);
+                if ($menuItem) {
+                    $item->item_name = $menuItem->name;
+                }
+            }
+        });
+    }
+
+    public function getItemNameAttribute($value): ?string
+    {
+        return $value ?: ($this->relationLoaded('menuItem') ? $this->menuItem?->name : $value);
+    }
 
     protected $casts = [
         'quantity' => 'integer',

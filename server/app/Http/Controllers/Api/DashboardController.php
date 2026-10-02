@@ -3,43 +3,54 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\HotelUser;
+use App\Models\Reservation;
 use App\Models\Room;
 use App\Models\RoomType;
-use App\Models\Reservation;
-use App\Models\HotelUser;
 use App\Models\User;
-use App\Models\Payment;
 use App\Services\TenantContext;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 class DashboardController extends Controller
 {
     /**
      * Get main administrator dashboard metrics and statistics.
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         try {
             $user = $request->user();
             $hotelId = $request->header('X-Hotel-ID')
-                ?: app(TenantContext::class)->getHotelId()
-                ?: ($user->isPlatformAdmin() ? null : $user->hotel_id);
+                ?: TenantContext::id()
+                ?: ($user?->isPlatformAdmin() ? null : $user?->hotel_id);
 
-            // 1. Room statistics
+            // 1. Room statistics in a single aggregated query
             $roomQuery = Room::withoutGlobalScopes();
             if ($hotelId) {
                 $roomQuery->where('hotel_id', $hotelId);
             }
 
-            $totalRooms = (clone $roomQuery)->count();
-            $availableRooms = (clone $roomQuery)->where('status', 'available')->count();
-            $occupiedRooms = (clone $roomQuery)->where('status', 'occupied')->count();
-            $reservedRooms = (clone $roomQuery)->where('status', 'reserved')->count();
-            $maintenanceRooms = (clone $roomQuery)->where('status', 'maintenance')->count();
+            $roomStats = $roomQuery->selectRaw("
+                COUNT(*) as total_rooms,
+                SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available_rooms,
+                SUM(CASE WHEN status = 'occupied' THEN 1 ELSE 0 END) as occupied_rooms,
+                SUM(CASE WHEN status = 'reserved' THEN 1 ELSE 0 END) as reserved_rooms,
+                SUM(CASE WHEN status = 'maintenance' THEN 1 ELSE 0 END) as maintenance_rooms
+            ")->first();
 
-            $occupancyRate = $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100, 1) : 0;
+            $totalRooms = (int) ($roomStats->total_rooms ?? 0);
+            $availableRooms = (int) ($roomStats->available_rooms ?? 0);
+            $occupiedRooms = (int) ($roomStats->occupied_rooms ?? 0);
+            $reservedRooms = (int) ($roomStats->reserved_rooms ?? 0);
+            $maintenanceRooms = (int) ($roomStats->maintenance_rooms ?? 0);
+
+            $occupancyRate = $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100, 1) : 0.0;
 
             // 2. Room types
             $roomTypeQuery = RoomType::withoutGlobalScopes();
@@ -63,16 +74,19 @@ class DashboardController extends Controller
 
             // 4. Revenue calculation (Today)
             $today = Carbon::today();
-            $todayRevenue = 0;
+            $todayRevenue = 0.0;
             try {
-                $paymentQuery = DB::table('payments')->whereDate('created_at', $today)->where('status', 'completed');
-                if ($hotelId && \Illuminate\Support\Facades\Schema::hasColumn('payments', 'hotel_id')) {
+                $paymentQuery = DB::table('payments')
+                    ->whereBetween('created_at', [$today->copy()->startOfDay(), $today->copy()->endOfDay()])
+                    ->where('status', 'completed');
+
+                if ($hotelId && Schema::hasColumn('payments', 'hotel_id')) {
                     $paymentQuery->where('hotel_id', $hotelId);
                 }
                 $todayRevenue = (float) $paymentQuery->sum('amount');
-            } catch (\Throwable $e) {
-                // Fallback to reservation totals if payments table structure differs
-                $resQuery = Reservation::withoutGlobalScopes()->whereDate('created_at', $today);
+            } catch (Throwable) {
+                $resQuery = Reservation::withoutGlobalScopes()
+                    ->whereBetween('created_at', [$today->copy()->startOfDay(), $today->copy()->endOfDay()]);
                 if ($hotelId) {
                     $resQuery->where('hotel_id', $hotelId);
                 }
@@ -95,7 +109,7 @@ class DashboardController extends Controller
             $recentReservations = $resQuery->get()->map(function ($res) {
                 return [
                     'id' => $res->id,
-                    'booking_reference' => $res->booking_reference ?: ('BK-' . substr($res->id, 0, 8)),
+                    'booking_reference' => $res->booking_reference ?: ('BK-' . substr((string) $res->id, 0, 8)),
                     'guest_name' => $res->guest ? ($res->guest->first_name . ' ' . $res->guest->last_name) : 'Guest',
                     'guest' => [
                         'id' => $res->guest?->id,
@@ -105,7 +119,7 @@ class DashboardController extends Controller
                     'room_type' => $res->room?->roomType?->name ?: ($res->room?->room_number ? ('Room ' . $res->room->room_number) : 'Standard'),
                     'check_in_date' => $res->check_in_date ? Carbon::parse($res->check_in_date)->format('Y-m-d') : '-',
                     'status' => ucfirst(strtolower($res->status ?: 'Confirmed')),
-                    'total_price' => (float) ($res->total_amount ?: 2500),
+                    'total_price' => (float) ($res->total_amount ?: 0),
                 ];
             });
 
@@ -127,8 +141,8 @@ class DashboardController extends Controller
             $staffActivity = collect([
                 [
                     'id' => 1,
-                    'staff_name' => $user->first_name ? ($user->first_name . ' ' . $user->last_name) : 'Staff Member',
-                    'staff_initials' => strtoupper(substr($user->first_name ?: 'A', 0, 1) . substr($user->last_name ?: 'D', 0, 1)),
+                    'staff_name' => $user?->first_name ? ($user->first_name . ' ' . $user->last_name) : 'Staff Member',
+                    'staff_initials' => strtoupper(substr($user?->first_name ?: 'A', 0, 1) . substr($user?->last_name ?: 'D', 0, 1)),
                     'action' => 'Accessed hotel administration dashboard',
                     'timestamp' => 'Just now',
                 ],
@@ -143,7 +157,7 @@ class DashboardController extends Controller
                         'occupancyRate' => $occupancyRate,
                         'totalUsers' => $totalUsers,
                         'activeStaff' => $activeStaff,
-                        'todayRevenue' => $todayRevenue,
+                        'todayRevenue' => round($todayRevenue, 2),
                     ],
                     'roomStatistics' => [
                         'available' => $availableRooms,
@@ -155,10 +169,10 @@ class DashboardController extends Controller
                     'monthlyRevenue' => $monthlyRevenue,
                     'staffActivity' => $staffActivity,
                     'maintenanceAlerts' => $maintenanceAlerts,
-                ]
+                ],
             ]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('DashboardController@index error:', [
+        } catch (Throwable $e) {
+            Log::error('DashboardController@index error', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -173,26 +187,29 @@ class DashboardController extends Controller
     /**
      * Get revenue data tailored for chart timeframes (week, month, year).
      */
-    public function revenue(Request $request)
+    public function revenue(Request $request): JsonResponse
     {
         try {
             $user = $request->user();
             $hotelId = $request->header('X-Hotel-ID')
-                ?: app(TenantContext::class)->getHotelId()
-                ?: ($user->isPlatformAdmin() ? null : $user->hotel_id);
+                ?: TenantContext::id()
+                ?: ($user?->isPlatformAdmin() ? null : $user?->hotel_id);
 
-            $timeframe = $request->query('timeframe', 'month');
+            $timeframe = (string) $request->query('timeframe', 'month');
 
             $data = match ($timeframe) {
                 'week' => $this->getWeeklyRevenueSeries($hotelId),
                 'year' => $this->getYearlyRevenueSeries($hotelId),
                 default => $this->getMonthlyRevenueSeries($hotelId),
             };
+
             return response()->json([
                 'success' => true,
                 'data' => $data,
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
+            Log::error('DashboardController@revenue error', ['message' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch revenue series: ' . $e->getMessage(),
@@ -205,35 +222,39 @@ class DashboardController extends Controller
      */
     private function getMonthlyRevenueSeries(?string $hotelId = null): array
     {
+        $hasPaymentHotelId = Schema::hasColumn('payments', 'hotel_id');
         $series = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $date = Carbon::now()->subMonths($i);
-            $monthName = $date->format('M');
-            $yearMonth = $date->format('Y-m');
 
-            $amount = 0;
+        for ($i = 5; $i >= 0; $i--) {
+            $startOfMonth = Carbon::now()->subMonths($i)->startOfMonth();
+            $endOfMonth = $startOfMonth->copy()->endOfMonth();
+            $monthName = $startOfMonth->format('M');
+
+            $amount = 0.0;
             try {
                 $q = DB::table('payments')
                     ->where('status', 'completed')
-                    ->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = ?", [$yearMonth]);
+                    ->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
 
-                if ($hotelId && \Illuminate\Support\Facades\Schema::hasColumn('payments', 'hotel_id')) {
+                if ($hotelId && $hasPaymentHotelId) {
                     $q->where('hotel_id', $hotelId);
                 }
                 $amount = (float) $q->sum('amount');
-            } catch (\Throwable $e) {
-                // Fallback
-                $amount = 0;
+            } catch (Throwable) {
+                $amount = 0.0;
             }
 
             if ($amount <= 0) {
-                // Estimate from reservations if payments table is empty
-                $resQ = Reservation::withoutGlobalScopes()
-                    ->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = ?", [$yearMonth]);
-                if ($hotelId) {
-                    $resQ->where('hotel_id', $hotelId);
+                try {
+                    $resQ = Reservation::withoutGlobalScopes()
+                        ->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+                    if ($hotelId) {
+                        $resQ->where('hotel_id', $hotelId);
+                    }
+                    $amount = (float) ($resQ->sum('total_amount') ?: 0.0);
+                } catch (Throwable) {
+                    $amount = 0.0;
                 }
-                $amount = (float) ($resQ->sum('total_amount') ?: (rand(3500, 18000)));
             }
 
             $series[] = [
@@ -250,32 +271,39 @@ class DashboardController extends Controller
      */
     private function getWeeklyRevenueSeries(?string $hotelId = null): array
     {
+        $hasPaymentHotelId = Schema::hasColumn('payments', 'hotel_id');
         $series = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $date = Carbon::now()->subDays($i);
-            $dayName = $date->format('D');
-            $dayStr = $date->format('Y-m-d');
 
-            $amount = 0;
+        for ($i = 6; $i >= 0; $i--) {
+            $day = Carbon::now()->subDays($i);
+            $dayStart = $day->copy()->startOfDay();
+            $dayEnd = $day->copy()->endOfDay();
+            $dayName = $day->format('D');
+
+            $amount = 0.0;
             try {
                 $q = DB::table('payments')
                     ->where('status', 'completed')
-                    ->whereDate('created_at', $dayStr);
+                    ->whereBetween('created_at', [$dayStart, $dayEnd]);
 
-                if ($hotelId && \Illuminate\Support\Facades\Schema::hasColumn('payments', 'hotel_id')) {
+                if ($hotelId && $hasPaymentHotelId) {
                     $q->where('hotel_id', $hotelId);
                 }
                 $amount = (float) $q->sum('amount');
-            } catch (\Throwable $e) {
-                $amount = 0;
+            } catch (Throwable) {
+                $amount = 0.0;
             }
 
             if ($amount <= 0) {
-                $resQ = Reservation::withoutGlobalScopes()->whereDate('created_at', $dayStr);
-                if ($hotelId) {
-                    $resQ->where('hotel_id', $hotelId);
+                try {
+                    $resQ = Reservation::withoutGlobalScopes()->whereBetween('created_at', [$dayStart, $dayEnd]);
+                    if ($hotelId) {
+                        $resQ->where('hotel_id', $hotelId);
+                    }
+                    $amount = (float) ($resQ->sum('total_amount') ?: 0.0);
+                } catch (Throwable) {
+                    $amount = 0.0;
                 }
-                $amount = (float) ($resQ->sum('total_amount') ?: (rand(1200, 6000)));
             }
 
             $series[] = [

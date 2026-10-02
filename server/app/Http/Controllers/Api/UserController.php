@@ -6,31 +6,32 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
-use App\Models\User;
-use App\Services\ActivationService;
 use App\Mail\NewUserCreated;
+use App\Models\HotelUser;
+use App\Models\Role;
+use App\Models\User;
+use App\Services\TenantContext;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Throwable;
 
 class UserController extends Controller
 {
-    protected ActivationService $activationService;
-
-    public function __construct(ActivationService $activationService)
-    {
-        $this->activationService = $activationService;
-    }
-
-    public function index(Request $request)
+    /**
+     * Display a listing of users, scoped to the current hotel context.
+     */
+    public function index(Request $request): AnonymousResourceCollection
     {
         $query = User::query();
 
         $hotelId = $request->header('X-Hotel-ID')
-            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: TenantContext::id()
             ?: $request->query('hotel_id');
 
         $isAllHotels = $request->boolean('all_hotels') && $request->user()?->isPlatformAdmin();
@@ -41,9 +42,7 @@ class UserController extends Controller
             }
 
             if ($hotelId) {
-                $query->whereHas('hotelMemberships', function ($q) use ($hotelId) {
-                    $q->where('hotel_id', $hotelId);
-                });
+                $query->whereHas('hotelMemberships', fn ($q) => $q->where('hotel_id', $hotelId));
             }
         }
 
@@ -56,24 +55,25 @@ class UserController extends Controller
                   ->orWhere('role', 'like', "%{$search}%");
             });
         }
+
         if ($request->filled('role')) {
             $query->where('role', $request->role);
         }
+
         if ($request->filled('is_active')) {
             $query->where('is_active', $request->boolean('is_active'));
         }
-        $query->latest();
+
         $perPage = (int) $request->get('per_page', 500);
-        $users = $query->paginate($perPage);
-        return UserResource::collection($users);
+
+        return UserResource::collection($query->latest()->paginate($perPage));
     }
 
-    public function store(StoreUserRequest $request)
+    /**
+     * Store a newly created user in storage with temporary credentials.
+     */
+    public function store(StoreUserRequest $request): JsonResponse
     {
-        try {
-            DB::statement("ALTER TABLE users MODIFY COLUMN role VARCHAR(100) NOT NULL DEFAULT 'guest'");
-        } catch (\Exception $e) {}
-
         DB::beginTransaction();
         try {
             $temporaryPassword = $this->generateSecurePassword();
@@ -85,44 +85,44 @@ class UserController extends Controller
                 'phone' => $request->phone,
                 'password_hash' => Hash::make($temporaryPassword),
                 'role' => $request->role,
-                'is_active' => $request->is_active,
+                'is_active' => $request->boolean('is_active', true),
                 'activation_status' => 'activated',
-                'email_verified_at' => now()
+                'email_verified_at' => now(),
             ]);
 
-            $currentHotelId = app(\App\Services\TenantContext::class)->getHotelId()
+            $hotelId = TenantContext::id()
                 ?: $request->header('X-Hotel-ID')
                 ?: auth()->user()?->hotelMemberships()->first()?->hotel_id;
 
-            $targetRoleModel = null;
-            if (!empty($user->role) && $currentHotelId) {
-                $targetRoleStr = strtolower(trim($user->role));
-                $targetRoleModel = \App\Models\Role::withoutTenant()
-                    ->where('hotel_id', $currentHotelId)
-                    ->where(function ($q) use ($targetRoleStr) {
-                        $q->whereRaw('LOWER(slug) = ?', [$targetRoleStr])
-                          ->orWhereRaw('LOWER(name) = ?', [$targetRoleStr]);
+            $targetRole = null;
+            if (!empty($user->role) && $hotelId) {
+                $roleSearch = strtolower(trim($user->role));
+                $targetRole = Role::withoutTenant()
+                    ->where('hotel_id', $hotelId)
+                    ->where(function ($q) use ($roleSearch) {
+                        $q->whereRaw('LOWER(slug) = ?', [$roleSearch])
+                          ->orWhereRaw('LOWER(name) = ?', [$roleSearch]);
                     })
                     ->first();
             }
 
-            if ($currentHotelId) {
-                \App\Models\HotelUser::firstOrCreate([
-                    'hotel_id' => $currentHotelId,
+            if ($hotelId) {
+                HotelUser::firstOrCreate([
+                    'hotel_id' => $hotelId,
                     'user_id' => $user->id,
                 ], [
-                    'id' => (string) \Illuminate\Support\Str::uuid(),
+                    'id' => (string) Str::uuid(),
                     'role' => $user->role ?: 'staff',
-                    'role_id' => $targetRoleModel?->id,
+                    'role_id' => $targetRole?->id,
                     'is_active' => true,
                 ]);
 
-                if ($targetRoleModel) {
-                    \Illuminate\Support\Facades\DB::table('user_roles')->updateOrInsert(
+                if ($targetRole) {
+                    DB::table('user_roles')->updateOrInsert(
                         [
-                            'hotel_id' => $currentHotelId,
+                            'hotel_id' => $hotelId,
                             'user_id' => $user->id,
-                            'role_id' => $targetRoleModel->id,
+                            'role_id' => $targetRole->id,
                         ],
                         [
                             'is_primary' => true,
@@ -131,118 +131,109 @@ class UserController extends Controller
                         ]
                     );
                 }
+
+                if (in_array(strtolower($user->role ?? ''), ['waiter'])) {
+                    \App\Models\Waiter::firstOrCreate(
+                        ['user_id' => $user->id],
+                        [
+                            'hotel_id' => $hotelId,
+                            'section' => 'All Sections',
+                            'shift' => 'morning',
+                            'experience_level' => 'junior',
+                            'status' => 'active',
+                            'availability' => 'available',
+                            'maximum_orders' => 5,
+                        ]
+                    );
+                }
             }
 
+            $emailSent = true;
             try {
                 Mail::to($user->email)->send(new NewUserCreated($user, $temporaryPassword));
-            } catch (\Exception $mailException) {
+            } catch (Throwable $mailException) {
+                $emailSent = false;
                 Log::error('Failed to send new user email', [
                     'user_id' => $user->id,
                     'email' => $user->email,
-                    'error' => $mailException->getMessage()
+                    'error' => $mailException->getMessage(),
                 ]);
-                
-                DB::commit();
-                
-                return response()->json([
-                    'success' => true,
-                    'message' => 'User created successfully but failed to send email. Please provide password manually: ' . $temporaryPassword,
-                    'data' => new UserResource($user),
-                    'temporary_password' => $temporaryPassword,
-                    'email_sent' => false
-                ], 201);
             }
 
             DB::commit();
 
-            Log::info('User created with auto-generated password', [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'role' => $user->role,
-                'created_by' => auth('sanctum')->id()
-            ]);
-
             return response()->json([
                 'success' => true,
-                'message' => 'User created successfully. Login credentials sent to ' . $user->email,
+                'message' => $emailSent
+                    ? 'User created successfully. Login credentials sent to ' . $user->email
+                    : 'User created successfully but failed to send email. Temporary password: ' . $temporaryPassword,
                 'data' => new UserResource($user),
-                'email_sent' => true
+                'temporary_password' => $emailSent ? null : $temporaryPassword,
+                'email_sent' => $emailSent,
             ], 201);
-        } catch (\Exception $exception) {
+        } catch (Throwable $exception) {
             DB::rollBack();
 
             Log::error('Failed to create user', [
                 'error' => $exception->getMessage(),
-                'trace' => $exception->getTraceAsString()
+                'trace' => $exception->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Unable to create user.',
-                'error' => $exception->getMessage()
+                'error' => $exception->getMessage(),
             ], 500);
         }
     }
 
-    private function generateSecurePassword(int $length = 12): string
-    {
-        $uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-        $lowercase = 'abcdefghjkmnpqrstuvwxyz';
-        $numbers = '23456789';
-        $symbols = '!@#$%&*';
-        
-        $password = 
-            $uppercase[random_int(0, strlen($uppercase) - 1)] .
-            $lowercase[random_int(0, strlen($lowercase) - 1)] .
-            $numbers[random_int(0, strlen($numbers) - 1)] .
-            $symbols[random_int(0, strlen($symbols) - 1)];
-        
-        $allChars = $uppercase . $lowercase . $numbers . $symbols;
-        for ($i = 4; $i < $length; $i++) {
-            $password .= $allChars[random_int(0, strlen($allChars) - 1)];
-        }
-        
-        return str_shuffle($password);
-    }
-
-    public function show(User $user)
+    /**
+     * Display the specified user.
+     */
+    public function show(User $user): JsonResponse
     {
         return response()->json([
             'success' => true,
             'message' => 'User retrieved successfully.',
-            'data' => new UserResource($user)
+            'data' => new UserResource($user),
         ], 200);
     }
 
-    public function update(UpdateUserRequest $request, User $user)
+    /**
+     * Update the specified user in storage.
+     */
+    public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
         DB::beginTransaction();
-
         try {
-            $user->first_name = $request->first_name;
-            $user->last_name = $request->last_name;
-            $user->email = $request->email;
-            $user->phone = $request->phone;
-            $user->role = $request->role;
-            $user->is_active = $request->is_active;
+            $user->fill($request->only([
+                'first_name',
+                'last_name',
+                'email',
+                'phone',
+                'role',
+            ]));
 
-            if ($request->filled('password') && !empty($request->password)) {
+            if ($request->has('is_active')) {
+                $user->is_active = $request->boolean('is_active');
+            }
+
+            if ($request->filled('password')) {
                 $user->password_hash = Hash::make($request->password);
             }
 
             $user->save();
 
             if (!empty($user->role)) {
-                $targetRoleStr = strtolower($user->role);
-                $roleModel = \App\Models\Role::whereRaw('LOWER(slug) = ?', [$targetRoleStr])
-                    ->orWhereRaw('LOWER(name) = ?', [$targetRoleStr])
+                $roleSearch = strtolower(trim($user->role));
+                $roleModel = Role::whereRaw('LOWER(slug) = ?', [$roleSearch])
+                    ->orWhereRaw('LOWER(name) = ?', [$roleSearch])
                     ->first();
+
                 if ($roleModel) {
-                    try {
-                        $user->roles()->sync([
-                            $roleModel->id => ['is_primary' => true]
-                        ]);
-                    } catch (\Exception $e) {}
+                    $user->roles()->sync([
+                        $roleModel->id => ['is_primary' => true],
+                    ]);
                 }
             }
 
@@ -253,9 +244,13 @@ class UserController extends Controller
                 'message' => 'User updated successfully.',
                 'data' => new UserResource($user),
             ], 200);
-
-        } catch (\Exception $exception) {
+        } catch (Throwable $exception) {
             DB::rollBack();
+
+            Log::error('Failed to update user', [
+                'user_id' => $user->id,
+                'error' => $exception->getMessage(),
+            ]);
 
             return response()->json([
                 'success' => false,
@@ -265,49 +260,51 @@ class UserController extends Controller
         }
     }
 
-    public function destroy(User $user)
-    { 
-        if (auth('sanctum')->id() === $user->id) {
-            return $this->errorResponse(
-                'You cannot delete your own account.',
-                null,
-                403
-            );
+    /**
+     * Remove the specified user from storage.
+     */
+    public function destroy(User $user): JsonResponse
+    {
+        if (auth('sanctum')->id() === $user->id || auth()->id() === $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot delete your own account.',
+            ], 403);
         }
-        DB::beginTransaction();
 
+        DB::beginTransaction();
         try {
             $user->delete();
-
             DB::commit();
 
-            return $this->successResponse(
-                'User deleted successfully.'
-            );
-        } catch (\Throwable $exception) {
+            return response()->json([
+                'success' => true,
+                'message' => 'User deleted successfully.',
+            ], 200);
+        } catch (Throwable $exception) {
             DB::rollBack();
 
-            Log::error('Failed to delete user.', [
+            Log::error('Failed to delete user', [
                 'user_id' => $user->id,
                 'error' => $exception->getMessage(),
-                'trace' => $exception->getTraceAsString(),
             ]);
 
-            return $this->errorResponse(
-                'Unable to delete user.',
-                null,
-                500
-            );
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to delete user.',
+                'error' => $exception->getMessage(),
+            ], 500);
         }
     }
 
-    public function toggleStatus(User $user)
+    /**
+     * Toggle the active status of the specified user.
+     */
+    public function toggleStatus(User $user): JsonResponse
     {
         DB::beginTransaction();
-
         try {
-            $user->is_active = ! $user->is_active;
-
+            $user->is_active = !$user->is_active;
             $user->save();
 
             DB::commit();
@@ -317,40 +314,45 @@ class UserController extends Controller
                 'message' => $user->is_active
                     ? 'User activated successfully.'
                     : 'User deactivated successfully.',
-                'data' => new UserResource($user)
+                'data' => new UserResource($user),
             ], 200);
-        } catch (\Exception $exception) {
+        } catch (Throwable $exception) {
             DB::rollBack();
+
+            Log::error('Failed to toggle user status', [
+                'user_id' => $user->id,
+                'error' => $exception->getMessage(),
+            ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Unable to update user status.',
-                'error' => $exception->getMessage()
+                'error' => $exception->getMessage(),
             ], 500);
         }
     }
 
-    protected function successResponse(
-        string $message,
-        mixed $data = null,
-        int $status = 200
-    ) {
-        return response()->json([
-            'success' => true,
-            'message' => $message,
-            'data' => $data
-        ], $status);
-    }
+    /**
+     * Generate a cryptographically secure temporary password.
+     */
+    private function generateSecurePassword(int $length = 12): string
+    {
+        $uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+        $lowercase = 'abcdefghjkmnpqrstuvwxyz';
+        $numbers = '23456789';
+        $symbols = '!@#$%&*';
 
-    protected function errorResponse(
-        string $message,
-        mixed $error = null,
-        int $status = 500
-    ) {
-        return response()->json([
-            'success' => false,
-            'message' => $message,
-            'error' => $error
-        ], $status);
+        $password =
+            $uppercase[random_int(0, strlen($uppercase) - 1)] .
+            $lowercase[random_int(0, strlen($lowercase) - 1)] .
+            $numbers[random_int(0, strlen($numbers) - 1)] .
+            $symbols[random_int(0, strlen($symbols) - 1)];
+
+        $allChars = $uppercase . $lowercase . $numbers . $symbols;
+        for ($i = 4; $i < $length; $i++) {
+            $password .= $allChars[random_int(0, strlen($allChars) - 1)];
+        }
+
+        return str_shuffle($password);
     }
 }

@@ -72,6 +72,20 @@ class AppServiceProvider extends ServiceProvider
             if (\Illuminate\Support\Facades\Schema::hasTable('waiter_table_assignments')) {
                 \Illuminate\Support\Facades\DB::statement("ALTER TABLE `waiter_table_assignments` MODIFY `shift_id` CHAR(36) NULL");
             }
+            if (\Illuminate\Support\Facades\Schema::hasTable('orders')) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('orders', 'taxable_amount')) {
+                    \Illuminate\Support\Facades\Schema::table('orders', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->decimal('taxable_amount', 10, 2)->nullable()->after('subtotal');
+                    });
+                }
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('order_items')) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('order_items', 'item_name')) {
+                    \Illuminate\Support\Facades\Schema::table('order_items', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->string('item_name')->nullable()->after('menu_item_id');
+                    });
+                }
+            }
 
             // Ensure floors table exists
             if (!\Illuminate\Support\Facades\Schema::hasTable('floors')) {

@@ -3,35 +3,31 @@
 namespace App\Http\Controllers\Api\Guests;
 
 use App\Http\Controllers\Controller;
-use App\Models\Guest;
 use App\Models\Reservation;
 use App\Models\Room;
-use App\Models\Hotel;
+use App\Services\ReservationService;
 use App\Services\TenantContext;
-use App\Mail\ReservationConfirmed;
+use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class GuestBookingController extends Controller
 {
-    protected TenantContext $tenantContext;
+    public function __construct(
+        protected TenantContext $tenantContext,
+        protected ReservationService $reservationService
+    ) {}
 
-    public function __construct(TenantContext $tenantContext)
+    protected function getHotelId(): ?string
     {
-        $this->tenantContext = $tenantContext;
+        return $this->tenantContext->getHotelId() ?? TenantContext::id() ?? auth()->user()?->hotel_id;
     }
 
-    public function checkAvailability(Request $request)
+    public function checkAvailability(Request $request): JsonResponse
     {
         try {
-            Log::info('[GUEST BOOKING] Checking availability', [
-                'ip' => $request->ip(),
-                'hotel_id' => $this->tenantContext->getHotelId(),
-            ]);
-
             $validated = $request->validate([
                 'check_in_date' => 'required|date_format:Y-m-d|after_or_equal:today',
                 'check_out_date' => 'required|date_format:Y-m-d|after:check_in_date',
@@ -48,13 +44,8 @@ class GuestBookingController extends Controller
                 'num_guests.max' => 'Maximum 10 guests allowed',
             ]);
 
-            $checkInDate = $validated['check_in_date'];
-            $checkOutDate = $validated['check_out_date'];
-            $numGuests = $validated['num_guests'] ?? 1;
-            $hotelId = $this->tenantContext->getHotelId();
-
+            $hotelId = $this->getHotelId();
             if (!$hotelId) {
-                Log::warning('[GUEST BOOKING] No hotel ID in tenant context');
                 return response()->json([
                     'success' => false,
                     'error' => 'Unauthorized',
@@ -62,37 +53,13 @@ class GuestBookingController extends Controller
                 ], 401);
             }
 
-            $availableRooms = Room::where('hotel_id', $hotelId)
-                ->where('is_active', true)
-                ->where('status', 'available')
-                ->with('roomType')
-                ->get()
-                ->filter(function ($room) use ($checkInDate, $checkOutDate) {
-                    $hasConflict = Reservation::where('room_id', $room->id)
-                        ->whereIn('status', ['confirmed', 'checked_in', 'pending'])
-                        ->where(function ($query) use ($checkInDate, $checkOutDate) {
-                            $query->whereBetween('check_in_date', [$checkInDate, $checkOutDate])
-                                  ->orWhereBetween('check_out_date', [$checkInDate, $checkOutDate])
-                                  ->orWhere(function ($q) use ($checkInDate, $checkOutDate) {
-                                      $q->where('check_in_date', '<=', $checkInDate)
-                                        ->where('check_out_date', '>=', $checkOutDate);
-                                  });
-                        })
-                        ->exists();
+            $res = $this->reservationService->checkAvailability([
+                'check_in_date' => $validated['check_in_date'],
+                'check_out_date' => $validated['check_out_date'],
+                'capacity' => $validated['num_guests'] ?? 1,
+            ], $hotelId);
 
-                    return !$hasConflict;
-                })
-                ->values();
-
-            $totalAvailable = $availableRooms->count();
-
-            Log::info('[GUEST BOOKING] Availability check completed', [
-                'hotel_id' => $hotelId,
-                'check_in_date' => $checkInDate,
-                'check_out_date' => $checkOutDate,
-                'num_guests' => $numGuests,
-                'available_rooms' => $totalAvailable,
-            ]);
+            $availableRooms = $res['rooms'];
 
             return response()->json([
                 'success' => true,
@@ -102,27 +69,21 @@ class GuestBookingController extends Controller
                         'roomNumber' => $room->room_number,
                         'roomType' => $room->roomType ? $room->roomType->name : 'Standard',
                         'status' => $room->status,
-                        'price' => $room->roomType ? (float) $room->roomType->price : 0,
+                        'price' => $room->roomType ? (float) ($room->roomType->base_price_per_night ?? $room->roomType->price ?? 0) : 0,
                         'features' => $room->roomType ? ($room->roomType->features ?? []) : [],
                     ];
                 })->toArray(),
-                'totalAvailable' => $totalAvailable,
+                'totalAvailable' => $availableRooms->count(),
             ]);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::warning('[GUEST BOOKING] Validation error on availability check', [
-                'errors' => $e->errors(),
-            ]);
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'error' => 'Validation failed',
                 'messages' => $e->errors(),
             ], 422);
-        } catch (\Exception $e) {
-            Log::error('[GUEST BOOKING] Error checking availability', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+        } catch (Exception $e) {
+            Log::error('[GUEST BOOKING] Error checking availability', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'error' => 'Server error',
@@ -131,18 +92,11 @@ class GuestBookingController extends Controller
         }
     }
 
-    public function getRoomDetails($roomId, Request $request)
+    public function getRoomDetails(string $roomId, Request $request): JsonResponse
     {
         try {
-            Log::info('[GUEST BOOKING] Fetching room details', [
-                'room_id' => $roomId,
-                'hotel_id' => $this->tenantContext->getHotelId(),
-            ]);
-
-            $hotelId = $this->tenantContext->getHotelId();
-
+            $hotelId = $this->getHotelId();
             if (!$hotelId) {
-                Log::warning('[GUEST BOOKING] No hotel ID in tenant context for room details');
                 return response()->json([
                     'success' => false,
                     'error' => 'Unauthorized',
@@ -156,10 +110,6 @@ class GuestBookingController extends Controller
                 ->first();
 
             if (!$room) {
-                Log::warning('[GUEST BOOKING] Room not found or access denied', [
-                    'room_id' => $roomId,
-                    'hotel_id' => $hotelId,
-                ]);
                 return response()->json([
                     'success' => false,
                     'error' => 'Not found',
@@ -168,20 +118,12 @@ class GuestBookingController extends Controller
             }
 
             if (!$room->is_active) {
-                Log::warning('[GUEST BOOKING] Room is not active', [
-                    'room_id' => $roomId,
-                ]);
                 return response()->json([
                     'success' => false,
                     'error' => 'Not available',
                     'message' => 'This room is currently not available',
                 ], 403);
             }
-
-            Log::info('[GUEST BOOKING] Room details retrieved', [
-                'room_id' => $roomId,
-                'room_number' => $room->room_number,
-            ]);
 
             $roomType = $room->roomType;
 
@@ -199,13 +141,9 @@ class GuestBookingController extends Controller
                     'images' => $roomType ? ($roomType->images ?? []) : [],
                 ],
             ]);
+        } catch (Exception $e) {
+            Log::error('[GUEST BOOKING] Error fetching room details', ['room_id' => $roomId, 'error' => $e->getMessage()]);
 
-        } catch (\Exception $e) {
-            Log::error('[GUEST BOOKING] Error fetching room details', [
-                'room_id' => $roomId,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
             return response()->json([
                 'success' => false,
                 'error' => 'Server error',
@@ -214,13 +152,9 @@ class GuestBookingController extends Controller
         }
     }
 
-    public function createBooking(Request $request)
+    public function createBooking(Request $request): JsonResponse
     {
         try {
-            Log::info('[GUEST BOOKING] Creating new booking', [
-                'hotel_id' => $this->tenantContext->getHotelId(),
-            ]);
-
             $validated = $request->validate([
                 'guest_info' => 'required|array',
                 'guest_info.first_name' => 'required|string|min:2|max:100',
@@ -249,10 +183,8 @@ class GuestBookingController extends Controller
                 'check_out_date.after' => 'Check-out date must be after check-in date',
             ]);
 
-            $hotelId = $this->tenantContext->getHotelId();
-
+            $hotelId = $this->getHotelId();
             if (!$hotelId) {
-                Log::warning('[GUEST BOOKING] No hotel ID in tenant context for booking creation');
                 return response()->json([
                     'success' => false,
                     'error' => 'Unauthorized',
@@ -260,165 +192,34 @@ class GuestBookingController extends Controller
                 ], 401);
             }
 
-            $room = Room::where('id', $validated['room_id'])
-                ->where('hotel_id', $hotelId)
-                ->with('roomType')
-                ->first();
+            $reservation = $this->reservationService->createReservation($validated, $hotelId);
+            $stayDuration = max(1, $reservation->check_out_date->diffInDays($reservation->check_in_date));
 
-            if (!$room) {
-                Log::warning('[GUEST BOOKING] Room not found or access denied', [
-                    'room_id' => $validated['room_id'],
-                    'hotel_id' => $hotelId,
-                ]);
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Not found',
-                    'message' => 'Room not found or unavailable',
-                ], 404);
-            }
-
-            if ($room->roomType && $room->roomType->hotel_id !== $hotelId) {
-                Log::warning('[GUEST BOOKING] RoomType hotel mismatch', [
-                    'room_id' => $room->id,
-                    'room_type_id' => $room->roomType->id,
-                    'expected_hotel' => $hotelId,
-                    'actual_hotel' => $room->roomType->hotel_id,
-                ]);
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Invalid configuration',
-                    'message' => 'Room configuration error',
-                ], 409);
-            }
-
-            $hasConflict = Reservation::where('room_id', $room->id)
-                ->whereIn('status', ['confirmed', 'checked_in', 'pending'])
-                ->where(function ($query) use ($validated) {
-                    $query->whereBetween('check_in_date', [$validated['check_in_date'], $validated['check_out_date']])
-                          ->orWhereBetween('check_out_date', [$validated['check_in_date'], $validated['check_out_date']])
-                          ->orWhere(function ($q) use ($validated) {
-                              $q->where('check_in_date', '<=', $validated['check_in_date'])
-                                ->where('check_out_date', '>=', $validated['check_out_date']);
-                          });
-                })
-                ->exists();
-
-            if ($hasConflict) {
-                Log::warning('[GUEST BOOKING] Room has conflicting reservation', [
-                    'room_id' => $room->id,
-                    'check_in_date' => $validated['check_in_date'],
-                    'check_out_date' => $validated['check_out_date'],
-                ]);
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Conflict',
-                    'message' => 'Room is not available for the requested dates',
-                ], 409);
-            }
-
-            return DB::transaction(function () use ($validated, $room, $hotelId) {
-                $guest = Guest::where('hotel_id', $hotelId)
-                    ->where('email', $validated['guest_info']['email'])
-                    ->first();
-
-                if (!$guest) {
-                    $guest = Guest::create([
-                        'hotel_id' => $hotelId,
-                        'first_name' => $validated['guest_info']['first_name'],
-                        'last_name' => $validated['guest_info']['last_name'],
-                        'email' => $validated['guest_info']['email'],
-                        'phone' => $validated['guest_info']['phone'],
-                    ]);
-
-                    Log::info('[GUEST BOOKING] New guest created', [
-                        'guest_id' => $guest->id,
-                        'email' => $guest->email,
-                        'hotel_id' => $hotelId,
-                    ]);
-                } else {
-                    Log::info('[GUEST BOOKING] Existing guest found', [
-                        'guest_id' => $guest->id,
-                        'email' => $guest->email,
-                    ]);
-                }
-
-                $checkInDate = new \DateTime($validated['check_in_date']);
-                $checkOutDate = new \DateTime($validated['check_out_date']);
-                $stayDuration = $checkOutDate->diff($checkInDate)->days;
-                $roomPrice = $room->roomType ? (float) $room->roomType->price : 0;
-                $totalPrice = $stayDuration * $roomPrice;
-
-                $reservation = Reservation::create([
-                    'hotel_id' => $hotelId,
-                    'booking_reference' => Reservation::generateBookingReference(),
-                    'guest_id' => $guest->id,
-                    'room_id' => $room->id,
-                    'check_in_date' => $validated['check_in_date'],
-                    'check_out_date' => $validated['check_out_date'],
-                    'number_of_guests' => $validated['num_guests'] ?? 1,
-                    'total_amount' => $totalPrice,
-                    'status' => 'confirmed',
-                    'special_requests' => $validated['special_requests'] ?? null,
-                ]);
-
-                $reservation->load(['room.roomType', 'guest']);
-
-                if (!empty($guest->email)) {
-                    try {
-                        Mail::to($guest->email)->send(new ReservationConfirmed($reservation));
-                        Log::info('[GUEST BOOKING] Automatic confirmation email sent to guest', [
-                            'reservation_id' => $reservation->id,
-                            'guest_email'    => $guest->email,
-                        ]);
-                    } catch (\Exception $mailEx) {
-                        Log::error('[GUEST BOOKING] Failed to send confirmation email', [
-                            'reservation_id' => $reservation->id,
-                            'guest_email'    => $guest->email,
-                            'error'          => $mailEx->getMessage(),
-                        ]);
-                    }
-                }
-
-                Log::info('[GUEST BOOKING] Reservation created and confirmed successfully', [
-                    'reservation_id' => $reservation->id,
-                    'booking_reference' => $reservation->booking_reference,
-                    'guest_id' => $guest->id,
-                    'room_id' => $room->id,
-                    'total_amount' => $totalPrice,
-                ]);
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Booking created and confirmed successfully',
-                    'booking' => [
-                        'reservationId' => $reservation->id,
-                        'bookingReference' => $reservation->booking_reference,
-                        'guestName' => $guest->full_name,
-                        'roomNumber' => $room->room_number,
-                        'checkInDate' => $reservation->check_in_date->format('Y-m-d'),
-                        'checkOutDate' => $reservation->check_out_date->format('Y-m-d'),
-                        'numberOfGuests' => $reservation->number_of_guests,
-                        'stayDuration' => $stayDuration,
-                        'total' => (float) $totalPrice,
-                        'status' => $reservation->status,
-                    ],
-                ], 201);
-            });
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::warning('[GUEST BOOKING] Validation error on booking creation', [
-                'errors' => $e->errors(),
-            ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking created and confirmed successfully',
+                'booking' => [
+                    'reservationId' => $reservation->id,
+                    'bookingReference' => $reservation->booking_reference,
+                    'guestName' => $reservation->guest ? $reservation->guest->full_name : 'Guest',
+                    'roomNumber' => $reservation->room ? $reservation->room->room_number : '',
+                    'checkInDate' => $reservation->check_in_date->format('Y-m-d'),
+                    'checkOutDate' => $reservation->check_out_date->format('Y-m-d'),
+                    'numberOfGuests' => $reservation->number_of_guests,
+                    'stayDuration' => $stayDuration,
+                    'total' => (float) $reservation->total_amount,
+                    'status' => $reservation->status,
+                ],
+            ], 201);
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'error' => 'Validation failed',
                 'messages' => $e->errors(),
             ], 422);
-        } catch (\Exception $e) {
-            Log::error('[GUEST BOOKING] Error creating booking', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+        } catch (Exception $e) {
+            Log::error('[GUEST BOOKING] Error creating booking', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'error' => 'Server error',
@@ -427,18 +228,11 @@ class GuestBookingController extends Controller
         }
     }
 
-    public function getBookingStatus($bookingReference, Request $request)
+    public function getBookingStatus(string $bookingReference, Request $request): JsonResponse
     {
         try {
-            Log::info('[GUEST BOOKING] Fetching booking status', [
-                'booking_reference' => $bookingReference,
-                'hotel_id' => $this->tenantContext->getHotelId(),
-            ]);
-
-            $hotelId = $this->tenantContext->getHotelId();
-
+            $hotelId = $this->getHotelId();
             if (!$hotelId) {
-                Log::warning('[GUEST BOOKING] No hotel ID in tenant context for status check');
                 return response()->json([
                     'success' => false,
                     'error' => 'Unauthorized',
@@ -452,21 +246,12 @@ class GuestBookingController extends Controller
                 ->first();
 
             if (!$reservation) {
-                Log::warning('[GUEST BOOKING] Booking not found', [
-                    'booking_reference' => $bookingReference,
-                    'hotel_id' => $hotelId,
-                ]);
                 return response()->json([
                     'success' => false,
                     'error' => 'Not found',
                     'message' => 'Booking not found',
                 ], 404);
             }
-
-            Log::info('[GUEST BOOKING] Booking status retrieved', [
-                'booking_reference' => $bookingReference,
-                'status' => $reservation->status,
-            ]);
 
             return response()->json([
                 'success' => true,
@@ -486,13 +271,12 @@ class GuestBookingController extends Controller
                     'updatedAt' => $reservation->updated_at->toIso8601String(),
                 ],
             ]);
-
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('[GUEST BOOKING] Error fetching booking status', [
                 'booking_reference' => $bookingReference,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json([
                 'success' => false,
                 'error' => 'Server error',
@@ -501,22 +285,15 @@ class GuestBookingController extends Controller
         }
     }
 
-    public function cancelBooking($bookingReference, Request $request)
+    public function cancelBooking(string $bookingReference, Request $request): JsonResponse
     {
         try {
-            Log::info('[GUEST BOOKING] Cancelling booking', [
-                'booking_reference' => $bookingReference,
-                'hotel_id' => $this->tenantContext->getHotelId(),
-            ]);
-
             $validated = $request->validate([
                 'cancellation_reason' => 'nullable|string|max:500',
             ]);
 
-            $hotelId = $this->tenantContext->getHotelId();
-
+            $hotelId = $this->getHotelId();
             if (!$hotelId) {
-                Log::warning('[GUEST BOOKING] No hotel ID in tenant context for cancellation');
                 return response()->json([
                     'success' => false,
                     'error' => 'Unauthorized',
@@ -529,10 +306,6 @@ class GuestBookingController extends Controller
                 ->first();
 
             if (!$reservation) {
-                Log::warning('[GUEST BOOKING] Booking not found for cancellation', [
-                    'booking_reference' => $bookingReference,
-                    'hotel_id' => $hotelId,
-                ]);
                 return response()->json([
                     'success' => false,
                     'error' => 'Not found',
@@ -541,10 +314,6 @@ class GuestBookingController extends Controller
             }
 
             if (!$reservation->canCancel()) {
-                Log::warning('[GUEST BOOKING] Booking cannot be cancelled', [
-                    'booking_reference' => $bookingReference,
-                    'status' => $reservation->status,
-                ]);
                 return response()->json([
                     'success' => false,
                     'error' => 'Invalid status',
@@ -552,54 +321,29 @@ class GuestBookingController extends Controller
                 ], 422);
             }
 
-            $hoursUntilCheckIn = now()->diffInHours($reservation->check_in_date, false);
-            if ($hoursUntilCheckIn < 48 && $hoursUntilCheckIn > 0) {
-                Log::warning('[GUEST BOOKING] Cancellation within 48-hour window', [
-                    'booking_reference' => $bookingReference,
-                    'hours_until_checkin' => $hoursUntilCheckIn,
-                ]);
-                Log::info('[GUEST BOOKING] Late cancellation allowed', [
-                    'booking_reference' => $bookingReference,
-                    'hours_until_checkin' => $hoursUntilCheckIn,
-                ]);
-            }
-
-            $reservation->update([
-                'status' => 'cancelled',
-                'cancelled_at' => now(),
-            ]);
-
-            Log::info('[GUEST BOOKING] Booking cancelled successfully', [
-                'booking_reference' => $bookingReference,
-                'cancellation_reason' => $validated['cancellation_reason'] ?? 'Not provided',
-                'reservation_id' => $reservation->id,
-            ]);
+            $cancelled = $this->reservationService->cancelReservation($reservation, $validated['cancellation_reason'] ?? null);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Booking cancelled successfully',
                 'booking' => [
-                    'bookingReference' => $reservation->booking_reference,
-                    'status' => $reservation->status,
-                    'cancelledAt' => $reservation->cancelled_at->toIso8601String(),
+                    'bookingReference' => $cancelled->booking_reference,
+                    'status' => $cancelled->status,
+                    'cancelledAt' => $cancelled->cancelled_at?->toIso8601String(),
                 ],
             ]);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::warning('[GUEST BOOKING] Validation error on cancellation', [
-                'errors' => $e->errors(),
-            ]);
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'error' => 'Validation failed',
                 'messages' => $e->errors(),
             ], 422);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('[GUEST BOOKING] Error cancelling booking', [
                 'booking_reference' => $bookingReference,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json([
                 'success' => false,
                 'error' => 'Server error',

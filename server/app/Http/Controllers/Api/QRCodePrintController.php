@@ -5,47 +5,55 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Room;
 use App\Services\QRCodeService;
+use App\Services\TenantContext;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Response;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class QRCodePrintController extends Controller
 {
-    public function getQRCodeImage(string $roomId)
+    /**
+     * Get or regenerate stored QR code image path.
+     */
+    public function getQRCodeImage(string $roomId): JsonResponse
     {
         $room = Room::find($roomId);
-        
+
         if (!$room) {
             return response()->json([
                 'success' => false,
-                'message' => 'Room not found'
+                'message' => 'Room not found',
             ], 404);
         }
+
         if (!$room->qr_image_path || !Storage::exists("public/{$room->qr_image_path}")) {
             Log::warning('QR code image not found, regenerating', [
                 'room_id' => $roomId,
                 'qr_image_path' => $room->qr_image_path,
             ]);
-            
+
             try {
                 QRCodeService::regenerateQRCode(
                     $room,
                     config('app.frontend_url', 'http://localhost:5173')
                 );
                 $room->refresh();
-            } catch (\Exception $e) {
+            } catch (Throwable $e) {
                 Log::error('Failed to regenerate QR code', [
                     'room_id' => $roomId,
                     'error' => $e->getMessage(),
                 ]);
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to generate QR code: ' . $e->getMessage()
+                    'message' => 'Failed to generate QR code: ' . $e->getMessage(),
                 ], 500);
             }
         }
-        
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -55,85 +63,79 @@ class QRCodePrintController extends Controller
                 'qr_url' => $room->qr_code_url,
                 'qr_image_path' => $room->qr_image_path,
                 'qr_generated_at' => $room->qr_generated_at,
-            ]
+            ],
         ]);
     }
 
-    public function downloadQRCode(string $roomId)
+    /**
+     * Download PNG file of a room's QR code.
+     */
+    public function downloadQRCode(string $roomId): Response|JsonResponse
     {
         $room = Room::find($roomId);
-        
+
         if (!$room || !$room->qr_image_path) {
             return response()->json([
                 'success' => false,
-                'message' => 'QR code not found for this room'
+                'message' => 'QR code not found for this room',
             ], 404);
         }
-        
+
         $filePath = "public/{$room->qr_image_path}";
-        
         if (!Storage::exists($filePath)) {
-            Log::warning('QR code file not found', [
-                'room_id' => $roomId,
-                'file_path' => $filePath,
-                'exists' => Storage::exists($filePath),
-            ]);
             return response()->json([
                 'success' => false,
-                'message' => 'QR code file not found on disk'
+                'message' => 'QR code file not found on disk',
             ], 404);
         }
-        
+
         try {
             $fileContent = Storage::get($filePath);
-            
             if (empty($fileContent)) {
-                throw new \Exception('File content is empty');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'QR code file is empty',
+                ], 500);
             }
-            
-            Log::info('QR code download', [
-                'room_id' => $roomId,
-                'file_size' => strlen($fileContent),
-            ]);
-            
+
             return response($fileContent, 200)
                 ->header('Content-Type', 'image/png')
                 ->header('Content-Disposition', 'attachment; filename="Room_' . $room->room_number . '_QR.png"')
                 ->header('Content-Length', strlen($fileContent))
-                ->header('Cache-Control', 'public, max-age=86400')
-                ->header('Pragma', 'public')
-                ->header('Access-Control-Allow-Origin', '*')
-                ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-                ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-        } catch (\Exception $e) {
+                ->header('Cache-Control', 'public, max-age=86400');
+        } catch (Throwable $e) {
             Log::error('Failed to download QR code', [
                 'room_id' => $roomId,
-                'file_path' => $filePath,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to download QR code: ' . $e->getMessage()
+                'message' => 'Failed to download QR code: ' . $e->getMessage(),
             ], 500);
         }
     }
 
-    public function regenerateQRCode(string $roomId)
+    /**
+     * Force regenerate a room's QR code.
+     */
+    public function regenerateQRCode(string $roomId): JsonResponse
     {
         $room = Room::find($roomId);
-        
+
         if (!$room) {
             return response()->json([
                 'success' => false,
-                'message' => 'Room not found'
+                'message' => 'Room not found',
             ], 404);
         }
+
         try {
             $newPath = QRCodeService::regenerateQRCode(
                 $room,
                 config('app.frontend_url', 'http://localhost:5173')
             );
+
             return response()->json([
                 'success' => true,
                 'message' => 'QR code regenerated successfully',
@@ -144,70 +146,74 @@ class QRCodePrintController extends Controller
                     'qr_url' => $room->qr_code_url,
                     'qr_image_path' => $newPath,
                     'qr_generated_at' => $room->qr_generated_at,
-                ]
+                ],
             ]);
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to regenerate QR code: ' . $e->getMessage()
+                'message' => 'Failed to regenerate QR code: ' . $e->getMessage(),
             ], 500);
         }
     }
 
-    public function getAllQRCodes()
+    /**
+     * List QR codes for rooms belonging to the active hotel.
+     */
+    public function getAllQRCodes(): JsonResponse
     {
+        $hotelId = TenantContext::id() ?? auth()->user()?->hotel_id;
+
         $rooms = Room::where('is_active', true)
+            ->when($hotelId, fn ($q) => $q->where('hotel_id', $hotelId))
             ->select('id', 'room_number', 'qr_token', 'qr_image_path', 'qr_code_url')
             ->orderBy('room_number')
             ->get();
-        $qrCodes = $rooms->map(function ($room) {
-            return [
-                'room_id' => $room->id,
-                'room_number' => $room->room_number,
-                'qr_token' => $room->qr_token,
-                'qr_url' => $room->qr_code_url,
-                'qr_image_path' => $room->qr_image_path,
-            ];
-        });
-        
+
+        $qrCodes = $rooms->map(fn ($room) => [
+            'room_id' => $room->id,
+            'room_number' => $room->room_number,
+            'qr_token' => $room->qr_token,
+            'qr_url' => $room->qr_code_url,
+            'qr_image_path' => $room->qr_image_path,
+        ]);
+
         return response()->json([
             'success' => true,
             'count' => count($qrCodes),
-            'data' => $qrCodes
+            'data' => $qrCodes,
         ]);
     }
 
-    public function getPrintTemplate(Request $request, string $roomId)
+    /**
+     * Generate HTML printable sheet for a room's QR code.
+     */
+    public function getPrintTemplate(Request $request, string $roomId): Response|JsonResponse
     {
         $room = Room::find($roomId);
-        
+
         if (!$room || !$room->qr_image_path) {
             return response()->json([
                 'success' => false,
-                'message' => 'Room or QR code not found'
+                'message' => 'Room or QR code not found',
             ], 404);
         }
+
         $copies = min(10, max(1, (int) $request->query('copies', $request->query('quantity', 1))));
         $qrUrl = $room->qr_code_url;
-        
+
         $cardsHtml = '';
         for ($i = 0; $i < $copies; $i++) {
             $cardsHtml .= <<<CARD
             <div class="card">
                 <h1>HOTEL SERVICE</h1>
                 <div class="hotel-name">Room Service Order</div>
-                
                 <div class="qr-container">
                     <img src="{$qrUrl}" alt="QR Code for Room {$room->room_number}">
                 </div>
-                
                 <h2 style="font-size: 20px; margin: 15px 0 5px 0;">Room {$room->room_number}</h2>
-                
                 <div class="info">
                     <p>Scan this code to order food</p>
-                    <p style="margin-top: 10px; color: #999; font-size: 11px;">
-                        Token: {$room->qr_token}
-                    </p>
+                    <p style="margin-top: 10px; color: #999; font-size: 11px;">Token: {$room->qr_token}</p>
                 </div>
             </div>
             CARD;
@@ -217,6 +223,7 @@ class QRCodePrintController extends Controller
         <!DOCTYPE html>
         <html>
         <head>
+            <meta charset="utf-8">
             <title>Room {$room->room_number} - QR Code ({$copies} copies)</title>
             <style>
                 body {
@@ -258,9 +265,7 @@ class QRCodePrintController extends Controller
                     text-transform: uppercase;
                     letter-spacing: 1px;
                 }
-                .qr-container {
-                    margin: 12px 0;
-                }
+                .qr-container { margin: 12px 0; }
                 .qr-container img {
                     width: 170px;
                     height: 170px;
@@ -276,20 +281,14 @@ class QRCodePrintController extends Controller
                     font-weight: 600;
                 }
                 @media print {
-                    body {
-                        background-color: white;
-                        padding: 0;
-                    }
+                    body { background-color: white; padding: 0; }
                     .print-grid {
                         display: grid;
                         grid-template-columns: repeat(2, 1fr);
                         gap: 16px;
                         max-width: 100%;
                     }
-                    .card {
-                        box-shadow: none;
-                        border: 1px solid #cbd5e1;
-                    }
+                    .card { box-shadow: none; border: 1px solid #cbd5e1; }
                 }
             </style>
         </head>
@@ -300,15 +299,11 @@ class QRCodePrintController extends Controller
         </body>
         </html>
         HTML;
-        
-        return response($html)
-            ->header('Content-Type', 'text/html; charset=utf-8')
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-            ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+        return response($html)->header('Content-Type', 'text/html; charset=utf-8');
     }
 
-    public function show(string $roomId)
+    public function show(string $roomId): JsonResponse
     {
         return $this->getQRCodeImage($roomId);
     }

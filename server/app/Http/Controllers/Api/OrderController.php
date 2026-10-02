@@ -87,15 +87,22 @@ class OrderController extends Controller
             ],
         ]);
 
-        $order = $this->orderService->changeStatus(
-            $id,
-            $request->string('status')->toString()
-        );
+        try {
+            $order = $this->orderService->changeStatus(
+                $id,
+                $request->string('status')->toString()
+            );
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Order status updated successfully.',
-            'data' => new OrderResource($order),
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Order status updated successfully.',
+                'data' => new OrderResource($order),
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 }

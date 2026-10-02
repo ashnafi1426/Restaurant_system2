@@ -8,35 +8,42 @@ use App\Models\Guest;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Models\Room;
+use App\Services\TenantContext;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ReceptionReportController extends Controller
 {
+    /**
+     * Resolve and apply active tenant context.
+     */
     private function resolveTenant(Request $request): ?string
     {
-        $hotelId = $request->input('hotel_id') 
-            ?: $request->header('X-Hotel-ID') 
-            ?: app(\App\Services\TenantContext::class)->getHotelId();
+        $hotelId = $request->input('hotel_id')
+            ?: $request->header('X-Hotel-ID')
+            ?: TenantContext::id();
 
         if ($hotelId) {
-            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+            app(TenantContext::class)->setHotelId($hotelId);
         }
 
         return $hotelId;
     }
 
+    /**
+     * Generate reservation metrics report over the selected date range.
+     */
     public function reservationReport(Request $request): JsonResponse
     {
         $this->resolveTenant($request);
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth());
-        
+
         $reservations = Reservation::with(['guest', 'room'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
-        
+
         $summary = [
             'total' => $reservations->count(),
             'pending' => $reservations->where('status', 'pending')->count(),
@@ -45,10 +52,10 @@ class ReceptionReportController extends Controller
             'checked_out' => $reservations->where('status', 'checked_out')->count(),
             'cancelled' => $reservations->where('status', 'cancelled')->count(),
         ];
-        
-        $dailyStats = $reservations->groupBy(function($item) {
+
+        $dailyStats = $reservations->groupBy(function ($item) {
             return Carbon::parse($item->created_at)->format('Y-m-d');
-        })->map(function($group) {
+        })->map(function ($group) {
             return [
                 'date' => $group->first()->created_at->format('Y-m-d'),
                 'count' => $group->count(),
@@ -56,7 +63,7 @@ class ReceptionReportController extends Controller
                 'confirmed' => $group->where('status', 'confirmed')->count(),
             ];
         })->values();
-        
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -70,40 +77,50 @@ class ReceptionReportController extends Controller
             ],
         ]);
     }
-    
+
+    /**
+     * Generate property occupancy metrics over the selected date range.
+     */
     public function occupancyReport(Request $request): JsonResponse
     {
         $this->resolveTenant($request);
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth());
-        
+
         $totalRooms = Room::count();
         $availableRooms = Room::where('status', 'available')->count();
         $occupiedRooms = Room::where('status', 'occupied')->count();
-        
+
+        $activeCheckIns = CheckIn::whereBetween('checked_in_at', [$startDate, Carbon::parse($endDate)->endOfDay()])
+            ->whereNull('checked_out_at')
+            ->get(['id', 'checked_in_at']);
+
+        $dailyCounts = $activeCheckIns->groupBy(function ($item) {
+            return Carbon::parse($item->checked_in_at)->format('Y-m-d');
+        })->map->count();
+
         $period = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
         $dailyOccupancy = [];
-        
+
         while ($period->lte($end)) {
-            $checkIns = CheckIn::whereDate('checked_in_at', $period)
-                ->whereNull('checked_out_at')
-                ->count();
-            
+            $dateKey = $period->format('Y-m-d');
+            $checkInsCount = $dailyCounts->get($dateKey, 0);
+
             $dailyOccupancy[] = [
-                'date' => $period->format('Y-m-d'),
-                'occupied' => $checkIns,
-                'available' => $totalRooms - $checkIns,
-                'occupancy_rate' => $totalRooms > 0 ? round(($checkIns / $totalRooms) * 100, 2) : 0,
+                'date' => $dateKey,
+                'occupied' => $checkInsCount,
+                'available' => max(0, $totalRooms - $checkInsCount),
+                'occupancy_rate' => $totalRooms > 0 ? round(($checkInsCount / $totalRooms) * 100, 2) : 0,
             ];
-            
+
             $period->addDay();
         }
-        
+
         $avgOccupancyRate = count($dailyOccupancy) > 0
             ? round(collect($dailyOccupancy)->avg('occupancy_rate'), 2)
             : 0;
-        
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -121,24 +138,27 @@ class ReceptionReportController extends Controller
             ],
         ]);
     }
-    
+
+    /**
+     * Generate guest count and frequent guest report over the selected date range.
+     */
     public function guestReport(Request $request): JsonResponse
     {
         $this->resolveTenant($request);
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth());
-        
+
         $newGuests = Guest::whereBetween('created_at', [$startDate, $endDate])->count();
         $totalGuests = Guest::count();
-        
-        $topGuests = Guest::withCount(['reservations' => function($query) use ($startDate, $endDate) {
-                $query->whereBetween('created_at', [$startDate, $endDate]);
-            }])
+
+        $topGuests = Guest::withCount(['reservations' => function ($query) use ($startDate, $endDate) {
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        }])
             ->having('reservations_count', '>', 0)
             ->orderByDesc('reservations_count')
             ->take(10)
             ->get();
-        
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -154,31 +174,34 @@ class ReceptionReportController extends Controller
             ],
         ]);
     }
-    
+
+    /**
+     * Generate revenue breakdown report from verified payments.
+     */
     public function revenueReport(Request $request): JsonResponse
     {
         $this->resolveTenant($request);
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth());
-        
+
         $payments = Payment::where('status', 'verified')
             ->whereBetween('verified_at', [$startDate, $endDate])
             ->get();
-        
+
         $totalRevenue = $payments->sum('amount');
         $reservationRevenue = $payments->whereNotNull('reservation_id')->sum('amount');
         $orderRevenue = $payments->whereNotNull('order_id')->sum('amount');
-        
-        $dailyRevenue = $payments->groupBy(function($item) {
+
+        $dailyRevenue = $payments->groupBy(function ($item) {
             return Carbon::parse($item->verified_at)->format('Y-m-d');
-        })->map(function($group) {
+        })->map(function ($group) {
             return [
                 'date' => Carbon::parse($group->first()->verified_at)->format('Y-m-d'),
                 'total' => $group->sum('amount'),
                 'count' => $group->count(),
             ];
         })->values();
-        
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -196,40 +219,55 @@ class ReceptionReportController extends Controller
             ],
         ]);
     }
-    
+
+    /**
+     * Generate check-in and check-out activity report over the selected date range.
+     */
     public function checkInOutReport(Request $request): JsonResponse
     {
         $this->resolveTenant($request);
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth());
-        
-        $checkIns = CheckIn::whereBetween('checked_in_at', [$startDate, $endDate])->count();
-        $checkOuts = CheckIn::whereBetween('checked_out_at', [$startDate, $endDate])->count();
+
+        $checkInsTotal = CheckIn::whereBetween('checked_in_at', [$startDate, $endDate])->count();
+        $checkOutsTotal = CheckIn::whereBetween('checked_out_at', [$startDate, $endDate])->count();
         $activeGuests = CheckIn::whereNull('checked_out_at')->count();
-        
+
+        $checkInRecords = CheckIn::whereBetween('checked_in_at', [$startDate, Carbon::parse($endDate)->endOfDay()])
+            ->get(['id', 'checked_in_at']);
+        $checkOutRecords = CheckIn::whereBetween('checked_out_at', [$startDate, Carbon::parse($endDate)->endOfDay()])
+            ->get(['id', 'checked_out_at']);
+
+        $checkInsByDay = $checkInRecords->groupBy(function ($item) {
+            return Carbon::parse($item->checked_in_at)->format('Y-m-d');
+        })->map->count();
+
+        $checkOutsByDay = $checkOutRecords->groupBy(function ($item) {
+            return Carbon::parse($item->checked_out_at)->format('Y-m-d');
+        })->map->count();
+
         $period = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
         $dailyStats = [];
-        
+
         while ($period->lte($end)) {
-            $dailyCheckIns = CheckIn::whereDate('checked_in_at', $period)->count();
-            $dailyCheckOuts = CheckIn::whereDate('checked_out_at', $period)->count();
-            
+            $dateKey = $period->format('Y-m-d');
+
             $dailyStats[] = [
-                'date' => $period->format('Y-m-d'),
-                'check_ins' => $dailyCheckIns,
-                'check_outs' => $dailyCheckOuts,
+                'date' => $dateKey,
+                'check_ins' => $checkInsByDay->get($dateKey, 0),
+                'check_outs' => $checkOutsByDay->get($dateKey, 0),
             ];
-            
+
             $period->addDay();
         }
-        
+
         return response()->json([
             'success' => true,
             'data' => [
                 'summary' => [
-                    'total_check_ins' => $checkIns,
-                    'total_check_outs' => $checkOuts,
+                    'total_check_ins' => $checkInsTotal,
+                    'total_check_outs' => $checkOutsTotal,
                     'active_guests' => $activeGuests,
                 ],
                 'daily_stats' => $dailyStats,

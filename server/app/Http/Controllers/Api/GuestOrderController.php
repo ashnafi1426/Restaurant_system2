@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\GuestStoreOrderRequest;
+use App\Models\Hotel;
 use App\Models\Order;
 use App\Models\RestaurantTable;
 use App\Models\Room;
@@ -12,19 +14,15 @@ use App\Services\QRResolutionService;
 use App\Services\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class GuestOrderController extends Controller
 {
-    protected MenuService $menuService;
-    protected GuestOrderService $guestOrderService;
-
-    public function __construct(MenuService $menuService, GuestOrderService $guestOrderService)
-    {
-        $this->menuService = $menuService;
-        $this->guestOrderService = $guestOrderService;
-    }
+    public function __construct(
+        protected MenuService $menuService,
+        protected GuestOrderService $guestOrderService
+    ) {}
 
     /**
      * Resolve a room or table QR token and return status and ordering eligibility.
@@ -109,7 +107,6 @@ class GuestOrderController extends Controller
                 'checked_out' => 'This room has been checked out. Room-service ordering is no longer available.',
                 'cancelled' => 'This reservation was cancelled. Room-service ordering is unavailable.',
                 default => 'No active checked-in reservation found for this room. Room-service ordering is only available for checked-in guests.',
-         
             };
 
             $guest = $currentReservation?->guest;
@@ -142,7 +139,7 @@ class GuestOrderController extends Controller
                 ],
             ]);
         } catch (Throwable $e) {
-            \Log::error('[GUEST ORDER] Error resolving QR token: ' . $e->getMessage());
+            Log::error('[GUEST ORDER] Error resolving QR token: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -166,11 +163,14 @@ class GuestOrderController extends Controller
             } else {
                 $room = Room::withoutGlobalScopes()->where('qr_token', $qrToken)->first();
                 $table = RestaurantTable::withoutGlobalScopes()->where('qr_token', $qrToken)->first();
-                $hotelId = $room?->hotel_id ?? $table?->hotel_id ?? \App\Models\Hotel::value('id');
+                $hotelId = $room?->hotel_id ?? $table?->hotel_id ?? Hotel::value('id');
             }
 
             if (!$hotelId && !$resolution['success']) {
-                return response()->json(['error' => 'Invalid QR code'], 404);
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Invalid QR code',
+                ], 404);
             }
 
             if ($hotelId) {
@@ -184,9 +184,10 @@ class GuestOrderController extends Controller
                 'data' => $categorized,
             ]);
         } catch (Throwable $e) {
-            \Log::error('[GUEST ORDER] Error fetching menu items: ' . $e->getMessage());
+            Log::error('[GUEST ORDER] Error fetching menu items: ' . $e->getMessage());
 
             return response()->json([
+                'success' => false,
                 'error' => 'Server error',
                 'message' => 'Unable to fetch menu items.',
             ], 500);
@@ -200,8 +201,9 @@ class GuestOrderController extends Controller
     {
         try {
             $hotelId = $request->header('X-Hotel-ID')
-                ?? $request->header('x-hotel-id')
-                ?? $request->query('hotel_id');
+                ?: $request->header('x-hotel-id')
+                ?: TenantContext::id()
+                ?: $request->query('hotel_id');
 
             $qrToken = $request->query('qr_token') ?? $request->header('X-QR-Token');
             if (!$hotelId && $qrToken) {
@@ -218,7 +220,7 @@ class GuestOrderController extends Controller
             $categorized = $this->menuService->getCategorizedMenuItems($hotelId);
 
             if ($request->has('per_page') || $request->query('flat')) {
-                $flatItems = $categorized->flatMap(fn($cat) => $cat['items'])->values();
+                $flatItems = $categorized->flatMap(fn ($cat) => $cat['items'])->values();
                 if ($request->has('per_page')) {
                     $flatItems = $flatItems->take((int) $request->query('per_page'));
                 }
@@ -234,9 +236,10 @@ class GuestOrderController extends Controller
                 'data' => $categorized,
             ]);
         } catch (Throwable $e) {
-            \Log::error('[GUEST ORDER] Error fetching all menu items: ' . $e->getMessage());
+            Log::error('[GUEST ORDER] Error fetching all menu items: ' . $e->getMessage());
 
             return response()->json([
+                'success' => false,
                 'error' => 'Server error',
                 'message' => 'Unable to fetch menu items.',
             ], 500);
@@ -250,8 +253,9 @@ class GuestOrderController extends Controller
     {
         try {
             $hotelId = $request->header('X-Hotel-ID')
-                ?? $request->header('x-hotel-id')
-                ?? $request->query('hotel_id');
+                ?: $request->header('x-hotel-id')
+                ?: TenantContext::id()
+                ?: $request->query('hotel_id');
 
             $qrToken = $request->query('qr_token') ?? $request->header('X-QR-Token');
             if (!$hotelId && $qrToken) {
@@ -272,7 +276,7 @@ class GuestOrderController extends Controller
                 'data' => $categories,
             ]);
         } catch (Throwable $e) {
-            \Log::error('[GUEST ORDER] Error fetching public categories: ' . $e->getMessage());
+            Log::error('[GUEST ORDER] Error fetching public categories: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -284,33 +288,17 @@ class GuestOrderController extends Controller
     /**
      * Create an order from guest QR (handles both room service and walk-in table orders).
      */
-    public function createOrder(Request $request): JsonResponse
+    public function createOrder(GuestStoreOrderRequest $request): JsonResponse
     {
         try {
-            $validated = $request->validate([
-                'qr_token' => 'required|string',
-                'items' => 'required|array|min:1',
-                'items.*.menu_item_id' => 'required|uuid|exists:menu_items,id',
-                'items.*.quantity' => 'required|integer|min:1|max:100',
-                'special_requests' => 'nullable|string|max:500',
-                'payment_type' => 'nullable|string|in:room_charge,cash,card',
-            ], [
-                'items.*.menu_item_id.exists' => 'One or more menu items do not exist in our system.',
-                'items.*.menu_item_id.uuid' => 'Invalid menu item format.',
-            ]);
-
-            $result = $this->guestOrderService->placeOrder($validated);
+            $result = $this->guestOrderService->placeOrder($request->validated());
 
             return response()->json($result['response'], $result['status_code']);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'messages' => $e->errors(),
-            ], 422);
         } catch (Throwable $e) {
-            \Log::error('[GUEST ORDER] Error creating order: ' . $e->getMessage());
+            Log::error('[GUEST ORDER] Error creating order: ' . $e->getMessage());
 
             return response()->json([
+                'success' => false,
                 'error' => 'Server error',
                 'message' => 'Unable to create order: ' . $e->getMessage(),
             ], 500);
@@ -338,7 +326,10 @@ class GuestOrderController extends Controller
             }
 
             if (!$room && !$table) {
-                return response()->json(['error' => 'Room or table not found'], 404);
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Room or table not found',
+                ], 404);
             }
 
             $orderQuery = Order::query()->orderBy('created_at', 'desc')->limit(5);
@@ -362,9 +353,12 @@ class GuestOrderController extends Controller
                 }),
             ]);
         } catch (Throwable $e) {
-            \Log::error('[GUEST ORDER] Error fetching order status: ' . $e->getMessage());
+            Log::error('[GUEST ORDER] Error fetching order status: ' . $e->getMessage());
 
-            return response()->json(['error' => 'Server error'], 500);
+            return response()->json([
+                'success' => false,
+                'error' => 'Server error',
+            ], 500);
         }
     }
 }

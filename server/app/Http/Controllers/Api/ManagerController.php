@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreManagerAnnouncementRequest;
 use App\Http\Requests\StoreManagerNotificationRequest;
+use App\Http\Requests\StoreWaiterRequest;
 use App\Http\Requests\UpdateManagerAnnouncementRequest;
 use App\Http\Requests\UpdateManagerDashboardSettingRequest;
 use App\Http\Requests\UpdateManagerNotificationRequest;
-
 use App\Http\Resources\ManagerActivityLogResource;
 use App\Http\Resources\ManagerAnnouncementResource;
 use App\Http\Resources\ManagerDashboardSettingResource;
@@ -17,28 +17,31 @@ use App\Http\Resources\ManagerReportResource;
 use App\Models\ManagerAnnouncement;
 use App\Models\ManagerDashboardSetting;
 use App\Models\ManagerNotification;
-use App\Services\Manager\ManagerService;
+use App\Models\User;
+use App\Models\Waiter;
 use App\Services\Manager\ManagerDashboardService;
+use App\Services\Manager\ManagerService;
+use App\Services\TenantContext;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class ManagerController extends Controller
 {
-    protected ManagerService $service;
-    protected ManagerDashboardService $dashboardService;
-
-    public function __construct(ManagerService $service, ManagerDashboardService $dashboardService)
-    {
-        $this->service = $service;
-        $this->dashboardService = $dashboardService;
-    }
+    public function __construct(
+        protected ManagerService $service,
+        protected ManagerDashboardService $dashboardService
+    ) {}
 
     public function dashboard(Request $request): JsonResponse
     {
-        $dashboard = $this->dashboardService->completeDashboard();
         return response()->json([
             'success' => true,
-            'data' => $dashboard,
+            'data' => $this->dashboardService->completeDashboard(),
         ]);
     }
 
@@ -61,6 +64,7 @@ class ManagerController extends Controller
     public function revenueChart(Request $request): JsonResponse
     {
         $period = $request->input('period', 'monthly');
+
         return response()->json([
             'success' => true,
             'data' => $this->dashboardService->revenueChart($period),
@@ -147,71 +151,53 @@ class ManagerController extends Controller
         ]);
     }
 
-    public function createWaiter(Request $request): JsonResponse
+    public function createWaiter(StoreWaiterRequest $request): JsonResponse
     {
         try {
-            $validated = $request->validate([
-                'user_id' => 'nullable|uuid|exists:users,id',
-                'section' => 'required|string|max:50',
-                'status' => 'required|in:active,inactive,on_break',
-                'shift' => 'required|in:morning,afternoon,evening,night',
-                'experience_level' => 'required|in:junior,senior,head',
-                'first_name' => 'nullable|string|max:255',
-                'last_name' => 'nullable|string|max:255',
-                'email' => 'nullable|email|unique:users,email',
-                'phone' => 'nullable|string|max:20',
-                'password' => 'nullable|string|min:8',
-            ]);
+            $validated = $request->validated();
+            $hotelId = TenantContext::id() ?? auth()->user()?->hotel_id;
 
-            if (empty($validated['user_id'])) {
-                if (!$validated['first_name'] || !$validated['last_name'] || 
-                    !$validated['email'] || !$validated['password']) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'User information is required for new user creation',
-                    ], 422);
-                }
+            $waiter = DB::transaction(function () use ($validated, $hotelId) {
+                if (empty($validated['user_id'])) {
+                    if (empty($validated['first_name']) || empty($validated['last_name']) || 
+                        empty($validated['email']) || empty($validated['password'])) {
+                        throw new Exception('User information (first name, last name, email, password) is required when user_id is not provided.');
+                    }
 
-                try {
-                    $user = \App\Models\User::create([
+                    $user = User::create([
+                        'hotel_id' => $hotelId,
                         'first_name' => $validated['first_name'],
                         'last_name' => $validated['last_name'],
                         'email' => $validated['email'],
                         'phone' => $validated['phone'] ?? null,
-                        'password_hash' => \Illuminate\Support\Facades\Hash::make($validated['password']),
+                        'password_hash' => Hash::make($validated['password']),
                         'role' => 'waiter',
                         'is_active' => true,
                     ]);
 
                     $validated['user_id'] = $user->id;
-                } catch (\Exception $userError) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Failed to create user: ' . $userError->getMessage(),
-                        'error' => $userError->getMessage(),
-                    ], 500);
                 }
-            }
 
-            $waiter = \App\Models\Waiter::create([
-                'user_id' => $validated['user_id'],
-                'section' => $validated['section'],
-                'status' => $validated['status'],
-                'shift' => $validated['shift'],
-                'experience_level' => $validated['experience_level'],
-            ]);
+                return Waiter::create([
+                    'hotel_id' => $hotelId,
+                    'user_id' => $validated['user_id'],
+                    'section' => $validated['section'],
+                    'status' => $validated['status'],
+                    'shift' => $validated['shift'],
+                    'experience_level' => $validated['experience_level'],
+                ]);
+            });
 
             return response()->json([
                 'success' => true,
                 'data' => $waiter->load('user'),
                 'message' => 'Waiter created successfully',
             ], 201);
-        } catch (\Exception $e) {
-            \Log::error('Create Waiter Error', [
+        } catch (Exception $e) {
+            Log::error('Create Waiter Error', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
             ]);
             
             return response()->json([
@@ -222,7 +208,7 @@ class ManagerController extends Controller
         }
     }
 
-    public function updateWaiterStatus(Request $request, \App\Models\Waiter $waiter): JsonResponse
+    public function updateWaiterStatus(Request $request, Waiter $waiter): JsonResponse
     {
         $validated = $request->validate([
             'status' => 'required|in:active,inactive,on_break',
@@ -237,7 +223,7 @@ class ManagerController extends Controller
         ]);
     }
 
-    public function deleteWaiter(\App\Models\Waiter $waiter): JsonResponse
+    public function deleteWaiter(Waiter $waiter): JsonResponse
     {
         $waiter->delete();
 
@@ -247,48 +233,35 @@ class ManagerController extends Controller
         ]);
     }
 
-    public function notifications()
+    public function notifications(): AnonymousResourceCollection
     {
         return ManagerNotificationResource::collection(
             $this->service->notifications()
         );
     }
 
-    public function storeNotification(
-        StoreManagerNotificationRequest $request
-    )
+    public function storeNotification(StoreManagerNotificationRequest $request): ManagerNotificationResource
     {
-        $notification = $this->service->createNotification(
-            $request->validated()
-        );
+        $notification = $this->service->createNotification($request->validated());
 
-        return new ManagerNotificationResource(
-            $notification
-        );
+        return new ManagerNotificationResource($notification);
     }
 
     public function updateNotification(
         UpdateManagerNotificationRequest $request,
         ManagerNotification $notification
-    )
-    {
+    ): ManagerNotificationResource {
         $notification = $this->service->updateNotification(
             $notification,
             $request->validated()
         );
 
-        return new ManagerNotificationResource(
-            $notification
-        );
+        return new ManagerNotificationResource($notification);
     }
 
-    public function destroyNotification(
-        ManagerNotification $notification
-    ): JsonResponse
+    public function destroyNotification(ManagerNotification $notification): JsonResponse
     {
-        $this->service->deleteNotification(
-            $notification
-        );
+        $this->service->deleteNotification($notification);
 
         return response()->json([
             'success' => true,
@@ -296,85 +269,61 @@ class ManagerController extends Controller
         ]);
     }
 
-    public function markAsRead(
-        ManagerNotification $notification
-    )
+    public function markAsRead(ManagerNotification $notification): ManagerNotificationResource
     {
-        $notification = $this->service->markAsRead(
-            $notification
-        );
+        $notification = $this->service->markAsRead($notification);
 
-        return new ManagerNotificationResource(
-            $notification
-        );
+        return new ManagerNotificationResource($notification);
     }
 
-    public function dashboardSettings(Request $request)
+    public function dashboardSettings(Request $request): ManagerDashboardSettingResource
     {
         return new ManagerDashboardSettingResource(
-            $this->service->dashboardSettings(
-                $request->user()->id
-            )
+            $this->service->dashboardSettings($request->user()->id)
         );
     }
 
     public function updateDashboardSettings(
         UpdateManagerDashboardSettingRequest $request,
         ManagerDashboardSetting $setting
-    )
-    {
+    ): ManagerDashboardSettingResource {
         $setting = $this->service->updateDashboardSettings(
             $setting,
             $request->validated()
         );
 
-        return new ManagerDashboardSettingResource(
-            $setting
-        );
+        return new ManagerDashboardSettingResource($setting);
     }
 
-    public function announcements()
+    public function announcements(): AnonymousResourceCollection
     {
         return ManagerAnnouncementResource::collection(
             $this->service->announcements()
         );
     }
 
-    public function storeAnnouncement(
-        StoreManagerAnnouncementRequest $request
-    )
+    public function storeAnnouncement(StoreManagerAnnouncementRequest $request): ManagerAnnouncementResource
     {
-        $announcement = $this->service->createAnnouncement(
-            $request->validated()
-        );
+        $announcement = $this->service->createAnnouncement($request->validated());
 
-        return new ManagerAnnouncementResource(
-            $announcement
-        );
+        return new ManagerAnnouncementResource($announcement);
     }
 
     public function updateAnnouncement(
         UpdateManagerAnnouncementRequest $request,
         ManagerAnnouncement $announcement
-    )
-    {
+    ): ManagerAnnouncementResource {
         $announcement = $this->service->updateAnnouncement(
             $announcement,
             $request->validated()
         );
 
-        return new ManagerAnnouncementResource(
-            $announcement
-        );
+        return new ManagerAnnouncementResource($announcement);
     }
 
-    public function destroyAnnouncement(
-        ManagerAnnouncement $announcement
-    ): JsonResponse
+    public function destroyAnnouncement(ManagerAnnouncement $announcement): JsonResponse
     {
-        $this->service->deleteAnnouncement(
-            $announcement
-        );
+        $this->service->deleteAnnouncement($announcement);
 
         return response()->json([
             'success' => true,
@@ -382,14 +331,14 @@ class ManagerController extends Controller
         ]);
     }
 
-    public function reports()
+    public function reports(): AnonymousResourceCollection
     {
         return ManagerReportResource::collection(
             $this->service->reports()
         );
     }
 
-    public function activityLogs()
+    public function activityLogs(): AnonymousResourceCollection
     {
         return ManagerActivityLogResource::collection(
             $this->service->activityLogs()

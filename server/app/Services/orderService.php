@@ -7,13 +7,22 @@ use App\Models\Reservation;
 use App\Models\MenuItem;
 use App\Models\User;
 use App\Models\Notification;
+use App\Services\TenantContext;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Exception;
 
 class OrderService{
+    protected OrderStatusService $orderStatusService;
+
+    public function __construct(?OrderStatusService $orderStatusService = null)
+    {
+        $this->orderStatusService = $orderStatusService ?? app(OrderStatusService::class);
+    }
+
     public function index(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = Order::query()
@@ -102,7 +111,7 @@ class OrderService{
 
     public function getStatistics(): array
     {
-        $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+        $hotelId = TenantContext::id() ?? app(TenantContext::class)->getHotelId();
         $query = Order::query();
         if ($hotelId) {
             $query->where('hotel_id', $hotelId);
@@ -294,43 +303,95 @@ class OrderService{
         DB::beginTransaction();
 
         try {
-            $reservation = $this->validateReservation(
-                $data['reservation_id']
-            );
+            $orderType = $data['order_type'] ?? null;
+            if (!$orderType) {
+                if (!empty($data['room_id']) || !empty($data['reservation_id'])) {
+                    $orderType = Order::TYPE_ROOM_SERVICE;
+                } elseif (!empty($data['table_id'])) {
+                    $orderType = Order::TYPE_DINE_IN;
+                } else {
+                    $orderType = Order::TYPE_WALK_IN;
+                }
+            }
 
-            $this->validateGuest(
-                $reservation,
-                $data['guest_id']
-            );
+            $hotelId = $data['hotel_id'] ?? TenantContext::id() ?? app(TenantContext::class)->getHotelId();
 
-            $this->validateRoom(
-                $reservation,
-                $data['room_id']
-            );
+            $reservation = null;
+            $guest = null;
+            $room = null;
+            $table = null;
 
-            $hotelId = $data['hotel_id'] 
-                ?? $reservation->hotel_id 
-                ?? $reservation->room?->hotel_id 
-                ?? app(\App\Services\TenantContext::class)->getHotelId();
+            if ($orderType === Order::TYPE_ROOM_SERVICE) {
+                // Room service requires valid room context and an active checked-in reservation
+                if (!empty($data['reservation_id'])) {
+                    $reservation = $this->validateReservation($data['reservation_id']);
+                    if ($reservation->status !== 'checked_in') {
+                        throw new Exception("Room service is only available for checked-in reservations. Current status: {$reservation->status}");
+                    }
+                    $room = $reservation->room;
+                    $guest = $reservation->guest;
+                    if (!empty($data['room_id']) && $room && $room->id !== $data['room_id']) {
+                        throw new Exception("The selected room does not belong to this reservation.");
+                    }
+                    if (!empty($data['guest_id']) && $guest && $guest->id !== $data['guest_id']) {
+                        throw new Exception("The selected guest does not belong to this reservation.");
+                    }
+                } elseif (!empty($data['room_id'])) {
+                    $room = \App\Models\Room::findOrFail($data['room_id']);
+                    $reservation = Reservation::where('room_id', $room->id)
+                        ->where('status', 'checked_in')
+                        ->latest()
+                        ->first();
+                    if (!$reservation) {
+                        throw new Exception("Room service orders require an active checked-in reservation for Room {$room->room_number}.");
+                    }
+                    $guest = $reservation->guest;
+                } else {
+                    throw new Exception("Room service orders require a valid room.");
+                }
+
+                $hotelId = $hotelId ?? $reservation->hotel_id ?? $room?->hotel_id;
+            } elseif ($orderType === Order::TYPE_DINE_IN) {
+                // Dine-in orders require restaurant table context. Do not require hotel reservation or check-in.
+                if (empty($data['table_id'])) {
+                    throw new Exception("Dine-in orders require a restaurant table.");
+                }
+                $table = \App\Models\RestaurantTable::findOrFail($data['table_id']);
+                $hotelId = $hotelId ?? $table->hotel_id;
+                $table->update(['status' => \App\Models\RestaurantTable::STATUS_OCCUPIED]);
+            } elseif ($orderType === Order::TYPE_WALK_IN) {
+                // Walk-in orders do not require a hotel reservation or check-in. Table is optional.
+                if (!empty($data['table_id'])) {
+                    $table = \App\Models\RestaurantTable::findOrFail($data['table_id']);
+                    $hotelId = $hotelId ?? $table->hotel_id;
+                    $table->update(['status' => \App\Models\RestaurantTable::STATUS_OCCUPIED]);
+                }
+            }
 
             if ($hotelId) {
                 app(\App\Services\TenantContext::class)->setHotelId($hotelId);
             }
 
+            $discount = isset($data['discount']) ? max(0, (float) $data['discount']) : 0.0;
+            $serviceChargeRate = isset($data['service_charge_rate']) ? max(0, (float) $data['service_charge_rate']) : 0.0;
+
             $order = Order::create([
                 'hotel_id' => $hotelId,
-                'order_number' => $this->generateOrderNumber(),
-                'reservation_id' => $reservation->id,
-                'guest_id' => $reservation->guest_id,
-                'room_id' => $reservation->room_id,
+                'order_number' => Order::generateOrderNumber($hotelId),
+                'reservation_id' => $reservation?->id,
+                'guest_id' => $guest?->id ?? ($data['guest_id'] ?? null),
+                'room_id' => $room?->id,
+                'table_id' => $table?->id,
+                'order_type' => $orderType,
                 'order_time' => now(),
                 'status' => Order::STATUS_PENDING,
-                'payment_type' => 'room_charge',
+                'payment_type' => $data['payment_type'] ?? ($orderType === Order::TYPE_ROOM_SERVICE ? 'room_charge' : 'cash'),
                 'subtotal' => 0,
+                'taxable_amount' => 0,
                 'tax' => 0,
-                'service_charge_rate' => 0,
+                'service_charge_rate' => $serviceChargeRate,
                 'service_charge_amount' => 0,
-                'discount' => 0,
+                'discount' => $discount,
                 'total' => 0,
                 'notes' => $data['notes'] ?? null,
                 'chef_id' => $this->assignChefToOrder($hotelId),
@@ -341,10 +402,18 @@ class OrderService{
 
             foreach ($data['items'] as $item) {
                 $menuItem = $this->getMenuItem($item['menu_item_id']);
+                if ($hotelId && $menuItem->hotel_id && $menuItem->hotel_id !== $hotelId) {
+                    throw new Exception("Menu item '{$menuItem->name}' does not belong to this hotel.");
+                }
+                if (!$menuItem->is_available) {
+                    throw new Exception("Menu item '{$menuItem->name}' is currently unavailable.");
+                }
+
                 $calc = $this->calculateItemTax($menuItem, (int) $item['quantity']);
 
                 $order->orderItems()->create([
                     'menu_item_id' => $menuItem->id,
+                    'item_name' => $menuItem->name,
                     'quantity' => $calc['quantity'],
                     'item_price_at_order' => $calc['price'],
                     'tax_rate_id' => $calc['tax_rate_id'],
@@ -360,31 +429,145 @@ class OrderService{
                 $orderTax += $calc['tax_amount'];
             }
 
-            $discount = 0;
-            $serviceCharge = 0;
-            $total = round(($orderSubtotal + $orderTax + $serviceCharge) - $discount, 2);
+            $serviceChargeAmount = isset($data['service_charge_amount']) 
+                ? max(0, (float) $data['service_charge_amount']) 
+                : ($serviceChargeRate > 0 ? round($orderSubtotal * ($serviceChargeRate / 100), 2) : 0.0);
+
+            $total = round(max(0, ($orderSubtotal + $orderTax + $serviceChargeAmount) - $discount), 2);
 
             $order->update([
                 'subtotal' => round($orderSubtotal, 2),
+                'taxable_amount' => round($orderSubtotal, 2),
                 'tax' => round($orderTax, 2),
-                'service_charge_rate' => 0,
-                'service_charge_amount' => $serviceCharge,
+                'service_charge_rate' => $serviceChargeRate,
+                'service_charge_amount' => $serviceChargeAmount,
                 'discount' => $discount,
                 'total' => $total,
             ]);
-            
+
             $this->notifyChefs($order);
-            
+
+            try {
+                app(\App\Services\Waiter\AutomaticWaiterAssignmentService::class)->assignWaiterToReadyOrder($order);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Automatic waiter assignment failed for order #{$order->id}: {$e->getMessage()}");
+            }
+
             DB::commit();
+
             return $order->fresh()->load([
                 'reservation',
                 'guest',
                 'room',
+                'table',
                 'orderItems',
                 'orderItems.menuItem',
                 'orderItems.taxRate',
             ]);
 
+        } catch (\Throwable $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
+    }
+
+    public function update(string $id, array $data): Order
+    {
+        DB::beginTransaction();
+
+        try {
+            $order = Order::query()
+                ->with('orderItems')
+                ->findOrFail($id);
+
+            if ($order->status !== Order::STATUS_PENDING) {
+                throw new Exception('Only pending orders can be updated.');
+            }
+
+            if (!empty($data['notes'])) {
+                $order->notes = $data['notes'];
+            }
+            if (!empty($data['payment_type'])) {
+                $order->payment_type = $data['payment_type'];
+            }
+            if (isset($data['discount'])) {
+                $order->discount = max(0, (float) $data['discount']);
+            }
+            if (isset($data['service_charge_rate'])) {
+                $order->service_charge_rate = max(0, (float) $data['service_charge_rate']);
+            }
+
+            $order->save();
+
+            if (!empty($data['items'])) {
+                $existingItems = $order->orderItems()->get()->keyBy('id');
+                $submittedItemIds = [];
+                $orderSubtotal = 0;
+                $orderTax = 0;
+
+                foreach ($data['items'] as $itemData) {
+                    $menuItem = $this->getMenuItem($itemData['menu_item_id']);
+                    $calc = $this->calculateItemTax($menuItem, (int) $itemData['quantity']);
+
+                    $itemPayload = [
+                        'menu_item_id' => $menuItem->id,
+                        'item_name' => $menuItem->name,
+                        'quantity' => $calc['quantity'],
+                        'item_price_at_order' => $calc['price'],
+                        'tax_rate_id' => $calc['tax_rate_id'],
+                        'tax_rate' => $calc['tax_rate'],
+                        'tax_amount' => $calc['tax_amount'],
+                        'subtotal' => $calc['subtotal'],
+                        'total' => $calc['total'],
+                        'line_total' => $calc['total'],
+                        'notes' => $itemData['notes'] ?? null,
+                    ];
+
+                    if (!empty($itemData['id']) && $existingItems->has($itemData['id'])) {
+                        $orderItem = $existingItems->get($itemData['id']);
+                        $orderItem->update($itemPayload);
+                        $submittedItemIds[] = $orderItem->id;
+                    } else {
+                        $newItem = $order->orderItems()->create($itemPayload);
+                        $submittedItemIds[] = $newItem->id;
+                    }
+
+                    $orderSubtotal += $calc['subtotal'];
+                    $orderTax += $calc['tax_amount'];
+                }
+
+                $order->orderItems()
+                    ->whereNotIn('id', $submittedItemIds)
+                    ->delete();
+
+                $discount = (float) $order->discount;
+                $serviceChargeRate = (float) $order->service_charge_rate;
+                $serviceChargeAmount = isset($data['service_charge_amount'])
+                    ? max(0, (float) $data['service_charge_amount'])
+                    : ($serviceChargeRate > 0 ? round($orderSubtotal * ($serviceChargeRate / 100), 2) : 0.0);
+
+                $total = round(max(0, ($orderSubtotal + $orderTax + $serviceChargeAmount) - $discount), 2);
+
+                $order->update([
+                    'subtotal' => round($orderSubtotal, 2),
+                    'taxable_amount' => round($orderSubtotal, 2),
+                    'tax' => round($orderTax, 2),
+                    'service_charge_amount' => $serviceChargeAmount,
+                    'total' => $total,
+                ]);
+            }
+
+            DB::commit();
+
+            return $order->fresh()->load([
+                'reservation',
+                'guest',
+                'room',
+                'table',
+                'orderItems',
+                'orderItems.menuItem',
+                'orderItems.taxRate',
+            ]);
         } catch (\Throwable $exception) {
             DB::rollBack();
             throw $exception;
@@ -414,215 +597,41 @@ class OrderService{
                 ]);
             }
         } catch (\Throwable $e) {
-            Log::error('Failed to notify chefs of new order: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Failed to notify chefs of new order: ' . $e->getMessage());
         }
     }
-public function update(string $id, array $data): Order
-{
-    DB::beginTransaction();
 
-    try {
-        $order = Order::query()
-            ->with('orderItems')
-            ->findOrFail($id);
-
-        if ($order->status !== Order::STATUS_PENDING) {
-            throw new Exception(
-                'Only pending orders can be updated.'
-            );
-        }
-
-        $reservation = $this->validateReservation(
-            $data['reservation_id']
-        );
-
-        $this->validateGuest(
-            $reservation,
-            $data['guest_id']
-        );
-
-        $this->validateRoom(
-            $reservation,
-            $data['room_id']
-        );
-
-        $order->update([
-
-            'notes' => $data['notes'] ?? null,
-
-        ]);
-        $existingItems = $order->orderItems()
-            ->get()
-            ->keyBy('id');
-
-        $submittedItemIds = [];
-
-        $orderSubtotal = 0;
-        $orderTax = 0;
-
-        foreach ($data['items'] as $itemData) {
-            $menuItem = $this->getMenuItem($itemData['menu_item_id']);
-            $calc = $this->calculateItemTax($menuItem, (int) $itemData['quantity']);
-
-            if (!empty($itemData['id']) && $existingItems->has($itemData['id'])) {
-                $orderItem = $existingItems->get($itemData['id']);
-                $orderItem->update([
-                    'menu_item_id' => $menuItem->id,
-                    'quantity' => $calc['quantity'],
-                    'item_price_at_order' => $calc['price'],
-                    'tax_rate_id' => $calc['tax_rate_id'],
-                    'tax_rate' => $calc['tax_rate'],
-                    'tax_amount' => $calc['tax_amount'],
-                    'subtotal' => $calc['subtotal'],
-                    'total' => $calc['total'],
-                    'line_total' => $calc['total'],
-                    'notes' => $itemData['notes'] ?? null,
-                ]);
-
-                $submittedItemIds[] = $orderItem->id;
-            } else {
-                $newItem = $order->orderItems()->create([
-                    'menu_item_id' => $menuItem->id,
-                    'quantity' => $calc['quantity'],
-                    'item_price_at_order' => $calc['price'],
-                    'tax_rate_id' => $calc['tax_rate_id'],
-                    'tax_rate' => $calc['tax_rate'],
-                    'tax_amount' => $calc['tax_amount'],
-                    'subtotal' => $calc['subtotal'],
-                    'total' => $calc['total'],
-                    'line_total' => $calc['total'],
-                    'notes' => $itemData['notes'] ?? null,
-                ]);
-
-                $submittedItemIds[] = $newItem->id;
-            }
-
-            $orderSubtotal += $calc['subtotal'];
-            $orderTax += $calc['tax_amount'];
-        }
-
-        $order->orderItems()
-            ->whereNotIn('id', $submittedItemIds)
-            ->delete();
-
-        $discount = 0;
-        $serviceCharge = 0;
-        $total = round(($orderSubtotal + $orderTax + $serviceCharge) - $discount, 2);
-
-        $order->update([
-            'subtotal' => round($orderSubtotal, 2),
-            'tax' => round($orderTax, 2),
-            'service_charge_rate' => 0,
-            'service_charge_amount' => $serviceCharge,
-            'discount' => $discount,
-            'total' => $total,
-        ]);
-        DB::commit();
-
-        return $order->fresh()->load([
-            'reservation',
-            'guest',
-            'room',
-            'orderItems',
-            'orderItems.menuItem',
-            'orderItems.taxRate',
-        ]);
-    } catch (\Throwable $exception) {
-
-        DB::rollBack();
-
-        throw $exception;
-    }
-}
-private function calculateTax(float $subtotal): float
-{
-    return 0;
-}
-private function calculateDiscount(
-    float $subtotal,
-    Reservation $reservation
-): float {
-    return 0;
-}
-
-private function calculateTotal(
-    float $subtotal,
-    float $tax,
-    float $discount
-): float {
-    return round(($subtotal + $tax) - $discount, 2);
-}
-
-public function changeStatus(string $id, string $status): Order
-{
-    $order = Order::query()->findOrFail($id);
-
-    if (
-        $order->status === Order::STATUS_PENDING &&
-        in_array(
-            $status,
-            [
-                Order::STATUS_PREPARING,
-                Order::STATUS_READY,
-                Order::STATUS_SERVED,
-                Order::STATUS_CANCELLED,
-            ]
-        )
-    ) {
-    } elseif ($order->status === Order::STATUS_PREPARING &&
-        in_array($status, [Order::STATUS_READY, Order::STATUS_CANCELLED])
-    ) {
-    } elseif ($order->status === Order::STATUS_READY &&
-        in_array($status, [Order::STATUS_SERVED, Order::STATUS_CANCELLED])
-    ) {
-    } elseif ($status === $order->status) {
-        return $order;
-    } else {
-        throw new Exception(
-            "Cannot transition order status from {$order->status} to {$status}"
-        );
+    private function calculateTax(float $subtotal): float
+    {
+        return 0;
     }
 
-    $updateData = ['status' => $status];
-
-    if ($status === Order::STATUS_SERVED) {
-        $updateData['served_at'] = now();
-    } elseif ($status === Order::STATUS_CANCELLED) {
-        $updateData['cancelled_at'] = now();
+    private function calculateDiscount(
+        float $subtotal,
+        Reservation $reservation
+    ): float {
+        return 0;
     }
 
-    $order->update($updateData);
-
-    return $order->fresh()->load([
-        'reservation',
-        'guest',
-        'room',
-        'orderItems',
-        'orderItems.menuItem',
-    ]);
-}
-public function cancel(string $id): void
-{
-    $order = Order::query()->findOrFail($id);
-
-    if (
-        !in_array(
-            $order->status,
-            [
-                Order::STATUS_PENDING,
-                Order::STATUS_PREPARING,
-                Order::STATUS_READY,
-            ]
-        )
-    ) {
-        throw new Exception(
-            "Cannot cancel an order with status: {$order->status}"
-        );
+    private function calculateTotal(
+        float $subtotal,
+        float $tax,
+        float $discount
+    ): float {
+        return round(($subtotal + $tax) - $discount, 2);
     }
 
-    $order->update([
-        'status' => Order::STATUS_CANCELLED,
-        'cancelled_at' => now(),
-    ]);
-}
+    public function changeStatus(string $id, string $status): Order
+    {
+        $order = Order::query()->findOrFail($id);
+
+        return $this->orderStatusService->transition($order, $status);
+    }
+
+    public function cancel(string $id, ?string $reason = null): void
+    {
+        $order = Order::query()->findOrFail($id);
+
+        $this->orderStatusService->cancel($order, $reason);
+    }
 }

@@ -2,22 +2,18 @@
 
 namespace App\Services;
 
-use App\Events\OrderReadyEvent;
 use App\Models\Order;
 use App\Models\User;
-use App\Models\Notification;
-use App\Services\RestaurantChargeService;
+use App\Services\OrderStatusService;
 use App\Services\TenantContext;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
 
 class KitchenService
 {
-    protected RestaurantChargeService $restaurantChargeService;
-
-    public function __construct(RestaurantChargeService $restaurantChargeService)
-    {
-        $this->restaurantChargeService = $restaurantChargeService;
-    }
+    public function __construct(
+        protected OrderStatusService $orderStatusService
+    ) {}
 
     /**
      * Get categorized kitchen orders grouped by status for the active hotel.
@@ -51,16 +47,15 @@ class KitchenService
     }
 
     /**
-     * Build base query scoped by tenant/hotel.
+     * Build base query scoped by tenant/hotel and staff access.
      */
-    protected function getBaseKitchenQuery($authUser = null)
+    public function getBaseKitchenQuery($authUser = null): Builder
     {
         $tenantContext = app(TenantContext::class);
         $hotelId = $tenantContext->getHotelId();
 
         if (!$hotelId && $authUser) {
-            $hotelId = $authUser->hotel_id
-                ?? \App\Models\HotelUser::where('user_id', $authUser->id)->value('hotel_id');
+            $hotelId = \App\Models\HotelUser::where('user_id', $authUser->id)->where('is_active', true)->value('hotel_id');
             if ($hotelId) {
                 $tenantContext->setHotelId($hotelId);
             }
@@ -76,53 +71,31 @@ class KitchenService
             });
         }
 
+        // Kitchen staff access restriction: chefs see their assigned orders or unassigned orders
+        if ($authUser && in_array(strtolower($authUser->role ?? ''), ['chef', 'cook', 'kitchen_staff'])) {
+            $query->where(function ($q) use ($authUser) {
+                $q->where('orders.chef_id', $authUser->id)
+                  ->orWhereNull('orders.chef_id');
+            });
+        }
+
         return $query;
     }
 
     /**
      * Start preparation on a pending order.
      */
-    public function startPreparing(Order $order): Order
+    public function startPreparing(Order $order, ?User $actor = null): Order
     {
-        if ($order->status === Order::STATUS_PREPARING) {
-            return $this->loadOrderRelations($order);
-        }
-
-        if ($order->status !== Order::STATUS_PENDING) {
-            throw new \InvalidArgumentException("Order must be 'pending' before starting preparation.");
-        }
-
-        $order->update(['status' => Order::STATUS_PREPARING]);
-
-        return $this->loadOrderRelations($order->fresh());
+        return $this->orderStatusService->startPreparing($order, $actor);
     }
 
     /**
-     * Mark order as ready and dispatch OrderReadyEvent.
+     * Mark order as ready and dispatch notifications to waiter.
      */
     public function markReady(Order $order): Order
     {
-        if ($order->status === Order::STATUS_READY) {
-            return $this->loadOrderRelations($order);
-        }
-
-        if (!in_array($order->status, [Order::STATUS_PENDING, Order::STATUS_PREPARING])) {
-            throw new \InvalidArgumentException("Order must be 'pending' or 'preparing' before marking ready.");
-        }
-
-        $order->update(['status' => Order::STATUS_READY]);
-        $freshOrder = $this->loadOrderRelations($order->fresh());
-
-        OrderReadyEvent::dispatch($freshOrder);
-
-        $this->notifyChefs(
-            'order',
-            'Order Ready for Pickup',
-            "Order #{$order->order_number} is ready for pickup/delivery.",
-            $order
-        );
-
-        return $freshOrder;
+        return $this->orderStatusService->markReady($order);
     }
 
     /**
@@ -130,29 +103,7 @@ class KitchenService
      */
     public function markServed(Order $order): Order
     {
-        if ($order->status !== Order::STATUS_READY) {
-            throw new \InvalidArgumentException("Order must be 'ready' before marking as served.");
-        }
-
-        $order->update([
-            'status' => Order::STATUS_SERVED,
-            'served_at' => now(),
-        ]);
-
-        $this->notifyChefs(
-            'order',
-            'Order Completed',
-            "Order #{$order->order_number} has been served.",
-            $order
-        );
-
-        try {
-            $this->restaurantChargeService->createFromOrder($order);
-        } catch (\Throwable $e) {
-            Log::warning("Restaurant charge creation failed for order #{$order->id}: {$e->getMessage()}");
-        }
-
-        return $this->loadOrderRelations($order->fresh());
+        return $this->orderStatusService->markServed($order);
     }
 
     /**
@@ -178,6 +129,23 @@ class KitchenService
         $ready = $rows->get(Order::STATUS_READY);
         $served = $rows->get(Order::STATUS_SERVED);
 
+        // Real average prep time for orders completed today
+        $servedToday = (clone $base)
+            ->where('status', Order::STATUS_SERVED)
+            ->whereDate('served_at', today())
+            ->whereNotNull('served_at')
+            ->select(['id', 'order_time', 'created_at', 'served_at'])
+            ->get();
+
+        $avgPrepTimeMinutes = 0.0;
+        if ($servedToday->isNotEmpty()) {
+            $totalMins = $servedToday->sum(function ($o) {
+                $start = $o->order_time ?? $o->created_at;
+                return $start ? max(0, $start->diffInMinutes($o->served_at)) : 0;
+            });
+            $avgPrepTimeMinutes = round($totalMins / $servedToday->count(), 1);
+        }
+
         return [
             'pending_orders' => (int) ($pending->total_count ?? 0),
             'preparing_orders' => (int) ($preparing->total_count ?? 0),
@@ -189,53 +157,7 @@ class KitchenService
             'today_preparing' => (int) ($preparing->today_count ?? 0),
             'today_ready' => (int) ($ready->today_count ?? 0),
             'today_served' => (int) ($served->today_count ?? 0),
+            'avg_prep_time_minutes' => $avgPrepTimeMinutes,
         ];
-    }
-
-    /**
-     * Eager-load relations needed by the kitchen dashboard.
-     */
-    protected function loadOrderRelations(Order $order): Order
-    {
-        return $order->load([
-            'guest' => fn($gq) => $gq->withoutGlobalScopes(),
-            'room' => fn($rq) => $rq->withoutGlobalScopes(),
-            'reservation' => fn($rvq) => $rvq->withoutGlobalScopes(),
-            'orderItems',
-            'orderItems.menuItem' => fn($mq) => $mq->withoutGlobalScopes(),
-            'table' => fn($tq) => $tq->withoutGlobalScopes(),
-        ]);
-    }
-
-    /**
-     * Notify chefs belonging to the order's hotel.
-     */
-    protected function notifyChefs(string $type, string $title, string $message, ?Order $order = null): void
-    {
-        try {
-            $hotelId = $order?->hotel_id ?? app(TenantContext::class)->getHotelId();
-
-            $chefQuery = User::where('role', 'chef');
-            if ($hotelId) {
-                $chefQuery->where(function ($q) use ($hotelId) {
-                    $q->where('hotel_id', $hotelId)
-                      ->orWhereHas('hotelMemberships', fn($m) => $m->where('hotel_id', $hotelId));
-                });
-            }
-
-            $chefs = $chefQuery->get();
-
-            foreach ($chefs as $chef) {
-                Notification::create([
-                    'user_id' => $chef->id,
-                    'type' => $type,
-                    'title' => $title,
-                    'message' => $message,
-                    'read' => false,
-                ]);
-            }
-        } catch (\Throwable $e) {
-            Log::error('Failed to create chef notifications: ' . $e->getMessage());
-        }
     }
 }

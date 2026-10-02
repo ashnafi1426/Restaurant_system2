@@ -8,30 +8,18 @@ use App\Services\Manager\DashboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class DashboardController extends Controller
 {
-    protected DashboardService $dashboardService;
-
-    public function __construct(DashboardService $dashboardService)
-    {
-        $this->dashboardService = $dashboardService;
-    }
-
-    private function getUser()
-    {
-        try {
-            return auth()->user();
-        } catch (\Throwable $e) {
-            Log::error('Auth error:', ['message' => $e->getMessage()]);
-            return null;
-        }
-    }
+    public function __construct(
+        protected DashboardService $dashboardService
+    ) {}
 
     private function handleAction(callable $action, array $defaultData = []): JsonResponse
     {
         try {
-            $user = $this->getUser();
+            $user = auth()->user();
             
             if (!$user) {
                 return response()->json([
@@ -48,13 +36,8 @@ class DashboardController extends Controller
                 'data' => $result,
                 'timestamp' => now()->toIso8601String(),
             ], 200);
-        } catch (\Throwable $e) {
-            Log::error('Dashboard action error:', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+        } catch (Throwable $e) {
+            Log::error('Manager dashboard action error', ['error' => $e->getMessage()]);
             
             return response()->json([
                 'success' => true,
@@ -74,26 +57,15 @@ class DashboardController extends Controller
 
     public function statistics(): JsonResponse
     {
-        Log::info('[DashboardController.statistics] 🚀 Statistics endpoint called');
-        
         return $this->handleAction(
-            function() {
-                Log::info('[DashboardController.statistics]  Calling getDashboardStats()');
-                $stats = $this->dashboardService->getDashboardStats();
-                Log::info('[DashboardController.statistics]  Stats retrieved', [
-                    'keys' => array_keys($stats)
-                ]);
-                $resource = new DashboardStatsResource($stats);
-                Log::info('[DashboardController.statistics]  Resource created, ready to return');
-                return $resource;
-            },
+            fn() => new DashboardStatsResource($this->dashboardService->getDashboardStats()),
             []
         );
     }
 
     public function dailyTrends(Request $request): JsonResponse
     {
-        $days = $request->query('days', 7);
+        $days = (int) $request->query('days', 7);
         
         return $this->handleAction(
             fn() => $this->dashboardService->getDailyStats($days),
@@ -103,7 +75,7 @@ class DashboardController extends Controller
 
     public function topSellingItems(Request $request): JsonResponse
     {
-        $limit = $request->query('limit', 5);
+        $limit = (int) $request->query('limit', 5);
         
         return $this->handleAction(
             fn() => $this->dashboardService->getTopSellingItems($limit),

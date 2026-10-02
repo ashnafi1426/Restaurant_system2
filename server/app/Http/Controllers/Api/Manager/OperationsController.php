@@ -4,17 +4,16 @@ namespace App\Http\Controllers\Api\Manager;
 
 use App\Http\Controllers\Controller;
 use App\Services\Manager\ManagerDashboardService;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class OperationsController extends Controller
 {
-    protected ManagerDashboardService $dashboardService;
-
-    public function __construct(ManagerDashboardService $dashboardService)
-    {
-        $this->dashboardService = $dashboardService;
-    }
+    public function __construct(
+        protected ManagerDashboardService $dashboardService
+    ) {}
 
     public function orders(Request $request): JsonResponse
     {
@@ -25,7 +24,9 @@ class OperationsController extends Controller
                 'success' => true,
                 'data' => $orders,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Manager operations orders error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load orders: ' . $e->getMessage(),
@@ -42,7 +43,9 @@ class OperationsController extends Controller
                 'success' => true,
                 'data' => $deliveries,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Manager operations deliveries error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load deliveries: ' . $e->getMessage(),
@@ -59,7 +62,9 @@ class OperationsController extends Controller
                 'success' => true,
                 'data' => $housekeeping,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Manager operations housekeeping error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load housekeeping data: ' . $e->getMessage(),
@@ -76,7 +81,9 @@ class OperationsController extends Controller
                 'success' => true,
                 'data' => $laundry,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Manager operations laundry error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load laundry data: ' . $e->getMessage(),

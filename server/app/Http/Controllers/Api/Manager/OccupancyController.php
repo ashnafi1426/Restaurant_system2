@@ -4,17 +4,16 @@ namespace App\Http\Controllers\Api\Manager;
 
 use App\Http\Controllers\Controller;
 use App\Services\Manager\ManagerDashboardService;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class OccupancyController extends Controller
 {
-    protected ManagerDashboardService $dashboardService;
-
-    public function __construct(ManagerDashboardService $dashboardService)
-    {
-        $this->dashboardService = $dashboardService;
-    }
+    public function __construct(
+        protected ManagerDashboardService $dashboardService
+    ) {}
 
     public function summary(Request $request): JsonResponse
     {
@@ -25,7 +24,9 @@ class OccupancyController extends Controller
                 'success' => true,
                 'data' => $occupancySummary,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Manager occupancy summary error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load occupancy summary: ' . $e->getMessage(),
@@ -42,7 +43,9 @@ class OccupancyController extends Controller
                 'success' => true,
                 'data' => $occupancyChart,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Manager occupancy chart error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load occupancy chart: ' . $e->getMessage(),
@@ -59,7 +62,9 @@ class OccupancyController extends Controller
                 'success' => true,
                 'data' => $reservationSummary,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Manager occupancy reservations error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load reservation summary: ' . $e->getMessage(),

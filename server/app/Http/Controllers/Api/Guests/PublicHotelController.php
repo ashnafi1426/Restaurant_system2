@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Api\Guests;
 
 use App\Http\Controllers\Controller;
 use App\Models\Hotel;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class PublicHotelController extends Controller
 {
-    public function index()
+    public function index(): JsonResponse
     {
         $hotels = Hotel::where('status', 'active')
             ->select('id', 'name', 'slug', 'logo', 'address', 'city', 'country', 'phone', 'email', 'currency', 'status')
@@ -16,11 +16,11 @@ class PublicHotelController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $hotels
+            'data' => $hotels,
         ]);
     }
 
-    public function show($slug)
+    public function show(string $slug): JsonResponse
     {
         $hotel = Hotel::where('slug', $slug)
             ->where('status', 'active')
@@ -30,13 +30,13 @@ class PublicHotelController extends Controller
         if (!$hotel) {
             return response()->json([
                 'success' => false,
-                'message' => 'Hotel not found or unavailable'
+                'message' => 'Hotel not found or unavailable',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $hotel
+            'data' => $hotel,
         ]);
     }
 }

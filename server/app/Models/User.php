@@ -41,9 +41,19 @@ class User extends Authenticatable
         ];
     }
 
+    protected $appends = [
+        'name',
+        'full_name'
+    ];
+
     public function getAuthPassword()
     {
         return $this->password_hash;
+    }
+    public function getNameAttribute(): string
+    {
+        $name = trim("{$this->first_name} {$this->last_name}");
+        return !empty($name) ? $name : ($this->email ?? 'Staff');
     }
     public function getFullNameAttribute(): string
     {

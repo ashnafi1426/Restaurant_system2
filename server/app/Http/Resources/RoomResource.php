@@ -9,27 +9,28 @@ class RoomResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $floorNumber = $this->getAttribute('floor') ?? $this->floor?->floor_number;
+        $floorName = $this->floor?->name ?? ($floorNumber !== null ? "Floor {$floorNumber}" : null);
+
         return [
             'id' => $this->id,
             'hotel_id' => $this->hotel_id,
-            'hotel' => $this->relationLoaded('hotel') && $this->hotel ? [
-                'id' => $this->hotel->id,
-                'name' => $this->hotel->name,
-                'city' => $this->hotel->city,
-            ] : ($this->hotel ? [
-                'id' => $this->hotel->id,
-                'name' => $this->hotel->name,
-                'city' => $this->hotel->city,
-            ] : null),
+            'hotel' => $this->whenLoaded('hotel', function () {
+                return [
+                    'id' => $this->hotel->id,
+                    'name' => $this->hotel->name,
+                    'city' => $this->hotel->city,
+                ];
+            }),
             'room_number' => $this->room_number,
             'room_type_id' => $this->room_type_id,
             'floor_id' => $this->floor_id,
-            'floor' => $this->floor,
-            'floor_name' => $this->floorRelation?->name ?? ($this->hotelFloor?->name ?? ($this->floor ? "Floor {$this->floor}" : null)),
+            'floor' => $floorNumber,
+            'floor_name' => $floorName,
             'description' => $this->description,
             'status' => $this->status,
-            'is_active' => $this->is_active,
-            'status_label' => ucfirst($this->status),
+            'is_active' => (bool) $this->is_active,
+            'status_label' => ucfirst((string) $this->status),
             'room_type' => new RoomTypeResource($this->whenLoaded('roomType')),
             'qr_token' => $this->qr_token,
             'qr_image_path' => $this->qr_image_path,

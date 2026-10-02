@@ -35,13 +35,23 @@ class AutomaticWaiterAssignmentService
                 ->first();
 
             if ($existing) {
-                return $this->successResponse($existing, 'Delivery already assigned');
+                if ($existing->waiter_id) {
+                    $waiter = \App\Models\Waiter::find($existing->waiter_id);
+                    if ($waiter && $waiter->user) {
+                        try {
+                            app(WaiterNotificationService::class)->notifyOrderReady($waiter->user, $existing);
+                        } catch (\Throwable $e) {
+                            Log::warning("Could not notify waiter of ready order: {$e->getMessage()}");
+                        }
+                    }
+                }
+                return $this->successResponse($existing, 'Delivery already assigned and waiter notified');
             }
 
             return DB::transaction(function () use ($order) {
-                $isWalkIn = $order->order_type === 'walk_in' && $order->table_id;
+                $isTableOrder = in_array($order->order_type, [Order::TYPE_DINE_IN, Order::TYPE_WALK_IN, 'dine_in', 'walk_in']) || !empty($order->table_id);
                 
-                if ($isWalkIn) {
+                if ($isTableOrder && $order->table_id) {
                     return $this->assignWalkInOrder($order);
                 } else {
                     return $this->assignRoomServiceOrder($order);
@@ -60,27 +70,29 @@ class AutomaticWaiterAssignmentService
     {
         $floor = $this->floorResolver->resolveForRoom($order->room);
         if (!$floor) {
-            $floor = $this->resolveFallbackFloor();
-            if (!$floor) {
-                $task = $this->workloadService->createWaitingDelivery($order, null, 'Floor could not be resolved');
-                return $this->waitingResponse($task, 'Floor could not be resolved');
-            }
+            Log::warning('[ASSIGNMENT SERVICE] Room has no valid floor assigned', [
+                'order_id' => $order->id,
+                'room_id' => $order->room_id,
+            ]);
+            $task = $this->workloadService->createWaitingDelivery($order, null, 'Floor could not be resolved for room');
+            return $this->waitingResponse($task, 'Floor could not be resolved for room');
         }
 
         $shift = $this->shiftResolver->getCurrentShift();
         if (!$shift) {
             $shift = $this->resolveFallbackShift();
-            if (!$shift) {
-                $task = $this->workloadService->createWaitingDelivery($order, $floor, 'No active shift found');
-                return $this->waitingResponse($task, 'No active shift found');
-            }
         }
 
         $waiter = $this->selectionEngine->selectBestWaiter($floor, $shift);
 
         if (!$waiter) {
-            $task = $this->workloadService->createWaitingDelivery($order, $floor, 'No available waiter');
-            return $this->waitingResponse($task, 'No available waiter');
+            Log::warning('[ASSIGNMENT SERVICE] No active waiter assigned to this floor', [
+                'order_id' => $order->id,
+                'floor_id' => $floor->id,
+                'floor_name' => $floor->name ?? 'Floor ' . ($floor->floor_number ?? ''),
+            ]);
+            $task = $this->workloadService->createWaitingDelivery($order, $floor, 'No available waiter on assigned floor');
+            return $this->waitingResponse($task, 'No available waiter on assigned floor');
         }
 
         $task = $this->workloadService->assignDelivery($order, $waiter, $floor);
@@ -143,12 +155,6 @@ class AutomaticWaiterAssignmentService
         return $this->successResponse($task, 'Walk-in order successfully assigned');
     }
 
-    private function resolveFallbackFloor(): ?HotelFloor
-    {
-        return HotelFloor::active()
-            ->orderBy('floor_number')
-            ->first();
-    }
 
     private function resolveFallbackShift(): ?HotelShift
     {

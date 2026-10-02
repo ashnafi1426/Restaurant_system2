@@ -52,6 +52,7 @@ use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\QRResolutionController;
 use App\Http\Controllers\Api\UnifiedOrderController;
 use App\Http\Controllers\Api\Manager\RestaurantTableController;
+use App\Http\Controllers\Api\Manager\RestaurantSectionController;
 use App\Http\Controllers\Api\Profile\ManagerProfileController;
 use App\Http\Controllers\Api\Profile\AdminProfileController;
 use App\Http\Controllers\Api\Profile\CashierProfileController;
@@ -142,6 +143,8 @@ Route::get('/rooms/{room}', [RoomController::class, 'show']);
 Route::get('/room-types', [RoomTypeController::class, 'index']);
 Route::get('/room-types/{roomType}', [RoomTypeController::class, 'show']);
 Route::get('/floors', [\App\Http\Controllers\Api\Manager\FloorManagementController::class, 'index']);
+
+
 Route::post('/guests', [GuestController::class, 'store']);
 Route::get('/guests', [GuestController::class, 'index']);
 Route::get('/reservations/availability', [ReservationController::class, 'availability']);
@@ -192,10 +195,8 @@ Route::prefix('guest')->group(function () {
     Route::get('/menu/{qrToken}', [GuestOrderController::class, 'getRoom']);
     Route::get('/menu/{qrToken}/items', [GuestOrderController::class, 'getMenuItems']);
     Route::post('/orders', [GuestOrderController::class, 'createOrder']);
-    Route::get('/orders/{qrToken}/status', [GuestOrderController::class, 'getOrderStatus']);
-});
-Route::prefix('guest')->group(function () {
     Route::post('/unified-orders', [UnifiedOrderController::class, 'store']);
+    Route::get('/orders/{qrToken}/status', [GuestOrderController::class, 'getOrderStatus']);
 });
 Route::prefix('guest/bookings')->middleware('qr.token')->group(function () {
     Route::post('/check-availability', [GuestBookingController::class, 'checkAvailability']);
@@ -283,20 +284,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/{guest}', [GuestController::class, 'update']);
             Route::patch('/{guest}', [GuestController::class, 'update']);
             Route::delete('/{guest}', [GuestController::class, 'destroy']);
-        });
-
-        Route::prefix('admin-reservations')->group(function () {
-            Route::get('/', [ReservationController::class, 'index']);
-            Route::post('/', [ReservationController::class, 'store']);
-            Route::get('/availability', [ReservationController::class, 'availability']);
-            Route::get('/{reservation}', [ReservationController::class, 'show']);
-            Route::put('/{reservation}', [ReservationController::class, 'update']);
-            Route::patch('/{reservation}', [ReservationController::class, 'update']);
-            Route::delete('/{reservation}', [ReservationController::class, 'destroy']);
-            Route::post('/{reservation}/confirm', [ReservationController::class, 'confirm']);
-            Route::post('/{reservation}/check-in', [ReservationController::class, 'checkIn']);
-            Route::post('/{reservation}/check-out', [ReservationController::class, 'checkOut']);
-            Route::post('/{reservation}/cancel', [ReservationController::class, 'cancel']);
         });
 
         Route::prefix('check-ins')->group(function () {
@@ -574,6 +561,15 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/{id}/regenerate-qr', [RestaurantTableController::class, 'regenerateQR']);
             Route::get('/{id}/download-qr', [RestaurantTableController::class, 'downloadQR']);
         });
+
+        // Restaurant Sections Management
+        Route::prefix('restaurant-sections')->group(function () {
+            Route::get('/', [RestaurantSectionController::class, 'index']);
+            Route::get('/{id}', [RestaurantSectionController::class, 'show']);
+            Route::post('/', [RestaurantSectionController::class, 'store']);
+            Route::put('/{id}', [RestaurantSectionController::class, 'update']);
+            Route::delete('/{id}', [RestaurantSectionController::class, 'destroy']);
+        });
         
         Route::prefix('analytics')->group(function () {
             Route::get('/', [ManagerAnalyticsController::class, 'index']);
@@ -804,3 +800,4 @@ Route::middleware(['auth:sanctum', 'role:staff'])->prefix('cancellation-policies
     Route::delete('/{policyId}', [CancellationPolicyController::class, 'destroy']);
     Route::post('/{policyId}/calculate-refund', [CancellationPolicyController::class, 'calculateRefund']);
 });
+

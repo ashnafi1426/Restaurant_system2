@@ -78,21 +78,15 @@ class Guest extends Model
             ->get();
     }
 
-    public function cancel(Reservation $reservation)
+    public function cancel(Reservation $reservation): bool
     {
-        if(!$reservation->canCancel()){
-            return response()->json([
-                'message'=>'Reservation cannot be cancelled.'
-            ],422);
+        if (!$reservation->canCancel()) {
+            throw new \InvalidArgumentException('Reservation cannot be cancelled.');
         }
 
-        $reservation->update([
-            'status'=>'cancelled',
-            'cancelled_at'=>now()
-        ]);
-
-        return response()->json([
-            'message'=>'Reservation cancelled.'
+        return $reservation->update([
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
         ]);
     }
 

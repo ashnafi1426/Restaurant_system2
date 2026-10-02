@@ -19,10 +19,13 @@ class DeliveryWorkloadService
             ->value('id');
     }
 
-    public function assignDelivery(Order $order, Waiter $waiter, ?HotelFloor $floor): DeliveryTask
+    public function assignDelivery(Order $order, Waiter $waiter, $floor = null): DeliveryTask
     {
         try {
+            $hotelId = $order->hotel_id ?? $floor?->hotel_id ?? $waiter->hotel_id ?? app(\App\Services\TenantContext::class)->getHotelId();
+
             $delivery = DeliveryTask::create([
+                'hotel_id'        => $hotelId,
                 'order_id'        => $order->id,
                 'reservation_id'  => $order->reservation_id,
                 'room_id'         => $order->room_id,
@@ -61,7 +64,10 @@ class DeliveryWorkloadService
     public function assignTableDelivery(Order $order, Waiter $waiter, $table): DeliveryTask
     {
         try {
+            $hotelId = $order->hotel_id ?? $table?->hotel_id ?? $waiter->hotel_id ?? app(\App\Services\TenantContext::class)->getHotelId();
+
             $delivery = DeliveryTask::create([
+                'hotel_id'        => $hotelId,
                 'order_id'        => $order->id,
                 'reservation_id'  => $order->reservation_id,
                 'table_id'        => $table->id,
@@ -100,10 +106,13 @@ class DeliveryWorkloadService
         }
     }
 
-    public function createWaitingDelivery(Order $order, ?HotelFloor $floor, string $reason): DeliveryTask
+    public function createWaitingDelivery(Order $order, $floor = null, string $reason = 'Waiting assignment'): DeliveryTask
     {
         try {
+            $hotelId = $order->hotel_id ?? $floor?->hotel_id ?? app(\App\Services\TenantContext::class)->getHotelId();
+
             $delivery = DeliveryTask::create([
+                'hotel_id'        => $hotelId,
                 'order_id'        => $order->id,
                 'reservation_id'  => $order->reservation_id,
                 'room_id'         => $order->room_id,
@@ -119,6 +128,7 @@ class DeliveryWorkloadService
             Log::warning('Created Waiting Delivery Task', [
                 'delivery_id' => $delivery->id,
                 'order_id' => $order->id,
+                'floor_id' => $floor?->id,
                 'reason' => $reason,
             ]);
 

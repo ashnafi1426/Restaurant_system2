@@ -16,7 +16,7 @@ class TranslationController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $rawLang = $request->query('lang')
             ?? $request->header('X-App-Locale')

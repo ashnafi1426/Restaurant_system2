@@ -9,16 +9,14 @@ use App\Services\KitchenService;
 use App\Services\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
 use Throwable;
 
 class KitchenController extends Controller
 {
-    protected KitchenService $kitchenService;
-
-    public function __construct(KitchenService $kitchenService)
-    {
-        $this->kitchenService = $kitchenService;
-    }
+    public function __construct(
+        protected KitchenService $kitchenService
+    ) {}
 
     private function resolveTenant(Request $request): ?string
     {
@@ -31,6 +29,25 @@ class KitchenController extends Controller
         }
 
         return $hotelId;
+    }
+
+    private function validateOrderHotelAccess(Order $order, Request $request): void
+    {
+        $activeHotelId = $this->resolveTenant($request);
+        $user = auth()->user();
+
+        if ($user && $user->isPlatformAdmin()) {
+            return;
+        }
+
+        // If user belongs to a hotel, ensure it matches the order's hotel
+        if ($activeHotelId && $order->hotel_id && $order->hotel_id !== $activeHotelId) {
+            abort(403, 'Order does not belong to the active hotel kitchen.');
+        }
+
+        if ($user && method_exists($user, 'belongsToHotel') && $order->hotel_id && !$user->belongsToHotel($order->hotel_id)) {
+            abort(403, 'You do not have kitchen access for this hotel.');
+        }
     }
 
     public function index(Request $request): JsonResponse
@@ -60,16 +77,22 @@ class KitchenController extends Controller
         }
     }
 
-    public function start(Order $order): JsonResponse
+    public function start(Request $request, Order $order): JsonResponse
     {
         try {
-            $updatedOrder = $this->kitchenService->startPreparing($order);
+            $this->validateOrderHotelAccess($order, $request);
+            $updatedOrder = $this->kitchenService->startPreparing($order, auth()->user());
 
             return response()->json([
                 'success' => true,
                 'message' => 'Order started preparing successfully.',
                 'data' => new KitchenOrderResource($updatedOrder)
             ]);
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
         } catch (Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -78,16 +101,22 @@ class KitchenController extends Controller
         }
     }
 
-    public function ready(Order $order): JsonResponse
+    public function ready(Request $request, Order $order): JsonResponse
     {
         try {
+            $this->validateOrderHotelAccess($order, $request);
             $updatedOrder = $this->kitchenService->markReady($order);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Order marked as ready.',
+                'message' => 'Order marked as ready and waiter notified.',
                 'data' => new KitchenOrderResource($updatedOrder)
             ]);
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
         } catch (Throwable $e) {
             return response()->json([
                 'success' => false,
@@ -96,16 +125,22 @@ class KitchenController extends Controller
         }
     }
 
-    public function complete(Order $order): JsonResponse
+    public function complete(Request $request, Order $order): JsonResponse
     {
         try {
+            $this->validateOrderHotelAccess($order, $request);
             $updatedOrder = $this->kitchenService->markServed($order);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Order completed successfully.',
+                'message' => 'Order completed and marked as served.',
                 'data' => new KitchenOrderResource($updatedOrder)
             ]);
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
         } catch (Throwable $e) {
             return response()->json([
                 'success' => false,

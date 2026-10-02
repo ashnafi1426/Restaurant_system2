@@ -26,13 +26,16 @@ class Order extends Model
         'notes',
         'payment_type',
         'subtotal',
+        'taxable_amount',
         'tax',
         'service_charge_rate',
         'service_charge_amount',
         'discount',
         'total',
+        'source',
         'served_at',
         'cancelled_at',
+        'chef_id',
     ];
 
     protected $casts = [
@@ -40,6 +43,7 @@ class Order extends Model
         'served_at' => 'datetime',
         'cancelled_at' => 'datetime',
         'subtotal' => 'decimal:2',
+        'taxable_amount' => 'decimal:2',
         'tax' => 'decimal:2',
         'service_charge_rate' => 'decimal:2',
         'service_charge_amount' => 'decimal:2',
@@ -54,6 +58,7 @@ class Order extends Model
     public const STATUS_CANCELLED = 'cancelled';
 
     public const TYPE_ROOM_SERVICE = 'room_service';
+    public const TYPE_DINE_IN = 'dine_in';
     public const TYPE_WALK_IN = 'walk_in';
 
     public static function generateOrderNumber(?string $hotelId = null): string
@@ -96,6 +101,11 @@ class Order extends Model
         return $this->belongsTo(RestaurantTable::class, 'table_id');
     }
 
+    public function chef()
+    {
+        return $this->belongsTo(User::class, 'chef_id');
+    }
+
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
@@ -109,6 +119,11 @@ class Order extends Model
     public function reviews()
     {
         return $this->hasMany(MenuItemReview::class, 'order_id');
+    }
+
+    public function restaurantCharge()
+    {
+        return $this->hasOne(RestaurantCharge::class);
     }
 
     public function isPending(): bool
@@ -146,9 +161,22 @@ class Order extends Model
         return $this->order_type === self::TYPE_ROOM_SERVICE;
     }
 
+    public function isDineIn(): bool
+    {
+        return $this->order_type === self::TYPE_DINE_IN;
+    }
+
     public function isWalkIn(): bool
     {
         return $this->order_type === self::TYPE_WALK_IN;
+    }
+
+    public function getTaxableAmountAttribute($value): float
+    {
+        if ($value !== null && (float) $value > 0) {
+            return (float) $value;
+        }
+        return (float) ($this->subtotal ?? 0);
     }
 
     public function getGrandTotalAttribute()

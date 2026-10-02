@@ -45,6 +45,7 @@ class OrderResource extends JsonResource
             }),
             'order_type' => $this->order_type ?? 'room_service',
             'subtotal' => (float) $this->subtotal,
+            'taxable_amount' => (float) ($this->taxable_amount ?? $this->subtotal),
             'tax' => (float) $this->tax,
             'service_charge_rate' => (float) ($this->service_charge_rate ?? 0),
             'service_charge_amount' => (float) ($this->service_charge_amount ?? 0),

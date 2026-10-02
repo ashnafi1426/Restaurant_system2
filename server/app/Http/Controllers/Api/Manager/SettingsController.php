@@ -3,28 +3,26 @@
 namespace App\Http\Controllers\Api\Manager;
 
 use App\Http\Controllers\Controller;
-use App\Services\Manager\ManagerService;
-use App\Http\Requests\UpdateManagerDashboardSettingRequest;
 use App\Http\Requests\StoreManagerAnnouncementRequest;
 use App\Http\Requests\UpdateManagerAnnouncementRequest;
-use App\Http\Resources\ManagerDashboardSettingResource;
+use App\Http\Requests\UpdateManagerDashboardSettingRequest;
 use App\Http\Resources\ManagerAnnouncementResource;
+use App\Http\Resources\ManagerDashboardSettingResource;
 use App\Http\Resources\ManagerReportResource;
-use App\Models\ManagerDashboardSetting;
 use App\Models\ManagerAnnouncement;
+use App\Models\ManagerDashboardSetting;
+use App\Services\Manager\ManagerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class SettingsController extends Controller
 {
-    protected ManagerService $service;
+    public function __construct(
+        protected ManagerService $service
+    ) {}
 
-    public function __construct(ManagerService $service)
-    {
-        $this->service = $service;
-    }
-
-    public function dashboardSettings(Request $request)
+    public function dashboardSettings(Request $request): ManagerDashboardSettingResource
     {
         return new ManagerDashboardSettingResource(
             $this->service->dashboardSettings($request->user()->id)
@@ -34,8 +32,7 @@ class SettingsController extends Controller
     public function updateDashboardSettings(
         UpdateManagerDashboardSettingRequest $request,
         ManagerDashboardSetting $setting
-    )
-    {
+    ): ManagerDashboardSettingResource {
         $setting = $this->service->updateDashboardSettings(
             $setting,
             $request->validated()
@@ -44,18 +41,16 @@ class SettingsController extends Controller
         return new ManagerDashboardSettingResource($setting);
     }
 
-    public function announcements(Request $request)
+    public function announcements(Request $request): AnonymousResourceCollection
     {
         return ManagerAnnouncementResource::collection(
             $this->service->announcements()
         );
     }
 
-    public function storeAnnouncement(StoreManagerAnnouncementRequest $request)
+    public function storeAnnouncement(StoreManagerAnnouncementRequest $request): ManagerAnnouncementResource
     {
-        $announcement = $this->service->createAnnouncement(
-            $request->validated()
-        );
+        $announcement = $this->service->createAnnouncement($request->validated());
 
         return new ManagerAnnouncementResource($announcement);
     }
@@ -63,8 +58,7 @@ class SettingsController extends Controller
     public function updateAnnouncement(
         UpdateManagerAnnouncementRequest $request,
         ManagerAnnouncement $announcement
-    )
-    {
+    ): ManagerAnnouncementResource {
         $announcement = $this->service->updateAnnouncement(
             $announcement,
             $request->validated()
@@ -73,9 +67,7 @@ class SettingsController extends Controller
         return new ManagerAnnouncementResource($announcement);
     }
 
-    public function destroyAnnouncement(
-        ManagerAnnouncement $announcement
-    ): JsonResponse
+    public function destroyAnnouncement(ManagerAnnouncement $announcement): JsonResponse
     {
         $this->service->deleteAnnouncement($announcement);
 
@@ -85,7 +77,7 @@ class SettingsController extends Controller
         ]);
     }
 
-    public function reports(Request $request)
+    public function reports(Request $request): AnonymousResourceCollection
     {
         return ManagerReportResource::collection(
             $this->service->reports()

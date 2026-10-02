@@ -318,29 +318,7 @@ class WaiterAssignmentService
             $query->where('waiter_id', $waiterId);
         }
 
-        $tasks = $query->get();
-
-        if ($tasks->isEmpty()) {
-            $readyOrders = \App\Models\Order::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
-                ->where('status', 'ready');
-            if ($hotelId) {
-                $readyOrders->where('hotel_id', $hotelId);
-            }
-            return $readyOrders->with(['guest', 'room', 'orderItems'])->get()->map(function ($order) use ($hotelId, $waiterId) {
-                return DeliveryTask::firstOrCreate(
-                    ['order_id' => $order->id],
-                    [
-                        'hotel_id' => $hotelId ?? $order->hotel_id,
-                        'waiter_id' => $waiterId,
-                        'room_id' => $order->room_id,
-                        'status' => 'assigned',
-                        'assigned_at' => now(),
-                    ]
-                )->load(['order', 'order.guest', 'floor']);
-            });
-        }
-
-        return $tasks;
+        return $query->get();
     }
 
     public function getActiveAssignments(int|string $waiterId = null)
@@ -401,6 +379,25 @@ class WaiterAssignmentService
             throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Task {$id} not found");
         }
 
+        $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
+
+        if ($task->waiter_id && (int) $task->waiter_id !== (int) $waiterId && !$isAdminOrManager) {
+            throw new \Exception("This delivery task is assigned to another waiter");
+        }
+
+        if (!$task->waiter_id && $task->floor_id && !$isAdminOrManager) {
+            $isAssigned = \App\Models\WaiterFloorAssignment::where('waiter_id', $waiterId)
+                ->where('floor_id', $task->floor_id)
+                ->where(function ($q) {
+                    $q->where('is_active', true)
+                      ->orWhere('status', 'active');
+                })
+                ->exists();
+            if (!$isAssigned) {
+                throw new \Exception("You are not assigned to the floor for this room service delivery");
+            }
+        }
+
         if ($task->waiter_id != $waiterId) {
             $task->waiter_id = $waiterId;
             $task->save();
@@ -434,6 +431,8 @@ class WaiterAssignmentService
             'waiter_id' => $waiterId,
         ]);
         
+        $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
+
         $task = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)->where('id', $id)->first() 
             ?? DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)->where('order_id', $id)->first();
 
@@ -441,10 +440,20 @@ class WaiterAssignmentService
             $order = \App\Models\Order::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)->find($id);
             if ($order) {
                 $hotelId = app(\App\Services\TenantContext::class)->getHotelId() ?? $order->hotel_id;
-                $floorId = $order->room?->floor_id 
-                    ?? $order->room?->hotelFloor?->id 
-                    ?? \App\Models\HotelFloor::where('hotel_id', $hotelId)->value('id')
-                    ?? \App\Models\HotelFloor::value('id');
+                $floorId = $order->room?->getFloorId();
+
+                if ($floorId && !$isAdminOrManager) {
+                    $isAssigned = \App\Models\WaiterFloorAssignment::where('waiter_id', $waiterId)
+                        ->where('floor_id', $floorId)
+                        ->where(function ($q) {
+                            $q->where('is_active', true)
+                              ->orWhere('status', 'active');
+                        })
+                        ->exists();
+                    if (!$isAssigned) {
+                        throw new \Exception("You are not assigned to the floor for this room service delivery");
+                    }
+                }
 
                 $task = DeliveryTask::create([
                     'hotel_id' => $hotelId,
@@ -458,6 +467,10 @@ class WaiterAssignmentService
             } else {
                 throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Task {$id} not found");
             }
+        }
+
+        if ($task->waiter_id && (int) $task->waiter_id !== (int) $waiterId && !$isAdminOrManager) {
+            throw new \Exception("This delivery task is assigned to another waiter");
         }
 
         if ($task->waiter_id != $waiterId) {

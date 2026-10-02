@@ -88,10 +88,11 @@ class GuestOrderService
 
         return DB::transaction(function () use ($data, $room, $reservation) {
             $hotelId = $room->hotel_id
+                ?? TenantContext::id()
                 ?? app(TenantContext::class)->getHotelId()
                 ?? \App\Models\Hotel::value('id');
 
-            list($total, $orderItems) = $this->calculateOrderTotal($data['items'], $hotelId);
+            list($total, $subtotal, $tax, $orderItems) = $this->calculateOrderTotal($data['items'], $hotelId);
 
             $order = Order::create([
                 'hotel_id' => $hotelId,
@@ -103,7 +104,9 @@ class GuestOrderService
                 'order_type' => Order::TYPE_ROOM_SERVICE,
                 'order_time' => now(),
                 'total' => $total,
-                'subtotal' => $total,
+                'subtotal' => $subtotal,
+                'taxable_amount' => $subtotal,
+                'tax' => $tax,
                 'status' => Order::STATUS_PENDING,
                 'source' => 'guest_qr',
                 'payment_type' => $data['payment_type'] ?? 'room_charge',
@@ -149,6 +152,7 @@ class GuestOrderService
         return DB::transaction(function () use ($data, $tableData) {
             $table = RestaurantTable::withoutGlobalScopes()->findOrFail($tableData['table_id']);
             $hotelId = $table->hotel_id
+                ?? TenantContext::id()
                 ?? app(TenantContext::class)->getHotelId()
                 ?? \App\Models\Hotel::value('id');
 
@@ -156,7 +160,7 @@ class GuestOrderService
                 $table->update(['hotel_id' => $hotelId]);
             }
 
-            list($total, $orderItems) = $this->calculateOrderTotal($data['items'], $hotelId);
+            list($total, $subtotal, $tax, $orderItems) = $this->calculateOrderTotal($data['items'], $hotelId);
 
             $order = Order::create([
                 'hotel_id' => $hotelId,
@@ -165,10 +169,12 @@ class GuestOrderService
                 'table_id' => $table->id,
                 'guest_id' => null,
                 'reservation_id' => null,
-                'order_type' => Order::TYPE_WALK_IN,
+                'order_type' => Order::TYPE_DINE_IN,
                 'order_time' => now(),
                 'total' => $total,
-                'subtotal' => $total,
+                'subtotal' => $subtotal,
+                'taxable_amount' => $subtotal,
+                'tax' => $tax,
                 'status' => Order::STATUS_PENDING,
                 'source' => 'guest_qr',
                 'payment_type' => $data['payment_type'] ?? 'cash',
@@ -209,49 +215,95 @@ class GuestOrderService
     }
 
     /**
-     * Compute line totals and validate menu items.
+     * Compute line totals, tax calculations, and validate menu items.
      */
     public function calculateOrderTotal(array $items, ?string $hotelId): array
     {
-        $total = 0;
+        $grandTotal = 0;
+        $totalSubtotal = 0;
+        $totalTax = 0;
         $orderItems = [];
 
         foreach ($items as $item) {
-            $menuItem = MenuItem::withoutGlobalScopes()->findOrFail($item['menu_item_id']);
+            $menuItem = MenuItem::withoutGlobalScopes()->with('taxRate')->findOrFail($item['menu_item_id']);
 
             if ($hotelId && $menuItem->hotel_id && $menuItem->hotel_id !== $hotelId) {
                 throw new \InvalidArgumentException("Menu item '{$menuItem->name}' does not belong to hotel {$hotelId}");
             }
 
-            $lineTotal = round((float) $menuItem->price * (int) $item['quantity'], 2);
-            $total += $lineTotal;
+            if (!$menuItem->is_available) {
+                throw new \InvalidArgumentException("Menu item '{$menuItem->name}' is currently unavailable.");
+            }
+
+            $price = (float) $menuItem->price;
+            $quantity = max(1, (int) $item['quantity']);
+            $taxRate = $menuItem->taxRate;
+            $rate = ($taxRate && $taxRate->is_active) ? (float) $taxRate->rate : 0.0;
+            $taxIncluded = (bool) ($menuItem->tax_included ?? false);
+
+            if ($rate > 0) {
+                if ($taxIncluded) {
+                    $baseUnit = round($price / (1 + ($rate / 100)), 4);
+                    $subtotal = round($baseUnit * $quantity, 2);
+                    $lineTotal = round($price * $quantity, 2);
+                    $taxAmount = round($lineTotal - $subtotal, 2);
+                } else {
+                    $subtotal = round($price * $quantity, 2);
+                    $taxAmount = round($subtotal * ($rate / 100), 2);
+                    $lineTotal = round($subtotal + $taxAmount, 2);
+                }
+            } else {
+                $subtotal = round($price * $quantity, 2);
+                $taxAmount = 0.0;
+                $lineTotal = $subtotal;
+            }
+
+            $totalSubtotal += $subtotal;
+            $totalTax += $taxAmount;
+            $grandTotal += $lineTotal;
 
             $orderItems[] = [
                 'menu_item_id' => $menuItem->id,
-                'quantity' => (int) $item['quantity'],
-                'item_price_at_order' => (float) $menuItem->price,
+                'item_name' => $menuItem->name,
+                'quantity' => $quantity,
+                'item_price_at_order' => $price,
+                'tax_rate_id' => $rate > 0 ? $menuItem->tax_rate_id : null,
+                'tax_rate' => $rate,
+                'tax_amount' => $taxAmount,
+                'subtotal' => $subtotal,
+                'total' => $lineTotal,
                 'line_total' => $lineTotal,
+                'notes' => $item['notes'] ?? null,
             ];
         }
 
-        return [round($total, 2), $orderItems];
+        return [
+            round($grandTotal, 2),
+            round($totalSubtotal, 2),
+            round($totalTax, 2),
+            $orderItems,
+        ];
     }
 
     /**
-     * Persist order items.
+     * Persist order items with complete historical snapshots.
      */
     protected function createOrderItems(string $orderId, array $items): void
     {
         foreach ($items as $item) {
-            $subtotal = $item['line_total'] ?? 0;
             OrderItem::create([
                 'order_id' => $orderId,
                 'menu_item_id' => $item['menu_item_id'],
+                'item_name' => $item['item_name'] ?? null,
                 'quantity' => $item['quantity'],
                 'item_price_at_order' => $item['item_price_at_order'],
-                'subtotal' => $subtotal,
-                'total' => $subtotal,
-                'line_total' => $subtotal,
+                'tax_rate_id' => $item['tax_rate_id'] ?? null,
+                'tax_rate' => $item['tax_rate'] ?? 0,
+                'tax_amount' => $item['tax_amount'] ?? 0,
+                'subtotal' => $item['subtotal'] ?? $item['line_total'],
+                'total' => $item['total'] ?? $item['line_total'],
+                'line_total' => $item['line_total'],
+                'notes' => $item['notes'] ?? null,
             ]);
         }
     }

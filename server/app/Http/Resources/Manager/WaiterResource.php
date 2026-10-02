@@ -14,10 +14,11 @@ class WaiterResource extends JsonResource
             'user_id' => $this->user_id,
             'user' => [
                 'id' => $this->user?->id,
-                'name' => $this->user?->full_name,
+                'name' => $this->user?->full_name ?: ($this->user?->name ?: ($this->user?->email ?: "Waiter #{$this->id}")),
                 'email' => $this->user?->email,
                 'phone' => $this->user?->phone,
             ],
+            'name' => $this->user?->full_name ?: ($this->user?->name ?: ($this->user?->email ?: "Waiter #{$this->id}")),
             'employee_number' => $this->employee_number,
             'phone' => $this->phone,
             'employment_type' => $this->employment_type,

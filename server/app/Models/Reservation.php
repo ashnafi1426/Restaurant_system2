@@ -54,23 +54,12 @@ class Reservation extends Model
     public static function generateBookingReference(): string
     {
         $prefix = 'BK-' . now()->format('Ymd');
-        
-        $counter = 1;
-        $maxAttempts = 9999;
-        
+
         do {
-            $bookingReference = sprintf('%s-%04d', $prefix, $counter);
-            
-            $exists = static::where('booking_reference', $bookingReference)->exists();
-            
-            if (!$exists) {
-                return $bookingReference;
-            }
-            
-            $counter++;
-        } while ($counter <= $maxAttempts);
-        
-        return $prefix . '-' . strtoupper(substr(uniqid(), -4));
+            $bookingReference = $prefix . '-' . strtoupper(\Illuminate\Support\Str::random(5));
+        } while (static::withoutTenant()->where('booking_reference', $bookingReference)->exists());
+
+        return $bookingReference;
     }
 
     public function guest()

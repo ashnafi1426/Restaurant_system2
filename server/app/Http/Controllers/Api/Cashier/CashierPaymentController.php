@@ -4,15 +4,19 @@ namespace App\Http\Controllers\Api\Cashier;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Services\TenantContext;
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CashierPaymentController extends Controller
 {
     protected function getHotelId(): ?string
     {
         $hotelId = request()->header('X-Hotel-ID')
-            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: TenantContext::id()
             ?: (auth()->check() ? auth()->user()->hotel_id : null);
 
         if (!$hotelId && auth()->check()) {
@@ -20,7 +24,7 @@ class CashierPaymentController extends Controller
         }
 
         if ($hotelId) {
-            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+            app(TenantContext::class)->setHotelId($hotelId);
         }
 
         return $hotelId;
@@ -100,7 +104,7 @@ class CashierPaymentController extends Controller
             $sortOrder = $request->get('sort_order', 'desc');
             $query->orderBy($sortBy, $sortOrder);
 
-            $perPage = $request->get('per_page', 15);
+            $perPage = $request->integer('per_page', 15);
             $payments = $query->paginate($perPage);
 
             $payments->getCollection()->transform(function ($payment) {
@@ -142,7 +146,9 @@ class CashierPaymentController extends Controller
                     'to' => $payments->lastItem(),
                 ],
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            Log::error('Cashier payment index error', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch payments',
@@ -154,7 +160,10 @@ class CashierPaymentController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
+            $hotelId = $this->getHotelId();
+
             $payment = Payment::with(['guest', 'reservation.room', 'order.orderItems.menuItem'])
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->findOrFail($id);
 
             $data = [
@@ -208,19 +217,29 @@ class CashierPaymentController extends Controller
                 'success' => true,
                 'data' => $data,
             ]);
-        } catch (\Exception $e) {
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment not found.',
+            ], 404);
+        } catch (Exception $e) {
+            Log::error('Cashier payment show error', ['payment_id' => $id, 'error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch payment details',
                 'error' => $e->getMessage(),
-            ], 404);
+            ], 500);
         }
     }
 
     public function refund(string $id, Request $request): JsonResponse
     {
         try {
-            $payment = Payment::findOrFail($id);
+            $hotelId = $this->getHotelId();
+
+            $payment = Payment::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+                ->findOrFail($id);
 
             if (!in_array($payment->status, [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])) {
                 return response()->json([
@@ -239,7 +258,14 @@ class CashierPaymentController extends Controller
                     'status' => $payment->status,
                 ],
             ]);
-        } catch (\Exception $e) {
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment not found.',
+            ], 404);
+        } catch (Exception $e) {
+            Log::error('Cashier payment refund error', ['payment_id' => $id, 'error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to refund payment',

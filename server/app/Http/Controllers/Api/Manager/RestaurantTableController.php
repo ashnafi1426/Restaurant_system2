@@ -3,100 +3,49 @@
 namespace App\Http\Controllers\Api\Manager;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreRestaurantTableRequest;
+use App\Http\Requests\UpdateRestaurantTableRequest;
+use App\Http\Resources\RestaurantTableResource;
 use App\Models\RestaurantTable;
-use Illuminate\Http\Request;
+use App\Services\RestaurantTableService;
+use App\Services\TenantContext;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class RestaurantTableController extends Controller
 {
+    public function __construct(
+        protected RestaurantTableService $tableService,
+        protected TenantContext $tenantContext
+    ) {}
+
     protected function getHotelId(): ?string
     {
-        $hotelId = request()->header('X-Hotel-ID')
-            ?: app(\App\Services\TenantContext::class)->getHotelId()
-            ?: (auth()->check() ? auth()->user()->hotel_id : null);
-
-        if (!$hotelId && auth()->check()) {
-            $hotelId = auth()->user()->hotelMemberships()->where('is_active', true)->value('hotel_id');
-        }
-
-        if ($hotelId) {
-            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
-        }
-
-        return $hotelId;
+        return $this->tenantContext->getHotelId()
+            ?: (auth()->check() ? auth()->user()->hotel_id : null)
+            ?: request()->header('X-Hotel-ID');
     }
 
+    /**
+     * Display a listing of tables for the current tenant.
+     */
     public function index(Request $request): JsonResponse
     {
         try {
             $hotelId = $this->getHotelId();
+            $perPage = $request->integer('per_page', 15);
 
-            Log::info(' RestaurantTable::index called', [
-                'all_params' => $request->all(),
-                'query_params' => $request->query(),
-                'hotel_id' => $hotelId,
-                'user_id' => auth()->id(),
-                'user_role' => auth()->user()->role ?? 'N/A',
-            ]);
-            
-            $query = RestaurantTable::query();
-
-            if ($hotelId) {
-                $query->where('hotel_id', $hotelId);
-            }
-
-            if ($request->filled('search')) {
-                $query->search($request->search);
-            }
-
-            if ($request->filled('status')) {
-                $query->where('status', $request->status);
-            }
-
-            if ($request->has('is_active') && $request->is_active !== null) {
-                $query->where('is_active', $request->boolean('is_active'));
-            }
-
-            if ($request->filled('location')) {
-                $query->where('location', $request->location);
-            }
-
-            $sortBy = $request->get('sort_by', 'table_number');
-            $sortOrder = $request->get('sort_order', 'asc');
-            $query->orderBy($sortBy, $sortOrder);
-
-            $perPage = $request->get('per_page', 15);
-            $tables = $query->paginate($perPage);
-            
-            Log::info(' Query executed', [
-                'total' => $tables->total(),
-                'count' => $tables->count(),
-                'per_page' => $tables->perPage(),
-                'current_page' => $tables->currentPage(),
-            ]);
-
-            $tables->getCollection()->transform(function ($table) {
-                $table->qr_code_url = $table->qr_code_url;
-                return $table;
-            });
-            
-            Log::info(' Returning response', [
-                'success' => true,
-                'total' => $tables->total(),
-                'data_count' => count($tables->items()),
-            ]);
+            $tables = $this->tableService->getTables($request->all(), $perPage, $hotelId);
 
             return response()->json([
                 'success' => true,
-                'data' => $tables,
+                'data'    => $tables,
             ], 200);
 
-        } catch (\Exception $e) {
-            Log::error('Failed to fetch restaurant tables', [
-                'error' => $e->getMessage(),
-            ]);
+        } catch (Throwable $e) {
+            Log::error('Failed to fetch restaurant tables', ['error' => $e->getMessage()]);
 
             return response()->json([
                 'success' => false,
@@ -105,15 +54,18 @@ class RestaurantTableController extends Controller
         }
     }
 
+    /**
+     * Display the specified table.
+     */
     public function show(string $id): JsonResponse
     {
         try {
-            $table = RestaurantTable::findOrFail($id);
-            $table->qr_code_url = $table->qr_code_url;
+            $hotelId = $this->getHotelId();
+            $table = $this->tableService->getTable($id, $hotelId);
 
             return response()->json([
                 'success' => true,
-                'data' => $table,
+                'data'    => new RestaurantTableResource($table),
             ], 200);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -122,11 +74,8 @@ class RestaurantTableController extends Controller
                 'message' => 'Restaurant table not found',
             ], 404);
 
-        } catch (\Exception $e) {
-            Log::error('Failed to fetch restaurant table', [
-                'table_id' => $id,
-                'error' => $e->getMessage(),
-            ]);
+        } catch (Throwable $e) {
+            Log::error('Failed to fetch restaurant table', ['table_id' => $id, 'error' => $e->getMessage()]);
 
             return response()->json([
                 'success' => false,
@@ -135,125 +84,52 @@ class RestaurantTableController extends Controller
         }
     }
 
-    public function store(Request $request): JsonResponse
+    /**
+     * Store a newly created table.
+     */
+    public function store(StoreRestaurantTableRequest $request): JsonResponse
     {
-        Log::info('Creating restaurant table', [
-            'request_data' => $request->all(),
-            'user_id' => auth()->id(),
-        ]);
-
-        $hotelId = $this->getHotelId();
-
-        $validator = Validator::make($request->all(), [
-            'table_number' => [
-                'required',
-                'string',
-                \Illuminate\Validation\Rule::unique('restaurant_tables', 'table_number')
-                    ->where(fn($q) => $hotelId ? $q->where('hotel_id', $hotelId) : $q)
-                    ->whereNull('deleted_at')
-            ],
-            'table_name' => 'nullable|string|max:255',
-            'capacity' => 'nullable|integer|min:1|max:20',
-            'location' => 'nullable|string|max:255',
-            'status' => 'nullable|in:available,occupied,reserved,cleaning,out_of_service',
-            'is_active' => 'nullable|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            Log::warning('Restaurant table validation failed', [
-                'validation_errors' => $validator->errors()->toArray(),
-                'request_data' => $request->all(),
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         try {
-            $table = RestaurantTable::create([
-                'hotel_id' => $hotelId,
-                'table_number' => $request->table_number,
-                'table_name' => $request->table_name,
-                'capacity' => $request->get('capacity', 4),
-                'location' => $request->location,
-                'status' => $request->get('status', RestaurantTable::STATUS_AVAILABLE),
-                'is_active' => $request->get('is_active', true),
-            ]);
-
-            $table->refresh();
-            $table->qr_code_url = $table->qr_code_url;
-
-            Log::info('Restaurant table created', [
-                'table_id' => $table->id,
-                'table_number' => $table->table_number,
-                'created_by' => auth()->id(),
-            ]);
+            $hotelId = $this->getHotelId();
+            $table = $this->tableService->createTable($request->validated(), $hotelId);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Restaurant table created successfully',
-                'data' => $table,
+                'data'    => new RestaurantTableResource($table),
             ], 201);
 
-        } catch (\Exception $e) {
-            Log::error('Failed to create restaurant table', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all(),
-            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors'  => $e->errors(),
+            ], 422);
+
+        } catch (Throwable $e) {
+            Log::error('Failed to create restaurant table', ['error' => $e->getMessage()]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create restaurant table',
+                'message' => 'Failed to create restaurant table: ' . $e->getMessage(),
             ], 500);
         }
     }
 
-    public function update(Request $request, string $id): JsonResponse
+    /**
+     * Update the specified table.
+     */
+    public function update(UpdateRestaurantTableRequest $request, string $id): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'table_number' => 'sometimes|required|string|unique:restaurant_tables,table_number,' . $id,
-            'table_name' => 'nullable|string|max:255',
-            'capacity' => 'nullable|integer|min:1|max:20',
-            'location' => 'nullable|string|max:255',
-            'status' => 'nullable|in:available,occupied,reserved,cleaning,out_of_service',
-            'is_active' => 'nullable|boolean',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         try {
-            $table = RestaurantTable::findOrFail($id);
-
-            $table->update($request->only([
-                'table_number',
-                'table_name',
-                'capacity',
-                'location',
-                'status',
-                'is_active',
-            ]));
-
-            $table->qr_code_url = $table->qr_code_url;
-
-            Log::info('Restaurant table updated', [
-                'table_id' => $table->id,
-                'updated_by' => auth()->id(),
-            ]);
+            $hotelId = $this->getHotelId();
+            $table = $this->tableService->getTable($id, $hotelId);
+            $updated = $this->tableService->updateTable($table, $request->validated(), $hotelId);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Restaurant table updated successfully',
-                'data' => $table,
+                'data'    => new RestaurantTableResource($updated),
             ], 200);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -262,41 +138,32 @@ class RestaurantTableController extends Controller
                 'message' => 'Restaurant table not found',
             ], 404);
 
-        } catch (\Exception $e) {
-            Log::error('Failed to update restaurant table', [
-                'table_id' => $id,
-                'error' => $e->getMessage(),
-            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors'  => $e->errors(),
+            ], 422);
+
+        } catch (Throwable $e) {
+            Log::error('Failed to update restaurant table', ['table_id' => $id, 'error' => $e->getMessage()]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update restaurant table',
+                'message' => 'Failed to update restaurant table: ' . $e->getMessage(),
             ], 500);
         }
     }
 
+    /**
+     * Remove the specified table.
+     */
     public function destroy(string $id): JsonResponse
     {
         try {
-            $table = RestaurantTable::findOrFail($id);
-
-            $activeOrders = $table->orders()
-                                  ->whereIn('status', ['pending', 'preparing', 'ready'])
-                                  ->count();
-
-            if ($activeOrders > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Cannot delete table with {$activeOrders} active order(s)",
-                ], 422);
-            }
-
-            $table->delete();
-
-            Log::info('Restaurant table deleted', [
-                'table_id' => $id,
-                'deleted_by' => auth()->id(),
-            ]);
+            $hotelId = $this->getHotelId();
+            $table = $this->tableService->getTable($id, $hotelId);
+            $this->tableService->deleteTable($table);
 
             return response()->json([
                 'success' => true,
@@ -309,11 +176,8 @@ class RestaurantTableController extends Controller
                 'message' => 'Restaurant table not found',
             ], 404);
 
-        } catch (\Exception $e) {
-            Log::error('Failed to delete restaurant table', [
-                'table_id' => $id,
-                'error' => $e->getMessage(),
-            ]);
+        } catch (Throwable $e) {
+            Log::error('Failed to delete restaurant table', ['table_id' => $id, 'error' => $e->getMessage()]);
 
             return response()->json([
                 'success' => false,
@@ -322,27 +186,21 @@ class RestaurantTableController extends Controller
         }
     }
 
+    /**
+     * Regenerate QR code for a table.
+     */
     public function regenerateQR(string $id): JsonResponse
     {
         try {
-            $table = RestaurantTable::findOrFail($id);
-
-            $table->regenerateQRCode();
-
-            Log::info('Restaurant table QR code regenerated', [
-                'table_id' => $id,
-                'regenerated_by' => auth()->id(),
-            ]);
+            $hotelId = $this->getHotelId();
+            $table = $this->tableService->getTable($id, $hotelId);
+            $newPath = $this->tableService->regenerateQR($table);
 
             return response()->json([
-                'success' => true,
-                'message' => 'QR code regenerated successfully',
-                'data' => [
-                    'qr_token' => $table->qr_token,
-                    'qr_image_path' => $table->qr_image_path,
-                    'qr_code_url' => $table->qr_code_url,
-                    'qr_generated_at' => $table->qr_generated_at,
-                ],
+                'success'     => true,
+                'message'     => 'QR code regenerated successfully',
+                'qr_token'    => $table->qr_token,
+                'qr_code_url' => $table->qr_code_url,
             ], 200);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -351,11 +209,8 @@ class RestaurantTableController extends Controller
                 'message' => 'Restaurant table not found',
             ], 404);
 
-        } catch (\Exception $e) {
-            Log::error('Failed to regenerate QR code', [
-                'table_id' => $id,
-                'error' => $e->getMessage(),
-            ]);
+        } catch (Throwable $e) {
+            Log::error('Failed to regenerate QR code', ['table_id' => $id, 'error' => $e->getMessage()]);
 
             return response()->json([
                 'success' => false,
@@ -364,35 +219,22 @@ class RestaurantTableController extends Controller
         }
     }
 
+    /**
+     * Get statistics of tables for the current tenant.
+     */
     public function statistics(): JsonResponse
     {
         try {
             $hotelId = $this->getHotelId();
-
-            $baseQuery = RestaurantTable::query()
-                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId));
-
-            $stats = [
-                'total' => (clone $baseQuery)->count(),
-                'active' => (clone $baseQuery)->where('is_active', true)->count(),
-                'available' => (clone $baseQuery)->where('status', RestaurantTable::STATUS_AVAILABLE)
-                                              ->where('is_active', true)
-                                              ->count(),
-                'occupied' => (clone $baseQuery)->where('status', RestaurantTable::STATUS_OCCUPIED)->count(),
-                'reserved' => (clone $baseQuery)->where('status', RestaurantTable::STATUS_RESERVED)->count(),
-                'cleaning' => (clone $baseQuery)->where('status', RestaurantTable::STATUS_CLEANING)->count(),
-                'out_of_service' => (clone $baseQuery)->where('status', RestaurantTable::STATUS_OUT_OF_SERVICE)->count(),
-            ];
+            $stats = $this->tableService->getStatistics($hotelId);
 
             return response()->json([
                 'success' => true,
-                'data' => $stats,
+                'data'    => $stats,
             ], 200);
 
-        } catch (\Exception $e) {
-            Log::error('Failed to fetch table statistics', [
-                'error' => $e->getMessage(),
-            ]);
+        } catch (Throwable $e) {
+            Log::error('Failed to fetch table statistics', ['error' => $e->getMessage()]);
 
             return response()->json([
                 'success' => false,
@@ -401,19 +243,24 @@ class RestaurantTableController extends Controller
         }
     }
 
+    /**
+     * Download QR image for a table.
+     */
     public function downloadQR(string $id)
     {
         try {
-            $table = RestaurantTable::findOrFail($id);
+            $hotelId = $this->getHotelId();
+            $table = $this->tableService->getTable($id, $hotelId);
+
             if (!$table->qr_image_path) {
-                $table->regenerateQRCode();
+                $this->tableService->regenerateQR($table);
             }
 
             $relativePath = ltrim(str_replace('/storage/', '', $table->qr_image_path), '/');
             $filePath = storage_path('app/public/' . $relativePath);
 
             if (!file_exists($filePath)) {
-                $table->regenerateQRCode();
+                $this->tableService->regenerateQR($table);
                 $relativePath = ltrim(str_replace('/storage/', '', $table->qr_image_path), '/');
                 $filePath = storage_path('app/public/' . $relativePath);
             }
@@ -430,11 +277,9 @@ class RestaurantTableController extends Controller
                 'Content-Type' => 'image/png',
                 'Access-Control-Allow-Origin' => '*',
             ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to download table QR image', [
-                'table_id' => $id,
-                'error' => $e->getMessage(),
-            ]);
+
+        } catch (Throwable $e) {
+            Log::error('Failed to download table QR image', ['table_id' => $id, 'error' => $e->getMessage()]);
 
             return response()->json([
                 'success' => false,

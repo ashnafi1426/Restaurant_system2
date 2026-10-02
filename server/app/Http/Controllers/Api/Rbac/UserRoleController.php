@@ -71,18 +71,25 @@ class UserRoleController extends Controller
 
         $users = $query->orderBy('first_name')->get();
 
-        $data = $users->map(function ($u) use ($hotelId) {
+        // Batch fetch direct permissions for all users in one query
+        $userIds = $users->pluck('id')->filter()->toArray();
+        $directPermsGrouped = collect();
+        if (!empty($userIds)) {
+            $directPermsQuery = \App\Models\UserPermission::whereIn('user_id', $userIds);
+            if ($hotelId) {
+                $directPermsQuery->where(function ($q) use ($hotelId) {
+                    $q->where('hotel_id', $hotelId)->orWhereNull('hotel_id');
+                });
+            }
+            $directPermsGrouped = $directPermsQuery->get()->groupBy('user_id');
+        }
+
+        $data = $users->map(function ($u) use ($hotelId, $directPermsGrouped) {
             $effectivePermissions = $this->authService->getEffectivePermissions($u, $hotelId);
             $activeRoles = $this->authService->getActiveRoles($u, $hotelId);
             $primaryRoleModel = $activeRoles->first();
 
-            $directQuery = \App\Models\UserPermission::where('user_id', $u->id);
-            if ($hotelId) {
-                $directQuery->where(function ($q) use ($hotelId) {
-                    $q->where('hotel_id', $hotelId)->orWhereNull('hotel_id');
-                });
-            }
-            $directPermissions = $directQuery->get();
+            $directPermissions = $directPermsGrouped->get($u->id, collect());
 
             $membership = $u->hotelMemberships->first();
             $membershipRoleStr = $membership?->role ?: $u->role;

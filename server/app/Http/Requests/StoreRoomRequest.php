@@ -2,6 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Floor;
+use App\Models\Hotel;
+use App\Services\TenantContext;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,37 +17,24 @@ class StoreRoomRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $hotelId = \App\Services\TenantContext::id()
+        $hotelId = TenantContext::id()
             ?: $this->header('X-Hotel-ID')
-            ?: $this->header('x-hotel-id')
-            ?: $this->input('hotel_id')
-            ?: $this->query('hotel_id')
-            ?: $this->user()?->hotel_id
             ?: $this->user()?->hotelMemberships()->where('is_active', true)->value('hotel_id')
-            ?: \App\Models\Hotel::first()?->id;
+            ?: Hotel::first()?->id;
 
-        // Disallow frontend from manually choosing hotel_id
         $this->merge(['hotel_id' => $hotelId]);
 
         if ($this->filled('floor_id')) {
-            $floorNumber = \App\Models\Floor::where('id', $this->floor_id)->value('floor_number');
+            $floorNumber = Floor::where('id', $this->floor_id)->value('floor_number');
             if ($floorNumber !== null) {
                 $this->merge(['floor' => $floorNumber]);
             }
         } elseif ($this->filled('floor')) {
-            $floorId = \App\Models\Floor::where('floor_number', $this->floor)
+            $floorId = Floor::where('floor_number', $this->floor)
                 ->when($hotelId, fn($q) => $q->where(function ($sq) use ($hotelId) {
                     $sq->where('hotel_id', $hotelId)->orWhereNull('hotel_id');
                 }))
                 ->value('id');
-
-            if (!$floorId && $hotelId) {
-                $createdFloor = \App\Models\HotelFloor::withoutTenant()->firstOrCreate(
-                    ['hotel_id' => $hotelId, 'floor_number' => (int)$this->floor],
-                    ['name' => "Floor {$this->floor}", 'description' => "Floor {$this->floor}", 'is_active' => true]
-                );
-                $floorId = $createdFloor->id;
-            }
 
             if ($floorId) {
                 $this->merge(['floor_id' => $floorId]);

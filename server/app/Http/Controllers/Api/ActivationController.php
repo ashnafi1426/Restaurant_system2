@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ActivateAccountRequest;
 use App\Http\Requests\ResendActivationRequest;
+use App\Models\User;
 use App\Services\ActivationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,12 +13,9 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class ActivationController extends Controller
 {
-    protected ActivationService $activationService;
-
-    public function __construct(ActivationService $activationService)
-    {
-        $this->activationService = $activationService;
-    }
+    public function __construct(
+        protected ActivationService $activationService
+    ) {}
 
     public function validateToken(string $token): JsonResponse
     {
@@ -132,7 +130,7 @@ class ActivationController extends Controller
             'email' => 'required|email'
         ]);
         
-        $user = \App\Models\User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->first();
         
         if (!$user) {
             return response()->json([

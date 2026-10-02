@@ -3,48 +3,28 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\GuestStoreOrderRequest;
 use App\Services\GuestOrderService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 use Throwable;
 
 class UnifiedOrderController extends Controller
 {
-    protected GuestOrderService $guestOrderService;
+    public function __construct(protected GuestOrderService $guestOrderService) {}
 
-    public function __construct(GuestOrderService $guestOrderService)
-    {
-        $this->guestOrderService = $guestOrderService;
-    }
-
-    public function store(Request $request): JsonResponse
+    public function store(GuestStoreOrderRequest $request): JsonResponse
     {
         return $this->createOrder($request);
     }
 
-    public function createOrder(Request $request): JsonResponse
+    public function createOrder(GuestStoreOrderRequest $request): JsonResponse
     {
         try {
-            $validated = $request->validate([
-                'qr_token' => 'required|string|min:8|max:30',
-                'items' => 'required|array|min:1',
-                'items.*.menu_item_id' => 'required|uuid|exists:menu_items,id',
-                'items.*.quantity' => 'required|integer|min:1|max:100',
-                'special_requests' => 'nullable|string|max:500',
-                'payment_type' => 'nullable|in:room_charge,cash,card',
-            ]);
-
-            $result = $this->guestOrderService->placeOrder($validated);
+            $result = $this->guestOrderService->placeOrder($request->validated());
 
             return response()->json($result['response'], $result['status_code']);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Validation failed',
-                'errors' => $e->errors(),
-            ], 422);
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             return response()->json([
                 'success' => false,
                 'error' => 'Invalid order data',

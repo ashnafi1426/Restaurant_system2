@@ -45,6 +45,8 @@ class MenuItemResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'category' => $this->category,
+            'category_id' => $this->category_id,
+            'category_name' => $this->relationLoaded('categoryRelation') ? ($this->categoryRelation?->name ?? $this->category) : $this->category,
             'price' => $price,
             'formatted_price' => number_format($price, 2),
             'base_price' => $basePrice,

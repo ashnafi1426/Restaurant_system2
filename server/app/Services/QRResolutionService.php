@@ -157,6 +157,8 @@ class QRResolutionService
                         'table_name' => $table->table_name ?? ('Table ' . $table->table_number),
                         'capacity' => $table->capacity,
                         'location' => $table->location,
+                        'section_id' => $table->section_id,
+                        'section' => $table->section_name,
                         'status' => $table->status,
                         'assigned_waiter' => $assignedWaiter,
                         'is_checked_in' => true,

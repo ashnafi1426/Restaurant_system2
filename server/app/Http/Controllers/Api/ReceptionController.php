@@ -7,13 +7,26 @@ use App\Models\CheckIn;
 use App\Models\Guest;
 use App\Models\Reservation;
 use App\Models\Room;
+use App\Services\TenantContext;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ReceptionController extends Controller
 {
-    public function index(): JsonResponse
+    /**
+     * Display real-time front desk metrics, arrivals, departures, and room matrix.
+     */
+    public function index(Request $request): JsonResponse
     {
+        $hotelId = $request->input('hotel_id')
+            ?: $request->header('X-Hotel-ID')
+            ?: TenantContext::id();
+
+        if ($hotelId) {
+            app(TenantContext::class)->setHotelId($hotelId);
+        }
+
         $today = Carbon::today();
 
         $statistics = [
@@ -26,20 +39,14 @@ class ReceptionController extends Controller
             'confirmed_reservations' => Reservation::where('status', 'confirmed')->count(),
         ];
 
-        $todayArrivals = Reservation::with([
-                'guest',
-                'room.roomType'
-            ])
+        $todayArrivals = Reservation::with(['guest', 'room.roomType'])
             ->whereIn('status', ['confirmed', 'pending'])
             ->whereDate('check_in_date', '<=', $today)
             ->whereDoesntHave('checkIn')
             ->orderBy('check_in_date', 'asc')
             ->get();
 
-        $todayDepartures = CheckIn::with([
-                'guest',
-                'room.roomType'
-            ])
+        $todayDepartures = CheckIn::with(['guest', 'room.roomType'])
             ->whereDate('expected_check_out_at', '<=', $today)
             ->whereNull('checked_out_at')
             ->orderBy('expected_check_out_at', 'asc')
@@ -51,7 +58,7 @@ class ReceptionController extends Controller
                 'room_number',
                 'floor',
                 'status',
-                'room_type_id'
+                'room_type_id',
             ])
             ->orderBy('floor')
             ->orderBy('room_number')
@@ -61,24 +68,19 @@ class ReceptionController extends Controller
             ->take(10)
             ->get();
 
-        $recentReservations = Reservation::with([
-                'guest',
-                'room'
-            ])
+        $recentReservations = Reservation::with(['guest', 'room'])
             ->latest()
             ->take(10)
             ->get();
 
-        $activeCheckIns = CheckIn::with([
-                'guest',
-                'room'
-            ])
+        $activeCheckIns = CheckIn::with(['guest', 'room'])
             ->whereNull('checked_out_at')
             ->latest()
             ->take(10)
             ->get();
 
         return response()->json([
+            'success' => true,
             'statistics' => $statistics,
             'today_arrivals' => $todayArrivals,
             'today_departures' => $todayDepartures,
