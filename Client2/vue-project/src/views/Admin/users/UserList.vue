@@ -15,12 +15,15 @@ const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
 
 onMounted(async () => {
-  await userStore.fetchUsers()
+  const hasUsers = (userStore.users || []).length > 0
+  await userStore.fetchUsers({}, hasUsers)
 })
 
 // Re-fetch users whenever the selected hotel in the Navbar changes
-watch(() => hotelStore.hotelId, async () => {
-  await userStore.fetchUsers()
+watch(() => hotelStore.hotelId, async (newId, oldId) => {
+  if (newId && oldId && newId !== oldId) {
+    await userStore.fetchUsers({}, false)
+  }
 })
 
 const totalUsers = computed(() => (userStore.users || []).length)

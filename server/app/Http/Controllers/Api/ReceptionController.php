@@ -14,9 +14,7 @@ use Illuminate\Http\Request;
 
 class ReceptionController extends Controller
 {
-    /**
-     * Display real-time front desk metrics, arrivals, departures, and room matrix.
-     */
+    
     public function index(Request $request): JsonResponse
     {
         $hotelId = $request->input('hotel_id')

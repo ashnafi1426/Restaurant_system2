@@ -15,6 +15,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('waiter_floor_assignments', function (Blueprint $table) {
+            if (!Schema::hasColumn('waiter_floor_assignments', 'shift_id')) {
+                $table->uuid('shift_id')->nullable();
+            }
+            if (!Schema::hasColumn('waiter_floor_assignments', 'assignment_date')) {
+                $table->date('assignment_date')->nullable();
+            }
+            if (!Schema::hasColumn('waiter_floor_assignments', 'status')) {
+                $table->string('status', 50)->default('assigned');
+            }
+            if (!Schema::hasColumn('waiter_floor_assignments', 'priority')) {
+                $table->string('priority', 50)->default('primary');
+            }
+            if (!Schema::hasColumn('waiter_floor_assignments', 'assigned_by')) {
+                $table->uuid('assigned_by')->nullable();
+            }
+
             // Add index on assignment_date for daily assignment queries
             if (!$this->indexExists('waiter_floor_assignments', 'waiter_floor_assignments_assignment_date_index')) {
                 $table->index('assignment_date', 'waiter_floor_assignments_assignment_date_index');
@@ -33,7 +49,11 @@ return new class extends Migration
 
         // Add unique constraint preventing duplicate assignments: same waiter to same floor on same shift in same day
         if (!$this->uniqueConstraintExists('waiter_floor_assignments', 'wfa_waiter_floor_shift_date_unique')) {
-            DB::statement('ALTER TABLE waiter_floor_assignments ADD UNIQUE KEY wfa_waiter_floor_shift_date_unique (waiter_id, floor_id, shift_id, assignment_date)');
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                DB::statement('ALTER TABLE waiter_floor_assignments ADD CONSTRAINT wfa_waiter_floor_shift_date_unique UNIQUE (waiter_id, floor_id, shift_id, assignment_date)');
+            } else {
+                DB::statement('ALTER TABLE waiter_floor_assignments ADD UNIQUE KEY wfa_waiter_floor_shift_date_unique (waiter_id, floor_id, shift_id, assignment_date)');
+            }
         }
     }
 
@@ -51,7 +71,11 @@ return new class extends Migration
 
         // Drop unique constraint
         if ($this->uniqueConstraintExists('waiter_floor_assignments', 'wfa_waiter_floor_shift_date_unique')) {
-            DB::statement('ALTER TABLE waiter_floor_assignments DROP INDEX wfa_waiter_floor_shift_date_unique');
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                DB::statement('ALTER TABLE waiter_floor_assignments DROP CONSTRAINT IF EXISTS wfa_waiter_floor_shift_date_unique');
+            } else {
+                DB::statement('ALTER TABLE waiter_floor_assignments DROP INDEX wfa_waiter_floor_shift_date_unique');
+            }
         }
     }
 
@@ -60,6 +84,10 @@ return new class extends Migration
      */
     private function indexExists(string $table, string $indexName): bool
     {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            $indexes = DB::select("SELECT indexname FROM pg_indexes WHERE tablename = ? AND indexname = ?", [$table, $indexName]);
+            return count($indexes) > 0;
+        }
         $indexes = DB::select("SELECT * FROM information_schema.STATISTICS WHERE TABLE_NAME=? AND INDEX_NAME=?", [$table, $indexName]);
         return count($indexes) > 0;
     }
@@ -69,6 +97,10 @@ return new class extends Migration
      */
     private function uniqueConstraintExists(string $table, string $constraintName): bool
     {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            $constraints = DB::select("SELECT conname FROM pg_constraint WHERE conname = ?", [$constraintName]);
+            return count($constraints) > 0;
+        }
         $constraints = DB::select("SELECT * FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_NAME=? AND CONSTRAINT_NAME=?", [$table, $constraintName]);
         return count($constraints) > 0;
     }
@@ -79,7 +111,11 @@ return new class extends Migration
     private function dropIndexIfExists(string $table, string $indexName): void
     {
         if ($this->indexExists($table, $indexName)) {
-            DB::statement("ALTER TABLE $table DROP INDEX $indexName");
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                DB::statement("DROP INDEX IF EXISTS $indexName");
+            } else {
+                DB::statement("ALTER TABLE $table DROP INDEX $indexName");
+            }
         }
     }
 };

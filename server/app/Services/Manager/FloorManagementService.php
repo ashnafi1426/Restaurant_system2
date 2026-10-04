@@ -26,10 +26,6 @@ class FloorManagementService
             ?: request()->header('x-hotel-id')
             ?: auth()->user()?->hotel_id;
 
-        if ($hotelId) {
-            $this->ensureFloorsExistForHotel($hotelId);
-        }
-
         $query = Floor::query()->withCount('rooms');
 
         if ($hotelId) {
@@ -51,7 +47,15 @@ class FloorManagementService
             });
         }
 
-        return $query->orderBy('floor_number')->paginate($perPage);
+        $floors = $query->orderBy('floor_number')->paginate($perPage);
+
+        // Only auto-seed/backfill if no floors exist and this is an unfiltered query
+        if ($floors->isEmpty() && $hotelId && empty($filters['search']) && !isset($filters['is_active'])) {
+            $this->ensureFloorsExistForHotel($hotelId);
+            $floors = $query->orderBy('floor_number')->paginate($perPage);
+        }
+
+        return $floors;
     }
 
     /**

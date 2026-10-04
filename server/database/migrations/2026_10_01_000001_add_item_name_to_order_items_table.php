@@ -21,12 +21,22 @@ return new class extends Migration
 
             // Backfill existing order_items with menu_item name
             try {
-                DB::statement("
-                    UPDATE order_items 
-                    JOIN menu_items ON order_items.menu_item_id = menu_items.id 
-                    SET order_items.item_name = menu_items.name 
-                    WHERE order_items.item_name IS NULL
-                ");
+                if (DB::connection()->getDriverName() === 'pgsql') {
+                    DB::statement("
+                        UPDATE order_items 
+                        SET item_name = menu_items.name 
+                        FROM menu_items 
+                        WHERE order_items.menu_item_id = menu_items.id 
+                        AND order_items.item_name IS NULL
+                    ");
+                } else {
+                    DB::statement("
+                        UPDATE order_items 
+                        JOIN menu_items ON order_items.menu_item_id = menu_items.id 
+                        SET order_items.item_name = menu_items.name 
+                        WHERE order_items.item_name IS NULL
+                    ");
+                }
             } catch (\Throwable $e) {
                 // Ignore if driver differs or tables empty
             }

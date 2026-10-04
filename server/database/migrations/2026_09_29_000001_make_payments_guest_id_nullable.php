@@ -13,29 +13,38 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('payments')) {
-            try {
-                // Ensure guest_id is nullable on MySQL
-                DB::statement("ALTER TABLE `payments` MODIFY `guest_id` CHAR(36) NULL");
-            } catch (\Throwable $e) {
-                // Fallback using Schema builder
+            if (DB::connection()->getDriverName() === 'pgsql') {
                 try {
-                    Schema::table('payments', function (Blueprint $table) {
-                        $table->uuid('guest_id')->nullable()->change();
-                    });
-                } catch (\Throwable $e2) {
-                    // Ignore if already nullable
+                    DB::statement('ALTER TABLE payments ALTER COLUMN guest_id DROP NOT NULL');
+                } catch (\Throwable $e) {}
+                try {
+                    DB::statement('ALTER TABLE payments ALTER COLUMN invoice_id DROP NOT NULL');
+                } catch (\Throwable $e) {}
+            } else {
+                try {
+                    // Ensure guest_id is nullable on MySQL
+                    DB::statement("ALTER TABLE `payments` MODIFY `guest_id` CHAR(36) NULL");
+                } catch (\Throwable $e) {
+                    // Fallback using Schema builder
+                    try {
+                        Schema::table('payments', function (Blueprint $table) {
+                            $table->uuid('guest_id')->nullable()->change();
+                        });
+                    } catch (\Throwable $e2) {
+                        // Ignore if already nullable
+                    }
                 }
-            }
 
-            try {
-                // Ensure invoice_id is nullable on MySQL
-                DB::statement("ALTER TABLE `payments` MODIFY `invoice_id` CHAR(36) NULL");
-            } catch (\Throwable $e) {
                 try {
-                    Schema::table('payments', function (Blueprint $table) {
-                        $table->uuid('invoice_id')->nullable()->change();
-                    });
-                } catch (\Throwable $e2) {}
+                    // Ensure invoice_id is nullable on MySQL
+                    DB::statement("ALTER TABLE `payments` MODIFY `invoice_id` CHAR(36) NULL");
+                } catch (\Throwable $e) {
+                    try {
+                        Schema::table('payments', function (Blueprint $table) {
+                            $table->uuid('invoice_id')->nullable()->change();
+                        });
+                    } catch (\Throwable $e2) {}
+                }
             }
         }
     }

@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            return;
+        }
+
         // Fix the waiter_assignments table: change order_id from unsignedBigInteger to uuid
         if (Schema::hasTable('waiter_assignments')) {
             // Disable foreign key checks to allow modifications

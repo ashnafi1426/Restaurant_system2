@@ -61,17 +61,14 @@ class DashboardController extends Controller
 
             // 3. Staff & User metrics
             if ($hotelId) {
+                // Users are linked via hotel_users pivot table, not direct hotel_id column
                 $totalUsers = HotelUser::where('hotel_id', $hotelId)->count();
-                $activeStaff = HotelUser::where('hotel_id', $hotelId)->where('is_active', true)->count();
-                if ($totalUsers === 0) {
-                    $totalUsers = User::where('hotel_id', $hotelId)->count();
-                    $activeStaff = User::where('hotel_id', $hotelId)->where('is_active', true)->count();
-                }
+                $activeStaff = HotelUser::where('hotel_id', $hotelId)
+                    ->where('is_active', true)->count();
             } else {
                 $totalUsers = User::count();
                 $activeStaff = User::where('is_active', true)->count();
             }
-
             // 4. Revenue calculation (Today)
             $today = Carbon::today();
             $todayRevenue = 0.0;

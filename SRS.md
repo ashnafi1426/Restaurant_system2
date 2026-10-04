@@ -151,11 +151,11 @@ The RMS operates as a distributed multi-tenant web application. Guests interact 
 1. **Network Connectivity:** Uninterrupted local or cloud network connectivity for real-time order dispatching.
 2. **Zero-Friction Guest Access:** Guests must never be blocked by mandatory login screens when scanning a table/room QR code.
 3. **Currency & Tax Localization:** System must calculate dynamic tax and service charge percentages on a per-hotel basis.
-
----
+--
 
 ## 3. Specific System & Functional Requirements
 
+-
 ### 3.1 Multi-Tenant Hotel Scoping & Data Isolation Engine
 
 * **REQ-1.1:** Every core entity table (`users`, `rooms`, `restaurant_tables`, `categories`, `menu_items`, `orders`, `reservations`, `payments`, `complaint_tickets`, `reviews`) **MUST** contain a `hotel_id` foreign key column.
@@ -416,7 +416,6 @@ $$\text{Total Payable} = \text{Taxable Basis} + \text{Tax (VAT) Amount} - \text{
             ├──< [complaint_tickets] (ticket_number, subject, status)
             └──< [reviews] (rating, comment)
 ```
-
 ---
 
 ## 7. System Verification & Acceptance Criteria

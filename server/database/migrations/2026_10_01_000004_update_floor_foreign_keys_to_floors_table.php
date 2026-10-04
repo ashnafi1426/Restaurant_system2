@@ -54,14 +54,18 @@ return new class extends Migration
 
         // 2. Update rooms.floor_id foreign key to point to floors table
         if (Schema::hasTable('rooms') && Schema::hasTable('floors')) {
-            Schema::table('rooms', function (Blueprint $table) {
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                DB::statement('ALTER TABLE rooms DROP CONSTRAINT IF EXISTS rooms_floor_id_foreign');
+            } else {
                 try {
-                    $table->dropForeign('rooms_floor_id_foreign');
+                    Schema::table('rooms', function (Blueprint $table) {
+                        $table->dropForeign('rooms_floor_id_foreign');
+                    });
                 } catch (\Throwable $e) {}
-            });
+            }
 
             // Clean any orphaned floor_ids before adding FK
-            DB::statement("UPDATE `rooms` SET `floor_id` = NULL WHERE `floor_id` IS NOT NULL AND `floor_id` NOT IN (SELECT `id` FROM `floors`)");
+            DB::statement("UPDATE rooms SET floor_id = NULL WHERE floor_id IS NOT NULL AND floor_id NOT IN (SELECT id FROM floors)");
 
             try {
                 Schema::table('rooms', function (Blueprint $table) {
@@ -77,11 +81,15 @@ return new class extends Migration
 
         // 3. Update waiter_floor_assignments.floor_id foreign key if needed
         if (Schema::hasTable('waiter_floor_assignments') && Schema::hasTable('floors')) {
-            Schema::table('waiter_floor_assignments', function (Blueprint $table) {
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                DB::statement('ALTER TABLE waiter_floor_assignments DROP CONSTRAINT IF EXISTS waiter_floor_assignments_floor_id_foreign');
+            } else {
                 try {
-                    $table->dropForeign('waiter_floor_assignments_floor_id_foreign');
+                    Schema::table('waiter_floor_assignments', function (Blueprint $table) {
+                        $table->dropForeign('waiter_floor_assignments_floor_id_foreign');
+                    });
                 } catch (\Throwable $e) {}
-            });
+            }
 
             try {
                 Schema::table('waiter_floor_assignments', function (Blueprint $table) {

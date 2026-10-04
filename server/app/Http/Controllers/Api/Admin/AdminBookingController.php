@@ -17,9 +17,6 @@ class AdminBookingController extends Controller
         protected ReservationService $reservationService
     ) {}
 
-    /**
-     * Display a listing of bookings for the current hotel.
-     */
     public function index(Request $request): JsonResponse
     {
         $hotelId = TenantContext::id();

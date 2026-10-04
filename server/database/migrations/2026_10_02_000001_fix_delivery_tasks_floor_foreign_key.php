@@ -34,16 +34,20 @@ return new class extends Migration
 
         // 2. Drop legacy foreign key on delivery_tasks pointing to hotel_floors
         if (Schema::hasTable('delivery_tasks')) {
-            Schema::table('delivery_tasks', function (Blueprint $table) {
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                DB::statement('ALTER TABLE delivery_tasks DROP CONSTRAINT IF EXISTS delivery_tasks_floor_id_foreign');
+            } else {
                 try {
-                    $table->dropForeign('delivery_tasks_floor_id_foreign');
+                    Schema::table('delivery_tasks', function (Blueprint $table) {
+                        $table->dropForeign('delivery_tasks_floor_id_foreign');
+                    });
                 } catch (\Throwable $e) {}
-            });
+            }
 
             // 3. Re-add foreign key pointing to floors table
             if (Schema::hasTable('floors')) {
                 // Set any invalid floor_id to NULL before adding constraint
-                DB::statement("UPDATE `delivery_tasks` SET `floor_id` = NULL WHERE `floor_id` IS NOT NULL AND `floor_id` NOT IN (SELECT `id` FROM `floors`)");
+                DB::statement("UPDATE delivery_tasks SET floor_id = NULL WHERE floor_id IS NOT NULL AND floor_id NOT IN (SELECT id FROM floors)");
 
                 try {
                     Schema::table('delivery_tasks', function (Blueprint $table) {
@@ -62,11 +66,15 @@ return new class extends Migration
     public function down(): void
     {
         if (Schema::hasTable('delivery_tasks')) {
-            Schema::table('delivery_tasks', function (Blueprint $table) {
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                DB::statement('ALTER TABLE delivery_tasks DROP CONSTRAINT IF EXISTS delivery_tasks_floor_id_foreign');
+            } else {
                 try {
-                    $table->dropForeign(['floor_id']);
+                    Schema::table('delivery_tasks', function (Blueprint $table) {
+                        $table->dropForeign(['floor_id']);
+                    });
                 } catch (\Throwable $e) {}
-            });
+            }
         }
     }
 };

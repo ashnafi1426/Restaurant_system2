@@ -16,7 +16,11 @@ return new class extends Migration
     {
         // Drop the incorrect unique constraint that includes priority
         try {
-            DB::statement('ALTER TABLE waiter_floor_assignments DROP INDEX wfa_floor_shift_date_priority');
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                DB::statement('DROP INDEX IF EXISTS wfa_floor_shift_date_priority');
+            } else {
+                DB::statement('ALTER TABLE waiter_floor_assignments DROP INDEX wfa_floor_shift_date_priority');
+            }
             echo "Dropped incorrect constraint: wfa_floor_shift_date_priority\n";
         } catch (\Exception $e) {
             echo "Constraint wfa_floor_shift_date_priority does not exist or could not be dropped\n";

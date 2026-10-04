@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
@@ -139,6 +139,7 @@ Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']
 
 Route::post('/verify-reset-token', [PasswordResetController::class, 'verifyToken']);
 Route::get('/rooms', [RoomController::class, 'index']);
+Route::get('/rooms/options', [RoomController::class, 'options']);
 Route::get('/rooms/{room}', [RoomController::class, 'show']);
 Route::get('/room-types', [RoomTypeController::class, 'index']);
 Route::get('/room-types/{roomType}', [RoomTypeController::class, 'show']);

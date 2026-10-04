@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+﻿<script setup lang="ts">
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import RoomStatusBadge from './RoomStatusBadge.vue'
 import { useLanguageStore } from '@/stores/language'
 import type { Room } from '../../types/room'
@@ -25,14 +25,25 @@ import {
   Loader2,
 } from 'lucide-vue-next'
 
+interface PaginationMeta {
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+  from: number
+  to: number
+}
+
 const props = withDefaults(
   defineProps<{
     rooms?: Room[]
     loading?: boolean
+    pagination?: PaginationMeta | null
   }>(),
   {
     rooms: () => [],
     loading: false,
+    pagination: null,
   },
 )
 
@@ -42,67 +53,32 @@ const emit = defineEmits<{
   (e: 'delete', room: Room): void
   (e: 'refresh'): void
   (e: 'create'): void
+  (e: 'filter-change', filters: Record<string, any>): void
+  (e: 'page-change', page: number): void
+  (e: 'per-page-change', perPage: number): void
 }>()
 
 const openMenu = ref<string | null>(null)
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
 
+// Filter state - now sent to parent/API instead of filtering client-side
 const search = ref('')
 const statusFilter = ref('')
 const floorFilter = ref('')
 const activeFilter = ref('')
 
-const currentPage = ref(1)
-const perPage = ref(10)
+// Pagination now comes from API response
+const currentPage = computed(() => props.pagination?.current_page || 1)
+const lastPage = computed(() => props.pagination?.last_page || 1)
+const perPage = ref(25)
+const total = computed(() => props.pagination?.total || 0)
 
-const filteredList = computed(() => {
-  let list = props.rooms || []
+// Rooms displayed are directly from props (already filtered/paginated by API)
+const displayedRooms = computed(() => props.rooms || [])
 
-  if (search.value.trim()) {
-    const q = search.value.toLowerCase().trim()
-    list = list.filter((r) => {
-      const num = String(r.room_number || '').toLowerCase()
-      const typeName = String(r.room_type?.name || '').toLowerCase()
-      const floor = String(r.floor || '').toLowerCase()
-      const desc = String(r.description || '').toLowerCase()
-      return num.includes(q) || typeName.includes(q) || floor.includes(q) || desc.includes(q)
-    })
-  }
-
-  if (statusFilter.value !== '') {
-    list = list.filter((r) => String(r.status || '').toLowerCase() === statusFilter.value.toLowerCase())
-  }
-
-  if (floorFilter.value !== '') {
-    list = list.filter((r) => String(r.floor || '') === floorFilter.value)
-  }
-
-  if (activeFilter.value !== '') {
-    const isActive = activeFilter.value === 'active'
-    list = list.filter((r) => r.is_active === isActive)
-  }
-
-  return list
-})
-
-const total = computed(() => filteredList.value.length)
-const lastPage = computed(() => Math.ceil(total.value / perPage.value) || 1)
-
-const paginatedRooms = computed(() => {
-  const start = (currentPage.value - 1) * perPage.value
-  const end = start + perPage.value
-  return filteredList.value.slice(start, end)
-})
-
-const showingFrom = computed(() => {
-  if (total.value === 0) return 0
-  return (currentPage.value - 1) * perPage.value + 1
-})
-
-const showingTo = computed(() => {
-  return Math.min(currentPage.value * perPage.value, total.value)
-})
+const showingFrom = computed(() => props.pagination?.from || 0)
+const showingTo = computed(() => props.pagination?.to || 0)
 
 const paginationPages = computed(() => {
   const pages: number[] = []
@@ -115,31 +91,57 @@ const paginationPages = computed(() => {
   return pages
 })
 
+// Watch filters and emit changes to parent (which will call API)
 watch([search, statusFilter, floorFilter, activeFilter], () => {
-  currentPage.value = 1
+  emitFilterChange()
 })
+
+const emitFilterChange = () => {
+  const filters: Record<string, any> = {}
+  
+  if (search.value.trim()) {
+    filters.search = search.value.trim()
+  }
+  if (statusFilter.value) {
+    filters.status = statusFilter.value
+  }
+  if (floorFilter.value) {
+    filters.floor = floorFilter.value
+  }
+  if (activeFilter.value) {
+    filters.is_active = activeFilter.value === 'active' ? '1' : '0'
+  }
+  
+  filters.page = 1 // Reset to page 1 on filter change
+  filters.per_page = perPage.value
+  
+  emit('filter-change', filters)
+}
 
 const changePerPage = (event: Event) => {
   const target = event.target as HTMLSelectElement
   perPage.value = Number(target.value)
-  currentPage.value = 1
+  emit('per-page-change', perPage.value)
+  
+  // Re-emit filters with new per_page
+  emitFilterChange()
 }
 
 const goToPage = (p: number) => {
-  if (p >= 1 && p <= lastPage.value) {
-    currentPage.value = p
+  if (p >= 1 && p <= lastPage.value && p !== currentPage.value) {
+    emit('page-change', p)
   }
 }
 
 const prevPage = () => {
   if (currentPage.value > 1) {
-    currentPage.value--
+    goToPage(currentPage.value - 1)
   }
 }
 
 const nextPage = () => {
   if (currentPage.value < lastPage.value) {
-    currentPage.value++
+    goToPage(currentPage.value + 1)
   }
 }
 
@@ -148,7 +150,10 @@ const resetFilters = () => {
   statusFilter.value = ''
   floorFilter.value = ''
   activeFilter.value = ''
-  currentPage.value = 1
+  perPage.value = 25
+  
+  // Emit empty filters to parent
+  emit('filter-change', { page: 1, per_page: 25 })
 }
 
 const toggleFilter = () => {
@@ -365,7 +370,7 @@ onBeforeUnmount(() => {
 
             <template v-else>
               <tr
-                v-for="room in paginatedRooms"
+                v-for="room in displayedRooms"
                 :key="room.id"
                 class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
               >
@@ -463,7 +468,7 @@ onBeforeUnmount(() => {
                 </td>
               </tr>
 
-              <tr v-if="paginatedRooms.length === 0">
+              <tr v-if="displayedRooms.length === 0">
                 <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
                   {{ languageStore.t('no_rooms_match', 'No rooms match your current search or filter criteria.') }}
                 </td>
@@ -480,7 +485,7 @@ onBeforeUnmount(() => {
         </div>
         <template v-else>
           <div
-            v-for="room in paginatedRooms"
+            v-for="room in displayedRooms"
             :key="room.id"
             class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
           >
@@ -520,7 +525,7 @@ onBeforeUnmount(() => {
               </button>
             </div>
           </div>
-          <div v-if="paginatedRooms.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">
+          <div v-if="displayedRooms.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">
             {{ languageStore.t('no_rooms_match', 'No rooms match your current search or filter criteria.') }}
           </div>
         </template>
@@ -545,8 +550,9 @@ onBeforeUnmount(() => {
               class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
             >
               <option :value="10">10</option>
-              <option :value="20">20</option>
+              <option :value="25">25</option>
               <option :value="50">50</option>
+              <option :value="100">100</option>
             </select>
           </div>
 

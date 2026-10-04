@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Api;
 
@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRoomRequest;
 use App\Http\Requests\UpdateRoomRequest;
 use App\Http\Resources\RoomResource;
+use App\Http\Resources\RoomListResource;
 use App\Models\Room;
 use App\Services\RoomService;
 use Illuminate\Http\JsonResponse;
@@ -20,14 +21,60 @@ class RoomController extends Controller
         protected RoomService $roomService
     ) {}
 
+    /**
+     * Get paginated room list with lightweight resources
+     */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $filters = $request->only(['search', 'status', 'room_type_id', 'is_active']);
-        $perPage = $request->integer('per_page', 100);
+        $filters = $request->only([
+            'search',
+            'status',
+            'room_type_id',
+            'is_active',
+        ]);
 
-        $rooms = $this->roomService->paginate($filters, $perPage);
+        // Cap per_page between 1 and 100
+        $perPage = min(
+            max($request->integer('per_page', 25), 1),
+            100
+        );
 
-        return RoomResource::collection($rooms);
+        $rooms = $this->roomService->paginate(
+            $filters,
+            $perPage
+        );
+
+        // Use lightweight RoomListResource for better performance
+        return RoomListResource::collection($rooms);
+    }
+
+    /**
+     * Get lightweight room options for dropdowns
+     * Returns only id and room_number
+     */
+    public function options(Request $request): JsonResponse
+    {
+        $filters = [];
+        
+        // Allow filtering by hotel_id if provided
+        if ($request->has('hotel_id')) {
+            $filters['hotel_id'] = $request->input('hotel_id');
+        }
+        
+        // Get all rooms matching filters, but only essential fields
+        $rooms = $this->roomService
+            ->getRoomsQuery($filters)
+            ->select(['id', 'room_number'])
+            ->orderBy('room_number')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $rooms->map(fn($room) => [
+                'id' => $room->id,
+                'room_number' => $room->room_number,
+            ]),
+        ]);
     }
 
     public function store(StoreRoomRequest $request): JsonResponse

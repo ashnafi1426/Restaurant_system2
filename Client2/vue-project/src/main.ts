@@ -29,16 +29,9 @@ app.config.globalProperties.t = (key: string, fallback?: string) => languageStor
 const loaderStore = usePageLoaderStore(pinia)
 loaderStore.showLoader('Loading...')
 
+// OPTIMIZED: Don't block app initialization on auth
 router.isReady().then(async () => {
-  const authStore = useAuthStore(pinia)
-  if (authStore.token) {
-    try {
-      await authStore.initializeAuth()
-    } catch (e) {
-      console.error('[MAIN] Session initialization error:', e)
-    }
-  }
-
+  // Mount app immediately - don't wait for auth
   if (initialLoader) {
     initialLoader.style.opacity = '0'
     setTimeout(() => {
@@ -48,7 +41,17 @@ router.isReady().then(async () => {
   
   app.mount('#app')
   
+  // Initialize auth in background (non-blocking)
+  const authStore = useAuthStore(pinia)
+  if (authStore.token) {
+    // Don't await - let it happen in background
+    authStore.initializeAuth().catch((e) => {
+      console.error('[MAIN] Session initialization error:', e)
+    })
+  }
+  
+  // Hide loader quickly
   setTimeout(() => {
     loaderStore.hideLoader()
-  }, 1000)
+  }, 500) // Reduced from 1000ms to 500ms
 })

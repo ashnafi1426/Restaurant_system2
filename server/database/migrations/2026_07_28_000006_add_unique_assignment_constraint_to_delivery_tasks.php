@@ -19,6 +19,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            try {
+                DB::statement("CREATE UNIQUE INDEX IF NOT EXISTS unique_active_delivery ON delivery_tasks (order_id, status) WHERE status != 'cancelled'");
+            } catch (\Exception $e) {
+                \Log::warning('Could not create partial unique index on delivery_tasks: ' . $e->getMessage());
+            }
+            return;
+        }
+
         // Strategy 1: Try conditional unique constraint (MySQL 8.0.13+)
         try {
             DB::statement(
@@ -61,6 +70,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement('DROP INDEX IF EXISTS unique_active_delivery');
+            return;
+        }
+
         try {
             // Try to drop the conditional unique constraint
             DB::statement('ALTER TABLE delivery_tasks DROP INDEX unique_active_delivery');

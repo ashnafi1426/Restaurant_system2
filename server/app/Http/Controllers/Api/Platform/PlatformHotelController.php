@@ -47,6 +47,7 @@ class PlatformHotelController extends Controller
         $recentHotels = Hotel::with(['users' => function ($q) {
             $q->wherePivot('role', 'admin');
         }])
+        ->withCount(['rooms', 'reservations'])
         ->latest()
         ->take(5)
         ->get()
@@ -57,17 +58,18 @@ class PlatformHotelController extends Controller
                 'slug' => $h->slug,
                 'city' => $h->city,
                 'status' => $h->status,
-                'rooms_count' => Room::withoutTenant()->where('hotel_id', $h->id)->count(),
+                'rooms_count' => $h->rooms_count,
                 'admin' => $h->users->first() ? ($h->users->first()->first_name . ' ' . $h->users->first()->last_name) : 'Unassigned',
                 'created_at' => $h->created_at->format('Y-m-d'),
             ];
             });
-        $topHotels = Hotel::take(5)->get()->map(function ($h) {
+        $topHotels = Hotel::withCount(['rooms', 'reservations'])
+            ->take(5)->get()->map(function ($h) {
             return [
                 'name' => $h->name,
                 'city' => $h->city,
-                'rooms' => Room::withoutTenant()->where('hotel_id', $h->id)->count(),
-                'reservations' => Reservation::withoutTenant()->where('hotel_id', $h->id)->count(),
+                'rooms' => $h->rooms_count,
+                'reservations' => $h->reservations_count,
                 'revenue' => (float) Payment::withoutTenant()->where('hotel_id', $h->id)->sum('amount'),
             ];
         });
@@ -114,12 +116,15 @@ class PlatformHotelController extends Controller
         $hotels = $query->with(['users' => function ($q) {
             $q->wherePivot('role', 'admin');
         }])
+        ->withCount([
+            'rooms as rooms_count',
+            'reservations as reservations_count'
+        ])
         ->latest()
             ->paginate($request->integer('per_page', 15));
         $hotels->getCollection()->transform(function ($hotel) {
             $hotelData = $hotel->toArray();
-            $hotelData['rooms_count'] = Room::withoutTenant()->where('hotel_id', $hotel->id)->count();
-            $hotelData['reservations_count'] = Reservation::withoutTenant()->where('hotel_id', $hotel->id)->count();
+            // rooms_count and reservations_count already loaded via withCount
             $hotelData['admin_name'] = $hotel->users->first() 
                 ? ($hotel->users->first()->first_name . ' ' . $hotel->users->first()->last_name) 
                 : 'No Admin Assigned';

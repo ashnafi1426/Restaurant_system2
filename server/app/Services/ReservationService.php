@@ -25,11 +25,16 @@ class ReservationService
     {
         $hotelId = $hotelId ?: TenantContext::id();
 
-        $query = Reservation::with([
-            'guest',
-            'room.roomType',
-            'creator',
-            'checkIn',
+        $query = Reservation::select([
+            'id', 'hotel_id', 'guest_id', 'room_id', 'booking_reference',
+            'check_in_date', 'check_out_date', 'status', 'total_amount',
+            'notes', 'created_by_id', 'created_at', 'updated_at'
+        ])->with([
+            'guest:id,first_name,last_name,email,phone,hotel_id',
+            'room:id,room_number,room_type_id,status,hotel_id',
+            'room.roomType:id,name,base_price_per_night,capacity',
+            'creator:id,first_name,last_name,email',
+            'checkIn:id,reservation_id,checked_in_at,checked_out_at'
         ]);
 
         if ($hotelId) {

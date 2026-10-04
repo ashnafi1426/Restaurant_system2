@@ -13,15 +13,21 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('waiter_floor_assignments')) {
-            try {
-                // Ensure shift_id is nullable on MySQL
-                DB::statement("ALTER TABLE `waiter_floor_assignments` MODIFY `shift_id` CHAR(36) NULL");
-            } catch (\Throwable $e) {
+            if (DB::connection()->getDriverName() === 'pgsql') {
                 try {
-                    Schema::table('waiter_floor_assignments', function (Blueprint $table) {
-                        $table->uuid('shift_id')->nullable()->change();
-                    });
-                } catch (\Throwable $e2) {}
+                    DB::statement('ALTER TABLE waiter_floor_assignments ALTER COLUMN shift_id DROP NOT NULL');
+                } catch (\Throwable $e) {}
+            } else {
+                try {
+                    // Ensure shift_id is nullable on MySQL
+                    DB::statement("ALTER TABLE `waiter_floor_assignments` MODIFY `shift_id` CHAR(36) NULL");
+                } catch (\Throwable $e) {
+                    try {
+                        Schema::table('waiter_floor_assignments', function (Blueprint $table) {
+                            $table->uuid('shift_id')->nullable()->change();
+                        });
+                    } catch (\Throwable $e2) {}
+                }
             }
         }
     }

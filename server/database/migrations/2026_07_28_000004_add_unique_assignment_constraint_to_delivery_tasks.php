@@ -38,6 +38,15 @@ return new class extends Migration
             }
         });
         
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            try {
+                DB::statement("CREATE UNIQUE INDEX IF NOT EXISTS unique_active_delivery ON delivery_tasks (order_id) WHERE status != 'cancelled'");
+            } catch (\Exception $e) {
+                \Log::warning('Could not create partial unique index on delivery_tasks: ' . $e->getMessage());
+            }
+            return;
+        }
+
         // MySQL 8.0.13+ supports generated column with partial unique index
         // Try to use conditional unique constraint
         try {
@@ -64,6 +73,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement('DROP INDEX IF EXISTS unique_active_delivery');
+            return;
+        }
+
         Schema::table('delivery_tasks', function (Blueprint $table) {
             // Drop the conditional/regular unique constraint
             try {

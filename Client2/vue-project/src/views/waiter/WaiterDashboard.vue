@@ -330,6 +330,7 @@ import {
   ArrowRight,
   Inbox
 } from 'lucide-vue-next'
+import router from '@/router'
 
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
@@ -389,6 +390,11 @@ const loadDashboard = async () => {
     }
   } catch (err: any) {
     console.error('[WaiterDashboard] Error loading dashboard:', err)
+    if (err?.response?.status === 401) {
+      error.value = 'Your session has expired. Please log in again.'
+      router.push('/login')
+      return
+    }
     error.value = err.message || 'Failed to load dashboard'
   } finally {
     loading.value = false

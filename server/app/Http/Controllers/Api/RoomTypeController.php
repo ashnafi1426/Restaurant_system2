@@ -26,7 +26,7 @@ class RoomTypeController extends Controller
             ?: $request->header('x-hotel-id')
             ?: auth()->user()?->hotel_id;
 
-        $query = RoomType::query()->withCount('rooms');
+        $query = RoomType::query();
 
         if ($hotelId) {
             $query->where('hotel_id', $hotelId);
@@ -87,8 +87,6 @@ class RoomTypeController extends Controller
      */
     public function show(RoomType $roomType): JsonResponse
     {
-        $roomType->loadCount('rooms');
-
         return response()->json([
             'success' => true,
             'message' => 'Room type retrieved successfully.',

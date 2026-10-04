@@ -59,8 +59,11 @@ const loadHotels = async () => {
 }
 
 onMounted(() => {
-  loadUsers()
-  loadHotels()
+  // Parallelize API calls for faster loading
+  Promise.allSettled([
+    loadUsers(),
+    loadHotels()
+  ])
 })
 
 watch([searchQuery, selectedRole, selectedHotelId], () => {

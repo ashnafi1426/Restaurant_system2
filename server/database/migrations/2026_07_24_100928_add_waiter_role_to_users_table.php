@@ -12,11 +12,17 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            return;
+        }
         DB::statement("ALTER TABLE users MODIFY COLUMN role VARCHAR(100)");
     }
 
     public function down(): void
     {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            return;
+        }
         DB::statement("ALTER TABLE users MODIFY COLUMN role VARCHAR(100)");
     }
 };

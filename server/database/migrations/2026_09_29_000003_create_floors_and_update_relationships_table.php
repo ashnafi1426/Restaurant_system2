@@ -111,26 +111,48 @@ return new class extends Migration
                 Schema::table('waiter_floor_assignments', function (Blueprint $table) {
                     $table->timestamp('assigned_at')->nullable()->after('is_active');
                 });
-                DB::statement("UPDATE `waiter_floor_assignments` SET `assigned_at` = `created_at` WHERE `assigned_at` IS NULL");
+                if (DB::connection()->getDriverName() === 'pgsql') {
+                    DB::statement('UPDATE "waiter_floor_assignments" SET "assigned_at" = "created_at" WHERE "assigned_at" IS NULL');
+                } else {
+                    DB::statement("UPDATE `waiter_floor_assignments` SET `assigned_at` = `created_at` WHERE `assigned_at` IS NULL");
+                }
             }
 
             // Drop restrictive legacy indexes
-            try {
-                DB::statement("ALTER TABLE `waiter_floor_assignments` DROP INDEX `wfa_floor_shift_date_priority`");
-            } catch (\Throwable $e) {}
-            try {
-                DB::statement("ALTER TABLE `waiter_floor_assignments` DROP INDEX `wfa_waiter_floor_shift_date_unique`");
-            } catch (\Throwable $e) {}
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                try {
+                    DB::statement('DROP INDEX IF EXISTS wfa_floor_shift_date_priority');
+                } catch (\Throwable $e) {}
+                try {
+                    DB::statement('DROP INDEX IF EXISTS wfa_waiter_floor_shift_date_unique');
+                } catch (\Throwable $e) {}
+                try {
+                    DB::statement('
+                        UPDATE waiter_floor_assignments wfa
+                        SET hotel_id = w.hotel_id
+                        FROM waiters w
+                        WHERE wfa.waiter_id = w.id
+                        AND wfa.hotel_id IS NULL AND w.hotel_id IS NOT NULL
+                    ');
+                } catch (\Throwable $e) {}
+            } else {
+                try {
+                    DB::statement("ALTER TABLE `waiter_floor_assignments` DROP INDEX `wfa_floor_shift_date_priority`");
+                } catch (\Throwable $e) {}
+                try {
+                    DB::statement("ALTER TABLE `waiter_floor_assignments` DROP INDEX `wfa_waiter_floor_shift_date_unique`");
+                } catch (\Throwable $e) {}
 
-            // Backfill hotel_id from waiters
-            try {
-                DB::statement("
-                    UPDATE `waiter_floor_assignments` wfa
-                    JOIN `waiters` w ON wfa.waiter_id = w.id
-                    SET wfa.hotel_id = w.hotel_id
-                    WHERE wfa.hotel_id IS NULL AND w.hotel_id IS NOT NULL
-                ");
-            } catch (\Throwable $e) {}
+                // Backfill hotel_id from waiters
+                try {
+                    DB::statement("
+                        UPDATE `waiter_floor_assignments` wfa
+                        JOIN `waiters` w ON wfa.waiter_id = w.id
+                        SET wfa.hotel_id = w.hotel_id
+                        WHERE wfa.hotel_id IS NULL AND w.hotel_id IS NOT NULL
+                    ");
+                } catch (\Throwable $e) {}
+            }
         }
     }
 

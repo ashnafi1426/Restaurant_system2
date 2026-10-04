@@ -41,12 +41,22 @@ return new class extends Migration
             }
 
             try {
-                DB::statement("
-                    UPDATE waiter_table_assignments wta
-                    INNER JOIN restaurant_tables rt ON wta.table_id = rt.id
-                    SET wta.hotel_id = rt.hotel_id
-                    WHERE wta.hotel_id IS NULL OR wta.hotel_id = ''
-                ");
+                if (DB::connection()->getDriverName() === 'pgsql') {
+                    DB::statement("
+                        UPDATE waiter_table_assignments wta
+                        SET hotel_id = rt.hotel_id
+                        FROM restaurant_tables rt
+                        WHERE wta.table_id = rt.id
+                        AND (wta.hotel_id IS NULL OR wta.hotel_id = '')
+                    ");
+                } else {
+                    DB::statement("
+                        UPDATE waiter_table_assignments wta
+                        INNER JOIN restaurant_tables rt ON wta.table_id = rt.id
+                        SET wta.hotel_id = rt.hotel_id
+                        WHERE wta.hotel_id IS NULL OR wta.hotel_id = ''
+                    ");
+                }
             } catch (\Throwable $e) {
                 // Ignore if driver differences
             }

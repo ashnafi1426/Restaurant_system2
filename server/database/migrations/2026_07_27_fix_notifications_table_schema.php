@@ -15,14 +15,18 @@ return new class extends Migration
         // Create a backup of the old notifications table
         DB::statement('CREATE TABLE IF NOT EXISTS notifications_backup_old AS SELECT * FROM notifications');
         
-        // Disable foreign key checks
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
-        
-        // Drop foreign keys and table
-        DB::statement('DROP TABLE IF EXISTS notifications');
-        
-        // Re-enable foreign key checks
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement('DROP TABLE IF EXISTS notifications CASCADE');
+        } else {
+            // Disable foreign key checks
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+            
+            // Drop foreign keys and table
+            DB::statement('DROP TABLE IF EXISTS notifications');
+            
+            // Re-enable foreign key checks
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        }
 
         // Create the new notifications table with the correct schema
         Schema::create('notifications', function (Blueprint $table) {

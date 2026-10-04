@@ -140,6 +140,17 @@ class PaymentController extends Controller
     {
         try {
             $payment = Payment::where('tx_ref', $txRef)->firstOrFail();
+
+            // Fast path: if already verified, avoid duplicate slow external API calls
+            if ($payment->status === 'verified') {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment verified successfully',
+                    'status' => $payment->status,
+                    'payment' => new PaymentResource($payment),
+                ]);
+            }
+
             $response = $this->chapa->verify($txRef);
 
             if (!$response['success']) {

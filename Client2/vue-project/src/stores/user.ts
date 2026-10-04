@@ -11,12 +11,15 @@ export const useUserStore = defineStore('user', {
   }),
 
   actions: {
-    async fetchUsers(params = {}) {
-      this.loading = true
+    async fetchUsers(params = {}, background = false) {
+      if (!background || this.users.length === 0) {
+        this.loading = true
+      }
 
       try {
         const response = await userService.getUsers(params)
-        this.users = response.data.data
+        const data = response.data?.data || response.data || []
+        this.users = Array.isArray(data) ? data : (data.data || [])
         return response.data
       } catch (error) {
         console.error('[UserStore] Error fetching users:', error)
@@ -27,11 +30,15 @@ export const useUserStore = defineStore('user', {
     },
 
     async fetchUser(id: string) {
-      this.loading = true
+      // If we don't have this user loaded yet, show loading state
+      if (!this.user || String(this.user.id) !== String(id)) {
+        this.loading = true
+      }
 
       try {
         const response = await userService.getUser(id)
-        this.user = response.data.data
+        const userData = response.data?.data || response.data
+        this.user = userData
         return response.data
       } catch (error) {
         console.error('[UserStore] Error fetching user:', error)
@@ -47,6 +54,11 @@ export const useUserStore = defineStore('user', {
 
       try {
         const response = await userService.createUser(user)
+        const createdUser = response.data?.data || response.data
+        if (createdUser && createdUser.id) {
+          // Immediately prepend to local users list for instant responsiveness
+          this.users.unshift(createdUser)
+        }
         return response.data
       } catch (error: any) {
         console.error('[UserStore] Error creating user:', error)
@@ -71,11 +83,13 @@ export const useUserStore = defineStore('user', {
         }
 
         const response = await userService.updateUser(id, userData)
-        this.user = response.data.data
+        const updated = response.data?.data || response.data
+        this.user = updated
 
-        const index = this.users.findIndex((u) => u.id === id)
-        if (index !== -1) {
-          this.users[index] = response.data.data
+        // Immediately update local users list for instant responsiveness
+        const index = this.users.findIndex((u) => String(u.id) === String(id))
+        if (index !== -1 && updated) {
+          this.users[index] = { ...this.users[index], ...updated }
         }
 
         return response.data
@@ -95,7 +109,7 @@ export const useUserStore = defineStore('user', {
 
       try {
         await userService.deleteUser(id)
-        this.users = this.users.filter((user) => user.id !== id)
+        this.users = this.users.filter((user) => String(user.id) !== String(id))
       } catch (error) {
         console.error('[UserStore] Error deleting user:', error)
         throw error

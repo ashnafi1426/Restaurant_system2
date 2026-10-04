@@ -17,8 +17,9 @@ return new class extends Migration
             $table->date('check_in_date');
             $table->date('check_out_date');
             $table->integer('number_of_guests');
+            $isPgsql = DB::connection()->getDriverName() === 'pgsql';
             $table->integer('total_nights')->storedAs(
-                'DATEDIFF(check_out_date, check_in_date)'
+                $isPgsql ? '(check_out_date - check_in_date)' : 'DATEDIFF(check_out_date, check_in_date)'
             );
             $table->string('status', 50)->default('pending');
             $table->text('special_requests')->nullable();

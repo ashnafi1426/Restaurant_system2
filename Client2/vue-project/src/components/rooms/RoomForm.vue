@@ -75,7 +75,7 @@ const loadRoomTypes = async (activeHotelId?: string) => {
   try {
     await roomTypeStore.fetchRoomTypes({
       hotel_id: activeHotelId || undefined,
-      per_page: 100,
+      per_page: 50,
       is_active: 1,
     })
     roomTypes.value = roomTypeStore.roomTypes || []
@@ -91,7 +91,7 @@ const loadFloors = async (activeHotelId?: string) => {
   try {
     const floorParams = {
       is_active: 1,
-      per_page: 100,
+      per_page: 50,
       hotel_id: activeHotelId || undefined,
     }
     let res: any
@@ -126,7 +126,7 @@ const loadExistingRoomNumbers = async (activeHotelId?: string) => {
   try {
     const response = await roomService.getRooms({
       hotel_id: activeHotelId || undefined,
-      per_page: 100,
+      per_page: 50,
     })
     const rooms = response.data?.data || response.data || []
     existingRoomNumbers.value = Array.isArray(rooms)
@@ -194,6 +194,8 @@ onMounted(() => {
 })
 
 watch(() => hotelStore.hotelId, () => {
+  // Invalidate cache when hotel changes
+  roomTypeStore.invalidateCache()
   loadHotelData()
 })
 

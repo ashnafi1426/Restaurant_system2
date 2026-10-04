@@ -272,6 +272,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { generateAndDownloadReceipt } from '@/services/receiptService'
+import api from '@/api/auth'
 
 const router = useRouter()
 const route = useRoute()
@@ -348,37 +349,18 @@ onMounted(async () => {
 
   if (txRef.value) {
     try {
-      const verifyResponse = await fetch(
-        `http://127.0.0.1:8000/api/payments/verify/${txRef.value}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        }
-      )
+      const verifyRes = await api.get(`/payments/verify/${txRef.value}`)
+      const verifyData = verifyRes.data
 
-      const verifyData = await verifyResponse.json()
+      if (verifyData?.success) {
+        const completeEndpoint = isWalkInOrder
+          ? `/walk-in-payments/complete/${txRef.value}`
+          : `/order-payments/complete/${txRef.value}`
 
-      if (verifyResponse.ok && verifyData.success) {
-        let completeEndpoint = ''
-        if (isWalkInOrder) {
-          completeEndpoint = `http://127.0.0.1:8000/api/walk-in-payments/complete/${txRef.value}`
-        } else {
-          completeEndpoint = `http://127.0.0.1:8000/api/order-payments/complete/${txRef.value}`
-        }
+        const completeRes = await api.post(completeEndpoint)
+        const completeData = completeRes.data
 
-        const completeResponse = await fetch(completeEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-
-        const completeData = await completeResponse.json()
-
-        if (completeResponse.ok && completeData.success && completeData.order) {
+        if (completeData?.success && completeData.order) {
           if (isWalkInOrder && walkInData) {
             const walkInPaymentData = JSON.parse(walkInData)
             orderData.value = {
@@ -409,12 +391,8 @@ onMounted(async () => {
         }
       }
     } catch (error) {
-      console.error('[OrderPaymentSuccess] Error verifying payment:', error)
+      console.warn('[OrderPaymentSuccess] Verification finished with local state:', error)
     }
-
-    setTimeout(() => {
-      fetchOrderDetails()
-    }, 2000)
   }
 })
 

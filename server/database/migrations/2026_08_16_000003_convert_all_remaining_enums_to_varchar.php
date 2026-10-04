@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            return;
+        }
+
         $statements = [
             "ALTER TABLE users MODIFY COLUMN role VARCHAR(100) NOT NULL DEFAULT 'guest'",
             "ALTER TABLE users MODIFY COLUMN activation_status VARCHAR(50) NOT NULL DEFAULT 'activated'",

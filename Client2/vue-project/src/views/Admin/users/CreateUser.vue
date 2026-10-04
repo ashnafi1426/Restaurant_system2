@@ -24,7 +24,7 @@ const createUser = async (data: User) => {
 
     setTimeout(() => {
       router.push('/users')
-    }, 2000)
+    }, 500)
   } catch (error: any) {
     console.error('[CreateUser] Error creating user:', error)
   }

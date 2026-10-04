@@ -148,27 +148,36 @@ class UserController extends Controller
                 }
             }
 
+            DB::commit();
+
+            // Send notification email asynchronously after response so user creation returns immediately
             $emailSent = true;
             try {
-                Mail::to($user->email)->send(new NewUserCreated($user, $temporaryPassword));
-            } catch (Throwable $mailException) {
-                $emailSent = false;
-                Log::error('Failed to send new user email', [
-                    'user_id' => $user->id,
-                    'email' => $user->email,
-                    'error' => $mailException->getMessage(),
-                ]);
+                dispatch(function () use ($user, $temporaryPassword) {
+                    try {
+                        Mail::to($user->email)->send(new NewUserCreated($user, $temporaryPassword));
+                    } catch (Throwable $mailException) {
+                        Log::error('Failed to send new user email', [
+                            'user_id' => $user->id,
+                            'email' => $user->email,
+                            'error' => $mailException->getMessage(),
+                        ]);
+                    }
+                })->afterResponse();
+            } catch (Throwable $e) {
+                // Fallback for environments without queue bus
+                try {
+                    Mail::to($user->email)->send(new NewUserCreated($user, $temporaryPassword));
+                } catch (Throwable $mailEx) {
+                    $emailSent = false;
+                }
             }
-
-            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => $emailSent
-                    ? 'User created successfully. Login credentials sent to ' . $user->email
-                    : 'User created successfully but failed to send email. Temporary password: ' . $temporaryPassword,
+                'message' => 'User created successfully. Login credentials sent to ' . $user->email,
                 'data' => new UserResource($user),
-                'temporary_password' => $emailSent ? null : $temporaryPassword,
+                'temporary_password' => $temporaryPassword,
                 'email_sent' => $emailSent,
             ], 201);
         } catch (Throwable $exception) {
@@ -234,6 +243,17 @@ class UserController extends Controller
                     $user->roles()->sync([
                         $roleModel->id => ['is_primary' => true],
                     ]);
+                }
+
+                $hotelId = TenantContext::id() ?: $request->header('X-Hotel-ID');
+                if ($hotelId) {
+                    HotelUser::where('hotel_id', $hotelId)
+                        ->where('user_id', $user->id)
+                        ->update([
+                            'role' => $user->role,
+                            'role_id' => $roleModel?->id,
+                            'is_active' => $user->is_active,
+                        ]);
                 }
             }
 

@@ -19,17 +19,15 @@ return new class extends Migration
             }
 
             // Drop old global unique index on slug
-            try {
-                Schema::table('roles', function (Blueprint $table) {
-                    $table->dropUnique(['slug']);
-                });
-            } catch (\Throwable $e) {}
-
-            try {
-                Schema::table('roles', function (Blueprint $table) {
-                    $table->dropUnique('roles_slug_unique');
-                });
-            } catch (\Throwable $e) {}
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                DB::statement('ALTER TABLE roles DROP CONSTRAINT IF EXISTS roles_slug_unique');
+            } else {
+                try {
+                    Schema::table('roles', function (Blueprint $table) {
+                        $table->dropUnique(['slug']);
+                    });
+                } catch (\Throwable $e) {}
+            }
 
             // Add compound unique index on [hotel_id, slug]
             try {
@@ -48,11 +46,15 @@ return new class extends Migration
                 });
             }
 
-            try {
-                Schema::table('user_roles', function (Blueprint $table) {
-                    $table->dropUnique(['user_id', 'role_id']);
-                });
-            } catch (\Throwable $e) {}
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                DB::statement('ALTER TABLE user_roles DROP CONSTRAINT IF EXISTS user_roles_user_id_role_id_unique');
+            } else {
+                try {
+                    Schema::table('user_roles', function (Blueprint $table) {
+                        $table->dropUnique(['user_id', 'role_id']);
+                    });
+                } catch (\Throwable $e) {}
+            }
 
             try {
                 Schema::table('user_roles', function (Blueprint $table) {
@@ -70,11 +72,15 @@ return new class extends Migration
                 });
             }
 
-            try {
-                Schema::table('user_permissions', function (Blueprint $table) {
-                    $table->dropUnique(['user_id', 'permission_id']);
-                });
-            } catch (\Throwable $e) {}
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                DB::statement('ALTER TABLE user_permissions DROP CONSTRAINT IF EXISTS user_permissions_user_id_permission_id_unique');
+            } else {
+                try {
+                    Schema::table('user_permissions', function (Blueprint $table) {
+                        $table->dropUnique(['user_id', 'permission_id']);
+                    });
+                } catch (\Throwable $e) {}
+            }
 
             try {
                 Schema::table('user_permissions', function (Blueprint $table) {

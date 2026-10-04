@@ -8,13 +8,26 @@ import type {
 } from '../types/rbacTypes'
 
 export const rbacService = {
-  async getRoles(): Promise<Role[]> {
+  _rolesCache: null as Role[] | null,
+
+  async getRoles(forceRefresh = false): Promise<Role[]> {
+    if (!forceRefresh && this._rolesCache && this._rolesCache.length > 0) {
+      return this._rolesCache
+    }
     try {
       const response = await api.get('/roles')
-      return response.data.data
+      const data = response.data?.data || response.data
+      if (Array.isArray(data) && data.length > 0) {
+        this._rolesCache = data
+      }
+      return Array.isArray(data) ? data : []
     } catch (e) {
       console.warn('[RbacService] /roles endpoint failed, falling back to /roles/active:', e)
-      return this.getActiveRoles()
+      const fallback = await this.getActiveRoles()
+      if (Array.isArray(fallback) && fallback.length > 0) {
+        this._rolesCache = fallback
+      }
+      return fallback
     }
   },
 

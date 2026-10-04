@@ -22,7 +22,15 @@ class RoomService
      */
     public function getRoomsQuery(array $filters = []): Builder
     {
-        $query = Room::with(['roomType', 'hotel', 'floor']);
+        $query = Room::select([
+            'id', 'hotel_id', 'room_number', 'room_type_id', 'floor_id',
+            'floor', 'description', 'status', 'is_active', 'qr_token',
+            'qr_image_path', 'qr_generated_at', 'created_at', 'updated_at'
+        ])->with([
+            'roomType:id,name,base_price_per_night,capacity,hotel_id,is_active',
+            'hotel:id,name,city',
+            'floor:id,floor_number,name,hotel_id'
+        ]);
 
         if (!empty($filters['search'])) {
             $search = strtolower(trim($filters['search']));
@@ -52,7 +60,7 @@ class RoomService
     /**
      * Get paginated rooms list.
      */
-    public function paginate(array $filters = [], int $perPage = 100): LengthAwarePaginator
+    public function paginate(array $filters = [], int $perPage = 25): LengthAwarePaginator
     {
         return $this->getRoomsQuery($filters)->paginate($perPage);
     }
@@ -139,10 +147,6 @@ class RoomService
 
         return ['blocked' => false];
     }
-
-    /**
-     * Delete room, optionally force-deleting linked relationships safely in a transaction.
-     */
     public function deleteRoom(Room $room, bool $force = false): void
     {
         if ($force) {

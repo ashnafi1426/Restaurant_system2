@@ -64,8 +64,20 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
+      const url = error.config?.url || ''
+      if (!url.includes('/guest') && !url.includes('/public') && !url.includes('/login')) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        localStorage.removeItem('current_hotel')
+        localStorage.removeItem('available_hotels')
+        if (
+          window.location.pathname !== '/login' && 
+          !window.location.pathname.startsWith('/guest') && 
+          !window.location.pathname.startsWith('/qr')
+        ) {
+          window.location.href = '/login'
+        }
+      }
     }
     return Promise.reject(error)
   },

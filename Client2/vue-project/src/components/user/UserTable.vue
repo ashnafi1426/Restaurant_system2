@@ -317,7 +317,7 @@ onBeforeUnmount(() => {
     </Transition>
 
     <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full min-h-[220px]">
-      <div v-if="loading" class="py-20 px-4 text-center flex flex-col items-center justify-center space-y-3">
+      <div v-if="loading && (!users || users.length === 0)" class="py-20 px-4 text-center flex flex-col items-center justify-center space-y-3">
         <div class="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/50 shadow-xs">
           <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
         </div>

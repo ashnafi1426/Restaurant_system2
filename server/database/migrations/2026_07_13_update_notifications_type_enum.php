@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement("ALTER TABLE notifications ALTER COLUMN type TYPE VARCHAR(100), ALTER COLUMN type SET DEFAULT 'booking'");
+            return;
+        }
         DB::statement("ALTER TABLE notifications MODIFY type VARCHAR(100) DEFAULT 'booking'");
     }
 
@@ -20,6 +24,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            return;
+        }
         DB::statement("ALTER TABLE notifications MODIFY type VARCHAR(100) DEFAULT 'booking'");
     }
 };

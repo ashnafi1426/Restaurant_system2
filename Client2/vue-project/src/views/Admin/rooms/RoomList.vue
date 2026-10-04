@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { onMounted, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -22,17 +22,30 @@ const isDeleting = ref(false)
 const deleteErrorMessage = ref<string | null>(null)
 const canForceDelete = ref(false)
 
-const loadData = async () => {
+// Track current filters for server-side filtering
+const currentFilters = ref<Record<string, any>>({
+  page: 1,
+  per_page: 25,
+})
+
+const loadData = async (filters?: Record<string, any>) => {
   try {
-    await roomStore.fetchRooms()
+    const filtersToUse = filters || currentFilters.value
+    currentFilters.value = filtersToUse
+    await roomStore.fetchRooms(filtersToUse)
   } catch (error) {
     console.error('Error fetching rooms:', error)
   }
 }
 
-onMounted(loadData)
+onMounted(() => {
+  loadData()
+})
 
+// Watch hotel changes and reload with current filters
 watch(() => hotelStore.hotelId, () => {
+  // Reset to page 1 when hotel changes
+  currentFilters.value = { page: 1, per_page: currentFilters.value.per_page || 25 }
   loadData()
 })
 
@@ -63,6 +76,8 @@ const deleteRoom = async () => {
     await roomStore.deleteRoom(selectedRoomId.value, false)
     showDeleteModal.value = false
     selectedRoomId.value = null
+    // Reload current page after delete
+    await loadData()
   } catch (err: any) {
     const errorData = err.response?.data
     deleteErrorMessage.value = errorData?.message || err.message || 'Unable to delete room'
@@ -80,6 +95,8 @@ const forceDeleteRoom = async () => {
     await roomStore.deleteRoom(selectedRoomId.value, true)
     showDeleteModal.value = false
     selectedRoomId.value = null
+    // Reload current page after delete
+    await loadData()
   } catch (err: any) {
     const errorData = err.response?.data
     deleteErrorMessage.value = errorData?.message || err.message || 'Force delete failed'
@@ -95,6 +112,8 @@ const deactivateRoom = async () => {
     await roomStore.toggleStatus(selectedRoomId.value)
     showDeleteModal.value = false
     selectedRoomId.value = null
+    // Reload current page after deactivation
+    await loadData()
   } catch (err: any) {
     const errorData = err.response?.data
     deleteErrorMessage.value = errorData?.message || err.message || 'Failed to deactivate room'
@@ -104,7 +123,22 @@ const deactivateRoom = async () => {
 }
 
 const refresh = async () => {
-  await roomStore.fetchRooms()
+  await loadData()
+}
+
+// Handle filter changes from RoomTable
+const handleFilterChange = (filters: Record<string, any>) => {
+  loadData(filters)
+}
+
+// Handle page changes from RoomTable
+const handlePageChange = (page: number) => {
+  loadData({ ...currentFilters.value, page })
+}
+
+// Handle per_page changes from RoomTable
+const handlePerPageChange = (perPage: number) => {
+  loadData({ ...currentFilters.value, per_page: perPage, page: 1 })
 }
 </script>
 
@@ -132,8 +166,6 @@ const refresh = async () => {
             </p>
           </div>
         </div>
-
-
       </div>
 
       <div
@@ -147,11 +179,15 @@ const refresh = async () => {
       <RoomTable
         :rooms="roomStore.rooms || []"
         :loading="roomStore.loading"
+        :pagination="roomStore.pagination"
         @view="viewRoom"
         @edit="editRoom"
         @delete="openDeleteModal"
         @create="createRoom"
         @refresh="refresh"
+        @filter-change="handleFilterChange"
+        @page-change="handlePageChange"
+        @per-page-change="handlePerPageChange"
       />
 
       <DeleteRoomModal
@@ -167,4 +203,3 @@ const refresh = async () => {
     </div>
   </DashboardLayout>
 </template>
-

@@ -24,12 +24,20 @@ return new class extends Migration
             });
         } catch (\Throwable $e) {}
 
-        // Alter columns to be nullable using raw SQL
-        try {
-            DB::statement('ALTER TABLE orders MODIFY COLUMN room_id CHAR(36) NULL');
-            DB::statement('ALTER TABLE orders MODIFY COLUMN guest_id CHAR(36) NULL');
-            DB::statement('ALTER TABLE orders MODIFY COLUMN reservation_id CHAR(36) NULL');
-        } catch (\Throwable $e) {}
+        // Alter columns to be nullable
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            try {
+                DB::statement('ALTER TABLE orders ALTER COLUMN room_id DROP NOT NULL');
+                DB::statement('ALTER TABLE orders ALTER COLUMN guest_id DROP NOT NULL');
+                DB::statement('ALTER TABLE orders ALTER COLUMN reservation_id DROP NOT NULL');
+            } catch (\Throwable $e) {}
+        } else {
+            try {
+                DB::statement('ALTER TABLE orders MODIFY COLUMN room_id CHAR(36) NULL');
+                DB::statement('ALTER TABLE orders MODIFY COLUMN guest_id CHAR(36) NULL');
+                DB::statement('ALTER TABLE orders MODIFY COLUMN reservation_id CHAR(36) NULL');
+            } catch (\Throwable $e) {}
+        }
 
         try {
             Schema::table('orders', function (Blueprint $table) {

@@ -11,7 +11,6 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const id = route.params.id as string
-const loadingUser = ref(true)
 const successMessage = ref('')
 const userData = ref<any>(null)
 
@@ -23,8 +22,27 @@ const extractUserData = (raw: any) => {
   return raw.data || raw
 }
 
+// 1. Instant optimistic pre-population from store if available
+const existing = userStore.users?.find((u) => String(u.id) === String(id)) || 
+                 (userStore.user && String(userStore.user.id) === String(id) ? userStore.user : null)
+
+if (existing) {
+  userData.value = {
+    first_name: existing.first_name || '',
+    last_name: existing.last_name || '',
+    email: existing.email || '',
+    phone: existing.phone || '',
+    role: existing.role || 'receptionist',
+    is_active: existing.is_active ?? true,
+  }
+}
+
+const loadingUser = ref(!userData.value)
+
 const loadUser = async () => {
-  loadingUser.value = true
+  if (!userData.value) {
+    loadingUser.value = true
+  }
   try {
     const res = await userStore.fetchUser(id)
     const extracted = extractUserData(res) || extractUserData(userStore.user)
@@ -41,8 +59,10 @@ const loadUser = async () => {
     }
   } catch (error) {
     console.error('[EditUser] Failed to load user:', error)
-    alert('Failed to load user.')
-    router.push('/users')
+    if (!userData.value) {
+      alert('Failed to load user.')
+      router.push('/users')
+    }
   } finally {
     loadingUser.value = false
   }
@@ -57,7 +77,7 @@ const updateUser = async (data: User) => {
 
     setTimeout(() => {
       router.push('/users')
-    }, 1000)
+    }, 400)
   } catch (error: any) {
     console.error('[EditUser] Error updating user:', error)
   }

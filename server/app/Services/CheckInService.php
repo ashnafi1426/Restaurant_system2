@@ -22,10 +22,15 @@ class CheckInService
     {
         $hotelId = $hotelId ?: TenantContext::id();
 
-        $query = CheckIn::with([
-            'guest',
-            'room.roomType',
-            'reservation',
+        $query = CheckIn::select([
+            'id', 'hotel_id', 'guest_id', 'room_id', 'reservation_id',
+            'checked_in_at', 'checked_out_at', 'actual_checkout_date',
+            'notes', 'created_at', 'updated_at'
+        ])->with([
+            'guest:id,first_name,last_name,email,phone,hotel_id',
+            'room:id,room_number,room_type_id,status,hotel_id',
+            'room.roomType:id,name,base_price_per_night,capacity',
+            'reservation:id,booking_reference,check_in_date,check_out_date,status'
         ]);
 
         if ($hotelId) {

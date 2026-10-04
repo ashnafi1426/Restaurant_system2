@@ -5,6 +5,8 @@ namespace App\Services\Waiter;
 use App\Models\DeliveryLog;
 use App\Models\WaiterPerformance;
 use Carbon\Carbon;
+use App\Services\TenantContext;
+use App\Models\WaiterFloorAssignment;
 
 class WaiterDashboardService
 {
@@ -15,7 +17,7 @@ class WaiterDashboardService
         }
 
         try {
-            return \App\Models\WaiterFloorAssignment::where('waiter_id', $waiterId)
+            return WaiterFloorAssignment::where('waiter_id', $waiterId)
                 ->where(function ($q) {
                     $q->where('is_active', true)
                       ->orWhere('status', 'active');
@@ -34,7 +36,7 @@ class WaiterDashboardService
     public function getDashboardStats($waiterId = null): array
     {
         try {
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
 
             \Log::info(' [SERVICE] getDashboardStats called:', [
                 'waiter_id' => $waiterId,
@@ -72,7 +74,7 @@ class WaiterDashboardService
     {
         try {
             $today = Carbon::today();
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
 
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
@@ -86,10 +88,15 @@ class WaiterDashboardService
             }
 
             if (!$isAdminOrManager && $waiterId) {
-                $taskQuery->where(function($q) use ($waiterId) {
-                    $q->where('delivery_tasks.waiter_id', $waiterId)
-                      ->orWhere('delivery_tasks.waiter_id', auth()->id());
-                });
+                $numericWaiterId = is_numeric($waiterId) ? (int)$waiterId : null;
+                if (!$numericWaiterId) {
+                    $waiterModel = \App\Models\Waiter::where('user_id', $waiterId)->first();
+                    $numericWaiterId = $waiterModel?->id;
+                }
+
+                if ($numericWaiterId) {
+                    $taskQuery->where('delivery_tasks.waiter_id', $numericWaiterId);
+                }
             }
 
             $todayStats = (clone $taskQuery)
@@ -98,24 +105,24 @@ class WaiterDashboardService
                       ->orWhereDate('assigned_at', $today)
                       ->orWhereDate('created_at', $today);
                 })
-                ->selectRaw('
+                ->selectRaw("
                     COUNT(*) as total_assignments,
-                    SUM(CASE WHEN status = "delivered" THEN 1 ELSE 0 END) as completed_deliveries,
-                    SUM(CASE WHEN status = "cancelled" THEN 1 ELSE 0 END) as failed_deliveries,
-                    SUM(CASE WHEN status = "assigned" THEN 1 ELSE 0 END) as pending_assignments,
-                    SUM(CASE WHEN status IN ("accepted", "picked_up", "on_delivery") THEN 1 ELSE 0 END) as active_assignments,
-                    SUM(CASE WHEN status = "on_delivery" THEN 1 ELSE 0 END) as on_delivery_count,
-                    ROUND(AVG(CASE WHEN status = "delivered" THEN TIMESTAMPDIFF(MINUTE, assigned_at, delivered_at) ELSE NULL END), 2) as average_delivery_time
-                ')
+                    SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) as completed_deliveries,
+                    SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as failed_deliveries,
+                    SUM(CASE WHEN status = 'assigned' THEN 1 ELSE 0 END) as pending_assignments,
+                    SUM(CASE WHEN status IN ('accepted', 'picked_up', 'on_delivery') THEN 1 ELSE 0 END) as active_assignments,
+                    SUM(CASE WHEN status = 'on_delivery' THEN 1 ELSE 0 END) as on_delivery_count,
+                    ROUND(COALESCE(AVG(CASE WHEN status = 'delivered' AND assigned_at IS NOT NULL AND delivered_at IS NOT NULL THEN (EXTRACT(EPOCH FROM (delivered_at - assigned_at)) / 60.0) ELSE NULL END), 0)::numeric, 2) as average_delivery_time
+                ")
                 ->first();
 
             $currentActive = (clone $taskQuery)
                 ->whereIn('status', ['assigned', 'waiting_assignment', 'accepted', 'picked_up', 'on_delivery'])
-                ->selectRaw('
-                    SUM(CASE WHEN status IN ("assigned", "waiting_assignment", "accepted") THEN 1 ELSE 0 END) as pending_assignments,
-                    SUM(CASE WHEN status IN ("assigned", "waiting_assignment", "accepted", "picked_up", "on_delivery") THEN 1 ELSE 0 END) as active_assignments,
-                    SUM(CASE WHEN status IN ("picked_up", "on_delivery") THEN 1 ELSE 0 END) as on_delivery_count
-                ')
+                ->selectRaw("
+                    SUM(CASE WHEN status IN ('assigned', 'waiting_assignment', 'accepted') THEN 1 ELSE 0 END) as pending_assignments,
+                    SUM(CASE WHEN status IN ('assigned', 'waiting_assignment', 'accepted', 'picked_up', 'on_delivery') THEN 1 ELSE 0 END) as active_assignments,
+                    SUM(CASE WHEN status IN ('picked_up', 'on_delivery') THEN 1 ELSE 0 END) as on_delivery_count
+                ")
                 ->first();
 
             $pickedUpOrderIds = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
@@ -199,39 +206,51 @@ class WaiterDashboardService
             $weekStart = $now->copy()->subDays(7)->startOfDay()->toDateTimeString();
             $monthStart = $now->copy()->subDays(30)->startOfDay()->toDateTimeString();
             $nowString = $now->toDateTimeString();
-            $userIds = [$waiterId];
-            if (auth()->check()) {
-                $userIds[] = auth()->id();
+            $performanceUserIds = [];
+            $deliveryTaskWaiterIds = [];
+
+            if ($waiterId && \Illuminate\Support\Str::isUuid((string)$waiterId)) {
+                $performanceUserIds[] = (string)$waiterId;
+            } elseif (is_numeric($waiterId)) {
+                $deliveryTaskWaiterIds[] = (int)$waiterId;
             }
-            $waiterModel = \App\Models\Waiter::find($waiterId);
+
+            if (auth()->check() && \Illuminate\Support\Str::isUuid((string)auth()->id())) {
+                $performanceUserIds[] = (string)auth()->id();
+            }
+
+            $waiterModel = is_numeric($waiterId) 
+                ? \App\Models\Waiter::find($waiterId) 
+                : \App\Models\Waiter::where('user_id', $waiterId)->first();
+
             if ($waiterModel) {
-                $userIds[] = $waiterModel->user_id;
-            } else {
-                $waiterModelByUser = \App\Models\Waiter::where('user_id', $waiterId)->first();
-                if ($waiterModelByUser) {
-                    $userIds[] = $waiterModelByUser->id;
+                if ($waiterModel->user_id) {
+                    $performanceUserIds[] = (string)$waiterModel->user_id;
+                }
+                if ($waiterModel->id) {
+                    $deliveryTaskWaiterIds[] = (int)$waiterModel->id;
                 }
             }
-            $userIds = array_values(array_unique(array_filter($userIds)));
 
-            $todayPerformance = WaiterPerformance::whereIn('waiter_id', $userIds)
-                ->where('metric_date', $today)
-                ->first();
+            $performanceUserIds = array_values(array_unique(array_filter($performanceUserIds)));
+            $deliveryTaskWaiterIds = array_values(array_unique(array_filter($deliveryTaskWaiterIds)));
 
-            $weekPerformance = WaiterPerformance::whereIn('waiter_id', $userIds)
-                ->whereBetween('metric_date', [$weekStart, $nowString])
-                ->get();
+            $todayPerformance = !empty($performanceUserIds) 
+                ? WaiterPerformance::whereIn('waiter_id', $performanceUserIds)->where('metric_date', $today)->first() 
+                : null;
 
-            $monthPerformance = WaiterPerformance::whereIn('waiter_id', $userIds)
-                ->whereBetween('metric_date', [$monthStart, $nowString])
-                ->get();
+            $weekPerformance = !empty($performanceUserIds) 
+                ? WaiterPerformance::whereIn('waiter_id', $performanceUserIds)->whereBetween('metric_date', [$weekStart, $nowString])->get() 
+                : collect();
 
-            $getTaskMetrics = function ($startDateStr, $endDateStr) use ($userIds) {
-                $baseQuery = \App\Models\DeliveryTask::whereIn('waiter_id', $userIds);
+            $monthPerformance = !empty($performanceUserIds) 
+                ? WaiterPerformance::whereIn('waiter_id', $performanceUserIds)->whereBetween('metric_date', [$monthStart, $nowString])->get() 
+                : collect();
 
-                if ((clone $baseQuery)->count() === 0) {
-                    $baseQuery = \App\Models\DeliveryTask::query();
-                }
+            $getTaskMetrics = function ($startDateStr, $endDateStr) use ($deliveryTaskWaiterIds) {
+                $baseQuery = !empty($deliveryTaskWaiterIds) 
+                    ? \App\Models\DeliveryTask::whereIn('waiter_id', $deliveryTaskWaiterIds)
+                    : \App\Models\DeliveryTask::query();
 
                 $completed = (clone $baseQuery)
                     ->where('status', 'delivered')
@@ -351,7 +370,7 @@ class WaiterDashboardService
     public function getRecentAssignments($waiterId = null, $limit = 10): array
     {
         try {
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
             \Log::info(' [SERVICE] getRecentAssignments querying:', [
@@ -562,7 +581,7 @@ class WaiterDashboardService
     public function getActiveCount($waiterId = null): int
     {
         try {
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
             $query = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
@@ -586,7 +605,7 @@ class WaiterDashboardService
     public function getAllKitchenReadyOrders($waiterId = null): array
     {
         try {
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
             $query = \App\Models\Order::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
@@ -642,7 +661,7 @@ class WaiterDashboardService
     public function getReadyForPickup($waiterId = null): array
     {
         try {
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
             \Log::info(' [SERVICE] getReadyForPickup called', ['waiter_id' => $waiterId, 'hotel_id' => $hotelId]);

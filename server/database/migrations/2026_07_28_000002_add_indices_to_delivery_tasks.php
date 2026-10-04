@@ -54,6 +54,10 @@ return new class extends Migration
      */
     private function indexExists(string $table, string $indexName): bool
     {
+        if (\DB::connection()->getDriverName() === 'pgsql') {
+            $indexes = \DB::select("SELECT indexname FROM pg_indexes WHERE tablename = ? AND indexname = ?", [$table, $indexName]);
+            return count($indexes) > 0;
+        }
         $indexes = \DB::select("SELECT * FROM information_schema.STATISTICS WHERE TABLE_NAME='$table' AND INDEX_NAME='$indexName'");
         return count($indexes) > 0;
     }

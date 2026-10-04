@@ -14,10 +14,16 @@ return new class extends Migration
     {
         // 1. Ensure invoice_id is nullable if present
         if (Schema::hasColumn('payments', 'invoice_id')) {
-            try {
-                DB::statement("ALTER TABLE `payments` MODIFY `invoice_id` CHAR(36) NULL");
-            } catch (\Throwable $e) {
-                // Ignore if already nullable or driver specific
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                try {
+                    DB::statement('ALTER TABLE payments ALTER COLUMN invoice_id DROP NOT NULL');
+                } catch (\Throwable $e) {}
+            } else {
+                try {
+                    DB::statement("ALTER TABLE `payments` MODIFY `invoice_id` CHAR(36) NULL");
+                } catch (\Throwable $e) {
+                    // Ignore if already nullable or driver specific
+                }
             }
         }
 

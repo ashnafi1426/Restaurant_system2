@@ -13,9 +13,15 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('restaurant_tables')) {
-            try {
-                DB::statement("ALTER TABLE restaurant_tables MODIFY COLUMN status VARCHAR(100) DEFAULT 'available'");
-            } catch (\Throwable $e) {}
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                try {
+                    DB::statement("ALTER TABLE restaurant_tables ALTER COLUMN status TYPE VARCHAR(100), ALTER COLUMN status SET DEFAULT 'available'");
+                } catch (\Throwable $e) {}
+            } else {
+                try {
+                    DB::statement("ALTER TABLE restaurant_tables MODIFY COLUMN status VARCHAR(100) DEFAULT 'available'");
+                } catch (\Throwable $e) {}
+            }
             
             try {
                 DB::table('restaurant_tables')
@@ -31,9 +37,15 @@ return new class extends Migration
     public function down(): void
     {
         if (Schema::hasTable('restaurant_tables')) {
-            try {
-                DB::statement("ALTER TABLE restaurant_tables MODIFY COLUMN status VARCHAR(100) DEFAULT 'available'");
-            } catch (\Throwable $e) {}
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                try {
+                    DB::statement("ALTER TABLE restaurant_tables ALTER COLUMN status TYPE VARCHAR(100), ALTER COLUMN status SET DEFAULT 'available'");
+                } catch (\Throwable $e) {}
+            } else {
+                try {
+                    DB::statement("ALTER TABLE restaurant_tables MODIFY COLUMN status VARCHAR(100) DEFAULT 'available'");
+                } catch (\Throwable $e) {}
+            }
             
             try {
                 DB::table('restaurant_tables')

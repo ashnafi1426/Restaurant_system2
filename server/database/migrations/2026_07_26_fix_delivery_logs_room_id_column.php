@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            return;
+        }
+
         // Fix the delivery_logs table: change room_id from unsignedBigInteger to uuid (nullable)
         if (Schema::hasTable('delivery_logs')) {
             // Disable foreign key checks to allow modifications

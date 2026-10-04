@@ -66,7 +66,7 @@ class IdentifyTenant
             'api/walk-in-payments/*'
         )) {
             if ($hotelId) {
-                $hotel = Hotel::find($hotelId);
+                $hotel = $this->getHotelById($hotelId);
                 if ($hotel) {
                     $membership = $user ? HotelUser::where('hotel_id', $hotelId)->where('user_id', $user->id)->first() : null;
                     $this->tenantContext->setHotel($hotel, $membership);
@@ -82,7 +82,7 @@ class IdentifyTenant
 
         if (!$user) {
             if ($hotelId) {
-                $hotel = Hotel::find($hotelId);
+                $hotel = $this->getHotelById($hotelId);
                 if ($hotel && $hotel->isActive()) {
                     $this->tenantContext->setHotel($hotel, null);
                 }
@@ -93,7 +93,7 @@ class IdentifyTenant
         // 2. Platform Admin has universal platform access across all hotels
         if ($user->isPlatformAdmin()) {
             if ($hotelId) {
-                $hotel = Hotel::find($hotelId);
+                $hotel = $this->getHotelById($hotelId);
                 if ($hotel) {
                     $membership = HotelUser::where('hotel_id', $hotelId)->where('user_id', $user->id)->first();
                     $this->tenantContext->setHotel($hotel, $membership);
@@ -104,7 +104,7 @@ class IdentifyTenant
 
         // 3. Explicit Hotel ID provided in request header
         if ($hotelId) {
-            $hotel = Hotel::find($hotelId);
+            $hotel = $this->getHotelById($hotelId);
 
             if (!$hotel) {
                 return response()->json([
@@ -211,7 +211,7 @@ class IdentifyTenant
 
         // Platform admin or admin role: auto-bind to active hotel and proceed
         if ($user->isPlatformAdmin() || $user->isAdmin() || strtolower($user->role ?? '') === 'admin') {
-            $anyHotel = Hotel::where('status', 'active')->first();
+            $anyHotel = $this->getFirstActiveHotel();
             if ($anyHotel) {
                 $membership = HotelUser::firstOrCreate([
                     'hotel_id' => $anyHotel->id,
@@ -230,6 +230,30 @@ class IdentifyTenant
             'error' => 'Forbidden',
             'message' => 'You do not have access to any active hotel.',
         ], 403);
+    }
+
+    protected static array $hotelMemoryCache = [];
+
+    protected function getHotelById(?string $hotelId): ?Hotel
+    {
+        if (!$hotelId) {
+            return null;
+        }
+
+        if (!array_key_exists($hotelId, self::$hotelMemoryCache)) {
+            self::$hotelMemoryCache[$hotelId] = Hotel::find($hotelId);
+        }
+
+        return self::$hotelMemoryCache[$hotelId];
+    }
+
+    protected function getFirstActiveHotel(): ?Hotel
+    {
+        $id = \Illuminate\Support\Facades\Cache::remember('first_active_hotel_id', 300, function () {
+            return Hotel::where('status', 'active')->value('id');
+        });
+
+        return $this->getHotelById($id);
     }
 }
 
