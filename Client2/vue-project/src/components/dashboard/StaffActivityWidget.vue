@@ -5,13 +5,10 @@ import { useLanguageStore } from '../../stores/language'
 interface Props {
   activities?: StaffActivityItem[]
 }
-
 withDefaults(defineProps<Props>(), {
   activities: () => [],
 })
-
 const languageStore = useLanguageStore()
-
 const getActivityColor = (index: number) => {
   const colors = [
     'from-teal-400 to-teal-600',
@@ -21,7 +18,6 @@ const getActivityColor = (index: number) => {
   ]
   return colors[index % colors.length]
 }
-
 const getActivityBg = (index: number) => {
   const colors = [
     'from-teal-50 to-transparent',
