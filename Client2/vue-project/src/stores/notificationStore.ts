@@ -187,8 +187,12 @@ export const useNotificationStore = defineStore('notification', () => {
       pollIntervalId.value = null
       console.log('[notificationStore] Polling stopped')
     }
-    // Reset the module-level singleton guard
-    notificationPollingActive = false
+    
+    // Only reset the singleton guard when we actually stop the interval
+    // This prevents premature reset during component unmounts
+    if (notificationPollingActive && !pollIntervalId.value) {
+      notificationPollingActive = false
+    }
   }
 
   return {

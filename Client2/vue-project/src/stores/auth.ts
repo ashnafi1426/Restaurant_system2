@@ -238,6 +238,15 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err: any) {
       console.error('[AuthStore] Error during logout API call:', err)
     } finally {
+      // Stop notification polling on logout
+      try {
+        const { useNotificationStore } = await import('./notificationStore')
+        const notificationStore = useNotificationStore()
+        notificationStore.stopPolling()
+      } catch (err: any) {
+        console.error('[AuthStore] Error stopping notification polling during logout:', err)
+      }
+      
       setToken(null)
       setUser(null)
       setCurrentHotel(null)

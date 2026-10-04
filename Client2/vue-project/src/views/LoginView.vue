@@ -110,8 +110,6 @@ const login = async (): Promise<void> => {
       if (route.query.redirect && typeof route.query.redirect === 'string') {
         return router.push(route.query.redirect)
       }
-
-      // Navigate dynamically based on the verified backend role
       if (effectiveRole === 'admin' || auth.isPlatformAdmin) {
         router.push('/admin')
       } else if (effectiveRole === 'manager') {
@@ -136,7 +134,7 @@ const login = async (): Promise<void> => {
     showToast.value = true
     setTimeout(() => {
       showToast.value = false
-    }, 4500)
+    }, 500)
     errors.value.general = errorMsg
   } finally {
     loading.value = false

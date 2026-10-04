@@ -175,6 +175,11 @@ onMounted(() => {
   loadNotifications()
 
   pollInterval = setInterval(() => {
+    // Skip polling if tab is hidden to reduce server load
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+      return
+    }
+    
     loadNotifications()
   }, 30000)
 })

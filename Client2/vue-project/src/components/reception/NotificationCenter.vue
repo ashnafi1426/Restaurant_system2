@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useNotificationStore } from '@/stores/notificationStore'
 import type { NotificationData } from '@/services/notificationService'
 import { Bell, X, Check, Trash2 } from 'lucide-vue-next'
@@ -91,27 +91,9 @@ const handleMarkAllRead = async () => {
 }
 
 onMounted(async () => {
-  const { useAuthStore } = await import('@/stores/auth')
-  const auth = useAuthStore()
-  
-  // Fetch full notifications on mount to populate list and derive unread count
-  await notificationStore.fetchNotifications()
-  
-  // Start polling only for receptionist role with 30 second interval
-  if (auth.user?.role === 'receptionist') {
-    notificationStore.startPolling(30000)
-  }
-})
-
-// Watch showDropdown to refresh notifications when dropdown opens
-watch(showDropdown, async (newValue) => {
-  if (newValue) {
-    await notificationStore.fetchNotifications()
-  }
-})
-
-onUnmounted(() => {
-  notificationStore.stopPolling()
+  // Only fetch unread count on mount to populate initial badge
+  // Polling is handled by DashboardLayout.vue
+  await notificationStore.fetchUnreadCount()
 })
 </script>
 
