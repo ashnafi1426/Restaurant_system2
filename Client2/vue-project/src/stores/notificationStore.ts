@@ -5,6 +5,9 @@ import { waiterNotificationService } from '../services/waiterNotificationService
 import type { NotificationData } from '../services/notificationService'
 import { useAuthStore } from './auth'
 
+// Module-level singleton guard to prevent multiple polling instances
+let notificationPollingActive = false
+
 export const useNotificationStore = defineStore('notification', () => {
   const notifications = ref<NotificationData[]>([])
   const unreadCount = ref(0)
@@ -39,7 +42,7 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
-  const fetchNotifications = async (page: number = 1) => {
+  const fetchNotifications = async (page: number = 1, skipUnreadCount: boolean = false) => {
     loading.value = true
     try {
       const service = getNotificationService()
@@ -48,7 +51,8 @@ export const useNotificationStore = defineStore('notification', () => {
       const data = response.data?.data || response.data || []
       notifications.value = Array.isArray(data) ? data : [data]
 
-      await fetchUnreadCount()
+      // Derive unread count from notifications instead of making a separate API call
+      unreadCount.value = notifications.value.filter(n => !n.read).length
     } catch (error: any) {
       console.error('[notificationStore] Error fetching notifications:', error)
       if (error.response?.status === 403 || error.response?.status === 401) {
@@ -146,26 +150,45 @@ export const useNotificationStore = defineStore('notification', () => {
     }
   }
 
-  const startPolling = (interval: number = 5000) => {
+  const startPolling = (interval: number = 30000) => {
     const token = localStorage.getItem('token')
     if (!token) {
+      console.warn('[notificationStore] Cannot start polling: no auth token')
       return
     }
 
+    // Check module-level singleton guard first
+    if (notificationPollingActive) {
+      console.warn('[notificationStore] Polling already active globally, skipping')
+      return
+    }
+
+    // Check if polling is already active to prevent duplicate intervals
     if (pollIntervalId.value) {
+      console.warn('[notificationStore] Polling already active, skipping')
       return
     }
 
-    pollIntervalId.value = notificationService.subscribeToNotifications((notification) => {
-      addNotification(notification)
+    // Set the singleton guard
+    notificationPollingActive = true
+
+    // Start polling with minimum 30s interval (enforced by service)
+    // Subscribe with new callback signature - receives unread count directly
+    pollIntervalId.value = notificationService.subscribeToNotifications((newCount: number) => {
+      unreadCount.value = newCount
     }, interval) as unknown as number
+
+    console.log('[notificationStore] Polling started with interval:', interval)
   }
 
   const stopPolling = () => {
     if (pollIntervalId.value) {
       notificationService.unsubscribeFromNotifications(pollIntervalId.value)
       pollIntervalId.value = null
+      console.log('[notificationStore] Polling stopped')
     }
+    // Reset the module-level singleton guard
+    notificationPollingActive = false
   }
 
   return {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useNotificationStore } from '@/stores/notificationStore'
 import type { NotificationData } from '@/services/notificationService'
 import { Bell, X, Check, Trash2 } from 'lucide-vue-next'
@@ -10,6 +10,15 @@ const showDropdown = ref(false)
 
 const closeDropdown = () => {
   showDropdown.value = false
+}
+
+const openDropdown = async () => {
+  showDropdown.value = true
+  
+  // Fetch full notifications list only when dropdown opens
+  if (notificationStore.notifications.length === 0 || showDropdown.value) {
+    await notificationStore.fetchNotifications(1, true) // skipUnreadCount = true to avoid duplicate call
+  }
 }
 
 const getNotificationIcon = (type: string) => {
@@ -85,10 +94,19 @@ onMounted(async () => {
   const { useAuthStore } = await import('@/stores/auth')
   const auth = useAuthStore()
   
+  // Fetch full notifications on mount to populate list and derive unread count
   await notificationStore.fetchNotifications()
   
+  // Start polling only for receptionist role with 30 second interval
   if (auth.user?.role === 'receptionist') {
-    notificationStore.startPolling(5000)
+    notificationStore.startPolling(30000)
+  }
+})
+
+// Watch showDropdown to refresh notifications when dropdown opens
+watch(showDropdown, async (newValue) => {
+  if (newValue) {
+    await notificationStore.fetchNotifications()
   }
 })
 
@@ -100,7 +118,7 @@ onUnmounted(() => {
 <template>
   <div class="relative">
     <button
-      @click="showDropdown = !showDropdown"
+      @click="openDropdown"
       class="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-all"
       title="Notifications"
     >

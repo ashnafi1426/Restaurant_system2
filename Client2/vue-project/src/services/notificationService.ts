@@ -24,13 +24,52 @@ export interface NotificationData {
   created_at?: string
 }
 
+// Request deduplication and debouncing
+const pendingRequests = new Map<string, Promise<any>>()
+let lastUnreadCountFetch = 0
+const UNREAD_COUNT_DEBOUNCE_MS = 2000 // Don't fetch more than once every 2 seconds
+
+// Singleton polling instance tracker
+let globalPollIntervalId: number | null = null
+let lastKnownUnreadCount = 0
+
 export const notificationService = {
   getNotifications(limit: number = 10) {
-    return api.get('/notifications', { params: { limit } })
+    const key = `notifications-${limit}`
+    
+    // Return existing pending request if one exists
+    if (pendingRequests.has(key)) {
+      return pendingRequests.get(key)!
+    }
+
+    const request = api.get('/notifications', { params: { limit } }).finally(() => {
+      pendingRequests.delete(key)
+    })
+
+    pendingRequests.set(key, request)
+    return request
   },
 
   getUnreadCount() {
-    return api.get('/notifications/unread-count')
+    const now = Date.now()
+    
+    // Debounce: if we fetched recently, return the cached promise
+    if (pendingRequests.has('unread-count')) {
+      return pendingRequests.get('unread-count')!
+    }
+
+    // If fetched within debounce window, skip
+    if (now - lastUnreadCountFetch < UNREAD_COUNT_DEBOUNCE_MS) {
+      return Promise.resolve({ data: { unread_count: 0 } })
+    }
+
+    lastUnreadCountFetch = now
+    const request = api.get('/notifications/unread-count').finally(() => {
+      pendingRequests.delete('unread-count')
+    })
+
+    pendingRequests.set('unread-count', request)
+    return request
   },
 
   markAsRead(notificationId: string) {
@@ -50,46 +89,58 @@ export const notificationService = {
   },
 
   subscribeToNotifications(
-    callback: (notification: NotificationData) => void,
-    interval: number = 5000,
+    callback: (newCount: number) => void,
+    interval: number = 30000,
   ) {
-    let failureCount = 0
-    const maxFailures = 3
-    const seenNotificationIds = new Set<string>()
+    // Prevent multiple polling instances - return existing interval if already active
+    if (globalPollIntervalId !== null) {
+      console.warn('[NotificationService] Polling already active, reusing existing interval')
+      return globalPollIntervalId
+    }
+
+    // Enforce minimum interval of 30 seconds
+    const safeInterval = Math.max(interval, 30000)
 
     const intervalId = setInterval(async () => {
-      try {
-        const response = await api.get('/notifications/latest')
-        if (response.data && response.data.data) {
-          const notification = response.data.data
+      // Skip polling if tab is hidden
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        return
+      }
 
-          if (notification.id && !seenNotificationIds.has(notification.id)) {
-            seenNotificationIds.add(notification.id)
-            callback(notification)
-          }
-          failureCount = 0
+      try {
+        const response = await api.get('/notifications/unread-count')
+        const newCount = response.data?.unread_count || response.data?.count || 0
+
+        // Only notify if count has increased
+        if (newCount > lastKnownUnreadCount) {
+          lastKnownUnreadCount = newCount
+          callback(newCount)
         }
       } catch (error: any) {
         console.error('[NotificationService] Polling error:', error)
-        failureCount++
 
+        // Stop polling on auth errors
         if (error.response?.status === 401 || error.response?.status === 403) {
+          console.warn('[NotificationService] Auth error, stopping polling')
           clearInterval(intervalId)
+          globalPollIntervalId = null
+          lastKnownUnreadCount = 0
           return
         }
-
-        if (failureCount >= maxFailures) {
-          clearInterval(intervalId)
-          return
-        }
+        // For other errors, continue polling (network glitches should not kill the interval)
       }
-    }, interval)
+    }, safeInterval)
 
+    globalPollIntervalId = intervalId
     return intervalId
   },
 
   unsubscribeFromNotifications(intervalId: number) {
-    clearInterval(intervalId)
+    if (intervalId === globalPollIntervalId) {
+      clearInterval(intervalId)
+      globalPollIntervalId = null
+      lastKnownUnreadCount = 0
+    }
   },
 }
 
