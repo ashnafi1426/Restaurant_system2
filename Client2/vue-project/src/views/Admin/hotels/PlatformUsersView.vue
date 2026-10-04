@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
 import { platformService, type Hotel } from '@/services/platformService'
@@ -12,7 +12,11 @@ import {
   Phone,
   Mail,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-vue-next'
 
 const users = ref<any[]>([])
@@ -26,6 +30,51 @@ const errorMessage = ref('')
 const currentPage = ref(1)
 const lastPage = ref(1)
 const totalUsers = ref(0)
+const perPage = ref(10) // Default items per page
+const perPageOptions = [5, 10, 20, 50]
+
+// Computed property for pagination display
+const paginationInfo = computed(() => {
+  const start = ((currentPage.value - 1) * perPage.value) + 1
+  const end = Math.min(currentPage.value * perPage.value, totalUsers.value)
+  return { start, end }
+})
+
+// Computed property for page numbers to display
+const visiblePages = computed(() => {
+  const pages = []
+  const total = lastPage.value
+  const current = currentPage.value
+  
+  if (total <= 7) {
+    // Show all pages if total <= 7
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    // Show ellipsis logic for many pages
+    if (current <= 4) {
+      // Show first 5 pages + ellipsis + last page
+      for (let i = 1; i <= 5; i++) pages.push(i)
+      if (total > 6) pages.push('ellipsis')
+      pages.push(total)
+    } else if (current >= total - 3) {
+      // Show first page + ellipsis + last 5 pages
+      pages.push(1)
+      if (total > 6) pages.push('ellipsis')
+      for (let i = total - 4; i <= total; i++) pages.push(i)
+    } else {
+      // Show first page + ellipsis + current-1, current, current+1 + ellipsis + last page
+      pages.push(1)
+      pages.push('ellipsis')
+      for (let i = current - 1; i <= current + 1; i++) pages.push(i)
+      pages.push('ellipsis')
+      pages.push(total)
+    }
+  }
+  
+  return pages
+})
 
 const loadUsers = async () => {
   loading.value = true
@@ -36,6 +85,7 @@ const loadUsers = async () => {
       role: selectedRole.value !== 'all' ? selectedRole.value : undefined,
       hotel_id: selectedHotelId.value !== 'all' ? selectedHotelId.value : undefined,
       page: currentPage.value,
+      per_page: perPage.value,
     })
     users.value = res.data || []
     currentPage.value = res.current_page || 1
@@ -56,6 +106,36 @@ const loadHotels = async () => {
   } catch (e) {
     console.warn('Could not load hotels list:', e)
   }
+}
+
+// Navigation functions
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= lastPage.value && page !== currentPage.value) {
+    currentPage.value = page
+    loadUsers()
+  }
+}
+
+const goToFirstPage = () => {
+  goToPage(1)
+}
+
+const goToLastPage = () => {
+  goToPage(lastPage.value)
+}
+
+const goToPreviousPage = () => {
+  goToPage(currentPage.value - 1)
+}
+
+const goToNextPage = () => {
+  goToPage(currentPage.value + 1)
+}
+
+// Handle per page change
+const handlePerPageChange = () => {
+  currentPage.value = 1 // Reset to first page when changing per page
+  loadUsers()
 }
 
 onMounted(() => {

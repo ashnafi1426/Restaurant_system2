@@ -23,7 +23,7 @@ class RoomController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $filters = $request->only(['search', 'status', 'room_type_id', 'is_active']);
-        $perPage = $request->integer('per_page', 100);
+        $perPage = $request->integer('per_page', 10);
 
         $rooms = $this->roomService->paginate($filters, $perPage);
 

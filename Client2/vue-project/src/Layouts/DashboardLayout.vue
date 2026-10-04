@@ -7,7 +7,9 @@ import { useThemeStore } from '../stores/theme'
 import { useSidebarStore } from '../stores/sidebarStore'
 import { useHotelStore } from '../stores/hotelStore'
 import { useAuthStore } from '../stores/auth'
-import { useNotificationStore } from '../stores/notificationStore'
+// import { useNotificationStore } from '../stores/notificationStore'
+
+
 import { useLanguageStore } from '../stores/language'
 import { platformService } from '../services/platformService'
 import { ShieldAlert, LogOut, X } from 'lucide-vue-next'
@@ -16,23 +18,23 @@ const themeStore = useThemeStore()
 const sidebarStore = useSidebarStore()
 const hotelStore = useHotelStore()
 const authStore = useAuthStore()
-const notificationStore = useNotificationStore()
+// const notificationStore = useNotificationStore()
 const languageStore = useLanguageStore()
 const router = useRouter()
 
 onMounted(() => {
   themeStore.initTheme()
   
-  // Start notification polling only if user is authenticated
-  if (authStore.isAuthenticated) {
-    notificationStore.startPolling(30000)
-  }
+  // // Start notification polling only if user is authenticated
+  // if (authStore.isAuthenticated) {
+  //   notificationStore.startPolling(30000)
+  // }
 })
 
-onUnmounted(() => {
-  // Stop notification polling when dashboard layout unmounts (session ends)
-  notificationStore.stopPolling()
-})
+// onUnmounted(() => {
+//   // Stop notification polling when dashboard layout unmounts (session ends)
+//   notificationStore.stopPolling()
+// })
 
 const exitPlatformView = async () => {
   try {

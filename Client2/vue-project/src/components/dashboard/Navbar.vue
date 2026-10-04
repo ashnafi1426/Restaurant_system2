@@ -7,7 +7,7 @@ import { useThemeStore } from '../../stores/theme'
 import { useSidebarStore } from '../../stores/sidebarStore'
 import { useLanguageStore } from '@/stores/language'
 import LanguageSelector from '@/components/common/LanguageSelector.vue'
-import NotificationCenter from '@/components/reception/NotificationCenter.vue'
+// import NotificationCenter from '@/components/reception/NotificationCenter.vue'
 import { Sun, Moon, PanelLeft, Maximize, Minimize, Building2, ChevronDown, Check, Search } from 'lucide-vue-next'
 
 const auth = useAuthStore()
@@ -194,7 +194,7 @@ const handleHamburgerClick = () => {
         />
       </div>
 
-      <NotificationCenter />
+      <!-- <NotificationCenter /> -->
 
       <!-- Language Selector -->
       <LanguageSelector variant="compact" />

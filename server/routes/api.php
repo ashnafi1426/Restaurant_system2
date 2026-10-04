@@ -370,15 +370,15 @@ Route::middleware('auth:sanctum')->group(function () {
            Route::post('/status', [ChefProfileController::class, 'updateStatus']);
        });
     });
-    Route::prefix('notifications')->group(function () {
-        Route::get('/latest', [NotificationController::class, 'latest']);
-        Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
-        Route::put('/read-all', [NotificationController::class, 'markAllAsRead']);
-        Route::delete('/clear-all', [NotificationController::class, 'clearAll']);
-        Route::get('/', [NotificationController::class, 'index']);
-        Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
-        Route::delete('/{id}', [NotificationController::class, 'destroy']);
-    });
+    // Route::prefix('notifications')->group(function () {
+    //     Route::get('/latest', [NotificationController::class, 'latest']);
+    //     Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+    //     Route::put('/read-all', [NotificationController::class, 'markAllAsRead']);
+    //     Route::delete('/clear-all', [NotificationController::class, 'clearAll']);
+    //     Route::get('/', [NotificationController::class, 'index']);
+    //     Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
+    //     Route::delete('/{id}', [NotificationController::class, 'destroy']);
+    // });
     Route::middleware('role:staff')->group(function(){
         Route::get('/menu-items', [MenuItemController::class, 'index']);
         Route::get('/menu-items/statistics', [MenuItemController::class, 'statistics']);
@@ -767,11 +767,6 @@ Route::middleware('auth:sanctum')->prefix('notifications/reviews')->group(functi
     Route::get('/unread-count', [ReviewNotificationController::class, 'unreadCount']);
     Route::post('/{id}/read', [ReviewNotificationController::class, 'markAsRead']);
 });
-
-
-// ============================================================================
-// OPTIONAL ENHANCEMENTS - Payment Integration, Email Notifications, SMS, Analytics
-// ============================================================================
 
 // Payment Gateway Routes (authenticated staff/admin)
 Route::middleware(['auth:sanctum', 'role:staff'])->prefix('payment-gateway')->group(function () {

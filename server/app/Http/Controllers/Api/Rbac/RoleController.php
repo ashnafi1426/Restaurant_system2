@@ -97,7 +97,6 @@ class RoleController extends Controller
         $query = Role::withoutTenant()
             ->with(['permissions:id,name,slug,module,action'])
             ->withCount(['permissions']);
-
         if ($hotelId) {
             $query->where('hotel_id', $hotelId);
         } elseif ($user && $user->isPlatformAdmin()) {
@@ -292,10 +291,6 @@ class RoleController extends Controller
             'data' => $role,
         ]);
     }
-
-    /**
-     * Update the specified role within this hotel.
-     */
     public function update(Request $request, Role $role)
     {
         if ($denied = $this->verifyRoleAccess($role, $request)) {
@@ -347,10 +342,6 @@ class RoleController extends Controller
             'data' => $role->load(['permissions']),
         ]);
     }
-
-    /**
-     * Remove the specified role.
-     */
     public function destroy(Request $request, Role $role)
     {
         if ($denied = $this->verifyRoleAccess($role, $request)) {
@@ -412,10 +403,6 @@ class RoleController extends Controller
             'permission_ids' => $permissions->pluck('id'),
         ]);
     }
-
-    /**
-     * Sync permissions strictly for a hotel-specific role.
-     */
     public function syncPermissions(Request $request, Role $role)
     {
         // 1. Enforce strict hotel ownership check

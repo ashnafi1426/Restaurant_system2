@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useNotificationStore } from '@/stores/notificationStore'
 import type { NotificationData } from '@/services/notificationService'
@@ -302,4 +302,4 @@ onMounted(async () => {
 :root.dark ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
-</style>
+</style> -->
