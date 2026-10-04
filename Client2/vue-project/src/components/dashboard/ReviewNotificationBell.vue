@@ -15,7 +15,6 @@
         {{ unreadCount > 99 ? '99+' : unreadCount }}
       </span>
     </button>
-
     <transition
       enter-active-class="transition ease-out duration-100"
       enter-from-class="transform opacity-0 scale-95"

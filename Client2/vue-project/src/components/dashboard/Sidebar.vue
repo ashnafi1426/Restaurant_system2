@@ -67,7 +67,6 @@ const languageStore = useLanguageStore()
 const handleNavigate = () => {
   emit('navigate')
 }
-
 const menuIcons: Record<string, Component> = {
   Dashboard: LayoutDashboard,
   Users: Users,

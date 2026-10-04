@@ -21,7 +21,6 @@ const getActivityColor = (index: number) => {
   ]
   return colors[index % colors.length]
 }
-
 const getActivityBg = (index: number) => {
   const colors = [
     'from-teal-50 to-transparent',
