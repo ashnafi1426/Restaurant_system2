@@ -342,7 +342,6 @@ class GuestOrderPaymentController extends Controller
             ], 500);
         }
     }
-}
 
     /**
      * Initialize payment for an existing order.
@@ -430,10 +429,6 @@ class GuestOrderPaymentController extends Controller
             $checkoutUrl = $this->chapaService->getCheckoutUrl($chapaResponse);
             $payment->markAsInitialized($checkoutUrl);
 
-            // Link payment to order
-            $order->payment_id = $payment->id;
-            $order->save();
-
             Log::info('Existing Order Payment Initialized', [
                 'payment_id' => $payment->id,
                 'order_id' => $order->id,
@@ -473,3 +468,5 @@ class GuestOrderPaymentController extends Controller
             ], 500);
         }
     }
+
+}
