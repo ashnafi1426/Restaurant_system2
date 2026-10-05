@@ -5,6 +5,13 @@ namespace App\Services\Waiter;
 use App\Models\DeliveryLog;
 use App\Models\WaiterPerformance;
 use Carbon\Carbon;
+use App\Models\WaiterFloorAssignment;
+use App\Models\Waiter;
+use App\Models\Order;
+use App\Models\DeliveryTask;
+use App\Models\Scopes\TenantScope;
+use App\Services\TenantContext;
+
 
 class WaiterDashboardService
 {
@@ -15,7 +22,7 @@ class WaiterDashboardService
         }
 
         try {
-            return \App\Models\WaiterFloorAssignment::where('waiter_id', $waiterId)
+            return WaiterFloorAssignment::where('waiter_id', $waiterId)
                 ->where(function ($q) {
                     $q->where('is_active', true)
                       ->orWhere('status', 'active');
@@ -34,7 +41,7 @@ class WaiterDashboardService
     public function getDashboardStats($waiterId = null): array
     {
         try {
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
 
             \Log::info(' [SERVICE] getDashboardStats called:', [
                 'waiter_id' => $waiterId,
@@ -72,11 +79,11 @@ class WaiterDashboardService
     {
         try {
             $today = Carbon::today();
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
 
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
-            $taskQuery = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class);
+            $taskQuery = DeliveryTask::withoutGlobalScope(TenantScope::class);
 
             if ($hotelId) {
                 $taskQuery->where(function ($q) use ($hotelId) {
@@ -118,13 +125,13 @@ class WaiterDashboardService
                 ')
                 ->first();
 
-            $pickedUpOrderIds = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+            $pickedUpOrderIds = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
                 ->whereIn('status', ['picked_up', 'on_delivery', 'delivered', 'cancelled'])
                 ->pluck('order_id')
                 ->filter()
                 ->toArray();
 
-            $orderReadyQuery = \App\Models\Order::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+            $orderReadyQuery = Order::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['ready', 'pending', 'preparing']);
             if (!empty($pickedUpOrderIds)) {
                 $orderReadyQuery->whereNotIn('orders.id', $pickedUpOrderIds);
@@ -203,11 +210,11 @@ class WaiterDashboardService
             if (auth()->check()) {
                 $userIds[] = auth()->id();
             }
-            $waiterModel = \App\Models\Waiter::find($waiterId);
+            $waiterModel =Waiter::find($waiterId);
             if ($waiterModel) {
                 $userIds[] = $waiterModel->user_id;
             } else {
-                $waiterModelByUser = \App\Models\Waiter::where('user_id', $waiterId)->first();
+                $waiterModelByUser =Waiter::where('user_id', $waiterId)->first();
                 if ($waiterModelByUser) {
                     $userIds[] = $waiterModelByUser->id;
                 }
@@ -227,10 +234,10 @@ class WaiterDashboardService
                 ->get();
 
             $getTaskMetrics = function ($startDateStr, $endDateStr) use ($userIds) {
-                $baseQuery = \App\Models\DeliveryTask::whereIn('waiter_id', $userIds);
+                $baseQuery =DeliveryTask::whereIn('waiter_id', $userIds);
 
                 if ((clone $baseQuery)->count() === 0) {
-                    $baseQuery = \App\Models\DeliveryTask::query();
+                    $baseQuery = DeliveryTask::query();
                 }
 
                 $completed = (clone $baseQuery)
@@ -259,8 +266,8 @@ class WaiterDashboardService
                 ];
             };
 
-            $totalSystemCompleted = \App\Models\DeliveryTask::where('status', 'delivered')->count();
-            $totalSystemFailed = \App\Models\DeliveryTask::whereIn('status', ['failed', 'cancelled'])->count();
+            $totalSystemCompleted =DeliveryTask::where('status', 'delivered')->count();
+            $totalSystemFailed =DeliveryTask::whereIn('status', ['failed', 'cancelled'])->count();
 
             $todayTasks = $getTaskMetrics($todayStart, $todayEnd);
             $weekTasks = $getTaskMetrics($weekStart, $nowString);
@@ -351,7 +358,7 @@ class WaiterDashboardService
     public function getRecentAssignments($waiterId = null, $limit = 10): array
     {
         try {
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
             \Log::info(' [SERVICE] getRecentAssignments querying:', [
@@ -360,7 +367,7 @@ class WaiterDashboardService
                 'limit' => $limit,
             ]);
 
-            $baseQuery = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class);
+            $baseQuery = DeliveryTask::withoutGlobalScope(TenantScope::class);
             if ($hotelId) {
                 $baseQuery->where(function ($q) use ($hotelId) {
                     $q->where('delivery_tasks.hotel_id', $hotelId)
@@ -529,10 +536,10 @@ class WaiterDashboardService
     public function getPendingCount($waiterId = null): int
     {
         try {
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
-            $query = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+            $query =DeliveryTask::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['assigned', 'waiting_assignment']);
             if ($hotelId) {
                 $query->where(function($q) use ($hotelId) {
@@ -562,10 +569,10 @@ class WaiterDashboardService
     public function getActiveCount($waiterId = null): int
     {
         try {
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
-            $query = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+            $query = DeliveryTask::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['accepted', 'picked_up', 'on_delivery']);
             if ($hotelId) {
                 $query->where(function($q) use ($hotelId) {
@@ -586,10 +593,10 @@ class WaiterDashboardService
     public function getAllKitchenReadyOrders($waiterId = null): array
     {
         try {
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
-            $query = \App\Models\Order::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+            $query = Order::withoutGlobalScope(TenantScope::class)
                 ->where('status', 'ready');
             if ($hotelId) {
                 $query->where('hotel_id', $hotelId);
@@ -642,14 +649,14 @@ class WaiterDashboardService
     public function getReadyForPickup($waiterId = null): array
     {
         try {
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
             \Log::info(' [SERVICE] getReadyForPickup called', ['waiter_id' => $waiterId, 'hotel_id' => $hotelId]);
 
             $assignedFloorIds = (!$isAdminOrManager && $waiterId) ? $this->getWaiterAssignedFloorIds($waiterId) : [];
 
-            $tasksQuery = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+            $tasksQuery = DeliveryTask::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['assigned', 'waiting_assignment', 'accepted']);
 
             if ($hotelId) {
@@ -731,11 +738,11 @@ class WaiterDashboardService
                 'waiter_id' => $waiterId,
             ]);
 
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
             $assignedFloorIds = (!$isAdminOrManager && $waiterId) ? $this->getWaiterAssignedFloorIds($waiterId) : [];
 
-            $query = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+            $query = DeliveryTask::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['assigned', 'waiting_assignment']);
 
             if ($hotelId) {
@@ -806,12 +813,12 @@ class WaiterDashboardService
     public function getOnDelivery($waiterId = null): array
     {
         try {
-            $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
+            $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
             \Log::info(' [DASHBOARD] getOnDelivery called', ['waiter_id' => $waiterId, 'hotel_id' => $hotelId]);
             
-            $baseQuery = \App\Models\DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+            $baseQuery = DeliveryTask::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['on_delivery', 'picked_up']);
 
             if ($hotelId) {
@@ -880,7 +887,7 @@ class WaiterDashboardService
     public function getCompletedDeliveries($waiterId, $limit = 10): array
     {
         try {
-            $query = \App\Models\DeliveryTask::where('status', 'delivered');
+            $query =DeliveryTask::where('status', 'delivered');
 
             $userTasks = (clone $query)->whereIn('waiter_id', [$waiterId, auth()->id()]);
             if ($userTasks->exists()) {
@@ -958,7 +965,7 @@ class WaiterDashboardService
     {
         try {
             $today = Carbon::today();
-            $results = \App\Models\DeliveryTask::where('waiter_id', $waiterId)
+            $results =DeliveryTask::where('waiter_id', $waiterId)
                 ->where('status', 'cancelled')
                 ->whereDate('cancelled_at', $today)
                 ->with('order', 'order.guest', 'order.room', 'assignedBy')
@@ -1148,7 +1155,7 @@ class WaiterDashboardService
             
             $today = Carbon::today();
             
-            $stats = \App\Models\DeliveryTask::where('waiter_id', $waiterId)
+            $stats =DeliveryTask::where('waiter_id', $waiterId)
                 ->whereDate('assigned_at', $today)
                 ->selectRaw('
                     SUM(CASE WHEN status = "assigned" THEN 1 ELSE 0 END) as pending,

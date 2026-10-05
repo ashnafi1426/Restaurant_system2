@@ -90,7 +90,6 @@ class AssignFloorRequest extends FormRequest
                 if (empty($assignment['assignment_date'])) {
                     $assignment['assignment_date'] = now()->format('Y-m-d');
                 }
-
                 if (empty($assignment['shift_id'])) {
                     $assignment['shift_id'] = null;
                 }

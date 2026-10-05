@@ -28,9 +28,18 @@ class QRCodeService
                 
                 file_put_contents($filePath, $qrCode);
                 
+                // Also copy to public storage for web access
+                $publicPath = public_path("storage/qr-codes/{$filename}");
+                $publicDir = dirname($publicPath);
+                if (!is_dir($publicDir)) {
+                    mkdir($publicDir, 0755, true);
+                }
+                copy($filePath, $publicPath);
+                
                 \Log::info('QR Code saved successfully', [
                     'room_id' => $roomId,
                     'path' => $filePath,
+                    'public_path' => $publicPath,
                     'size' => filesize($filePath),
                 ]);
                 
@@ -48,9 +57,18 @@ class QRCodeService
                 
                 file_put_contents($filePath, $qrImage);
                 
+                // Also copy to public storage for web access
+                $publicPath = public_path("storage/qr-codes/{$filename}");
+                $publicDir = dirname($publicPath);
+                if (!is_dir($publicDir)) {
+                    mkdir($publicDir, 0755, true);
+                }
+                copy($filePath, $publicPath);
+                
                 \Log::info('QR Code saved from API', [
                     'room_id' => $roomId,
                     'path' => $filePath,
+                    'public_path' => $publicPath,
                 ]);
             }
             

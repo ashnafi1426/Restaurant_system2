@@ -51,7 +51,6 @@ class DashboardController extends Controller
     {
         return $this->handleAction(
             fn() => new DashboardStatsResource($this->dashboardService->getDashboardStats()),
-            []
         );
     }
 
@@ -59,7 +58,6 @@ class DashboardController extends Controller
     {
         return $this->handleAction(
             fn() => new DashboardStatsResource($this->dashboardService->getDashboardStats()),
-            []
         );
     }
 
@@ -69,7 +67,6 @@ class DashboardController extends Controller
         
         return $this->handleAction(
             fn() => $this->dashboardService->getDailyStats($days),
-            []
         );
     }
 
@@ -79,7 +76,6 @@ class DashboardController extends Controller
         
         return $this->handleAction(
             fn() => $this->dashboardService->getTopSellingItems($limit),
-            []
         );
     }
 
@@ -87,7 +83,6 @@ class DashboardController extends Controller
     {
         return $this->handleAction(
             fn() => $this->dashboardService->getPerformanceSummary(),
-            []
         );
     }
 }

@@ -28,14 +28,10 @@ class CorsMiddleware
         
         // Check if origin is allowed
         $isAllowed = in_array($origin, $allowedOrigins);
-        
         $requestedHeaders = $request->header('Access-Control-Request-Headers') 
             ?: 'Content-Type, Authorization, Accept, X-Requested-With, X-Hotel-ID, x-hotel-id, Origin';
-        
-        // Handle preflight OPTIONS request
         if ($request->getMethod() === 'OPTIONS') {
             $response = new Response();
-            
             if ($isAllowed) {
                 $response->headers->set('Access-Control-Allow-Origin', $origin);
                 $response->headers->set('Access-Control-Allow-Credentials', 'true');
@@ -57,7 +53,6 @@ class CorsMiddleware
             $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
             $response->headers->set('Access-Control-Allow-Headers', $requestedHeaders);
         }
-        
         return $response;
     }
 }

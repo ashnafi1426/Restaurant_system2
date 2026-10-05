@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Room extends Model
@@ -159,6 +160,7 @@ class Room extends Model
         if (!$this->qr_image_path) {
             return null;
         }
+
 
         return url("storage/{$this->qr_image_path}");
     }
