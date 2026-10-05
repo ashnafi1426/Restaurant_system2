@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\KitchenController;
+use App\Http\Controllers\Api\CustomerOrderController;
 use App\Http\Controllers\Api\GuestOrderController;
 use App\Http\Controllers\Api\QRCodeController;
 use App\Http\Controllers\Api\QRCodePrintController;
@@ -197,6 +198,9 @@ Route::prefix('guest')->group(function () {
     Route::post('/orders', [GuestOrderController::class, 'createOrder']);
     Route::post('/unified-orders', [UnifiedOrderController::class, 'store']);
     Route::get('/orders/{qrToken}/status', [GuestOrderController::class, 'getOrderStatus']);
+    
+    // Real-time order status tracking (NEW - WebSocket support)
+    Route::get('/orders/{orderId}/status', [CustomerOrderController::class, 'getOrderStatus']);
 });
 Route::prefix('guest/bookings')->middleware('qr.token')->group(function () {
     Route::post('/check-availability', [GuestBookingController::class, 'checkAvailability']);
