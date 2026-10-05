@@ -6,6 +6,7 @@ import { useAuthStore } from './stores/auth'
 import { useLanguageStore } from './stores/language'
 import './assets/main.css'
 import './styles/dark-mode.css'
+import './plugins/echo' // Initialize Laravel Echo WebSocket connection
 import App from './App.vue'
 import router from './router'
 
