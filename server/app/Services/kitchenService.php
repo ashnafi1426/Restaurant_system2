@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\OrderStatusUpdated;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\OrderStatusService;
@@ -87,7 +88,13 @@ class KitchenService
      */
     public function startPreparing(Order $order, ?User $actor = null): Order
     {
-        return $this->orderStatusService->startPreparing($order, $actor);
+        $previousStatus = $order->status;
+        $updatedOrder = $this->orderStatusService->startPreparing($order, $actor);
+        
+        // Broadcast real-time status update via WebSocket
+        OrderStatusUpdated::dispatch($updatedOrder, $previousStatus);
+        
+        return $updatedOrder;
     }
 
     /**
@@ -95,7 +102,13 @@ class KitchenService
      */
     public function markReady(Order $order): Order
     {
-        return $this->orderStatusService->markReady($order);
+        $previousStatus = $order->status;
+        $updatedOrder = $this->orderStatusService->markReady($order);
+        
+        // Broadcast real-time status update via WebSocket
+        OrderStatusUpdated::dispatch($updatedOrder, $previousStatus);
+        
+        return $updatedOrder;
     }
 
     /**
@@ -103,7 +116,13 @@ class KitchenService
      */
     public function markServed(Order $order): Order
     {
-        return $this->orderStatusService->markServed($order);
+        $previousStatus = $order->status;
+        $updatedOrder = $this->orderStatusService->markServed($order);
+        
+        // Broadcast real-time status update via WebSocket
+        OrderStatusUpdated::dispatch($updatedOrder, $previousStatus);
+        
+        return $updatedOrder;
     }
 
     /**
