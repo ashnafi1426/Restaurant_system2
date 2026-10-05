@@ -707,13 +707,26 @@ const handlePlaceOrder = async () => {
       })
 
       if (orderResponse && orderResponse.success && orderResponse.data) {
+        const createdOrderId = orderResponse.data.id || orderResponse.data.order_id
         orderNumber.value = orderResponse.data.order_number
         roomNumber.value = orderResponse.data.room_number || roomNumber.value
         estimatedTime.value = 30
+        
+        // Store hotel_id for OrderStatusPage
+        if (orderResponse.data.hotel_id) {
+          localStorage.setItem('hotel_id', orderResponse.data.hotel_id)
+        }
+        
+        // Clear cart
         cartItems.value = []
         showPaymentDialog.value = false
         showCartModal.value = false
-        showSuccessModal.value = true
+        
+        // Redirect to real-time Order Status page instead of showing modal
+        router.push({
+          name: 'order-status',
+          params: { orderId: createdOrderId }
+        })
         return
       } else {
         throw new Error(orderResponse.message || 'Failed to place room order')

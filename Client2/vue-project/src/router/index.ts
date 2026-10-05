@@ -560,6 +560,15 @@ const router = createRouter({
       },
     },
     {
+      path: '/order-status/:orderId',
+      name: 'order-status',
+      component: () => import('../views/guest/OrderStatusPage.vue'),
+      meta: {
+        title: 'Order Status - Live Tracking',
+        requiresAuth: false,
+      },
+    },
+    {
       path: '/payment/checkout',
       name: 'payment-checkout',
       component: CheckoutPage,
