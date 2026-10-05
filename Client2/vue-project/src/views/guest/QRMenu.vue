@@ -148,7 +148,6 @@
                           +
                         </button>
                       </div>
-                      
                       <!-- Item Total Price -->
                       <span class="text-base font-bold text-gray-900">ETB ${{ (item.price * item.quantity).toFixed(2) }}</span>
                     </div>

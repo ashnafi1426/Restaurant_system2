@@ -89,11 +89,11 @@ php artisan queue:work --queue=default --tries=3 --timeout=90 --verbose
 - Without it, chef status updates (pending → preparing → ready → served) will NOT reach customers
 - If you restart the Laravel server, you must also restart this worker
 
-**Note:** If your `.env` file has `QUEUE_CONNECTION=sync`, the queue worker is **not required** because events process synchronously. Check your `.env` file:
+**Note about QUEUE_CONNECTION=sync:** If your `.env` file has `QUEUE_CONNECTION=sync`, events that implement `ShouldQueue` (like `OrderStatusUpdated`) are processed immediately in the same request rather than being queued. In sync mode, you don't need a separate queue worker process, but the queue system is still used - jobs just execute synchronously. Check your `.env` file:
 ```ini
-QUEUE_CONNECTION=database  # Requires queue worker
+QUEUE_CONNECTION=database  # Requires queue worker (events queued to database, processed async)
 # or
-QUEUE_CONNECTION=sync      # Does NOT require queue worker
+QUEUE_CONNECTION=sync      # Does NOT require queue worker (events processed immediately)
 ```
 
 ---

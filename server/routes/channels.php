@@ -52,8 +52,10 @@ Broadcast::channel('orders.{hotelId}.{orderId}', function ($user, string $hotelI
         // If no authenticated user, allow access only if this is a guest order
         // (guest can track their own order via QR token session)
         if (!$user) {
-            // For guest orders, we rely on the QR token context validation
-            // which happens at the API level before establishing WebSocket connection
+            // For guest orders, BroadcastAuthController has already validated the QR token
+            // at /api/broadcasting/auth BEFORE this closure is called. This closure is the
+            // second layer of authorization after BroadcastAuthController approves the request.
+            // Returning true here allows guests whose QR tokens were validated to subscribe.
             return true;
         }
         

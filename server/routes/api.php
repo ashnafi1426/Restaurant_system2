@@ -170,6 +170,7 @@ Route::prefix('reservation-payments')->group(function () {
 });
 Route::prefix('order-payments')->group(function () {
     Route::post('/initialize', [GuestOrderPaymentController::class, 'initializePayment']);
+    Route::post('/initialize-existing', [GuestOrderPaymentController::class, 'initializeExistingOrderPayment']);
     Route::match(['get', 'post'], '/complete/{txRef}', [GuestOrderPaymentController::class, 'completeOrder']);
     Route::get('/{txRef}', [GuestOrderPaymentController::class, 'getOrderByPayment']);
 });

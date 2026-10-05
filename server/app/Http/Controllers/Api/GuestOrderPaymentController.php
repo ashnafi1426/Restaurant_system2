@@ -343,3 +343,133 @@ class GuestOrderPaymentController extends Controller
         }
     }
 }
+
+    /**
+     * Initialize payment for an existing order.
+     * Simpler endpoint that takes order_id instead of rebuilding the order.
+     */
+    public function initializeExistingOrderPayment(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'order_id' => 'required|uuid|exists:orders,id',
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'email' => 'required|email',
+                'phone' => 'required|string|max:20',
+            ]);
+
+            // Load the order with relationships
+            $order = \App\Models\Order::withoutGlobalScopes()
+                ->with(['orderItems.menuItem', 'room'])
+                ->findOrFail($validated['order_id']);
+
+            // Check if order already has a pending payment
+            if ($order->payment_status === 'paid') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This order has already been paid.',
+                ], 400);
+            }
+
+            // Create payment record
+            $payment = $this->paymentService->createOrderPayment([
+                'hotel_id' => $order->hotel_id,
+                'amount' => $order->total,
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'guest_id' => $order->guest_id,
+                'room_id' => $order->room_id,
+                'metadata' => [
+                    'type' => 'order',
+                    'hotel_id' => $order->hotel_id,
+                    'guest_id' => $order->guest_id,
+                    'room_id' => $order->room_id,
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                ],
+            ]);
+
+            // Initialize Chapa payment
+            $chapaResponse = $this->chapaService->initialize([
+                'amount' => $payment->amount,
+                'currency' => 'ETB',
+                'email' => $payment->email,
+                'first_name' => $payment->first_name,
+                'last_name' => $payment->last_name,
+                'phone' => $payment->phone,
+                'tx_ref' => $payment->tx_ref,
+                'callback_url' => config('chapa.callback_url'),
+                'return_url' => config('chapa.order_return_url', config('app.frontend_url') . '/order-status/' . $order->id),
+                'title' => 'Order Payment - #' . $order->order_number,
+                'description' => sprintf(
+                    'Order %s - Room %s',
+                    $order->order_number,
+                    $order->room?->room_number ?? 'N/A'
+                ),
+            ]);
+
+            if (!$chapaResponse['success']) {
+                Log::error('Chapa Initialize Failed for Existing Order', [
+                    'payment_id' => $payment->id,
+                    'order_id' => $order->id,
+                    'error' => $chapaResponse['message'] ?? 'Unknown error',
+                ]);
+
+                $payment->markAsFailed($chapaResponse);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unable to initialize payment with Chapa',
+                    'error' => $chapaResponse['errors'] ?? ($chapaResponse['message'] ?? 'Payment gateway error'),
+                ], 400);
+            }
+
+            $checkoutUrl = $this->chapaService->getCheckoutUrl($chapaResponse);
+            $payment->markAsInitialized($checkoutUrl);
+
+            // Link payment to order
+            $order->payment_id = $payment->id;
+            $order->save();
+
+            Log::info('Existing Order Payment Initialized', [
+                'payment_id' => $payment->id,
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'amount' => $payment->amount,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment initialized successfully',
+                'payment_id' => $payment->id,
+                'tx_ref' => $payment->tx_ref,
+                'checkout_url' => $checkoutUrl,
+                'amount' => $payment->amount,
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found',
+            ], 404);
+        } catch (Throwable $e) {
+            Log::error('Existing Order Payment Initialization Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while initializing payment',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error',
+            ], 500);
+        }
+    }

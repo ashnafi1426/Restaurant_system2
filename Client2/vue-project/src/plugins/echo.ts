@@ -49,6 +49,18 @@ const echo = new Echo({
         console.log('[Echo] Hotel ID:', hotelId || 'MISSING')
         console.log('[Echo] QR Token:', qrToken ? qrToken.substring(0, 4) + '****' : 'MISSING')
         
+        // Build request body - include QR token for guest order channels
+        const requestBody: any = {
+          socket_id: socketId,
+          channel_name: channel.name
+        }
+        
+        // Include QR token in body for guest authentication
+        if (qrToken && channel.name.includes('orders.')) {
+          requestBody.qr_token = qrToken
+          console.log('[Echo] Including QR token in request body for guest order channel')
+        }
+        
         // Call Laravel broadcasting auth endpoint
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/broadcasting/auth`, {
           method: 'POST',
@@ -59,10 +71,7 @@ const echo = new Echo({
             'X-Hotel-ID': hotelId || '',
             'X-QR-Token': qrToken || '',
           },
-          body: JSON.stringify({
-            socket_id: socketId,
-            channel_name: channel.name
-          })
+          body: JSON.stringify(requestBody)
         })
         .then(response => {
           if (!response.ok) {

@@ -80,7 +80,9 @@ class BroadcastAuthController extends Controller
         $orderId = $parts[2];
 
         // Validate that the order exists and belongs to the specified hotel
+        // Load room and table relationships for QR token validation
         $order = Order::withoutGlobalScopes()
+            ->with(['room', 'table'])
             ->where('id', $orderId)
             ->orWhere('order_number', $orderId)
             ->first();
@@ -104,13 +106,42 @@ class BroadcastAuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        // For guest orders (QR menu), allow access without authentication
-        // The security is provided by the hotel_id + order_id validation above
-        Log::info('[BroadcastAuth] Order channel authorized', [
-            'channel' => $channelName,
-            'order_id' => $order->id,
-            'hotel_id' => $order->hotel_id
-        ]);
+        // Check if this is a guest request with QR token (from Echo authorizer)
+        $qrToken = $request->input('qr_token') ?? $request->header('X-QR-Token');
+        
+        if ($qrToken) {
+            // Validate QR token matches the order's room/table
+            $isValidToken = false;
+            
+            if ($order->room && $order->room->qr_token === $qrToken) {
+                $isValidToken = true;
+            } elseif ($order->table && $order->table->qr_token === $qrToken) {
+                $isValidToken = true;
+            }
+            
+            if (!$isValidToken) {
+                Log::warning('[BroadcastAuth] Invalid QR token for guest WebSocket subscription', [
+                    'channel' => $channelName,
+                    'order_id' => $order->id,
+                    'ip' => $request->ip()
+                ]);
+                return response()->json(['error' => 'Invalid QR token'], 403);
+            }
+            
+            Log::info('[BroadcastAuth] Guest WebSocket channel authorized via QR token', [
+                'channel' => $channelName,
+                'order_id' => $order->id,
+                'hotel_id' => $order->hotel_id
+            ]);
+        } else {
+            // For authenticated user requests (staff viewing orders)
+            Log::info('[BroadcastAuth] Order channel authorized', [
+                'channel' => $channelName,
+                'order_id' => $order->id,
+                'hotel_id' => $order->hotel_id,
+                'user_id' => $request->user()?->id
+            ]);
+        }
 
         // Generate channel authorization signature
         $auth = $this->generateChannelAuth($channelName, $socketId);

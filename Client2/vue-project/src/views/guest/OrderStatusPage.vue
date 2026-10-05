@@ -46,19 +46,6 @@
       </div>
     </div>
 
-    <!-- Debug Info (remove after testing) -->
-    <div v-if="!isLoading && !error" class="p-4 bg-purple-100 border border-purple-300 text-xs font-mono overflow-auto">
-      <div><strong>DEBUG:</strong></div>
-      <div>orderId: {{orderId}}</div>
-      <div>hotelId: {{hotelId}}</div>
-      <div>qr_token: {{qrToken}}</div>
-      <div>orderData exists: {{!!orderData}}</div>
-      <div>orderData.items length: {{orderData?.items?.length || 0}}</div>
-      <div>orderData.order_number: {{orderData?.order_number}}</div>
-      <div>orderData.total: {{orderData?.total}}</div>
-      <div>Raw orderData: {{JSON.stringify(orderData, null, 2).substring(0, 500)}}</div>
-    </div>
-
     <!-- Content -->
     <div v-else-if="orderData" class="p-4 space-y-4 pb-8">
 
@@ -152,17 +139,29 @@
         </div>
       </div>
 
-      <!-- Pay Now Button -->
+      <!-- Pay Now Button - Chapa Integration -->
       <button
-        v-if="isPaymentPending && orderData.payment_type !== 'room_charge'"
+        v-if="isPaymentPending"
         @click="handlePayNow"
         :disabled="isProcessingPayment"
-        class="w-full py-4 rounded-xl font-bold text-white text-base shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        class="w-full py-4 rounded-xl font-bold text-white text-base shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)"
       >
         <span v-if="isProcessingPayment">Processing...</span>
-        <span v-else>💳 Pay Now — ETB {{(orderData.total || 0).toFixed(2)}}</span>
+        <template v-else>
+          <span>💳</span>
+          <span>Pay Now with Chapa - ETB {{(orderData.total || 0).toFixed(2)}}</span>
+        </template>
       </button>
+
+      <!-- Payment Completed -->
+      <div
+        v-else-if="isPaymentPaid"
+        class="w-full py-4 rounded-xl font-bold text-white text-base text-center"
+        style="background: linear-gradient(135deg, #10B981 0%, #059669 100%)"
+      >
+        ✅ Payment Completed
+      </div>
 
       <!-- Room charge note -->
       <div
@@ -235,7 +234,56 @@ const isProcessingPayment = ref(false)
 // Navigation
 const goBack = () => router.back()
 
-// Status display
+// Payment handler - Initialize Chapa payment for this order
+const handlePayNow = async () => {
+  if (isProcessingPayment.value || !orderData.value) return
+  
+  isProcessingPayment.value = true
+  
+  try {
+    // Get guest info from localStorage or use defaults
+    const guestInfo = {
+      first_name: localStorage.getItem('guest_first_name') || 'Guest',
+      last_name: localStorage.getItem('guest_last_name') || 'User',
+      email: localStorage.getItem('guest_email') || `guest${Date.now()}@hotel.com`,
+      phone: localStorage.getItem('guest_phone') || '+251911000000'
+    }
+    
+    // Prepare payment initialization request
+    const paymentPayload = {
+      order_id: orderData.value.order_id || orderData.value.id,
+      ...guestInfo
+    }
+    
+    console.log('[OrderStatus] Initializing Chapa payment:', paymentPayload)
+    
+    // Call backend to initialize Chapa payment for existing order
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/order-payments/initialize-existing`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Hotel-ID': hotelId.value
+      },
+      body: JSON.stringify(paymentPayload)
+    })
+    
+    const result = await response.json()
+    
+    if (result.success && result.checkout_url) {
+      console.log('[OrderStatus] Redirecting to Chapa checkout:', result.checkout_url)
+      // Redirect to Chapa checkout page
+      window.location.href = result.checkout_url
+    } else {
+      throw new Error(result.message || 'Failed to initialize payment')
+    }
+  } catch (error: any) {
+    console.error('[OrderStatus] Payment initialization error:', error)
+    alert(`Payment Error: ${error.message || 'Failed to initialize payment. Please try again.'}`)
+  } finally {
+    isProcessingPayment.value = false
+  }
+}
 const statusIcon = computed(() => {
   if (isPending.value) return '📝'
   if (isPreparing.value) return '👨\u200d🍳'
@@ -275,15 +323,6 @@ const formatTime = (isoString: string): string => {
   } catch {
     return 'N/A'
   }
-}
-
-// Payment handler
-const handlePayNow = () => {
-  isProcessingPayment.value = true
-  alert('Redirecting to Chapa payment...')
-  setTimeout(() => {
-    isProcessingPayment.value = false
-  }, 2000)
 }
 
 // Watch status for notifications

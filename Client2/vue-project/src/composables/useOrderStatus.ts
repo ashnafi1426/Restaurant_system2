@@ -287,11 +287,18 @@ export function useOrderStatus(orderId: string, initialHotelId: string) {
     console.log(`[useOrderStatus] Reconnecting in ${delay}ms (attempt ${reconnectAttempts})`)
     
     setTimeout(async () => {
-      // Re-sync data from API after reconnection
+      // Re-sync data from API after reconnection to refresh hotel_id
       await fetchOrderData()
       
-      // CRITICAL FIX: Re-subscribe to channel after reconnection
-      if (hotelId.value && window.Echo.connector?.pusher?.connection?.state === 'connected') {
+      // CRITICAL FIX: Validate hotel_id before re-subscribing
+      if (!hotelId.value) {
+        console.error('[useOrderStatus] ❌ Cannot re-subscribe: hotel_id is missing after reconnect fetch')
+        error.value = 'Configuration error: hotel ID not available after reconnection'
+        return
+      }
+      
+      // Re-subscribe to channel after reconnection
+      if (window.Echo.connector?.pusher?.connection?.state === 'connected') {
         console.log('[useOrderStatus] Reconnected - re-subscribing to channel')
         subscribeToChannel()
       } else if (window.Echo.connector?.pusher?.connection?.state !== 'connected') {
