@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\KitchenController;
 use App\Http\Controllers\Api\CustomerOrderController;
+use App\Http\Controllers\Api\BroadcastAuthController;
 use App\Http\Controllers\Api\GuestOrderController;
 use App\Http\Controllers\Api\QRCodeController;
 use App\Http\Controllers\Api\QRCodePrintController;
@@ -200,8 +201,23 @@ Route::prefix('guest')->group(function () {
     Route::get('/orders/{qrToken}/status', [GuestOrderController::class, 'getOrderStatus']);
     
     // Real-time order status tracking (NEW - WebSocket support)
-    Route::get('/orders/{orderId}/status', [CustomerOrderController::class, 'getOrderStatus']);
+    Route::get('/orders/{orderId}/realtime-status', [CustomerOrderController::class, 'getOrderStatus']);
+    
+    // Debug route to test order lookup
+    Route::get('/debug/orders/{orderId}', function($orderId) {
+        $order = \App\Models\Order::withoutGlobalScopes()->where('id', $orderId)->orWhere('order_number', $orderId)->first();
+        return response()->json([
+            'found' => !!$order,
+            'order_id' => $order?->id,
+            'hotel_id' => $order?->hotel_id,
+            'status' => $order?->status
+        ]);
+    });
 });
+
+// Broadcasting Auth Route - Required for Laravel Echo WebSocket authorization
+Route::post('/broadcasting/auth', [\App\Http\Controllers\Api\BroadcastAuthController::class, 'authenticate'])->middleware('api');
+
 Route::prefix('guest/bookings')->middleware('qr.token')->group(function () {
     Route::post('/check-availability', [GuestBookingController::class, 'checkAvailability']);
     Route::get('/rooms/{roomId}', [GuestBookingController::class, 'getRoomDetails']);

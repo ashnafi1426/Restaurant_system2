@@ -35,11 +35,26 @@ class CustomerOrderController extends Controller
     public function getOrderStatus(Request $request, string $orderId): JsonResponse
     {
         try {
+            \Log::info('[CustomerOrder] Request received', [
+                'order_id' => $orderId,
+                'qr_token' => $request->query('qr_token') ? 'present' : 'missing',
+                'headers' => $request->headers->all(),
+                'ip' => $request->ip()
+            ]);
+
             // Find order by UUID or order_number
+            // Load room and table relationships for QR token validation
             $order = Order::withoutGlobalScopes()
+                ->with(['room', 'table'])
                 ->where('id', $orderId)
                 ->orWhere('order_number', $orderId)
                 ->first();
+
+            \Log::info('[CustomerOrder] Order lookup result', [
+                'order_id' => $orderId,
+                'found' => !!$order,
+                'actual_order_id' => $order?->id
+            ]);
 
             if (!$order) {
                 return response()->json([
@@ -49,23 +64,57 @@ class CustomerOrderController extends Controller
                 ], 404);
             }
 
-            // Extract hotel_id for multi-tenant validation
-            $requestHotelId = $this->extractHotelId($request, $order);
+            // Check if this is a guest request with QR token
+            $qrToken = $request->query('qr_token') ?? $request->header('X-QR-Token');
+            $isGuestRequest = !empty($qrToken);
 
-            // CRITICAL: Validate hotel_id matches (multi-tenant security)
-            if ($requestHotelId && $order->hotel_id !== $requestHotelId) {
-                Log::warning('[CustomerOrder] Hotel ID mismatch - potential unauthorized access attempt', [
+            if ($isGuestRequest) {
+                // Validate QR token matches the order's room/table
+                $isValidToken = false;
+                
+                if ($order->room && $order->room->qr_token === $qrToken) {
+                    $isValidToken = true;
+                } elseif ($order->table && $order->table->qr_token === $qrToken) {
+                    $isValidToken = true;
+                }
+                
+                if (!$isValidToken) {
+                    \Log::warning('[CustomerOrder] Invalid QR token for guest order', [
+                        'order_id' => $orderId,
+                        'qr_token' => substr($qrToken, 0, 4) . '****',
+                        'ip' => $request->ip()
+                    ]);
+                    
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid QR token.',
+                        'error' => 'INVALID_TOKEN'
+                    ], 403);
+                }
+                
+                \Log::info('[CustomerOrder] Guest access validated via QR token', [
                     'order_id' => $orderId,
-                    'order_hotel_id' => $order->hotel_id,
-                    'request_hotel_id' => $requestHotelId,
-                    'ip' => $request->ip()
+                    'hotel_id' => $order->hotel_id
                 ]);
+            } else {
+                // For authenticated requests, validate hotel_id
+                $requestHotelId = $this->extractHotelId($request, $order);
 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unauthorized access to order.',
-                    'error' => 'UNAUTHORIZED'
-                ], 403);
+                // CRITICAL: Validate hotel_id matches (multi-tenant security)
+                if ($requestHotelId && $order->hotel_id !== $requestHotelId) {
+                    Log::warning('[CustomerOrder] Hotel ID mismatch - potential unauthorized access attempt', [
+                        'order_id' => $orderId,
+                        'order_hotel_id' => $order->hotel_id,
+                        'request_hotel_id' => $requestHotelId,
+                        'ip' => $request->ip()
+                    ]);
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unauthorized access to order.',
+                        'error' => 'UNAUTHORIZED'
+                    ], 403);
+                }
             }
 
             // Load relationships for complete order data

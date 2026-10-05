@@ -27,9 +27,10 @@
           class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
           @click.self="closeCartModal"
         >
-          <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <!-- Cart Header -->
             <div
-              class="sticky top-0 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-4 flex items-center justify-between border-b border-amber-600 z-10"
+              class="flex-shrink-0 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-4 flex items-center justify-between border-b border-amber-600 rounded-t-xl"
             >
               <h2 class="text-2xl font-bold flex items-center gap-2">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,7 +58,9 @@
               </button>
             </div>
 
-            <div class="divide-y divide-gray-200">
+            <!-- Cart Items Container - Scrollable -->
+            <div class="flex-1 overflow-y-auto bg-white">
+              <!-- Empty Cart -->
               <div v-if="cartItems.length === 0" class="px-6 py-12 text-center">
                 <svg
                   class="w-16 h-16 text-gray-300 mx-auto mb-4"
@@ -82,117 +85,103 @@
                 </button>
               </div>
 
-              <div
-                v-else
-                v-for="item in cartItems"
-                :key="item.id"
-                class="px-6 py-4 flex gap-4 hover:bg-gray-50 transition-colors"
-              >
-                <img
-                  :src="item.image || '/images/placeholder.png'"
-                  :alt="item.name"
-                  class="w-20 h-20 rounded-lg object-cover flex-shrink-0"
-                />
+              <!-- Cart Items List -->
+              <div v-if="cartItems.length > 0" class="divide-y divide-gray-200">
+                <div
+                  v-for="(item, index) in cartItems"
+                  :key="`cart-item-${item.id}-${index}`"
+                  class="px-4 py-4 flex gap-3 bg-white hover:bg-gray-50 transition-colors"
+                >
+                  <!-- Item Image -->
+                  <img
+                    :src="item.image || '/images/placeholder.png'"
+                    :alt="item.name"
+                    class="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                  />
 
-                <div class="flex-1 min-w-0">
-                  <h3 class="font-semibold text-gray-800">{{ item.name }}</h3>
-                  <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ item.description }}</p>
-                  <div class="flex items-center justify-between mt-2">
-                    <div class="flex flex-col">
-                      <span class="text-amber-600 font-bold">{{ formatPrice(item.total_price != null ? item.total_price : item.price) }}</span>
-                      <span v-if="item.tax_rate && Number(item.tax_rate.rate) > 0" class="text-[10px] text-slate-400">
-                        {{ item.tax_included ? `Incl. ${item.tax_rate.rate}% ${item.tax_rate.name || 'tax'}` : `+$${(item.tax_amount || 0).toFixed(2)} tax` }}
-                      </span>
+                  <!-- Item Details -->
+                  <div class="flex-1 min-w-0">
+                    <!-- Item Name & Price -->
+                    <div class="flex items-start justify-between mb-2">
+                      <div class="flex-1">
+                        <h3 class="font-bold text-gray-900 text-base">{{ item.name }}</h3>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ item.description || 'ETB' }}</p>
+                        <p class="text-sm font-bold text-gray-900 mt-1">${{ item.price.toFixed(2) }}</p>
+                      </div>
+                      
+                      <!-- Remove/Delete Button -->
+                      <button
+                        @click="removeFromCart(item.id)"
+                        class="text-red-500 hover:text-red-700 transition-colors p-1 cursor-pointer"
+                        :title="languageStore.t('remove', 'Remove')"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          ></path>
+                        </svg>
+                      </button>
                     </div>
-                    <div class="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-                      <button
-                        @click="decrementQuantity(item.id)"
-                        class="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors rounded cursor-pointer"
-                      >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M20 12H4"
-                          ></path>
-                        </svg>
-                      </button>
-                      <span class="w-8 text-center font-semibold text-gray-800">{{
-                        item.quantity
-                      }}</span>
-                      <button
-                        @click="incrementQuantity(item.id)"
-                        class="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors rounded cursor-pointer"
-                      >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 4v16m8-8H4"
-                          ></path>
-                        </svg>
-                      </button>
+                    
+                    <!-- Quantity Controls + Total Price (Inline like second screenshot) -->
+                    <div class="flex items-center justify-between mt-2">
+                      <!-- -  1  + Controls -->
+                      <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-2 py-1">
+                        <button
+                          @click="decrementQuantity(item.id)"
+                          class="w-8 h-8 flex items-center justify-center text-gray-700 hover:bg-gray-200 rounded transition-colors cursor-pointer font-bold text-lg"
+                          :title="item.quantity === 1 ? 'Remove item' : 'Decrease'"
+                        >
+                          −
+                        </button>
+                        
+                        <span class="text-lg font-bold text-gray-900 px-3 min-w-[2rem] text-center">{{ item.quantity }}</span>
+                        
+                        <button
+                          @click="incrementQuantity(item.id)"
+                          class="w-8 h-8 flex items-center justify-center text-gray-700 hover:bg-gray-200 rounded transition-colors cursor-pointer font-bold text-lg"
+                          title="Increase"
+                        >
+                          +
+                        </button>
+                      </div>
+                      
+                      <!-- Item Total Price -->
+                      <span class="text-base font-bold text-gray-900">ETB ${{ (item.price * item.quantity).toFixed(2) }}</span>
                     </div>
                   </div>
                 </div>
-
-                <button
-                  @click="removeFromCart(item.id)"
-                  class="text-red-500 hover:text-red-700 transition-colors p-2 flex-shrink-0 cursor-pointer"
-                  :title="languageStore.t('remove_from_cart', 'Remove from cart')"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    ></path>
-                  </svg>
-                </button>
               </div>
             </div>
 
-            <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-6 space-y-3">
-              <div class="flex items-center justify-between text-gray-700">
-                <span>{{ languageStore.t('subtotal', 'Subtotal') }}:</span>
+            <!-- Cart Summary/Totals Section -->
+            <div class="flex-shrink-0 bg-white border-t border-gray-200 px-4 py-4 space-y-2">
+              <!-- Subtotal -->
+              <div class="flex items-center justify-between text-gray-700 text-sm">
+                <span>{{ languageStore.t('subtotal', 'Subtotal') }}</span>
                 <span class="font-semibold">{{ formatPrice(subtotal) }}</span>
               </div>
 
-              <div class="flex items-center justify-between text-gray-700">
-                <span>{{ languageStore.t('tax', 'Tax') }} (15%):</span>
-                <span class="font-semibold">{{ formatPrice(tax) }}</span>
+              <!-- Total -->
+              <div class="flex items-center justify-between text-gray-900 text-lg font-bold pt-2 border-t border-gray-200">
+                <span>{{ languageStore.t('total', 'Total') }}</span>
+                <span class="text-red-600">{{ formatPrice(cartTotal) }}</span>
               </div>
 
-              <div class="flex items-center justify-between text-gray-700">
-                <span>{{ languageStore.t('service_charge', 'Service Charge') }} (10%):</span>
-                <span class="font-semibold">{{ formatPrice(serviceCharge) }}</span>
-              </div>
-
-              <div
-                class="pt-3 border-t-2 border-gray-300 flex items-center justify-between bg-gradient-to-r from-amber-50 to-transparent p-3 rounded-lg"
-              >
-                <span class="text-lg font-bold text-gray-800">{{ languageStore.t('total', 'Total') }}:</span>
-                <span class="text-2xl font-bold text-amber-600">{{ formatPrice(cartTotal) }}</span>
-              </div>
-
-              <div class="flex gap-3 pt-4">
+              <!-- Payment Buttons -->
+              <div class="flex flex-col gap-2 pt-3">
+                <!-- Order Now (Pay After Meal) Button -->
                 <button
-                  @click="closeCartModal"
-                  class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-                >
-                  {{ languageStore.t('continue_shopping', 'Continue Shopping') }}
-                </button>
-                <button
-                  @click="openPaymentDialog"
+                  @click="placeOrderWithRoomCharge"
                   :disabled="isPlacingOrder || cartItems.length === 0"
-                  class="flex-1 px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                  class="w-full px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <svg
                     v-if="!isPlacingOrder"
-                    class="w-5 h-5"
+                    class="w-6 h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -201,12 +190,12 @@
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="2"
-                      d="M5 13l4 4L19 7"
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m-3-6h6"
                     ></path>
                   </svg>
                   <svg
                     v-else
-                    class="w-5 h-5 animate-spin"
+                    class="w-6 h-6 animate-spin"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -218,8 +207,42 @@
                       d="M12 2v20m0-20a9.978 9.978 0 00-9 18m18 0a9.978 9.978 0 00-9-18"
                     ></path>
                   </svg>
-                  💳 {{ languageStore.t('proceed_to_payment', 'Proceed to Payment') }}
+                  🍽️ {{ languageStore.t('order_now_pay_after', 'Order Now (Pay After Meal)') }}
                 </button>
+                
+                <!-- Pay with Chapa Button -->
+                <button
+                  @click="openPaymentDialog"
+                  :disabled="isPlacingOrder || cartItems.length === 0"
+                  class="w-full px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-bold text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer border-2 border-yellow-600"
+                >
+                  <svg
+                    v-if="!isPlacingOrder"
+                    class="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                    ></path>
+                  </svg>
+                  💳 {{ languageStore.t('pay_now_with_chapa', 'Pay Now with Chapa') }}
+                </button>
+                
+                <button
+                  @click="closeCartModal"
+                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  {{ languageStore.t('continue_shopping', 'Continue Shopping') }}
+                </button>
+                
+                <p class="text-xs text-gray-500 text-center mt-2">
+                  {{ languageStore.t('payment_choice_desc', 'Choose: Order now and pay after eating, or pay online now') }}
+                </p>
               </div>
             </div>
           </div>
@@ -580,21 +603,134 @@ const removeFromCart = (itemId: string | number) => {
 const incrementQuantity = (itemId: string | number) => {
   const item = cartItems.value.find((i) => i.id === itemId)
   if (item) {
+    const oldQuantity = item.quantity
     item.quantity++
+    console.log(`[QRMenu] Increased ${item.name} quantity from ${oldQuantity} to ${item.quantity}`)
+    
+    // Optional: Add a brief visual feedback
+    // You could add a toast notification here if desired
   }
 }
 
 const decrementQuantity = (itemId: string | number) => {
   const item = cartItems.value.find((i) => i.id === itemId)
   if (item && item.quantity > 1) {
+    const oldQuantity = item.quantity
     item.quantity--
+    console.log(`[QRMenu] Decreased ${item.name} quantity from ${oldQuantity} to ${item.quantity}`)
   } else {
+    console.log(`[QRMenu] Removing ${item?.name} from cart`)
     removeFromCart(itemId)
   }
 }
 
 const formatPrice = (price: number): string => {
   return `$${price.toFixed(2)}`
+}
+
+// New method for "Order Now (Pay After Meal)" - places order with room charge
+const placeOrderWithRoomCharge = async () => {
+  if (isPlacingOrder.value) return
+  if (cartItems.value.length === 0) {
+    alert('Your cart is empty')
+    return
+  }
+
+  if (!orderContext.value) {
+    alert('Order context not loaded. Please refresh the page.')
+    return
+  }
+
+  isPlacingOrder.value = true
+
+  try {
+    const orderItems = cartItems.value.map((item) => ({
+      menu_item_id: String(item.id),
+      quantity: item.quantity,
+    }))
+
+    // Always use room_charge payment type (pay after meal)
+    const orderResponse = await unifiedOrderService.createOrder({
+      qr_token: qrToken.value,
+      items: orderItems,
+      special_requests: '',
+      payment_type: 'room_charge', // Pay after meal
+    })
+
+    if (orderResponse && orderResponse.success && orderResponse.data) {
+      const createdOrderId = orderResponse.data.id || orderResponse.data.order_id
+      orderNumber.value = orderResponse.data.order_number
+      roomNumber.value = orderResponse.data.room_number || roomNumber.value
+      estimatedTime.value = 30
+      
+      // Build complete order data object with items for OrderStatusPage
+      const completeOrderData = {
+        ...orderResponse.data,
+        id: createdOrderId,
+        order_id: createdOrderId,
+        items: cartItems.value.map(item => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image,
+          total: item.price * item.quantity
+        })),
+        subtotal: subtotal.value,
+        tax: tax.value,
+        service_charge: serviceCharge.value,
+        total: cartTotal.value,
+        status: 'pending',
+        payment_status: 'pending',
+        payment_type: 'room_charge',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+      
+      // Store order data for OrderStatusPage
+      if (orderResponse.data.hotel_id) {
+        localStorage.setItem('hotel_id', orderResponse.data.hotel_id)
+      }
+      if (qrToken.value) {
+        localStorage.setItem('guest_qr_token', qrToken.value)
+      }
+      
+      // Store the complete order data for immediate display
+      console.log('[QRMenu] Storing complete order data:', completeOrderData)
+      console.log('[QRMenu] Created order ID:', createdOrderId)
+      localStorage.setItem('pending_order_data', JSON.stringify(completeOrderData))
+      
+      // Verify it was stored
+      const verifyStored = localStorage.getItem('pending_order_data')
+      console.log('[QRMenu] Verified stored data:', verifyStored ? 'Success ✅' : 'Failed ❌')
+      
+      // Clear cart
+      cartItems.value = []
+      showPaymentDialog.value = false
+      showCartModal.value = false
+      
+      // Redirect to real-time Order Status page with all necessary params
+      console.log('[QRMenu] Redirecting to order status with ID:', createdOrderId)
+      router.push({
+        name: 'order-status',
+        params: { orderId: createdOrderId },
+        query: { 
+          hotel_id: orderResponse.data.hotel_id,
+          qr_token: qrToken.value,
+          order_number: orderResponse.data.order_number
+        }
+      })
+      return
+    } else {
+      throw new Error(orderResponse.message || 'Failed to place order')
+    }
+  } catch (error: any) {
+    console.error('[QRMenu] Error placing order with room charge:', error)
+    alert(error.message || 'Failed to place order. Please try again.')
+  } finally {
+    isPlacingOrder.value = false
+  }
 }
 
 const openPaymentDialog = () => {

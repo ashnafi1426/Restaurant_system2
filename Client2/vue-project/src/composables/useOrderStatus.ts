@@ -72,7 +72,8 @@ export interface PaymentStatusEvent {
   updated_at: string
 }
 
-export function useOrderStatus(orderId: string, hotelId: string) {
+export function useOrderStatus(orderId: string, initialHotelId: string) {
+  const hotelId = ref<string>(initialHotelId)
   const orderData = ref<OrderData | null>(null)
   const status = ref<string>('loading')
   const paymentStatus = ref<string>('pending')
@@ -93,10 +94,57 @@ export function useOrderStatus(orderId: string, hotelId: string) {
       isLoading.value = true
       error.value = null
 
+      // First, check if we have pending order data from just placing an order
+      const pendingOrderData = localStorage.getItem('pending_order_data')
+      console.log('[useOrderStatus] Checking for pending order data, orderId:', orderId)
+      console.log('[useOrderStatus] Pending data from localStorage:', pendingOrderData)
+      
+      if (pendingOrderData) {
+        try {
+          const parsedData = JSON.parse(pendingOrderData)
+          console.log('[useOrderStatus] Parsed pending data:', parsedData)
+          console.log('[useOrderStatus] Comparing IDs - parsedData.id:', parsedData.id, 'parsedData.order_id:', parsedData.order_id, 'orderId:', orderId)
+          
+          if (parsedData.id === orderId || parsedData.order_id === orderId) {
+            // Use the stored order data
+            orderData.value = parsedData
+            status.value = parsedData.status || 'pending'
+            paymentStatus.value = parsedData.payment_status || 'pending'
+            lastUpdate.value = parsedData.updated_at || parsedData.created_at
+            
+            // Clear the pending data after using it
+            localStorage.removeItem('pending_order_data')
+            
+            console.log('[useOrderStatus] ✅ Using stored order data from order creation')
+            isLoading.value = false
+            return
+          } else {
+            console.log('[useOrderStatus] ❌ Order ID mismatch - not using cached data')
+          }
+        } catch (e) {
+          console.warn('[useOrderStatus] Failed to parse pending order data:', e)
+          localStorage.removeItem('pending_order_data')
+        }
+      } else {
+        console.log('[useOrderStatus] No pending order data found in localStorage')
+      }
+
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
-      const response = await axios.get(`${apiBaseUrl}/api/guest/orders/${orderId}/status`, {
+      
+      // Get qr_token from localStorage for guest authentication
+      const qrToken = localStorage.getItem('guest_qr_token') || ''
+      
+      // Use the realtime-status endpoint which returns complete order data with items
+      // This endpoint is in the guest routes section and does not require authentication
+      const url = `${apiBaseUrl}/api/guest/orders/${orderId}/realtime-status?qr_token=${qrToken}`
+      
+      console.log('[useOrderStatus] Fetching from realtime-status endpoint:', url)
+      console.log('[useOrderStatus] Hotel ID:', hotelId.value)
+      console.log('[useOrderStatus] QR Token:', qrToken ? qrToken.substring(0, 4) + '****' : 'MISSING')
+      
+      const response = await axios.get(url, {
         headers: {
-          'X-Hotel-ID': hotelId,
+          'X-Hotel-ID': hotelId.value || '',
           'Accept': 'application/json'
         }
       })
@@ -106,6 +154,14 @@ export function useOrderStatus(orderId: string, hotelId: string) {
         status.value = response.data.data.status
         paymentStatus.value = response.data.data.payment_status || 'pending'
         lastUpdate.value = response.data.data.updated_at
+        
+        // CRITICAL FIX: Extract hotel_id from response and update reactive ref + localStorage
+        if (response.data.data.hotel_id) {
+          const responseHotelId = response.data.data.hotel_id
+          hotelId.value = responseHotelId // Update reactive ref
+          localStorage.setItem('hotel_id', responseHotelId)
+          console.log('[useOrderStatus] ✅ Extracted hotel_id from API:', responseHotelId)
+        }
       } else {
         throw new Error(response.data.message || 'Failed to fetch order data')
       }
@@ -127,15 +183,48 @@ export function useOrderStatus(orderId: string, hotelId: string) {
       return
     }
 
+    if (!hotelId.value) {
+      console.error('[useOrderStatus] ❌ Cannot subscribe: hotel_id is empty')
+      error.value = 'Configuration error: hotel ID not available'
+      return
+    }
+
     try {
-      const channelName = `orders.${hotelId}.${orderId}`
-      console.log(`[useOrderStatus] Subscribing to channel: ${channelName}`)
+      const channelName = `orders.${hotelId.value}.${orderId}`
+      console.log(`[useOrderStatus] 📡 Subscribing to channel: ${channelName}`)
 
       channel = window.Echo.private(channelName)
 
+      // Connection state handling
+      if (window.Echo.connector?.pusher) {
+        const pusherConnection = window.Echo.connector.pusher.connection
+        
+        pusherConnection.bind('connected', () => {
+          console.log('[useOrderStatus] ✅ WebSocket connected')
+          isConnected.value = true
+          reconnectAttempts = 0
+        })
+
+        pusherConnection.bind('disconnected', () => {
+          console.log('[useOrderStatus] ❌ WebSocket disconnected')
+          isConnected.value = false
+          handleReconnect()
+        })
+
+        pusherConnection.bind('error', (err: any) => {
+          console.error('[useOrderStatus] ⚠️ WebSocket error:', err)
+          isConnected.value = false
+        })
+
+        // Check initial connection state
+        const connectionState = pusherConnection.state
+        isConnected.value = connectionState === 'connected'
+        console.log('[useOrderStatus] Initial connection state:', connectionState)
+      }
+
       // Listen for OrderStatusUpdated events
       channel.listen('.OrderStatusUpdated', (event: OrderStatusEvent) => {
-        console.log('[useOrderStatus] OrderStatusUpdated received:', event)
+        console.log('[useOrderStatus] 🔔 OrderStatusUpdated received:', event)
         
         status.value = event.status
         lastUpdate.value = event.updated_at
@@ -149,7 +238,7 @@ export function useOrderStatus(orderId: string, hotelId: string) {
 
       // Listen for PaymentStatusUpdated events
       channel.listen('.PaymentStatusUpdated', (event: PaymentStatusEvent) => {
-        console.log('[useOrderStatus] PaymentStatusUpdated received:', event)
+        console.log('[useOrderStatus] 💳 PaymentStatusUpdated received:', event)
         
         paymentStatus.value = event.payment_status
         lastUpdate.value = event.updated_at
@@ -163,7 +252,7 @@ export function useOrderStatus(orderId: string, hotelId: string) {
 
       // Listen for OrderCancelled events
       channel.listen('.OrderCancelled', (event: any) => {
-        console.log('[useOrderStatus] OrderCancelled received:', event)
+        console.log('[useOrderStatus] ❌ OrderCancelled received:', event)
         
         status.value = 'cancelled'
         lastUpdate.value = event.cancelled_at
@@ -174,29 +263,7 @@ export function useOrderStatus(orderId: string, hotelId: string) {
         }
       })
 
-      // Connection state handling
-      if (window.Echo.connector?.pusher) {
-        window.Echo.connector.pusher.connection.bind('connected', () => {
-          console.log('[useOrderStatus] WebSocket connected')
-          isConnected.value = true
-          reconnectAttempts = 0
-        })
-
-        window.Echo.connector.pusher.connection.bind('disconnected', () => {
-          console.log('[useOrderStatus] WebSocket disconnected')
-          isConnected.value = false
-          handleReconnect()
-        })
-
-        window.Echo.connector.pusher.connection.bind('error', (err: any) => {
-          console.error('[useOrderStatus] WebSocket error:', err)
-          isConnected.value = false
-        })
-
-        // Check initial connection state
-        const connectionState = window.Echo.connector.pusher.connection.state
-        isConnected.value = connectionState === 'connected'
-      }
+      console.log('[useOrderStatus] ✅ Channel subscription setup complete')
 
     } catch (err: any) {
       console.error('[useOrderStatus] Error subscribing to channel:', err)
@@ -223,7 +290,11 @@ export function useOrderStatus(orderId: string, hotelId: string) {
       // Re-sync data from API after reconnection
       await fetchOrderData()
       
-      if (window.Echo.connector?.pusher?.connection?.state !== 'connected') {
+      // CRITICAL FIX: Re-subscribe to channel after reconnection
+      if (hotelId.value && window.Echo.connector?.pusher?.connection?.state === 'connected') {
+        console.log('[useOrderStatus] Reconnected - re-subscribing to channel')
+        subscribeToChannel()
+      } else if (window.Echo.connector?.pusher?.connection?.state !== 'connected') {
         handleReconnect()
       }
     }, delay)
@@ -241,7 +312,7 @@ export function useOrderStatus(orderId: string, hotelId: string) {
    */
   const cleanup = (): void => {
     if (channel) {
-      const channelName = `orders.${hotelId}.${orderId}`
+      const channelName = `orders.${hotelId.value}.${orderId}`
       console.log(`[useOrderStatus] Leaving channel: ${channelName}`)
       window.Echo.leave(channelName)
       channel = null
@@ -259,7 +330,17 @@ export function useOrderStatus(orderId: string, hotelId: string) {
 
   // Lifecycle hooks
   onMounted(async () => {
+    console.log('[useOrderStatus] onMounted - fetching order data first')
     await fetchOrderData()
+    
+    // Only subscribe if we have a valid hotel_id after fetch
+    if (!hotelId.value) {
+      console.error('[useOrderStatus] ❌ Cannot subscribe: hotel_id is missing after fetch')
+      error.value = 'Configuration error: hotel ID not available'
+      return
+    }
+    
+    console.log('[useOrderStatus] Hotel ID confirmed, subscribing to channel')
     subscribeToChannel()
   })
 

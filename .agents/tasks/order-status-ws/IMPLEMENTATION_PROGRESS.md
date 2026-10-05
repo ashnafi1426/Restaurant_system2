@@ -91,22 +91,26 @@ php artisan reverb:start
 
 ### FRONTEND REMAINING (Phase 4-7):
 
-#### Step 15: Install packages
+#### Step 15: Install packages ✅
 ```bash
 cd d:\Restaurant_system2\Client2\vue-project
 npm install laravel-echo pusher-js
 ```
+**Status**: COMPLETED
 
-#### Step 16: Configure frontend .env
-- Add VITE_REVERB_APP_KEY, VITE_REVERB_HOST, etc.
+#### Step 16: Configure frontend .env ✅
+- Added VITE_REVERB_APP_KEY, VITE_REVERB_HOST, etc.
+**Status**: COMPLETED
 
-#### Step 17: Create Echo plugin
-- Create `src/plugins/echo.ts` with Laravel Echo configuration
+#### Step 17: Create Echo plugin ✅
+- Created `src/plugins/echo.ts` with Laravel Echo configuration
+- Imported in main.ts
+**Status**: COMPLETED
 
 #### Step 18: Create composables
-- `src/composables/useOrderStatus.ts` - Customer order tracking
-- `src/composables/useKitchenOrders.ts` - Kitchen dashboard
-- `src/composables/useWaiterNotifications.ts` - Waiter notifications
+- ✅ `src/composables/useOrderStatus.ts` - Customer order tracking (COMPLETED)
+- ⏳ `src/composables/useKitchenOrders.ts` - Kitchen dashboard (TODO)
+- ⏳ `src/composables/useWaiterNotifications.ts` - Waiter notifications (TODO)
 
 #### Step 19: Create UI components
 - `src/views/guest/OrderStatusPage.vue` - Main customer page
@@ -200,12 +204,19 @@ npm run dev
 - ✅ bootstrap/app.php (added channels route)
 - ✅ app/Services/KitchenService.php (dispatch events)
 
-### Frontend (TODO):
-- ⏳ src/plugins/echo.ts
-- ⏳ src/composables/useOrderStatus.ts
-- ⏳ src/composables/useKitchenOrders.ts
-- ⏳ src/composables/useWaiterNotifications.ts
-- ⏳ src/views/guest/OrderStatusPage.vue
+### Frontend Modified:
+- ✅ package.json (added laravel-echo, pusher-js)
+- ✅ .env (added VITE_REVERB_* configuration)
+- ✅ .env.example (added placeholders)
+- ✅ src/main.ts (imported Echo plugin)
+- ✅ src/plugins/echo.ts (created)
+- ✅ src/composables/useOrderStatus.ts (created)
+- ⏳ src/composables/useKitchenOrders.ts (TODO)
+- ⏳ src/composables/useWaiterNotifications.ts (TODO)
+- ⏳ src/views/guest/OrderStatusPage.vue (TODO)
+- ⏳ src/components/guest/OrderStatusTimeline.vue (update needed)
+- ⏳ src/router/index.ts (add route)
+- ⏳ src/views/guest/QRMenu.vue (redirect after order creation)
 
 ---
 
@@ -234,5 +245,5 @@ npm run dev
 
 ---
 
-**Last Updated**: Step 11 completed - KitchenService integration with OrderStatusUpdated events
-**Progress**: ~30% complete (Backend infrastructure done, events created, need frontend + testing)
+**Last Updated**: Step 19 completed - Frontend Echo plugin + useOrderStatus composable created
+**Progress**: ~50% complete (Backend done, frontend infrastructure done, need UI components + testing)

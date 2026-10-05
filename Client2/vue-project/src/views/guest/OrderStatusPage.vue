@@ -46,6 +46,19 @@
       </div>
     </div>
 
+    <!-- Debug Info (remove after testing) -->
+    <div v-if="!isLoading && !error" class="p-4 bg-purple-100 border border-purple-300 text-xs font-mono overflow-auto">
+      <div><strong>DEBUG:</strong></div>
+      <div>orderId: {{orderId}}</div>
+      <div>hotelId: {{hotelId}}</div>
+      <div>qr_token: {{qrToken}}</div>
+      <div>orderData exists: {{!!orderData}}</div>
+      <div>orderData.items length: {{orderData?.items?.length || 0}}</div>
+      <div>orderData.order_number: {{orderData?.order_number}}</div>
+      <div>orderData.total: {{orderData?.total}}</div>
+      <div>Raw orderData: {{JSON.stringify(orderData, null, 2).substring(0, 500)}}</div>
+    </div>
+
     <!-- Content -->
     <div v-else-if="orderData" class="p-4 space-y-4 pb-8">
 

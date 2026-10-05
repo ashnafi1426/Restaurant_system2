@@ -42,6 +42,12 @@ const echo = new Echo({
       authorize: (socketId: string, callback: Function) => {
         const token = localStorage.getItem('token')
         const hotelId = localStorage.getItem('hotel_id') || localStorage.getItem('active_hotel_id')
+        const qrToken = localStorage.getItem('guest_qr_token')
+        
+        console.log('[Echo] Authorizing channel:', channel.name)
+        console.log('[Echo] Socket ID:', socketId)
+        console.log('[Echo] Hotel ID:', hotelId || 'MISSING')
+        console.log('[Echo] QR Token:', qrToken ? qrToken.substring(0, 4) + '****' : 'MISSING')
         
         // Call Laravel broadcasting auth endpoint
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/broadcasting/auth`, {
@@ -51,6 +57,7 @@ const echo = new Echo({
             'Accept': 'application/json',
             'Authorization': token ? `Bearer ${token}` : '',
             'X-Hotel-ID': hotelId || '',
+            'X-QR-Token': qrToken || '',
           },
           body: JSON.stringify({
             socket_id: socketId,
@@ -59,15 +66,20 @@ const echo = new Echo({
         })
         .then(response => {
           if (!response.ok) {
-            throw new Error(`Authorization failed: ${response.status} ${response.statusText}`)
+            console.error('[Echo] ❌ Authorization failed - HTTP', response.status, response.statusText)
+            return response.text().then(text => {
+              console.error('[Echo] Response body:', text)
+              throw new Error(`Authorization failed: ${response.status} ${response.statusText} - ${text}`)
+            })
           }
           return response.json()
         })
         .then(data => {
+          console.log('[Echo] ✅ Channel authorization successful:', channel.name)
           callback(null, data)
         })
         .catch(error => {
-          console.error('[Echo] Channel authorization error:', error)
+          console.error('[Echo] ⚠️ Channel authorization error:', error)
           callback(error, null)
         })
       }

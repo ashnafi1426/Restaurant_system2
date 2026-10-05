@@ -138,7 +138,6 @@ Vue.js + Laravel Echo + pusher-js
       Verify: Tinker test — event works correctly.
 
 ---
-
 ### PHASE 3: BACKEND SERVICE INTEGRATION
 
 - [ ] **10. Update app/Services/KitchenService.php to dispatch OrderStatusUpdated**
