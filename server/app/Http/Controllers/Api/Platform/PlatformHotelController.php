@@ -156,6 +156,7 @@ class PlatformHotelController extends Controller
         $filters = [
             'hotel_id' => $request->input('hotel_id'),
             'search' => $request->input('search'),
+            'status' => $request->input('status'),
         ];
 
         $admins = $this->platformHotelService->getAllAdmins($filters, $request->integer('per_page', 15));

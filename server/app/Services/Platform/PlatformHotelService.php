@@ -398,6 +398,14 @@ class PlatformHotelService
             });
         }
 
+        if (!empty($filters['status'])) {
+            if ($filters['status'] === 'active') {
+                $query->where('is_active', true);
+            } elseif ($filters['status'] === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
         return $query->latest()->paginate($perPage);
     }
 

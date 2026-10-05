@@ -25,7 +25,11 @@ import {
   Maximize2,
   RotateCcw,
   Loader2,
-  MoreVertical
+  MoreVertical,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-vue-next'
 
 interface AdminItem {
@@ -79,8 +83,38 @@ const resetFilters = () => {
 
 // Pagination
 const currentPage = ref(1)
-const lastPage = ref(1)
-const totalAdmins = ref(0)
+const totalPages = ref(1)
+const totalItems = ref(0)
+const itemsPerPage = ref(10)
+const jumpPage = ref('')
+const itemsPerPageOptions = [5, 10, 20, 50]
+
+// Computed properties for pagination
+const paginationInfo = computed(() => {
+  const start = ((currentPage.value - 1) * itemsPerPage.value) + 1
+  const end = Math.min(currentPage.value * itemsPerPage.value, totalItems.value)
+  return { start, end }
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  
+  if (totalPages.value <= maxVisible) {
+    for (let i = 1; i <= totalPages.value; i++) {
+      pages.push(i)
+    }
+  } else {
+    const start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+    const end = Math.min(totalPages.value, start + maxVisible - 1)
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i)
+    }
+  }
+  
+  return pages
+})
 
 // Modals
 const showCreateModal = ref(false)
@@ -109,17 +143,60 @@ const loadAdmins = async () => {
     const res = await platformService.getAllAdmins({
       search: searchQuery.value || undefined,
       hotel_id: selectedHotelId.value !== 'all' ? selectedHotelId.value : undefined,
+      status: selectedStatus.value !== 'all' ? selectedStatus.value : undefined,
       page: currentPage.value,
+      per_page: itemsPerPage.value,
     })
     admins.value = res.data || []
     currentPage.value = res.current_page || 1
-    lastPage.value = res.last_page || 1
-    totalAdmins.value = res.total || 0
+    totalPages.value = res.last_page || 1
+    totalItems.value = res.total || 0
   } catch (err: any) {
     console.error('[HotelAdminManagement] Load admins error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to load hotel administrators.'
   } finally {
     loading.value = false
+  }
+}
+
+// Pagination functions
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
+    currentPage.value = page
+    loadAdmins()
+  }
+}
+
+const goToFirstPage = () => {
+  goToPage(1)
+}
+
+const goToLastPage = () => {
+  goToPage(totalPages.value)
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    goToPage(currentPage.value + 1)
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    goToPage(currentPage.value - 1)
+  }
+}
+
+const changeItemsPerPage = () => {
+  currentPage.value = 1
+  loadAdmins()
+}
+
+const jumpToPage = () => {
+  const page = parseInt(jumpPage.value)
+  if (page && page >= 1 && page <= totalPages.value) {
+    goToPage(page)
+    jumpPage.value = ''
   }
 }
 
@@ -153,7 +230,7 @@ onUnmounted(() => {
   window.removeEventListener('click', handleOutsideClick)
 })
 
-watch([searchQuery, selectedHotelId], () => {
+watch([searchQuery, selectedHotelId, selectedStatus, itemsPerPage], () => {
   currentPage.value = 1
   loadAdmins()
 })
@@ -267,7 +344,7 @@ const copyToClipboard = (text: string) => {
                 Hotel Admins
               </h1>
               <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                {{ totalAdmins }} Admins
+                {{ totalItems }} Admins
               </span>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -583,26 +660,123 @@ const copyToClipboard = (text: string) => {
           </table>
         </div>
 
-        <!-- Pagination -->
-        <div v-if="lastPage > 1" class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <span class="text-xs text-slate-500">
-            Page {{ currentPage }} of {{ lastPage }} ({{ totalAdmins }} total)
-          </span>
-          <div class="flex items-center gap-2">
-            <button
-              :disabled="currentPage <= 1"
-              @click="currentPage--; loadAdmins()"
-              class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold disabled:opacity-40"
-            >
-              Previous
-            </button>
-            <button
-              :disabled="currentPage >= lastPage"
-              @click="currentPage++; loadAdmins()"
-              class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold disabled:opacity-40"
-            >
-              Next
-            </button>
+        <!-- Enhanced Pagination -->
+        <div v-if="totalItems > 0" class="p-4 border-t border-slate-200 dark:border-slate-800">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <!-- Left: Pagination Info & Per Page Selector -->
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div class="text-xs text-slate-500 dark:text-slate-400">
+                Showing {{ paginationInfo.start }}-{{ paginationInfo.end }} of {{ totalItems }} admins
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  Show:
+                </label>
+                <select
+                  v-model="itemsPerPage"
+                  @change="changeItemsPerPage"
+                  class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none cursor-pointer"
+                >
+                  <option v-for="option in itemsPerPageOptions" :key="option" :value="option">
+                    {{ option }} per page
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Center: Page Navigation -->
+            <div v-if="totalPages > 1" class="flex items-center justify-center">
+              <nav class="flex items-center gap-1" role="navigation" aria-label="Pagination Navigation">
+                <!-- First Page -->
+                <button
+                  type="button"
+                  @click="goToFirstPage"
+                  :disabled="currentPage <= 1"
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  title="First page"
+                >
+                  <ChevronsLeft class="w-4 h-4" />
+                </button>
+
+                <!-- Previous Page -->
+                <button
+                  type="button"
+                  @click="prevPage"
+                  :disabled="currentPage <= 1"
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  title="Previous page"
+                >
+                  <ChevronLeft class="w-4 h-4" />
+                </button>
+
+                <!-- Page Numbers -->
+                <div class="flex items-center gap-1 mx-2">
+                  <button
+                    v-for="page in visiblePages"
+                    :key="page"
+                    type="button"
+                    @click="goToPage(page)"
+                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-xs font-semibold transition"
+                    :class="[
+                      page === currentPage
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ]"
+                  >
+                    {{ page }}
+                  </button>
+                </div>
+
+                <!-- Next Page -->
+                <button
+                  type="button"
+                  @click="nextPage"
+                  :disabled="currentPage >= totalPages"
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  title="Next page"
+                >
+                  <ChevronRight class="w-4 h-4" />
+                </button>
+
+                <!-- Last Page -->
+                <button
+                  type="button"
+                  @click="goToLastPage"
+                  :disabled="currentPage >= totalPages"
+                  class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  title="Last page"
+                >
+                  <ChevronsRight class="w-4 h-4" />
+                </button>
+              </nav>
+            </div>
+
+            <!-- Right: Jump to Page -->
+            <div v-if="totalPages > 1" class="flex items-center gap-2">
+              <label class="text-xs font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                Go to:
+              </label>
+              <div class="flex items-center gap-1">
+                <input
+                  v-model="jumpPage"
+                  type="number"
+                  :min="1"
+                  :max="totalPages"
+                  placeholder="Page"
+                  class="w-16 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none text-center"
+                  @keyup.enter="jumpToPage"
+                />
+                <button
+                  type="button"
+                  @click="jumpToPage"
+                  :disabled="!jumpPage || parseInt(jumpPage) < 1 || parseInt(jumpPage) > totalPages"
+                  class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition"
+                >
+                  Go
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

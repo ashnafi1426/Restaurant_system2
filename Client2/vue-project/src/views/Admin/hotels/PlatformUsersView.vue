@@ -348,25 +348,110 @@ const getRoleBadgeClass = (role: string) => {
           </table>
         </div>
 
-        <!-- Pagination -->
-        <div v-if="lastPage > 1" class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <span class="text-xs text-slate-500">
-            Page {{ currentPage }} of {{ lastPage }} ({{ totalUsers }} total)
-          </span>
-          <div class="flex items-center gap-2">
+        <!-- Enhanced Pagination -->
+        <div v-if="lastPage > 1 || totalUsers > perPageOptions[0]" class="p-4 border-t border-slate-200 dark:border-slate-800">
+          <!-- Pagination Info and Per Page Selector -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <div class="flex items-center gap-4">
+              <!-- Per Page Selector -->
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Per page:</label>
+                <select 
+                  v-model="perPage" 
+                  @change="handlePerPageChange"
+                  class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option v-for="option in perPageOptions" :key="option" :value="option">
+                    {{ option }}
+                  </option>
+                </select>
+              </div>
+              
+              <!-- Results Info -->
+              <div class="text-xs text-slate-500 dark:text-slate-400">
+                Showing {{ paginationInfo.start }}-{{ paginationInfo.end }} of {{ totalUsers }} users
+              </div>
+            </div>
+            
+            <!-- Quick Page Jump -->
+            <div v-if="lastPage > 1" class="flex items-center gap-2">
+              <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Go to page:</label>
+              <select 
+                :value="currentPage" 
+                @change="goToPage(Number($event.target.value))"
+                class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option v-for="page in lastPage" :key="page" :value="page">
+                  {{ page }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Pagination Controls -->
+          <div v-if="lastPage > 1" class="flex items-center justify-center gap-1">
+            <!-- First Page -->
             <button
               :disabled="currentPage <= 1"
-              @click="currentPage--; loadUsers()"
-              class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold disabled:opacity-40"
+              @click="goToFirstPage"
+              class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800"
+              title="First page"
             >
-              Previous
+              <ChevronsLeft class="w-4 h-4" />
             </button>
+            
+            <!-- Previous Page -->
+            <button
+              :disabled="currentPage <= 1"
+              @click="goToPreviousPage"
+              class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800"
+              title="Previous page"
+            >
+              <ChevronLeft class="w-4 h-4" />
+            </button>
+
+            <!-- Page Numbers -->
+            <div class="flex items-center gap-1 mx-2">
+              <template v-for="(page, index) in visiblePages" :key="index">
+                <button
+                  v-if="page !== 'ellipsis'"
+                  :class="[
+                    'px-3 py-2 rounded-lg text-xs font-bold transition',
+                    page === currentPage
+                      ? 'bg-indigo-500 text-white shadow-lg'
+                      : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
+                  ]"
+                  @click="goToPage(page)"
+                >
+                  {{ page }}
+                </button>
+                <span 
+                  v-else 
+                  class="px-2 py-2 text-slate-400 text-xs"
+                >
+                  ...
+                </span>
+              </template>
+            </div>
+
+            <!-- Next Page -->
             <button
               :disabled="currentPage >= lastPage"
-              @click="currentPage++; loadUsers()"
-              class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold disabled:opacity-40"
+              @click="goToNextPage"
+              class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800"
+              title="Next page"
             >
-              Next
+              <ChevronRight class="w-4 h-4" />
+            </button>
+            
+            <!-- Last Page -->
+            <button
+              :disabled="currentPage >= lastPage"
+              @click="goToLastPage"
+              class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800"
+              title="Last page"
+            >
+              <ChevronsRight class="w-4 h-4" />
             </button>
           </div>
         </div>
