@@ -1,218 +1,176 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
-    <div class="max-w-4xl mx-auto">
-      <!-- Loading State -->
-      <div v-if="isLoading" class="flex items-center justify-center min-h-[60vh]">
-        <div class="text-center">
-          <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-amber-600 mx-auto"></div>
-          <p class="mt-4 text-slate-600 text-lg">Loading your order...</p>
-        </div>
+  <div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-4 py-4 flex items-center gap-3 sticky top-0 z-10 shadow-sm">
+      <button @click="goBack" class="text-gray-600 hover:text-gray-900 p-1 rounded-lg hover:bg-gray-100 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      </button>
+      <div class="flex-1">
+        <h1 class="text-lg font-bold text-gray-900">Order Status</h1>
+        <p class="text-xs text-gray-500">
+          {{orderData?.table_number ? 'Table ' + orderData.table_number : orderData?.room_number ? 'Room ' + orderData.room_number : ''}}
+        </p>
       </div>
+      <!-- Live connection dot -->
+      <div class="flex items-center gap-1.5">
+        <div
+          class="w-2 h-2 rounded-full"
+          :class="isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'"
+        ></div>
+        <span class="text-xs" :class="isConnected ? 'text-green-600' : 'text-gray-400'">
+          {{isConnected ? 'Live' : 'Offline'}}
+        </span>
+      </div>
+    </div>
 
-      <!-- Error State -->
-      <div v-else-if="error" class="bg-white rounded-2xl shadow-xl p-8 text-center">
-        <div class="text-red-500 text-6xl mb-4">⚠️</div>
-        <h2 class="text-2xl font-bold text-slate-800 mb-2">Unable to Load Order</h2>
-        <p class="text-slate-600 mb-6">{{ error }}</p>
+    <!-- Loading -->
+    <div v-if="isLoading" class="flex flex-col items-center justify-center py-24 gap-3">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-500"></div>
+      <p class="text-gray-500 text-sm">Loading your order...</p>
+    </div>
+
+    <!-- Error -->
+    <div v-else-if="error" class="p-4">
+      <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+        <div class="text-4xl mb-3">⚠️</div>
+        <h2 class="font-bold text-red-800 mb-1">Unable to Load Order</h2>
+        <p class="text-sm text-red-600 mb-4">{{error}}</p>
         <button
           @click="refresh"
-          class="px-6 py-3 bg-amber-600 text-white rounded-lg font-semibold hover:bg-amber-700 transition-colors"
+          class="px-5 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
         >
           Try Again
         </button>
       </div>
+    </div>
 
-      <!-- Order Status Content -->
-      <div v-else-if="orderData" class="space-y-6">
-        <!-- Header Card -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <!-- Status Header -->
-          <div class="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-5 text-white">
-            <div class="flex items-center justify-between">
-              <div>
-                <h1 class="text-2xl font-bold">Order Status</h1>
-                <p class="text-amber-100 text-sm mt-1">Track your order in real-time</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <!-- Connection Indicator -->
-                <div class="flex items-center gap-2 bg-white/20 px-3 py-2 rounded-lg">
-                  <div
-                    class="w-2 h-2 rounded-full"
-                    :class="isConnected ? 'bg-green-400 animate-pulse' : 'bg-red-400'"
-                  ></div>
-                  <span class="text-sm font-medium">
-                    {{ isConnected ? 'Live' : 'Reconnecting...' }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+    <!-- Content -->
+    <div v-else-if="orderData" class="p-4 space-y-4 pb-8">
 
-          <!-- Order Info -->
-          <div class="px-6 py-5 border-b border-slate-200 bg-slate-50">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p class="text-xs uppercase text-slate-500 font-semibold">Order Number</p>
-                <p class="font-bold text-slate-900 mt-1 text-lg">#{{ orderData.order_number }}</p>
-              </div>
-              <div v-if="orderData.room_number">
-                <p class="text-xs uppercase text-slate-500 font-semibold">Room</p>
-                <p class="font-bold text-slate-900 mt-1 text-lg">{{ orderData.room_number }}</p>
-              </div>
-              <div v-if="orderData.table_number">
-                <p class="text-xs uppercase text-slate-500 font-semibold">Table</p>
-                <p class="font-bold text-slate-900 mt-1 text-lg">{{ orderData.table_number }}</p>
-              </div>
-              <div>
-                <p class="text-xs uppercase text-slate-500 font-semibold">Order Time</p>
-                <p class="font-medium text-slate-700 mt-1">{{ formatTime(orderData.order_time) }}</p>
-              </div>
-              <div v-if="orderData.customer_name">
-                <p class="text-xs uppercase text-slate-500 font-semibold">Customer</p>
-                <p class="font-medium text-slate-700 mt-1">{{ orderData.customer_name }}</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Status Timeline -->
-          <div class="px-6 py-8">
-            <OrderStatusTimeline
-              :order-number="orderData.order_number"
-              :status="mapStatusToTimeline(status)"
-              :estimated-minutes="estimatedMinutes"
-              :created-at="orderData.created_at"
-            />
-          </div>
-        </div>
-
-        <!-- Order Items Card -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
-            <h2 class="text-xl font-bold text-slate-900">Order Items</h2>
-          </div>
-          <div class="divide-y divide-slate-200">
-            <div
-              v-for="item in orderData.items"
-              :key="item.id"
-              class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
-            >
-              <div class="flex-1">
-                <h3 class="font-semibold text-slate-900">{{ item.name }}</h3>
-                <p class="text-sm text-slate-500 mt-1">Quantity: {{ item.quantity }}</p>
-              </div>
-              <div class="text-right">
-                <p class="font-bold text-amber-600">${{ item.total.toFixed(2) }}</p>
-                <p class="text-xs text-slate-500">${{ item.price.toFixed(2) }} each</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Order Summary -->
-          <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 space-y-2">
-            <div class="flex justify-between text-slate-700">
-              <span>Subtotal</span>
-              <span class="font-medium">${{ orderData.subtotal.toFixed(2) }}</span>
-            </div>
-            <div class="flex justify-between text-slate-700">
-              <span>Tax</span>
-              <span class="font-medium">${{ orderData.tax.toFixed(2) }}</span>
-            </div>
-            <div class="flex justify-between text-slate-700">
-              <span>Service Charge</span>
-              <span class="font-medium">${{ orderData.service_charge.toFixed(2) }}</span>
-            </div>
-            <div class="flex justify-between text-xl font-bold text-slate-900 pt-2 border-t-2 border-slate-300">
-              <span>Total</span>
-              <span class="text-amber-600">${{ orderData.total.toFixed(2) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Payment Card -->
+      <!-- Status Card -->
+      <div
+        class="rounded-xl p-4 flex items-start gap-3"
+        :class="{
+          'bg-yellow-50 border border-yellow-200': isPending,
+          'bg-orange-50 border border-orange-200': isPreparing,
+          'bg-green-50 border border-green-200': isReady || isServed,
+          'bg-red-50 border border-red-200': isCancelled
+        }"
+      >
         <div
-          v-if="showPaymentSection"
-          class="bg-white rounded-2xl shadow-xl overflow-hidden"
+          class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 text-2xl"
+          :class="{
+            'bg-yellow-400': isPending,
+            'bg-orange-400': isPreparing,
+            'bg-green-400': isReady || isServed,
+            'bg-red-400': isCancelled
+          }"
         >
-          <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
-            <h2 class="text-xl font-bold text-slate-900">Payment</h2>
-          </div>
-          <div class="px-6 py-6">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <p class="text-sm text-slate-600">Payment Status</p>
-                <p class="text-lg font-bold" :class="paymentStatusColor">
-                  {{ paymentStatusText }}
-                </p>
-              </div>
-              <div
-                v-if="paymentStatus === 'paid'"
-                class="text-4xl"
-              >
-                ✅
-              </div>
-            </div>
+          {{statusIcon}}
+        </div>
+        <div>
+          <h2 class="font-bold text-gray-900 text-base">{{statusTitle}}</h2>
+          <p class="text-sm text-gray-600 mt-0.5">{{statusMessage}}</p>
+        </div>
+      </div>
 
-            <!-- Pay Now Button -->
-            <button
-              v-if="isPaymentPending && orderData.payment_type !== 'room_charge'"
-              @click="handlePayNow"
-              :disabled="isProcessingPayment"
-              class="w-full px-6 py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-bold text-lg hover:shadow-lg transition-shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              <span v-if="!isProcessingPayment">💳 Pay Now with Chapa</span>
-              <span v-else>Processing...</span>
-            </button>
-
-            <!-- Room Charge Info -->
-            <div
-              v-if="orderData.payment_type === 'room_charge'"
-              class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800"
-            >
-              <p class="font-medium">Room Charge</p>
-              <p class="mt-1">This charge will be added to your room bill and settled at checkout.</p>
-            </div>
-          </div>
+      <!-- Order Info + Items Card -->
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <!-- Order header row -->
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <span class="font-semibold text-gray-800 text-sm">Order #{{orderData.order_number || 'N/A'}}</span>
+          <span class="text-xs text-gray-500">{{formatTime(orderData.created_at || orderData.order_time)}}</span>
         </div>
 
-        <!-- Status Messages -->
-        <div
-          v-if="statusMessage"
-          class="bg-gradient-to-r from-teal-50 to-teal-100 border-l-4 border-teal-500 rounded-lg p-6 shadow-md"
-        >
-          <div class="flex items-start gap-4">
-            <div class="text-4xl">{{ statusIcon }}</div>
-            <div class="flex-1">
-              <h3 class="font-bold text-teal-900 text-lg">{{ statusTitle }}</h3>
-              <p class="text-teal-800 mt-2">{{ statusMessage }}</p>
-              <p v-if="estimatedMinutes > 0" class="text-teal-700 mt-2 font-medium">
-                Estimated time: {{ estimatedMinutes }} minutes
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Notes -->
-        <div
-          v-if="orderData.notes"
-          class="bg-amber-50 border border-amber-200 rounded-lg p-4"
-        >
-          <p class="text-sm font-semibold text-amber-900">Special Instructions:</p>
-          <p class="text-amber-800 mt-1">{{ orderData.notes }}</p>
-        </div>
-
-        <!-- Refresh Button -->
-        <div class="text-center">
-          <button
-            @click="refresh"
-            :disabled="isLoading"
-            class="px-6 py-2 bg-white border-2 border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
+        <!-- Items -->
+        <div class="divide-y divide-gray-50">
+          <div
+            v-for="(item, index) in orderData.items"
+            :key="item.id || index"
+            class="flex items-center justify-between px-4 py-3"
           >
-            🔄 Refresh Order
-          </button>
-          <p class="text-xs text-slate-500 mt-2">
-            Last updated: {{ lastUpdate ? formatTime(lastUpdate) : 'Just now' }}
-          </p>
+            <span class="text-sm text-gray-800 flex-1">
+              {{item.quantity}}x {{item.name}}
+            </span>
+            <div class="flex items-center gap-2 ml-3">
+              <span class="text-sm font-semibold text-gray-900">
+                ETB {{((item.price || 0) * item.quantity).toFixed(2)}}
+              </span>
+              <span
+                class="px-2 py-0.5 text-xs rounded-full font-medium"
+                :class="{
+                  'bg-yellow-100 text-yellow-800': isPending || isPreparing,
+                  'bg-green-100 text-green-800': isReady || isServed,
+                  'bg-red-100 text-red-800': isCancelled
+                }"
+              >
+                {{status === 'pending' ? 'Pending' : status === 'preparing' ? 'Preparing' : status === 'ready' ? 'Ready' : status === 'served' ? 'Served' : 'Cancelled'}}
+              </span>
+            </div>
+          </div>
         </div>
+
+        <!-- Total -->
+        <div class="flex items-center justify-between px-4 py-3 border-t-2 border-gray-200 bg-gray-50">
+          <span class="font-bold text-gray-900">Total</span>
+          <span class="text-lg font-bold text-red-600">ETB {{(orderData.total || 0).toFixed(2)}}</span>
+        </div>
+      </div>
+
+      <!-- Payment Info -->
+      <div class="bg-white rounded-xl shadow-sm px-4 py-3 space-y-2">
+        <h3 class="font-semibold text-gray-800 text-sm mb-1">Payment</h3>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-gray-500">Status</span>
+          <span
+            class="font-medium"
+            :class="paymentStatus === 'paid' ? 'text-green-600' : 'text-amber-600'"
+          >
+            {{paymentStatus === 'paid' ? '✅ Paid' : '⏳ Pending'}}
+          </span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-gray-500">Method</span>
+          <span class="font-medium text-gray-800">
+            {{orderData.payment_type === 'room_charge' ? 'Room Charge' : orderData.payment_type === 'cash' ? 'Cash' : 'Online'}}
+          </span>
+        </div>
+      </div>
+
+      <!-- Pay Now Button -->
+      <button
+        v-if="isPaymentPending && orderData.payment_type !== 'room_charge'"
+        @click="handlePayNow"
+        :disabled="isProcessingPayment"
+        class="w-full py-4 rounded-xl font-bold text-white text-base shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)"
+      >
+        <span v-if="isProcessingPayment">Processing...</span>
+        <span v-else>💳 Pay Now — ETB {{(orderData.total || 0).toFixed(2)}}</span>
+      </button>
+
+      <!-- Room charge note -->
+      <div
+        v-if="orderData.payment_type === 'room_charge'"
+        class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-700"
+      >
+        <span class="font-medium">Room Charge</span> — This will be added to your room bill at checkout.
+      </div>
+
+      <!-- Refresh -->
+      <div class="text-center">
+        <button
+          @click="refresh"
+          :disabled="isLoading"
+          class="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
+        >
+          🔄 Refresh
+        </button>
+        <p v-if="lastUpdate" class="text-xs text-gray-400 mt-1">
+          Last updated: {{formatTime(lastUpdate)}}
+        </p>
       </div>
     </div>
   </div>
@@ -220,21 +178,27 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useOrderStatus } from '@/composables/useOrderStatus'
-import OrderStatusTimeline from '@/components/guest/OrderStatusTimeline.vue'
 
 const route = useRoute()
+const router = useRouter()
+
 const orderId = ref(route.params.orderId as string)
 
-// Get hotel_id from localStorage (set during QR menu session)
 const hotelId = ref(
-  localStorage.getItem('hotel_id') ||
+  (localStorage.getItem('hotel_id') ||
   localStorage.getItem('active_hotel_id') ||
-  ''
+  route.query.hotel_id as string ||
+  '').toString()
 )
 
-// Initialize composable
+// Persist qr_token from URL so the composable can use it
+const qrToken = (route.query.qr_token as string) || localStorage.getItem('guest_qr_token') || ''
+if (qrToken && !localStorage.getItem('guest_qr_token')) {
+  localStorage.setItem('guest_qr_token', qrToken)
+}
+
 const {
   orderData,
   status,
@@ -254,30 +218,14 @@ const {
 } = useOrderStatus(orderId.value, hotelId.value)
 
 const isProcessingPayment = ref(false)
-const estimatedMinutes = ref(20)
 
-// Computed properties
-const showPaymentSection = computed(() => {
-  return orderData.value && orderData.value.payment_type
-})
+// Navigation
+const goBack = () => router.back()
 
-const paymentStatusText = computed(() => {
-  if (paymentStatus.value === 'paid') return 'Paid'
-  if (paymentStatus.value === 'pending') return 'Pending Payment'
-  if (paymentStatus.value === 'failed') return 'Payment Failed'
-  return 'Unknown'
-})
-
-const paymentStatusColor = computed(() => {
-  if (paymentStatus.value === 'paid') return 'text-green-600'
-  if (paymentStatus.value === 'pending') return 'text-amber-600'
-  if (paymentStatus.value === 'failed') return 'text-red-600'
-  return 'text-slate-600'
-})
-
+// Status display
 const statusIcon = computed(() => {
   if (isPending.value) return '📝'
-  if (isPreparing.value) return '👨‍🍳'
+  if (isPreparing.value) return '👨\u200d🍳'
   if (isReady.value) return '✅'
   if (isServed.value) return '🎉'
   if (isCancelled.value) return '❌'
@@ -296,28 +244,17 @@ const statusTitle = computed(() => {
 const statusMessage = computed(() => {
   if (isPending.value) return 'Your order has been received and will be prepared shortly.'
   if (isPreparing.value) return 'Our chef is preparing your delicious meal right now.'
-  if (isReady.value) return 'Your order is ready! Please proceed to pick it up or wait for delivery.'
+  if (isReady.value) return 'Your order is ready! Please wait for delivery.'
   if (isServed.value) return 'Your order has been completed. Enjoy your meal!'
   if (isCancelled.value) return 'This order has been cancelled.'
   return ''
 })
 
-// Map status to OrderStatusTimeline component format
-const mapStatusToTimeline = (currentStatus: string): string => {
-  // OrderStatusTimeline expects: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered'
-  if (currentStatus === 'pending') return 'pending'
-  if (currentStatus === 'preparing') return 'preparing'
-  if (currentStatus === 'ready') return 'ready'
-  if (currentStatus === 'served') return 'delivered'
-  if (currentStatus === 'cancelled') return 'pending' // Show as first step
-  return 'pending'
-}
-
 // Format time helper
 const formatTime = (isoString: string): string => {
+  if (!isoString) return 'N/A'
   try {
-    const date = new Date(isoString)
-    return date.toLocaleTimeString('en-US', {
+    return new Date(isoString).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
@@ -327,30 +264,18 @@ const formatTime = (isoString: string): string => {
   }
 }
 
-// Handle payment button click
+// Payment handler
 const handlePayNow = () => {
   isProcessingPayment.value = true
-  // Redirect to payment initialization or open payment modal
-  // This will integrate with existing Chapa payment flow
-  alert('Payment integration: Redirect to Chapa payment flow')
+  alert('Redirecting to Chapa payment...')
   setTimeout(() => {
     isProcessingPayment.value = false
   }, 2000)
 }
 
-// Watch for status changes and trigger animations/notifications
+// Watch status for notifications
 watch(status, (newStatus, oldStatus) => {
   if (oldStatus && newStatus !== oldStatus) {
-    console.log(`Order status changed: ${oldStatus} → ${newStatus}`)
-    
-    // Update estimated time based on status
-    if (newStatus === 'preparing') {
-      estimatedMinutes.value = 20
-    } else if (newStatus === 'ready') {
-      estimatedMinutes.value = 0
-    }
-    
-    // Could trigger browser notification here
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('Order Status Updated', {
         body: statusMessage.value,
@@ -360,24 +285,3 @@ watch(status, (newStatus, oldStatus) => {
   }
 })
 </script>
-
-<style scoped>
-/* Add smooth transitions for status changes */
-.transition-all {
-  transition: all 0.3s ease-in-out;
-}
-
-/* Pulse animation for live indicator */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-</style>
