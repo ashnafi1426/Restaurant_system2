@@ -12,14 +12,16 @@ use App\Models\DeliveryTask;
 use App\Services\Waiter\WaiterContextResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Services\Waiter\WaiterAssignmentService;
+use App\Services\TenantContext;
 
 class WaiterAssignmentController extends Controller
 {
-    protected \App\Services\Waiter\WaiterAssignmentService $assignmentService;
+    protected WaiterAssignmentService $assignmentService;
     protected WaiterContextResolver $waiterContextResolver;
 
     public function __construct(
-        \App\Services\Waiter\WaiterAssignmentService $assignmentService,
+        WaiterAssignmentService $assignmentService,
         WaiterContextResolver $waiterContextResolver
     )
     {
@@ -32,10 +34,10 @@ class WaiterAssignmentController extends Controller
         $hotelId = $request->input('hotel_id') 
             ?: $request->query('hotel_id')
             ?: $request->header('X-Hotel-ID') 
-            ?: app(\App\Services\TenantContext::class)->getHotelId();
+            ?: app(TenantContext::class)->getHotelId();
 
         if ($hotelId) {
-            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+            app(TenantContext::class)->setHotelId($hotelId);
         }
 
         return $hotelId;

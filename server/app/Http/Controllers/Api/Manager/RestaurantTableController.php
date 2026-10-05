@@ -185,10 +185,6 @@ class RestaurantTableController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Regenerate QR code for a table.
-     */
     public function regenerateQR(string $id): JsonResponse
     {
         try {
@@ -219,9 +215,8 @@ class RestaurantTableController extends Controller
         }
     }
 
-    /**
-     * Get statistics of tables for the current tenant.
-     */
+
+
     public function statistics(): JsonResponse
     {
         try {
@@ -243,9 +238,8 @@ class RestaurantTableController extends Controller
         }
     }
 
-    /**
-     * Download QR image for a table.
-     */
+    
+    
     public function downloadQR(string $id)
     {
         try {

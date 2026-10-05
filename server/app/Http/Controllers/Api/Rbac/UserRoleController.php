@@ -11,6 +11,7 @@ use App\Services\AuthorizationService;
 use App\Services\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\UserPermission;
 
 class UserRoleController extends Controller
 {
@@ -75,7 +76,7 @@ class UserRoleController extends Controller
         $userIds = $users->pluck('id')->filter()->toArray();
         $directPermsGrouped = collect();
         if (!empty($userIds)) {
-            $directPermsQuery = \App\Models\UserPermission::whereIn('user_id', $userIds);
+            $directPermsQuery =UserPermission::whereIn('user_id', $userIds);
             if ($hotelId) {
                 $directPermsQuery->where(function ($q) use ($hotelId) {
                     $q->where('hotel_id', $hotelId)->orWhereNull('hotel_id');
@@ -93,7 +94,6 @@ class UserRoleController extends Controller
 
             $membership = $u->hotelMemberships->first();
             $membershipRoleStr = $membership?->role ?: $u->role;
-
             return [
                 'id' => $u->id,
                 'full_name' => $u->full_name,
@@ -202,7 +202,6 @@ class UserRoleController extends Controller
                 }
             }
         }
-
         DB::beginTransaction();
         try {
             $primaryRoleId = $validated['primary_role_id'] ?? $validated['role_ids'][0];

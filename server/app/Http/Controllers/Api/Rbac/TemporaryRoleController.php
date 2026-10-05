@@ -10,6 +10,7 @@ use App\Models\RbacAuditLog;
 use App\Services\AuthorizationService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Services\TenantContext;
 
 class TemporaryRoleController extends Controller
 {
@@ -25,7 +26,7 @@ class TemporaryRoleController extends Controller
         $query = TemporaryRoleAssignment::with(['user', 'role', 'assigner']);
 
         $hotelId = $request->header('X-Hotel-ID')
-            ?: app(\App\Services\TenantContext::class)->getHotelId()
+            ?: app(TenantContext::class)->getHotelId()
             ?: $request->query('hotel_id');
 
         $isAllHotels = $request->boolean('all_hotels') && $request->user()?->isPlatformAdmin();
@@ -72,7 +73,6 @@ class TemporaryRoleController extends Controller
             'reason' => $validated['reason'],
             'is_active' => true,
         ]);
-
         $this->authService->invalidateUserCache($user->id);
 
         RbacAuditLog::log(

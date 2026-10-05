@@ -11,6 +11,7 @@ use App\Models\RbacAuditLog;
 use App\Services\AuthorizationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\TenantContext;
 
 class UserDirectPermissionController extends Controller
 {
@@ -23,7 +24,7 @@ class UserDirectPermissionController extends Controller
 
     public function getUserPermissions(Request $request, User $user)
     {
-        $hotelId = app(\App\Services\TenantContext::class)->getHotelId()
+        $hotelId = app(TenantContext::class)->getHotelId()
             ?: $request->header('X-Hotel-ID')
             ?: $request->query('hotel_id');
 
@@ -115,7 +116,7 @@ class UserDirectPermissionController extends Controller
 
     public function assignDirectPermissions(Request $request, User $user)
     {
-        $hotelId = app(\App\Services\TenantContext::class)->getHotelId()
+        $hotelId = app(TenantContext::class)->getHotelId()
             ?: $request->header('X-Hotel-ID')
             ?: $request->query('hotel_id');
 

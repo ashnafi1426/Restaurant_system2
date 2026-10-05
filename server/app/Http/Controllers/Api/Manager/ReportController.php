@@ -14,17 +14,17 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-
+use App\Services\TenantContext;
 class ReportController extends Controller
 {
     private function resolveTenant(Request $request): ?string
     {
         $hotelId = $request->input('hotel_id') 
             ?: $request->header('X-Hotel-ID') 
-            ?: app(\App\Services\TenantContext::class)->getHotelId();
+            ?: app(TenantContext::class)->getHotelId();
 
         if ($hotelId) {
-            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+            app(TenantContext::class)->setHotelId($hotelId);
         }
 
         return $hotelId;

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Services\Waiter\WaiterDashboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Services\TenantContext;
+use App\Services\Waiter\WaiterContextResolver;
 
 class WaiterDashboardController extends Controller
 {
@@ -14,16 +16,15 @@ class WaiterDashboardController extends Controller
     {
         $this->dashboardService = $dashboardService;
     }
-
     private function resolveTenant(Request $request): ?string
     {
         $hotelId = $request->input('hotel_id') 
             ?: $request->query('hotel_id')
             ?: $request->header('X-Hotel-ID') 
-            ?: app(\App\Services\TenantContext::class)->getHotelId();
+            ?: app(TenantContext::class)->getHotelId();
 
         if ($hotelId) {
-            app(\App\Services\TenantContext::class)->setHotelId($hotelId);
+            app(TenantContext::class)->setHotelId($hotelId);
         }
 
         return $hotelId;
@@ -34,7 +35,7 @@ class WaiterDashboardController extends Controller
         try {
             $user = auth()->user();
             if (!$user) return null;
-            return app(\App\Services\Waiter\WaiterContextResolver::class)->resolveWaiterId($user);
+            return app(WaiterContextResolver::class)->resolveWaiterId($user);
         } catch (\Throwable $e) {
             \Log::error(' Auth error in getWaiterId: ' . $e->getMessage());
             return null;
@@ -75,7 +76,7 @@ class WaiterDashboardController extends Controller
             $hotelId = $this->resolveTenant($request);
             $waiterId = $this->getWaiterId();
             
-            \Log::info('🟠 [CONTROLLER] getDashboard called:', [
+            \Log::info(' [CONTROLLER] getDashboard called:', [
                 'user_id' => auth()->id(),
                 'waiter_id' => $waiterId,
                 'hotel_id' => $hotelId,
@@ -148,7 +149,6 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getRecentAssignments($userId, request()->query('limit', 10)),
-            []
         );
     }
 
@@ -156,7 +156,6 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getAllKitchenReadyOrders(),
-            []
         );
     }
 
@@ -164,7 +163,6 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getReadyForPickup($userId),
-            []
         );
     }
 
@@ -172,7 +170,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getPendingPickupOrders($userId),
-            []
+            
         );
     }
 
@@ -180,7 +178,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($waiterId) => $this->dashboardService->getOnDelivery($waiterId),
-            []
+            
         );
     }
 
@@ -188,7 +186,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getCompletedDeliveries($userId, request()->query('limit', 10)),
-            []
+            
         );
     }
 
@@ -196,7 +194,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getFailedDeliveries($userId, request()->query('limit', 10)),
-            []
+            
         );
     }
 
@@ -204,7 +202,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getDeliveryTimeline($userId),
-            []
+            
         );
     }
 
@@ -212,7 +210,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getWeeklyPerformanceData($userId),
-            []
+            
         );
     }
 
@@ -220,7 +218,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getMonthlyPerformanceData($userId),
-            []
+            
         );
     }
 

@@ -44,10 +44,6 @@ class FloorManagementController extends Controller
             ],
         ]);
     }
-
-    /**
-     * Store a newly created floor.
-     */
     public function store(StoreFloorRequest $request): JsonResponse
     {
         $floor = $this->floorService->createFloor($request->validated());

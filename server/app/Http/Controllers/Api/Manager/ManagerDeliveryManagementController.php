@@ -194,7 +194,7 @@ class ManagerDeliveryManagementController extends Controller
 
             if ($oldWaiter) {
                 $oldWaiter->decrementOrders();
-                Log::info('📉 Old waiter workload decremented', [
+                Log::info(' Old waiter workload decremented', [
                     'waiter_id' => $oldWaiter->id,
                     'name' => $oldWaiter->user->name,
                     'new_workload' => $oldWaiter->current_orders,
@@ -204,7 +204,7 @@ class ManagerDeliveryManagementController extends Controller
             $newWaiter->incrementOrders();
             $newWaiter->update(['last_assigned_at' => now()]);
 
-            Log::info('📈 New waiter workload incremented', [
+            Log::info('New waiter workload incremented', [
                 'waiter_id' => $newWaiter->id,
                 'name' => $newWaiter->user->name,
                 'new_workload' => $newWaiter->current_orders,
