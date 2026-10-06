@@ -348,14 +348,22 @@ const viewPayment = (id: string) => {
           <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('transactions_desc', 'View and manage all payment transaction logs.') }}</p>
         </div>
 
-        <button
-          @click="loadPayments"
-          :disabled="cashierStore.isLoading"
-          class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700 disabled:opacity-50"
-        >
-          <RefreshCw :class="['w-3.5 h-3.5', cashierStore.isLoading && 'animate-spin']" />
-          <span>{{ languageStore.t('refresh', 'Refresh') }}</span>
-        </button>
+        <div class="flex items-center gap-2">
+          <!-- WebSocket Connection Indicator -->
+          <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold" :class="isConnected ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700/50 text-emerald-700 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'">
+            <component :is="isConnected ? Wifi : WifiOff" class="w-3.5 h-3.5" :class="isConnected && 'animate-pulse'" />
+            <span class="hidden sm:inline">{{ isConnected ? languageStore.t('Live', 'Live') : languageStore.t('Offline', 'Offline') }}</span>
+          </div>
+
+          <button
+            @click="loadPayments"
+            :disabled="cashierStore.isLoading"
+            class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700 disabled:opacity-50"
+          >
+            <RefreshCw :class="['w-3.5 h-3.5', cashierStore.isLoading && 'animate-spin']" />
+            <span>{{ languageStore.t('refresh', 'Refresh') }}</span>
+          </button>
+        </div>
       </div>
 
       <!-- Quick Filter Pills -->
@@ -558,12 +566,13 @@ const viewPayment = (id: string) => {
           <table class="w-full text-left border-collapse table-fixed min-w-[700px]">
             <thead>
               <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                <th @click="sortBy('tx_ref')" class="w-[18%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Reservation #', 'Ref') }}</th>
-                <th @click="sortBy('customer_name')" class="w-[22%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Guest', 'Customer') }}</th>
-                <th @click="sortBy('amount')" class="w-[13%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Amount', 'Amount') }}</th>
-                <th class="w-[10%] px-2.5 py-2.5 whitespace-nowrap">{{ languageStore.t('Room Type', 'Type') }}</th>
-                <th class="w-[9%] px-2.5 py-2.5 whitespace-nowrap">{{ languageStore.t('payment_method', 'Method') }}</th>
-                <th @click="sortBy('status')" class="w-[12%] px-2.5 py-2.5 text-center whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Status', 'Status') }}</th>
+                <th @click="sortBy('tx_ref')" class="w-[16%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Reservation #', 'Ref') }}</th>
+                <th @click="sortBy('customer_name')" class="w-[18%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Guest', 'Customer') }}</th>
+                <th @click="sortBy('amount')" class="w-[11%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Amount', 'Amount') }}</th>
+                <th class="w-[9%] px-2.5 py-2.5 whitespace-nowrap">{{ languageStore.t('Room Type', 'Type') }}</th>
+                <th class="w-[8%] px-2.5 py-2.5 whitespace-nowrap">{{ languageStore.t('payment_method', 'Method') }}</th>
+                <th @click="sortBy('status')" class="w-[10%] px-2.5 py-2.5 text-center whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Status', 'Payment') }}</th>
+                <th class="w-[10%] px-2.5 py-2.5 text-center whitespace-nowrap">{{ languageStore.t('Order Status', 'Order') }}</th>
                 <th @click="sortBy('created_at')" class="w-[11%] px-2.5 py-2.5 whitespace-nowrap cursor-pointer hover:text-slate-900 dark:hover:text-white">{{ languageStore.t('Check-in Date', 'Date') }}</th>
                 <th class="w-[5%] px-2 py-2 text-right whitespace-nowrap pr-3">{{ languageStore.t('Actions', 'Action') }}</th>
               </tr>
