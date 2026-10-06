@@ -43,6 +43,7 @@ import PaymentFailedPage from '../views/payment/PaymentFailedPage.vue'
 import PaymentPendingPage from '../views/payment/PaymentPendingPage.vue'
 import CheckoutPage from '../views/payment/CheckoutPage.vue'
 import OrderPaymentSuccessPage from '../views/payment/OrderPaymentSuccessPage.vue'
+import OrderPaymentPage from '../views/payment/OrderPaymentPage.vue'
 import managerRoutes from './managerRouter.ts'
 import waiterRoutes from './waiterRouter'
 import cashierRoutes from './cashierRouter'
@@ -583,6 +584,15 @@ const router = createRouter({
       component: PaymentSuccessPage,
       meta: {
         title: 'Payment Successful',
+        requiresAuth: false,
+      },
+    },
+    {
+      path: '/order/payment',
+      name: 'order-payment',
+      component: OrderPaymentPage,
+      meta: {
+        title: 'Pay Your Order',
         requiresAuth: false,
       },
     },
