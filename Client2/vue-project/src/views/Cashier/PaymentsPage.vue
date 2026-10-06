@@ -52,6 +52,11 @@ const showFilters = ref(false)
 // Load payments
 onMounted(() => {
   loadPayments()
+  subscribeToPaymentUpdates()
+})
+
+onUnmounted(() => {
+  cleanupWebSocket()
 })
 
 // Watch for query parameter changes
@@ -66,10 +71,127 @@ watch(() => route.query.filter, (newFilter) => {
 watch(() => hotelStore.hotelId, () => {
   filters.value.page = 1
   loadPayments()
+  // Resubscribe to new hotel's payment channel
+  cleanupWebSocket()
+  subscribeToPaymentUpdates()
 })
 
 const loadPayments = async () => {
   await cashierStore.fetchPayments(filters.value as any)
+}
+
+// WebSocket: Subscribe to payment updates
+const subscribeToPaymentUpdates = () => {
+  if (!window.Echo || !hotelStore.hotelId) {
+    console.warn('[CashierPayments] Echo not initialized or no hotel ID')
+    return
+  }
+
+  try {
+    const channelName = `payments.${hotelStore.hotelId}`
+    console.log(`[CashierPayments] 📡 Subscribing to channel: ${channelName}`)
+
+    wsChannel.value = window.Echo.private(channelName)
+
+    // Connection state handlers
+    if (window.Echo.connector?.pusher) {
+      const pusherConnection = window.Echo.connector.pusher.connection
+      
+      pusherConnection.bind('connected', () => {
+        console.log('[CashierPayments] ✅ WebSocket connected')
+        isConnected.value = true
+      })
+
+      pusherConnection.bind('disconnected', () => {
+        console.log('[CashierPayments] ❌ WebSocket disconnected')
+        isConnected.value = false
+      })
+
+      pusherConnection.bind('error', (err: any) => {
+        console.error('[CashierPayments] ⚠️ WebSocket error:', err)
+        isConnected.value = false
+      })
+
+      // Set initial state
+      isConnected.value = pusherConnection.state === 'connected'
+    }
+
+    // Listen for payment status updates
+    wsChannel.value.listen('.PaymentStatusUpdated', (event: any) => {
+      console.log('[CashierPayments] 💰 Payment status updated:', event)
+      handlePaymentUpdate(event)
+    })
+
+    // Listen for payment verification
+    wsChannel.value.listen('.PaymentVerified', (event: any) => {
+      console.log('[CashierPayments] ✅ Payment verified:', event)
+      handlePaymentUpdate(event)
+    })
+
+    // Listen for order completion
+    wsChannel.value.listen('.OrderCompleted', (event: any) => {
+      console.log('[CashierPayments] 🎉 Order completed:', event)
+      handleOrderCompletionUpdate(event)
+    })
+
+    // Listen for payment initialization
+    wsChannel.value.listen('.PaymentInitialized', (event: any) => {
+      console.log('[CashierPayments] 🆕 Payment initialized:', event)
+      // Refresh list to show new payment
+      loadPayments()
+    })
+
+    console.log('[CashierPayments] ✅ Channel subscription setup complete')
+  } catch (error) {
+    console.error('[CashierPayments] Error subscribing to channel:', error)
+  }
+}
+
+// Handle payment status update from WebSocket
+const handlePaymentUpdate = (event: any) => {
+  const paymentId = event.payment_id || event.id
+  const payment = cashierStore.payments.find((p: any) => p.id === paymentId)
+  
+  if (payment) {
+    // Update existing payment
+    payment.status = event.status || event.payment_status
+    payment.payment_status = event.payment_status || event.status
+    if (event.verified_at) payment.verified_at = event.verified_at
+    if (event.updated_at) payment.updated_at = event.updated_at
+    
+    console.log('[CashierPayments] Updated payment in list:', payment.tx_ref)
+  } else {
+    // Payment not in current view, refresh if it matches filters
+    loadPayments()
+  }
+}
+
+// Handle order completion update
+const handleOrderCompletionUpdate = (event: any) => {
+  // Find payment by order_id
+  const payment = cashierStore.payments.find((p: any) => 
+    p.order_id === event.order_id || p.reservation_id === event.order_id
+  )
+  
+  if (payment) {
+    payment.order_status = 'completed'
+    payment.order_completed_at = event.completed_at || event.updated_at
+    console.log('[CashierPayments] Updated order completion:', payment.tx_ref)
+  }
+}
+
+// Cleanup WebSocket on unmount
+const cleanupWebSocket = () => {
+  if (wsChannel.value) {
+    console.log('[CashierPayments] 🔌 Leaving payment channel')
+    wsChannel.value.stopListening('.PaymentStatusUpdated')
+    wsChannel.value.stopListening('.PaymentVerified')
+    wsChannel.value.stopListening('.OrderCompleted')
+    wsChannel.value.stopListening('.PaymentInitialized')
+    window.Echo?.leave(`payments.${hotelStore.hotelId}`)
+    wsChannel.value = null
+  }
+  isConnected.value = false
 }
 
 // Search handler
