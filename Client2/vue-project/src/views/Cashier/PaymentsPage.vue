@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
 import { useCashierStore } from '@/stores/cashierStore'
@@ -18,6 +18,8 @@ import {
   CreditCard,
   Loader2,
   Building2,
+  Wifi,
+  WifiOff,
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -25,6 +27,10 @@ const route = useRoute()
 const cashierStore = useCashierStore()
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
+
+// WebSocket state
+const isConnected = ref(false)
+const wsChannel = ref<any>(null)
 
 // Filter state
 const filters = ref({
@@ -95,13 +101,11 @@ const clearFilters = () => {
   }
   loadPayments()
 }
-
 const setQuickFilter = (filter: string) => {
   filters.value.filter = filter
   filters.value.page = 1
   loadPayments()
 }
-
 const changePerPage = (event: Event) => {
   const target = event.target as HTMLSelectElement
   filters.value.per_page = Number(target.value)
@@ -201,8 +205,6 @@ const getStatusBadgeClass = (status: string) => {
       return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20 font-black'
   }
 }
-
-// View payment details
 const viewPayment = (id: string) => {
   router.push({ name: 'cashier-payment-detail', params: { id } })
 }
