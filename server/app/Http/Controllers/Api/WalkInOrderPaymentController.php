@@ -161,7 +161,7 @@ class WalkInOrderPaymentController extends Controller
                 'phone' => $payment->phone,
                 'tx_ref' => $payment->tx_ref,
                 'callback_url' => config('chapa.callback_url'),
-                'return_url' => config('chapa.order_return_url', config('app.frontend_url') . '/order/payment/success'),
+                'return_url' => config('chapa.order_return_url', config('app.frontend_url') . '/order/payment/success') . '?tx_ref=' . $payment->tx_ref,
                 'title' => 'Table Order',
                 'description' => sprintf(
                     'Table %s - %d items',

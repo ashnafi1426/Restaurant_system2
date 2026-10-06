@@ -120,26 +120,49 @@ class BroadcastAuthController extends Controller
             }
             
             if (!$isValidToken) {
-                Log::warning('[BroadcastAuth] Invalid QR token for guest WebSocket subscription', [
+                // Check if there's an authenticated user - staff can view any order
+                $user = $request->user();
+                if (!$user) {
+                    Log::warning('[BroadcastAuth] Invalid QR token for guest WebSocket subscription', [
+                        'channel' => $channelName,
+                        'order_id' => $order->id,
+                        'ip' => $request->ip()
+                    ]);
+                    return response()->json(['error' => 'Invalid QR token'], 403);
+                }
+                
+                // Authenticated user with invalid QR token - treat as staff access
+                Log::info('[BroadcastAuth] Order channel authorized for authenticated staff user', [
+                    'channel' => $channelName,
+                    'order_id' => $order->id,
+                    'hotel_id' => $order->hotel_id,
+                    'user_id' => $user->id,
+                    'user_role' => $user->role
+                ]);
+            } else {
+                Log::info('[BroadcastAuth] Guest WebSocket channel authorized via QR token', [
+                    'channel' => $channelName,
+                    'order_id' => $order->id,
+                    'hotel_id' => $order->hotel_id
+                ]);
+            }
+        } else {
+            // No QR token - must be authenticated user (staff viewing orders)
+            $user = $request->user();
+            if (!$user) {
+                Log::warning('[BroadcastAuth] No QR token and no authenticated user', [
                     'channel' => $channelName,
                     'order_id' => $order->id,
                     'ip' => $request->ip()
                 ]);
-                return response()->json(['error' => 'Invalid QR token'], 403);
+                return response()->json(['error' => 'Unauthorized'], 403);
             }
             
-            Log::info('[BroadcastAuth] Guest WebSocket channel authorized via QR token', [
-                'channel' => $channelName,
-                'order_id' => $order->id,
-                'hotel_id' => $order->hotel_id
-            ]);
-        } else {
-            // For authenticated user requests (staff viewing orders)
-            Log::info('[BroadcastAuth] Order channel authorized', [
+            Log::info('[BroadcastAuth] Order channel authorized for authenticated user', [
                 'channel' => $channelName,
                 'order_id' => $order->id,
                 'hotel_id' => $order->hotel_id,
-                'user_id' => $request->user()?->id
+                'user_id' => $user->id
             ]);
         }
 
