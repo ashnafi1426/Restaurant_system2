@@ -768,10 +768,46 @@ const proceedToPayment = () => {
       alert('Please enter a valid phone number')
       return
     }
-  }
 
-  showPaymentDialog.value = false
-  handlePlaceOrder()
+    // Store payment data for the OrderPaymentPage
+    const paymentData = {
+      qr_token: qrToken.value,
+      table_number: orderContext.value.displayName,
+      table_id: orderContext.value.id,
+      customer_name: `${paymentForm.value.first_name} ${paymentForm.value.last_name}`,
+      customer_phone: paymentForm.value.phone,
+      customer_email: paymentForm.value.email,
+      first_name: paymentForm.value.first_name,
+      last_name: paymentForm.value.last_name,
+      items: cartItems.value.map(item => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      calculation: {
+        subtotal: subtotal.value,
+        tax: 0,
+        service_charge: 0,
+        total: subtotal.value,
+      }
+    }
+
+    localStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
+    console.log('[QRMenu] Stored payment data, navigating to payment page:', paymentData)
+
+    // Navigate to the new OrderPaymentPage where user can add tip
+    router.push({
+      path: '/order/payment',
+      query: {
+        qr_token: qrToken.value
+      }
+    })
+  } else {
+    // For room orders, use the old flow (no tip, direct order)
+    showPaymentDialog.value = false
+    handlePlaceOrder()
+  }
 }
 
 const handlePlaceOrder = async () => {
