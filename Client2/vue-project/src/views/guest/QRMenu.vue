@@ -811,7 +811,8 @@ const handlePlaceOrder = async () => {
       })
 
       if (paymentResponse.success && paymentResponse.checkout_url) {
-        sessionStorage.setItem('walk_in_payment_data', JSON.stringify({
+        // Use localStorage instead of sessionStorage to persist through Chapa redirect
+        const paymentData = {
           payment_id: paymentResponse.payment_id,
           tx_ref: paymentResponse.tx_ref,
           amount: paymentResponse.amount,
@@ -824,7 +825,13 @@ const handlePlaceOrder = async () => {
             total: item.price * item.quantity,
           })),
           calculation: paymentResponse.calculation,
-        }))
+        }
+        
+        localStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
+        sessionStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
+        
+        console.log('[QRMenu] Stored payment data before redirect:', paymentData)
+        console.log('[QRMenu] Redirecting to Chapa:', paymentResponse.checkout_url)
         
         window.location.href = paymentResponse.checkout_url
         return
@@ -910,6 +917,13 @@ const detectOrderContext = async () => {
       eligibilityMessage.value = eligMsg
       reservationStatusVal.value = resStatus
 
+      // CRITICAL: Store hotel_id from QR resolution to ensure correct tenant isolation
+      if (result.data.hotel_id) {
+        localStorage.setItem('hotel_id', result.data.hotel_id)
+        localStorage.setItem('active_hotel_id', result.data.hotel_id)
+        console.log('[QRMenu] Stored hotel_id from QR resolution:', result.data.hotel_id)
+      }
+
       orderContext.value = {
         type: 'room',
         id: result.data.room_id!,
@@ -935,6 +949,13 @@ const detectOrderContext = async () => {
       canOrderRoomService.value = true
       eligibilityMessage.value = ''
       reservationStatusVal.value = 'not_applicable'
+
+      // CRITICAL: Store hotel_id from QR resolution for table orders
+      if (result.data.hotel_id) {
+        localStorage.setItem('hotel_id', result.data.hotel_id)
+        localStorage.setItem('active_hotel_id', result.data.hotel_id)
+        console.log('[QRMenu] Stored hotel_id from table QR resolution:', result.data.hotel_id)
+      }
 
       orderContext.value = {
         type: 'table',

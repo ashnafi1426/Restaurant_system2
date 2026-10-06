@@ -207,6 +207,22 @@
 
             <!-- Primary and Secondary Actions -->
             <div class="space-y-2 pt-0.5">
+              <!-- Track My Order Button (for food orders) -->
+              <button
+                v-if="isOrderPayment"
+                @click="trackOrder"
+                :disabled="isLoading"
+                class="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 disabled:from-red-400 disabled:to-orange-400 text-white font-bold py-3 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 text-sm active:scale-[0.99] cursor-pointer"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                <span>Track My Order</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                </svg>
+              </button>
+
               <button
                 @click="downloadReceipt"
                 :disabled="isLoading"
@@ -256,6 +272,7 @@ const route = useRoute()
 const txRef = ref<string>('')
 const reservationData = ref<any>(null)
 const isLoading = ref(false)
+const isOrderPayment = ref(false)
 
 const showHeader = ref(false)
 const showSuccess = ref(false)
@@ -266,6 +283,26 @@ const showButtons = ref(false)
 
 onMounted(async () => {
   txRef.value = route.query.tx_ref as string
+
+  // Check if this is an order payment (from food ordering system)
+  const orderIdFromQuery = route.query.order_id as string
+  const orderIdFromStorage = localStorage.getItem('last_order_id')
+  const pendingOrderData = localStorage.getItem('pending_order_data')
+  const pendingPaymentOrder = localStorage.getItem('pending_payment_order')
+  
+  if (orderIdFromQuery || orderIdFromStorage || pendingOrderData || pendingPaymentOrder) {
+    isOrderPayment.value = true
+    console.log('[PaymentSuccess] Detected as ORDER payment (food ordering system)')
+    
+    // Store order ID for tracking
+    if (orderIdFromQuery) {
+      localStorage.setItem('last_order_id', orderIdFromQuery)
+      sessionStorage.setItem('payment_order_id', orderIdFromQuery)
+    }
+  } else {
+    isOrderPayment.value = false
+    console.log('[PaymentSuccess] Detected as RESERVATION payment (hotel booking system)')
+  }
 
   let storedData = sessionStorage.getItem('reservationPaymentData')
   if (!storedData) {
@@ -412,6 +449,32 @@ function formatDate(dateString: string): string {
 function goHome(): void {
   sessionStorage.removeItem('reservationPaymentData')
   router.push('/')
+}
+
+function trackOrder(): void {
+  // Get order ID from multiple sources
+  const orderId = route.query.order_id as string || 
+                  localStorage.getItem('last_order_id') || 
+                  sessionStorage.getItem('payment_order_id')
+  
+  if (orderId) {
+    const qrToken = localStorage.getItem('guest_qr_token')
+    const hotelId = localStorage.getItem('hotel_id') || localStorage.getItem('active_hotel_id')
+    
+    console.log('[PaymentSuccess] Navigating to order status:', orderId)
+    
+    router.push({
+      name: 'order-status',
+      params: { orderId },
+      query: {
+        qr_token: qrToken || undefined,
+        hotel_id: hotelId || undefined
+      }
+    })
+  } else {
+    console.error('[PaymentSuccess] No order ID found for tracking')
+    alert('Unable to track order. Order ID not found.')
+  }
 }
 
 async function downloadReceipt(): Promise<void> {

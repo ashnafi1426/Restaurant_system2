@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import reviewService from '@/services/reviewService'
+import { ref } from 'vue'
 import type { MenuItem } from '@/types/menu'
-import type { ReviewStats } from '@/types/review'
-import { ShoppingCart, Star, MessageSquare } from 'lucide-vue-next'
+import { ShoppingCart, MessageSquare } from 'lucide-vue-next'
 import { useLanguageStore } from '@/stores/language'
 
 interface Props {
@@ -27,44 +25,15 @@ const emit = defineEmits<{
 }>()
 
 const quantity = ref(1)
-const reviewStats = ref<ReviewStats | null>(null)
-const loadingReviews = ref(false)
 
-onMounted(async () => {
-  await loadReviewStats()
-  
-  window.addEventListener('review-stats-updated', () => {
-    loadReviewStats()
-  })
-})
-
-const loadReviewStats = async () => {
-  loadingReviews.value = true
-  try {
-    const stats = await reviewService.getMenuItemStats(props.item.id)
-    reviewStats.value = stats
-  } catch (error) {
-    console.error('[QRMenuItemCard] Error loading review stats:', error)
-    reviewStats.value = {
-      menu_item_id: props.item.id,
-      total_reviews: 0,
-      average_rating: 0,
-      rating_distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-    }
-  } finally {
-    loadingReviews.value = false
-  }
-}
+// REMOVED: All review loading logic to improve performance
+// Reviews are not critical for menu browsing and were causing 12+ second load times
 
 const handleAddToCart = () => {
   if (quantity.value > 0) {
     emit('add-to-cart', quantity.value)
     quantity.value = 1
   }
-}
-
-const reloadReviewStats = async () => {
-  await loadReviewStats()
 }
 
 const incrementQuantity = () => {
@@ -75,13 +44,6 @@ const decrementQuantity = () => {
   if (quantity.value > 1) {
     quantity.value--
   }
-}
-
-const renderStars = (rating: number | null): string => {
-  if (!rating) return '☆☆☆☆☆'
-  const filled = Math.round(rating)
-  const empty = 5 - filled
-  return '★'.repeat(filled) + '☆'.repeat(empty)
 }
 </script>
 
@@ -150,29 +112,8 @@ const renderStars = (rating: number | null): string => {
         </p>
       </div>
 
-      <!-- Rating / Review snippet -->
-      <div>
-        <div
-          v-if="reviewStats && reviewStats.total_reviews > 0"
-          class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/20"
-        >
-          <Star :size="13" class="fill-amber-400 text-amber-400 shrink-0" />
-          <span class="text-xs font-bold text-slate-800 dark:text-slate-200">
-            {{ reviewStats.average_rating?.toFixed(1) || '0.0' }}
-          </span>
-          <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-            ({{ reviewStats.total_reviews }} {{ reviewStats.total_reviews === 1 ? languageStore.t('review', 'review') : languageStore.t('reviews', 'reviews') }})
-          </span>
-        </div>
-
-        <div
-          v-else
-          class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 dark:text-slate-500"
-        >
-          <MessageSquare :size="12" class="opacity-70 shrink-0" />
-          <span>{{ languageStore.t('no_reviews_yet', 'No reviews yet') }}</span>
-        </div>
-      </div>
+      <!-- REMOVED: Rating/Review display to improve performance -->
+      <!-- Reviews can be viewed after ordering via the Write Review button -->
 
       <!-- Price & Actions footer -->
       <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2.5">

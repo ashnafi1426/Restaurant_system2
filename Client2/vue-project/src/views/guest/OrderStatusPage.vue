@@ -234,14 +234,13 @@ const isProcessingPayment = ref(false)
 // Navigation
 const goBack = () => router.back()
 
-// Payment handler - Initialize Chapa payment for this order
+// Payment handler - Initialize payment directly
 const handlePayNow = async () => {
   if (isProcessingPayment.value || !orderData.value) return
   
   isProcessingPayment.value = true
   
   try {
-    // Get guest info from localStorage or use defaults
     const guestInfo = {
       first_name: localStorage.getItem('guest_first_name') || 'Guest',
       last_name: localStorage.getItem('guest_last_name') || 'User',
@@ -249,15 +248,13 @@ const handlePayNow = async () => {
       phone: localStorage.getItem('guest_phone') || '+251911000000'
     }
     
-    // Prepare payment initialization request
     const paymentPayload = {
       order_id: orderData.value.order_id || orderData.value.id,
       ...guestInfo
     }
     
-    console.log('[OrderStatus] Initializing Chapa payment:', paymentPayload)
+    console.log('[OrderStatus] Initializing payment:', paymentPayload)
     
-    // Call backend to initialize Chapa payment for existing order
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/order-payments/initialize-existing`, {
       method: 'POST',
       headers: {
@@ -271,15 +268,17 @@ const handlePayNow = async () => {
     const result = await response.json()
     
     if (result.success && result.checkout_url) {
-      console.log('[OrderStatus] Redirecting to Chapa checkout:', result.checkout_url)
-      // Redirect to Chapa checkout page
+      console.log('[OrderStatus] Redirecting to Chapa:', result.checkout_url)
+      // Store order data before redirecting
+      localStorage.setItem('pending_payment_order', JSON.stringify(orderData.value))
+      // Redirect to Chapa checkout
       window.location.href = result.checkout_url
     } else {
       throw new Error(result.message || 'Failed to initialize payment')
     }
   } catch (error: any) {
-    console.error('[OrderStatus] Payment initialization error:', error)
-    alert(`Payment Error: ${error.message || 'Failed to initialize payment. Please try again.'}`)
+    console.error('[OrderStatus] Payment error:', error)
+    alert(`Payment Error: ${error.message || 'Failed to initialize payment'}`)
   } finally {
     isProcessingPayment.value = false
   }
