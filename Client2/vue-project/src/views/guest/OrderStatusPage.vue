@@ -280,14 +280,36 @@ const handlePayNow = async () => {
       phone: localStorage.getItem('guest_phone') || '+251911000000'
     }
     
-    const paymentPayload = {
-      order_id: orderData.value?.order_id || orderData.value?.id,
-      ...guestInfo
+    // Check if this is a walk-in/table order
+    const isWalkInOrder = orderData.value?.order_type === 'dine_in' || 
+                          orderData.value?.order_type === 'walk_in' ||
+                          orderData.value?.table_number ||
+                          orderData.value?.table_id
+    
+    let endpoint = ''
+    let paymentPayload: any = {}
+    
+    if (isWalkInOrder) {
+      // For walk-in/table orders, use walk-in payment endpoint
+      endpoint = `${import.meta.env.VITE_API_BASE_URL}/api/walk-in-payments/initialize-for-order`
+      paymentPayload = {
+        order_id: orderData.value?.order_id || orderData.value?.id,
+        ...gugiestInfo
+      }
+    } else {
+      // For room orders, use existing endpoint
+      endpoint = `${import.meta.env.VITE_API_BASE_URL}/api/order-payments/initialize-existing`
+      paymentPayload = {
+        order_id: orderData.value?.order_id || orderData.value?.id,
+        ...guestInfo
+      }
     }
     
     console.log('[OrderStatus] Initializing payment:', paymentPayload)
+    console.log('[OrderStatus] Using endpoint:', endpoint)
+    console.log('[OrderStatus] Order type:', orderData.value?.order_type)
     
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/order-payments/initialize-existing`, {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -298,6 +320,10 @@ const handlePayNow = async () => {
     })
     
     const result = await response.json()
+    console.log('[OrderStatus] Payment response:', result)
+    console.log('[OrderStatus] Response status:', response.status)
+    console.log('[OrderStatus] Message type:', typeof result.message)
+    console.log('[OrderStatus] Message value:', JSON.stringify(result.message))
     
     if (result.success && result.checkout_url) {
       console.log('[OrderStatus] Redirecting to Chapa:', result.checkout_url)
@@ -307,12 +333,48 @@ const handlePayNow = async () => {
       }
       // Redirect to Chapa checkout
       window.location.href = result.checkout_url
+    } else if (result.success && !result.checkout_url) {
+      // Payment created but no checkout URL - this shouldn't happen
+      console.error('[OrderStatus] Payment created but no checkout URL:', result)
+      throw new Error(`Payment was initialized but checkout URL is missing. Response: ${JSON.stringify(result)}`)
     } else {
-      throw new Error(result.message || 'Failed to initialize payment')
+      // Better error message handling
+      let errorMessage = 'Unable to initialize payment with Chapa'
+      
+      if (typeof result.message === 'string') {
+        errorMessage = result.message
+      } else if (typeof result.message === 'object' && result.message !== null) {
+        // Handle case where message is an object (likely an error object)
+        errorMessage = JSON.stringify(result.message)
+      } else if (result.error) {
+        errorMessage = result.error
+      } else if (result.errors) {
+        // Handle validation errors
+        const errors = Object.values(result.errors).flat()
+        errorMessage = errors.join(', ')
+      }
+      
+      console.error('[OrderStatus] Payment failed:', {
+        success: result.success,
+        message: result.message,
+        errors: result.errors,
+        fullResponse: result
+      })
+      
+      throw new Error(errorMessage)
     }
   } catch (error: any) {
     console.error('[OrderStatus] Payment error:', error)
-    alert(`Payment Error: ${error.message || 'Failed to initialize payment'}`)
+    
+    // Better error display
+    let displayMessage = 'Failed to initialize payment'
+    if (error.message && error.message !== '[object Object]') {
+      displayMessage = error.message
+    } else if (typeof error === 'string') {
+      displayMessage = error
+    }
+    
+    alert(`Payment Error: ${displayMessage}`)
   } finally {
     isProcessingPayment.value = false
   }

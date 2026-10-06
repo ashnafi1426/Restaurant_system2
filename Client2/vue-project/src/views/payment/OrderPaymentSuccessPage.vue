@@ -158,6 +158,7 @@ const txRef = ref<string>('')
 const orderData = ref<any>(null)
 const roomNumber = ref<string>('')
 const isLoading = ref(false)
+const isVerifying = ref(true)  // Add this - for loading state
 
 onMounted(async () => {
   console.log('[OrderPaymentSuccess] Mounted')
@@ -281,6 +282,7 @@ onMounted(async () => {
       localStorage.setItem('last_order_id', directOrderId)
     }
     
+    isVerifying.value = false // Stop showing loading state
     return // Skip payment verification if no tx_ref
   }
 
@@ -364,6 +366,9 @@ onMounted(async () => {
       }
     } catch (error) {
       console.error('[OrderPaymentSuccess] Error verifying/completing payment:', error)
+    } finally {
+      // Always stop loading state after verification attempt
+      isVerifying.value = false
     }
   }
   

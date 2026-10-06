@@ -309,19 +309,18 @@ const proceedToPayment = async () => {
         'X-Hotel-ID': hotelId.value
       },
       body: JSON.stringify({
-        hotel_id: hotelId.value,
-        table_number: tableNumber.value,
+        table_id: paymentData.table_id || '',
         qr_token: qrToken.value,
         items: items.value.map(item => ({
           menu_item_id: item.id,
-          quantity: item.quantity,
-          price: item.price
+          quantity: item.quantity
         })),
-        subtotal: subtotal.value,
+        special_requests: '',
         tip: tipAmount.value,
-        total: total.value,
-        customer_name: updatedPaymentData.customer_name,
-        customer_phone: updatedPaymentData.customer_phone
+        first_name: 'Guest',
+        last_name: 'Customer',
+        email: 'guest@restaurant.com',
+        phone: '+251900000000'
       })
     })
 

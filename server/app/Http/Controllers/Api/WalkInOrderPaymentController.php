@@ -46,6 +46,7 @@ class WalkInOrderPaymentController extends Controller
                 'items.*.menu_item_id' => 'required|uuid|exists:menu_items,id',
                 'items.*.quantity' => 'required|integer|min:1|max:100',
                 'special_requests' => 'nullable|string',
+                'tip' => 'nullable|numeric|min:0',
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
                 'email' => 'required|email',
@@ -81,6 +82,12 @@ class WalkInOrderPaymentController extends Controller
                     'message' => $orderCalculation['message'],
                 ], 400);
             }
+
+            // Add tip to the total amount if provided
+            $tipAmount = floatval($validated['tip'] ?? 0);
+            $finalTotal = $orderCalculation['total'] + $tipAmount;
+            $orderCalculation['tip'] = $tipAmount;
+            $orderCalculation['total'] = $finalTotal;
 
             $orderItemsWithPrices = [];
             foreach ($orderCalculation['items'] as $item) {
@@ -131,7 +138,7 @@ class WalkInOrderPaymentController extends Controller
                 'hotel_id' => $hotelId,
                 'guest_id' => $guestId,
                 'tx_ref' => 'WALKIN-' . strtoupper(Str::random(12)),
-                'amount' => $orderCalculation['total'],
+                'amount' => $finalTotal,
                 'currency' => 'ETB',
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
@@ -148,6 +155,7 @@ class WalkInOrderPaymentController extends Controller
                     'qr_token' => $validated['qr_token'],
                     'items' => $orderItemsWithPrices,
                     'special_requests' => $validated['special_requests'] ?? null,
+                    'tip' => $tipAmount,
                     'calculation' => $orderCalculation,
                 ],
             ]);
@@ -190,6 +198,7 @@ class WalkInOrderPaymentController extends Controller
             }
 
             $checkoutUrl = $this->chapaService->getCheckoutUrl($chapaResponse);
+
             $payment->update([
                 'checkout_url' => $checkoutUrl,
                 'status' => 'initialized',
@@ -508,6 +517,188 @@ class WalkInOrderPaymentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred',
+            ], 500);
+        }
+    }
+
+    /**
+     * Initialize payment for an existing walk-in order.
+     */
+    public function initializePaymentForExistingOrder(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'order_id' => 'required|uuid|exists:orders,id',
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'email' => 'required|email',
+                'phone' => 'required|string|max:20',
+            ]);
+
+            $order = Order::withoutGlobalScopes()
+                ->with(['orderItems.menuItem', 'table'])
+                ->findOrFail($validated['order_id']);
+
+            // Check if order already has a paid payment
+            $existingPayment = Payment::where('order_id', $order->id)
+                ->where('status', 'verified')
+                ->first();
+
+            if ($existingPayment) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This order has already been paid',
+                ], 400);
+            }
+
+            // Check if there's already a pending payment
+            $pendingPayment = Payment::where('order_id', $order->id)
+                ->where('status', 'pending')
+                ->first();
+
+            if ($pendingPayment) {
+                // Return existing pending payment checkout URL
+                $checkoutUrl = $pendingPayment->checkout_url;
+                if (!$checkoutUrl && $pendingPayment->tx_ref) {
+                    // Reinitialize with Chapa
+                    $chapaResponse = $this->chapaService->initialize([
+                        'amount' => $pendingPayment->amount,
+                        'currency' => 'ETB',
+                        'email' => $validated['email'],
+                        'first_name' => $validated['first_name'],
+                        'last_name' => $validated['last_name'],
+                        'phone' => $validated['phone'],
+                        'tx_ref' => $pendingPayment->tx_ref,
+                        'callback_url' => config('chapa.callback_url'),
+                        'return_url' => config('chapa.order_return_url', config('app.frontend_url') . '/order/payment/success') . '?tx_ref=' . $pendingPayment->tx_ref,
+                        'title' => 'Order Payment',
+                        'description' => sprintf('Order #%s', $order->order_number),
+                    ]);
+
+                    if ($chapaResponse['success']) {
+                        $checkoutUrl = $chapaResponse['data']['checkout_url'] ?? null;
+                        $pendingPayment->update(['checkout_url' => $checkoutUrl]);
+                    }
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Using existing payment',
+                    'payment_id' => $pendingPayment->id,
+                    'checkout_url' => $checkoutUrl,
+                    'tx_ref' => $pendingPayment->tx_ref,
+                    'amount' => $pendingPayment->amount,
+                ]);
+            }
+
+            // Create new payment for existing order
+            $hotelId = $order->hotel_id ?? TenantContext::id();
+            
+            $payment = Payment::create([
+                'id' => (string) Str::uuid(),
+                'hotel_id' => $hotelId,
+                'guest_id' => $order->guest_id,
+                'order_id' => $order->id,
+                'tx_ref' => 'WALKIN-' . strtoupper(Str::random(12)),
+                'amount' => $order->total,
+                'currency' => 'ETB',
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'status' => 'pending',
+                'payment_method' => 'chapa',
+                'metadata' => [
+                    'type' => 'walk_in_order',
+                    'hotel_id' => $hotelId,
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'table_id' => $order->table_id,
+                    'table_number' => $order->table?->table_number,
+                ],
+            ]);
+
+            $chapaResponse = $this->chapaService->initialize([
+                'amount' => $payment->amount,
+                'currency' => 'ETB',
+                'email' => $payment->email,
+                'first_name' => $payment->first_name,
+                'last_name' => $payment->last_name,
+                'phone' => $payment->phone,
+                'tx_ref' => $payment->tx_ref,
+                'callback_url' => config('chapa.callback_url'),
+                'return_url' => config('chapa.order_return_url', config('app.frontend_url') . '/order/payment/success') . '?tx_ref=' . $payment->tx_ref,
+                'title' => 'Order Payment',
+                'description' => sprintf('Order %s', $order->order_number), // Removed # symbol
+            ]);
+
+            if (!$chapaResponse['success']) {
+                Log::error('Chapa Initialize Failed for Existing Order', [
+                    'payment_id' => $payment->id,
+                    'order_id' => $order->id,
+                    'error' => $chapaResponse['message'] ?? 'Unknown error',
+                ]);
+
+                $payment->update([
+                    'status' => 'failed',
+                    'error_message' => $chapaResponse['message'] ?? 'Chapa initialization failed',
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $chapaResponse['message'] ?? 'Failed to initialize payment with Chapa',
+                ], 400);
+            }
+
+            $checkoutUrl = $this->chapaService->getCheckoutUrl($chapaResponse);
+            
+            // Log for debugging
+            Log::info('Checkout URL extraction', [
+                'chapaResponse_keys' => array_keys($chapaResponse),
+                'data_keys' => array_keys($chapaResponse['data'] ?? []),
+                'checkout_url_result' => $checkoutUrl,
+            ]);
+            
+            $payment->update([
+                'checkout_url' => $checkoutUrl,
+                'status' => 'initialized',
+            ]);
+
+            Log::info('Payment Initialized for Existing Walk-In Order', [
+                'payment_id' => $payment->id,
+                'order_id' => $order->id,
+                'amount' => $payment->amount,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment initialized successfully',
+                'payment_id' => $payment->id,
+                'checkout_url' => $checkoutUrl,
+                'tx_ref' => $payment->tx_ref,
+                'amount' => $payment->amount,
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (ModelNotFoundException) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found',
+            ], 404);
+        } catch (Throwable $e) {
+            Log::error('Initialize Payment for Existing Order Exception', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => config('app.debug') ? $e->getMessage() : 'An error occurred while initializing payment',
             ], 500);
         }
     }

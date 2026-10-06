@@ -212,13 +212,27 @@ class ChapaService
 
     public function getCheckoutUrl(array $initializeResponse): ?string
     {
+        Log::info('getCheckoutUrl called', [
+            'response_structure' => [
+                'has_data' => isset($initializeResponse['data']),
+                'data_is_array' => is_array($initializeResponse['data'] ?? null),
+                'data_keys' => array_keys($initializeResponse['data'] ?? []),
+            ]
+        ]);
+        
         if (isset($initializeResponse['data']['checkout_url'])) {
+            Log::info('Found checkout_url at data.checkout_url');
             return $initializeResponse['data']['checkout_url'];
         }
         
         if (isset($initializeResponse['data']['data']['checkout_url'])) {
+            Log::info('Found checkout_url at data.data.checkout_url');
             return $initializeResponse['data']['data']['checkout_url'];
         }
+        
+        Log::warning('Checkout URL not found in response', [
+            'response' => $initializeResponse
+        ]);
         
         return null;
     }

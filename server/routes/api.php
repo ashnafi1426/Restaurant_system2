@@ -177,6 +177,7 @@ Route::prefix('order-payments')->group(function () {
 
 Route::prefix('walk-in-payments')->group(function () {
     Route::post('/initialize', [WalkInOrderPaymentController::class, 'initializePayment']);
+    Route::post('/initialize-for-order', [WalkInOrderPaymentController::class, 'initializePaymentForExistingOrder']);
     Route::match(['get', 'post'], '/complete/{txRef}', [WalkInOrderPaymentController::class, 'completeOrder']);
     Route::get('/{txRef}', [WalkInOrderPaymentController::class, 'getOrderByPayment']);
 });
