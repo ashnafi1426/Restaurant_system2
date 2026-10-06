@@ -579,13 +579,13 @@ const viewPayment = (id: string) => {
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-[11px]">
               <tr v-if="cashierStore.isLoading" v-for="i in 5" :key="i">
-                <td colspan="8" class="p-3">
+                <td colspan="9" class="p-3">
                   <div class="h-5 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse"></div>
                 </td>
               </tr>
 
               <tr v-else-if="cashierStore.payments.length === 0">
-                <td colspan="8" class="p-10 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                <td colspan="9" class="p-10 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
                   {{ languageStore.t('no_records_found', 'No payment records found matching criteria.') }}
                 </td>
               </tr>
@@ -638,6 +638,23 @@ const viewPayment = (id: string) => {
                     <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                     {{ payment.status }}
                   </span>
+                </td>
+
+                <!-- Order Status (Completed/Pending) -->
+                <td class="px-2.5 py-2.5 text-center whitespace-nowrap">
+                  <span
+                    v-if="payment.type && payment.type.toLowerCase().includes('order')"
+                    :class="[
+                      'inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[9px] font-black uppercase tracking-wider border',
+                      payment.order_status === 'completed' || payment.order_status === 'served' 
+                        ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20' 
+                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                    ]"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                    {{ payment.order_status === 'completed' || payment.order_status === 'served' ? languageStore.t('Completed', 'Done') : languageStore.t('Pending', 'Pending') }}
+                  </span>
+                  <span v-else class="text-[9px] text-slate-400 font-medium">-</span>
                 </td>
 
                 <!-- Date -->
