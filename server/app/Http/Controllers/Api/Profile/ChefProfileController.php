@@ -65,7 +65,6 @@ class ChefProfileController extends Controller
             \Log::warning('ensureChefColumns warning: ' . $e->getMessage());
         }
     }
-
     public function getProfile(): JsonResponse
     {
         try {

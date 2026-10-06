@@ -46,7 +46,6 @@ class PlatformHotelController extends Controller
             'status' => $request->input('status'),
             'city' => $request->input('city'),
         ];
-
         $hotels = $this->platformHotelService->getHotels($filters, $request->integer('per_page', 15));
 
         // Transform the paginator to avoid serialization issues
@@ -89,13 +88,11 @@ class PlatformHotelController extends Controller
                 'temporary_password' => $result['generated_password'],
             ];
         }
-
         return response()->json($response, 201);
     }
     public function show(string $id): JsonResponse
     {
         $hotelData = $this->platformHotelService->getHotelDetails($id);
-
         return response()->json([
             'success' => true,
             'data' => new HotelResource((object) $hotelData),

@@ -60,13 +60,13 @@ class WaiterDashboardController extends Controller
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
             ]);
             
             return response()->json([
-                'success' => true,
+                'success' => false,
+                'message' => 'Failed to load dashboard data',
                 'data' => $defaultData,
-            ], 200);
+            ], 500);
         }
     }
 
@@ -75,44 +75,31 @@ class WaiterDashboardController extends Controller
         try {
             $hotelId = $this->resolveTenant($request);
             $waiterId = $this->getWaiterId();
-            
-            \Log::info(' [CONTROLLER] getDashboard called:', [
-                'user_id' => auth()->id(),
-                'waiter_id' => $waiterId,
-                'hotel_id' => $hotelId,
-                'timestamp' => now()->toDateTimeString(),
-            ]);
 
             $result = $this->dashboardService->getDashboardStats($waiterId);
-            
-            \Log::info(' [CONTROLLER] getDashboard returning:', [
-                'waiter_id' => $waiterId,
-                'hotel_id' => $hotelId,
-                'today_stats' => $result['today_stats'] ?? null,
-            ]);
 
             return response()->json([
                 'success' => true,
                 'data' => $result,
             ], 200);
         } catch (\Throwable $e) {
-            \Log::error(' Dashboard action error:', [
+            \Log::error('Dashboard load error:', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
             ]);
             
             return response()->json([
-                'success' => true,
+                'success' => false,
+                'message' => 'Failed to load dashboard',
                 'data' => [
-                    'today_stats' => [],
-                    'performance' => [],
+                    'today_stats' => $this->dashboardService->getDefaultTodayStats(),
+                    'performance' => $this->dashboardService->getDefaultPerformanceMetrics(),
                     'recent_assignments' => [],
                     'pending_count' => 0,
                     'active_count' => 0,
                 ],
-            ], 200);
+            ], 500);
         }
     }
 
@@ -149,20 +136,21 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getRecentAssignments($userId, request()->query('limit', 10)),
+            []
         );
     }
 
     public function getKitchenReadyOrders(): JsonResponse
     {
         return $this->handleAction(
-            fn($userId) => $this->dashboardService->getAllKitchenReadyOrders(),
+            fn($userId) => $this->dashboardService->getAllKitchenReadyOrders($userId, request()->query('limit', 50)),
         );
     }
 
     public function getReadyForPickup(): JsonResponse
     {
         return $this->handleAction(
-            fn($userId) => $this->dashboardService->getReadyForPickup($userId),
+            fn($userId) => $this->dashboardService->getReadyForPickup($userId, request()->query('limit', 50)),
         );
     }
 
@@ -177,7 +165,7 @@ class WaiterDashboardController extends Controller
     public function getOnDelivery(): JsonResponse
     {
         return $this->handleAction(
-            fn($waiterId) => $this->dashboardService->getOnDelivery($waiterId),
+            fn($waiterId) => $this->dashboardService->getOnDelivery($waiterId, request()->query('limit', 50)),
             
         );
     }
