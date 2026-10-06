@@ -2,16 +2,44 @@
   <div class="min-h-screen bg-[#f5f0e8] p-4">
     <div class="max-w-md mx-auto py-6">
       
-      <!-- Demo Mode Warning (only shows when no tx_ref) -->
-      <div v-if="!txRef" class="bg-yellow-100 border-2 border-yellow-400 rounded-2xl p-4 mb-4 shadow-lg">
-        <div class="flex items-start gap-3">
-          <div class="text-2xl flex-shrink-0">⚠️</div>
-          <div class="text-sm">
-            <p class="font-bold text-yellow-900 mb-1">Demo Mode Active</p>
-            <p class="text-yellow-800">You're viewing demo data because you navigated directly to this page. To test the real payment flow, start from the QR Menu page and complete a payment.</p>
+      <!-- Verifying Payment Loading State -->
+      <div v-if="isVerifying" class="min-h-[60vh] flex flex-col items-center justify-center">
+        <div class="bg-white rounded-3xl shadow-lg p-8 text-center max-w-sm w-full">
+          <!-- Animated Checkmark Circle -->
+          <div class="mb-6 flex justify-center">
+            <div class="relative">
+              <div class="w-20 h-20 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <h2 class="text-2xl font-bold text-gray-900 mb-3">Verifying payment...</h2>
+          <p class="text-gray-600 text-sm mb-4">Please wait while we confirm your payment</p>
+          
+          <div class="flex items-center justify-center gap-1">
+            <div class="w-2 h-2 bg-green-500 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+            <div class="w-2 h-2 bg-green-500 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+            <div class="w-2 h-2 bg-green-500 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
           </div>
         </div>
       </div>
+
+      <!-- Success State (shown after verification completes) -->
+      <div v-else>
+        <!-- Demo Mode Warning (only shows when no tx_ref) -->
+        <div v-if="!txRef" class="bg-yellow-100 border-2 border-yellow-400 rounded-2xl p-4 mb-4 shadow-lg">
+          <div class="flex items-start gap-3">
+            <div class="text-2xl flex-shrink-0">⚠️</div>
+            <div class="text-sm">
+              <p class="font-bold text-yellow-900 mb-1">Demo Mode Active</p>
+              <p class="text-yellow-800">You're viewing demo data because you navigated directly to this page. To test the real payment flow, start from the QR Menu page and complete a payment.</p>
+            </div>
+          </div>
+        </div>
       
       <!-- Success Notification Toast -->
       <div class="bg-[#3d4f3d] rounded-2xl p-4 mb-6 shadow-lg flex items-center gap-3">
@@ -110,6 +138,9 @@
           Thank you for ordering with us! Need assistance? Our team is always ready to serve you.
         </p>
       </div>
+
+      </div>
+      <!-- End of v-else (success state) -->
 
     </div>
   </div>
