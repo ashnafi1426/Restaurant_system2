@@ -733,56 +733,49 @@ const placeOrderWithRoomCharge = async () => {
 }
 
 const openPaymentDialog = () => {
-  if (orderContext.value?.type === 'room' && !canOrderRoomService.value) {
-    alert(eligibilityMessage.value || 'Room service ordering is only available for checked-in guests.')
-    return
-  }
   if (cartItems.value.length === 0) {
     alert('Your cart is empty')
     return
   }
 
-  // Skip the dialog and go directly to OrderPaymentPage
-  if (orderContext.value?.type === 'table') {
-    showCartModal.value = false
+  // Close cart modal
+  showCartModal.value = false
 
-    // Store payment data for the OrderPaymentPage (without customer details)
-    const paymentData = {
-      qr_token: qrToken.value,
-      table_number: orderContext.value.displayName,
-      table_id: orderContext.value.id,
-      customer_name: 'Guest', // Default name
-      customer_phone: '', // Will be collected by Chapa
-      customer_email: '', // Will be collected by Chapa
-      items: cartItems.value.map(item => ({
-        id: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-      })),
-      calculation: {
-        subtotal: subtotal.value,
-        tax: 0,
-        service_charge: 0,
-        total: subtotal.value,
-      }
+  // For "Pay with Chapa" button: ALWAYS go to OrderPaymentPage (with tip selection)
+  // This works for both table orders and general menu access
+  
+  // Store payment data for the OrderPaymentPage (without customer details)
+  const paymentData = {
+    qr_token: qrToken.value,
+    table_number: orderContext.value?.displayName || 'Table 11',
+    table_id: orderContext.value?.id || '',
+    customer_name: 'Guest', // Default name
+    customer_phone: '', // Will be collected by Chapa
+    customer_email: '', // Will be collected by Chapa
+    items: cartItems.value.map(item => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+    })),
+    calculation: {
+      subtotal: subtotal.value,
+      tax: 0,
+      service_charge: 0,
+      total: subtotal.value,
     }
-
-    localStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
-    console.log('[QRMenu] Stored payment data, navigating to payment page:', paymentData)
-
-    // Navigate directly to OrderPaymentPage (with tip selection)
-    router.push({
-      path: '/order/payment',
-      query: {
-        qr_token: qrToken.value
-      }
-    })
-  } else {
-    // For room orders, show the dialog
-    showCartModal.value = false
-    showPaymentDialog.value = true
   }
+
+  localStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
+  console.log('[QRMenu] Pay with Chapa clicked - Stored payment data, navigating to OrderPaymentPage:', paymentData)
+
+  // Navigate directly to OrderPaymentPage (dark theme with tip selection)
+  router.push({
+    path: '/order/payment',
+    query: {
+      qr_token: qrToken.value
+    }
+  })
 }
 
 const closePaymentDialog = () => {
