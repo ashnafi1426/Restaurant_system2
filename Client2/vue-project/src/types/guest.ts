@@ -3,6 +3,7 @@ export interface Guest {
   first_name: string
   last_name: string
   full_name: string
+  name?: string  // Alias for full_name
   email: string | null
   phone: string
   address: string | null
@@ -53,9 +54,22 @@ export interface MenuItem {
   name: string
   description: string
   price: number
+  base_price?: number
+  total_price?: number
+  formatted_price?: string
+  formatted_total_price?: string
+  tax_amount?: number
+  tax_rate?: number
+  tax_included?: boolean
+  tax_rate_id?: string | null
   image: string | null
+  image_url?: string
   category: string
   is_available: boolean
+  dietary_tags?: string[]
+  status?: string
+  created_at?: string
+  updated_at?: string
 }
 
 export interface Order {
@@ -78,3 +92,4 @@ export interface OrderItem {
 export interface CartItem extends MenuItem {
   quantity: number
 }
+

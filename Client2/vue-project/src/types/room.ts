@@ -1,4 +1,13 @@
 export type RoomStatus = 'available' | 'occupied' | 'reserved' | 'maintenance'
+
+export interface RoomType {
+  id?: string
+  name: string
+  capacity: number
+  max_occupancy?: number
+  base_price_per_night: number
+}
+
 export interface Room {
   id: string
   hotel_id?: string | number
@@ -6,12 +15,7 @@ export interface Room {
   room_type_id: number | string
   capacity?: number
   price_per_night?: number | string
-  room_type?: {
-    id?: string
-    name: string
-    capacity: number
-    base_price_per_night: number
-  }
+  room_type?: RoomType
   floor_id?: string
   floor?: number
   floor_name?: string
@@ -23,6 +27,9 @@ export interface Room {
   qr_image_path?: string
   qr_code_url?: string
   qr_generated_at?: string
+  images?: string[] | Array<{url: string, alt?: string}>
+  amenities?: string[] | Array<{id: string | number, name: string}>
   created_at?: string
   updated_at?: string
 }
+

@@ -679,26 +679,40 @@ router.beforeEach(async (to) => {
   const authStore = useAuthStore()
   const token = authStore.token || localStorage.getItem('token')
 
+  // If going to login page, allow immediately (avoid auth initialization)
+  if (to.path === '/login' && !token) {
+    return true
+  }
+
+  // If trying to access protected route without token, redirect to login
   if (to.meta.requiresAuth && !token) {
     return '/login'
   }
 
+  // Initialize auth only if we have a token and haven't initialized yet
   if (token && (!authStore.user || !authStore.isInitialized)) {
     try {
       await authStore.initializeAuth()
     } catch (e) {
       console.error('[Router] Auth initialization guard error:', e)
+      // If auth init fails, redirect to login
+      if (to.meta.requiresAuth) {
+        return '/login'
+      }
     }
   }
 
+  // Allow public routes without further checks
   if (!to.meta.requiresAuth && !to.meta.permission && !to.meta.role && !to.meta.roles) {
     return true
   }
 
+  // Super admin check
   if (to.meta.superAdminOnly && !authStore.isPlatformAdmin) {
     return '/admin'
   }
 
+  // Platform admins and admins have full access
   if (authStore.isPlatformAdmin || authStore.hasRole('admin')) {
     return true
   }

@@ -7,7 +7,6 @@ const props = defineProps<{
   modelValue: boolean
   reservations: any[]
 }>()
-
 const emit = defineEmits(['update:modelValue', 'success'])
 
 const store = useCheckInStore()

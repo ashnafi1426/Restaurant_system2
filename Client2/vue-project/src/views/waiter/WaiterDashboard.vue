@@ -31,12 +31,17 @@
           </div>
         </div>
 
-        <div v-if="loading" class="flex items-center justify-center py-20 bg-white dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-800">
-          <div class="text-center">
-            <div class="inline-block relative w-12 h-12 mb-3">
-              <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20 border-t-indigo-600 dark:border-t-indigo-400 animate-spin"></div>
-            </div>
-            <p class="text-slate-600 dark:text-slate-400 text-sm font-medium">Loading live dashboard...</p>
+        <!-- Skeleton Loader - Shows immediately while data loads -->
+        <div v-if="loading" class="space-y-6">
+          <!-- Stats Cards Skeleton -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <SkeletonLoaders v-for="i in 4" :key="i" type="stat-card" />
+          </div>
+          
+          <!-- Recent Assignments Skeleton -->
+          <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+            <div class="h-6 bg-slate-200 dark:bg-slate-700 rounded w-48 mb-6 animate-pulse"></div>
+            <SkeletonLoaders type="list-items" :item-count="3" />
           </div>
         </div>
 
@@ -54,81 +59,64 @@
         <div v-else class="space-y-6">
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Completed Deliveries -->
-            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden group">
-              <div class="flex items-center justify-between">
-                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('completed', 'Completed') }}</p>
-                <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                  <CheckCircle2 class="w-4 h-4" />
-                </div>
+            <div class="stat-card" v-memo="[stats.todayDeliveries]">
+              <div class="stat-header">
+                <span class="stat-label">{{ languageStore.t('completed', 'Completed') }}</span>
+                <CheckCircle2 class="stat-icon stat-icon-emerald" />
               </div>
-              <div class="mt-3 flex items-baseline gap-2">
-                <span class="text-3xl font-extrabold text-slate-900 dark:text-white">{{ stats.todayDeliveries }}</span>
-              </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('successfully_delivered', 'Successfully delivered') }}</p>
+              <div class="stat-value">{{ stats.todayDeliveries }}</div>
+              <p class="stat-desc">{{ languageStore.t('successfully_delivered', 'Successfully delivered') }}</p>
             </div>
 
             <!-- Ready for Pickup -->
-            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden group">
-              <div class="flex items-center justify-between">
-                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('ready_for_pickup', 'Ready for Pickup') }}</p>
-                <div class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                  <Clock class="w-4 h-4" />
-                </div>
+            <div class="stat-card" v-memo="[stats.pendingDeliveries]">
+              <div class="stat-header">
+                <span class="stat-label">{{ languageStore.t('ready_for_pickup', 'Ready for Pickup') }}</span>
+                <Clock class="stat-icon stat-icon-amber" />
               </div>
-              <div class="mt-3 flex items-baseline gap-2">
-                <span class="text-3xl font-extrabold text-slate-900 dark:text-white">{{ stats.pendingDeliveries }}</span>
-              </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('awaiting_waiter_pickup', 'Awaiting waiter pickup') }}</p>
+              <div class="stat-value">{{ stats.pendingDeliveries }}</div>
+              <p class="stat-desc">{{ languageStore.t('awaiting_waiter_pickup', 'Awaiting waiter pickup') }}</p>
             </div>
 
             <!-- On Delivery -->
-            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden group">
-              <div class="flex items-center justify-between">
-                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('on_delivery', 'On Delivery') }}</p>
-                <div class="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center">
-                  <Truck class="w-4 h-4" />
-                </div>
+            <div class="stat-card" v-memo="[stats.onDelivery]">
+              <div class="stat-header">
+                <span class="stat-label">{{ languageStore.t('on_delivery', 'On Delivery') }}</span>
+                <Truck class="stat-icon stat-icon-teal" />
               </div>
-              <div class="mt-3 flex items-baseline gap-2">
-                <span class="text-3xl font-extrabold text-slate-900 dark:text-white">{{ stats.onDelivery }}</span>
-              </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('active_room_deliveries', 'Active room deliveries') }}</p>
+              <div class="stat-value">{{ stats.onDelivery }}</div>
+              <p class="stat-desc">{{ languageStore.t('active_room_deliveries', 'Active room deliveries') }}</p>
             </div>
 
             <!-- Avg Delivery Time -->
-            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden group">
-              <div class="flex items-center justify-between">
-                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('avg_delivery_time', 'Avg Delivery Time') }}</p>
-                <div class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                  <Timer class="w-4 h-4" />
-                </div>
+            <div class="stat-card" v-memo="[stats.avgDeliveryTime]">
+              <div class="stat-header">
+                <span class="stat-label">{{ languageStore.t('avg_delivery_time', 'Avg Delivery Time') }}</span>
+                <Timer class="stat-icon stat-icon-indigo" />
               </div>
-              <div class="mt-3 flex items-baseline gap-1">
-                <span class="text-3xl font-extrabold text-slate-900 dark:text-white">{{ stats.avgDeliveryTime }}</span>
-                <span class="text-sm font-bold text-slate-500 dark:text-slate-400">min</span>
+              <div class="stat-value">
+                {{ stats.avgDeliveryTime }}<span class="stat-unit">min</span>
               </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('target_delivery_time', 'Target: < 25 mins') }}</p>
+              <p class="stat-desc">{{ languageStore.t('target_delivery_time', 'Target: < 25 mins') }}</p>
             </div>
           </div>
 
-          <div v-if="activeDelivery" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div class="space-y-1">
-                <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-xs rounded-full text-xs font-bold uppercase tracking-wider">
-                  <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+          <div v-if="activeDelivery" class="active-delivery-banner">
+            <div class="active-delivery-content">
+              <div class="active-delivery-info">
+                <div class="active-delivery-badge">
+                  <span class="pulse-dot"></span>
                   Active Delivery In Progress
                 </div>
-                <h3 class="text-xl font-bold mt-2">Order #{{ activeDelivery.order_number || activeDelivery.id }}</h3>
-                <p class="text-xs text-emerald-100">Delivering to Room <span class="font-extrabold text-white text-sm bg-white/20 px-2 py-0.5 rounded">{{ activeDelivery.room_number || 'N/A' }}</span> • Guest: <span class="font-semibold text-white">{{ activeDelivery.guest_name || 'Guest' }}</span></p>
+                <h3 class="active-delivery-title">Order #{{ activeDelivery.order_number || activeDelivery.id }}</h3>
+                <p class="active-delivery-details">
+                  Delivering to Room <span class="room-badge">{{ activeDelivery.room_number || 'N/A' }}</span> 
+                  • Guest: <span class="guest-name">{{ activeDelivery.guest_name || 'Guest' }}</span>
+                </p>
               </div>
-              <div class="flex items-center gap-3">
-                <router-link
-                  to="/waiter/on-delivery"
-                  class="px-5 py-2.5 bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl text-xs font-bold transition shadow-md whitespace-nowrap"
-                >
-                  View Delivery Tracker
-                </router-link>
-              </div>
+              <router-link to="/waiter/on-delivery" class="active-delivery-btn">
+                View Delivery Tracker
+              </router-link>
             </div>
           </div>
           <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
@@ -170,7 +158,7 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-xs sm:text-sm">
-                  <tr v-for="assignment in recentAssignments" :key="assignment.id" class="hover:bg-slate-50/80 dark:hover:bg-slate-950/50 transition">
+                  <tr v-for="assignment in recentAssignments" :key="assignment.id" v-memo="[assignment.id, assignment.status]" class="hover:bg-slate-50/80 dark:hover:bg-slate-950/50 transition">
                     <td class="px-4 py-3 font-bold text-slate-900 dark:text-white max-w-[140px] truncate" :title="assignment.order_number || assignment.order_id">
                       #{{ assignment.order_number || assignment.order_id || assignment.id.substring(0,8) }}
                     </td>
@@ -312,6 +300,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import SkeletonLoaders from '@/components/waiter/SkeletonLoaders.vue'
 import waiterService from '@/services/waiterService'
 import { useHotelStore } from '@/stores/hotelStore'
 import { useLanguageStore } from '@/stores/language'
@@ -347,6 +336,7 @@ const activeDelivery = ref<any | null>(null)
 const activeMenuId = ref<string | null>(null)
 const showDetailModal = ref(false)
 const selectedOrder = ref<any | null>(null)
+const showBelowFold = ref(false)
 
 const toggleMenu = (id: string | number) => {
   const key = String(id)
@@ -380,13 +370,18 @@ const loadDashboard = async () => {
       }
     }
 
-    const assignments = await waiterService.getRecentAssignments(8)
-    recentAssignments.value = assignments || []
+    // Use recent_assignments from dashboard data instead of making a separate API call
+    recentAssignments.value = dashboardData.recent_assignments || []
 
     const currentOnDelivery = recentAssignments.value.find((a: any) => a.status === 'on_delivery' || a.status === 'picked_up')
     if (currentOnDelivery) {
       activeDelivery.value = currentOnDelivery
     }
+    
+    // Defer below-fold content rendering to improve LCP
+    setTimeout(() => {
+      showBelowFold.value = true
+    }, 0)
   } catch (err: any) {
     console.error('[WaiterDashboard] Error loading dashboard:', err)
     error.value = err.message || 'Failed to load dashboard'
@@ -410,4 +405,101 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Optimized stat card styles - reduces render complexity */
+.stat-card {
+  @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5;
+  will-change: auto;
+}
+
+.stat-header {
+  @apply flex items-center justify-between mb-3;
+}
+
+.stat-label {
+  @apply text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider;
+}
+
+.stat-icon {
+  @apply w-4 h-4;
+}
+
+.stat-icon-emerald {
+  @apply text-emerald-600 dark:text-emerald-400;
+}
+
+.stat-icon-amber {
+  @apply text-amber-600 dark:text-amber-400;
+}
+
+.stat-icon-teal {
+  @apply text-teal-600 dark:text-teal-400;
+}
+
+.stat-icon-indigo {
+  @apply text-indigo-600 dark:text-indigo-400;
+}
+
+.stat-value {
+  @apply text-3xl font-extrabold text-slate-900 dark:text-white;
+}
+
+.stat-unit {
+  @apply text-sm font-bold text-slate-500 dark:text-slate-400 ml-1;
+}
+
+.stat-desc {
+  @apply text-xs text-slate-500 dark:text-slate-400 mt-1;
+}
+
+/* Optimized active delivery banner - simpler gradient */
+.active-delivery-banner {
+  @apply bg-emerald-600 text-white rounded-2xl p-6;
+  background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+}
+
+.active-delivery-content {
+  @apply flex flex-col md:flex-row md:items-center justify-between gap-4;
+}
+
+.active-delivery-info {
+  @apply space-y-1;
+}
+
+.active-delivery-badge {
+  @apply inline-flex items-center gap-2 px-3 py-1 bg-white bg-opacity-20 rounded-full text-xs font-bold uppercase tracking-wider;
+}
+
+.pulse-dot {
+  @apply w-2 h-2 rounded-full bg-white;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.active-delivery-title {
+  @apply text-xl font-bold mt-2;
+}
+
+.active-delivery-details {
+  @apply text-xs text-emerald-100;
+}
+
+.room-badge {
+  @apply font-extrabold text-white text-sm bg-white bg-opacity-20 px-2 py-0.5 rounded;
+}
+
+.guest-name {
+  @apply font-semibold text-white;
+}
+
+.active-delivery-btn {
+  @apply px-5 py-2.5 bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl text-xs font-bold transition whitespace-nowrap inline-block;
+}
 </style>

@@ -68,6 +68,23 @@ const handleNavigate = () => {
   emit('navigate')
 }
 
+const handleLogout = async () => {
+  try {
+    // Call logout to clear auth state
+    await auth.logout()
+    
+    // Navigate immediately to login page
+    await router.replace('/login')
+    
+    // Optionally reload to clear any cached state
+    window.location.href = '/login'
+  } catch (error) {
+    console.error('[Sidebar] Logout error:', error)
+    // Even if logout fails, redirect to login
+    window.location.href = '/login'
+  }
+}
+
 const menuIcons: Record<string, Component> = {
   Dashboard: LayoutDashboard,
   Users: Users,
@@ -705,7 +722,7 @@ onUnmounted(() => {
       </div>
 
       <button
-        @click="auth.logout()"
+        @click="handleLogout"
         class="p-2 rounded-xl text-rose-500 dark:text-rose-400 hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-300 transition cursor-pointer flex-shrink-0"
         :title="languageStore.t('sign_out', 'Sign Out')"
       >

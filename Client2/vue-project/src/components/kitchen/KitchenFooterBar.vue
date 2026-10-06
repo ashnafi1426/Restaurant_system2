@@ -5,7 +5,7 @@ import { useLanguageStore } from '@/stores/language'
 
 const languageStore = useLanguageStore()
 
-defineProps<{
+const props = defineProps<{
   statistics?: {
     pending_orders: number
     preparing_orders: number

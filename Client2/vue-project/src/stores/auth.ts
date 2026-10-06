@@ -232,12 +232,15 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = async (): Promise<void> => {
     try {
-      if (token.value) {
-        await api.post('/logout')
-      }
-    } catch (err: any) {
-      console.error('[AuthStore] Error during logout API call:', err)
-    } finally {
+      // Set a flag to indicate logout is in progress
+      isInitialized.value = false
+      
+      // Clear auth data immediately for instant UI response
+      const currentToken = token.value
+      setToken(null)
+      setUser(null)
+      setCurrentHotel(null)
+      
       // Stop notification polling on logout
       try {
         const { useNotificationStore } = await import('./notificationStore')
@@ -247,10 +250,14 @@ export const useAuthStore = defineStore('auth', () => {
         console.error('[AuthStore] Error stopping notification polling during logout:', err)
       }
       
-      setToken(null)
-      setUser(null)
-      setCurrentHotel(null)
-      isInitialized.value = false
+      // Make logout API call in background (don't block navigation)
+      if (currentToken) {
+        api.post('/logout').catch((err: any) => {
+          console.error('[AuthStore] Error during logout API call:', err)
+        })
+      }
+    } catch (err: any) {
+      console.error('[AuthStore] Error during logout:', err)
     }
   }
   const fetchCurrentUser = async (): Promise<any> => {

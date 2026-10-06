@@ -47,6 +47,15 @@ const errors = ref({
 
 onMounted(() => {
   themeStore.initTheme()
+  
+  // Clear any leftover auth state when navigating to login
+  const token = localStorage.getItem('token')
+  if (!token && auth.token) {
+    // If no token in storage but auth still has token, clear it
+    auth.setToken(null)
+    auth.setUser(null)
+    auth.setCurrentHotel(null)
+  }
 })
 
 const validateForm = (): boolean => {

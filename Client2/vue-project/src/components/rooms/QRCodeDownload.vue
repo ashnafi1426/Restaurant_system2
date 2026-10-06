@@ -7,7 +7,18 @@
 
     <div v-if="room.qr_code_url" class="qr-display">
       <div class="qr-container">
+        <div v-if="imageLoading || imageError" class="qr-placeholder">
+          <div v-if="imageLoading" class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading QR code...</p>
+          </div>
+          <div v-else-if="imageError" class="error-placeholder">
+            <p>❌ Image failed to load</p>
+            <button @click="loadQRCode" class="btn btn-small">Retry Load</button>
+          </div>
+        </div>
         <img 
+          v-show="!imageLoading && !imageError"
           :src="room.qr_code_url" 
           :alt="`QR Code for Room ${room.room_number}`"
           @error="handleImageError"
@@ -95,7 +106,14 @@ const handleImageLoad = () => {
 const handleImageError = (event: Event) => {
   imageLoading.value = false
   imageError.value = true
-  errorMessage.value = 'Failed to load QR code image. Try regenerating.'
+  errorMessage.value = 'Failed to load QR code image. Attempting to reload...'
+  
+  // Auto-retry once after 1 second
+  setTimeout(() => {
+    if (props.room.id) {
+      loadQRCode()
+    }
+  }, 1000)
 }
 
 const loadQRCode = async () => {
@@ -103,22 +121,41 @@ const loadQRCode = async () => {
 
   loading.value = true
   error.value = ''
+  errorMessage.value = ''
+  imageError.value = false
 
   try {
     const response = await api.get(`/admin/qr-codes/${props.room.id}/image`)
 
     if (response.data.success && response.data.data) {
       const qrData = response.data.data
+      
+      // Clear previous error state
+      imageError.value = false
+      errorMessage.value = ''
+      
       Object.assign(props.room, {
         qr_code_url: qrData.qr_url,
         qr_token: qrData.qr_token,
         qr_image_path: qrData.qr_image_path,
         qr_generated_at: qrData.qr_generated_at,
       })
+      
+      console.log('QR Code loaded successfully:', qrData)
+    } else {
+      throw new Error(response.data.message || 'No QR code data received')
     }
   } catch (err: any) {
     console.error('[QRCodeDownload] Error fetching QR code:', err)
-    error.value = err.response?.data?.message || 'Failed to load QR code'
+    const message = err.response?.data?.message || err.message || 'Failed to load QR code'
+    error.value = message
+    errorMessage.value = message
+    
+    // If the QR code doesn't exist, try to generate it
+    if (err.response?.status === 404 || message.includes('not found')) {
+      console.log('QR code not found, attempting to regenerate...')
+      await regenerateQRCode()
+    }
   } finally {
     loading.value = false
   }
@@ -240,8 +277,10 @@ const regenerateQRCode = async () => {
   regenerating.value = true
   successMessage.value = ''
   errorMessage.value = ''
+  imageError.value = false
 
   try {
+    console.log(`Regenerating QR code for room ${props.room.id}...`)
     const response = await api.post(`/admin/qr-codes/${props.room.id}/regenerate`)
 
     if (response.data.success && response.data.data) {
@@ -253,7 +292,13 @@ const regenerateQRCode = async () => {
         qr_generated_at: qrData.qr_generated_at,
       })
 
-      successMessage.value = ` QR code regenerated successfully for Room ${props.room.room_number}`
+      successMessage.value = `✅ QR code regenerated successfully for Room ${props.room.room_number}`
+      console.log('QR code regenerated successfully:', qrData)
+      
+      // Clear any error state
+      error.value = ''
+      errorMessage.value = ''
+      imageError.value = false
     } else {
       throw new Error(response.data.message || 'Regeneration failed')
     }
@@ -261,6 +306,7 @@ const regenerateQRCode = async () => {
     console.error('[QRCodeDownload] Error regenerating QR code:', err)
     const message = err.response?.data?.message || err.message || 'Failed to regenerate QR code'
     errorMessage.value = message
+    error.value = message
   } finally {
     regenerating.value = false
   }
@@ -345,6 +391,47 @@ watch(
 .qr-container img:not([src]) {
   opacity: 0.3;
   background: #f0f0f0;
+}
+
+.qr-placeholder {
+  width: 200px;
+  height: 200px;
+  border: 2px solid #ddd;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.loading-spinner {
+  text-align: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-placeholder {
+  text-align: center;
+  color: #666;
+}
+
+.error-placeholder p {
+  margin-bottom: 10px;
 }
 
 .qr-token {
