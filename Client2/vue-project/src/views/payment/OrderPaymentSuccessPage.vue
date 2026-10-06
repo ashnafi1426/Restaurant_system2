@@ -2,6 +2,17 @@
   <div class="min-h-screen bg-[#f5f0e8] p-4">
     <div class="max-w-md mx-auto py-6">
       
+      <!-- Demo Mode Warning (only shows when no tx_ref) -->
+      <div v-if="!txRef" class="bg-yellow-100 border-2 border-yellow-400 rounded-2xl p-4 mb-4 shadow-lg">
+        <div class="flex items-start gap-3">
+          <div class="text-2xl flex-shrink-0">⚠️</div>
+          <div class="text-sm">
+            <p class="font-bold text-yellow-900 mb-1">Demo Mode Active</p>
+            <p class="text-yellow-800">You're viewing demo data because you navigated directly to this page. To test the real payment flow, start from the QR Menu page and complete a payment.</p>
+          </div>
+        </div>
+      </div>
+      
       <!-- Success Notification Toast -->
       <div class="bg-[#3d4f3d] rounded-2xl p-4 mb-6 shadow-lg flex items-center gap-3">
         <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -71,6 +82,15 @@
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
             </svg>
+          </button>
+          
+          <!-- Debug: Manual Complete Button (only shows if tx_ref exists but order not completed) -->
+          <button
+            v-if="txRef && !orderData?.id"
+            @click="manualComplete"
+            class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-semibold text-sm shadow-sm transition-all"
+          >
+            🔧 Manual Complete Order (Debug)
           </button>
 
           <!-- Back to Menu Button -->
@@ -182,7 +202,10 @@ onMounted(async () => {
 
   // Provide realistic fallback if visited directly or after session clear
   if (!orderData.value) {
+    const demoOrderId = Math.floor(Math.random() * 1000) + 1 // Random order ID between 1-1000
     orderData.value = {
+      id: demoOrderId, // Add the missing ID field
+      order_id: demoOrderId, // Alternative field for compatibility
       order_number: 'ORD-' + (txRef.value ? txRef.value.substring(0, 8).toUpperCase() : 'DEMO' + Math.floor(1000 + Math.random() * 9000)),
       is_walk_in: true,
       table_number: 'Table 4',
@@ -200,6 +223,10 @@ onMounted(async () => {
         total: 1000,
       }
     }
+    
+    // Store in localStorage so it persists
+    localStorage.setItem('last_order_id', demoOrderId.toString())
+    console.log('[OrderPaymentSuccess] Demo order created with ID:', demoOrderId)
   }
   
   console.log('[OrderPaymentSuccess] After loading session data:')
@@ -212,11 +239,8 @@ onMounted(async () => {
   
   // If still no tx_ref, we can't proceed with payment verification
   if (!txRef.value) {
-    console.error('[OrderPaymentSuccess] No tx_ref found! Cannot verify payment.')
-    console.error('[OrderPaymentSuccess] This might mean:')
-    console.error('1. User navigated directly to success page without completing payment')
-    console.error('2. Chapa redirect did not include tx_ref parameter')
-    console.error('3. SessionStorage was cleared before redirect')
+    console.warn('[OrderPaymentSuccess] ⚠️ No tx_ref found - entering demo mode')
+    console.info('[OrderPaymentSuccess] 💡 To test real payments, start from QR Menu and complete checkout')
     
     // Check if we have order_id directly in URL or storage
     const directOrderId = (route.query.order_id as string) || localStorage.getItem('last_order_id')
@@ -459,6 +483,67 @@ function backToMenu(): void {
     })
   } else {
     router.push('/')
+  }
+}
+
+async function manualComplete(): Promise<void> {
+  if (!txRef.value) {
+    alert('No tx_ref found. Please complete a payment first.')
+    return
+  }
+  
+  try {
+    console.log('[OrderPaymentSuccess] Manual complete triggered')
+    console.log('[OrderPaymentSuccess] tx_ref:', txRef.value)
+    
+    // Get walk-in data
+    const walkInDataString = localStorage.getItem('walk_in_payment_data') || sessionStorage.getItem('walk_in_payment_data')
+    const isWalkInOrder = !!walkInDataString
+    
+    // Verify payment
+    const verifyResponse = await fetch(`http://127.0.0.1:8000/api/payments/verify/${txRef.value}`, {
+      headers: { 'Accept': 'application/json' }
+    })
+    const verifyData = await verifyResponse.json()
+    console.log('[Manual] Verify response:', verifyData)
+    
+    if (!verifyResponse.ok || !verifyData.success) {
+      alert('Payment verification failed: ' + (verifyData.message || 'Unknown error'))
+      return
+    }
+    
+    // Complete order
+    const completeEndpoint = isWalkInOrder 
+      ? `http://127.0.0.1:8000/api/walk-in-payments/complete/${txRef.value}`
+      : `http://127.0.0.1:8000/api/order-payments/complete/${txRef.value}`
+    
+    console.log('[Manual] Completing at:', completeEndpoint)
+    const completeResponse = await fetch(completeEndpoint, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+    })
+    const completeData = await completeResponse.json()
+    console.log('[Manual] Complete response:', completeData)
+    
+    if (completeResponse.ok && completeData.success && completeData.order) {
+      // Update orderData with real order
+      orderData.value = {
+        ...orderData.value,
+        id: completeData.order.id,
+        order_id: completeData.order.id,
+        order_number: completeData.order.order_number
+      }
+      
+      localStorage.setItem('last_order_id', completeData.order.id)
+      
+      alert('Order completed successfully! Order ID: ' + completeData.order.id)
+      console.log('[Manual] Order ID stored:', completeData.order.id)
+    } else {
+      alert('Order completion failed: ' + (completeData.message || 'Unknown error'))
+    }
+  } catch (error: any) {
+    console.error('[Manual] Error:', error)
+    alert('Error: ' + error.message)
   }
 }
 

@@ -16,7 +16,8 @@ export default defineConfig({
       },
     }),
     vueJsx(),
-    vueDevTools(),
+    // Only enable DevTools in development mode
+    ...(process.env.NODE_ENV !== 'production' ? [vueDevTools()] : []),
   ],
   resolve: {
     alias: {

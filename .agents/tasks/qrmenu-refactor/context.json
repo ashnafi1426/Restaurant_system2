@@ -1,0 +1,26 @@
+{
+  "project_type": "Vue 3 + TypeScript + Vite + Tailwind CSS",
+  "language": "TypeScript",
+  "build_system": "Vite 8.0.16 with Vue plugin, npm scripts",
+  "test_framework": "None detected in package.json - manual testing required",
+  "build_command": "npm run build-only",
+  "test_command": "npm run type-check (TypeScript compilation check)",
+  "verification_instructions": "1. Run 'npm run type-check' to ensure no TypeScript errors. 2. Start dev server with 'npm run dev'. 3. Manually test QR menu flow: scan QR code -> view menu -> add items to cart -> view cart -> place order (room charge) -> place order (Chapa payment) -> verify order status page receives correct order ID. 4. Verify all existing functionality works: QR token detection, room/table context, guest info display, add/remove cart items, quantity controls, subtotal/tax/service charge calculations, room-charge ordering, Chapa payment flow, order status redirect with order ID.",
+  "snapshot_or_generated_files": "None - this is a refactoring task that doesn't generate build artifacts to commit",
+  "environment_constraints": "Local worktree with active dev server. Do NOT restart dev server on port. Vite hot-reload handles component changes automatically.",
+  "contribution_requirements": "Preserve all existing functionality. Fix bugs: (1) order ID not passed to OrderStatusPage after order creation, (2) currency formatting inconsistency ('$' vs 'ETB' vs 'ETB $'). Use 'ETB' consistently without dollar sign. Match existing code style: Vue 3 Composition API with <script setup>, TypeScript with interfaces, Tailwind utility classes, existing import patterns.",
+  "key_patterns": "Composables follow pattern: export function useXxx() returning reactive refs and methods (see useOrderStatus.ts). Components use <script setup lang=\"ts\"> with defineProps/defineEmits. Types defined in src/types/*.ts. Services in src/services/*.ts use publicAxios. localStorage/sessionStorage for payment data persistence. useLanguageStore for i18n. Teleport to body for modals.",
+  "relevant_files": [
+    "d:\\Restaurant_system2\\Client2\\vue-project\\src\\views\\guest\\QRMenu.vue",
+    "d:\\Restaurant_system2\\Client2\\vue-project\\src\\views\\payment\\OrderPaymentSuccessPage.vue",
+    "d:\\Restaurant_system2\\Client2\\vue-project\\src\\views\\guest\\OrderStatusPage.vue",
+    "d:\\Restaurant_system2\\Client2\\vue-project\\src\\components\\guest\\qr-menu\\QRMenuLayout.vue",
+    "d:\\Restaurant_system2\\Client2\\vue-project\\src\\components\\guest\\qr-menu\\QRMenuItemCard.vue",
+    "d:\\Restaurant_system2\\Client2\\vue-project\\src\\composables\\useOrderStatus.ts",
+    "d:\\Restaurant_system2\\Client2\\vue-project\\src\\types\\restaurantTable.ts",
+    "d:\\Restaurant_system2\\Client2\\vue-project\\src\\services\\qrService.ts",
+    "d:\\Restaurant_system2\\Client2\\vue-project\\src\\services\\unifiedOrderService.ts",
+    "d:\\Restaurant_system2\\Client2\\vue-project\\src\\router\\index.ts"
+  ],
+  "directory_structure": "src/views/guest/ - page components; src/components/guest/qr-menu/ - QR menu specific components; src/composables/ - Vue composables; src/types/ - TypeScript interfaces; src/services/ - API services; src/stores/ - Pinia stores (useLanguageStore); src/router/ - Vue Router config"
+}

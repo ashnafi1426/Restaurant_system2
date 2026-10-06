@@ -1,0 +1,30 @@
+{
+  "id": "FEAT-003",
+  "type": "refactor",
+  "description": "Create payment and success modal components: QRPaymentDialog.vue (payment method selection and customer details form for walk-in orders), QRPaymentForm.vue (customer details input fields: first_name, last_name, email, phone), QROrderSuccessModal.vue (order success confirmation with order number, room/table, estimated time, total). Extract from QRMenu.vue template lines 192-285 and lines 288-346.",
+  "status": "pending",
+  "steps": [
+    "1. Create src/components/guest/qr-menu/QRPaymentForm.vue: Props: modelValue (PaymentForm), orderContext (OrderContext). Emits: update:modelValue. Template: form fields for first_name, last_name, email, phone with labels, placeholders, Tailwind styling. Use v-model with emit pattern for two-way binding. Add input validation: required fields, email format check, phone length check. Match existing design from QRMenu.vue lines 207-238.",
+    "2. Create src/components/guest/qr-menu/QRPaymentDialog.vue: Props: show (boolean), cartItems (CartItem[]), subtotal, tax, serviceCharge, total, orderContext (OrderContext|null), paymentForm (PaymentForm), roomNumber, guestName, isPlacingOrder (boolean). Emits: close, proceed, update:payment-form. Template: Teleport modal with header (title, subtitle based on orderContext.type), scrollable body with QRPaymentForm component (only for walk-in/table orders), order summary section (room/items/guest), items list, price breakdown (subtotal/tax/service charge/total), notices (walk-in order info, secure payment notice), footer with Cancel and Pay Now buttons. Match existing design from QRMenu.vue lines 192-285. Use consistent 'ETB' currency formatting.",
+    "3. Create src/components/guest/qr-menu/QROrderSuccessModal.vue: Props: show (boolean), orderNumber (string), roomNumber (string), estimatedTime (number), total (number). Emits: close, track-order, back-to-menu. Template: Teleport modal with animated checkmark icon (bounce animation), success heading, description text, order details card (order number, room number, estimated time, total amount with 'ETB' format), 'Track Order' button (amber gradient), 'Back to Menu' button (gray border). Match existing design from QRMenu.vue lines 288-346.",
+    "4. FIX currency formatting in all payment components: Ensure all price displays use 'ETB XX.XX' format consistently. Update formatPrice function references to use 'ETB' prefix. Remove any '$' or 'ETB $' mixed formats. Test with different price values to verify consistency."
+  ],
+  "acceptance_criteria": [
+    "QRPaymentForm.vue renders input fields for first_name, last_name, email, phone with two-way binding via v-model and emits",
+    "QRPaymentDialog.vue displays payment form (for table orders only), order summary, items list, price breakdown, and payment buttons with correct conditional rendering based on orderContext.type",
+    "QROrderSuccessModal.vue displays success animation, order details card with order number, room/table, estimated time, total, and action buttons",
+    "All currency displays use consistent 'ETB XX.XX' format (no '$' or 'ETB $')",
+    "TypeScript compilation succeeds: 'npm run type-check' passes"
+  ],
+  "verification": [
+    "Run 'npm run type-check' - no TypeScript errors",
+    "Start dev server and test walk-in order flow: add items -> click 'Pay with Chapa' -> payment dialog opens with form fields",
+    "Fill payment form and verify two-way binding works (type in fields, check model updates)",
+    "Click 'Pay Now' and verify form validation (empty fields, invalid email format)",
+    "Test room service order flow: verify payment form is hidden for room orders (only shows order summary)",
+    "Verify all prices in payment dialog show 'ETB' format consistently",
+    "Success modal displays after room charge order completes with correct order details and 'ETB' formatted total"
+  ],
+  "blocked_reason": null,
+  "findings": "Current QRMenu.vue payment dialog structure (lines 192-285): Teleport modal with header showing title and context-based subtitle, scrollable body with customer details form (only for walk-in/table orders, lines 207-238: first_name, last_name, email, phone inputs), order summary section showing room/items/guest count (lines 240-250), items list with name, quantity, price (lines 252-262), price breakdown with subtotal/tax/service charge/total (lines 264-280), notices for walk-in orders and secure payment (lines 282-285), footer with Cancel and Pay Now buttons with loading state. Success modal structure (lines 288-346): centered modal with animated green checkmark (bounce animation), success heading and description, order details card with 4 rows (order number, room number, estimated time, total amount), 'Track Order' button (amber gradient) and 'Back to Menu' button (gray border). Currency formatting inconsistency: payment dialog uses formatPrice helper which likely returns '$XX.XX' format. Must update to 'ETB XX.XX'. Success modal line 338 uses formatPrice(cartTotal) - must ensure ETB format."
+}

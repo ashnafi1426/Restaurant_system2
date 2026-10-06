@@ -31,23 +31,55 @@
       <p class="text-gray-500 text-sm">Loading your order...</p>
     </div>
 
-    <!-- Error -->
+    <!-- Error or Demo Warning -->
     <div v-else-if="error" class="p-4">
-      <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-        <div class="text-4xl mb-3">⚠️</div>
-        <h2 class="font-bold text-red-800 mb-1">Unable to Load Order</h2>
-        <p class="text-sm text-red-600 mb-4">{{error}}</p>
+      <div 
+        class="rounded-xl p-6 text-center"
+        :class="error.includes('Demo Mode') ? 'bg-yellow-50 border border-yellow-200' : 'bg-red-50 border border-red-200'"
+      >
+        <div class="text-4xl mb-3">{{ error.includes('Demo Mode') ? '🎭' : '⚠️' }}</div>
+        <h2 
+          class="font-bold mb-1"
+          :class="error.includes('Demo Mode') ? 'text-yellow-800' : 'text-red-800'"
+        >
+          {{ error.includes('Demo Mode') ? 'Demo Mode Active' : 'Unable to Load Order' }}
+        </h2>
+        <p 
+          class="text-sm mb-4"
+          :class="error.includes('Demo Mode') ? 'text-yellow-600' : 'text-red-600'"
+        >
+          {{ error }}
+        </p>
         <button
+          v-if="!error.includes('Demo Mode')"
           @click="refresh"
           class="px-5 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
         >
           Try Again
+        </button>
+        <button
+          v-else
+          @click="goBack"
+          class="px-5 py-2 bg-yellow-600 text-white rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors"
+        >
+          Back to Payment
         </button>
       </div>
     </div>
 
     <!-- Content -->
     <div v-else-if="orderData" class="p-4 space-y-4 pb-8">
+
+      <!-- Demo Mode Warning Banner -->
+      <div v-if="orderData?._isDemoMode" class="bg-yellow-100 border-2 border-yellow-400 rounded-xl p-4 mb-4">
+        <div class="flex items-start gap-3">
+          <div class="text-2xl flex-shrink-0">🎭</div>
+          <div class="text-sm">
+            <p class="font-bold text-yellow-900 mb-1">Demo Mode Active</p>
+            <p class="text-yellow-800">You're viewing sample order data. To track real orders, start from the QR Menu and complete a payment.</p>
+          </div>
+        </div>
+      </div>
 
       <!-- Status Card -->
       <div
@@ -87,7 +119,7 @@
         <!-- Items -->
         <div class="divide-y divide-gray-50">
           <div
-            v-for="(item, index) in orderData.items"
+            v-for="(item, index) in (orderData?.items || [])"
             :key="item.id || index"
             class="flex items-center justify-between px-4 py-3"
           >
@@ -249,7 +281,7 @@ const handlePayNow = async () => {
     }
     
     const paymentPayload = {
-      order_id: orderData.value.order_id || orderData.value.id,
+      order_id: orderData.value?.order_id || orderData.value?.id,
       ...guestInfo
     }
     
@@ -260,7 +292,7 @@ const handlePayNow = async () => {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'X-Hotel-ID': hotelId.value
+        'X-Hotel-ID': hotelId.value || ''
       },
       body: JSON.stringify(paymentPayload)
     })
@@ -270,7 +302,9 @@ const handlePayNow = async () => {
     if (result.success && result.checkout_url) {
       console.log('[OrderStatus] Redirecting to Chapa:', result.checkout_url)
       // Store order data before redirecting
-      localStorage.setItem('pending_payment_order', JSON.stringify(orderData.value))
+      if (orderData.value) {
+        localStorage.setItem('pending_payment_order', JSON.stringify(orderData.value))
+      }
       // Redirect to Chapa checkout
       window.location.href = result.checkout_url
     } else {

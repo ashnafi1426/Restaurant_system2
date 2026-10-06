@@ -1,0 +1,29 @@
+{
+  "id": "FEAT-002",
+  "type": "refactor",
+  "description": "Create cart-related Vue components: QRCartModal.vue (cart modal container with items list and checkout section), QRCartItem.vue (individual cart item with quantity controls and remove button), QRCartSummary.vue (subtotal, tax, service charge, total display with payment buttons). Extract from QRMenu.vue template lines 22-147.",
+  "status": "pending",
+  "steps": [
+    "1. Create src/components/guest/qr-menu/QRCartItem.vue: Props: item (CartItem), canOrder (boolean). Emits: increment, decrement, remove. Template: cart item card with image, name, description, price, quantity controls (- button, quantity display, + button), remove/delete button. Use Tailwind classes matching existing design from QRMenu.vue lines 87-126. Add aria-labels for accessibility.",
+    "2. Create src/components/guest/qr-menu/QRCartSummary.vue: Props: subtotal (number), tax (number), serviceCharge (number), total (number), canOrder (boolean), isPlacingOrder (boolean), cartItemsCount (number). Emits: place-order-room-charge, open-payment-dialog, continue-shopping. Template: summary section with subtotal/tax/service charge/total rows, 'Order Now (Pay After Meal)' button, 'Pay with Chapa' button, 'Continue Shopping' button. Match existing design from QRMenu.vue lines 149-189. Use formatPrice helper imported from composable.",
+    "3. Create src/components/guest/qr-menu/QRCartModal.vue: Props: show (boolean), cartItems (CartItem[]), subtotal, tax, serviceCharge, total, canOrder, isPlacingOrder, languageStore. Emits: close, place-order-room-charge, open-payment-dialog, increment, decrement, remove. Template: Teleport modal with header, scrollable items list (use QRCartItem components), QRCartSummary component in footer. Match existing design from QRMenu.vue lines 22-147. Handle empty cart state with centered message and illustration.",
+    "4. FIX currency formatting in all three components: Replace all instances of '$' with 'ETB', remove 'ETB $' mixed formats. Use consistent format: 'ETB 540.00' (not '$540.00', not 'ETB $540.00'). Update formatPrice function to return `ETB ${price.toFixed(2)}` consistently. Reference issue from user message: 'Fix the currency formatting so it consistently displays ETB instead of mixing \"$\" and \"ETB $\"'."
+  ],
+  "acceptance_criteria": [
+    "QRCartItem.vue displays item image, name, description, price, quantity controls (-, quantity, +), and remove button with correct Tailwind styling",
+    "QRCartSummary.vue displays subtotal, tax, service charge, total with consistent 'ETB' currency formatting (no '$' signs)",
+    "QRCartModal.vue displays cart header, scrollable items list using QRCartItem components, QRCartSummary footer, and handles empty cart state",
+    "All currency displays use consistent 'ETB XX.XX' format (not '$', not 'ETB $')",
+    "TypeScript compilation succeeds: 'npm run type-check' passes"
+  ],
+  "verification": [
+    "Run 'npm run type-check' - no TypeScript errors",
+    "Start dev server 'npm run dev' and open QR menu page",
+    "Add items to cart and click 'View Cart' - cart modal opens with items displayed",
+    "Verify quantity controls work: click + to increment, - to decrement, trash icon to remove",
+    "Verify all prices show 'ETB' format consistently (inspect each price display)",
+    "Verify empty cart state displays when all items removed"
+  ],
+  "blocked_reason": null,
+  "findings": "Current QRMenu.vue cart modal structure (lines 22-147): Teleport modal wrapper with fade transition, header with title and close button, scrollable items container with empty state or items list, each item shows image, name, description, price, quantity controls (inline: - button, quantity, + button), remove button, item total price. Footer has summary section with subtotal/tax/service charge/total rows and payment buttons. Currency formatting is inconsistent: uses '$' on line 120 for item price, 'ETB $' on line 128 for item total. User reported this as a bug. Must use 'ETB' consistently throughout. Cart calculations: subtotal, tax (15%), service charge (10%), total. Payment buttons: 'Order Now (Pay After Meal)' (red, room charge), 'Pay with Chapa' (yellow, online payment), 'Continue Shopping' (gray border). Buttons disabled when isPlacingOrder or cartItems empty."
+}
