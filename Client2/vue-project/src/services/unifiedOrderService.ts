@@ -26,10 +26,12 @@ export interface OrderResponse {
   message: string
   data: {
     order_id: string
+    id?: string
     order_number: string
     order_type: 'room_service' | 'dine_in' | 'walk_in'
     room_number?: string
     table_number?: string
+    hotel_id?: string
     total: number
     status: string
     created_at: string

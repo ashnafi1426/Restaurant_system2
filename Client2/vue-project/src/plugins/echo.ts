@@ -42,7 +42,33 @@ const echo = new Echo({
       authorize: (socketId: string, callback: Function) => {
         const token = localStorage.getItem('token')
         const hotelId = localStorage.getItem('hotel_id') || localStorage.getItem('active_hotel_id')
-        const qrToken = localStorage.getItem('guest_qr_token')
+        let qrToken = localStorage.getItem('guest_qr_token')
+        
+        // Defensive check: if guest_qr_token is not yet in storage, check walk_in_payment_data or order_payment_data
+        if (!qrToken) {
+          try {
+            const walkInData = localStorage.getItem('walk_in_payment_data') || sessionStorage.getItem('walk_in_payment_data')
+            if (walkInData) {
+              const parsed = JSON.parse(walkInData)
+              if (parsed.qr_token) {
+                qrToken = parsed.qr_token
+                localStorage.setItem('guest_qr_token', qrToken)
+              }
+            }
+          } catch (_) {}
+        }
+        if (!qrToken) {
+          try {
+            const orderPaymentData = localStorage.getItem('order_payment_data') || sessionStorage.getItem('order_payment_data')
+            if (orderPaymentData) {
+              const parsed = JSON.parse(orderPaymentData)
+              if (parsed.qr_token) {
+                qrToken = parsed.qr_token
+                localStorage.setItem('guest_qr_token', qrToken)
+              }
+            }
+          } catch (_) {}
+        }
         
         console.log('[Echo] Authorizing channel:', channel.name)
         console.log('[Echo] Socket ID:', socketId)

@@ -427,11 +427,37 @@ class PaymentController extends Controller
      */
     private function fulfillOrderPayment(Payment $payment, string $txRef): void
     {
-        if ($payment->order_id) {
-            return;
-        }
-
         try {
+            // Check if this payment is for an existing order
+            $existingOrderId = $payment->order_id ?? ($payment->metadata['order_id'] ?? null);
+            if ($existingOrderId) {
+                $order = Order::withoutGlobalScopes()->find($existingOrderId);
+                if ($order) {
+                    if (!$payment->order_id) {
+                        $payment->update(['order_id' => $order->id]);
+                    }
+
+                    $order->update([
+                        'payment_type' => 'chapa',
+                    ]);
+
+                    Log::info('Existing order marked as paid after Chapa verification', [
+                        'payment_id' => $payment->id,
+                        'order_id' => $order->id,
+                        'order_number' => $order->order_number,
+                        'tx_ref' => $txRef,
+                    ]);
+
+                    event(new \App\Events\PaymentStatusUpdated($order, 'paid'));
+                    event(new \App\Events\OrderStatusUpdated($order, $order->status, 'paid'));
+                    return;
+                }
+            }
+
+            if ($payment->order_id) {
+                return;
+            }
+
             $calculation = $payment->metadata['calculation'] ?? [];
             $orderItems = $payment->metadata['items'] ?? [];
             $roomId = $payment->metadata['room_id'] ?? null;

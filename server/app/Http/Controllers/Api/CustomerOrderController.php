@@ -160,7 +160,7 @@ class CustomerOrderController extends Controller
                 'total' => (float) $order->total,
                 
                 // Payment info
-                'payment_type' => $order->payment_type,
+                'payment_type' => ($this->hasVerifiedPayment($order) && $order->payment_type === 'room_charge') ? 'chapa' : $order->payment_type,
                 'payment_status' => $this->getPaymentStatus($order),
                 
                 // Chef info
@@ -244,21 +244,56 @@ class CustomerOrderController extends Controller
     }
 
     /**
+     * Check if this order has a verified/paid payment record in database.
+     */
+    protected function hasVerifiedPayment(Order $order): bool
+    {
+        $hasPaidPayment = \App\Models\Payment::withoutGlobalScopes()
+            ->where(function($q) use ($order) {
+                $q->where('order_id', $order->id)
+                  ->orWhereJsonContains('metadata->order_id', $order->id);
+            })
+            ->whereIn('status', ['paid', 'verified', 'completed', 'successful', 'success'])
+            ->exists();
+
+        if ($hasPaidPayment) {
+            return true;
+        }
+
+        $hasPaidWalkIn = \App\Models\WalkInPayment::withoutGlobalScopes()
+            ->where('order_id', $order->id)
+            ->whereIn('payment_status', ['paid', 'verified', 'completed'])
+            ->exists();
+
+        return $hasPaidWalkIn;
+    }
+
+    /**
      * Determine payment status from order data.
      */
     protected function getPaymentStatus(Order $order): string
     {
-        // If order has explicit payment_status field, use it
-        if (isset($order->payment_status)) {
+        // 1. Check if there is a verified/paid payment in database
+        if ($this->hasVerifiedPayment($order)) {
+            return 'paid';
+        }
+
+        // 2. Infer from payment_type
+        if (in_array(strtolower((string)$order->payment_type), ['chapa', 'card', 'online', 'telebirr', 'cbe_birr', 'paid'])) {
+            return 'paid';
+        }
+
+        // 3. If order has explicit payment_status attribute, use it
+        if (isset($order->payment_status) && !empty($order->payment_status)) {
             return $order->payment_status;
         }
 
-        // Infer from payment_type
+        // 4. Room charges are pending until paid
         if ($order->payment_type === 'room_charge') {
-            return 'pending'; // Room charges settled at checkout
+            return 'pending';
         }
 
-        // For served orders, assume paid
+        // 5. For served orders, assume paid
         if (in_array($order->status, ['served', 'completed'])) {
             return 'paid';
         }

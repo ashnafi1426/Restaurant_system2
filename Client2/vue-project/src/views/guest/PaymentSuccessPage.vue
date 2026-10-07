@@ -124,8 +124,11 @@ const trackOrder = () => {
   }
   
   if (orderId) {
-    const qrToken = localStorage.getItem('guest_qr_token')
-    const hotelId = localStorage.getItem('hotel_id') || localStorage.getItem('active_hotel_id')
+    const qrToken = (route.query.qr_token as string) || localStorage.getItem('guest_qr_token')
+    if (qrToken) {
+      localStorage.setItem('guest_qr_token', qrToken)
+    }
+    const hotelId = (route.query.hotel_id as string) || localStorage.getItem('hotel_id') || localStorage.getItem('active_hotel_id')
     
     console.log('[PaymentSuccess] Navigating to order status:', {
       orderId,

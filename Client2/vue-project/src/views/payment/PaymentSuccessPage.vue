@@ -271,6 +271,7 @@ const route = useRoute()
 
 const txRef = ref<string>('')
 const reservationData = ref<any>(null)
+const orderData = ref<any>(null)
 const isLoading = ref(false)
 const isOrderPayment = ref(false)
 
@@ -289,8 +290,16 @@ onMounted(async () => {
   const orderIdFromStorage = localStorage.getItem('last_order_id')
   const pendingOrderData = localStorage.getItem('pending_order_data')
   const pendingPaymentOrder = localStorage.getItem('pending_payment_order')
+  const orderPaymentData = localStorage.getItem('order_payment_data') || localStorage.getItem('walk_in_payment_data')
   
-  if (orderIdFromQuery || orderIdFromStorage || pendingOrderData || pendingPaymentOrder) {
+  const rawOrderStr = pendingOrderData || pendingPaymentOrder || orderPaymentData
+  if (rawOrderStr) {
+    try {
+      orderData.value = JSON.parse(rawOrderStr)
+    } catch (_) {}
+  }
+
+  if (orderIdFromQuery || orderIdFromStorage || pendingOrderData || pendingPaymentOrder || orderPaymentData) {
     isOrderPayment.value = true
     console.log('[PaymentSuccess] Detected as ORDER payment (food ordering system)')
     
@@ -458,8 +467,16 @@ function trackOrder(): void {
                   sessionStorage.getItem('payment_order_id')
   
   if (orderId) {
-    const qrToken = localStorage.getItem('guest_qr_token')
-    const hotelId = localStorage.getItem('hotel_id') || localStorage.getItem('active_hotel_id')
+    const qrToken = orderData.value?.qr_token || 
+                    (route.query.qr_token as string) || 
+                    localStorage.getItem('guest_qr_token')
+    if (qrToken) {
+      localStorage.setItem('guest_qr_token', qrToken)
+    }
+    const hotelId = orderData.value?.hotel_id || 
+                    (route.query.hotel_id as string) || 
+                    localStorage.getItem('hotel_id') || 
+                    localStorage.getItem('active_hotel_id')
     
     console.log('[PaymentSuccess] Navigating to order status:', orderId)
     

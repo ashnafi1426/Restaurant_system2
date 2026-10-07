@@ -26,15 +26,19 @@ export interface OrderItem {
 
 export interface OrderData {
   order_id: string
+  id?: string
   order_number: string
   hotel_id: string
   status: 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled'
   order_type: string
   order_time: string
   room_number?: string
+  room_id?: string
   table_number?: string
+  table_id?: string
   customer_name?: string
   items: OrderItem[]
+  order_items?: OrderItem[]
   subtotal: number
   tax: number
   service_charge: number
@@ -47,6 +51,7 @@ export interface OrderData {
   updated_at: string
   served_at?: string
   notes?: string
+  _isDemoMode?: boolean
 }
 
 export interface OrderStatusEvent {
@@ -72,8 +77,9 @@ export interface PaymentStatusEvent {
   updated_at: string
 }
 
-export function useOrderStatus(orderId: string, initialHotelId: string) {
+export function useOrderStatus(orderId: string, initialHotelId: string, initialQrToken?: string) {
   const hotelId = ref<string>(initialHotelId)
+  const currentQrToken = ref<string>(initialQrToken || '')
   const orderData = ref<OrderData | null>(null)
   const status = ref<string>('loading')
   const paymentStatus = ref<string>('pending')
@@ -131,8 +137,34 @@ export function useOrderStatus(orderId: string, initialHotelId: string) {
 
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
       
-      // Get qr_token from localStorage for guest authentication
-      const qrToken = localStorage.getItem('guest_qr_token') || ''
+      // Get qr_token for guest authentication
+      // Priority: initialQrToken / currentQrToken -> localStorage -> walk_in_payment_data -> order_payment_data
+      let qrToken = currentQrToken.value || localStorage.getItem('guest_qr_token') || ''
+      
+      if (!qrToken) {
+        try {
+          const walkInData = localStorage.getItem('walk_in_payment_data') || sessionStorage.getItem('walk_in_payment_data')
+          if (walkInData) {
+            const parsed = JSON.parse(walkInData)
+            if (parsed.qr_token) qrToken = parsed.qr_token
+          }
+        } catch (_) {}
+      }
+      
+      if (!qrToken) {
+        try {
+          const orderPaymentData = localStorage.getItem('order_payment_data') || sessionStorage.getItem('order_payment_data')
+          if (orderPaymentData) {
+            const parsed = JSON.parse(orderPaymentData)
+            if (parsed.qr_token) qrToken = parsed.qr_token
+          }
+        } catch (_) {}
+      }
+
+      if (qrToken) {
+        currentQrToken.value = qrToken
+        localStorage.setItem('guest_qr_token', qrToken)
+      }
       
       // Use the realtime-status endpoint which returns complete order data with items
       // This endpoint is in the guest routes section and does not require authentication
@@ -227,7 +259,59 @@ export function useOrderStatus(orderId: string, initialHotelId: string) {
         }
       }
       
-      // Only log error if not handled by demo mode
+      // Check for 403 Invalid QR token and attempt recovery using fallback token from stored data
+      if (err.response?.status === 403) {
+        try {
+          let fallbackToken = ''
+          const walkInData = localStorage.getItem('walk_in_payment_data') || sessionStorage.getItem('walk_in_payment_data')
+          if (walkInData) {
+            const parsed = JSON.parse(walkInData)
+            if (parsed.qr_token && parsed.qr_token !== qrToken) {
+              fallbackToken = parsed.qr_token
+            }
+          }
+          if (!fallbackToken) {
+            const orderPaymentData = localStorage.getItem('order_payment_data') || sessionStorage.getItem('order_payment_data')
+            if (orderPaymentData) {
+              const parsed = JSON.parse(orderPaymentData)
+              if (parsed.qr_token && parsed.qr_token !== qrToken) {
+                fallbackToken = parsed.qr_token
+              }
+            }
+          }
+          
+          if (fallbackToken) {
+            console.log('[useOrderStatus] 403 received with token, retrying with fallback token:', fallbackToken)
+            currentQrToken.value = fallbackToken
+            localStorage.setItem('guest_qr_token', fallbackToken)
+            
+            const retryUrl = `${apiBaseUrl}/api/guest/orders/${orderId}/realtime-status?qr_token=${fallbackToken}`
+            const retryResponse = await axios.get(retryUrl, {
+              headers: {
+                'X-Hotel-ID': hotelId.value || '',
+                'Accept': 'application/json'
+              }
+            })
+            
+            if (retryResponse.data.success && retryResponse.data.data) {
+              orderData.value = retryResponse.data.data
+              status.value = retryResponse.data.data.status
+              paymentStatus.value = retryResponse.data.data.payment_status || 'pending'
+              lastUpdate.value = retryResponse.data.data.updated_at
+              if (retryResponse.data.data.hotel_id) {
+                hotelId.value = retryResponse.data.data.hotel_id
+                localStorage.setItem('hotel_id', retryResponse.data.data.hotel_id)
+              }
+              isLoading.value = false
+              return
+            }
+          }
+        } catch (retryErr) {
+          console.warn('[useOrderStatus] Fallback token retry failed:', retryErr)
+        }
+      }
+
+      // Only log error if not handled by demo mode or fallback
       console.error('[useOrderStatus] Error fetching order data:', err)
       error.value = err.response?.data?.message || err.message || 'Failed to load order'
     } finally {

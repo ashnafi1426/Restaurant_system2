@@ -69,18 +69,6 @@
 
     <!-- Content -->
     <div v-else-if="orderData" class="p-4 space-y-4 pb-8">
-
-      <!-- Demo Mode Warning Banner -->
-      <div v-if="orderData?._isDemoMode" class="bg-yellow-100 border-2 border-yellow-400 rounded-xl p-4 mb-4">
-        <div class="flex items-start gap-3">
-          <div class="text-2xl flex-shrink-0">🎭</div>
-          <div class="text-sm">
-            <p class="font-bold text-yellow-900 mb-1">Demo Mode Active</p>
-            <p class="text-yellow-800">You're viewing sample order data. To track real orders, start from the QR Menu and complete a payment.</p>
-          </div>
-        </div>
-      </div>
-
       <!-- Status Card -->
       <div
         class="rounded-xl p-4 flex items-start gap-3"
@@ -210,7 +198,7 @@
           :disabled="isLoading"
           class="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
         >
-          🔄 Refresh
+           Refresh
         </button>
         <p v-if="lastUpdate" class="text-xs text-gray-400 mt-1">
           Last updated: {{formatTime(lastUpdate)}}
@@ -221,7 +209,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOrderStatus } from '@/composables/useOrderStatus'
 
@@ -237,9 +225,11 @@ const hotelId = ref(
   '').toString()
 )
 
-// Persist qr_token from URL so the composable can use it
+// Persist qr_token from URL or storage
 const qrToken = (route.query.qr_token as string) || localStorage.getItem('guest_qr_token') || ''
-if (qrToken && !localStorage.getItem('guest_qr_token')) {
+if (route.query.qr_token) {
+  localStorage.setItem('guest_qr_token', route.query.qr_token as string)
+} else if (qrToken && !localStorage.getItem('guest_qr_token')) {
   localStorage.setItem('guest_qr_token', qrToken)
 }
 
@@ -259,133 +249,122 @@ const {
   isPaymentPending,
   isPaymentPaid,
   refresh,
-} = useOrderStatus(orderId.value, hotelId.value)
+} = useOrderStatus(orderId.value, hotelId.value, qrToken)
 
 const isProcessingPayment = ref(false)
+
+// Auto-verify if returning from Chapa or if a pending tx_ref is saved for this order
+onMounted(async () => {
+  const pendingTxRef = (route.query.tx_ref as string) || 
+                       (route.query.trx_ref as string) || 
+                       (route.query.transaction_ref as string) ||
+                       localStorage.getItem('pending_order_tx_ref') || 
+                       sessionStorage.getItem('pending_order_tx_ref')
+
+  if (pendingTxRef) {
+    try {
+      console.log('[OrderStatus] Checking/verifying pending payment:', pendingTxRef)
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/payments/verify/${pendingTxRef}`)
+      const data = await res.json()
+      console.log('[OrderStatus] Payment verification response:', data)
+      if (data.success) {
+        localStorage.removeItem('pending_order_tx_ref')
+        sessionStorage.removeItem('pending_order_tx_ref')
+        await refresh()
+      }
+    } catch (e) {
+      console.warn('[OrderStatus] Payment verification error:', e)
+    }
+  }
+})
 
 // Navigation
 const goBack = () => router.back()
 
-// Payment handler - Initialize payment directly
-const handlePayNow = async () => {
-  if (isProcessingPayment.value || !orderData.value) return
-  
-  isProcessingPayment.value = true
+// Payment handler - Navigate to Pay Your Order page
+const handlePayNow = () => {
+  if (!orderData.value) return
   
   try {
-    const guestInfo = {
-      first_name: localStorage.getItem('guest_first_name') || 'Guest',
-      last_name: localStorage.getItem('guest_last_name') || 'User',
-      email: localStorage.getItem('guest_email') || `guest${Date.now()}@hotel.com`,
-      phone: localStorage.getItem('guest_phone') || '+251911000000'
-    }
-    
-    // Check if this is a walk-in/table order
-    const isWalkInOrder = orderData.value?.order_type === 'dine_in' || 
-                          orderData.value?.order_type === 'walk_in' ||
-                          orderData.value?.table_number ||
-                          orderData.value?.table_id
-    
-    let endpoint = ''
-    let paymentPayload: any = {}
-    
-    if (isWalkInOrder) {
-      // For walk-in/table orders, use walk-in payment endpoint
-      endpoint = `${import.meta.env.VITE_API_BASE_URL}/api/walk-in-payments/initialize-for-order`
-      paymentPayload = {
-        order_id: orderData.value?.order_id || orderData.value?.id,
-        ...gugiestInfo
-      }
-    } else {
-      // For room orders, use existing endpoint
-      endpoint = `${import.meta.env.VITE_API_BASE_URL}/api/order-payments/initialize-existing`
-      paymentPayload = {
-        order_id: orderData.value?.order_id || orderData.value?.id,
-        ...guestInfo
-      }
-    }
-    
-    console.log('[OrderStatus] Initializing payment:', paymentPayload)
-    console.log('[OrderStatus] Using endpoint:', endpoint)
-    console.log('[OrderStatus] Order type:', orderData.value?.order_type)
-    
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Hotel-ID': hotelId.value || ''
+    const rawItems = orderData.value.items || orderData.value.order_items || []
+    const formattedItems = rawItems.map((item: any, idx: number) => ({
+      id: item.id || item.menu_item_id || `item-${idx}`,
+      name: item.name || item.item_name || item.menu_item?.name || 'Item',
+      quantity: Number(item.quantity) || 1,
+      price: Number(item.price ?? item.item_price_at_order ?? item.unit_price ?? 0)
+    }))
+
+    const isRoom = !orderData.value.table_number && (!!orderData.value.room_number || orderData.value.order_type === 'room_service')
+    const locationLabel = orderData.value.room_number 
+      ? `Room ${orderData.value.room_number}` 
+      : (orderData.value.table_number ? `Table ${orderData.value.table_number}` : 'Order')
+
+    const currentQrToken = (typeof qrToken === 'string' ? qrToken : '') || 
+                          localStorage.getItem('guest_qr_token') || 
+                          (route.query.qr_token as string) || ''
+    const currentHotelId = hotelId.value || orderData.value.hotel_id || localStorage.getItem('hotel_id') || ''
+    const currentOrderId = orderData.value.order_id || orderData.value.id || orderId.value
+
+    const paymentPayload = {
+      order_id: currentOrderId,
+      order_number: orderData.value.order_number,
+      is_existing_order: true,
+      is_room_order: isRoom,
+      room_number: orderData.value.room_number || null,
+      table_number: locationLabel,
+      table_id: orderData.value.table_id || null,
+      room_id: orderData.value.room_id || null,
+      order_type: orderData.value.order_type || (isRoom ? 'room_service' : 'dine_in'),
+      qr_token: currentQrToken,
+      hotel_id: currentHotelId,
+      items: formattedItems,
+      calculation: {
+        subtotal: Number(orderData.value.subtotal || orderData.value.total || 0),
+        tax: Number(orderData.value.tax || 0),
+        service_charge: Number(orderData.value.service_charge || 0),
+        total: Number(orderData.value.total || 0),
+        tip: 0
       },
-      body: JSON.stringify(paymentPayload)
+      amount: Number(orderData.value.total || 0)
+    }
+
+    // Persist payment data
+    localStorage.setItem('walk_in_payment_data', JSON.stringify(paymentPayload))
+    localStorage.setItem('order_payment_data', JSON.stringify(paymentPayload))
+    sessionStorage.setItem('walk_in_payment_data', JSON.stringify(paymentPayload))
+    sessionStorage.setItem('order_payment_data', JSON.stringify(paymentPayload))
+
+    if (currentQrToken) {
+      localStorage.setItem('guest_qr_token', currentQrToken)
+      sessionStorage.setItem('guest_qr_token', currentQrToken)
+    }
+
+    if (currentHotelId) {
+      localStorage.setItem('hotel_id', currentHotelId)
+    }
+
+    console.log('[OrderStatus] Stored order data for payment page, navigating to /order/payment:', paymentPayload)
+
+    // Navigate to Pay Your Order page (Screenshot 2)
+    router.push({
+      path: '/order/payment',
+      query: {
+        order_id: currentOrderId,
+        qr_token: currentQrToken || undefined,
+        hotel_id: currentHotelId || undefined
+      }
     })
-    
-    const result = await response.json()
-    console.log('[OrderStatus] Payment response:', result)
-    console.log('[OrderStatus] Response status:', response.status)
-    console.log('[OrderStatus] Message type:', typeof result.message)
-    console.log('[OrderStatus] Message value:', JSON.stringify(result.message))
-    
-    if (result.success && result.checkout_url) {
-      console.log('[OrderStatus] Redirecting to Chapa:', result.checkout_url)
-      // Store order data before redirecting
-      if (orderData.value) {
-        localStorage.setItem('pending_payment_order', JSON.stringify(orderData.value))
-      }
-      // Redirect to Chapa checkout
-      window.location.href = result.checkout_url
-    } else if (result.success && !result.checkout_url) {
-      // Payment created but no checkout URL - this shouldn't happen
-      console.error('[OrderStatus] Payment created but no checkout URL:', result)
-      throw new Error(`Payment was initialized but checkout URL is missing. Response: ${JSON.stringify(result)}`)
-    } else {
-      // Better error message handling
-      let errorMessage = 'Unable to initialize payment with Chapa'
-      
-      if (typeof result.message === 'string') {
-        errorMessage = result.message
-      } else if (typeof result.message === 'object' && result.message !== null) {
-        // Handle case where message is an object (likely an error object)
-        errorMessage = JSON.stringify(result.message)
-      } else if (result.error) {
-        errorMessage = result.error
-      } else if (result.errors) {
-        // Handle validation errors
-        const errors = Object.values(result.errors).flat()
-        errorMessage = errors.join(', ')
-      }
-      
-      console.error('[OrderStatus] Payment failed:', {
-        success: result.success,
-        message: result.message,
-        errors: result.errors,
-        fullResponse: result
-      })
-      
-      throw new Error(errorMessage)
-    }
-  } catch (error: any) {
-    console.error('[OrderStatus] Payment error:', error)
-    
-    // Better error display
-    let displayMessage = 'Failed to initialize payment'
-    if (error.message && error.message !== '[object Object]') {
-      displayMessage = error.message
-    } else if (typeof error === 'string') {
-      displayMessage = error
-    }
-    
-    alert(`Payment Error: ${displayMessage}`)
-  } finally {
-    isProcessingPayment.value = false
+  } catch (err: any) {
+    console.error('[OrderStatus] Failed to prepare payment navigation:', err)
   }
 }
 const statusIcon = computed(() => {
-  if (isPending.value) return '📝'
-  if (isPreparing.value) return '👨\u200d🍳'
-  if (isReady.value) return '✅'
-  if (isServed.value) return '🎉'
-  if (isCancelled.value) return '❌'
-  return '📦'
+  if (isPending.value) return ''
+  if (isPreparing.value) return '\u200d'
+  if (isReady.value) return ''
+  if (isServed.value) return ''
+  if (isCancelled.value) return ''
+  return ''
 })
 
 const statusTitle = computed(() => {

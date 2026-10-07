@@ -57,8 +57,6 @@
                 </svg>
               </button>
             </div>
-
-            <!-- Cart Items Container - Scrollable -->
             <div class="flex-1 overflow-y-auto bg-white">
               <!-- Empty Cart -->
               <div v-if="cartItems.length === 0" class="px-6 py-12 text-center">
@@ -767,6 +765,10 @@ const openPaymentDialog = () => {
   }
 
   localStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
+  if (qrToken.value) {
+    localStorage.setItem('guest_qr_token', qrToken.value)
+    sessionStorage.setItem('guest_qr_token', qrToken.value)
+  }
   console.log('[QRMenu] Pay with Chapa clicked - Stored payment data, navigating to OrderPaymentPage:', paymentData)
 
   // Navigate directly to OrderPaymentPage (dark theme with tip selection)
@@ -847,6 +849,10 @@ const handlePlaceOrder = async () => {
         
         localStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
         sessionStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
+        if (qrToken.value) {
+          localStorage.setItem('guest_qr_token', qrToken.value)
+          sessionStorage.setItem('guest_qr_token', qrToken.value)
+        }
         
         console.log('[QRMenu] Stored payment data before redirect:', paymentData)
         console.log('[QRMenu] Redirecting to Chapa:', paymentResponse.checkout_url)

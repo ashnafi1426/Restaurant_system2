@@ -167,9 +167,11 @@ onMounted(async () => {
   // Try to get tx_ref from multiple sources
   txRef.value = (route.query.tx_ref as string) || 
                 (route.query.trx_ref as string) || 
-                (route.query.transaction_ref as string) || ''
+                (route.query.transaction_ref as string) || 
+                localStorage.getItem('pending_order_tx_ref') || 
+                sessionStorage.getItem('pending_order_tx_ref') || ''
   
-  console.log('[OrderPaymentSuccess] tx_ref from query:', txRef.value)
+  console.log('[OrderPaymentSuccess] tx_ref resolved:', txRef.value)
 
   // Check BOTH localStorage AND sessionStorage (localStorage persists through redirects)
   const walkInData = localStorage.getItem('walk_in_payment_data') || sessionStorage.getItem('walk_in_payment_data')
@@ -185,6 +187,15 @@ onMounted(async () => {
         ...data,
         is_walk_in: true,
         room_number: null,
+      }
+      
+      // Sync QR token and hotel ID to storage for subsequent status and websocket calls
+      if (data.qr_token) {
+        localStorage.setItem('guest_qr_token', data.qr_token)
+        sessionStorage.setItem('guest_qr_token', data.qr_token)
+      }
+      if (data.hotel_id) {
+        localStorage.setItem('hotel_id', data.hotel_id)
       }
       
       // Get tx_ref from sessionStorage if not in URL
@@ -215,6 +226,15 @@ onMounted(async () => {
         }
         roomNumber.value = data.room_number || 'N/A'
         
+        // Sync QR token and hotel ID to storage
+        if (data.qr_token) {
+          localStorage.setItem('guest_qr_token', data.qr_token)
+          sessionStorage.setItem('guest_qr_token', data.qr_token)
+        }
+        if (data.hotel_id) {
+          localStorage.setItem('hotel_id', data.hotel_id)
+        }
+        
         // Get tx_ref from sessionStorage if not in URL
         if (!txRef.value && data.tx_ref) {
           txRef.value = data.tx_ref
@@ -230,6 +250,12 @@ onMounted(async () => {
         console.error('[OrderPaymentSuccess] Error parsing room service data:', error)
       }
     }
+  }
+
+  // Also sync QR token from query parameter if present
+  if (route.query.qr_token) {
+    localStorage.setItem('guest_qr_token', route.query.qr_token as string)
+    sessionStorage.setItem('guest_qr_token', route.query.qr_token as string)
   }
 
   // Provide realistic fallback if visited directly or after session clear
@@ -435,8 +461,19 @@ function trackOrder(): void {
   console.log('[OrderPaymentSuccess] Final Order ID:', orderId)
   
   if (orderId) {
-    const qrToken = localStorage.getItem('guest_qr_token')
-    const hotelId = localStorage.getItem('hotel_id') || localStorage.getItem('active_hotel_id')
+    const qrToken = orderData.value?.qr_token || 
+                    (route.query.qr_token as string) || 
+                    localStorage.getItem('guest_qr_token') || 
+                    sessionStorage.getItem('guest_qr_token')
+    
+    if (qrToken) {
+      localStorage.setItem('guest_qr_token', qrToken)
+    }
+
+    const hotelId = orderData.value?.hotel_id || 
+                    (route.query.hotel_id as string) || 
+                    localStorage.getItem('hotel_id') || 
+                    localStorage.getItem('active_hotel_id')
     
     console.log('[OrderPaymentSuccess] Navigating to order status with:', {
       orderId,
@@ -487,8 +524,19 @@ async function fetchOrderByTxRef(txRefValue: string): Promise<void> {
         localStorage.setItem('last_order_id', orderId)
         console.log('[OrderPaymentSuccess] Got order ID from API, redirecting:', orderId)
         
-        const qrToken = localStorage.getItem('guest_qr_token')
-        const hotelId = localStorage.getItem('hotel_id') || localStorage.getItem('active_hotel_id')
+        const qrToken = data.order?.qr_token || 
+                        data.order?.table?.qr_token || 
+                        data.order?.room?.qr_token || 
+                        orderData.value?.qr_token || 
+                        localStorage.getItem('guest_qr_token')
+        if (qrToken) {
+          localStorage.setItem('guest_qr_token', qrToken)
+        }
+        
+        const hotelId = data.order?.hotel_id || 
+                        orderData.value?.hotel_id || 
+                        localStorage.getItem('hotel_id') || 
+                        localStorage.getItem('active_hotel_id')
         
         router.push({
           name: 'order-status',
@@ -511,7 +559,7 @@ async function fetchOrderByTxRef(txRefValue: string): Promise<void> {
 }
 
 function backToMenu(): void {
-  const qrToken = localStorage.getItem('guest_qr_token')
+  const qrToken = orderData.value?.qr_token || localStorage.getItem('guest_qr_token')
   if (qrToken) {
     router.push({
       name: 'qr-menu',

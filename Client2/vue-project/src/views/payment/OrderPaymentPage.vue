@@ -146,7 +146,7 @@
         </button>
 
         <p class="text-center text-slate-500 text-xs mt-3">
-          🔒 Secure Payment • Double-click Protected
+          Secure Payment • Double-click Protected
         </p>
       </div>
     </div>

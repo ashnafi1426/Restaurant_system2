@@ -166,6 +166,10 @@ export function useQRMenuOrder() {
         // Store to BOTH localStorage AND sessionStorage for persistence through Chapa redirect
         localStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
         sessionStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
+        if (qrToken) {
+          localStorage.setItem('guest_qr_token', qrToken)
+          sessionStorage.setItem('guest_qr_token', qrToken)
+        }
         
         console.log('[useQRMenuOrder] Stored payment data before redirect:', paymentData)
         console.log('[useQRMenuOrder] Redirecting to Chapa:', paymentResponse.checkout_url)
