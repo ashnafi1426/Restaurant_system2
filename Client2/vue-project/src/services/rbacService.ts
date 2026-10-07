@@ -8,23 +8,31 @@ import type {
 } from '../types/rbacTypes'
 
 export const rbacService = {
-  async getRoles(): Promise<Role[]> {
+  async getRoles(options?: { refresh?: boolean }): Promise<Role[]> {
     try {
-      const response = await api.get('/roles')
+      const response = await api.get('/roles', {
+        params: options?.refresh ? { refresh: 1 } : undefined,
+        headers: options?.refresh ? { 'X-Refresh': 'true' } : undefined
+      })
       return response.data.data
     } catch (e) {
       console.warn('[RbacService] /roles endpoint failed, falling back to /roles/active:', e)
-      return this.getActiveRoles()
+      return this.getActiveRoles(options)
     }
   },
 
-  async getActiveRoles(): Promise<Role[]> {
+  async getActiveRoles(options?: { refresh?: boolean }): Promise<Role[]> {
     try {
-      const response = await api.get('/roles/active')
+      const response = await api.get('/roles/active', {
+        params: options?.refresh ? { refresh: 1 } : undefined,
+        headers: options?.refresh ? { 'X-Refresh': 'true' } : undefined
+      })
       return response.data.data
     } catch (e) {
       console.warn('[RbacService] /roles/active endpoint failed, falling back to /public/roles:', e)
-      const response = await api.get('/public/roles')
+      const response = await api.get('/public/roles', {
+        params: options?.refresh ? { refresh: 1 } : undefined
+      })
       return response.data.data
     }
   },
@@ -48,8 +56,10 @@ export const rbacService = {
     await api.delete(`/roles/${id}`)
   },
 
-  async getRolePermissions(roleId: number): Promise<{ permission_ids: number[]; data: Permission[] }> {
-    const response = await api.get(`/roles/${roleId}/permissions`)
+  async getRolePermissions(roleId: number, options?: { refresh?: boolean }): Promise<{ permission_ids: number[]; data: Permission[] }> {
+    const response = await api.get(`/roles/${roleId}/permissions`, {
+      params: options?.refresh ? { refresh: 1 } : undefined
+    })
     return response.data
   },
 
@@ -58,8 +68,11 @@ export const rbacService = {
     return response.data.data
   },
 
-  async getPermissions(): Promise<{ data: Permission[]; grouped: Record<string, Permission[]> }> {
-    const response = await api.get('/permissions')
+  async getPermissions(options?: { refresh?: boolean }): Promise<{ data: Permission[]; grouped: Record<string, Permission[]> }> {
+    const response = await api.get('/permissions', {
+      params: options?.refresh ? { refresh: 1 } : undefined,
+      headers: options?.refresh ? { 'X-Refresh': 'true' } : undefined
+    })
     return response.data
   },
 

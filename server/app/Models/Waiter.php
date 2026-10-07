@@ -15,6 +15,8 @@ class Waiter extends Model
     protected $keyType = 'int';
     public $incrementing = true;
 
+    protected $with = ['user'];
+
     protected $fillable = [
         'hotel_id',
         'user_id',
@@ -44,6 +46,11 @@ class Waiter extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    public function getNameAttribute(): ?string
+    {
+        return $this->user?->name;
     }
     public function floorAssignments(): HasMany
     {

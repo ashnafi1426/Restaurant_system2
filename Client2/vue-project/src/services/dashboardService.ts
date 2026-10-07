@@ -1,7 +1,8 @@
 import api from '../api/auth'
 
-export const getDashboard = async () => {
-  const response = await api.get(`/admin/dashboard`, {
+export const getDashboard = async (params: Record<string, any> = {}) => {
+  const response = await api.get(`/dashboard`, {
+    params,
     headers: {
       Authorization: `Bearer ${localStorage.getItem('token')}`,
     },
@@ -9,3 +10,5 @@ export const getDashboard = async () => {
 
   return response.data
 }
+
+export const getUnifiedDashboard = getDashboard

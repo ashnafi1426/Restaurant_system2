@@ -87,18 +87,58 @@ const archiveHotel = async (hotelId: string, name: string) => {
   }
 }
 
-const loadDashboard = async () => {
+const getCacheKey = () => `admin_dashboard_cache_${hotelStore.hotelId || 'platform'}`
+
+const ensureArray = <T = any>(val: any): T[] => {
+  if (Array.isArray(val)) return val
+  if (val && typeof val === 'object') return Object.values(val)
+  return []
+}
+
+const restoreCachedData = () => {
+  try {
+    const cached = localStorage.getItem(getCacheKey())
+    if (cached) {
+      const parsed = JSON.parse(cached)
+      if (parsed && typeof parsed === 'object') {
+        parsed.recentReservations = ensureArray(parsed.recentReservations)
+        parsed.staffActivity = ensureArray(parsed.staffActivity)
+        parsed.maintenanceAlerts = ensureArray(parsed.maintenanceAlerts)
+        dashboard.value = parsed
+        loading.value = false
+      }
+    }
+  } catch (e) {
+    // Ignore cache error
+  }
+}
+
+const loadDashboard = async (isManualRefresh = false) => {
   try {
     errorOccurred.value = false
-    loading.value = true
-    const response = await getDashboard()
-    dashboard.value = response.data || response
+    if (!dashboard.value) {
+      loading.value = true
+    }
+    const response = await getDashboard(isManualRefresh ? { refresh: 'true' } : {})
+    const freshData = response.data || response
+    if (freshData && typeof freshData === 'object') {
+      freshData.recentReservations = ensureArray(freshData.recentReservations)
+      freshData.staffActivity = ensureArray(freshData.staffActivity)
+      freshData.maintenanceAlerts = ensureArray(freshData.maintenanceAlerts)
+    }
+    dashboard.value = freshData
+    try {
+      localStorage.setItem(getCacheKey(), JSON.stringify(freshData))
+    } catch (e) {}
+
     if (auth.isPlatformAdmin) {
       await loadPlatformData()
     }
   } catch (error) {
     console.error('Failed to load dashboard:', error)
-    errorOccurred.value = true
+    if (!dashboard.value) {
+      errorOccurred.value = true
+    }
   } finally {
     loading.value = false
   }
@@ -106,15 +146,17 @@ const loadDashboard = async () => {
 
 const refreshDashboard = async () => {
   refreshing.value = true
-  await loadDashboard()
+  await loadDashboard(true)
   refreshing.value = false
 }
 
 onMounted(() => {
+  restoreCachedData()
   loadDashboard()
 })
 
 watch(() => hotelStore.hotelId, () => {
+  restoreCachedData()
   loadDashboard()
 })
 </script>
@@ -296,7 +338,7 @@ watch(() => hotelStore.hotelId, () => {
                 <ArrowUpRight class="w-3.5 h-3.5" />
               </button>
             </div>
-            <RecentReservationsTable :reservations="dashboard?.recentReservations" />
+            <RecentReservationsTable :reservations="ensureArray(dashboard?.recentReservations)" />
           </div>
 
           <!-- Staff Activity & Maintenance Alerts (1 col) -->
@@ -309,7 +351,7 @@ watch(() => hotelStore.hotelId, () => {
                   <Users class="w-4 h-4" />
                 </div>
               </div>
-              <StaffActivityWidget :activities="dashboard?.staffActivity" />
+              <StaffActivityWidget :activities="ensureArray(dashboard?.staffActivity)" />
             </div>
 
             <!-- Maintenance Alerts Widget -->
@@ -320,7 +362,7 @@ watch(() => hotelStore.hotelId, () => {
                   <AlertTriangle class="w-4 h-4" />
                 </div>
               </div>
-              <MaintenanceAlerts :alerts="dashboard?.maintenanceAlerts" />
+              <MaintenanceAlerts :alerts="ensureArray(dashboard?.maintenanceAlerts)" />
             </div>
           </div>
         </div>

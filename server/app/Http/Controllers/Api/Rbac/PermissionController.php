@@ -8,6 +8,7 @@ use App\Models\RbacAuditLog;
 use App\Services\AuthorizationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class PermissionController extends Controller
 {
@@ -18,16 +19,45 @@ class PermissionController extends Controller
         $this->authService = $authService;
     }
 
-    public function index()
+    /**
+     * Get all catalog permissions, grouped by module.
+     * Cached with a 1-hour TTL for lightning-fast loads.
+     */
+    public function index(Request $request)
     {
-        $permissions = Permission::orderBy('module')->orderBy('name')->get();
+        $forceRefresh = $request->boolean('refresh') || $request->header('X-Refresh') === 'true';
+        if ($forceRefresh) {
+            Cache::forget('rbac_permissions_all');
+        }
 
-        $grouped = $permissions->groupBy('module');
+        $result = Cache::remember('rbac_permissions_all', 3600, function () {
+            $permissions = Permission::select([
+                'id',
+                'name',
+                'slug',
+                'module',
+                'action',
+                'description',
+                'is_active',
+                'created_at',
+                'updated_at',
+            ])
+            ->orderBy('module')
+            ->orderBy('name')
+            ->get();
+
+            $grouped = $permissions->groupBy('module');
+
+            return [
+                'data' => $permissions->toArray(),
+                'grouped' => $grouped->toArray(),
+            ];
+        });
 
         return response()->json([
             'success' => true,
-            'data' => $permissions,
-            'grouped' => $grouped,
+            'data' => $result['data'],
+            'grouped' => $result['grouped'],
         ]);
     }
 
@@ -75,7 +105,7 @@ class PermissionController extends Controller
             }
         }
 
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::forget('rbac_permissions_all');
 
         RbacAuditLog::log(
             $request->user()?->id,
@@ -139,7 +169,7 @@ class PermissionController extends Controller
             $permission->roles()->sync($validated['role_ids']);
         }
 
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::forget('rbac_permissions_all');
 
         RbacAuditLog::log(
             $request->user()?->id,
@@ -161,7 +191,7 @@ class PermissionController extends Controller
     {
         if ($permission->roles()->count() > 0) {
             $permission->update(['is_active' => false]);
-            \Illuminate\Support\Facades\Cache::flush();
+            Cache::forget('rbac_permissions_all');
 
             return response()->json([
                 'success' => true,
@@ -171,7 +201,7 @@ class PermissionController extends Controller
 
         $oldValues = $permission->toArray();
         $permission->delete();
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::forget('rbac_permissions_all');
 
         RbacAuditLog::log(
             $request->user()?->id,

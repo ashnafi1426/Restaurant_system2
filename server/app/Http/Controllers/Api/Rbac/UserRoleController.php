@@ -11,6 +11,7 @@ use App\Services\AuthorizationService;
 use App\Services\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use App\Models\UserPermission;
 
 class UserRoleController extends Controller
@@ -238,6 +239,11 @@ class UserRoleController extends Controller
             }
 
             $this->authService->invalidateUserCache($user->id, $hotelId);
+            if ($hotelId) {
+                Cache::forget("rbac_roles:{$hotelId}");
+                Cache::forget("rbac_active_roles:{$hotelId}");
+            }
+            Cache::forget('rbac_roles:platform');
 
             RbacAuditLog::log(
                 $currentUser?->id,
@@ -299,6 +305,11 @@ class UserRoleController extends Controller
             ->delete();
 
         $this->authService->invalidateUserCache($user->id, $hotelId);
+        if ($hotelId) {
+            Cache::forget("rbac_roles:{$hotelId}");
+            Cache::forget("rbac_active_roles:{$hotelId}");
+        }
+        Cache::forget('rbac_roles:platform');
 
         RbacAuditLog::log(
             $request->user()?->id,

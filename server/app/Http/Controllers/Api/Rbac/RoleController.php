@@ -14,6 +14,7 @@ use App\Services\TenantRoleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class RoleController extends Controller
 {
@@ -25,7 +26,20 @@ class RoleController extends Controller
         $this->authService = $authService;
         $this->tenantRoleService = $tenantRoleService;
     }
-    
+
+    /**
+     * Invalidate cached role queries for a tenant or platform
+     */
+    protected function invalidateRoleCaches(?string $hotelId = null): void
+    {
+        if ($hotelId) {
+            Cache::forget("rbac_roles:{$hotelId}");
+            Cache::forget("rbac_active_roles:{$hotelId}");
+        }
+        Cache::forget('rbac_roles:platform');
+        Cache::forget('rbac_active_roles:platform');
+        Cache::forget('rbac_active_roles:public');
+    }
 
     /**
      * Resolve the current authorized hotel ID for this request.
@@ -78,117 +92,170 @@ class RoleController extends Controller
 
         return null;
     }
+
+    /**
+     * Display a listing of the roles for the current hotel or platform.
+     * Cached with high-performance query execution and eager-loaded relations.
+     */
     public function index(Request $request)
     {
         $hotelId = $this->resolveHotelId($request);
         $user = $request->user();
 
-        // Ensure default roles exist for this hotel if newly created (only if no roles exist yet)
-        if ($hotelId) {
-            $hasRoles = Role::withoutTenant()->where('hotel_id', $hotelId)->exists();
-            if (!$hasRoles) {
-                $hotel = Hotel::find($hotelId);
-                if ($hotel) {
-                    $this->tenantRoleService->provisionRolesForHotel($hotel);
-                }
-            }
-        }
-
-        $query = Role::withoutTenant()
-            ->with(['permissions:id,name,slug,module,action'])
-            ->withCount(['permissions']);
-        if ($hotelId) {
-            $query->where('hotel_id', $hotelId);
-        } elseif ($user && $user->isPlatformAdmin()) {
-            // Super admin can see global template roles or filter by hotel
-            if ($request->filled('hotel_id')) {
-                $query->where('hotel_id', $request->input('hotel_id'));
-            }
-        } else {
+        if (!$hotelId && (!$user || !$user->isPlatformAdmin())) {
             return response()->json([
                 'success' => false,
                 'message' => 'Access Denied: Hotel context required.',
             ], 403);
         }
 
-        $roles = $query->orderBy('name')->get();
+        $effectiveHotelId = $hotelId ?: ($user && $user->isPlatformAdmin() ? $request->input('hotel_id') : null);
+        $cacheKey = 'rbac_roles:' . ($effectiveHotelId ?: 'platform');
 
-        // Calculate users count per role within this hotel context in optimized aggregate batches
-        if ($hotelId && $roles->isNotEmpty()) {
-            $userRoleCounts = DB::table('user_roles')
-                ->where('hotel_id', $hotelId)
-                ->whereIn('role_id', $roles->pluck('id'))
-                ->select('role_id', DB::raw('count(*) as aggregate'))
-                ->groupBy('role_id')
-                ->pluck('aggregate', 'role_id');
-
-            $hotelUserCountsByRoleId = DB::table('hotel_users')
-                ->where('hotel_id', $hotelId)
-                ->whereIn('role_id', $roles->pluck('id'))
-                ->select('role_id', DB::raw('count(*) as aggregate'))
-                ->groupBy('role_id')
-                ->pluck('aggregate', 'role_id');
-
-            $roleSlugs = $roles->pluck('slug')->filter()->map(fn($s) => strtolower(trim($s)))->unique()->values();
-
-            $hotelUserCountsBySlug = DB::table('hotel_users')
-                ->where('hotel_id', $hotelId)
-                ->whereIn(DB::raw('LOWER(role)'), $roleSlugs)
-                ->select(DB::raw('LOWER(role) as slug'), DB::raw('count(*) as aggregate'))
-                ->groupBy(DB::raw('LOWER(role)'))
-                ->pluck('aggregate', 'slug');
-
-            $roles->transform(function ($role) use ($userRoleCounts, $hotelUserCountsByRoleId, $hotelUserCountsBySlug) {
-                $roleId = $role->id;
-                $slug = strtolower($role->slug ?? '');
-
-                $count = $userRoleCounts[$roleId]
-                    ?? $hotelUserCountsByRoleId[$roleId]
-                    ?? $hotelUserCountsBySlug[$slug]
-                    ?? 0;
-
-                $role->users_count = (int) $count;
-                return $role;
-            });
+        if ($request->boolean('refresh') || $request->header('X-Refresh') === 'true') {
+            Cache::forget($cacheKey);
         }
+
+        // Cache role list for 10 minutes (600 seconds)
+        $rolesData = Cache::remember($cacheKey, 600, function () use ($effectiveHotelId) {
+            // Ensure default roles exist for this hotel if newly created (only check if provisioning needed)
+            if ($effectiveHotelId) {
+                $hasRoles = Role::withoutTenant()->where('hotel_id', $effectiveHotelId)->exists();
+                if (!$hasRoles) {
+                    $hotel = Hotel::find($effectiveHotelId);
+                    if ($hotel) {
+                        $this->tenantRoleService->provisionRolesForHotel($hotel);
+                    }
+                }
+            }
+
+            // Prune columns and eager load permissions with selected attributes to eliminate N+1 and memory overhead
+            $query = Role::withoutTenant()
+                ->select([
+                    'id',
+                    'hotel_id',
+                    'name',
+                    'display_name',
+                    'slug',
+                    'description',
+                    'is_system',
+                    'is_active',
+                    'created_at',
+                    'updated_at',
+                ])
+                ->with(['permissions:id,name,slug,module,action'])
+                ->withCount(['permissions']);
+
+            if ($effectiveHotelId) {
+                $query->where('hotel_id', $effectiveHotelId);
+            }
+
+            $roles = $query->orderBy('name')->get();
+
+            // Calculate users count per role within this hotel context in optimized aggregate batches
+            if ($effectiveHotelId && $roles->isNotEmpty()) {
+                $roleIds = $roles->pluck('id')->all();
+
+                $userRoleCounts = DB::table('user_roles')
+                    ->where('hotel_id', $effectiveHotelId)
+                    ->whereIn('role_id', $roleIds)
+                    ->select('role_id', DB::raw('count(*) as aggregate'))
+                    ->groupBy('role_id')
+                    ->pluck('aggregate', 'role_id');
+
+                $hotelUserCountsByRoleId = DB::table('hotel_users')
+                    ->where('hotel_id', $effectiveHotelId)
+                    ->whereIn('role_id', $roleIds)
+                    ->select('role_id', DB::raw('count(*) as aggregate'))
+                    ->groupBy('role_id')
+                    ->pluck('aggregate', 'role_id');
+
+                $roleSlugs = $roles->pluck('slug')->filter()->map(fn($s) => strtolower(trim($s)))->unique()->values()->all();
+
+                $hotelUserCountsBySlug = DB::table('hotel_users')
+                    ->where('hotel_id', $effectiveHotelId)
+                    ->whereIn('role', $roleSlugs)
+                    ->select('role as slug', DB::raw('count(*) as aggregate'))
+                    ->groupBy('role')
+                    ->pluck('aggregate', 'slug');
+
+                $roles->transform(function ($role) use ($userRoleCounts, $hotelUserCountsByRoleId, $hotelUserCountsBySlug) {
+                    $roleId = $role->id;
+                    $slug = strtolower($role->slug ?? '');
+
+                    $count = $userRoleCounts[$roleId]
+                        ?? $hotelUserCountsByRoleId[$roleId]
+                        ?? $hotelUserCountsBySlug[$slug]
+                        ?? 0;
+
+                    $role->users_count = (int) $count;
+                    return $role;
+                });
+            }
+
+            // Convert to native array to guarantee fast and reliable cache serialization
+            return $roles->toArray();
+        });
 
         return response()->json([
             'success' => true,
             'hotel_id' => $hotelId,
-            'data' => $roles,
+            'data' => $rolesData,
         ]);
     }
 
     /**
      * Get list of active roles for dynamic UI options in the current hotel.
+     * Cached with high-performance retrieval.
      */
     public function getActiveRoles(Request $request)
     {
         $hotelId = $this->resolveHotelId($request);
         $user = $request->user();
 
-        $query = Role::withoutTenant()
-            ->where('is_active', true)
-            ->with(['permissions:id,name,slug,module,action'])
-            ->withCount(['permissions']);
+        $effectiveHotelId = $hotelId ?: ($user && $user->isPlatformAdmin() ? $request->input('hotel_id') : null);
+        $cacheKey = 'rbac_active_roles:' . ($effectiveHotelId ?: ($user ? 'platform' : 'public'));
 
-        if ($hotelId) {
-            $query->where('hotel_id', $hotelId);
-        } elseif ($user && $user->isPlatformAdmin()) {
-            if ($request->filled('hotel_id')) {
-                $query->where('hotel_id', $request->input('hotel_id'));
-            }
-        } else {
-            // Fallback for public registration / unauthenticated: return standard system template roles
-            $query->whereNull('hotel_id')->orWhere('is_system', true);
+        if ($request->boolean('refresh') || $request->header('X-Refresh') === 'true') {
+            Cache::forget($cacheKey);
         }
 
-        $roles = $query->orderBy('name')->get();
+        $rolesData = Cache::remember($cacheKey, 600, function () use ($user, $effectiveHotelId) {
+            $query = Role::withoutTenant()
+                ->select([
+                    'id',
+                    'hotel_id',
+                    'name',
+                    'display_name',
+                    'slug',
+                    'description',
+                    'is_system',
+                    'is_active',
+                    'created_at',
+                    'updated_at',
+                ])
+                ->where('is_active', true)
+                ->with(['permissions:id,name,slug,module,action'])
+                ->withCount(['permissions']);
+
+            if ($effectiveHotelId) {
+                $query->where('hotel_id', $effectiveHotelId);
+            } elseif ($user && $user->isPlatformAdmin()) {
+                // Platform admin can see all active roles
+            } else {
+                // Fallback for public registration / unauthenticated: return standard system template roles
+                $query->where(function ($q) {
+                    $q->whereNull('hotel_id')->orWhere('is_system', true);
+                });
+            }
+
+            return $query->orderBy('name')->get()->toArray();
+        });
 
         return response()->json([
             'success' => true,
             'hotel_id' => $hotelId,
-            'data' => $roles,
+            'data' => $rolesData,
         ]);
     }
 
@@ -261,6 +328,9 @@ class RoleController extends Controller
 
             DB::commit();
 
+            // Invalidate cached role listings immediately
+            $this->invalidateRoleCaches($hotelId);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Role created successfully for hotel',
@@ -291,6 +361,7 @@ class RoleController extends Controller
             'data' => $role,
         ]);
     }
+
     public function update(Request $request, Role $role)
     {
         if ($denied = $this->verifyRoleAccess($role, $request)) {
@@ -326,6 +397,7 @@ class RoleController extends Controller
         $role->update($updateData);
 
         $this->authService->invalidateRoleCache($role);
+        $this->invalidateRoleCaches($role->hotel_id);
 
         RbacAuditLog::log(
             $request->user()?->id,
@@ -342,6 +414,7 @@ class RoleController extends Controller
             'data' => $role->load(['permissions']),
         ]);
     }
+
     public function destroy(Request $request, Role $role)
     {
         if ($denied = $this->verifyRoleAccess($role, $request)) {
@@ -366,9 +439,12 @@ class RoleController extends Controller
         }
 
         $oldValues = $role->toArray();
+        $hotelId = $role->hotel_id;
         $this->authService->invalidateRoleCache($role);
 
         $role->delete();
+
+        $this->invalidateRoleCaches($hotelId);
 
         RbacAuditLog::log(
             $request->user()?->id,
@@ -386,7 +462,7 @@ class RoleController extends Controller
     }
 
     /**
-     * Get all permission IDs assigned to a role.
+     * Get all permission IDs assigned to a role. Cached for swift modal display.
      */
     public function getPermissions(Request $request, Role $role)
     {
@@ -394,15 +470,39 @@ class RoleController extends Controller
             return $denied;
         }
 
-        $permissions = $role->permissions;
+        $cacheKey = "rbac_role_perms:{$role->id}";
+        if ($request->boolean('refresh')) {
+            Cache::forget($cacheKey);
+        }
+
+        $data = Cache::remember($cacheKey, 600, function () use ($role) {
+            $permissions = $role->permissions()
+                ->select([
+                    'permissions.id',
+                    'permissions.name',
+                    'permissions.slug',
+                    'permissions.module',
+                    'permissions.action',
+                    'permissions.description',
+                    'permissions.is_active',
+                ])
+                ->get();
+
+            return [
+                'data' => $permissions->toArray(),
+                'permission_ids' => $permissions->pluck('id')->all(),
+            ];
+        });
+
         return response()->json([
             'success' => true,
             'role_id' => $role->id,
             'hotel_id' => $role->hotel_id,
-            'data' => $permissions,
-            'permission_ids' => $permissions->pluck('id'),
+            'data' => $data['data'],
+            'permission_ids' => $data['permission_ids'],
         ]);
     }
+
     public function syncPermissions(Request $request, Role $role)
     {
         // 1. Enforce strict hotel ownership check
@@ -422,6 +522,8 @@ class RoleController extends Controller
 
         // 3. Invalidate role cache strictly for users in this hotel
         $this->authService->invalidateRoleCache($role);
+        Cache::forget("rbac_role_perms:{$role->id}");
+        $this->invalidateRoleCaches($role->hotel_id);
 
         RbacAuditLog::log(
             $request->user()?->id,

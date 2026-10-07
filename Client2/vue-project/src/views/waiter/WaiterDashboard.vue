@@ -21,7 +21,7 @@
           <div class="flex items-center gap-2">
             <button 
               type="button"
-              @click="loadDashboard"
+              @click="loadDashboard(true)"
               :disabled="loading"
               class="px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-slate-200 dark:border-slate-800 shadow-xs disabled:opacity-50 cursor-pointer"
             >
@@ -31,8 +31,8 @@
           </div>
         </div>
 
-        <!-- Skeleton Loader - Shows immediately while data loads -->
-        <div v-if="loading" class="space-y-6">
+        <!-- Skeleton Loader - Shows immediately only if no cached data exists -->
+        <div v-if="loading && !recentAssignments.length && !activeDelivery && !stats.todayDeliveries" class="space-y-6">
           <!-- Stats Cards Skeleton -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <SkeletonLoaders v-for="i in 4" :key="i" type="stat-card" />
@@ -338,6 +338,40 @@ const showDetailModal = ref(false)
 const selectedOrder = ref<any | null>(null)
 const showBelowFold = ref(false)
 
+const getCacheKey = () => `waiter_dashboard_cache_${hotelStore.hotelId || 'default'}`
+
+const restoreCachedData = () => {
+  try {
+    const cached = localStorage.getItem(getCacheKey())
+    if (cached) {
+      const parsed = JSON.parse(cached)
+      if (parsed && typeof parsed === 'object') {
+        if (parsed.today_stats) {
+          const ts = parsed.today_stats
+          stats.value = {
+            todayDeliveries: ts.completed_deliveries ?? 0,
+            pendingDeliveries: ts.pending_assignments ?? 0,
+            onDelivery: ts.on_delivery_count ?? 0,
+            avgDeliveryTime: Math.round(ts.average_delivery_time ?? 0),
+          }
+        }
+        if (parsed.active_delivery) {
+          activeDelivery.value = parsed.active_delivery
+        } else if (Array.isArray(parsed.recent_assignments)) {
+          const currentOnDelivery = parsed.recent_assignments.find((a: any) => a.status === 'on_delivery' || a.status === 'picked_up')
+          if (currentOnDelivery) {
+            activeDelivery.value = currentOnDelivery
+          }
+        }
+        // Cached data allows instant paint with no blocking skeleton
+        loading.value = false
+      }
+    }
+  } catch (e) {
+    // Ignore cache parse error
+  }
+}
+
 const toggleMenu = (id: string | number) => {
   const key = String(id)
   activeMenuId.value = activeMenuId.value === key ? null : key
@@ -353,12 +387,18 @@ const handleOutsideClick = () => {
   activeMenuId.value = null
 }
 
-const loadDashboard = async () => {
+const loadDashboard = async (isManualRefresh = false) => {
   try {
-    loading.value = true
+    // Only show skeleton if we don't have any cached or current data
+    if (!recentAssignments.value.length && !activeDelivery.value && !stats.value.todayDeliveries) {
+      loading.value = true
+    }
     error.value = null
 
-    const dashboardData = await waiterService.getDashboard({ hotel_id: hotelStore.hotelId })
+    const dashboardData = await waiterService.getDashboard({
+      hotel_id: hotelStore.hotelId,
+      ...(isManualRefresh ? { refresh: 'true' } : {})
+    })
 
     if (dashboardData && dashboardData.today_stats) {
       const ts = dashboardData.today_stats
@@ -370,31 +410,36 @@ const loadDashboard = async () => {
       }
     }
 
-    // Use recent_assignments from dashboard data instead of making a separate API call
+    // Use recent_assignments and active_delivery from single dashboard response
     recentAssignments.value = dashboardData.recent_assignments || []
 
-    const currentOnDelivery = recentAssignments.value.find((a: any) => a.status === 'on_delivery' || a.status === 'picked_up')
-    if (currentOnDelivery) {
-      activeDelivery.value = currentOnDelivery
-    }
-    
-    // Defer below-fold content rendering to improve LCP
-    setTimeout(() => {
-      showBelowFold.value = true
-    }, 0)
+    activeDelivery.value = dashboardData.active_delivery ||
+      recentAssignments.value.find((a: any) => a.status === 'on_delivery' || a.status === 'picked_up') ||
+      null
+
+    // Cache latest dashboard response for instant paint on next visit
+    try {
+      localStorage.setItem(getCacheKey(), JSON.stringify(dashboardData))
+    } catch (e) {}
+
+    showBelowFold.value = true
   } catch (err: any) {
     console.error('[WaiterDashboard] Error loading dashboard:', err)
-    error.value = err.message || 'Failed to load dashboard'
+    if (!recentAssignments.value.length) {
+      error.value = err.message || 'Failed to load dashboard'
+    }
   } finally {
     loading.value = false
   }
 }
 
 watch(() => hotelStore.hotelId, () => {
+  restoreCachedData()
   loadDashboard()
 })
 
 onMounted(() => {
+  restoreCachedData()
   loadDashboard()
   window.addEventListener('click', handleOutsideClick)
 })

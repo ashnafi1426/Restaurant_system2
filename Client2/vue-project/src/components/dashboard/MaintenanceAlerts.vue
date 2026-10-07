@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { MaintenanceAlert } from '../../types/dashboard'
 import { useLanguageStore } from '../../stores/language'
 
@@ -6,8 +7,19 @@ interface Props {
   alerts?: MaintenanceAlert[]
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   alerts: () => [],
+})
+
+const safeAlerts = computed<MaintenanceAlert[]>(() => {
+  const raw = props.alerts
+  const list = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.values(raw) : [])
+  return list
+    .filter((a: any) => a && typeof a === 'object' && (a.title || a.description))
+    .map((a: any) => ({
+      ...a,
+      severity: (a.severity || 'medium').toLowerCase(),
+    }))
 })
 
 const languageStore = useLanguageStore()
@@ -58,7 +70,7 @@ const getSeverityIcon = (severity: string) => {
       </button>
     </div>
 
-    <div v-if="alerts.length === 0" class="text-center py-16">
+    <div v-if="safeAlerts.length === 0" class="text-center py-16">
       <div
         class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4"
       >
@@ -77,7 +89,7 @@ const getSeverityIcon = (severity: string) => {
 
     <div v-else class="space-y-3 sm:space-y-4">
       <div
-        v-for="alert in alerts"
+        v-for="alert in safeAlerts"
         :key="alert.id"
         :class="[
           getSeverityColor(alert.severity),
@@ -143,7 +155,7 @@ const getSeverityIcon = (severity: string) => {
                   'text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap',
                 ]"
               >
-                {{ languageStore.t(alert.severity, alert.severity.charAt(0).toUpperCase() + alert.severity.slice(1)) }}
+                {{ languageStore.t(alert.severity, ((alert.severity || 'medium').charAt(0).toUpperCase() + (alert.severity || 'medium').slice(1))) }}
               </span>
             </div>
 

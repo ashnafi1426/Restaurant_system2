@@ -18,7 +18,7 @@ class WaiterAssignmentService
         string $floorId,
         string $shiftId,
         string $priority = 'primary',
-        string $managerId = null
+        ?string $managerId = null
     ): WaiterFloorAssignment {
         try {
             DB::beginTransaction();
@@ -80,6 +80,7 @@ class WaiterAssignmentService
                 ['assignment_date', '=', now()->toDateString()],
                 ['status', '=', 'active'],
             ])
+            ->with(['waiter.user'])
             ->orderBy('priority', 'asc')
             ->get();
 
@@ -113,7 +114,7 @@ class WaiterAssignmentService
             ['assignment_date', '=', now()->toDateString()],
             ['status', '=', 'active'],
         ])
-        ->with('waiter')
+        ->with(['waiter.user'])
         ->orderBy('priority', 'asc')
         ->get();
         return $assignments
@@ -130,7 +131,7 @@ class WaiterAssignmentService
         string $floorId,
         string $shiftId,
         array $deliveryData,
-        string $managerId = null
+        ?string $managerId = null
     ): ?DeliveryTask {
         try {
             DB::beginTransaction();
@@ -178,8 +179,8 @@ class WaiterAssignmentService
     public function reassignDelivery(
         string $deliveryTaskId,
         string $newWaiterId,
-        string $reason = null,
-        string $managerId = null
+        ?string $reason = null,
+        ?string $managerId = null
     ): bool {
         try {
             DB::beginTransaction();
@@ -231,7 +232,7 @@ class WaiterAssignmentService
             ->count();
     }
 
-    public function deactivateWaiterAssignments(string $waiterId, string $reason = null): int
+    public function deactivateWaiterAssignments(string $waiterId, ?string $reason = null): int
     {
         return WaiterFloorAssignment::where('waiter_id', $waiterId)
             ->where('status', '!=', 'completed')
@@ -246,7 +247,7 @@ class WaiterAssignmentService
             ['shift_id', '=', $shiftId],
             ['assignment_date', '=', now()->toDateString()],
         ])
-        ->with('waiter')
+        ->with(['waiter.user'])
         ->get();
 
         return [
@@ -259,13 +260,13 @@ class WaiterAssignmentService
         ];
     }
 
-    public function getWaiterAssignments(int|string $waiterId = null, array $filters = [], int $perPage = 10)
+    public function getWaiterAssignments(int|string|null $waiterId = null, array $filters = [], int $perPage = 10)
     {
         $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
         $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
         $query = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
-            ->with(['order', 'order.guest', 'floor', 'assignedBy']);
+            ->with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy']);
 
         if ($hotelId) {
             $query->where(function ($q) use ($hotelId) {
@@ -295,17 +296,17 @@ class WaiterAssignmentService
 
     public function getAssignment(string $id): DeliveryTask
     {
-        return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->findOrFail($id);
+        return DeliveryTask::with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy'])->findOrFail($id);
     }
 
-    public function getPendingAssignments(int|string $waiterId = null)
+    public function getPendingAssignments(int|string|null $waiterId = null)
     {
         $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
         $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
         $query = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
             ->whereIn('status', ['assigned', 'waiting_assignment'])
-            ->with(['order', 'order.guest', 'floor']);
+            ->with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy']);
 
         if ($hotelId) {
             $query->where(function ($q) use ($hotelId) {
@@ -321,14 +322,14 @@ class WaiterAssignmentService
         return $query->get();
     }
 
-    public function getActiveAssignments(int|string $waiterId = null)
+    public function getActiveAssignments(int|string|null $waiterId = null)
     {
         $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
         $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
         $query = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
             ->whereIn('status', ['accepted', 'picked_up', 'on_delivery'])
-            ->with(['order', 'order.guest', 'floor']);
+            ->with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy']);
 
         if ($hotelId) {
             $query->where(function ($q) use ($hotelId) {
@@ -344,14 +345,14 @@ class WaiterAssignmentService
         return $query->get();
     }
 
-    public function getTodayAssignments(int|string $waiterId = null)
+    public function getTodayAssignments(int|string|null $waiterId = null)
     {
         $hotelId = app(\App\Services\TenantContext::class)->getHotelId();
         $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
         $query = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
             ->whereDate('assigned_at', today())
-            ->with(['order', 'order.guest', 'floor']);
+            ->with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy']);
 
         if ($hotelId) {
             $query->where(function ($q) use ($hotelId) {
@@ -410,7 +411,7 @@ class WaiterAssignmentService
             $task->update(['status' => 'accepted', 'accepted_at' => now()]);
         }
         
-        return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
+        return DeliveryTask::with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy'])->find($task->id);
     }
 
     public function rejectAssignment(string $id, int|string $waiterId, ?string $reason): DeliveryTask
@@ -421,7 +422,7 @@ class WaiterAssignmentService
         }
         $task->cancel($reason ?? 'Rejected by Staff');
         
-        return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
+        return DeliveryTask::with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy'])->find($task->id);
     }
 
     public function pickupOrder(string $id, int|string $waiterId): DeliveryTask
@@ -484,7 +485,7 @@ class WaiterAssignmentService
             if ($task->order) {
                 $task->order->update(['status' => 'on_delivery']);
             }
-            return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
+            return DeliveryTask::with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy'])->find($task->id);
         } catch (\Exception $e) {
             \Log::error(' [SERVICE] Error in pickup workflow', [
                 'task_id' => $task->id,
@@ -517,7 +518,7 @@ class WaiterAssignmentService
             $task->order->update(['status' => 'on_delivery']);
         }
         
-        return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
+        return DeliveryTask::with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy'])->find($task->id);
     }
 
     public function deliverOrder(string $id, int|string $waiterId, ?string $remarks): DeliveryTask
@@ -537,7 +538,7 @@ class WaiterAssignmentService
             $task->order->update(['status' => 'delivered']);
         }
         
-        return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
+        return DeliveryTask::with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy'])->find($task->id);
     }
 
     public function failDelivery(string $id, int|string $waiterId, string $reason, ?string $remarks): DeliveryTask
@@ -556,7 +557,7 @@ class WaiterAssignmentService
         if ($task->order) {
             $task->order->update(['status' => 'cancelled']);
         }
-        return DeliveryTask::with(['order', 'order.guest', 'floor', 'assignedBy'])->find($task->id);
+        return DeliveryTask::with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy'])->find($task->id);
     }
 
     public function getDeliveryHistory(int|string $waiterId, array $filters = [], int $perPage = 15)

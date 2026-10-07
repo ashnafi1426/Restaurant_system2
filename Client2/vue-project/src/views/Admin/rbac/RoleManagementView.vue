@@ -124,7 +124,34 @@ const getRoleIcon = (slugOrName: string) => {
   return User
 }
 
-const fetchRolesAndPermissions = async (silent = false) => {
+const getClientCacheKey = () => `rbac_roles_cache_${hotelStore.hotelId || 'default'}`
+
+const loadFromClientCache = (): boolean => {
+  try {
+    const raw = localStorage.getItem(getClientCacheKey())
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        roles.value = parsed
+        loading.value = false
+        return true
+      }
+    }
+  } catch (e) {
+    // Ignore JSON parse error
+  }
+  return false
+}
+
+const saveToClientCache = (data: Role[]) => {
+  try {
+    localStorage.setItem(getClientCacheKey(), JSON.stringify(data))
+  } catch (e) {
+    // Ignore storage quota error
+  }
+}
+
+const fetchRolesAndPermissions = async (silent = false, forceServerRefresh = false) => {
   if (!silent && roles.value.length === 0) {
     loading.value = true
   } else {
@@ -134,16 +161,19 @@ const fetchRolesAndPermissions = async (silent = false) => {
 
   try {
     // 1. Fetch roles fast & display them immediately so page renders with zero wait time
-    const rolesData = await rbacService.getRoles()
-    roles.value = rolesData || []
+    const rolesData = await rbacService.getRoles({ refresh: forceServerRefresh })
+    if (Array.isArray(rolesData)) {
+      roles.value = rolesData
+      saveToClientCache(rolesData)
+    }
 
     // Immediately stop page-level loading state
     loading.value = false
     isRefreshing.value = false
 
     // 2. Pre-fetch permissions in the background so modals & filters are snappy
-    if (permissions.value.length === 0) {
-      rbacService.getPermissions()
+    if (permissions.value.length === 0 || forceServerRefresh) {
+      rbacService.getPermissions({ refresh: forceServerRefresh })
         .then(permsData => {
           if (permsData?.data) permissions.value = permsData.data
         })
@@ -196,7 +226,8 @@ const toggleSelectRole = (id: string | number) => {
 
 onMounted(async () => {
   document.addEventListener('click', handleGlobalClick)
-  await fetchRolesAndPermissions()
+  const hasCached = loadFromClientCache()
+  await fetchRolesAndPermissions(hasCached, false)
 })
 
 onUnmounted(() => {
@@ -212,7 +243,8 @@ watch(
     if (newVal && newVal !== oldVal && oldVal !== undefined) {
       lastHotelId = newVal
       userSummaries.value = [] // Invalidate previous hotel users cache
-      await fetchRolesAndPermissions(true)
+      const hasCached = loadFromClientCache()
+      await fetchRolesAndPermissions(hasCached, false)
     }
   }
 )
@@ -370,6 +402,7 @@ const toggleRoleActive = async (role: Role) => {
   try {
     await rbacService.updateRole(role.id, { is_active: targetState })
     role.is_active = targetState
+    saveToClientCache(roles.value)
     successMessage.value = `Role "${role.name}" is now ${targetState ? 'active' : 'inactive'}.`
     setTimeout(() => { successMessage.value = '' }, 3500)
   } catch (err: any) {
@@ -410,7 +443,7 @@ const handleSaveRole = async (payload: { name: string; description: string; is_a
     }
 
     showModal.value = false
-    await fetchRolesAndPermissions()
+    await fetchRolesAndPermissions(true, true)
     setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
     console.error('[RoleManagement] Save role error:', err)
@@ -439,7 +472,7 @@ const confirmDeleteRole = async () => {
     successMessage.value = `Role "${roleToDelete.value.name}" deleted successfully.`
     showDeleteModal.value = false
     roleToDelete.value = null
-    await fetchRolesAndPermissions()
+    await fetchRolesAndPermissions(true, true)
     setTimeout(() => { successMessage.value = '' }, 3500)
   } catch (err: any) {
     console.error('[RoleManagement] Delete role error:', err)
@@ -582,7 +615,7 @@ const navigateToUserAssignments = () => {
           <!-- Refresh Button -->
           <button
             type="button"
-            @click="fetchRolesAndPermissions(false)"
+            @click="fetchRolesAndPermissions(false, true)"
             :disabled="loading || isRefreshing"
             :title="languageStore.t('refresh', 'Refresh')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
