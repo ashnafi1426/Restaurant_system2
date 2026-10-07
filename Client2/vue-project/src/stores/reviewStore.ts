@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
 import reviewService from '@/services/reviewService'
 import type {
   Review,
@@ -10,330 +11,361 @@ import type {
   EligibleMenuItem,
 } from '@/types/review'
 
-export interface ReviewState {
-  guestReviews: Review[]
-  selectedReview: Review | null
-  guestReviewsLoading: boolean
+export const useReviewStore = defineStore('review', () => {
+  // Guest reviews
+  const guestReviews = ref<Review[]>([])
+  const selectedReview = ref<Review | null>(null)
+  const guestReviewsLoading = ref(false)
 
-  publicReviews: PublicReview[]
-  publicReviewsLoading: boolean
-  currentPublicPage: number
-  currentPublicSort: 'recent' | 'helpful'
+  // Public reviews
+  const publicReviews = ref<PublicReview[]>([])
+  const publicReviewsLoading = ref(false)
+  const currentPublicPage = ref(1)
+  const currentPublicSort = ref<'recent' | 'helpful'>('recent')
 
-  pendingReviews: Review[]
-  approvedReviews: Review[]
-  rejectedReviews: Review[]
-  moderationLoading: boolean
-  pendingCount: number
+  // Moderation
+  const pendingReviews = ref<Review[]>([])
+  const approvedReviews = ref<Review[]>([])
+  const rejectedReviews = ref<Review[]>([])
+  const moderationLoading = ref(false)
+  const pendingCount = ref(0)
 
-  notifications: ReviewNotification[]
-  unreadNotificationCount: number
-  notificationsLoading: boolean
+  // Notifications
+  const notifications = ref<ReviewNotification[]>([])
+  const unreadNotificationCount = ref(0)
+  const notificationsLoading = ref(false)
 
-  eligibleItems: EligibleMenuItem[]
-  eligibleItemsLoading: boolean
+  // Eligible items
+  const eligibleItems = ref<EligibleMenuItem[]>([])
+  const eligibleItemsLoading = ref(false)
 
-  reviewStats: Record<string, ReviewStats>
-  topRatedItems: TopRatedItem[]
-  lowestRatedItems: TopRatedItem[]
-  reviewTrends: ReviewTrend[]
-  analyticsLoading: boolean
-}
+  // Analytics
+  const reviewStats = ref<Record<string, ReviewStats>>({})
+  const topRatedItems = ref<TopRatedItem[]>([])
+  const lowestRatedItems = ref<TopRatedItem[]>([])
+  const reviewTrends = ref<ReviewTrend[]>([])
+  const analyticsLoading = ref(false)
 
-export const useReviewStore = defineStore('review', {
-  state: (): ReviewState => ({
-    guestReviews: [],
-    selectedReview: null,
-    guestReviewsLoading: false,
+  // Getters
+  const overallAverageRating = computed(() => {
+    const stats = Object.values(reviewStats.value)
+    if (stats.length === 0) return 0
+    const sum = stats.reduce((acc, stat) => acc + (stat.average_rating || 0), 0)
+    return sum / stats.length
+  })
 
-    publicReviews: [],
-    publicReviewsLoading: false,
-    currentPublicPage: 1,
-    currentPublicSort: 'recent',
+  const totalReviewCount = computed(() => {
+    return Object.values(reviewStats.value).reduce((sum, stat) => sum + stat.total_reviews, 0)
+  })
 
-    pendingReviews: [],
-    approvedReviews: [],
-    rejectedReviews: [],
-    moderationLoading: false,
-    pendingCount: 0,
+  const reviewCountByStatus = computed<Record<string, number>>(() => ({
+    pending: pendingReviews.value.length,
+    approved: approvedReviews.value.length,
+    rejected: rejectedReviews.value.length,
+  }))
 
-    notifications: [],
-    unreadNotificationCount: 0,
-    notificationsLoading: false,
+  const getHelpfulnessRatio = computed(() => (reviewId: string) => {
+    const review = [...guestReviews.value, ...publicReviews.value].find((r) => r.id === reviewId)
+    if (!review) return 0
+    const total = (review.helpful_count || 0) + (review.not_helpful_count || 0)
+    return total === 0 ? 0 : (review.helpful_count || 0) / total
+  })
 
-    eligibleItems: [],
-    eligibleItemsLoading: false,
+  // Actions - Guest Reviews
+  async function submitReview(guestId: string, orderId: string, menuItemId: string, rating: number, reviewText?: string) {
+    guestReviewsLoading.value = true
+    try {
+      const review = await reviewService.createReview({
+        guest_id: guestId,
+        order_id: orderId,
+        menu_item_id: menuItemId,
+        rating,
+        review_text: reviewText,
+      })
+      guestReviews.value.push(review)
+      return review
+    } finally {
+      guestReviewsLoading.value = false
+    }
+  }
 
-    reviewStats: {},
-    topRatedItems: [],
-    lowestRatedItems: [],
-    reviewTrends: [],
-    analyticsLoading: false,
-  }),
-
-  getters: {
-    overallAverageRating(): number {
-      if (Object.keys(this.reviewStats).length === 0) return 0
-      const stats = Object.values(this.reviewStats)
-      const sum = stats.reduce((acc, stat) => acc + (stat.average_rating || 0), 0)
-      return sum / stats.length
-    },
-
-    totalReviewCount(): number {
-      return Object.values(this.reviewStats).reduce((sum, stat) => sum + stat.total_reviews, 0)
-    },
-
-    reviewCountByStatus(): Record<string, number> {
-      return {
-        pending: this.pendingReviews.length,
-        approved: this.approvedReviews.length,
-        rejected: this.rejectedReviews.length,
+  async function fetchGuestReview(reviewId: string) {
+    guestReviewsLoading.value = true
+    try {
+      const review = await reviewService.getReview(reviewId)
+      const index = guestReviews.value.findIndex((r) => r.id === reviewId)
+      if (index > -1) {
+        guestReviews.value[index] = review
+      } else {
+        guestReviews.value.push(review)
       }
-    },
+      selectedReview.value = review
+      return review
+    } finally {
+      guestReviewsLoading.value = false
+    }
+  }
 
-    getHelpfulnessRatio: () => (reviewId: string) => {
-      const review = [...this.guestReviews, ...this.publicReviews].find(r => r.id === reviewId)
-      if (!review) return 0
-      const total = review.helpful_count + review.not_helpful_count
-      return total === 0 ? 0 : review.helpful_count / total
-    },
-  },
-
-  actions: {
-    async submitReview(guestId: string, orderId: string, menuItemId: string, rating: number, reviewText?: string) {
-      this.guestReviewsLoading = true
-      try {
-        const review = await reviewService.createReview({
-          guest_id: guestId,
-          order_id: orderId,
-          menu_item_id: menuItemId,
-          rating,
-          review_text: reviewText,
-        })
-        this.guestReviews.push(review)
-        return review
-      } finally {
-        this.guestReviewsLoading = false
+  async function updateGuestReview(reviewId: string, rating: number, reviewText?: string) {
+    guestReviewsLoading.value = true
+    try {
+      const review = await reviewService.updateReview(reviewId, { rating, review_text: reviewText })
+      const index = guestReviews.value.findIndex((r) => r.id === reviewId)
+      if (index > -1) {
+        guestReviews.value[index] = review
       }
-    },
+      return review
+    } finally {
+      guestReviewsLoading.value = false
+    }
+  }
 
-    async fetchGuestReview(reviewId: string) {
-      this.guestReviewsLoading = true
-      try {
-        const review = await reviewService.getReview(reviewId)
-        const index = this.guestReviews.findIndex(r => r.id === reviewId)
-        if (index > -1) {
-          this.guestReviews[index] = review
-        } else {
-          this.guestReviews.push(review)
-        }
-        this.selectedReview = review
-        return review
-      } finally {
-        this.guestReviewsLoading = false
+  async function deleteGuestReview(reviewId: string) {
+    guestReviewsLoading.value = true
+    try {
+      await reviewService.deleteReview(reviewId)
+      guestReviews.value = guestReviews.value.filter((r) => r.id !== reviewId)
+    } finally {
+      guestReviewsLoading.value = false
+    }
+  }
+
+  // Actions - Public Reviews
+  async function fetchPublicReviews(menuItemId: string, page: number = 1, sort: 'recent' | 'helpful' = 'recent') {
+    publicReviewsLoading.value = true
+    try {
+      const data = await reviewService.getPublicReviews(menuItemId, page, 10, sort)
+      publicReviews.value = (data.data as PublicReview[]) || []
+      currentPublicPage.value = page
+      currentPublicSort.value = sort
+    } finally {
+      publicReviewsLoading.value = false
+    }
+  }
+
+  async function voteReview(
+    reviewId: string,
+    action: (id: string, payload: any) => Promise<any>,
+    guestId?: string,
+    ipAddress?: string
+  ) {
+    try {
+      const result = await action(reviewId, { guest_id: guestId, ip_address: ipAddress })
+      const review = publicReviews.value.find((r) => r.id === reviewId)
+      if (review) {
+        review.helpful_count = result.helpful_count
+        review.not_helpful_count = result.not_helpful_count
+        review.helpfulness_ratio =
+          result.helpful_count / (result.helpful_count + result.not_helpful_count || 1)
       }
-    },
+      return result
+    } catch (error) {
+      console.error('[ReviewStore] Error voting on review:', error)
+      throw error
+    }
+  }
 
-    async updateGuestReview(reviewId: string, rating: number, reviewText?: string) {
-      this.guestReviewsLoading = true
-      try {
-        const review = await reviewService.updateReview(reviewId, { rating, review_text: reviewText })
-        const index = this.guestReviews.findIndex(r => r.id === reviewId)
-        if (index > -1) {
-          this.guestReviews[index] = review
-        }
-        return review
-      } finally {
-        this.guestReviewsLoading = false
+  function voteHelpful(reviewId: string, guestId?: string, ipAddress?: string) {
+    return voteReview(reviewId, reviewService.voteHelpful, guestId, ipAddress)
+  }
+
+  function voteNotHelpful(reviewId: string, guestId?: string, ipAddress?: string) {
+    return voteReview(reviewId, reviewService.voteNotHelpful, guestId, ipAddress)
+  }
+
+  // Actions - Moderation
+  async function fetchModeratorReviews(status?: 'pending' | 'approved' | 'rejected', page: number = 1) {
+    moderationLoading.value = true
+    try {
+      const data = await reviewService.listReviewsForModeration(status, page, 15)
+      const reviews = (data.data as Review[]) || []
+
+      pendingReviews.value = reviews.filter((r) => r.status === 'pending')
+      approvedReviews.value = reviews.filter((r) => r.status === 'approved')
+      rejectedReviews.value = reviews.filter((r) => r.status === 'rejected')
+      pendingCount.value = pendingReviews.value.length
+    } finally {
+      moderationLoading.value = false
+    }
+  }
+
+  async function moderateReview(
+    reviewId: string,
+    action: (id: string) => Promise<Review>,
+    targetList: typeof approvedReviews
+  ) {
+    moderationLoading.value = true
+    try {
+      const review = await action(reviewId)
+      const index = pendingReviews.value.findIndex((r) => r.id === reviewId)
+      if (index > -1) {
+        pendingReviews.value.splice(index, 1)
+        targetList.value.push(review)
       }
-    },
+      pendingCount.value = Math.max(0, pendingCount.value - 1)
+      return review
+    } finally {
+      moderationLoading.value = false
+    }
+  }
 
-    async deleteGuestReview(reviewId: string) {
-      this.guestReviewsLoading = true
-      try {
-        await reviewService.deleteReview(reviewId)
-        this.guestReviews = this.guestReviews.filter(r => r.id !== reviewId)
-      } finally {
-        this.guestReviewsLoading = false
+  function approveReview(reviewId: string) {
+    return moderateReview(reviewId, reviewService.approveReview, approvedReviews)
+  }
+
+  function rejectReview(reviewId: string) {
+    return moderateReview(reviewId, reviewService.rejectReview, rejectedReviews)
+  }
+
+  async function deleteReviewAsAdmin(reviewId: string) {
+    moderationLoading.value = true
+    try {
+      await reviewService.deleteReviewAsAdmin(reviewId)
+      approvedReviews.value = approvedReviews.value.filter((r) => r.id !== reviewId)
+      rejectedReviews.value = rejectedReviews.value.filter((r) => r.id !== reviewId)
+      pendingReviews.value = pendingReviews.value.filter((r) => r.id !== reviewId)
+    } finally {
+      moderationLoading.value = false
+    }
+  }
+
+  // Actions - Notifications
+  async function fetchNotifications(page: number = 1) {
+    notificationsLoading.value = true
+    try {
+      const data = await reviewService.getReviewNotifications(page, 10)
+      notifications.value = (data.data as ReviewNotification[]) || []
+      unreadNotificationCount.value = await reviewService.getUnreadNotificationCount()
+    } finally {
+      notificationsLoading.value = false
+    }
+  }
+
+  async function markNotificationAsRead(notificationId: string) {
+    try {
+      await reviewService.markNotificationAsRead(notificationId)
+      const notification = notifications.value.find((n) => n.id === notificationId)
+      if (notification && !notification.is_read) {
+        notification.is_read = true
+        unreadNotificationCount.value = Math.max(0, unreadNotificationCount.value - 1)
       }
-    },
+    } catch (err: any) {
+      console.error('[ReviewStore] Error marking notification as read:', err)
+    }
+  }
 
-    async fetchPublicReviews(menuItemId: string, page: number = 1, sort: 'recent' | 'helpful' = 'recent') {
-      this.publicReviewsLoading = true
-      try {
-        const data = await reviewService.getPublicReviews(menuItemId, page, 10, sort)
-        this.publicReviews = (data.data as PublicReview[]) || []
-        this.currentPublicPage = page
-        this.currentPublicSort = sort
-      } finally {
-        this.publicReviewsLoading = false
-      }
-    },
+  // Actions - Eligible Items
+  async function fetchEligibleItems(guestId: string) {
+    eligibleItemsLoading.value = true
+    try {
+      eligibleItems.value = await reviewService.getEligibleItems(guestId)
+    } finally {
+      eligibleItemsLoading.value = false
+    }
+  }
 
-    async voteHelpful(reviewId: string, guestId?: string, ipAddress?: string) {
-      try {
-        const result = await reviewService.voteHelpful(reviewId, { guest_id: guestId, ip_address: ipAddress })
-        const review = this.publicReviews.find(r => r.id === reviewId)
-        if (review) {
-          review.helpful_count = result.helpful_count
-          review.not_helpful_count = result.not_helpful_count
-          review.helpfulness_ratio = review.helpful_count / (review.helpful_count + review.not_helpful_count)
-        }
-      } catch (error) {
-        console.error('[ReviewStore] Error voting helpful:', error)
-        throw error
-      }
-    },
+  // Actions - Analytics
+  async function fetchMenuItemStats(menuItemId: string) {
+    analyticsLoading.value = true
+    try {
+      const stats = await reviewService.getMenuItemStats(menuItemId)
+      reviewStats.value[menuItemId] = stats
+      return stats
+    } finally {
+      analyticsLoading.value = false
+    }
+  }
 
-    async voteNotHelpful(reviewId: string, guestId?: string, ipAddress?: string) {
-      try {
-        const result = await reviewService.voteNotHelpful(reviewId, { guest_id: guestId, ip_address: ipAddress })
-        const review = this.publicReviews.find(r => r.id === reviewId)
-        if (review) {
-          review.helpful_count = result.helpful_count
-          review.not_helpful_count = result.not_helpful_count
-          review.helpfulness_ratio = review.helpful_count / (review.helpful_count + review.not_helpful_count)
-        }
-      } catch (error) {
-        console.error('[ReviewStore] Error voting not helpful:', error)
-        throw error
-      }
-    },
+  async function fetchAnalyticsData(period: 'daily' | 'weekly' | 'monthly' = 'daily') {
+    analyticsLoading.value = true
+    try {
+      const [topRated, lowestRated, trends] = await Promise.all([
+        reviewService.getTopRatedItems(5, 10),
+        reviewService.getLowestRatedItems(5, 10),
+        reviewService.getReviewTrends(period),
+      ])
 
-    async fetchModeratorReviews(status?: 'pending' | 'approved' | 'rejected', page: number = 1) {
-      this.moderationLoading = true
-      try {
-        const data = await reviewService.listReviewsForModeration(status, page, 15)
-        const reviews = (data.data as Review[]) || []
+      topRatedItems.value = topRated
+      lowestRatedItems.value = lowestRated
+      reviewTrends.value = trends
+    } finally {
+      analyticsLoading.value = false
+    }
+  }
 
-        this.pendingReviews = reviews.filter(r => r.status === 'pending')
-        this.approvedReviews = reviews.filter(r => r.status === 'approved')
-        this.rejectedReviews = reviews.filter(r => r.status === 'rejected')
+  // Reset helpers
+  function clearGuestReviews() {
+    guestReviews.value = []
+    selectedReview.value = null
+  }
 
-        this.pendingCount = this.pendingReviews.length
-      } finally {
-        this.moderationLoading = false
-      }
-    },
+  function clearPublicReviews() {
+    publicReviews.value = []
+    currentPublicPage.value = 1
+  }
 
-    async approveReview(reviewId: string) {
-      this.moderationLoading = true
-      try {
-        const review = await reviewService.approveReview(reviewId)
-        const index = this.pendingReviews.findIndex(r => r.id === reviewId)
-        if (index > -1) {
-          this.pendingReviews.splice(index, 1)
-          this.approvedReviews.push(review)
-        }
-        this.pendingCount = Math.max(0, this.pendingCount - 1)
-        return review
-      } finally {
-        this.moderationLoading = false
-      }
-    },
+  function clearNotifications() {
+    notifications.value = []
+    unreadNotificationCount.value = 0
+  }
 
-    async rejectReview(reviewId: string) {
-      this.moderationLoading = true
-      try {
-        const review = await reviewService.rejectReview(reviewId)
-        const index = this.pendingReviews.findIndex(r => r.id === reviewId)
-        if (index > -1) {
-          this.pendingReviews.splice(index, 1)
-          this.rejectedReviews.push(review)
-        }
-        this.pendingCount = Math.max(0, this.pendingCount - 1)
-        return review
-      } finally {
-        this.moderationLoading = false
-      }
-    },
+  return {
+    guestReviews,
+    selectedReview,
+    guestReviewsLoading,
 
-    async deleteReviewAsAdmin(reviewId: string) {
-      this.moderationLoading = true
-      try {
-        await reviewService.deleteReviewAsAdmin(reviewId)
-        this.approvedReviews = this.approvedReviews.filter(r => r.id !== reviewId)
-        this.rejectedReviews = this.rejectedReviews.filter(r => r.id !== reviewId)
-        this.pendingReviews = this.pendingReviews.filter(r => r.id !== reviewId)
-      } finally {
-        this.moderationLoading = false
-      }
-    },
+    publicReviews,
+    publicReviewsLoading,
+    currentPublicPage,
+    currentPublicSort,
 
-    async fetchNotifications(page: number = 1) {
-      this.notificationsLoading = true
-      try {
-        const data = await reviewService.getReviewNotifications(page, 10)
-        this.notifications = (data.data as ReviewNotification[]) || []
-        this.unreadNotificationCount = await reviewService.getUnreadNotificationCount()
-      } finally {
-        this.notificationsLoading = false
-      }
-    },
+    pendingReviews,
+    approvedReviews,
+    rejectedReviews,
+    moderationLoading,
+    pendingCount,
 
-    async markNotificationAsRead(notificationId: string) {
-      try {
-        await reviewService.markNotificationAsRead(notificationId)
-        const notification = this.notifications.find(n => n.id === notificationId)
-        if (notification && !notification.is_read) {
-          notification.is_read = true
-          this.unreadNotificationCount = Math.max(0, this.unreadNotificationCount - 1)
-        }
-      } catch (err: any) {
-        console.error('[ReviewStore] Error marking notification as read:', err)
-      }
-    },
+    notifications,
+    unreadNotificationCount,
+    notificationsLoading,
 
-    async fetchEligibleItems(guestId: string) {
-      this.eligibleItemsLoading = true
-      try {
-        this.eligibleItems = await reviewService.getEligibleItems(guestId)
-      } finally {
-        this.eligibleItemsLoading = false
-      }
-    },
+    eligibleItems,
+    eligibleItemsLoading,
 
-    async fetchMenuItemStats(menuItemId: string) {
-      this.analyticsLoading = true
-      try {
-        const stats = await reviewService.getMenuItemStats(menuItemId)
-        this.reviewStats[menuItemId] = stats
-        return stats
-      } finally {
-        this.analyticsLoading = false
-      }
-    },
+    reviewStats,
+    topRatedItems,
+    lowestRatedItems,
+    reviewTrends,
+    analyticsLoading,
 
-    async fetchAnalyticsData(period: 'daily' | 'weekly' | 'monthly' = 'daily') {
-      this.analyticsLoading = true
-      try {
-        const [topRated, lowestRated, trends] = await Promise.all([
-          reviewService.getTopRatedItems(5, 10),
-          reviewService.getLowestRatedItems(5, 10),
-          reviewService.getReviewTrends(period),
-        ])
+    overallAverageRating,
+    totalReviewCount,
+    reviewCountByStatus,
+    getHelpfulnessRatio,
 
-        this.topRatedItems = topRated
-        this.lowestRatedItems = lowestRated
-        this.reviewTrends = trends
-      } finally {
-        this.analyticsLoading = false
-      }
-    },
+    submitReview,
+    fetchGuestReview,
+    updateGuestReview,
+    deleteGuestReview,
 
-    clearGuestReviews() {
-      this.guestReviews = []
-      this.selectedReview = null
-    },
+    fetchPublicReviews,
+    voteHelpful,
+    voteNotHelpful,
 
-    clearPublicReviews() {
-      this.publicReviews = []
-      this.currentPublicPage = 1
-    },
+    fetchModeratorReviews,
+    approveReview,
+    rejectReview,
+    deleteReviewAsAdmin,
 
-    clearNotifications() {
-      this.notifications = []
-      this.unreadNotificationCount = 0
-    },
-  },
+    fetchNotifications,
+    markNotificationAsRead,
+
+    fetchEligibleItems,
+    fetchMenuItemStats,
+    fetchAnalyticsData,
+
+    clearGuestReviews,
+    clearPublicReviews,
+    clearNotifications,
+  }
 })

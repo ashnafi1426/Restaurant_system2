@@ -19,8 +19,23 @@ import type {
   RevenueChartItem,
   OccupancyChartItem,
   Waiter,
-  WaiterStatus
+  WaiterStatus,
 } from '@/types/manager'
+
+function createEmptyDashboardStats() {
+  return {
+    totalReservations: 0,
+    todayCheckIns: 0,
+    todayCheckOuts: 0,
+    availableRooms: 0,
+    occupiedRooms: 0,
+    totalRooms: 0,
+    activeStaff: 0,
+    todayRevenue: 0,
+    preparingOrders: 0,
+    completedOrders: 0,
+  }
+}
 
 export const useManagerStore = defineStore('manager', () => {
   const dashboard = ref<ManagerDashboardResponse | null>(null)
@@ -39,19 +54,7 @@ export const useManagerStore = defineStore('manager', () => {
   const activities = ref<RecentActivity[]>([])
   const waiters = ref<Waiter[]>([])
 
-  const dashboardStats = ref({
-    totalReservations: 0,
-    todayCheckIns: 0,
-    todayCheckOuts: 0,
-    availableRooms: 0,
-    occupiedRooms: 0,
-    totalRooms: 0,
-    activeStaff: 0,
-    todayRevenue: 0,
-    preparingOrders: 0,
-    completedOrders: 0,
-  })
-
+  const dashboardStats = ref(createEmptyDashboardStats())
   const dashboardActivities = ref<any[]>([])
 
   const loading = ref(false)
@@ -333,7 +336,7 @@ export const useManagerStore = defineStore('manager', () => {
   }
 
   async function initializeFullManager() {
-    await Promise.all([
+    await Promise.allSettled([
       loadDashboard(),
       loadStatistics(),
       loadRevenueSummary(),
@@ -371,18 +374,7 @@ export const useManagerStore = defineStore('manager', () => {
     notifications.value = []
     activities.value = []
     waiters.value = []
-    dashboardStats.value = {
-      totalReservations: 0,
-      todayCheckIns: 0,
-      todayCheckOuts: 0,
-      availableRooms: 0,
-      occupiedRooms: 0,
-      totalRooms: 0,
-      activeStaff: 0,
-      todayRevenue: 0,
-      preparingOrders: 0,
-      completedOrders: 0,
-    }
+    dashboardStats.value = createEmptyDashboardStats()
     dashboardActivities.value = []
     error.value = null
     dashboardError.value = null
