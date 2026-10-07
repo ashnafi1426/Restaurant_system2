@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import api from '../api/auth'
-import type { User, LoginResponse } from '../types/auth'
+import api from '@/api/auth'
+import type { User, LoginResponse } from '@/types/auth'
 
 export interface RoleInfo {
   id?: string | number
@@ -26,38 +26,23 @@ export interface AuthState {
   isInitialized: boolean
 }
 
+const loadStorage = <T>(key: string, fallback: T): T => {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : fallback
+  } catch {
+    return fallback
+  }
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('token'))
-
-  const savedUserRaw = localStorage.getItem('user')
-  let parsedUser: any = null
-  if (savedUserRaw) {
-    try {
-      parsedUser = JSON.parse(savedUserRaw)
-    } catch (e) {
-      console.error('[AuthStore] Error parsing stored user JSON:', e)
-      parsedUser = null
-    }
-  }
-  const user = ref<any>(parsedUser)
-
-  const savedHotelRaw = localStorage.getItem('current_hotel')
-  let parsedHotel: CurrentHotelContext | null = null
-  if (savedHotelRaw) {
-    try {
-      parsedHotel = JSON.parse(savedHotelRaw)
-    } catch (e) {
-      console.error('[AuthStore] Error parsing stored hotel JSON:', e)
-      parsedHotel = null
-    }
-  }
-  const currentHotel = ref<CurrentHotelContext | null>(parsedHotel)
-
+  const user = ref<any>(loadStorage<any>('user', null))
+  const currentHotel = ref<CurrentHotelContext | null>(loadStorage<CurrentHotelContext | null>('current_hotel', null))
   const isInitialized = ref<boolean>(false)
 
   const isAuthenticated = computed<boolean>(() => Boolean(token.value && user.value))
-
-  const mustChangePassword = computed<boolean>(() => false)
+  const mustChangePassword = computed<boolean>(() => Boolean(user.value?.must_change_password))
 
   const isPlatformAdmin = computed<boolean>(() => {
     if (!user.value) return false
@@ -134,7 +119,7 @@ export const useAuthStore = defineStore('auth', () => {
     return false
   }
 
-  const hasPermission = (permissionSlug: string): boolean => can(permissionSlug)
+  const hasPermission = can
 
   const canAny = (permissionSlugs: string[]): boolean => {
     if (!permissionSlugs || permissionSlugs.length === 0) return true
@@ -142,7 +127,7 @@ export const useAuthStore = defineStore('auth', () => {
     return permissionSlugs.some((perm) => can(perm))
   }
 
-  const hasAnyPermission = (permissionSlugs: string[]): boolean => canAny(permissionSlugs)
+  const hasAnyPermission = canAny
 
   const canAll = (permissionSlugs: string[]): boolean => {
     if (!permissionSlugs || permissionSlugs.length === 0) return true
@@ -150,7 +135,7 @@ export const useAuthStore = defineStore('auth', () => {
     return permissionSlugs.every((perm) => can(perm))
   }
 
-  const hasAllPermissions = (permissionSlugs: string[]): boolean => canAll(permissionSlugs)
+  const hasAllPermissions = canAll
 
   const hasRole = (roleSlug: string): boolean => {
     if (!roleSlug) return false

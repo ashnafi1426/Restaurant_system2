@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import DashboardLayout from '../../Layouts/DashboardLayout.vue'
-import MonthlyRevenueChart from '../../components/dashboard/MonthlyRevenueChart.vue'
-import RoomStatusChart from '../../components/dashboard/RoomStatusChart.vue'
-import RecentReservationsTable from '../../components/dashboard/RecentReservationsTable.vue'
-import StaffActivityWidget from '../../components/dashboard/StaffActivityWidget.vue'
-import MaintenanceAlerts from '../../components/dashboard/MaintenanceAlerts.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import MonthlyRevenueChart from '@/components/dashboard/MonthlyRevenueChart.vue'
+import RoomStatusChart from '@/components/dashboard/RoomStatusChart.vue'
+import RecentReservationsTable from '@/components/dashboard/RecentReservationsTable.vue'
+import StaffActivityWidget from '@/components/dashboard/StaffActivityWidget.vue'
+import MaintenanceAlerts from '@/components/dashboard/MaintenanceAlerts.vue'
 
 import {
   RefreshCw,
@@ -21,11 +21,18 @@ import {
   TrendingUp
 } from 'lucide-vue-next'
 
-import { getDashboard } from '../../services/dashboardService'
-import type { DashboardData } from '../../types/dashboard'
-import { useAuthStore } from '../../stores/auth'
-import { useHotelStore } from '../../stores/hotelStore'
-import axios from '../../services/axios'
+import { getDashboard } from '@/services/dashboardService'
+import type { DashboardData } from '@/types/dashboard'
+import { useAuthStore } from '@/stores/auth'
+import { useHotelStore } from '@/stores/hotelStore'
+import axios from '@/services/axios'
+
+interface PlatformStatistics {
+  total_hotels?: number
+  active_hotels?: number
+  total_users?: number
+  total_rooms?: number
+}
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -35,7 +42,7 @@ const hotelStore = useHotelStore()
 const dashboard = ref<DashboardData | null>(null)
 const loading = ref<boolean>(true)
 const refreshing = ref<boolean>(false)
-const platformStats = ref<Record<string, any>>({})
+const platformStats = ref<PlatformStatistics>({})
 
 const getCacheKey = () => `admin_dashboard_cache_${hotelStore.hotelId || 'platform'}`
 
@@ -114,15 +121,13 @@ const formatRevenue = (value?: number): string => {
   return (value ?? 0).toLocaleString()
 }
 
-onMounted(() => {
+const initializeDashboard = () => {
   restoreCachedData()
   loadDashboard()
-})
+}
 
-watch(() => hotelStore.hotelId, () => {
-  restoreCachedData()
-  loadDashboard()
-})
+onMounted(initializeDashboard)
+watch(() => hotelStore.hotelId, initializeDashboard)
 </script>
 
 <template>

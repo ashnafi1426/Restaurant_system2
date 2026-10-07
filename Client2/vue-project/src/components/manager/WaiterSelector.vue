@@ -83,7 +83,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useManagerStore } from '../../stores/manager/waiterManagementStore'
 
 interface Props {
   modelValue?: (number | string)[] | number | string
@@ -113,7 +112,6 @@ const emit = defineEmits<{
   'update:modelValue': [value: (number | string)[] | number | string]
 }>()
 
-const store = useManagerStore()
 const loading = ref(false)
 const error = ref('')
 const waiters = ref<Waiter[]>([])

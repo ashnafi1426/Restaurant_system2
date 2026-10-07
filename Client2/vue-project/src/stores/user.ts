@@ -1,143 +1,154 @@
 import { defineStore } from 'pinia'
-import userService from '../services/userService'
-import type { User } from '../types/user'
+import { ref } from 'vue'
+import userService from '@/services/userService'
+import type { User } from '@/types/user'
 
-export const useUserStore = defineStore('user', {
-  state: () => ({
-    users: [] as User[],
-    user: null as User | null,
-    loading: false,
-    errors: {} as Record<string, string[]>,
-  }),
+export const useUserStore = defineStore('user', () => {
+  const users = ref<User[]>([])
+  const user = ref<User | null>(null)
+  const loading = ref(false)
+  const errors = ref<Record<string, string[]>>({})
 
-  actions: {
-    async fetchUsers(params: any = {}, forceRefresh = false) {
-      // If we already have users loaded, don't show full blocking spinner for background refresh
-      if (this.users.length === 0) {
-        this.loading = true
+  async function fetchUsers(params: any = {}, forceRefresh = false) {
+    if (users.value.length === 0) {
+      loading.value = true
+    }
+
+    try {
+      const queryParams = { ...params }
+      if (forceRefresh) {
+        queryParams.refresh = 1
+      }
+      const response = await userService.getUsers(queryParams)
+      users.value = response.data.data || []
+      return response.data
+    } catch (error) {
+      console.error('[UserStore] Error fetching users:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function fetchUser(id: string) {
+    loading.value = true
+    try {
+      const response = await userService.getUser(id)
+      user.value = response.data.data
+      return response.data
+    } catch (error) {
+      console.error('[UserStore] Error fetching user:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function createUser(userData: User) {
+    loading.value = true
+    errors.value = {}
+
+    try {
+      const response = await userService.createUser(userData)
+      return response.data
+    } catch (error: any) {
+      console.error('[UserStore] Error creating user:', error)
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        errors.value = error.response.data.errors
+      }
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function updateUser(id: string, userData: User) {
+    loading.value = true
+    errors.value = {}
+
+    try {
+      const payload = { ...userData }
+      if (!payload.password) {
+        delete payload.password
+        delete payload.password_confirmation
       }
 
-      try {
-        const queryParams = { ...params }
-        if (forceRefresh) {
-          queryParams.refresh = 1
-        }
-        const response = await userService.getUsers(queryParams)
-        this.users = response.data.data
-        return response.data
-      } catch (error) {
-        console.error('[UserStore] Error fetching users:', error)
-        throw error
-      } finally {
-        this.loading = false
+      const response = await userService.updateUser(id, payload)
+      const updated = response.data.data
+      user.value = updated
+
+      const index = users.value.findIndex((u) => u.id === id)
+      if (index !== -1) {
+        users.value[index] = updated
       }
-    },
 
-    async fetchUser(id: string) {
-      this.loading = true
-
-      try {
-        const response = await userService.getUser(id)
-        this.user = response.data.data
-        return response.data
-      } catch (error) {
-        console.error('[UserStore] Error fetching user:', error)
-        throw error
-      } finally {
-        this.loading = false
+      return response.data
+    } catch (error: any) {
+      console.error('[UserStore] Error updating user:', error)
+      if (error.response?.status === 422 && error.response?.data?.errors) {
+        errors.value = error.response.data.errors
       }
-    },
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
 
-    async createUser(user: User) {
-      this.loading = true
-      this.errors = {}
+  async function deleteUser(id: string) {
+    loading.value = true
+    try {
+      await userService.deleteUser(id)
+      users.value = users.value.filter((u) => u.id !== id)
+    } catch (error) {
+      console.error('[UserStore] Error deleting user:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
 
-      try {
-        const response = await userService.createUser(user)
-        return response.data
-      } catch (error: any) {
-        console.error('[UserStore] Error creating user:', error)
-        if (error.response?.status === 422) {
-          this.errors = error.response.data.errors
-        }
-        throw error
-      } finally {
-        this.loading = false
+  async function toggleStatus(id: string) {
+    try {
+      const response = await userService.toggleStatus(id)
+      const updatedUser = response.data.data
+
+      if (user.value?.id === id) {
+        user.value = updatedUser
       }
-    },
 
-    async updateUser(id: string, user: User) {
-      this.loading = true
-      this.errors = {}
-
-      try {
-        const userData = { ...user }
-        if (!userData.password) {
-          delete userData.password
-          delete userData.password_confirmation
-        }
-
-        const response = await userService.updateUser(id, userData)
-        this.user = response.data.data
-
-        const index = this.users.findIndex((u) => u.id === id)
-        if (index !== -1) {
-          this.users[index] = response.data.data
-        }
-
-        return response.data
-      } catch (error: any) {
-        console.error('[UserStore] Error updating user:', error)
-        if (error.response?.status === 422) {
-          this.errors = error.response.data.errors
-        }
-        throw error
-      } finally {
-        this.loading = false
+      const index = users.value.findIndex((u) => u.id === id)
+      if (index !== -1) {
+        users.value[index] = updatedUser
       }
-    },
 
-    async deleteUser(id: string) {
-      this.loading = true
+      return updatedUser
+    } catch (error) {
+      console.error('[UserStore] Error toggling user status:', error)
+      throw error
+    }
+  }
 
-      try {
-        await userService.deleteUser(id)
-        this.users = this.users.filter((user) => user.id !== id)
-      } catch (error) {
-        console.error('[UserStore] Error deleting user:', error)
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
+  function clearErrors() {
+    errors.value = {}
+  }
 
-    async toggleStatus(id: string) {
-      try {
-        const response = await userService.toggleStatus(id)
-        const updatedUser = response.data.data
+  function resetUser() {
+    user.value = null
+  }
 
-        if (this.user?.id === id) {
-          this.user = updatedUser
-        }
+  return {
+    users,
+    user,
+    loading,
+    errors,
 
-        const index = this.users.findIndex((user) => user.id === id)
-        if (index !== -1) {
-          this.users[index] = updatedUser
-        }
-
-        return updatedUser
-      } catch (error) {
-        console.error('[UserStore] Error toggling user status:', error)
-        throw error
-      }
-    },
-
-    clearErrors() {
-      this.errors = {}
-    },
-
-    resetUser() {
-      this.user = null
-    },
-  },
+    fetchUsers,
+    fetchUser,
+    createUser,
+    updateUser,
+    deleteUser,
+    toggleStatus,
+    clearErrors,
+    resetUser,
+  }
 })

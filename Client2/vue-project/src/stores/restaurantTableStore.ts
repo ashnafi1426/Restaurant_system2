@@ -10,21 +10,23 @@ import type {
   PaginatedTablesResponse,
 } from '@/types/restaurantTable'
 
+const DEFAULT_FILTERS: TableFilters = {
+  search: '',
+  status: '',
+  location: '',
+  is_active: null,
+  sort_by: 'table_number',
+  sort_order: 'asc',
+  per_page: 10,
+  page: 1,
+}
+
 export const useRestaurantTableStore = defineStore('restaurantTable', () => {
   const tables = ref<RestaurantTable[]>([])
   const currentTable = ref<RestaurantTable | null>(null)
   const statistics = ref<TableStatistics | null>(null)
   const pagination = ref<Omit<PaginatedTablesResponse, 'data'> | null>(null)
-  const filters = ref<TableFilters>({
-    search: '',
-    status: '',
-    location: '',
-    is_active: null,
-    sort_by: 'table_number',
-    sort_order: 'asc',
-    per_page: 10,
-    page: 1,
-  })
+  const filters = ref<TableFilters>({ ...DEFAULT_FILTERS })
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -84,18 +86,17 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
     }
   }
 
-  const createTable = async (data: CreateTableRequest) => {
+  async function withTableMutation<T>(action: () => Promise<T>, fallbackMessage: string): Promise<T> {
     loading.value = true
     error.value = null
 
     try {
-      const newTable = await restaurantTableService.createTable(data)
-      await fetchTables()
-      await fetchStatistics()
-      return newTable
+      const result = await action()
+      await Promise.all([fetchTables(), fetchStatistics()])
+      return result
     } catch (err: any) {
-      console.error('[RestaurantTableStore] Error creating table:', err)
-      error.value = err.response?.data?.message || err.message || 'Failed to create table'
+      console.error(`[RestaurantTableStore] ${fallbackMessage}:`, err)
+      error.value = err.response?.data?.message || err.message || fallbackMessage
 
       if (err.response?.data?.errors) {
         const validationError: any = new Error(err.response.data.message || 'Validation failed')
@@ -109,39 +110,25 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
     }
   }
 
-  const updateTable = async (id: string, data: UpdateTableRequest) => {
-    loading.value = true
-    error.value = null
+  const createTable = async (data: CreateTableRequest) => {
+    return withTableMutation(
+      () => restaurantTableService.createTable(data),
+      'Failed to create table'
+    )
+  }
 
-    try {
-      const updatedTable = await restaurantTableService.updateTable(id, data)
-      await fetchTables()
-      await fetchStatistics()
-      return updatedTable
-    } catch (err: any) {
-      console.error('[RestaurantTableStore] Error updating table:', err)
-      error.value = err.message || 'Failed to update table'
-      throw err
-    } finally {
-      loading.value = false
-    }
+  const updateTable = async (id: string, data: UpdateTableRequest) => {
+    return withTableMutation(
+      () => restaurantTableService.updateTable(id, data),
+      'Failed to update table'
+    )
   }
 
   const deleteTable = async (id: string) => {
-    loading.value = true
-    error.value = null
-
-    try {
-      await restaurantTableService.deleteTable(id)
-      await fetchTables()
-      await fetchStatistics()
-    } catch (err: any) {
-      console.error('[RestaurantTableStore] Error deleting table:', err)
-      error.value = err.message || 'Failed to delete table'
-      throw err
-    } finally {
-      loading.value = false
-    }
+    return withTableMutation(
+      () => restaurantTableService.deleteTable(id),
+      'Failed to delete table'
+    )
   }
 
   const regenerateQR = async (id: string) => {
@@ -164,8 +151,7 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
   const fetchStatistics = async () => {
     try {
       const response = await restaurantTableService.getStatistics()
-
-      if (response && response.data) {
+      if (response?.data) {
         statistics.value = response.data
       }
     } catch (err: any) {
@@ -178,16 +164,7 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
   }
 
   const resetFilters = () => {
-    filters.value = {
-      search: '',
-      status: '',
-      location: '',
-      is_active: null,
-      sort_by: 'table_number',
-      sort_order: 'asc',
-      per_page: 10,
-      page: 1,
-    }
+    filters.value = { ...DEFAULT_FILTERS }
   }
 
   const downloadQRCode = async (table: RestaurantTable) => {

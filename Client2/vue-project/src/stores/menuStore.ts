@@ -26,13 +26,25 @@ export const useMenuStore = defineStore('menu', () => {
   const saving = ref(false)
   const hasMenuItems = computed(() => menuItems.value.length > 0)
 
+  async function withSaving<T>(action: () => Promise<T>, errorMessage: string): Promise<T> {
+    saving.value = true
+    try {
+      return await action()
+    } catch (error) {
+      console.error(`[menuStore] ${errorMessage}:`, error)
+      throw error
+    } finally {
+      saving.value = false
+    }
+  }
+
   async function fetchMenuItems(filters: any = {}) {
     loading.value = true
     try {
       const response = await menuService.getMenus(filters)
-
       const raw = response.data
-      if (raw.data && Array.isArray(raw.data)) {
+
+      if (raw?.data && Array.isArray(raw.data)) {
         menuItems.value = raw.data
         const meta = raw.meta || raw.pagination || raw
         pagination.value = {
@@ -64,16 +76,17 @@ export const useMenuStore = defineStore('menu', () => {
       loading.value = false
     }
   }
+
   async function fetchStatistics() {
     try {
       const response = await menuService.statistics()
-
-      if (response.data.data) {
-        statistics.value = response.data.data
-      } else if (response.data.statistics) {
-        statistics.value = response.data.statistics
-      } else {
-        statistics.value = response.data
+      const data = response?.data
+      if (data?.data) {
+        statistics.value = data.data
+      } else if (data?.statistics) {
+        statistics.value = data.statistics
+      } else if (data) {
+        statistics.value = data
       }
     } catch (error) {
       console.error('[menuStore] Failed to fetch menu statistics:', error)
@@ -85,46 +98,33 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
-  async function createMenuItem(payload: any) {
-    saving.value = true
-    try {
-      await menuService.createMenu(payload)
-    } catch (error) {
-      console.error('[menuStore] Failed to create menu item:', error)
-      throw error
-    } finally {
-      saving.value = false
-    }
+  function createMenuItem(payload: any) {
+    return withSaving(() => menuService.createMenu(payload), 'Failed to create menu item')
   }
 
-  async function updateMenuItem(id: string, payload: any) {
-    saving.value = true
-    try {
-      await menuService.updateMenu(id, payload)
-    } catch (error) {
-      console.error('[menuStore] Failed to update menu item:', error)
-      throw error
-    } finally {
-      saving.value = false
-    }
+  function updateMenuItem(id: string, payload: any) {
+    return withSaving(() => menuService.updateMenu(id, payload), 'Failed to update menu item')
   }
 
-  async function deleteMenuItem(id: string) {
-    saving.value = true
-    try {
-      await menuService.deleteMenu(id)
-    } catch (error) {
-      console.error('[menuStore] Failed to delete menu item:', error)
-      throw error
-    } finally {
-      saving.value = false
-    }
+  function deleteMenuItem(id: string) {
+    return withSaving(async () => {
+      const res = await menuService.deleteMenu(id)
+      menuItems.value = menuItems.value.filter((m) => m.id !== id)
+      return res
+    }, 'Failed to delete menu item')
   }
 
   async function toggleAvailability(id: string) {
+    const item = menuItems.value.find((m) => m.id === id)
+    if (item) {
+      item.is_available = !item.is_available
+    }
     try {
-      await menuService.toggleStatus(id)
+      return await menuService.toggleStatus(id)
     } catch (error) {
+      if (item) {
+        item.is_available = !item.is_available
+      }
       console.error('[menuStore] Failed to toggle menu item availability:', error)
       throw error
     }

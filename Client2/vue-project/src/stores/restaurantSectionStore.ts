@@ -17,7 +17,7 @@ export const useRestaurantSectionStore = defineStore('restaurantSection', () => 
     error.value = null
     try {
       const data = await restaurantSectionService.getSections(activeOnly ? { is_active: true } : undefined)
-      sections.value = data
+      sections.value = data || []
       return data
     } catch (err: any) {
       console.error('[RestaurantSectionStore] Error fetching sections:', err)
@@ -28,52 +28,43 @@ export const useRestaurantSectionStore = defineStore('restaurantSection', () => 
     }
   }
 
-  const createSection = async (data: CreateSectionRequest) => {
+  async function withSectionMutation<T>(action: () => Promise<T>, fallbackMessage: string): Promise<T> {
     loading.value = true
     error.value = null
     try {
-      const response = await restaurantSectionService.createSection(data)
+      const result = await action()
       await fetchSections()
-      return response.data
+      return result
     } catch (err: any) {
-      console.error('[RestaurantSectionStore] Error creating section:', err)
-      error.value = err.response?.data?.message || err.message || 'Failed to create section'
+      console.error(`[RestaurantSectionStore] ${fallbackMessage}:`, err)
+      error.value = err.response?.data?.message || err.message || fallbackMessage
       throw err
     } finally {
       loading.value = false
     }
+  }
+
+  const createSection = async (data: CreateSectionRequest) => {
+    const response = await withSectionMutation(
+      () => restaurantSectionService.createSection(data),
+      'Failed to create section'
+    )
+    return response.data
   }
 
   const updateSection = async (id: string, data: UpdateSectionRequest) => {
-    loading.value = true
-    error.value = null
-    try {
-      const response = await restaurantSectionService.updateSection(id, data)
-      await fetchSections()
-      return response.data
-    } catch (err: any) {
-      console.error('[RestaurantSectionStore] Error updating section:', err)
-      error.value = err.response?.data?.message || err.message || 'Failed to update section'
-      throw err
-    } finally {
-      loading.value = false
-    }
+    const response = await withSectionMutation(
+      () => restaurantSectionService.updateSection(id, data),
+      'Failed to update section'
+    )
+    return response.data
   }
 
   const deleteSection = async (id: string) => {
-    loading.value = true
-    error.value = null
-    try {
-      const response = await restaurantSectionService.deleteSection(id)
-      await fetchSections()
-      return response
-    } catch (err: any) {
-      console.error('[RestaurantSectionStore] Error deleting section:', err)
-      error.value = err.response?.data?.message || err.message || 'Failed to delete section'
-      throw err
-    } finally {
-      loading.value = false
-    }
+    return withSectionMutation(
+      () => restaurantSectionService.deleteSection(id),
+      'Failed to delete section'
+    )
   }
 
   return {

@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import reservationService from '../services/reservationService'
+import reservationService from '@/services/reservationService'
 import type {
   Reservation,
   ReservationFilter,
   ReservationFormData,
   Pagination,
-} from '../types/reservation'
+} from '@/types/reservation'
 
 export const useReservationStore = defineStore('reservation', () => {
   const reservations = ref<Reservation[]>([])
@@ -26,7 +26,6 @@ export const useReservationStore = defineStore('reservation', () => {
 
     try {
       const response = await reservationService.getReservations(filters)
-
       reservations.value = response.data || response
 
       const meta = response.meta || {
@@ -55,10 +54,10 @@ export const useReservationStore = defineStore('reservation', () => {
 
   const fetchReservation = async (id: string) => {
     loading.value = true
-
     try {
       const response = await reservationService.getReservation(id)
       reservation.value = response.data
+      return response.data
     } finally {
       loading.value = false
     }
@@ -66,7 +65,6 @@ export const useReservationStore = defineStore('reservation', () => {
 
   const createReservation = async (data: ReservationFormData) => {
     loading.value = true
-
     try {
       return await reservationService.createReservation(data)
     } finally {
@@ -76,7 +74,6 @@ export const useReservationStore = defineStore('reservation', () => {
 
   const updateReservation = async (id: string, data: ReservationFormData) => {
     loading.value = true
-
     try {
       return await reservationService.updateReservation(id, data)
     } finally {
@@ -86,7 +83,6 @@ export const useReservationStore = defineStore('reservation', () => {
 
   const deleteReservation = async (id: string) => {
     loading.value = true
-
     try {
       return await reservationService.deleteReservation(id)
     } finally {
@@ -94,109 +90,45 @@ export const useReservationStore = defineStore('reservation', () => {
     }
   }
 
-  const confirmReservation = async (id: string) => {
+  /**
+   * Helper to execute status transitions with optimistic update and rollback on failure.
+   */
+  const executeStatusTransition = async (
+    id: string,
+    targetStatus: Reservation['status'],
+    serviceAction: (id: string) => Promise<any>
+  ) => {
+    const index = reservations.value.findIndex((r) => r.id === id)
+    if (index === -1) throw new Error('Reservation not found')
+
+    const previousStatus = reservations.value[index].status
+    reservations.value[index].status = targetStatus
+
     try {
-      const index = reservations.value.findIndex((r) => r.id === id)
-      if (index === -1) throw new Error('Reservation not found')
-
-      reservations.value[index].status = 'confirmed'
-
-      const response = await reservationService.confirmReservation(id)
+      const response = await serviceAction(id)
       const reservationData = response?.data || response
-
       if (reservationData) {
         reservations.value[index] = reservationData
       }
-
       return response
     } catch (error: any) {
-      console.error('[reservationStore] Failed to confirm reservation:', error)
-      const index = reservations.value.findIndex((r) => r.id === id)
-      if (index !== -1) {
-        reservations.value[index].status = 'pending'
-      }
-
+      console.error(`[reservationStore] Failed to change reservation status to ${targetStatus}:`, error)
+      reservations.value[index].status = previousStatus
       throw error
     }
   }
 
-  const checkInReservation = async (id: string) => {
-    try {
-      const index = reservations.value.findIndex((r) => r.id === id)
-      if (index === -1) throw new Error('Reservation not found')
+  const confirmReservation = (id: string) =>
+    executeStatusTransition(id, 'confirmed', reservationService.confirmReservation)
 
-      reservations.value[index].status = 'checked_in'
+  const checkInReservation = (id: string) =>
+    executeStatusTransition(id, 'checked_in', reservationService.checkInReservation)
 
-      const response = await reservationService.checkInReservation(id)
-      const reservationData = response?.data || response
+  const checkOutReservation = (id: string) =>
+    executeStatusTransition(id, 'checked_out', reservationService.checkOutReservation)
 
-      if (reservationData) {
-        reservations.value[index] = reservationData
-      }
-
-      return response
-    } catch (error: any) {
-      console.error('[reservationStore] Failed to check in reservation:', error)
-      const index = reservations.value.findIndex((r) => r.id === id)
-      if (index !== -1) {
-        reservations.value[index].status = 'confirmed'
-      }
-
-      throw error
-    }
-  }
-
-  const checkOutReservation = async (id: string) => {
-    try {
-      const index = reservations.value.findIndex((r) => r.id === id)
-      if (index === -1) throw new Error('Reservation not found')
-
-      reservations.value[index].status = 'checked_out'
-
-      const response = await reservationService.checkOutReservation(id)
-      const reservationData = response?.data || response
-
-      if (reservationData) {
-        reservations.value[index] = reservationData
-      }
-
-      return response
-    } catch (error: any) {
-      console.error('[reservationStore] Failed to check out reservation:', error)
-      const index = reservations.value.findIndex((r) => r.id === id)
-      if (index !== -1) {
-        reservations.value[index].status = 'checked_in'
-      }
-
-      throw error
-    }
-  }
-
-  const cancelReservationAction = async (id: string) => {
-    try {
-      const index = reservations.value.findIndex((r) => r.id === id)
-      if (index === -1) throw new Error('Reservation not found')
-
-      reservations.value[index].status = 'cancelled'
-
-      const response = await reservationService.cancelReservation(id)
-      const reservationData = response?.data || response
-
-      if (reservationData) {
-        reservations.value[index] = reservationData
-      }
-
-      return response
-    } catch (error: any) {
-      console.error('[reservationStore] Failed to cancel reservation:', error)
-      const index = reservations.value.findIndex((r) => r.id === id)
-      if (index !== -1) {
-        reservations.value[index].status = 'confirmed'
-      }
-
-      throw error
-    }
-  }
+  const cancelReservation = (id: string) =>
+    executeStatusTransition(id, 'cancelled', reservationService.cancelReservation)
 
   const checkAvailability = async (params: {
     check_in_date: string
@@ -221,8 +153,8 @@ export const useReservationStore = defineStore('reservation', () => {
     confirmReservation,
     checkInReservation,
     checkOutReservation,
-    cancelReservation: cancelReservationAction,
-    cancelReservationAction,
+    cancelReservation,
+    cancelReservationAction: cancelReservation,
     checkAvailability,
   }
 })

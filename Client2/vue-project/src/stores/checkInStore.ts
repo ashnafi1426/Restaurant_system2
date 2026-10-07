@@ -1,142 +1,147 @@
 import { defineStore } from 'pinia'
-
-import checkInService from '../services/checkInService'
-
+import { ref } from 'vue'
+import checkInService from '@/services/checkInService'
 import type { CheckIn, CheckInStatistics } from '@/types/checkIn'
-interface State {
-  checkIns: CheckIn[]
 
-  selectedCheckIn: CheckIn | null
-
-  statistics: CheckInStatistics
-
-  loading: boolean
-  error: string | null
-  pagination: {
-    current_page: number
-    total: number
-    per_page: number
-    last_page: number
-  }
+export interface CheckInPagination {
+  current_page: number
+  total: number
+  per_page: number
+  last_page: number
 }
 
-export const useCheckInStore = defineStore('checkIn', {
-  state: (): State => ({
-    checkIns: [],
+const DEFAULT_PAGINATION: CheckInPagination = {
+  current_page: 1,
+  total: 0,
+  per_page: 10,
+  last_page: 1,
+}
 
-    selectedCheckIn: null,
+const DEFAULT_STATISTICS: CheckInStatistics = {
+  total_check_ins: 0,
+  today_check_ins: 0,
+  active_guests: 0,
+  expected_today: 0,
+}
 
-    loading: false,
+export const useCheckInStore = defineStore('checkIn', () => {
+  // State
+  const checkIns = ref<CheckIn[]>([])
+  const selectedCheckIn = ref<CheckIn | null>(null)
+  const statistics = ref<CheckInStatistics>({ ...DEFAULT_STATISTICS })
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+  const pagination = ref<CheckInPagination>({ ...DEFAULT_PAGINATION })
 
-    error: null,
+  // Actions
+  async function fetchCheckIns(params = {}) {
+    loading.value = true
+    error.value = null
 
-    pagination: {
-      current_page: 1,
-      total: 0,
-      per_page: 10,
-      last_page: 1,
-    },
+    try {
+      const response = await checkInService.getAll(params)
+      const data = response?.data
 
-    statistics: {
-      total_check_ins: 0,
-
-      today_check_ins: 0,
-
-      active_guests: 0,
-
-      expected_today: 0,
-    },
-  }),
-
-  actions: {
-    async fetchCheckIns(params = {}) {
-      this.loading = true
-      this.error = null
-
-      try {
-        const response = await checkInService.getAll(params)
-
-        if (response.data && typeof response.data === 'object') {
-          if (response.data.data) {
-            this.checkIns = response.data.data
-            this.pagination = {
-              current_page: response.data.current_page || 1,
-              total: response.data.total || response.data.data.length,
-              per_page: response.data.per_page || 10,
-              last_page: response.data.last_page || 1,
-            }
-          } else if (Array.isArray(response.data)) {
-            this.checkIns = response.data
-            this.pagination.total = response.data.length
-          } else {
-            this.checkIns = [response.data]
-            this.pagination.total = 1
+      if (data && typeof data === 'object') {
+        if (Array.isArray(data.data)) {
+          checkIns.value = data.data
+          pagination.value = {
+            current_page: data.current_page || 1,
+            total: data.total || data.data.length,
+            per_page: data.per_page || 10,
+            last_page: data.last_page || 1,
+          }
+        } else if (Array.isArray(data)) {
+          checkIns.value = data
+          pagination.value = {
+            ...DEFAULT_PAGINATION,
+            total: data.length,
           }
         } else {
-          this.checkIns = []
-          this.pagination.total = 0
+          checkIns.value = [data]
+          pagination.value = {
+            ...DEFAULT_PAGINATION,
+            total: 1,
+          }
         }
-      } catch (error: any) {
-        console.error('[checkInStore] Failed to fetch check-ins:', error)
-        this.error = error.message || 'Failed to fetch check-ins'
-        this.checkIns = []
-      } finally {
-        this.loading = false
+      } else {
+        checkIns.value = []
+        pagination.value = { ...DEFAULT_PAGINATION }
       }
-    },
+    } catch (err: any) {
+      console.error('[checkInStore] Failed to fetch check-ins:', err)
+      error.value = err?.message || 'Failed to fetch check-ins'
+      checkIns.value = []
+    } finally {
+      loading.value = false
+    }
+  }
 
-    async fetchStatistics() {
-      try {
-        const response = await checkInService.getStatistics()
-        this.statistics = response.data
-      } catch (error: any) {
-        console.error('[checkInStore] Failed to fetch check-in statistics:', error)
+  async function fetchStatistics() {
+    try {
+      const response = await checkInService.getStatistics()
+      if (response?.data) {
+        statistics.value = response.data
       }
-    },
+    } catch (err: any) {
+      console.error('[checkInStore] Failed to fetch check-in statistics:', err)
+    }
+  }
 
-    async viewCheckIn(id: string) {
-      try {
-        const response = await checkInService.getById(id)
-        this.selectedCheckIn = response.data.data || response.data
-      } catch (error: any) {
-        console.error('[checkInStore] Failed to view check-in:', error)
-      }
-    },
+  async function viewCheckIn(id: string) {
+    try {
+      const response = await checkInService.getById(id)
+      selectedCheckIn.value = response?.data?.data || response?.data || null
+    } catch (err: any) {
+      console.error('[checkInStore] Failed to view check-in:', err)
+    }
+  }
 
-    async checkInGuest(reservationId: string) {
-      try {
-        await checkInService.checkIn(reservationId)
-        await this.fetchCheckIns()
-        await this.fetchStatistics()
-      } catch (error: any) {
-        console.error('[checkInStore] Failed to check in guest:', error)
-        this.error = error.message || 'Failed to check in guest'
-        throw error
-      }
-    },
+  async function refreshDataAfterMutation(action: () => Promise<any>, errorMessage: string) {
+    try {
+      await action()
+      await Promise.all([fetchCheckIns(), fetchStatistics()])
+    } catch (err: any) {
+      console.error(`[checkInStore] ${errorMessage}:`, err)
+      error.value = err?.message || errorMessage
+      throw err
+    }
+  }
 
-    async checkOutGuest(checkInId: string) {
-      try {
-        await checkInService.checkOut(checkInId)
-        await this.fetchCheckIns()
-        await this.fetchStatistics()
-      } catch (error: any) {
-        console.error('[checkInStore] Failed to check out guest:', error)
-        this.error = error.message || 'Failed to check out guest'
-        throw error
-      }
-    },
+  async function checkInGuest(reservationId: string) {
+    return refreshDataAfterMutation(
+      () => checkInService.checkIn(reservationId),
+      'Failed to check in guest'
+    )
+  }
 
-    async deleteCheckIn(id: string) {
-      try {
-        await checkInService.delete(id)
-        await this.fetchCheckIns()
-        await this.fetchStatistics()
-      } catch (error: any) {
-        console.error('[checkInStore] Failed to delete check-in:', error)
-        this.error = error.message || 'Failed to delete check-in'
-        throw error
-      }
-    },
-  },
+  async function checkOutGuest(checkInId: string) {
+    return refreshDataAfterMutation(
+      () => checkInService.checkOut(checkInId),
+      'Failed to check out guest'
+    )
+  }
+
+  async function deleteCheckIn(id: string) {
+    return refreshDataAfterMutation(
+      () => checkInService.delete(id),
+      'Failed to delete check-in'
+    )
+  }
+
+  return {
+    checkIns,
+    selectedCheckIn,
+    statistics,
+    loading,
+    error,
+    pagination,
+
+    fetchCheckIns,
+    fetchStatistics,
+    viewCheckIn,
+    checkInGuest,
+    checkOutGuest,
+    deleteCheckIn,
+  }
 })

@@ -133,30 +133,32 @@ export const useOrderStore = defineStore('order', () => {
     await fetchOrders()
   }
   function calculateStatistics(): void {
-    statistics.value.total_orders = orders.value.length
+    let pending = 0
+    let preparing = 0
+    let ready = 0
+    let served = 0
+    let cancelled = 0
+    let revenue = 0
 
-    statistics.value.pending_orders = orders.value.filter(
-      (order) => order.status === 'pending',
-    ).length
+    for (const order of orders.value) {
+      if (order.status === 'pending') pending++
+      else if (order.status === 'preparing') preparing++
+      else if (order.status === 'ready') ready++
+      else if (order.status === 'served') served++
+      else if (order.status === 'cancelled') cancelled++
 
-    statistics.value.preparing_orders = orders.value.filter(
-      (order) => order.status === 'preparing',
-    ).length
+      revenue += Number(order.total) || 0
+    }
 
-    statistics.value.ready_orders = orders.value.filter((order) => order.status === 'ready').length
-
-    statistics.value.served_orders = orders.value.filter(
-      (order) => order.status === 'served',
-    ).length
-
-    statistics.value.cancelled_orders = orders.value.filter(
-      (order) => order.status === 'cancelled',
-    ).length
-
-    statistics.value.total_revenue = orders.value.reduce(
-      (sum, order) => sum + Number(order.total),
-      0,
-    )
+    statistics.value = {
+      total_orders: orders.value.length,
+      pending_orders: pending,
+      preparing_orders: preparing,
+      ready_orders: ready,
+      served_orders: served,
+      cancelled_orders: cancelled,
+      total_revenue: revenue,
+    }
   }
   async function createOrder(payload: CreateOrderRequest): Promise<Order> {
     submitting.value = true

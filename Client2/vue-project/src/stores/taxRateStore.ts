@@ -9,8 +9,24 @@ export const useTaxRateStore = defineStore('taxRate', () => {
   const saving = ref(false)
   const error = ref<string | null>(null)
 
-  const activeTaxRates = computed(() => taxRates.value.filter(t => t.is_active))
-  const defaultTaxRate = computed(() => taxRates.value.find(t => t.is_default && t.is_active) || taxRates.value.find(t => t.is_active) || null)
+  const activeTaxRates = computed(() => taxRates.value.filter((t) => t.is_active))
+  const defaultTaxRate = computed(
+    () => taxRates.value.find((t) => t.is_default && t.is_active) || taxRates.value.find((t) => t.is_active) || null
+  )
+
+  async function withSaving<T>(action: () => Promise<T>, fallbackMessage: string): Promise<T> {
+    saving.value = true
+    error.value = null
+    try {
+      return await action()
+    } catch (err: any) {
+      console.error(`[taxRateStore] ${fallbackMessage}:`, err)
+      error.value = err.response?.data?.message || fallbackMessage
+      throw err
+    } finally {
+      saving.value = false
+    }
+  }
 
   async function fetchTaxRates(params: any = {}) {
     loading.value = true
@@ -33,36 +49,20 @@ export const useTaxRateStore = defineStore('taxRate', () => {
     }
   }
 
-  async function createTaxRate(data: TaxRateFormData) {
-    saving.value = true
-    error.value = null
-    try {
+  function createTaxRate(data: TaxRateFormData) {
+    return withSaving(async () => {
       const response = await taxRateService.createTaxRate(data)
       await fetchTaxRates()
       return response.data
-    } catch (err: any) {
-      console.error('[taxRateStore] Failed to create tax rate:', err)
-      error.value = err.response?.data?.message || 'Failed to create tax rate'
-      throw err
-    } finally {
-      saving.value = false
-    }
+    }, 'Failed to create tax rate')
   }
 
-  async function updateTaxRate(id: string, data: Partial<TaxRateFormData>) {
-    saving.value = true
-    error.value = null
-    try {
+  function updateTaxRate(id: string, data: Partial<TaxRateFormData>) {
+    return withSaving(async () => {
       const response = await taxRateService.updateTaxRate(id, data)
       await fetchTaxRates()
       return response.data
-    } catch (err: any) {
-      console.error('[taxRateStore] Failed to update tax rate:', err)
-      error.value = err.response?.data?.message || 'Failed to update tax rate'
-      throw err
-    } finally {
-      saving.value = false
-    }
+    }, 'Failed to update tax rate')
   }
 
   async function toggleStatus(id: string) {
@@ -70,7 +70,7 @@ export const useTaxRateStore = defineStore('taxRate', () => {
       const response = await taxRateService.toggleTaxRateStatus(id)
       const updated = response.data?.data
       if (updated) {
-        const index = taxRates.value.findIndex(t => t.id === id)
+        const index = taxRates.value.findIndex((t) => t.id === id)
         if (index !== -1) {
           taxRates.value[index] = updated
         }
@@ -84,19 +84,11 @@ export const useTaxRateStore = defineStore('taxRate', () => {
     }
   }
 
-  async function deleteTaxRate(id: string) {
-    saving.value = true
-    error.value = null
-    try {
+  function deleteTaxRate(id: string) {
+    return withSaving(async () => {
       await taxRateService.deleteTaxRate(id)
-      taxRates.value = taxRates.value.filter(t => t.id !== id)
-    } catch (err: any) {
-      console.error('[taxRateStore] Failed to delete tax rate:', err)
-      error.value = err.response?.data?.message || 'Failed to delete tax rate'
-      throw err
-    } finally {
-      saving.value = false
-    }
+      taxRates.value = taxRates.value.filter((t) => t.id !== id)
+    }, 'Failed to delete tax rate')
   }
 
   return {

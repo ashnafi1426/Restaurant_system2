@@ -1,22 +1,22 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { publicAxios } from '../services/axios'
+import { ref, computed } from 'vue'
+import { publicAxios } from '@/services/axios'
 
-interface User {
+export interface User {
   first_name: string
   last_name: string
   email: string
   role: string
 }
 
-interface ValidationResult {
+export interface ValidationResult {
   success: boolean
   message: string
   error_type?: string
   user?: User
 }
 
-interface ActivationResult {
+export interface ActivationResult {
   success: boolean
   message: string
   error_type?: string
@@ -29,19 +29,20 @@ interface ActivationResult {
   }
 }
 
-interface ResendResult {
+export interface ResendResult {
   success: boolean
   message: string
 }
 
 export const useActivationStore = defineStore('activation', () => {
-  const loading = ref(false)
   const validatingToken = ref(false)
   const activating = ref(false)
   const resending = ref(false)
   const user = ref<User | null>(null)
   const error = ref<string | null>(null)
   const errorType = ref<string | null>(null)
+
+  const loading = computed(() => validatingToken.value || activating.value || resending.value)
 
   async function validateToken(token: string): Promise<ValidationResult> {
     validatingToken.value = true
@@ -51,18 +52,18 @@ export const useActivationStore = defineStore('activation', () => {
     try {
       const response = await publicAxios.get(`/activation/${token}`)
 
-      if (response.data.success) {
+      if (response.data?.success) {
         user.value = response.data.user
         return {
           success: true,
           message: response.data.message,
-          user: response.data.user
+          user: response.data.user,
         }
       }
 
       return {
         success: false,
-        message: response.data.message || 'Invalid activation token'
+        message: response.data?.message || 'Invalid activation token',
       }
     } catch (err: any) {
       console.error('[activationStore] Failed to validate token:', err)
@@ -76,7 +77,7 @@ export const useActivationStore = defineStore('activation', () => {
         success: false,
         message,
         error_type: type,
-        user: err.response?.data?.user
+        user: err.response?.data?.user,
       }
     } finally {
       validatingToken.value = false
@@ -96,20 +97,20 @@ export const useActivationStore = defineStore('activation', () => {
       const response = await publicAxios.post('/activate-account', {
         token,
         password,
-        password_confirmation: passwordConfirmation
+        password_confirmation: passwordConfirmation,
       })
 
-      if (response.data.success) {
+      if (response.data?.success) {
         return {
           success: true,
           message: response.data.message,
-          user: response.data.user
+          user: response.data.user,
         }
       }
 
       return {
         success: false,
-        message: response.data.message || 'Activation failed'
+        message: response.data?.message || 'Activation failed',
       }
     } catch (err: any) {
       console.error('[activationStore] Failed to activate account:', err)
@@ -122,7 +123,7 @@ export const useActivationStore = defineStore('activation', () => {
       return {
         success: false,
         message,
-        error_type: type
+        error_type: type,
       }
     } finally {
       activating.value = false
@@ -137,8 +138,8 @@ export const useActivationStore = defineStore('activation', () => {
       const response = await publicAxios.post('/resend-activation', { email })
 
       return {
-        success: response.data.success,
-        message: response.data.message
+        success: !!response.data?.success,
+        message: response.data?.message,
       }
     } catch (err: any) {
       console.error('[activationStore] Failed to resend activation email:', err)
@@ -147,7 +148,7 @@ export const useActivationStore = defineStore('activation', () => {
 
       return {
         success: false,
-        message
+        message,
       }
     } finally {
       resending.value = false
@@ -214,7 +215,6 @@ export const useActivationStore = defineStore('activation', () => {
   }
 
   function resetState() {
-    loading.value = false
     validatingToken.value = false
     activating.value = false
     resending.value = false
@@ -236,6 +236,6 @@ export const useActivationStore = defineStore('activation', () => {
     activateAccount,
     resendActivation,
     checkPasswordStrength,
-    resetState
+    resetState,
   }
 })

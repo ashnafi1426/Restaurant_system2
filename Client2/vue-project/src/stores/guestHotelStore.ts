@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { publicAxios } from '../services/axios'
-import { useThemeStore } from './theme'
+import { publicAxios } from '@/services/axios'
+import { useThemeStore } from '@/stores/theme'
 
 export interface PublicHotel {
   id: string
@@ -17,9 +17,19 @@ export interface PublicHotel {
   status: string
 }
 
+function loadInitialHotel(): PublicHotel | null {
+  try {
+    const raw = localStorage.getItem('guest_current_hotel')
+    return raw ? JSON.parse(raw) : null
+  } catch (e) {
+    console.error('[guestHotelStore] Failed to parse guest_current_hotel from localStorage:', e)
+    return null
+  }
+}
+
 export const useGuestHotelStore = defineStore('guestHotel', {
   state: () => ({
-    currentHotel: JSON.parse(localStorage.getItem('guest_current_hotel') || 'null') as PublicHotel | null,
+    currentHotel: loadInitialHotel(),
     availableHotels: [] as PublicHotel[],
     isLoading: false,
     error: null as string | null,

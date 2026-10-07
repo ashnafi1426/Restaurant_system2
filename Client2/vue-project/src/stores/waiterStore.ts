@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { useAuthStore } from './auth'
 import waiterService from '@/services/waiterService'
 import type {
   WaiterAssignment,
@@ -9,31 +8,32 @@ import type {
   DeliveryLog,
   WaiterPerformance,
   QuickStats,
-  PerformanceMetrics,
 } from '@/types/waiter'
 
+const createInitialDashboard = (): WaiterDashboard => ({
+  today_stats: {
+    total_assignments: 0,
+    completed_deliveries: 0,
+    failed_deliveries: 0,
+    rejected_assignments: 0,
+    pending_assignments: 0,
+    active_assignments: 0,
+    average_delivery_time: 0,
+    completion_rate: 0,
+  },
+  performance: [],
+  recent_assignments: [],
+  pending_count: 0,
+  active_count: 0,
+})
+
 export const useWaiterStore = defineStore('waiter', () => {
-  const dashboard = ref<WaiterDashboard | null>({
-    today_stats: {
-      total_assignments: 0,
-      completed_deliveries: 0,
-      failed_deliveries: 0,
-      rejected_assignments: 0,
-      pending_assignments: 0,
-      active_assignments: 0,
-      average_delivery_time: 0,
-      completion_rate: 0,
-    },
-    performance: [],
-    recent_assignments: [],
-    pending_count: 0,
-    active_count: 0,
-  })
+  const dashboard = ref<WaiterDashboard>(createInitialDashboard())
   const assignments = ref<WaiterAssignment[]>([])
   const currentAssignment = ref<WaiterAssignment | null>(null)
   const profile = ref<WaiterProfile | null>(null)
   const deliveryHistory = ref<DeliveryLog[]>([])
-  const performance = ref<any>(null)
+  const performance = ref<WaiterPerformance | null>(null)
   const quickStats = ref<QuickStats>({
     pending: 0,
     active: 0,
@@ -55,22 +55,7 @@ export const useWaiterStore = defineStore('waiter', () => {
     } catch (err: any) {
       console.error('[WaiterStore] Error fetching dashboard:', err)
       error.value = err.message || 'Failed to fetch dashboard'
-      dashboard.value = {
-        today_stats: {
-          total_assignments: 0,
-          completed_deliveries: 0,
-          failed_deliveries: 0,
-          rejected_assignments: 0,
-          pending_assignments: 0,
-          active_assignments: 0,
-          average_delivery_time: 0,
-          completion_rate: 0,
-        },
-        performance: [],
-        recent_assignments: [],
-        pending_count: 0,
-        active_count: 0,
-      }
+      dashboard.value = createInitialDashboard()
     } finally {
       isLoading.value = false
     }
@@ -283,69 +268,33 @@ export const useWaiterStore = defineStore('waiter', () => {
     }
   }
 
-  const pickupOrder = async (id: string) => {
+  const executeOrderAction = async (action: () => Promise<WaiterAssignment>, errorMsg: string): Promise<boolean> => {
     isLoading.value = true
     error.value = null
     try {
-      currentAssignment.value = await waiterService.pickupOrder(id)
+      currentAssignment.value = await action()
       await fetchDashboard()
       return true
     } catch (err: any) {
-      console.error('[WaiterStore] Error picking up order:', err)
-      error.value = err.message || 'Failed to pickup order'
+      console.error(`[WaiterStore] ${errorMsg}:`, err)
+      error.value = err.message || errorMsg
       return false
     } finally {
       isLoading.value = false
     }
   }
 
-  const startDelivery = async (id: string) => {
-    isLoading.value = true
-    error.value = null
-    try {
-      currentAssignment.value = await waiterService.startDelivery(id)
-      await fetchDashboard()
-      return true
-    } catch (err: any) {
-      console.error('[WaiterStore] Error starting delivery:', err)
-      error.value = err.message || 'Failed to start delivery'
-      return false
-    } finally {
-      isLoading.value = false
-    }
-  }
+  const pickupOrder = (id: string) =>
+    executeOrderAction(() => waiterService.pickupOrder(id), 'Failed to pickup order')
 
-  const deliverOrder = async (id: string, remarks?: string) => {
-    isLoading.value = true
-    error.value = null
-    try {
-      currentAssignment.value = await waiterService.deliverOrder(id, remarks)
-      await fetchDashboard()
-      return true
-    } catch (err: any) {
-      console.error('[WaiterStore] Error delivering order:', err)
-      error.value = err.message || 'Failed to deliver order'
-      return false
-    } finally {
-      isLoading.value = false
-    }
-  }
+  const startDelivery = (id: string) =>
+    executeOrderAction(() => waiterService.startDelivery(id), 'Failed to start delivery')
 
-  const failDelivery = async (id: string, reason: string, remarks?: string) => {
-    isLoading.value = true
-    error.value = null
-    try {
-      currentAssignment.value = await waiterService.failDelivery(id, reason, remarks)
-      await fetchDashboard()
-      return true
-    } catch (err: any) {
-      console.error('[WaiterStore] Error failing delivery:', err)
-      error.value = err.message || 'Failed to mark delivery as failed'
-      return false
-    } finally {
-      isLoading.value = false
-    }
-  }
+  const deliverOrder = (id: string, remarks?: string) =>
+    executeOrderAction(() => waiterService.deliverOrder(id, remarks), 'Failed to deliver order')
+
+  const failDelivery = (id: string, reason: string, remarks?: string) =>
+    executeOrderAction(() => waiterService.failDelivery(id, reason, remarks), 'Failed to mark delivery as failed')
 
   const updateProfile = async (data: any) => {
     isLoading.value = true

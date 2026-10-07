@@ -22,12 +22,23 @@ import {
   Building2,
 } from 'lucide-vue-next'
 
+interface ReadyOrder {
+  id: string | number
+  order_number?: string
+  order_id?: string
+  guest_name?: string
+  guest?: { full_name?: string }
+  room_number?: string | number
+  room?: { room_number?: string | number }
+  items?: number | any[]
+  special_requests?: string
+}
+
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
 
 const loading = ref(true)
-const error = ref<string | null>(null)
-const orders = ref<any[]>([])
+const orders = ref<ReadyOrder[]>([])
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const loadingOrderId = ref<string | null>(null)
@@ -37,25 +48,33 @@ const isFullscreen = ref(false)
 const searchQuery = ref('')
 const selectedType = ref('all')
 
+const getOrderRoomNumber = (order: ReadyOrder) => order.room_number || order.room?.room_number
+const getOrderGuestName = (order: ReadyOrder) => order.guest_name || order.guest?.full_name || languageStore.t('guest', 'Guest')
+const getOrderReference = (order: ReadyOrder) => order.order_number || order.order_id || String(order.id).substring(0, 8)
+const getOrderItemsCount = (order: ReadyOrder) => {
+  if (typeof order.items === 'number') return order.items
+  if (Array.isArray(order.items)) return order.items.length
+  return 1
+}
+
 const filteredOrders = computed(() => {
   const list = orders.value || []
   const typeFilter = selectedType.value
-  const q = searchQuery.value.trim().toLowerCase()
+  const query = searchQuery.value.trim().toLowerCase()
 
-  if (typeFilter === 'all' && !q) {
-    return list
-  }
+  if (typeFilter === 'all' && !query) return list
 
-  return list.filter((o) => {
-    const hasRoom = Boolean(o.room_number || o.room?.room_number)
+  return list.filter((order) => {
+    const hasRoom = Boolean(getOrderRoomNumber(order))
     if (typeFilter === 'room' && !hasRoom) return false
     if (typeFilter === 'walk_in' && hasRoom) return false
 
-    if (q) {
-      const ordNum = String(o.order_number || o.order_id || o.id || '').toLowerCase()
-      const roomNum = String(o.room_number || o.room?.room_number || '').toLowerCase()
-      const guest = String(o.guest_name || o.guest?.full_name || '').toLowerCase()
-      if (!ordNum.includes(q) && !roomNum.includes(q) && !guest.includes(q)) {
+    if (query) {
+      const orderRef = String(getOrderReference(order)).toLowerCase()
+      const roomNum = String(getOrderRoomNumber(order) || '').toLowerCase()
+      const guestName = String(getOrderGuestName(order)).toLowerCase()
+
+      if (!orderRef.includes(query) && !roomNum.includes(query) && !guestName.includes(query)) {
         return false
       }
     }
@@ -72,14 +91,8 @@ const paginatedOrders = computed(() => {
   return filteredOrders.value.slice(start, start + itemsPerPage.value)
 })
 
-const showingFrom = computed(() => {
-  if (total.value === 0) return 0
-  return (currentPage.value - 1) * itemsPerPage.value + 1
-})
-
-const showingTo = computed(() => {
-  return Math.min(currentPage.value * itemsPerPage.value, total.value)
-})
+const showingFrom = computed(() => (total.value === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1))
+const showingTo = computed(() => Math.min(currentPage.value * itemsPerPage.value, total.value))
 
 const paginationPages = computed(() => {
   const pages: number[] = []
@@ -92,9 +105,9 @@ const paginationPages = computed(() => {
   return pages
 })
 
-const goToPage = (p: number) => {
-  if (p >= 1 && p <= totalPages.value) {
-    currentPage.value = p
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
   }
 }
 
@@ -131,29 +144,21 @@ const toggleFullscreen = () => {
 const loadOrders = async () => {
   try {
     loading.value = true
-    error.value = null
     const data = await waiterService.getReadyForPickupOrders()
-    if (Array.isArray(data)) {
-      orders.value = data
-    } else if (data && Array.isArray((data as any).data)) {
-      orders.value = (data as any).data
-    } else {
-      orders.value = []
-    }
+    orders.value = Array.isArray(data) ? data : (data as any)?.data || []
     currentPage.value = 1
   } catch (err: any) {
     console.error('[ReadyPickup] Error loading ready orders:', err)
-    error.value = err.message || 'Failed to load ready orders'
   } finally {
     loading.value = false
   }
 }
 
-const pickupOrder = async (orderId: string) => {
+const pickupOrder = async (orderId: string | number) => {
   try {
-    loadingOrderId.value = orderId
-    await waiterService.pickupOrder(orderId)
-    orders.value = orders.value.filter((o: any) => o.id !== orderId && o.order_id !== orderId)
+    loadingOrderId.value = String(orderId)
+    await waiterService.pickupOrder(String(orderId))
+    orders.value = orders.value.filter((o) => o.id !== orderId && o.order_id !== String(orderId))
     await loadOrders()
   } catch (err: any) {
     console.error('[ReadyPickup] Error picking up order:', err)
@@ -163,13 +168,8 @@ const pickupOrder = async (orderId: string) => {
   }
 }
 
-onMounted(() => {
-  loadOrders()
-})
-
-watch(() => hotelStore.hotelId, () => {
-  loadOrders()
-})
+onMounted(loadOrders)
+watch(() => hotelStore.hotelId, loadOrders)
 </script>
 
 <template>
@@ -226,7 +226,8 @@ watch(() => hotelStore.hotelId, () => {
                 : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
             ]"
           >
-            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
+            <X v-if="isFilterOpen" class="w-4 h-4" />
+            <Filter v-else class="w-4 h-4" />
             <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
           </button>
         </div>
@@ -248,7 +249,8 @@ watch(() => hotelStore.hotelId, () => {
             :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
-            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+            <Minimize2 v-if="isFullscreen" class="w-4 h-4" />
+            <Maximize2 v-else class="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -324,20 +326,20 @@ watch(() => hotelStore.hotelId, () => {
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
                   <td class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
-                    #{{ order.order_number || order.order_id || String(order.id).substring(0, 8) }}
+                    #{{ getOrderReference(order) }}
                   </td>
 
                   <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white">
-                    {{ order.guest_name || order.guest?.full_name || languageStore.t('guest', 'Guest') }}
+                    {{ getOrderGuestName(order) }}
                   </td>
 
                   <td class="py-3 px-4 whitespace-nowrap">
                     <span
-                      v-if="order.room_number || order.room?.room_number"
+                      v-if="getOrderRoomNumber(order)"
                       class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
                     >
                       <BedDouble class="w-3 h-3 text-slate-400" />
-                      {{ languageStore.t('room', 'Room') }} {{ order.room_number || order.room?.room_number }}
+                      {{ languageStore.t('room', 'Room') }} {{ getOrderRoomNumber(order) }}
                     </span>
                     <span
                       v-else
@@ -350,7 +352,7 @@ watch(() => hotelStore.hotelId, () => {
 
                   <td class="py-3 px-4 whitespace-nowrap">
                     <span class="font-bold text-slate-700 dark:text-slate-300">
-                      {{ typeof order.items === 'number' ? order.items : (Array.isArray(order.items) ? order.items.length : 1) }} {{ languageStore.t('items', 'items') }}
+                      {{ getOrderItemsCount(order) }} {{ languageStore.t('items', 'items') }}
                     </span>
                   </td>
 
@@ -361,7 +363,7 @@ watch(() => hotelStore.hotelId, () => {
                   <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
                     <button
                       @click="pickupOrder(order.id)"
-                      :disabled="loadingOrderId === order.id"
+                      :disabled="loadingOrderId === String(order.id)"
                       class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50"
                     >
                       <PackageCheck class="w-3.5 h-3.5" />
@@ -393,18 +395,19 @@ watch(() => hotelStore.hotelId, () => {
             >
               <div class="flex items-center justify-between">
                 <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">
-                  #{{ order.order_number || order.order_id }}
+                  #{{ getOrderReference(order) }}
                 </span>
                 <button
                   @click="pickupOrder(order.id)"
-                  class="px-3 py-1 bg-emerald-600 text-white font-bold text-xs rounded-lg"
+                  :disabled="loadingOrderId === String(order.id)"
+                  class="px-3 py-1 bg-emerald-600 text-white font-bold text-xs rounded-lg transition disabled:opacity-50"
                 >
                   {{ languageStore.t('pickup', 'Pickup') }}
                 </button>
               </div>
               <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-                <span>{{ order.guest_name || languageStore.t('guest', 'Guest') }}</span>
-                <span>{{ languageStore.t('room', 'Room') }} {{ order.room_number || 'N/A' }}</span>
+                <span>{{ getOrderGuestName(order) }}</span>
+                <span>{{ languageStore.t('room', 'Room') }} {{ getOrderRoomNumber(order) || 'N/A' }}</span>
               </div>
             </div>
             <div v-if="paginatedOrders.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">

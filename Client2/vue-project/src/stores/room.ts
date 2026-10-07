@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia'
-import { roomService } from '../services/roomService'
-import type { Room } from '../types/room'
+import { roomService } from '@/services/roomService'
+import type { Room } from '@/types/room'
+
+const extractRoomsList = (responseData: any): Room[] => {
+  if (responseData && Array.isArray(responseData.data)) return responseData.data
+  if (Array.isArray(responseData)) return responseData
+  return []
+}
 
 export const useRoomStore = defineStore('rooms', {
   state: () => ({
@@ -16,16 +22,7 @@ export const useRoomStore = defineStore('rooms', {
 
       try {
         const response = await roomService.getRooms(params)
-        const responseData = response.data
-
-        if (responseData && Array.isArray(responseData.data)) {
-          this.rooms = responseData.data
-        } else if (Array.isArray(responseData)) {
-          this.rooms = responseData
-        } else {
-          this.rooms = []
-        }
-
+        this.rooms = extractRoomsList(response.data)
         return this.rooms
       } catch (error: any) {
         console.error('[RoomStore] Error fetching rooms:', error)
@@ -52,16 +49,7 @@ export const useRoomStore = defineStore('rooms', {
 
       try {
         const response = await roomService.searchRooms(searchTerm, params)
-        const responseData = response.data
-
-        if (responseData && Array.isArray(responseData.data)) {
-          this.rooms = responseData.data
-        } else if (Array.isArray(responseData)) {
-          this.rooms = responseData
-        } else {
-          this.rooms = []
-        }
-
+        this.rooms = extractRoomsList(response.data)
         return this.rooms
       } catch (error: any) {
         console.error('[RoomStore] Error searching rooms:', error)

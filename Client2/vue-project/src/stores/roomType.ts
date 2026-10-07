@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { roomTypeService } from '../services/roomtypeService'
-import type { RoomType } from '../types/roomType'
+import { roomTypeService } from '@/services/roomtypeService'
+import type { RoomType } from '@/types/roomType'
 
 export const useRoomTypeStore = defineStore('roomTypes', {
   state: () => ({
@@ -12,13 +12,14 @@ export const useRoomTypeStore = defineStore('roomTypes', {
   actions: {
     async fetchRoomTypes(params: any = {}) {
       this.loading = true
+      this.error = null
 
       try {
         const res = await roomTypeService.getRoomTypes(params)
-        this.roomTypes = res.data.data
-      } catch (e) {
+        this.roomTypes = Array.isArray(res.data) ? res.data : res.data?.data || []
+      } catch (e: any) {
         console.error('[RoomTypeStore] Error fetching room types:', e)
-        this.error = 'Failed to load room types'
+        this.error = e.message || 'Failed to load room types'
       } finally {
         this.loading = false
       }

@@ -1,28 +1,42 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import { useLanguageStore } from '@/stores/language'
+import { useHotelStore } from '@/stores/hotelStore'
+import { waiterNotificationService } from '@/services/waiterNotificationService'
+
+interface NotificationItem {
+  id: string | number
+  title?: string
+  type?: string
+  message?: string
+  content?: string
+  read?: boolean
+  created_at?: string
+}
 
 const languageStore = useLanguageStore()
+const hotelStore = useHotelStore()
+
 const loading = ref(true)
 const error = ref<string | null>(null)
-const notifications = ref<any[]>([])
+const notifications = ref<NotificationItem[]>([])
 
-const formatDate = (date: string) => {
+const formatRelativeTime = (date?: string) => {
   if (!date) return ''
   const d = new Date(date)
   if (isNaN(d.getTime())) return date
   const diff = Date.now() - d.getTime()
-  
+
   const minutes = Math.floor(diff / 60000)
   const hours = Math.floor(diff / 3600000)
   const days = Math.floor(diff / 86400000)
-  
+
   if (minutes < 1) return languageStore.t('just_now', 'just now')
   if (minutes < 60) return `${minutes}${languageStore.t('m_ago', 'm ago')}`
   if (hours < 24) return `${hours}${languageStore.t('h_ago', 'h ago')}`
   if (days < 7) return `${days}${languageStore.t('d_ago', 'd ago')}`
-  
+
   return d.toLocaleDateString()
 }
 
@@ -30,7 +44,12 @@ const fetchNotifications = async () => {
   try {
     loading.value = true
     error.value = null
-    notifications.value = []
+    const response = await waiterNotificationService.getNotifications().catch(() => null)
+    if (response) {
+      notifications.value = Array.isArray(response) ? response : response.data || []
+    } else {
+      notifications.value = []
+    }
   } catch (err: any) {
     console.error('[Notifications] Error fetching notifications:', err)
     error.value = err.message || 'Failed to load notifications'
@@ -39,16 +58,20 @@ const fetchNotifications = async () => {
   }
 }
 
-const markAsRead = (notificationId: string) => {
-  const notification = notifications.value.find(n => n.id === notificationId)
+const markAsRead = async (notificationId: string | number) => {
+  const notification = notifications.value.find((n) => n.id === notificationId)
   if (notification) {
     notification.read = true
   }
+  try {
+    await waiterNotificationService.markAsRead(String(notificationId))
+  } catch (err: any) {
+    console.error('[Notifications] Failed to mark as read on server:', err)
+  }
 }
 
-onMounted(() => {
-  fetchNotifications()
-})
+onMounted(fetchNotifications)
+watch(() => hotelStore.hotelId, fetchNotifications)
 </script>
 
 <template>
@@ -100,7 +123,7 @@ onMounted(() => {
                   {{ notif.message || notif.content }}
                 </p>
                 <p class="text-xs mt-3" :class="notif.read ? 'text-slate-500' : 'text-blue-600'">
-                  {{ formatDate(notif.created_at) }}
+                  {{ formatRelativeTime(notif.created_at) }}
                 </p>
               </div>
               <button

@@ -26,16 +26,6 @@ import {
   MapPin,
   Globe,
   Clock,
-  Coins,
-  UserCheck,
-  BedDouble,
-  CalendarCheck,
-  Utensils,
-  DollarSign,
-  Users,
-  LayoutDashboard,
-  Minimize2,
-  Maximize2,
   RotateCcw,
   Loader2,
 } from 'lucide-vue-next'
@@ -49,7 +39,6 @@ const hotels = ref<Hotel[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const isFilterOpen = ref(false)
-const isFullscreen = ref(false)
 const searchQuery = ref('')
 const selectedStatus = ref('all')
 const selectedCity = ref('all')
@@ -74,18 +63,6 @@ const notify = (type: 'success' | 'error', msg: string) => {
 
 const toggleFilter = () => {
   isFilterOpen.value = !isFilterOpen.value
-}
-
-const syncFullscreen = () => {
-  isFullscreen.value = !!document.fullscreenElement
-}
-
-const toggleFullscreen = () => {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen?.().catch(() => {})
-  } else {
-    document.exitFullscreen?.().catch(() => {})
-  }
 }
 
 const resetFilters = () => {
@@ -190,13 +167,11 @@ const handleOutsideClick = () => {
 
 onMounted(() => {
   loadHotels()
-  document.addEventListener('fullscreenchange', syncFullscreen)
   window.addEventListener('click', handleOutsideClick)
 })
 
 onUnmounted(() => {
   if (messageTimeout) clearTimeout(messageTimeout)
-  document.removeEventListener('fullscreenchange', syncFullscreen)
   window.removeEventListener('click', handleOutsideClick)
 })
 
@@ -406,11 +381,6 @@ const handleConfirmPermanentDelete = async () => {
   } finally {
     saving.value = false
   }
-}
-
-const formatCurrency = (val?: number, currency = 'ETB') => {
-  if (!val) return `${currency} 0`
-  return `${currency} ${Number(val).toLocaleString()}`
 }
 </script>
 

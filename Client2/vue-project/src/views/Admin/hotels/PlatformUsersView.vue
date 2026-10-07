@@ -15,7 +15,28 @@ import {
   ChevronsRight
 } from 'lucide-vue-next'
 
-const users = ref<any[]>([])
+interface PlatformUser {
+  id: string | number
+  first_name?: string
+  last_name?: string
+  email?: string
+  role: string
+  is_active?: boolean
+  created_at: string
+  hotels?: Hotel[]
+}
+
+const roleOptions = [
+  { value: 'all', label: 'All Roles' },
+  { value: 'admin', label: 'Admin' },
+  { value: 'manager', label: 'Manager' },
+  { value: 'receptionist', label: 'Receptionist' },
+  { value: 'chef', label: 'Chef' },
+  { value: 'waiter', label: 'Waiter' },
+  { value: 'cashier', label: 'Cashier' },
+]
+
+const users = ref<PlatformUser[]>([])
 const hotels = ref<Hotel[]>([])
 const loading = ref(true)
 const searchQuery = ref('')
@@ -29,19 +50,25 @@ const totalUsers = ref(0)
 const perPage = ref(10)
 const perPageOptions = [5, 10, 20, 50]
 
-// Computed property for pagination display
+const hotelOptions = computed(() => [
+  { id: 'all', name: 'All Hotels', city: '' } as Hotel,
+  ...hotels.value,
+])
+
+const formatHotelOptionLabel = (opt: Hotel) =>
+  opt.id === 'all' ? 'All Hotels' : `${opt.name}${opt.city ? ` (${opt.city})` : ''}`
+
 const paginationInfo = computed(() => {
-  const start = ((currentPage.value - 1) * perPage.value) + 1
+  const start = (currentPage.value - 1) * perPage.value + 1
   const end = Math.min(currentPage.value * perPage.value, totalUsers.value)
   return { start, end }
 })
 
-// Computed property for page numbers to display
 const visiblePages = computed(() => {
   const pages: (number | string)[] = []
   const total = lastPage.value
   const current = currentPage.value
-  
+
   if (total <= 7) {
     for (let i = 1; i <= total; i++) pages.push(i)
   } else if (current <= 4) {
@@ -53,9 +80,18 @@ const visiblePages = computed(() => {
   } else {
     pages.push(1, 'ellipsis', current - 1, current, current + 1, 'ellipsis', total)
   }
-  
+
   return pages
 })
+
+const getUserInitials = (user: PlatformUser) =>
+  `${(user.first_name || 'U').charAt(0)}${(user.last_name || 'S').charAt(0)}`
+
+const formatDate = (dateString?: string) => {
+  if (!dateString) return '—'
+  const d = new Date(dateString)
+  return isNaN(d.getTime()) ? dateString : d.toLocaleDateString()
+}
 
 const loadUsers = async () => {
   loading.value = true
@@ -179,13 +215,9 @@ const getRoleBadgeClass = (role: string) => {
               v-model="selectedRole"
               class="px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-medium focus:outline-none"
             >
-              <option value="all">All Roles</option>
-              <option value="admin">Admin</option>
-              <option value="manager">Manager</option>
-              <option value="receptionist">Receptionist</option>
-              <option value="chef">Chef</option>
-              <option value="waiter">Waiter</option>
-              <option value="cashier">Cashier</option>
+              <option v-for="role in roleOptions" :key="role.value" :value="role.value">
+                {{ role.label }}
+              </option>
             </select>
           </div>
 
@@ -195,13 +227,13 @@ const getRoleBadgeClass = (role: string) => {
             <div class="w-56">
               <SearchableSelect
                 v-model="selectedHotelId"
-                :options="[{ id: 'all', name: 'All Hotels', city: '' }, ...hotels]"
+                :options="hotelOptions"
                 label-key="name"
                 value-key="id"
                 sublabel-key="city"
                 placeholder="All Hotels"
                 search-placeholder="Filter by hotel..."
-                :format-option-label="(opt) => opt.id === 'all' ? 'All Hotels' : `${opt.name}${opt.city ? ` (${opt.city})` : ''}`"
+                :format-option-label="formatHotelOptionLabel"
               />
             </div>
           </div>
@@ -244,7 +276,7 @@ const getRoleBadgeClass = (role: string) => {
                 <td class="py-4 px-5">
                   <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-xs">
-                      {{ (u.first_name || 'U').charAt(0) }}{{ (u.last_name || 'S').charAt(0) }}
+                      {{ getUserInitials(u) }}
                     </div>
                     <div>
                       <span class="font-bold text-slate-900 dark:text-white block">
@@ -293,7 +325,7 @@ const getRoleBadgeClass = (role: string) => {
 
                 <!-- Joined -->
                 <td class="py-4 px-4 text-slate-400 text-[11px]">
-                  {{ new Date(u.created_at).toLocaleDateString() }}
+                  {{ formatDate(u.created_at) }}
                 </td>
               </tr>
             </tbody>

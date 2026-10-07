@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { axiosInstance } from '../services/axios'
+import { axiosInstance } from '@/services/axios'
 
 export interface HotelItem {
   id: string
@@ -11,10 +11,19 @@ export interface HotelItem {
   is_viewing_as_platform_admin?: boolean
 }
 
+const loadStorage = <T>(key: string, fallback: T): T => {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : fallback
+  } catch {
+    return fallback
+  }
+}
+
 export const useHotelStore = defineStore('hotel', {
   state: () => ({
-    currentHotel: JSON.parse(localStorage.getItem('current_hotel') || 'null') as HotelItem | null,
-    availableHotels: JSON.parse(localStorage.getItem('available_hotels') || '[]') as HotelItem[],
+    currentHotel: loadStorage<HotelItem | null>('current_hotel', null),
+    availableHotels: loadStorage<HotelItem[]>('available_hotels', []),
     isLoading: false,
   }),
 

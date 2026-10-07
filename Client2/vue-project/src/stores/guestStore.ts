@@ -1,32 +1,48 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Guest, GuestForm, GuestFilter, GuestListResponse } from '../types/guest'
+import type { Guest, GuestForm, GuestFilter, GuestListResponse } from '@/types/guest'
 import {
   getGuests,
   getGuest,
   createGuest,
   updateGuest,
   deleteGuest,
-} from '../services/guestService.ts'
+} from '@/services/guestService'
+
+export interface GuestPagination {
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+}
+
+const DEFAULT_PAGINATION: GuestPagination = {
+  current_page: 1,
+  last_page: 1,
+  per_page: 10,
+  total: 0,
+}
+
+function parseMetaNumber(val: any, fallback: number): number {
+  if (typeof val === 'number') return val
+  if (Array.isArray(val) && typeof val[0] === 'number') return val[0]
+  return fallback
+}
 
 export const useGuestStore = defineStore('guest', () => {
   const guests = ref<Guest[]>([])
   const guest = ref<Guest | null>(null)
   const loading = ref(false)
   const error = ref('')
-  const pagination = ref({
-    current_page: 1,
-    last_page: 1,
-    per_page: 10,
-    total: 0,
-  })
+  const pagination = ref<GuestPagination>({ ...DEFAULT_PAGINATION })
+
   const fetchGuests = async (filters: GuestFilter = {}) => {
     loading.value = true
     error.value = ''
 
     try {
       const response: GuestListResponse = await getGuests(filters)
-      guests.value = response.data
+      guests.value = response.data || []
 
       const meta = response.meta || {
         current_page: 1,
@@ -36,30 +52,10 @@ export const useGuestStore = defineStore('guest', () => {
       }
 
       pagination.value = {
-        current_page:
-          typeof meta.current_page === 'number'
-            ? meta.current_page
-            : Array.isArray(meta.current_page)
-              ? meta.current_page[0]
-              : 1,
-        last_page:
-          typeof meta.last_page === 'number'
-            ? meta.last_page
-            : Array.isArray(meta.last_page)
-              ? meta.last_page[0]
-              : 1,
-        per_page:
-          typeof meta.per_page === 'number'
-            ? meta.per_page
-            : Array.isArray(meta.per_page)
-              ? meta.per_page[0]
-              : 10,
-        total:
-          typeof meta.total === 'number'
-            ? meta.total
-            : Array.isArray(meta.total)
-              ? meta.total[0]
-              : 0,
+        current_page: parseMetaNumber(meta.current_page, 1),
+        last_page: parseMetaNumber(meta.last_page, 1),
+        per_page: parseMetaNumber(meta.per_page, 10),
+        total: parseMetaNumber(meta.total, 0),
       }
     } catch (err: any) {
       console.error('[guestStore] Failed to load guests:', err)
@@ -76,9 +72,11 @@ export const useGuestStore = defineStore('guest', () => {
     try {
       const response = await getGuest(id)
       guest.value = response.data
+      return response.data
     } catch (err: any) {
       console.error('[guestStore] Failed to fetch guest:', err)
       error.value = err.response?.data?.message ?? 'Guest not found.'
+      throw err
     } finally {
       loading.value = false
     }
@@ -89,8 +87,9 @@ export const useGuestStore = defineStore('guest', () => {
     error.value = ''
 
     try {
-      await createGuest(form)
+      const result = await createGuest(form)
       await fetchGuests()
+      return result
     } catch (err: any) {
       console.error('[guestStore] Failed to create guest:', err)
       error.value = err.response?.data?.message ?? 'Failed to create guest.'
@@ -105,8 +104,9 @@ export const useGuestStore = defineStore('guest', () => {
     error.value = ''
 
     try {
-      await updateGuest(id, form)
+      const result = await updateGuest(id, form)
       await fetchGuests()
+      return result
     } catch (err: any) {
       console.error('[guestStore] Failed to update guest:', err)
       error.value = err.response?.data?.message ?? 'Failed to update guest.'
@@ -122,7 +122,7 @@ export const useGuestStore = defineStore('guest', () => {
 
     try {
       await deleteGuest(id)
-      guests.value = guests.value.filter((guest) => guest.id !== String(id))
+      guests.value = guests.value.filter((g) => g.id !== String(id))
     } catch (err: any) {
       console.error('[guestStore] Failed to delete guest:', err)
       error.value = err.response?.data?.message ?? 'Failed to delete guest.'

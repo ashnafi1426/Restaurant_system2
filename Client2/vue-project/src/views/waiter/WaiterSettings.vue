@@ -4,6 +4,20 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import waiterService from '@/services/waiterService'
 import { useLanguageStore } from '@/stores/language'
 
+interface WaiterSettings {
+  notifications_enabled: boolean
+  email_notifications: boolean
+  sms_notifications: boolean
+  theme: string
+  language: string
+}
+
+interface PasswordForm {
+  current_password: string
+  new_password: string
+  new_password_confirmation: string
+}
+
 const languageStore = useLanguageStore()
 
 const loading = ref(true)
@@ -14,47 +28,50 @@ const successMessage = ref<string | null>(null)
 const changePasswordModal = ref(false)
 let messageTimer: ReturnType<typeof setTimeout> | null = null
 
-const notifySuccess = (msg: string) => {
+const showNotification = (msg: string, isError = false) => {
   if (messageTimer) clearTimeout(messageTimer)
-  successMessage.value = msg
-  error.value = null
+  if (isError) {
+    error.value = msg
+    successMessage.value = null
+  } else {
+    successMessage.value = msg
+    error.value = null
+  }
   messageTimer = setTimeout(() => {
     successMessage.value = null
-  }, 5000)
-}
-
-const notifyError = (msg: string) => {
-  if (messageTimer) clearTimeout(messageTimer)
-  error.value = msg
-  successMessage.value = null
-  messageTimer = setTimeout(() => {
     error.value = null
   }, 5000)
 }
 
-const settings = ref({
+const notifySuccess = (msg: string) => showNotification(msg, false)
+const notifyError = (msg: string) => showNotification(msg, true)
+
+const defaultSettings: WaiterSettings = {
   notifications_enabled: true,
   email_notifications: true,
   sms_notifications: false,
   theme: 'light',
   language: 'en',
-})
+}
 
-const originalSettings = ref({ ...settings.value })
+const settings = ref<WaiterSettings>({ ...defaultSettings })
+const originalSettings = ref<WaiterSettings>({ ...defaultSettings })
 
-const passwordForm = ref({
+const createEmptyPasswordForm = (): PasswordForm => ({
   current_password: '',
   new_password: '',
   new_password_confirmation: '',
 })
 
-onMounted(async () => {
+const passwordForm = ref<PasswordForm>(createEmptyPasswordForm())
+
+const loadSettings = async () => {
   try {
     loading.value = true
     error.value = null
-    
+
     const data = await waiterService.getSettings()
-    
+
     if (data) {
       settings.value = {
         notifications_enabled: data.notifications_enabled ?? true,
@@ -71,7 +88,9 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadSettings)
 
 onUnmounted(() => {
   if (messageTimer) clearTimeout(messageTimer)
@@ -113,14 +132,10 @@ const updatePassword = async () => {
       new_password: passwordForm.value.new_password,
       new_password_confirmation: passwordForm.value.new_password_confirmation,
     })
-    
+
     notifySuccess('Password updated successfully!')
     changePasswordModal.value = false
-    passwordForm.value = {
-      current_password: '',
-      new_password: '',
-      new_password_confirmation: '',
-    }
+    passwordForm.value = createEmptyPasswordForm()
   } catch (err: any) {
     console.error('[WaiterSettings] Error updating password:', err)
     notifyError(err.message || 'Failed to update password')
@@ -130,7 +145,7 @@ const updatePassword = async () => {
 }
 
 const onLanguageChange = () => {
-  if (settings.value.language === 'am' || settings.value.language === 'en') {
+  if (settings.value.language) {
     languageStore.setLanguage(settings.value.language)
   }
 }

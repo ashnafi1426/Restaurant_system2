@@ -6,18 +6,35 @@ import { useHotelStore } from '@/stores/hotelStore'
 import { useLanguageStore } from '@/stores/language'
 import { Building2, CheckCheck, Inbox, Timer } from 'lucide-vue-next'
 
+interface CompletedOrder {
+  id: string | number
+  order_number?: string
+  order_id?: string
+  room_number?: string | number
+  guest_name?: string
+  delivered_at?: string
+  created_at?: string
+  delivery_time_minutes?: number | string
+  delivery_time?: number | string
+  remarks?: string
+}
+
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
 
 const loading = ref(true)
-const completed = ref<any[]>([])
+const completed = ref<CompletedOrder[]>([])
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 
-const totalPages = computed(() => Math.ceil(completed.value.length / itemsPerPage.value))
+const totalCount = computed(() => completed.value.length)
+const totalPages = computed(() => Math.ceil(totalCount.value / itemsPerPage.value) || 1)
 const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value)
 const endIndex = computed(() => startIndex.value + itemsPerPage.value)
 const paginatedCompleted = computed(() => completed.value.slice(startIndex.value, endIndex.value))
+
+const showingFrom = computed(() => (totalCount.value > 0 ? startIndex.value + 1 : 0))
+const showingTo = computed(() => Math.min(endIndex.value, totalCount.value))
 
 const visiblePages = computed(() => {
   const pages: (number | string)[] = []
@@ -29,20 +46,23 @@ const visiblePages = computed(() => {
   } else {
     pages.push(1)
     if (current > 3) pages.push('...')
-    
+
     const start = Math.max(2, current - 1)
     const end = Math.min(total - 1, current + 1)
     for (let i = start; i <= end; i++) {
       if (!pages.includes(i)) pages.push(i)
     }
-    
+
     if (current < total - 2) pages.push('...')
     if (!pages.includes(total)) pages.push(total)
   }
   return pages
 })
 
-const formatDateTime = (date: string) => {
+const getOrderReference = (order: CompletedOrder) =>
+  order.order_number || order.order_id || String(order.id).substring(0, 8)
+
+const formatDateTime = (date?: string) => {
   if (!date) return '—'
   const dateObj = new Date(date)
   if (isNaN(dateObj.getTime())) return date
@@ -56,8 +76,8 @@ const formatDateTime = (date: string) => {
   })
 }
 
-const formatDuration = (mins: any) => {
-  const num = parseInt(mins, 10)
+const formatDuration = (mins?: number | string) => {
+  const num = parseInt(String(mins), 10)
   if (isNaN(num) || num <= 0) return 15
   if (num > 60) return 12 + (num % 18)
   return num
@@ -82,7 +102,7 @@ const loadData = async () => {
     completed.value = data || []
     currentPage.value = 1
   } catch (err: any) {
-    console.error('[CompletedOrders] Error:', err)
+    console.error('[CompletedOrders] Error loading completed orders:', err)
     completed.value = []
   } finally {
     loading.value = false
@@ -94,7 +114,6 @@ watch(itemsPerPage, () => {
 })
 
 onMounted(loadData)
-
 watch(() => hotelStore.hotelId, loadData)
 </script>
 
@@ -155,7 +174,7 @@ watch(() => hotelStore.hotelId, loadData)
               <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
                 <tr v-for="order in paginatedCompleted" :key="order.id" class="hover:bg-slate-50 dark:hover:bg-slate-950/50 transition">
                   <td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">
-                    #{{ order.order_number || order.order_id || String(order.id).substring(0,8) }}
+                    #{{ getOrderReference(order) }}
                   </td>
                   <td class="px-6 py-4 text-sm">
                     <span class="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded-md text-xs font-bold">
@@ -198,7 +217,7 @@ watch(() => hotelStore.hotelId, loadData)
                 </select>
               </div>
               <span>
-                {{ languageStore.t('showing', 'Showing') }} {{ completed.length > 0 ? startIndex + 1 : 0 }} {{ languageStore.t('to', 'to') }} {{ Math.min(endIndex, completed.length) }} {{ languageStore.t('of', 'of') }} {{ completed.length }}
+                {{ languageStore.t('showing', 'Showing') }} {{ showingFrom }} {{ languageStore.t('to', 'to') }} {{ showingTo }} {{ languageStore.t('of', 'of') }} {{ totalCount }}
               </span>
             </div>
             <div class="flex gap-2 items-center">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from 'vue'
-import DashboardLayout from '../../Layouts/DashboardLayout.vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import { useHotelStore } from '@/stores/hotelStore'
 import { useLanguageStore } from '@/stores/language'
 import axios from '@/services/axios'
@@ -19,31 +19,48 @@ import {
   Building2,
 } from 'lucide-vue-next'
 
+interface Task {
+  id: string | number
+  title: string
+  area: string
+  priority: string
+  status: string
+  time: string
+}
+
+interface OperationsData {
+  pending_tasks: number
+  completed_tasks: number
+  urgent_tasks: number
+  total_staff: number
+}
+
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
+
 const isLoading = ref(false)
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
 const searchQuery = ref('')
 const selectedPriority = ref('all')
 
-const operationsData = ref({
+const operationsData = ref<OperationsData>({
   pending_tasks: 0,
   completed_tasks: 0,
   urgent_tasks: 0,
   total_staff: 0,
 })
 
-const tasksList = ref<any[]>([])
+const tasksList = ref<Task[]>([])
 
 const filteredTasks = computed(() => {
   const priority = selectedPriority.value.toLowerCase()
   const q = searchQuery.value.trim().toLowerCase()
 
-  return tasksList.value.filter((t) => {
-    if (priority !== 'all' && t.priority.toLowerCase() !== priority) return false
-    if (q && !t.title.toLowerCase().includes(q) && !t.area.toLowerCase().includes(q)) return false
-    return true
+  return tasksList.value.filter((task) => {
+    const matchesPriority = priority === 'all' || task.priority.toLowerCase() === priority
+    const matchesSearch = !q || task.title.toLowerCase().includes(q) || task.area.toLowerCase().includes(q)
+    return matchesPriority && matchesSearch
   })
 })
 
@@ -58,6 +75,24 @@ const toggleFullscreen = () => {
 const resetFilters = () => {
   searchQuery.value = ''
   selectedPriority.value = 'all'
+}
+
+const formatTask = (raw: any, idx: number): Task => {
+  const status = raw.status ? raw.status.charAt(0).toUpperCase() + raw.status.slice(1) : 'Pending'
+  const time = raw.created_at
+    ? new Date(raw.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : '—'
+  const area = raw.area || (raw.room ? `Room ${raw.room.room_number}` : 'Hotel Facility')
+  const title = raw.title || raw.task_description || raw.task || 'Room Service Task'
+
+  return {
+    id: raw.id || idx + 1,
+    title,
+    area,
+    priority: raw.priority || 'Normal',
+    status,
+    time,
+  }
 }
 
 const refreshData = async () => {
@@ -77,27 +112,12 @@ const refreshData = async () => {
     const stats = statsRes?.data?.data || {}
     const rawTasks = Array.isArray(tasksRes?.data?.data) ? tasksRes.data.data : []
 
-    let pendingCount = 0
-    let completedCount = 0
-    let urgentCount = 0
+    const tasks = rawTasks.map(formatTask)
+    tasksList.value = tasks
 
-    tasksList.value = rawTasks.map((t: any, idx: number) => {
-      const statusLower = (t.status || '').toLowerCase()
-      const priorityLower = (t.priority || '').toLowerCase()
-
-      if (statusLower === 'pending') pendingCount++
-      if (statusLower === 'completed') completedCount++
-      if (priorityLower === 'urgent' || priorityLower === 'high') urgentCount++
-
-      return {
-        id: t.id || idx + 1,
-        title: t.title || t.task_description || t.task || 'Room Service Task',
-        area: t.area || (t.room ? `Room ${t.room.room_number}` : 'Hotel Facility'),
-        priority: t.priority || 'Normal',
-        status: t.status ? t.status.charAt(0).toUpperCase() + t.status.slice(1) : 'Pending',
-        time: t.created_at ? new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—',
-      }
-    })
+    const pendingCount = tasks.filter((t) => t.status.toLowerCase() === 'pending').length
+    const completedCount = tasks.filter((t) => t.status.toLowerCase() === 'completed').length
+    const urgentCount = tasks.filter((t) => ['urgent', 'high'].includes(t.priority.toLowerCase())).length
 
     operationsData.value = {
       pending_tasks: pendingCount || stats.pending_orders_count || 0,
@@ -112,13 +132,8 @@ const refreshData = async () => {
   }
 }
 
-onMounted(() => {
-  refreshData()
-})
-
-watch(() => hotelStore.hotelId, () => {
-  refreshData()
-})
+onMounted(refreshData)
+watch(() => hotelStore.hotelId, refreshData)
 </script>
 
 <template>
@@ -229,7 +244,8 @@ watch(() => hotelStore.hotelId, () => {
                 : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
             ]"
           >
-            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
+            <X v-if="isFilterOpen" class="w-4 h-4" />
+            <Filter v-else class="w-4 h-4" />
             <span>{{ isFilterOpen ? languageStore.t('hide_filters', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
           </button>
         </div>
@@ -254,7 +270,8 @@ watch(() => hotelStore.hotelId, () => {
             :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
-            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+            <Minimize2 v-if="isFullscreen" class="w-4 h-4" />
+            <Maximize2 v-else class="w-4 h-4" />
           </button>
         </div>
       </div>

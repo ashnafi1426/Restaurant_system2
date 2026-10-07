@@ -24,17 +24,15 @@ export const useSidebarStore = defineStore('sidebar', () => {
   const isExpanded = computed(() => !sidebarCollapsed.value || hoverExpand.value)
   const isCollapsed = computed(() => sidebarCollapsed.value && !hoverExpand.value)
 
+  function setCollapsed(value: boolean) {
+    sidebarCollapsed.value = value
+    hoverEnabled.value = value
+    if (!value) hoverExpand.value = false
+    localStorage.setItem('sidebarCollapsed', String(value))
+  }
+
   function toggleCollapse() {
-    if (!sidebarCollapsed.value) {
-      sidebarCollapsed.value = true
-      hoverEnabled.value = true
-      localStorage.setItem('sidebarCollapsed', 'true')
-    } else {
-      sidebarCollapsed.value = false
-      hoverEnabled.value = false
-      hoverExpand.value = false
-      localStorage.setItem('sidebarCollapsed', 'false')
-    }
+    setCollapsed(!sidebarCollapsed.value)
   }
 
   function onMouseEnter() {
@@ -58,16 +56,11 @@ export const useSidebarStore = defineStore('sidebar', () => {
   }
 
   function expand() {
-    sidebarCollapsed.value = false
-    hoverEnabled.value = false
-    hoverExpand.value = false
-    localStorage.setItem('sidebarCollapsed', 'false')
+    setCollapsed(false)
   }
 
   function collapse() {
-    sidebarCollapsed.value = true
-    hoverEnabled.value = true
-    localStorage.setItem('sidebarCollapsed', 'true')
+    setCollapsed(true)
   }
 
   return {

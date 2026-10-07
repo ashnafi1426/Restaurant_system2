@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { publicAxios } from '../services/axios'
+import { publicAxios } from '@/services/axios'
 
 export const usePasswordResetStore = defineStore('passwordReset', () => {
   const loading = ref(false)
@@ -17,12 +17,12 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
     try {
       const response = await publicAxios.post('/forgot-password', { email })
 
-      if (response.data.success) {
+      if (response.data?.success) {
         successMessage.value = response.data.message
         return { success: true, message: response.data.message }
       }
 
-      return { success: false, message: response.data.message }
+      return { success: false, message: response.data?.message }
     } catch (err: any) {
       console.error('[passwordResetStore] Failed to send reset email:', err)
       const message = err.response?.data?.message || 'Failed to send reset email'
@@ -32,7 +32,7 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
         return {
           success: false,
           message,
-          needsActivation: true
+          needsActivation: true,
         }
       }
 
@@ -52,15 +52,15 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
         email,
         token,
         password,
-        password_confirmation: passwordConfirmation
+        password_confirmation: passwordConfirmation,
       })
 
-      if (response.data.success) {
+      if (response.data?.success) {
         successMessage.value = response.data.message
         return { success: true, message: response.data.message }
       }
 
-      return { success: false, message: response.data.message }
+      return { success: false, message: response.data?.message }
     } catch (err: any) {
       console.error('[passwordResetStore] Failed to reset password:', err)
       const message = err.response?.data?.message || 'Failed to reset password'
@@ -71,7 +71,7 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
       return {
         success: false,
         message,
-        errorType
+        errorType,
       }
     } finally {
       resetting.value = false
@@ -85,10 +85,10 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
     try {
       const response = await publicAxios.post('/verify-reset-token', {
         email,
-        token
+        token,
       })
 
-      return { success: response.data.success, message: response.data.message }
+      return { success: !!response.data?.success, message: response.data?.message }
     } catch (err: any) {
       console.error('[passwordResetStore] Failed to verify reset token:', err)
       const message = err.response?.data?.message || 'Invalid or expired token'
@@ -178,6 +178,6 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
     resetPassword,
     verifyToken,
     checkPasswordStrength,
-    resetState
+    resetState,
   }
 })

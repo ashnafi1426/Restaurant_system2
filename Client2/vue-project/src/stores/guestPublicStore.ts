@@ -1,21 +1,29 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { roomService } from '../services/roomService'
-import reservationService from '../services/reservationService'
-import type { Room } from '../types/room'
-import type { ReservationFormData } from '../types/reservation'
+import { roomService } from '@/services/roomService'
+import type { Room } from '@/types/room'
+import type { ReservationFormData } from '@/types/reservation'
+
+export interface GuestPublicPagination {
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+}
+
+const DEFAULT_PAGINATION: GuestPublicPagination = {
+  current_page: 1,
+  last_page: 1,
+  per_page: 9,
+  total: 0,
+}
 
 export const useGuestPublicStore = defineStore('guestPublic', () => {
   const rooms = ref<Room[]>([])
   const selectedRoom = ref<Room | null>(null)
   const loading = ref(false)
   const error = ref('')
-  const pagination = ref({
-    current_page: 1,
-    last_page: 1,
-    per_page: 9,
-    total: 0,
-  })
+  const pagination = ref<GuestPublicPagination>({ ...DEFAULT_PAGINATION })
 
   const fetchPublicRooms = async (params: any = {}) => {
     loading.value = true
@@ -23,7 +31,6 @@ export const useGuestPublicStore = defineStore('guestPublic', () => {
 
     try {
       const response = await roomService.getPublicRooms(params)
-
       let roomsData = response.data
 
       if (response.data && response.data.data && Array.isArray(response.data.data)) {
