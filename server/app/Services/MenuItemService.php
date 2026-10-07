@@ -105,6 +105,10 @@ class MenuItemService
                 'is_available' => filter_var($data['is_available'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 'image' => $imagePath,
             ]);
+
+            MenuService::invalidateMenuCache($hotelId);
+
+            return $item;
         });
     }
 
@@ -146,6 +150,8 @@ class MenuItemService
 
             $menuItem->update($updateData);
 
+            MenuService::invalidateMenuCache($menuItem->hotel_id);
+
             return $menuItem->fresh(['taxRate', 'categoryRelation']);
         });
     }
@@ -156,8 +162,10 @@ class MenuItemService
     public function deleteMenuItem(MenuItem $menuItem): void
     {
         DB::transaction(function () use ($menuItem) {
+            $hotelId = $menuItem->hotel_id;
             $this->deleteStoredImage($menuItem->image);
             $menuItem->delete();
+            MenuService::invalidateMenuCache($hotelId);
         });
     }
 
@@ -169,6 +177,8 @@ class MenuItemService
         $menuItem->update([
             'is_available' => !$menuItem->is_available,
         ]);
+
+        MenuService::invalidateMenuCache($menuItem->hotel_id);
 
         return $menuItem->fresh(['taxRate', 'categoryRelation']);
     }

@@ -45,12 +45,19 @@ class CustomerOrderController extends Controller
                 'ip' => $request->ip()
             ]);
 
-            // Find order by UUID or order_number
-            // Load room and table relationships for QR token validation
+            // Find order by UUID or order_number with all necessary relations eager loaded
             $order = Order::withoutGlobalScopes()
-                ->with(['room', 'table'])
-                ->where('id', $orderId)
-                ->orWhere('order_number', $orderId)
+                ->with([
+                    'room' => fn($q) => $q->withoutGlobalScopes(),
+                    'table' => fn($q) => $q->withoutGlobalScopes(),
+                    'orderItems.menuItem' => fn($q) => $q->withoutGlobalScopes(),
+                    'guest' => fn($q) => $q->withoutGlobalScopes(),
+                    'chef',
+                ])
+                ->where(function ($q) use ($orderId) {
+                    $q->where('id', $orderId)
+                      ->orWhere('order_number', $orderId);
+                })
                 ->first();
 
             \Log::info('[CustomerOrder] Order lookup result', [
@@ -79,11 +86,11 @@ class CustomerOrderController extends Controller
                     $isValidToken = true;
                 } elseif ($order->table && $order->table->qr_token === $qrToken) {
                     $isValidToken = true;
-                } elseif (Payment::withoutGlobalScopes()->where('order_id', $order->id)->where('metadata->qr_token', $qrToken)->exists()) {
-                    $isValidToken = true;
                 } elseif ($order->hotel_id && RestaurantTable::withoutGlobalScopes()->where('hotel_id', $order->hotel_id)->where('qr_token', $qrToken)->exists()) {
                     $isValidToken = true;
                 } elseif ($order->hotel_id && Room::withoutGlobalScopes()->where('hotel_id', $order->hotel_id)->where('qr_token', $qrToken)->exists()) {
+                    $isValidToken = true;
+                } elseif (Payment::withoutGlobalScopes()->where('order_id', $order->id)->where('metadata->qr_token', $qrToken)->exists()) {
                     $isValidToken = true;
                 }
                 
@@ -126,64 +133,58 @@ class CustomerOrderController extends Controller
                 }
             }
 
-            // Load relationships for complete order data
-            $order->load([
-                'orderItems.menuItem' => fn($q) => $q->withoutGlobalScopes(),
-                'room' => fn($q) => $q->withoutGlobalScopes(),
-                'table' => fn($q) => $q->withoutGlobalScopes(),
-                'guest' => fn($q) => $q->withoutGlobalScopes(),
-                'chef',
-            ]);
-
-            // Build response data
-            $data = [
-                'order_id' => $order->id,
-                'order_number' => $order->order_number,
-                'hotel_id' => $order->hotel_id,
-                'status' => $order->status,
-                'order_type' => $order->order_type,
-                'order_time' => $order->order_time?->toISOString() ?? $order->created_at->toISOString(),
-                
-                // Location info
-                'room_number' => $order->room?->room_number,
-                'table_number' => $order->table?->table_number,
-                
-                // Customer info
-                'customer_name' => $this->getCustomerName($order),
-                
-                // Order items
-                'items' => $order->orderItems->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'name' => $item->item_name ?? $item->menuItem?->name,
-                        'quantity' => $item->quantity,
-                        'price' => (float) $item->item_price_at_order,
-                        'total' => (float) $item->total,
-                    ];
-                }),
-                
-                // Pricing
-                'subtotal' => (float) $order->subtotal,
-                'tax' => (float) $order->tax,
-                'service_charge' => (float) $order->service_charge_amount,
-                'total' => (float) $order->total,
-                
-                // Payment info
-                'payment_type' => ($this->hasVerifiedPayment($order) && $order->payment_type === 'room_charge') ? 'chapa' : $order->payment_type,
-                'payment_status' => $this->getPaymentStatus($order),
-                
-                // Chef info
-                'chef_id' => $order->chef_id,
-                'chef_name' => $order->chef?->name,
-                
-                // Timestamps
-                'created_at' => $order->created_at->toISOString(),
-                'updated_at' => $order->updated_at->toISOString(),
-                'served_at' => $order->served_at?->toISOString(),
-                
-                // Additional metadata
-                'notes' => $order->notes,
-            ];
+            // Cache computed status payload for 5 seconds to reduce load during rapid frontend polling/refreshes
+            $cacheKey = "customer_order_status_{$order->id}";
+            $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 5, function () use ($order) {
+                return [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'hotel_id' => $order->hotel_id,
+                    'status' => $order->status,
+                    'order_type' => $order->order_type,
+                    'order_time' => $order->order_time?->toISOString() ?? $order->created_at->toISOString(),
+                    
+                    // Location info
+                    'room_number' => $order->room?->room_number,
+                    'table_number' => $order->table?->table_number,
+                    
+                    // Customer info
+                    'customer_name' => $this->getCustomerName($order),
+                    
+                    // Order items
+                    'items' => $order->orderItems->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'name' => $item->item_name ?? $item->menuItem?->name,
+                            'quantity' => $item->quantity,
+                            'price' => (float) $item->item_price_at_order,
+                            'total' => (float) $item->total,
+                        ];
+                    })->values()->toArray(),
+                    
+                    // Pricing
+                    'subtotal' => (float) $order->subtotal,
+                    'tax' => (float) $order->tax,
+                    'service_charge' => (float) $order->service_charge_amount,
+                    'total' => (float) $order->total,
+                    
+                    // Payment info
+                    'payment_type' => ($this->hasVerifiedPayment($order) && $order->payment_type === 'room_charge') ? 'chapa' : $order->payment_type,
+                    'payment_status' => $this->getPaymentStatus($order),
+                    
+                    // Chef info
+                    'chef_id' => $order->chef_id,
+                    'chef_name' => $order->chef?->name,
+                    
+                    // Timestamps
+                    'created_at' => $order->created_at->toISOString(),
+                    'updated_at' => $order->updated_at->toISOString(),
+                    'served_at' => $order->served_at?->toISOString(),
+                    
+                    // Additional metadata
+                    'notes' => $order->notes,
+                ];
+            });
 
             return response()->json([
                 'success' => true,
@@ -244,9 +245,11 @@ class CustomerOrderController extends Controller
     protected function getCustomerName(Order $order): ?string
     {
         if ($order->guest) {
-            return $order->guest->name 
-                ?? trim(($order->guest->first_name ?? '') . ' ' . ($order->guest->last_name ?? ''))
-                ?? null;
+            $name = $order->guest->name 
+                ?? trim(($order->guest->first_name ?? '') . ' ' . ($order->guest->last_name ?? ''));
+            if (!empty($name)) {
+                return $name;
+            }
         }
 
         return 'Guest';
@@ -257,24 +260,21 @@ class CustomerOrderController extends Controller
      */
     protected function hasVerifiedPayment(Order $order): bool
     {
-        $hasPaidPayment = \App\Models\Payment::withoutGlobalScopes()
-            ->where(function($q) use ($order) {
-                $q->where('order_id', $order->id)
-                  ->orWhereJsonContains('metadata->order_id', $order->id);
-            })
-            ->whereIn('status', ['paid', 'verified', 'completed', 'successful', 'success'])
-            ->exists();
-
-        if ($hasPaidPayment) {
-            return true;
+        try {
+            return Payment::withoutGlobalScopes()
+                ->where(function ($q) use ($order) {
+                    $q->where('order_id', $order->id)
+                      ->orWhereJsonContains('metadata->order_id', $order->id);
+                })
+                ->where(function ($q) {
+                    $q->whereIn('status', ['paid', 'verified', 'completed', 'successful', 'success'])
+                      ->orWhereIn('payment_status', ['paid', 'verified', 'completed', 'successful', 'success']);
+                })
+                ->exists();
+        } catch (\Throwable $e) {
+            Log::warning('[CustomerOrder] Error checking payment verification: ' . $e->getMessage());
+            return false;
         }
-
-        $hasPaidWalkIn = \App\Models\WalkInPayment::withoutGlobalScopes()
-            ->where('order_id', $order->id)
-            ->whereIn('payment_status', ['paid', 'verified', 'completed'])
-            ->exists();
-
-        return $hasPaidWalkIn;
     }
 
     /**

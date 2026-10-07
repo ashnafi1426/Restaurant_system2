@@ -11,11 +11,18 @@ export const useUserStore = defineStore('user', {
   }),
 
   actions: {
-    async fetchUsers(params = {}) {
-      this.loading = true
+    async fetchUsers(params: any = {}, forceRefresh = false) {
+      // If we already have users loaded, don't show full blocking spinner for background refresh
+      if (this.users.length === 0) {
+        this.loading = true
+      }
 
       try {
-        const response = await userService.getUsers(params)
+        const queryParams = { ...params }
+        if (forceRefresh) {
+          queryParams.refresh = 1
+        }
+        const response = await userService.getUsers(queryParams)
         this.users = response.data.data
         return response.data
       } catch (error) {

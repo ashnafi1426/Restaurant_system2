@@ -13,7 +13,7 @@ use App\Models\User;
 use App\Services\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -24,49 +24,123 @@ use Throwable;
 class UserController extends Controller
 {
     /**
-     * Display a listing of users, scoped to the current hotel context.
+     * Invalidate cached user listings for a hotel or across platform.
      */
-    public function index(Request $request): AnonymousResourceCollection
+    protected function invalidateUserCaches(?string $hotelId = null): void
     {
-        $query = User::query();
+        if ($hotelId) {
+            $cur = (int) Cache::get("users_ver:{$hotelId}", 1);
+            Cache::put("users_ver:{$hotelId}", $cur + 1, 86400);
+            Cache::forget("rbac_roles:{$hotelId}");
+        }
+        $allCur = (int) Cache::get('users_ver:all', 1);
+        Cache::put('users_ver:all', $allCur + 1, 86400);
+        Cache::forget('rbac_roles:platform');
+    }
 
+    /**
+     * Display a listing of users, scoped to the current hotel context.
+     * Optimized with column pruning, indexed subqueries, and intelligent Cache::remember.
+     */
+    public function index(Request $request): JsonResponse
+    {
         $hotelId = $request->header('X-Hotel-ID')
             ?: TenantContext::id()
             ?: $request->query('hotel_id');
 
         $isAllHotels = $request->boolean('all_hotels') && $request->user()?->isPlatformAdmin();
 
-        if (!$isAllHotels) {
-            if (!$hotelId && $request->user()) {
-                $hotelId = $request->user()->hotelMemberships()->first()?->hotel_id;
+        if (!$isAllHotels && !$hotelId && $request->user()) {
+            $hotelId = $request->user()->hotelMemberships()->first()?->hotel_id;
+        }
+
+        $tenantScope = $isAllHotels ? 'all' : ($hotelId ?: 'default');
+        $forceRefresh = $request->boolean('refresh') || $request->header('X-Refresh') === 'true';
+
+        $ver = (int) Cache::get("users_ver:{$tenantScope}", 1);
+        $filterHash = md5(json_encode([
+            's' => $request->search,
+            'r' => $request->role,
+            'a' => $request->input('is_active'),
+            'p' => $request->input('page', 1),
+            'pp' => (int) $request->get('per_page', 500),
+        ]));
+        $cacheKey = "users_list:{$tenantScope}:v{$ver}:{$filterHash}";
+
+        if ($forceRefresh) {
+            Cache::forget($cacheKey);
+        }
+
+        // Cache user results for 10 minutes (600s)
+        $cachedPayload = Cache::remember($cacheKey, 600, function () use ($request, $hotelId, $isAllHotels) {
+            $query = User::query();
+
+            // 1. Column pruning: fetch only necessary columns
+            $query->select([
+                'id',
+                'first_name',
+                'last_name',
+                'email',
+                'phone',
+                'role',
+                'is_active',
+                'last_login',
+                'created_at',
+                'updated_at',
+            ]);
+
+            // 2. High performance tenant scoping via indexed subquery instead of correlated whereHas
+            if (!$isAllHotels && $hotelId) {
+                $scopedUserIds = DB::table('hotel_users')
+                    ->where('hotel_id', $hotelId)
+                    ->pluck('user_id');
+                $query->whereIn('id', $scopedUserIds);
             }
 
-            if ($hotelId) {
-                $query->whereHas('hotelMemberships', fn ($q) => $q->where('hotel_id', $hotelId));
+            // 3. Search filter
+            if ($request->filled('search')) {
+                $search = trim($request->search);
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('role', 'like', "%{$search}%");
+                });
             }
-        }
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('role', 'like', "%{$search}%");
-            });
-        }
+            // 4. Role filter
+            if ($request->filled('role')) {
+                $query->where('role', $request->role);
+            }
 
-        if ($request->filled('role')) {
-            $query->where('role', $request->role);
-        }
+            // 5. Active status filter
+            if ($request->filled('is_active')) {
+                $query->where('is_active', $request->boolean('is_active'));
+            }
 
-        if ($request->filled('is_active')) {
-            $query->where('is_active', $request->boolean('is_active'));
-        }
+            $perPage = (int) $request->get('per_page', 500);
+            $paginated = $query->latest('created_at')->paginate($perPage);
 
-        $perPage = (int) $request->get('per_page', 500);
+            return [
+                'data' => UserResource::collection($paginated->items())->toArray($request),
+                'links' => [
+                    'first' => $paginated->url(1),
+                    'last' => $paginated->url($paginated->lastPage()),
+                    'prev' => $paginated->previousPageUrl(),
+                    'next' => $paginated->nextPageUrl(),
+                ],
+                'meta' => [
+                    'current_page' => $paginated->currentPage(),
+                    'from' => $paginated->firstItem(),
+                    'last_page' => $paginated->lastPage(),
+                    'per_page' => $paginated->perPage(),
+                    'to' => $paginated->lastItem(),
+                    'total' => $paginated->total(),
+                ],
+            ];
+        });
 
-        return UserResource::collection($query->latest()->paginate($perPage));
+        return response()->json($cachedPayload);
     }
 
     /**
@@ -162,6 +236,9 @@ class UserController extends Controller
 
             DB::commit();
 
+            // Invalidate user cache for hotel
+            $this->invalidateUserCaches($hotelId);
+
             return response()->json([
                 'success' => true,
                 'message' => $emailSent
@@ -239,6 +316,9 @@ class UserController extends Controller
 
             DB::commit();
 
+            $hotelId = $user->hotelMemberships()->first()?->hotel_id;
+            $this->invalidateUserCaches($hotelId);
+
             return response()->json([
                 'success' => true,
                 'message' => 'User updated successfully.',
@@ -272,10 +352,14 @@ class UserController extends Controller
             ], 403);
         }
 
+        $hotelId = $user->hotelMemberships()->first()?->hotel_id;
+
         DB::beginTransaction();
         try {
             $user->delete();
             DB::commit();
+
+            $this->invalidateUserCaches($hotelId);
 
             return response()->json([
                 'success' => true,
@@ -308,6 +392,9 @@ class UserController extends Controller
             $user->save();
 
             DB::commit();
+
+            $hotelId = $user->hotelMemberships()->first()?->hotel_id;
+            $this->invalidateUserCaches($hotelId);
 
             return response()->json([
                 'success' => true,

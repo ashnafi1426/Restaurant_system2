@@ -1009,7 +1009,6 @@ const navigateToUserAssignments = () => {
         @close="showUsersModal = false"
         @navigate-user-roles="navigateToUserAssignments"
       />
-
       <ConfirmDeleteModal
         :show="showDeleteModal"
         title="Delete Custom Role?"

@@ -152,9 +152,10 @@ class GuestOrderController extends Controller
     /**
      * Get menu items for a specific scanned QR token (room or table).
      */
-    public function getMenuItems(string $qrToken): JsonResponse
+    public function getMenuItems(Request $request, string $qrToken): JsonResponse
     {
         try {
+            $forceRefresh = $request->boolean('refresh') || $request->header('X-Refresh') === 'true';
             $resolution = QRResolutionService::resolveQRToken($qrToken);
             $hotelId = null;
 
@@ -177,7 +178,7 @@ class GuestOrderController extends Controller
                 app(TenantContext::class)->setHotelId($hotelId);
             }
 
-            $categorized = $this->menuService->getCategorizedMenuItems($hotelId);
+            $categorized = $this->menuService->getCategorizedMenuItems($hotelId, $forceRefresh);
 
             return response()->json([
                 'success' => true,
@@ -200,6 +201,7 @@ class GuestOrderController extends Controller
     public function getAllMenuItems(Request $request): JsonResponse
     {
         try {
+            $forceRefresh = $request->boolean('refresh') || $request->header('X-Refresh') === 'true';
             $hotelId = $request->header('X-Hotel-ID')
                 ?: $request->header('x-hotel-id')
                 ?: TenantContext::id()
@@ -217,7 +219,7 @@ class GuestOrderController extends Controller
                 app(TenantContext::class)->setHotelId($hotelId);
             }
 
-            $categorized = $this->menuService->getCategorizedMenuItems($hotelId);
+            $categorized = $this->menuService->getCategorizedMenuItems($hotelId, $forceRefresh);
 
             if ($request->has('per_page') || $request->query('flat')) {
                 $flatItems = $categorized->flatMap(fn ($cat) => $cat['items'])->values();
@@ -252,6 +254,7 @@ class GuestOrderController extends Controller
     public function getPublicCategories(Request $request): JsonResponse
     {
         try {
+            $forceRefresh = $request->boolean('refresh') || $request->header('X-Refresh') === 'true';
             $hotelId = $request->header('X-Hotel-ID')
                 ?: $request->header('x-hotel-id')
                 ?: TenantContext::id()
@@ -269,7 +272,7 @@ class GuestOrderController extends Controller
                 app(TenantContext::class)->setHotelId($hotelId);
             }
 
-            $categories = $this->menuService->getCategoriesWithCounts($hotelId);
+            $categories = $this->menuService->getCategoriesWithCounts($hotelId, $forceRefresh);
 
             return response()->json([
                 'success' => true,

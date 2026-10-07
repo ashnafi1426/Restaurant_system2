@@ -14,13 +14,39 @@ const userStore = useUserStore()
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
 
+const getCacheKey = () => `users_cache_${hotelStore.hotelId || 'default'}`
+
+const loadFromCache = (): boolean => {
+  try {
+    const raw = localStorage.getItem(getCacheKey())
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        userStore.users = parsed
+        return true
+      }
+    }
+  } catch (e) {}
+  return false
+}
+
+const saveToCache = (users: User[]) => {
+  try {
+    localStorage.setItem(getCacheKey(), JSON.stringify(users))
+  } catch (e) {}
+}
+
 onMounted(async () => {
-  await userStore.fetchUsers()
+  loadFromCache()
+  await userStore.fetchUsers({}, false)
+  saveToCache(userStore.users || [])
 })
 
 // Re-fetch users whenever the selected hotel in the Navbar changes
 watch(() => hotelStore.hotelId, async () => {
-  await userStore.fetchUsers()
+  loadFromCache()
+  await userStore.fetchUsers({}, false)
+  saveToCache(userStore.users || [])
 })
 
 const totalUsers = computed(() => (userStore.users || []).length)
@@ -42,11 +68,13 @@ const editUser = (user: User) => {
 const deleteUser = async (user: User) => {
   if (confirm(languageStore.t('delete_user_confirm', `Are you sure you want to delete ${user.first_name || 'this user'}?`))) {
     await userStore.deleteUser(String(user.id))
+    saveToCache(userStore.users || [])
   }
 }
 
 const refresh = async () => {
-  await userStore.fetchUsers()
+  await userStore.fetchUsers({}, true)
+  saveToCache(userStore.users || [])
 }
 </script>
 

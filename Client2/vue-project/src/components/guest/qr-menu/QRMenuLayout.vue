@@ -454,21 +454,78 @@ function deriveCategoriesFromMenuItems() {
   ]
 }
 
-const loadCategories = async () => {
+const getMenuCacheKey = () => `qr_menu_items_cache_${props.qrToken || 'all'}`
+const getCatCacheKey = () => `qr_categories_cache_${props.qrToken || 'all'}`
+
+const loadFromClientCache = (): boolean => {
+  try {
+    const rawItems = localStorage.getItem(getMenuCacheKey())
+    const rawCats = localStorage.getItem(getCatCacheKey())
+    let hasData = false
+
+    if (rawItems) {
+      const parsedItems = JSON.parse(rawItems)
+      if (Array.isArray(parsedItems) && parsedItems.length > 0) {
+        allMenuItems.value = parsedItems
+        hasData = true
+      }
+    }
+
+    if (rawCats) {
+      const parsedCats = JSON.parse(rawCats)
+      if (Array.isArray(parsedCats) && parsedCats.length > 0) {
+        categories.value = parsedCats
+        hasData = true
+      }
+    }
+
+    if (hasData) {
+      isLoadingMenu.value = false
+      return true
+    }
+  } catch (e) {
+    // ignore parse error
+  }
+  return false
+}
+
+const saveToClientCache = () => {
+  try {
+    if (allMenuItems.value.length > 0) {
+      localStorage.setItem(getMenuCacheKey(), JSON.stringify(allMenuItems.value))
+    }
+    if (categories.value.length > 0) {
+      localStorage.setItem(getCatCacheKey(), JSON.stringify(categories.value))
+    }
+  } catch (e) {
+    // ignore quota error
+  }
+}
+
+const loadCategories = async (forceRefresh = false) => {
   loadingCategories.value = true
   try {
     const params: Record<string, any> = {}
     if (props.qrToken) {
       params.qr_token = props.qrToken
     }
+    if (forceRefresh) {
+      params.refresh = 1
+    }
 
     let rawCategories: any[] = []
     try {
-      const response = await api.get('/guest/categories', { params })
+      const response = await api.get('/guest/categories', {
+        params,
+        headers: forceRefresh ? { 'X-Refresh': 'true' } : undefined,
+      })
       rawCategories = response.data?.data || response.data || []
     } catch (guestErr) {
       console.warn('[QRMenuLayout] /guest/categories endpoint unavailable, trying /categories:', guestErr)
-      const response = await api.get('/categories', { params })
+      const response = await api.get('/categories', {
+        params,
+        headers: forceRefresh ? { 'X-Refresh': 'true' } : undefined,
+      })
       rawCategories = response.data?.data || response.data || []
     }
 
@@ -486,6 +543,7 @@ const loadCategories = async () => {
         ...backendCategories,
       ]
       updateCategoryCounts()
+      saveToClientCache()
       return
     }
   } catch (error) {
@@ -496,6 +554,7 @@ const loadCategories = async () => {
 
   deriveCategoriesFromMenuItems()
   updateCategoryCounts()
+  saveToClientCache()
 }
 
 const sortOptions = [
@@ -516,8 +575,10 @@ function parseCategoryName(item: any): string {
   return 'Other'
 }
 
-const loadMenuItems = async () => {
-  isLoadingMenu.value = true
+const loadMenuItems = async (forceRefresh = false) => {
+  if (allMenuItems.value.length === 0) {
+    isLoadingMenu.value = true
+  }
   errorMessage.value = ''
   try {
     let url = '/guest/menu/items'
@@ -526,7 +587,10 @@ const loadMenuItems = async () => {
       url = `/guest/menu/${props.qrToken}/items`
     }
 
-    const response = await api.get(url)
+    const response = await api.get(url, {
+      params: forceRefresh ? { refresh: 1 } : undefined,
+      headers: forceRefresh ? { 'X-Refresh': 'true' } : undefined,
+    })
 
     if (response.data?.data) {
       const data = response.data.data
@@ -600,6 +664,7 @@ const loadMenuItems = async () => {
       deriveCategoriesFromMenuItems()
     }
     updateCategoryCounts()
+    saveToClientCache()
   } catch (error) {
     console.error('[QRMenuLayout] Error fetching menu items:', error)
     errorMessage.value = 'Failed to load menu items. Please try again.'
@@ -864,15 +929,20 @@ watch(
   () => props.qrToken,
   (newVal, oldVal) => {
     if (newVal && newVal !== oldVal) {
-      loadCategories()
-      loadMenuItems()
+      loadFromClientCache()
+      loadCategories(true)
+      loadMenuItems(true)
     }
   },
 )
 
 onMounted(() => {
-  loadCategories()
-  loadMenuItems()
+  const hasCached = loadFromClientCache()
+  if (hasCached) {
+    isLoadingMenu.value = false
+  }
+  loadCategories(false)
+  loadMenuItems(false)
 })
 
 defineExpose({

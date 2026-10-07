@@ -4,11 +4,12 @@ namespace App\Services;
 
 use App\Models\Room;
 use App\Models\RestaurantTable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class QRResolutionService
 {
-    public static function resolveQRToken(string $qrToken): array
+    public static function resolveQRToken(string $qrToken, bool $forceRefresh = false): array
     {
         try {
             $rawToken = trim($qrToken);
@@ -22,14 +23,21 @@ class QRResolutionService
             }
 
             $upperToken = strtoupper($rawToken);
-            $lowerToken = strtolower($rawToken);
+            $cacheKey = "qr_token_res:" . md5($upperToken);
 
-            $room = Room::withoutGlobalScopes()->where(function ($q) use ($rawToken, $upperToken, $lowerToken) {
-                $q->where('qr_token', $rawToken)
-                  ->orWhere('qr_token', $upperToken)
-                  ->orWhere('qr_token', $lowerToken)
-                  ->orWhere('id', $rawToken);
-            })->first();
+            if ($forceRefresh) {
+                Cache::forget($cacheKey);
+            }
+
+            return Cache::remember($cacheKey, 60, function () use ($rawToken, $upperToken, $qrToken) {
+                $lowerToken = strtolower($rawToken);
+
+                $room = Room::withoutGlobalScopes()->where(function ($q) use ($rawToken, $upperToken, $lowerToken) {
+                    $q->where('qr_token', $rawToken)
+                      ->orWhere('qr_token', $upperToken)
+                      ->orWhere('qr_token', $lowerToken)
+                      ->orWhere('id', $rawToken);
+                })->first();
 
             if ($room && $room->is_active !== false) {
                 $currentReservation = $room->getCurrentReservation();
@@ -177,6 +185,7 @@ class QRResolutionService
                 'data' => null,
                 'message' => 'QR code not found or has been deactivated',
             ];
+            });
 
         } catch (\Exception $e) {
             Log::error('QR Token Resolution Error', [

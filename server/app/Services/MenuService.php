@@ -6,111 +6,169 @@ use App\Models\Category;
 use App\Models\MenuItem;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class MenuService
 {
     /**
-     * Get menu items for guest view, grouped by category.
+     * Invalidate cached menu and category queries for a hotel or platform.
      */
-    public function getCategorizedMenuItems(?string $hotelId): Collection
+    public static function invalidateMenuCache(?string $hotelId = null): void
     {
         if ($hotelId) {
-            $this->ensureHotelHasMenuAndCategories($hotelId);
+            Cache::forget("qr_menu_items:{$hotelId}");
+            Cache::forget("qr_menu_categories:{$hotelId}");
+        }
+        Cache::forget('qr_menu_items:all');
+        Cache::forget('qr_menu_categories:all');
+        Cache::forget('qr_menu_items:default');
+        Cache::forget('qr_menu_categories:default');
+    }
+
+    /**
+     * Get menu items for guest view, grouped by category.
+     * High-speed execution with Cache::remember, column pruning, and preloaded tax relations.
+     */
+    public function getCategorizedMenuItems(?string $hotelId, bool $forceRefresh = false): Collection
+    {
+        $cacheScope = $hotelId ?: 'all';
+        $cacheKey = "qr_menu_items:{$cacheScope}";
+
+        if ($forceRefresh) {
+            Cache::forget($cacheKey);
         }
 
-        $query = MenuItem::withoutGlobalScope(TenantScope::class)
-            ->with(['taxRate', 'categoryRelation'])
-            ->where('is_available', true);
+        $cachedData = Cache::remember($cacheKey, 600, function () use ($hotelId) {
+            if ($hotelId) {
+                $this->ensureHotelHasMenuAndCategories($hotelId);
+            }
 
-        if ($hotelId) {
-            $query->where('hotel_id', $hotelId);
-        }
+            $query = MenuItem::withoutGlobalScope(TenantScope::class)
+                ->select([
+                    'id',
+                    'hotel_id',
+                    'category_id',
+                    'category',
+                    'name',
+                    'description',
+                    'price',
+                    'tax_rate_id',
+                    'tax_included',
+                    'is_available',
+                    'image',
+                    'created_at',
+                    'updated_at',
+                ])
+                ->with(['taxRate:id,name,rate,type'])
+                ->where('is_available', true);
 
-        $menuItems = $query->orderBy('category')->orderBy('name')->get();
+            if ($hotelId) {
+                $query->where('hotel_id', $hotelId);
+            }
 
-        return $menuItems->groupBy('category')
-            ->map(fn($items, $category) => [
-                'category' => $category,
-                'items' => $items->map(fn($item) => $this->formatMenuItemForGuest($item))->values(),
-            ])
-            ->values();
+            $menuItems = $query->orderBy('category')->orderBy('name')->get();
+
+            return $menuItems->groupBy('category')
+                ->map(fn($items, $category) => [
+                    'category' => $category,
+                    'items' => $items->map(fn($item) => $this->formatMenuItemForGuest($item))->values()->all(),
+                ])
+                ->values()
+                ->all();
+        });
+
+        return collect($cachedData);
     }
 
     /**
      * Get all active categories with counts for a hotel (without N+1 queries).
+     * Cached with a 10-minute TTL for lightning-fast catalog navigation.
      */
-    public function getCategoriesWithCounts(?string $hotelId): array
+    public function getCategoriesWithCounts(?string $hotelId, bool $forceRefresh = false): array
     {
-        if ($hotelId) {
-            $this->ensureHotelHasMenuAndCategories($hotelId);
+        $cacheScope = $hotelId ?: 'all';
+        $cacheKey = "qr_menu_categories:{$cacheScope}";
+
+        if ($forceRefresh) {
+            Cache::forget($cacheKey);
         }
 
-        // 1. Get counts grouped by category slug/name in 1 single aggregate query
-        $itemCountQuery = MenuItem::withoutGlobalScope(TenantScope::class)
-            ->where('is_available', true)
-            ->selectRaw('category, category_id, COUNT(*) as item_count');
-
-        if ($hotelId) {
-            $itemCountQuery->where('hotel_id', $hotelId);
-        }
-
-        $itemCounts = $itemCountQuery->groupBy('category', 'category_id')->get();
-
-        $countByCatId = [];
-        $countBySlug = [];
-        foreach ($itemCounts as $row) {
-            if ($row->category_id) {
-                $countByCatId[$row->category_id] = ($countByCatId[$row->category_id] ?? 0) + $row->item_count;
-            }
-            if ($row->category) {
-                $slug = Str::slug($row->category);
-                $countBySlug[$slug] = ($countBySlug[$slug] ?? 0) + $row->item_count;
-            }
-        }
-
-        // 2. Query categories
-        $catQuery = Category::withoutGlobalScope(TenantScope::class)->where('is_active', true);
-        if ($hotelId) {
-            $catQuery->where('hotel_id', $hotelId);
-        }
-        $dbCategories = $catQuery->orderBy('display_order')->get();
-
-        $resultMap = [];
-
-        foreach ($dbCategories as $category) {
-            $slug = $category->slug ?: Str::slug($category->name);
-            $cnt = $countByCatId[$category->id] ?? $countBySlug[$slug] ?? 0;
-
-            $icon = $category->icon;
-            if (!$icon || in_array($icon, ['grid', 'menu'])) {
-                $icon = self::guessCategoryIcon($slug);
+        return Cache::remember($cacheKey, 600, function () use ($hotelId) {
+            if ($hotelId) {
+                $this->ensureHotelHasMenuAndCategories($hotelId);
             }
 
-            $resultMap[$slug] = [
-                'id' => $category->id ?: $slug,
-                'name' => $category->name,
-                'slug' => $slug,
-                'icon' => $icon,
-                'count' => $cnt,
-            ];
-        }
+            // 1. Get counts grouped by category slug/name in 1 single aggregate query
+            $itemCountQuery = MenuItem::withoutGlobalScope(TenantScope::class)
+                ->where('is_available', true)
+                ->selectRaw('category, category_id, COUNT(*) as item_count');
 
-        // Fallback for distinct item categories not in categories table
-        foreach ($countBySlug as $slug => $cnt) {
-            if (!isset($resultMap[$slug])) {
+            if ($hotelId) {
+                $itemCountQuery->where('hotel_id', $hotelId);
+            }
+
+            $itemCounts = $itemCountQuery->groupBy('category', 'category_id')->get();
+
+            $countByCatId = [];
+            $countBySlug = [];
+            foreach ($itemCounts as $row) {
+                if ($row->category_id) {
+                    $countByCatId[$row->category_id] = ($countByCatId[$row->category_id] ?? 0) + $row->item_count;
+                }
+                if ($row->category) {
+                    $slug = Str::slug($row->category);
+                    $countBySlug[$slug] = ($countBySlug[$slug] ?? 0) + $row->item_count;
+                }
+            }
+
+            // 2. Query categories with pruned columns
+            $catQuery = Category::withoutGlobalScope(TenantScope::class)
+                ->select(['id', 'hotel_id', 'name', 'slug', 'icon', 'display_order', 'is_active'])
+                ->where('is_active', true);
+
+            if ($hotelId) {
+                $catQuery->where('hotel_id', $hotelId);
+            }
+
+            $dbCategories = $catQuery->orderBy('display_order')->get();
+
+            $resultMap = [];
+
+            foreach ($dbCategories as $category) {
+                $slug = $category->slug ?: Str::slug($category->name);
+                $cnt = $countByCatId[$category->id] ?? $countBySlug[$slug] ?? 0;
+
+                $icon = $category->icon;
+                if (!$icon || in_array($icon, ['grid', 'menu'])) {
+                    $icon = self::guessCategoryIcon($slug);
+                }
+
                 $resultMap[$slug] = [
-                    'id' => $slug,
-                    'name' => ucwords(str_replace('-', ' ', $slug)),
+                    'id' => $category->id ?: $slug,
+                    'name' => $category->name,
                     'slug' => $slug,
-                    'icon' => self::guessCategoryIcon($slug),
+                    'icon' => $icon,
                     'count' => $cnt,
                 ];
             }
-        }
 
-        return array_values($resultMap);
+            // Fallback for distinct item categories not in categories table
+            foreach ($countBySlug as $slug => $cnt) {
+                if (!isset($resultMap[$slug])) {
+                    $resultMap[$slug] = [
+                        'id' => $slug,
+                        'name' => ucwords(str_replace('-', ' ', $slug)),
+                        'slug' => $slug,
+                        'icon' => self::guessCategoryIcon($slug),
+                        'count' => $cnt,
+                    ];
+                }
+            }
+
+            return array_values($resultMap);
+        });
     }
 
     /**
