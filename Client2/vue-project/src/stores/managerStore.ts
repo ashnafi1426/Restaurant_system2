@@ -73,7 +73,7 @@ export const useManagerStore = defineStore('manager', () => {
 
   const pendingOrders = computed(() => orders.value.filter((order) => order.status === 'pending'))
 
-  const preparingOrdersComputed = computed(() =>
+  const preparingOrders = computed(() =>
     orders.value.filter((order) => order.status === 'preparing'),
   )
 
@@ -139,8 +139,10 @@ export const useManagerStore = defineStore('manager', () => {
 
   const revenue = computed(() => ({
     today: revenueSummary.value?.today ?? 0,
+    yesterday: revenueSummary.value?.yesterday ?? 0,
     week: revenueSummary.value?.thisWeek ?? 0,
     month: revenueSummary.value?.thisMonth ?? 0,
+    year: revenueSummary.value?.thisYear ?? 0,
     rooms: 0,
     restaurant: 0,
     roomService: 0,
@@ -335,7 +337,7 @@ export const useManagerStore = defineStore('manager', () => {
     }
   }
 
-  async function initializeFullManager() {
+  async function loadAllManagerData() {
     await Promise.allSettled([
       loadDashboard(),
       loadStatistics(),
@@ -412,8 +414,8 @@ export const useManagerStore = defineStore('manager', () => {
 
     unreadNotifications,
     pendingOrders,
-    preparingOrdersComputed,
-    preparingOrders: preparingOrdersComputed,
+    preparingOrders,
+    preparingOrdersComputed: preparingOrders,
     readyOrders,
     activeDeliveries,
     pendingLaundry,
@@ -422,6 +424,7 @@ export const useManagerStore = defineStore('manager', () => {
     occupancyData,
     revenue,
     safeStatistics,
+    statisticsWithDefaults: safeStatistics,
 
     loadDashboard,
     loadStatistics,
@@ -442,7 +445,8 @@ export const useManagerStore = defineStore('manager', () => {
     updateWaiterStatus,
     deleteWaiter,
     initializeManagerDashboard,
-    initializeFullManager,
+    loadAllManagerData,
+    initializeFullManager: loadAllManagerData,
     refresh,
     reset,
   }

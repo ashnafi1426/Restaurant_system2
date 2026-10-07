@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const languageStore = useLanguageStore()
 
-const safeAlerts = computed<MaintenanceAlert[]>(() => {
+const activeAlerts = computed<MaintenanceAlert[]>(() => {
   const raw = props.alerts
   const list = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.values(raw) : [])
   return list
@@ -77,7 +77,7 @@ const formatSeverity = (severity: string) => {
     </div>
 
     <!-- Empty State -->
-    <div v-if="safeAlerts.length === 0" class="text-center py-16">
+    <div v-if="activeAlerts.length === 0" class="text-center py-16">
       <div
         class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4"
       >
@@ -97,7 +97,7 @@ const formatSeverity = (severity: string) => {
     <!-- Alert List -->
     <div v-else class="space-y-3 sm:space-y-4">
       <div
-        v-for="alert in safeAlerts"
+        v-for="alert in activeAlerts"
         :key="alert.id"
         :class="[
           getTheme(alert.severity).card,
