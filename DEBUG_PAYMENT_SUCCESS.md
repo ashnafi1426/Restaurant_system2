@@ -77,7 +77,7 @@ console.log(localStorage.getItem('pending_order_data'))
 
 **Question**: Is the data still there after redirect?
 
-- ✅ YES → tx_ref should be extracted from sessionStorage
+-  YES → tx_ref should be extracted from sessionStorage
 - ❌ NO → SessionStorage is being cleared (cross-origin issue?)
 
 ---

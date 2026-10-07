@@ -148,7 +148,7 @@
             class="font-medium"
             :class="paymentStatus === 'paid' ? 'text-green-600' : 'text-amber-600'"
           >
-            {{paymentStatus === 'paid' ? '✅ Paid' : '⏳ Pending'}}
+            {{paymentStatus === 'paid' ? ' Paid' : '⏳ Pending'}}
           </span>
         </div>
         <div class="flex items-center justify-between text-sm">
@@ -180,7 +180,7 @@
         class="w-full py-4 rounded-xl font-bold text-white text-base text-center"
         style="background: linear-gradient(135deg, #10B981 0%, #059669 100%)"
       >
-        ✅ Payment Completed
+         Payment Completed
       </div>
 
       <!-- Room charge note -->

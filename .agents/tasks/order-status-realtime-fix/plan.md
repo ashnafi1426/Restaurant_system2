@@ -57,7 +57,7 @@ Currently, any guest can access any order if they know the order ID, which is a 
 
 ## Implementation Plan
 
-### ✅ Prerequisites Verification
+###  Prerequisites Verification
 
 Before fixing code, verify these services are running:
 
@@ -225,7 +225,7 @@ Before fixing code, verify these services are running:
       3. Check browser console - should see:
          - `[useOrderStatus] Extracted hotel_id from API: {uuid}`
          - `[useOrderStatus] Subscribing to channel: orders.{hotel-id}.{order-id}`
-         - `[Echo] ✅ Connected to Reverb WebSocket server`
+         - `[Echo]  Connected to Reverb WebSocket server`
          - Live indicator should show green "Live" dot
       4. In chef/kitchen dashboard (http://localhost:5173/kitchen), find the order and click "Start Preparing"
       5. Within 1-2 seconds, order status page should automatically update to "Preparing Your Order" with chef icon

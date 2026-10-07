@@ -292,7 +292,7 @@ const regenerateQRCode = async () => {
         qr_generated_at: qrData.qr_generated_at,
       })
 
-      successMessage.value = `✅ QR code regenerated successfully for Room ${props.room.room_number}`
+      successMessage.value = ` QR code regenerated successfully for Room ${props.room.room_number}`
       console.log('QR code regenerated successfully:', qrData)
       
       // Clear any error state

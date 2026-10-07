@@ -98,7 +98,7 @@ const subscribeToPaymentUpdates = () => {
       const pusherConnection = window.Echo.connector.pusher.connection
       
       pusherConnection.bind('connected', () => {
-        console.log('[CashierPayments] ✅ WebSocket connected')
+        console.log('[CashierPayments]  WebSocket connected')
         isConnected.value = true
       })
 
@@ -124,7 +124,7 @@ const subscribeToPaymentUpdates = () => {
 
     // Listen for payment verification
     wsChannel.value.listen('.PaymentVerified', (event: any) => {
-      console.log('[CashierPayments] ✅ Payment verified:', event)
+      console.log('[CashierPayments]  Payment verified:', event)
       handlePaymentUpdate(event)
     })
 
@@ -141,7 +141,7 @@ const subscribeToPaymentUpdates = () => {
       loadPayments()
     })
 
-    console.log('[CashierPayments] ✅ Channel subscription setup complete')
+    console.log('[CashierPayments]  Channel subscription setup complete')
   } catch (error) {
     console.error('[CashierPayments] Error subscribing to channel:', error)
   }

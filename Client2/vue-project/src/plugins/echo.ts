@@ -32,7 +32,7 @@ const echo = new Echo({
   forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
   enabledTransports: ['ws', 'wss'],
   disableStats: true,
-  
+
   /**
    * Custom authorizer for private channel authentication.
    * Calls Laravel's /api/broadcasting/auth endpoint with hotel context.
@@ -43,7 +43,7 @@ const echo = new Echo({
         const token = localStorage.getItem('token')
         const hotelId = localStorage.getItem('hotel_id') || localStorage.getItem('active_hotel_id')
         let qrToken = localStorage.getItem('guest_qr_token')
-        
+
         // Defensive check: if guest_qr_token is not yet in storage, check walk_in_payment_data or order_payment_data
         if (!qrToken) {
           try {
@@ -55,7 +55,7 @@ const echo = new Echo({
                 localStorage.setItem('guest_qr_token', qrToken)
               }
             }
-          } catch (_) {}
+          } catch (_) { }
         }
         if (!qrToken) {
           try {
@@ -67,26 +67,26 @@ const echo = new Echo({
                 localStorage.setItem('guest_qr_token', qrToken)
               }
             }
-          } catch (_) {}
+          } catch (_) { }
         }
-        
+
         console.log('[Echo] Authorizing channel:', channel.name)
         console.log('[Echo] Socket ID:', socketId)
         console.log('[Echo] Hotel ID:', hotelId || 'MISSING')
         console.log('[Echo] QR Token:', qrToken ? qrToken.substring(0, 4) + '****' : 'MISSING')
-        
+
         // Build request body - include QR token for guest order channels
         const requestBody: any = {
           socket_id: socketId,
           channel_name: channel.name
         }
-        
+
         // Include QR token in body for guest authentication
         if (qrToken && channel.name.includes('orders.')) {
           requestBody.qr_token = qrToken
           console.log('[Echo] Including QR token in request body for guest order channel')
         }
-        
+
         // Call Laravel broadcasting auth endpoint
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/broadcasting/auth`, {
           method: 'POST',
@@ -99,24 +99,24 @@ const echo = new Echo({
           },
           body: JSON.stringify(requestBody)
         })
-        .then(response => {
-          if (!response.ok) {
-            console.error('[Echo] ❌ Authorization failed - HTTP', response.status, response.statusText)
-            return response.text().then(text => {
-              console.error('[Echo] Response body:', text)
-              throw new Error(`Authorization failed: ${response.status} ${response.statusText} - ${text}`)
-            })
-          }
-          return response.json()
-        })
-        .then(data => {
-          console.log('[Echo] ✅ Channel authorization successful:', channel.name)
-          callback(null, data)
-        })
-        .catch(error => {
-          console.error('[Echo] ⚠️ Channel authorization error:', error)
-          callback(error, null)
-        })
+          .then(response => {
+            if (!response.ok) {
+              console.error('[Echo] ❌ Authorization failed - HTTP', response.status, response.statusText)
+              return response.text().then(text => {
+                console.error('[Echo] Response body:', text)
+                throw new Error(`Authorization failed: ${response.status} ${response.statusText} - ${text}`)
+              })
+            }
+            return response.json()
+          })
+          .then(data => {
+            console.log('[Echo]  Channel authorization successful:', channel.name)
+            callback(null, data)
+          })
+          .catch(error => {
+            console.error('[Echo] ⚠️ Channel authorization error:', error)
+            callback(error, null)
+          })
       }
     }
   }
@@ -128,13 +128,13 @@ window.Echo = echo
 // Log connection status in development
 if (import.meta.env.DEV) {
   echo.connector.pusher.connection.bind('connected', () => {
-    console.log('[Echo] ✅ Connected to Reverb WebSocket server')
+    console.log('[Echo]  Connected to Reverb WebSocket server')
   })
-  
+
   echo.connector.pusher.connection.bind('disconnected', () => {
     console.log('[Echo] ❌ Disconnected from Reverb WebSocket server')
   })
-  
+
   echo.connector.pusher.connection.bind('error', (err: any) => {
     console.error('[Echo] ⚠️ Connection error:', err)
   })

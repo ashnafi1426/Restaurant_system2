@@ -127,9 +127,9 @@ When working correctly, you should see:
 
 ## Next Steps
 
-1. ✅ Backend server running with tx_ref append fix
-2. ✅ Frontend using localStorage (not sessionStorage)
-3. ✅ Success page checking all sources
+1.  Backend server running with tx_ref append fix
+2.  Frontend using localStorage (not sessionStorage)
+3.  Success page checking all sources
 4. 🔄 **YOU NEED TO TEST**: Go through complete flow starting from QR Menu
 5. ⏸️ QR Menu refactoring workflow paused until this is verified
 

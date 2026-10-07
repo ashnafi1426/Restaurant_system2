@@ -71,7 +71,7 @@ class BookingStatusChangedMail extends Mailable
     private function getStatusIcon(string $status): string
     {
         return match ($status) {
-            'confirmed' => '✅',
+            'confirmed' => '',
             'checked_in' => '🚪',
             'checked_out' => '👋',
             'cancelled' => '❌',

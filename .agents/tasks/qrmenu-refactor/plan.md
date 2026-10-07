@@ -678,14 +678,14 @@ export function useQRMenuOrder() {
    }
    ```
 3. Store to localStorage: `localStorage.setItem('pending_order_data', JSON.stringify(completeOrderData))`
-4. Verify stored: `console.log('[QRMenu] Verified stored data:', localStorage.getItem('pending_order_data') ? 'Success ✅' : 'Failed ❌')`
+4. Verify stored: `console.log('[QRMenu] Verified stored data:', localStorage.getItem('pending_order_data') ? 'Success ' : 'Failed ❌')`
 5. Navigate with orderId in params: `router.push({ name: 'order-status', params: { orderId: createdOrderId }, query: { hotel_id, qr_token, order_number } })`
 
 **Verification Test:**
 1. Place room charge order
-2. Check browser console: Should see `[QRMenu] Created order ID: <id>` and `[QRMenu] Verified stored data: Success ✅`
+2. Check browser console: Should see `[QRMenu] Created order ID: <id>` and `[QRMenu] Verified stored data: Success `
 3. OrderStatusPage should load without errors
-4. Check OrderStatusPage console: Should see `[useOrderStatus] ✅ Using stored order data from order creation` (not `[OrderPaymentSuccess] No order ID found`)
+4. Check OrderStatusPage console: Should see `[useOrderStatus]  Using stored order data from order creation` (not `[OrderPaymentSuccess] No order ID found`)
 
 **Reference:** QRMenu.vue lines 313-375, OrderPaymentSuccessPage.vue lines 320-391, useOrderStatus.ts lines 108-140.
 
@@ -817,11 +817,11 @@ export function useQRMenuOrder() {
 6. **CRITICAL CHECK:** Browser console should show:
    - `[QRMenu] Created order ID: <id>`
    - `[QRMenu] Storing complete order data: {...}` with `id` and `order_id` fields
-   - `[QRMenu] Verified stored data: Success ✅`
+   - `[QRMenu] Verified stored data: Success `
    - `[QRMenu] Redirecting to order status with ID: <id>`
 7. Verify redirect to OrderStatusPage with orderId in URL
 8. **CRITICAL CHECK:** OrderStatusPage should load without errors, console should show:
-   - `[useOrderStatus] ✅ Using stored order data from order creation`
+   - `[useOrderStatus]  Using stored order data from order creation`
    - NOT `[OrderPaymentSuccess] No order ID found after checking all sources!`
 9. Verify order status page displays order number, items, status
 

@@ -18,32 +18,32 @@ $viteConfigFile = Join-Path $clientPath "vite.config.ts"
 if (Test-Path $dashboardFile) {
     $content = Get-Content $dashboardFile -Raw
     
-    Write-Host "✅ Checking WaiterDashboard.vue..." -ForegroundColor Green
+    Write-Host " Checking WaiterDashboard.vue..." -ForegroundColor Green
     
     # Check for stat-card class
     if ($content -match "class=`"stat-card`"") {
-        Write-Host "  ✅ Simplified stat cards implemented" -ForegroundColor Green
+        Write-Host "   Simplified stat cards implemented" -ForegroundColor Green
     } else {
         Write-Host "  ⚠️  Stat cards might not be optimized" -ForegroundColor Yellow
     }
     
     # Check for v-memo
     if ($content -match "v-memo") {
-        Write-Host "  ✅ v-memo optimization added" -ForegroundColor Green
+        Write-Host "   v-memo optimization added" -ForegroundColor Green
     } else {
         Write-Host "  ⚠️  v-memo not found" -ForegroundColor Yellow
     }
     
     # Check for scoped styles
     if ($content -match "<style scoped>") {
-        Write-Host "  ✅ Scoped CSS styles added" -ForegroundColor Green
+        Write-Host "   Scoped CSS styles added" -ForegroundColor Green
     } else {
         Write-Host "  ⚠️  Scoped styles not found" -ForegroundColor Yellow
     }
     
     # Check for active-delivery-banner class
     if ($content -match "active-delivery-banner") {
-        Write-Host "  ✅ Active delivery banner optimized" -ForegroundColor Green
+        Write-Host "   Active delivery banner optimized" -ForegroundColor Green
     } else {
         Write-Host "  ⚠️  Active delivery banner might not be optimized" -ForegroundColor Yellow
     }
@@ -54,25 +54,25 @@ Write-Host ""
 if (Test-Path $viteConfigFile) {
     $viteContent = Get-Content $viteConfigFile -Raw
     
-    Write-Host "✅ Checking vite.config.ts..." -ForegroundColor Green
+    Write-Host " Checking vite.config.ts..." -ForegroundColor Green
     
     # Check for build optimizations
     if ($viteContent -match "manualChunks") {
-        Write-Host "  ✅ Code splitting configured" -ForegroundColor Green
+        Write-Host "   Code splitting configured" -ForegroundColor Green
     } else {
         Write-Host "  ⚠️  Code splitting not configured" -ForegroundColor Yellow
     }
     
     # Check for terser
     if ($viteContent -match "terser") {
-        Write-Host "  ✅ Terser minification enabled" -ForegroundColor Green
+        Write-Host "   Terser minification enabled" -ForegroundColor Green
     } else {
         Write-Host "  ⚠️  Terser not enabled" -ForegroundColor Yellow
     }
     
     # Check for optimizeDeps
     if ($viteContent -match "optimizeDeps") {
-        Write-Host "  ✅ Dependency optimization configured" -ForegroundColor Green
+        Write-Host "   Dependency optimization configured" -ForegroundColor Green
     } else {
         Write-Host "  ⚠️  Dependency optimization not configured" -ForegroundColor Yellow
     }

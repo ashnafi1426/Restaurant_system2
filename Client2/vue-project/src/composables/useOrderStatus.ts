@@ -17,25 +17,25 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import axios from 'axios'
 
 export interface OrderItem {
-  id: string
+  id: string | number
   name: string
   quantity: number
   price: number
-  total: number
+  total?: number
 }
 
 export interface OrderData {
-  order_id: string
+  order_id?: string
   id?: string
   order_number: string
   hotel_id: string
   status: 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled'
-  order_type: string
-  order_time: string
-  room_number?: string
-  room_id?: string
-  table_number?: string
-  table_id?: string
+  order_type?: string
+  order_time?: string
+  room_number?: string | null
+  room_id?: string | null
+  table_number?: string | null
+  table_id?: string | null
   customer_name?: string
   items: OrderItem[]
   order_items?: OrderItem[]
@@ -47,6 +47,8 @@ export interface OrderData {
   payment_status?: string
   chef_id?: string
   chef_name?: string
+  estimated_time?: number
+  is_walk_in?: boolean
   created_at: string
   updated_at: string
   served_at?: string
@@ -87,7 +89,7 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
   const isLoading = ref<boolean>(true)
   const error = ref<string | null>(null)
   const lastUpdate = ref<string>('')
-  
+
   let channel: any = null
   let reconnectAttempts = 0
   const maxReconnectAttempts = 5
@@ -96,6 +98,9 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
    * Fetch initial order data from API
    */
   const fetchOrderData = async (): Promise<void> => {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+    let qrToken = currentQrToken.value || initialQrToken || localStorage.getItem('guest_qr_token') || ''
+
     try {
       isLoading.value = true
       error.value = null
@@ -104,24 +109,23 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
       const pendingOrderData = localStorage.getItem('pending_order_data')
       console.log('[useOrderStatus] Checking for pending order data, orderId:', orderId)
       console.log('[useOrderStatus] Pending data from localStorage:', pendingOrderData)
-      
       if (pendingOrderData) {
         try {
           const parsedData = JSON.parse(pendingOrderData)
           console.log('[useOrderStatus] Parsed pending data:', parsedData)
           console.log('[useOrderStatus] Comparing IDs - parsedData.id:', parsedData.id, 'parsedData.order_id:', parsedData.order_id, 'orderId:', orderId)
-          
+
           if (parsedData.id === orderId || parsedData.order_id === orderId) {
             // Use the stored order data
             orderData.value = parsedData
             status.value = parsedData.status || 'pending'
             paymentStatus.value = parsedData.payment_status || 'pending'
             lastUpdate.value = parsedData.updated_at || parsedData.created_at
-            
+
             // Clear the pending data after using it
             localStorage.removeItem('pending_order_data')
-            
-            console.log('[useOrderStatus] ✅ Using stored order data from order creation')
+
+            console.log('[useOrderStatus]  Using stored order data from order creation')
             isLoading.value = false
             return
           } else {
@@ -135,12 +139,12 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
         console.log('[useOrderStatus] No pending order data found in localStorage')
       }
 
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
-      
       // Get qr_token for guest authentication
       // Priority: initialQrToken / currentQrToken -> localStorage -> walk_in_payment_data -> order_payment_data
-      let qrToken = currentQrToken.value || localStorage.getItem('guest_qr_token') || ''
-      
+      if (!qrToken) {
+        qrToken = currentQrToken.value || localStorage.getItem('guest_qr_token') || ''
+      }
+
       if (!qrToken) {
         try {
           const walkInData = localStorage.getItem('walk_in_payment_data') || sessionStorage.getItem('walk_in_payment_data')
@@ -148,9 +152,9 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
             const parsed = JSON.parse(walkInData)
             if (parsed.qr_token) qrToken = parsed.qr_token
           }
-        } catch (_) {}
+        } catch (_) { }
       }
-      
+
       if (!qrToken) {
         try {
           const orderPaymentData = localStorage.getItem('order_payment_data') || sessionStorage.getItem('order_payment_data')
@@ -158,22 +162,22 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
             const parsed = JSON.parse(orderPaymentData)
             if (parsed.qr_token) qrToken = parsed.qr_token
           }
-        } catch (_) {}
+        } catch (_) { }
       }
 
       if (qrToken) {
         currentQrToken.value = qrToken
         localStorage.setItem('guest_qr_token', qrToken)
       }
-      
+
       // Use the realtime-status endpoint which returns complete order data with items
       // This endpoint is in the guest routes section and does not require authentication
       const url = `${apiBaseUrl}/api/guest/orders/${orderId}/realtime-status?qr_token=${qrToken}`
-      
+
       console.log('[useOrderStatus] Fetching from realtime-status endpoint:', url)
       console.log('[useOrderStatus] Hotel ID:', hotelId.value)
       console.log('[useOrderStatus] QR Token:', qrToken ? qrToken.substring(0, 4) + '****' : 'MISSING')
-      
+
       const response = await axios.get(url, {
         headers: {
           'X-Hotel-ID': hotelId.value || '',
@@ -186,13 +190,13 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
         status.value = response.data.data.status
         paymentStatus.value = response.data.data.payment_status || 'pending'
         lastUpdate.value = response.data.data.updated_at
-        
+
         // CRITICAL FIX: Extract hotel_id from response and update reactive ref + localStorage
         if (response.data.data.hotel_id) {
           const responseHotelId = response.data.data.hotel_id
           hotelId.value = responseHotelId // Update reactive ref
           localStorage.setItem('hotel_id', responseHotelId)
-          console.log('[useOrderStatus] ✅ Extracted hotel_id from API:', responseHotelId)
+          console.log('[useOrderStatus]  Extracted hotel_id from API:', responseHotelId)
         }
       } else {
         throw new Error(response.data.message || 'Failed to fetch order data')
@@ -201,17 +205,18 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
       // Check if this is a 404 (order not found) - might be demo data
       if (err.response?.status === 404) {
         console.warn('[useOrderStatus] Order not found (404). Checking for demo mode...')
-        
+
         // Check if we came from payment success page with demo data
-        const isDemoMode = !localStorage.getItem('walk_in_payment_data') && 
-                          !sessionStorage.getItem('walk_in_payment_data')
-        
+        const isDemoMode = !localStorage.getItem('walk_in_payment_data') &&
+          !sessionStorage.getItem('walk_in_payment_data')
+
         if (isDemoMode) {
           console.log('[useOrderStatus] Demo mode detected - showing demo order data')
-          
+
           // Create demo order data matching the expected structure
           orderData.value = {
             id: orderId,
+            order_id: orderId,
             order_number: `ORD-DEMO${orderId}`,
             status: 'preparing',
             payment_status: 'paid',
@@ -221,22 +226,25 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
             is_walk_in: true,
             items: [ // Use 'items' not 'order_items' to match template
               {
-                id: 1,
+                id: '1',
                 name: 'Special Tibs',
                 quantity: 1,
-                price: 420
+                price: 420,
+                total: 420
               },
               {
-                id: 2,
+                id: '2',
                 name: 'Shiro Tegabino',
                 quantity: 1,
-                price: 220
+                price: 220,
+                total: 220
               },
               {
-                id: 3,
+                id: '3',
                 name: 'Fresh Juice',
                 quantity: 2,
-                price: 80
+                price: 80,
+                total: 160
               }
             ],
             subtotal: 800,
@@ -249,16 +257,16 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
             hotel_id: hotelId.value || '',
             _isDemoMode: true // Flag to indicate this is demo data
           }
-          
+
           status.value = 'preparing'
           paymentStatus.value = 'paid'
           lastUpdate.value = new Date().toISOString()
-          
+
           isLoading.value = false
           return // Exit early, skip WebSocket subscription and don't set error
         }
       }
-      
+
       // Check for 403 Invalid QR token and attempt recovery using fallback token from stored data
       if (err.response?.status === 403) {
         try {
@@ -279,12 +287,12 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
               }
             }
           }
-          
+
           if (fallbackToken) {
             console.log('[useOrderStatus] 403 received with token, retrying with fallback token:', fallbackToken)
             currentQrToken.value = fallbackToken
             localStorage.setItem('guest_qr_token', fallbackToken)
-            
+
             const retryUrl = `${apiBaseUrl}/api/guest/orders/${orderId}/realtime-status?qr_token=${fallbackToken}`
             const retryResponse = await axios.get(retryUrl, {
               headers: {
@@ -292,7 +300,7 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
                 'Accept': 'application/json'
               }
             })
-            
+
             if (retryResponse.data.success && retryResponse.data.data) {
               orderData.value = retryResponse.data.data
               status.value = retryResponse.data.data.status
@@ -344,21 +352,21 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
       // Connection state handling
       if (window.Echo.connector?.pusher) {
         const pusherConnection = window.Echo.connector.pusher.connection
-        
+
         pusherConnection.bind('connected', () => {
-          console.log('[useOrderStatus] ✅ WebSocket connected')
+          console.log('[useOrderStatus]  WebSocket connected')
           isConnected.value = true
           reconnectAttempts = 0
         })
 
         pusherConnection.bind('disconnected', () => {
-          console.log('[useOrderStatus] ❌ WebSocket disconnected')
+          console.log('[useOrderStatus]  WebSocket disconnected')
           isConnected.value = false
           handleReconnect()
         })
 
         pusherConnection.bind('error', (err: any) => {
-          console.error('[useOrderStatus] ⚠️ WebSocket error:', err)
+          console.error('[useOrderStatus]  WebSocket error:', err)
           isConnected.value = false
         })
 
@@ -370,11 +378,11 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
 
       // Listen for OrderStatusUpdated events
       channel.listen('.OrderStatusUpdated', (event: OrderStatusEvent) => {
-        console.log('[useOrderStatus] 🔔 OrderStatusUpdated received:', event)
-        
+        console.log('[useOrderStatus] OrderStatusUpdated received:', event)
+
         status.value = event.status
         lastUpdate.value = event.updated_at
-        
+
         // Update order data status
         if (orderData.value) {
           orderData.value.status = event.status as any
@@ -384,11 +392,11 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
 
       // Listen for PaymentStatusUpdated events
       channel.listen('.PaymentStatusUpdated', (event: PaymentStatusEvent) => {
-        console.log('[useOrderStatus] 💳 PaymentStatusUpdated received:', event)
-        
+        console.log('[useOrderStatus]  PaymentStatusUpdated received:', event)
+
         paymentStatus.value = event.payment_status
         lastUpdate.value = event.updated_at
-        
+
         // Update order data payment status
         if (orderData.value) {
           orderData.value.payment_status = event.payment_status
@@ -399,17 +407,17 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
       // Listen for OrderCancelled events
       channel.listen('.OrderCancelled', (event: any) => {
         console.log('[useOrderStatus] ❌ OrderCancelled received:', event)
-        
+
         status.value = 'cancelled'
         lastUpdate.value = event.cancelled_at
-        
+
         if (orderData.value) {
           orderData.value.status = 'cancelled'
           orderData.value.updated_at = event.cancelled_at
         }
       })
 
-      console.log('[useOrderStatus] ✅ Channel subscription setup complete')
+      console.log('[useOrderStatus]  Channel subscription setup complete')
 
     } catch (err: any) {
       console.error('[useOrderStatus] Error subscribing to channel:', err)
@@ -429,20 +437,20 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
 
     reconnectAttempts++
     const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000)
-    
+
     console.log(`[useOrderStatus] Reconnecting in ${delay}ms (attempt ${reconnectAttempts})`)
-    
+
     setTimeout(async () => {
       // Re-sync data from API after reconnection to refresh hotel_id
       await fetchOrderData()
-      
+
       // CRITICAL FIX: Validate hotel_id before re-subscribing
       if (!hotelId.value) {
         console.error('[useOrderStatus] ❌ Cannot re-subscribe: hotel_id is missing after reconnect fetch')
         error.value = 'Configuration error: hotel ID not available after reconnection'
         return
       }
-      
+
       // Re-subscribe to channel after reconnection
       if (window.Echo.connector?.pusher?.connection?.state === 'connected') {
         console.log('[useOrderStatus] Reconnected - re-subscribing to channel')
@@ -485,20 +493,20 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
   onMounted(async () => {
     console.log('[useOrderStatus] onMounted - fetching order data first')
     await fetchOrderData()
-    
+
     // Skip WebSocket subscription if this is demo data
     if (orderData.value?._isDemoMode) {
       console.log('[useOrderStatus] ⏭️ Skipping WebSocket subscription for demo mode')
       return
     }
-    
+
     // Only subscribe if we have a valid hotel_id after fetch
     if (!hotelId.value) {
       console.error('[useOrderStatus] ❌ Cannot subscribe: hotel_id is missing after fetch')
       error.value = 'Configuration error: hotel ID not available'
       return
     }
-    
+
     console.log('[useOrderStatus] Hotel ID confirmed, subscribing to channel')
     subscribeToChannel()
   })

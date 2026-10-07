@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Payment;
+use App\Models\RestaurantTable;
+use App\Models\Room;
 use App\Services\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -69,12 +72,18 @@ class CustomerOrderController extends Controller
             $isGuestRequest = !empty($qrToken);
 
             if ($isGuestRequest) {
-                // Validate QR token matches the order's room/table
+                // Validate QR token matches the order's room/table, payment metadata, or table/room in the same hotel
                 $isValidToken = false;
                 
                 if ($order->room && $order->room->qr_token === $qrToken) {
                     $isValidToken = true;
                 } elseif ($order->table && $order->table->qr_token === $qrToken) {
+                    $isValidToken = true;
+                } elseif (Payment::withoutGlobalScopes()->where('order_id', $order->id)->where('metadata->qr_token', $qrToken)->exists()) {
+                    $isValidToken = true;
+                } elseif ($order->hotel_id && RestaurantTable::withoutGlobalScopes()->where('hotel_id', $order->hotel_id)->where('qr_token', $qrToken)->exists()) {
+                    $isValidToken = true;
+                } elseif ($order->hotel_id && Room::withoutGlobalScopes()->where('hotel_id', $order->hotel_id)->where('qr_token', $qrToken)->exists()) {
                     $isValidToken = true;
                 }
                 

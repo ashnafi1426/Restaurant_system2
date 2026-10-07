@@ -99,7 +99,7 @@
                   <!-- Icon -->
                   <div class="text-2xl flex-shrink-0">
                     <span v-if="notification.notification_type === 'new_review'">📝</span>
-                    <span v-else-if="notification.notification_type === 'review_approved'">✅</span>
+                    <span v-else-if="notification.notification_type === 'review_approved'"></span>
                     <span v-else>⚠️</span>
                   </div>
 

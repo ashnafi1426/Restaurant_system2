@@ -271,12 +271,12 @@ console.log('Has order_id?', !!data.order_id)
 
 ## Success Criteria
 
-✅ Backend: Return URL includes `?tx_ref=TX-CHAPA-xxxxx`
-✅ Frontend: localStorage contains walk_in_payment_data with tx_ref
-✅ Payment success page: URL shows tx_ref parameter
-✅ Console: Shows "Order completed, ID: 01a0..."
-✅ Track Order: Button navigates to order status page
-✅ Order Status: Page displays order details
+ Backend: Return URL includes `?tx_ref=TX-CHAPA-xxxxx`
+ Frontend: localStorage contains walk_in_payment_data with tx_ref
+ Payment success page: URL shows tx_ref parameter
+ Console: Shows "Order completed, ID: 01a0..."
+ Track Order: Button navigates to order status page
+ Order Status: Page displays order details
 
 ---
 

@@ -49,7 +49,7 @@ export function useQRMenuOrder() {
         const createdOrderId = orderResponse.data.id || orderResponse.data.order_id
         orderNumber.value = orderResponse.data.order_number
         estimatedTime.value = 30
-        
+
         // Build complete order data object with items for OrderStatusPage
         const completeOrderData = {
           ...orderResponse.data,
@@ -74,7 +74,7 @@ export function useQRMenuOrder() {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }
-        
+
         // Store order data for OrderStatusPage
         if (orderResponse.data.hotel_id) {
           localStorage.setItem('hotel_id', orderResponse.data.hotel_id)
@@ -82,22 +82,22 @@ export function useQRMenuOrder() {
         if (qrToken) {
           localStorage.setItem('guest_qr_token', qrToken)
         }
-        
+
         // Store the complete order data for immediate display
         console.log('[useQRMenuOrder] Storing complete order data:', completeOrderData)
         console.log('[useQRMenuOrder] Created order ID:', createdOrderId)
         localStorage.setItem('pending_order_data', JSON.stringify(completeOrderData))
-        
+
         // Verify it was stored
         const verifyStored = localStorage.getItem('pending_order_data')
-        console.log('[useQRMenuOrder] Verified stored data:', verifyStored ? 'Success ✅' : 'Failed ❌')
-        
+        console.log('[useQRMenuOrder] Verified stored data:', verifyStored ? 'Success ' : 'Failed ❌')
+
         // Redirect to real-time Order Status page with all necessary params
         console.log('[useQRMenuOrder] Redirecting to order status with ID:', createdOrderId)
         router.push({
           name: 'order-status',
           params: { orderId: createdOrderId },
-          query: { 
+          query: {
             hotel_id: orderResponse.data.hotel_id,
             qr_token: qrToken,
             order_number: orderResponse.data.order_number
@@ -162,7 +162,7 @@ export function useQRMenuOrder() {
           })),
           calculation: paymentResponse.calculation,
         }
-        
+
         // Store to BOTH localStorage AND sessionStorage for persistence through Chapa redirect
         localStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
         sessionStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
@@ -170,10 +170,10 @@ export function useQRMenuOrder() {
           localStorage.setItem('guest_qr_token', qrToken)
           sessionStorage.setItem('guest_qr_token', qrToken)
         }
-        
+
         console.log('[useQRMenuOrder] Stored payment data before redirect:', paymentData)
         console.log('[useQRMenuOrder] Redirecting to Chapa:', paymentResponse.checkout_url)
-        
+
         window.location.href = paymentResponse.checkout_url
         return
       } else {

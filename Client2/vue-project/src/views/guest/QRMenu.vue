@@ -700,7 +700,7 @@ const placeOrderWithRoomCharge = async () => {
       
       // Verify it was stored
       const verifyStored = localStorage.getItem('pending_order_data')
-      console.log('[QRMenu] Verified stored data:', verifyStored ? 'Success ✅' : 'Failed ❌')
+      console.log('[QRMenu] Verified stored data:', verifyStored ? 'Success ' : 'Failed ❌')
       
       // Clear cart
       cartItems.value = []

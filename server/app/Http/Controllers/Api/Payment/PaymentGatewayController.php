@@ -73,7 +73,7 @@ class PaymentGatewayController extends Controller
 
                 $this->logPaymentTransaction($payment, 'completed', $response);
 
-                Log::info('✅ [GATEWAY] Payment completed successfully', [
+                Log::info(' [GATEWAY] Payment completed successfully', [
                     'payment_id' => $payment->id,
                     'tx_ref' => $txRef,
                     'amount' => $payment->amount,
@@ -275,7 +275,7 @@ class PaymentGatewayController extends Controller
 
                 DB::commit();
 
-                Log::info('✅ [GATEWAY] Refund processed successfully', [
+                Log::info(' [GATEWAY] Refund processed successfully', [
                     'payment_id' => $payment->id,
                     'refund_amount' => $refundAmount,
                     'reason' => $validated['reason'],

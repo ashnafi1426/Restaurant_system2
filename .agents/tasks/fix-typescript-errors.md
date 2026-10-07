@@ -102,7 +102,7 @@ const form = reactive<GuestForm>({
   // ...
 })
 
-// ✅ AFTER
+//  AFTER
 let form = reactive<GuestForm>({
   first_name: '',
   // ...
@@ -158,7 +158,7 @@ This will suppress most warnings while you work.
 
 ## Decision: Skip or Fix?
 
-### Option A: Skip for Now ✅ RECOMMENDED
+### Option A: Skip for Now  RECOMMENDED
 Since the dev server is running and these are just type warnings:
 
 1. **Keep developing** - The app works fine
@@ -229,8 +229,8 @@ export default defineConfig({
 The dev server is running, and the optimizations we made (simplified CSS, v-memo, code splitting) are all active and working.
 
 **Recommendation:** 
-- ✅ Continue testing the LCP improvements
-- ✅ Ship the performance optimization
+-  Continue testing the LCP improvements
+-  Ship the performance optimization
 - ⏸️ Fix TypeScript errors in a separate task later
 
 **Priority:** Performance > Type Safety (for now)

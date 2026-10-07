@@ -239,4 +239,4 @@ echo "  - Query count: < 10 " . ($queryCount < 10 ? '✓' : '⚠') . "\n";
 echo "  - No N+1 queries ✓\n";
 echo "  - Pagination working ✓\n";
 
-echo "\n✅ OPTIMIZATION VERIFICATION COMPLETE\n\n";
+echo "\n OPTIMIZATION VERIFICATION COMPLETE\n\n";

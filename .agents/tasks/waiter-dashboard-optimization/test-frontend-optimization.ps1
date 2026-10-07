@@ -14,7 +14,7 @@ if (-not (Test-Path $clientPath)) {
     exit 1
 }
 
-Write-Host "✅ Vue project directory found" -ForegroundColor Green
+Write-Host " Vue project directory found" -ForegroundColor Green
 Write-Host ""
 
 # Step 1: Verify file modifications
@@ -29,7 +29,7 @@ if (Test-Path $dashboardFile) {
     
     # Check if duplicate API call was removed
     if ($dashboardContent -match "recentAssignments\.value = dashboardData\.recent_assignments") {
-        Write-Host "  ✅ Duplicate API call removed" -ForegroundColor Green
+        Write-Host "   Duplicate API call removed" -ForegroundColor Green
         Write-Host "     Using dashboardData.recent_assignments instead" -ForegroundColor Gray
     } else {
         Write-Host "  ⚠️  WARNING: Could not verify API call optimization" -ForegroundColor Yellow
@@ -37,20 +37,20 @@ if (Test-Path $dashboardFile) {
     
     # Check if SkeletonLoaders is imported
     if ($dashboardContent -match "SkeletonLoaders") {
-        Write-Host "  ✅ SkeletonLoaders component imported" -ForegroundColor Green
+        Write-Host "   SkeletonLoaders component imported" -ForegroundColor Green
     } else {
         Write-Host "  ⚠️  WARNING: SkeletonLoaders import not found" -ForegroundColor Yellow
     }
     
     # Check if skeleton loader is used in template
     if ($dashboardContent -match 'type="stat-card"') {
-        Write-Host "  ✅ Skeleton UI implemented in template" -ForegroundColor Green
+        Write-Host "   Skeleton UI implemented in template" -ForegroundColor Green
     } else {
         Write-Host "  ⚠️  WARNING: Skeleton UI not found in template" -ForegroundColor Yellow
     }
     
 } else {
-    Write-Host "  ❌ ERROR: WaiterDashboard.vue not found" -ForegroundColor Red
+    Write-Host "ERROR: WaiterDashboard.vue not found" -ForegroundColor Red
 }
 
 Write-Host ""
@@ -61,11 +61,11 @@ Write-Host ""
 
 $nodeModulesPath = Join-Path $clientPath "node_modules"
 if (Test-Path $nodeModulesPath) {
-    Write-Host "  ✅ node_modules directory exists" -ForegroundColor Green
+    Write-Host "   node_modules directory exists" -ForegroundColor Green
     
     $vueInstalled = Test-Path (Join-Path $nodeModulesPath "vue")
     if ($vueInstalled) {
-        Write-Host "  ✅ Vue.js is installed" -ForegroundColor Green
+        Write-Host "   Vue.js is installed" -ForegroundColor Green
     } else {
         Write-Host "  ⚠️  WARNING: Vue.js not found in node_modules" -ForegroundColor Yellow
     }

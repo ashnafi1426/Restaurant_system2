@@ -60,7 +60,7 @@ foreach ($methods as $key => $value) {
         $queries = count(DB::getQueryLog());
         $queryTime = array_sum(array_column(DB::getQueryLog(), 'time'));
         
-        $status = $time < 100 ? '✅' : ($time < 200 ? '⚠️' : '❌');
+        $status = $time < 100 ? '' : ($time < 200 ? '⚠️' : '❌');
         echo "{$status} {$methodName}:\n";
         echo "   Time: " . number_format($time, 2) . " ms\n";
         echo "   Queries: {$queries}\n";
@@ -132,7 +132,7 @@ echo "Performance Bottlenecks:\n";
 if ($totalQueryTime / $totalTime > 0.5) {
     echo "  ⚠️  Database queries taking " . number_format(($totalQueryTime / $totalTime) * 100, 1) . "% of time\n";
 } else {
-    echo "  ✅ Database queries taking " . number_format(($totalQueryTime / $totalTime) * 100, 1) . "% of time (good)\n";
+    echo "   Database queries taking " . number_format(($totalQueryTime / $totalTime) * 100, 1) . "% of time (good)\n";
 }
 
 $phpTime = $totalTime - $totalQueryTime;
@@ -140,13 +140,13 @@ if ($phpTime > 100) {
     echo "  ⚠️  PHP processing taking {$phpTime}ms (should be <100ms)\n";
     echo "     Possible causes: Complex data transformation, logging, or inefficient PHP code\n";
 } else {
-    echo "  ✅ PHP processing time acceptable\n";
+    echo "   PHP processing time acceptable\n";
 }
 
 if ($queryCount > 15) {
     echo "  ⚠️  Too many queries ({$queryCount}), target is <15\n";
 } else {
-    echo "  ✅ Query count acceptable\n";
+    echo "   Query count acceptable\n";
 }
 
 echo "\n========================================\n";
