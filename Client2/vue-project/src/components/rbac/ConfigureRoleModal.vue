@@ -20,12 +20,12 @@ const props = defineProps<{
   permissions: Permission[]
   loading: boolean
   loadingPermissions?: boolean
-}>>()
+}>()
 
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'save', payload: { name: string; description: string; is_active: boolean; permissions: number[] }): void
-}>>()
+}>()
 
 // Form State
 const roleForm = ref({
