@@ -81,9 +81,11 @@ const goBack = () => {
   router.push('/manager/floor-assignment')
 }
 
-const handleFloorNumberBlur = async () => {
+const validateFloorNumber = async () => {
   await addFloorStore.checkFloorNumberUniqueness()
 }
+
+const handleFloorNumberBlur = validateFloorNumber
 
 const handleFieldChange = (field: string, value: any) => {
   addFloorStore.setFieldValue(field, value)
@@ -137,7 +139,7 @@ onMounted(() => {
                   <input
                     :value="formData.floor_number"
                     @input="(e) => handleFieldChange('floor_number', e.target.value)"
-                    @blur="handleFloorNumberBlur"
+                    @blur="validateFloorNumber"
                     type="text"
                     placeholder="e.g. 05"
                     :class="[

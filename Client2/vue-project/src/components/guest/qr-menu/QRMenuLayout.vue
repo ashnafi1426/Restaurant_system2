@@ -75,7 +75,7 @@
             :categories="categories"
             :selected-category-id="selectedCategory"
             :total-items="allMenuItems.length"
-            @category-selected="handleCategorySelectedMobile"
+            @category-selected="selectCategory"
           />
         </div>
       </aside>
@@ -814,7 +814,7 @@ const handleLogout = () => {
   emit('logout')
 }
 
-const handleCategorySelected = (catOrId: any) => {
+const selectCategory = (catOrId: any) => {
   let catVal: string | null = null
   if (catOrId === null || catOrId === undefined || catOrId === 'all' || catOrId === 'All Categories') {
     catVal = null
@@ -832,11 +832,10 @@ const handleCategorySelected = (catOrId: any) => {
   sidebarOpen.value = false
 }
 
-const handleCategorySelectedMobile = (catOrId: any) => {
-  handleCategorySelected(catOrId)
-}
+const handleCategorySelected = selectCategory
+const handleCategorySelectedMobile = selectCategory
 
-const handleSearchQueryChanged = (query: any) => {
+const updateSearch = (query: any) => {
   if (typeof query === 'string') {
     searchQuery.value = query
   } else if (query && typeof query === 'object' && query.name) {
@@ -846,7 +845,9 @@ const handleSearchQueryChanged = (query: any) => {
   }
 }
 
-const handleSuggestionSelected = (suggestion: any) => {
+const handleSearchQueryChanged = updateSearch
+
+const selectSuggestion = (suggestion: any) => {
   if (typeof suggestion === 'string') {
     searchQuery.value = suggestion
   } else if (suggestion && typeof suggestion === 'object' && suggestion.name) {
@@ -856,15 +857,7 @@ const handleSuggestionSelected = (suggestion: any) => {
   }
 }
 
-const handleSortChanged = (value: string) => {
-  selectedSort.value = value
-}
-
-const handleViewModeChanged = (mode: 'grid' | 'list') => {
-  viewMode.value = mode
-}
-
-const handleFiltersApplied = () => {}
+const handleSuggestionSelected = selectSuggestion
 
 const handleAddToCart = (item: MenuItem, quantity: number) => {
   if (props.canOrder === false) {

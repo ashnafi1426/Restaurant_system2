@@ -213,7 +213,7 @@ const toggleRoleSelection = (roleId: number) => {
   }
 }
 
-const handleSaveUserRoles = async () => {
+const saveUserRoles = async () => {
   if (!selectedUserForRoles.value || selectedRoleIds.value.length === 0) return
   loading.value = true
   errorMessage.value = ''
@@ -363,7 +363,7 @@ const filteredGroupedPermissions = computed(() => {
   }).filter(group => group.permissions.length > 0)
 })
 
-const handleSaveAccessPermissions = async () => {
+const saveAccessPermissions = async () => {
   if (!selectedUserForAccess.value) return
   accessLoading.value = true
   errorMessage.value = ''
@@ -906,7 +906,7 @@ const handleSaveAccessPermissions = async () => {
                 Cancel
               </button>
               <button
-                @click="handleSaveAccessPermissions"
+                @click="saveAccessPermissions"
                 :disabled="accessLoading"
                 class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-md shadow-blue-600/20 transition cursor-pointer flex items-center gap-2"
               >
@@ -980,7 +980,7 @@ const handleSaveAccessPermissions = async () => {
               Cancel
             </button>
             <button
-              @click="handleSaveUserRoles"
+              @click="saveUserRoles"
               :disabled="loading || selectedRoleIds.length === 0"
               class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-md shadow-amber-500/20 transition cursor-pointer"
             >

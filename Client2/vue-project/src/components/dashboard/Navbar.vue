@@ -108,7 +108,7 @@ const logout = async () => {
   router.push('/login')
 }
 
-const handleHamburgerClick = () => {
+const toggleSidebar = () => {
   const screenWidth = window.innerWidth
   
   if (screenWidth >= 1024) {
@@ -125,7 +125,7 @@ const handleHamburgerClick = () => {
     <!-- Left Section: Toggle, Title, Hotel Switcher -->
     <div class="flex items-center gap-2 sm:gap-3.5 min-w-0 shrink">
       <button
-        @click="handleHamburgerClick"
+        @click="toggleSidebar"
         class="flex lg:hidden items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
         title="Toggle Sidebar"
       >

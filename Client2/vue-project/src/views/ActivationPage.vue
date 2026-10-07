@@ -74,7 +74,7 @@
               class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white mb-4"
             />
             <button
-              @click="handleResendActivation"
+              @click="resendActivation"
               :disabled="resending || !resendEmail"
               class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed mb-3"
             >
@@ -144,7 +144,7 @@
         </div>
 
         <!-- Password Creation Form -->
-        <form v-else @submit.prevent="handleActivation">
+        <form v-else @submit.prevent="activateAccount">
           <div class="mb-6 text-center">
             <div class="mx-auto w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mb-4">
               <svg class="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -419,7 +419,7 @@ const validateForm = (): boolean => {
   return true
 }
 
-const handleActivation = async () => {
+const activateAccount = async () => {
   if (!validateForm()) return
 
   const token = route.params.token as string
@@ -439,7 +439,9 @@ const handleActivation = async () => {
   }
 }
 
-const handleResendActivation = async () => {
+const handleActivation = activateAccount
+
+const resendActivation = async () => {
   if (!resendEmail.value) return
 
   const result = await activationStore.resendActivation(resendEmail.value)
@@ -451,6 +453,8 @@ const handleResendActivation = async () => {
     alert(result.message)
   }
 }
+
+const handleResendActivation = resendActivation
 
 // Lifecycle
 onMounted(async () => {

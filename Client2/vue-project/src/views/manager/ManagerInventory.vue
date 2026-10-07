@@ -12,6 +12,8 @@ const menuStore = useMenuStore()
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
 
+const stats = computed(() => manager.safeStatistics)
+
 const loadData = async () => {
   await Promise.allSettled([
     manager.loadStatistics(),
@@ -75,10 +77,10 @@ watch(() => hotelStore.hotelId, loadData)
           <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
             <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('total_room_units', 'Total Room Assets') }}</p>
             <h3 class="mt-3 text-3xl font-bold text-slate-900 dark:text-slate-100">
-              {{ manager.safeStatistics.totalRooms }}
+              {{ stats.totalRooms }}
             </h3>
             <p class="text-sm text-slate-400 dark:text-slate-500 mt-2">
-              {{ manager.safeStatistics.availableRooms }} {{ languageStore.t('available', 'available') }} • {{ manager.safeStatistics.occupiedRooms }} {{ languageStore.t('occupied', 'occupied') }}
+              {{ stats.availableRooms }} {{ languageStore.t('available', 'available') }} • {{ stats.occupiedRooms }} {{ languageStore.t('occupied', 'occupied') }}
             </p>
           </div>
 
@@ -95,10 +97,10 @@ watch(() => hotelStore.hotelId, loadData)
           <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
             <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('maintenance_attention', 'Attention & Restock') }}</p>
             <h3 class="mt-3 text-3xl font-bold text-amber-600 dark:text-amber-400">
-              {{ (menuStore.statistics.unavailable_items || 0) + (manager.safeStatistics.maintenanceRooms || 0) }}
+              {{ (menuStore.statistics.unavailable_items || 0) + (stats.maintenanceRooms || 0) }}
             </h3>
             <p class="text-sm text-amber-600 dark:text-amber-400 mt-2">
-              {{ menuStore.statistics.unavailable_items || 0 }} {{ languageStore.t('out_of_stock_items', 'out of stock items') }} • {{ manager.safeStatistics.maintenanceRooms || 0 }} {{ languageStore.t('rooms_in_repair', 'rooms under repair') }}
+              {{ menuStore.statistics.unavailable_items || 0 }} {{ languageStore.t('out_of_stock_items', 'out of stock items') }} • {{ stats.maintenanceRooms || 0 }} {{ languageStore.t('rooms_in_repair', 'rooms under repair') }}
             </p>
           </div>
         </div>
@@ -113,10 +115,10 @@ watch(() => hotelStore.hotelId, loadData)
                 <BedDouble class="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <div>
                   <p class="font-semibold text-slate-900 dark:text-slate-100">{{ languageStore.t('room_assets', 'Room Accommodations') }}</p>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ manager.safeStatistics.availableRooms }} {{ languageStore.t('ready_for_guests', 'ready for guests') }}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ stats.availableRooms }} {{ languageStore.t('ready_for_guests', 'ready for guests') }}</p>
                 </div>
               </div>
-              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ manager.safeStatistics.totalRooms }} {{ languageStore.t('rooms', 'Rooms') }}</span>
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ stats.totalRooms }} {{ languageStore.t('rooms', 'Rooms') }}</span>
             </div>
 
             <!-- Restaurant Menu Items -->
@@ -140,7 +142,7 @@ watch(() => hotelStore.hotelId, loadData)
                   <p class="text-xs text-slate-500 dark:text-slate-400">{{ languageStore.t('offline_for_repair', 'Offline for repairs') }}</p>
                 </div>
               </div>
-              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ manager.safeStatistics.maintenanceRooms }} {{ languageStore.t('rooms', 'Rooms') }}</span>
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ stats.maintenanceRooms }} {{ languageStore.t('rooms', 'Rooms') }}</span>
             </div>
 
             <!-- Housekeeping Queue -->
@@ -152,7 +154,7 @@ watch(() => hotelStore.hotelId, loadData)
                   <p class="text-xs text-slate-500 dark:text-slate-400">{{ languageStore.t('turnover_required', 'Turnover service required') }}</p>
                 </div>
               </div>
-              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ manager.safeStatistics.pendingHousekeeping }} {{ languageStore.t('rooms', 'Rooms') }}</span>
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ stats.pendingHousekeeping }} {{ languageStore.t('rooms', 'Rooms') }}</span>
             </div>
 
             <!-- Laundry in Processing -->
@@ -164,7 +166,7 @@ watch(() => hotelStore.hotelId, loadData)
                   <p class="text-xs text-slate-500 dark:text-slate-400">{{ languageStore.t('in_cleaning_process', 'In cleaning cycle') }}</p>
                 </div>
               </div>
-              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ manager.safeStatistics.pendingLaundry }} {{ languageStore.t('requests', 'Requests') }}</span>
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ stats.pendingLaundry }} {{ languageStore.t('requests', 'Requests') }}</span>
             </div>
           </div>
         </div>

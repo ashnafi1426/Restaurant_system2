@@ -297,7 +297,7 @@ const handleUpdateHotel = async () => {
   }
 }
 
-const handleEnterHotelViewMode = async (hotel: Hotel) => {
+const enterHotelViewMode = async (hotel: Hotel) => {
   activeDropdownId.value = null
   try {
     await platformService.enterHotelViewMode(hotel.id)
@@ -316,6 +316,8 @@ const handleEnterHotelViewMode = async (hotel: Hotel) => {
   }
 }
 
+const handleEnterHotelViewMode = enterHotelViewMode
+
 const updateStatus = async (hotelId: string, status: 'active' | 'inactive' | 'suspended', successText: string) => {
   saving.value = true
   try {
@@ -330,23 +332,29 @@ const updateStatus = async (hotelId: string, status: 'active' | 'inactive' | 'su
   }
 }
 
-const handleActivateHotel = (hotel: Hotel) => {
+const activateHotel = (hotel: Hotel) => {
   activeDropdownId.value = null
   updateStatus(hotel.id, 'active', `Hotel "${hotel.name}" has been activated. Operations restored.`)
 }
 
-const handleDeactivateHotel = (hotel: Hotel) => {
+const handleActivateHotel = activateHotel
+
+const deactivateHotel = (hotel: Hotel) => {
   activeDropdownId.value = null
   updateStatus(hotel.id, 'inactive', `Hotel "${hotel.name}" has been set to inactive.`)
 }
 
-const handleConfirmSuspend = async () => {
+const handleDeactivateHotel = deactivateHotel
+
+const confirmSuspend = async () => {
   if (!selectedHotel.value) return
   await updateStatus(selectedHotel.value.id, 'suspended', `Hotel "${selectedHotel.value.name}" is now SUSPENDED. Data is safely preserved.`)
   showSuspendModal.value = false
 }
 
-const handleConfirmArchive = async () => {
+const handleConfirmSuspend = confirmSuspend
+
+const confirmArchive = async () => {
   if (!selectedHotel.value) return
   saving.value = true
   try {
@@ -362,7 +370,9 @@ const handleConfirmArchive = async () => {
   }
 }
 
-const handleConfirmPermanentDelete = async () => {
+const handleConfirmArchive = confirmArchive
+
+const confirmDelete = async () => {
   if (!selectedHotel.value) return
   if (deleteConfirmName.value.trim() !== selectedHotel.value.name.trim()) {
     notify('error', 'Typed hotel name does not match.')
@@ -382,6 +392,8 @@ const handleConfirmPermanentDelete = async () => {
     saving.value = false
   }
 }
+
+const handleConfirmPermanentDelete = confirmDelete
 </script>
 
 <template>
