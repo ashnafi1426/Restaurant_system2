@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import waiterService from '@/services/waiterService'
 import { useHotelStore } from '@/stores/hotelStore'
@@ -19,8 +19,6 @@ import {
   Loader2,
   BedDouble,
   ShoppingBag,
-  Clock,
-  CheckCircle2,
   Building2,
 } from 'lucide-vue-next'
 
@@ -42,31 +40,35 @@ const selectedStatus = ref('')
 const selectedType = ref('all')
 
 const filteredAssignments = computed(() => {
-  let list = assignments.value || []
+  const list = assignments.value || []
+  const statusFilter = selectedStatus.value.trim().toLowerCase()
+  const typeFilter = selectedType.value
+  const q = searchQuery.value.trim().toLowerCase()
 
-  if (selectedStatus.value !== '') {
-    list = list.filter((o) => (o.order_status || o.status || '').toLowerCase() === selectedStatus.value.toLowerCase())
+  if (!statusFilter && typeFilter === 'all' && !q) {
+    return list
   }
 
-  if (selectedType.value !== 'all') {
-    if (selectedType.value === 'room') {
-      list = list.filter((o) => Boolean(o.room_number || o.room?.room_number))
-    } else if (selectedType.value === 'walk_in') {
-      list = list.filter((o) => !o.room_number && !o.room?.room_number)
+  return list.filter((o) => {
+    if (statusFilter && (o.order_status || o.status || '').toLowerCase() !== statusFilter) {
+      return false
     }
-  }
 
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim()
-    list = list.filter((o) => {
+    const hasRoom = Boolean(o.room_number || o.room?.room_number)
+    if (typeFilter === 'room' && !hasRoom) return false
+    if (typeFilter === 'walk_in' && hasRoom) return false
+
+    if (q) {
       const ordNum = String(o.order_number || o.order_id || o.id || '').toLowerCase()
       const roomNum = String(o.room_number || o.room?.room_number || '').toLowerCase()
       const guest = String(o.guest_name || o.guest?.full_name || '').toLowerCase()
-      return ordNum.includes(q) || roomNum.includes(q) || guest.includes(q)
-    })
-  }
+      if (!ordNum.includes(q) && !roomNum.includes(q) && !guest.includes(q)) {
+        return false
+      }
+    }
 
-  return list
+    return true
+  })
 })
 
 const total = computed(() => filteredAssignments.value.length)
@@ -74,8 +76,7 @@ const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value) ||
 
 const paginatedAssignments = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredAssignments.value.slice(start, end)
+  return filteredAssignments.value.slice(start, start + itemsPerPage.value)
 })
 
 const showingFrom = computed(() => {
@@ -97,12 +98,6 @@ const paginationPages = computed(() => {
   }
   return pages
 })
-
-const changeItemsPerPage = (event: Event) => {
-  const target = event.target as HTMLSelectElement
-  itemsPerPage.value = Number(target.value)
-  currentPage.value = 1
-}
 
 const goToPage = (p: number) => {
   if (p >= 1 && p <= totalPages.value) {
@@ -167,28 +162,28 @@ const formatDateTime = (dateStr: string) => {
   if (!dateStr) return '-'
   try {
     const d = new Date(dateStr)
-    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    return isNaN(d.getTime()) ? dateStr : d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   } catch (err) {
     console.error('[AssignedOrders] Error formatting date:', err)
     return dateStr
   }
 }
 
-const getStatusBadge = (status: string) => {
-  switch ((status || '').toLowerCase()) {
-    case 'assigned':
-      return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-    case 'accepted':
-    case 'picked_up':
-      return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
-    case 'on_delivery':
-      return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
-    case 'delivered':
-      return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-    default:
-      return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
-  }
+const statusBadgeClasses: Record<string, string> = {
+  assigned: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+  accepted: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+  picked_up: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+  on_delivery: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+  delivered: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
 }
+
+const getStatusBadge = (status: string) => {
+  return statusBadgeClasses[(status || '').toLowerCase()] || 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+}
+
+watch(itemsPerPage, () => {
+  currentPage.value = 1
+})
 
 onMounted(() => {
   loadAssignments()
@@ -510,8 +505,7 @@ watch(() => hotelStore.hotelId, () => {
             <div class="flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
               <select
-                :value="itemsPerPage"
-                @change="changeItemsPerPage"
+                v-model.number="itemsPerPage"
                 class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
               >
                 <option :value="10">10</option>

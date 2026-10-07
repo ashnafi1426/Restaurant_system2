@@ -1,3 +1,56 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
+const loading = ref(true)
+const error = ref<string | null>(null)
+const notifications = ref<any[]>([])
+
+const formatDate = (date: string) => {
+  if (!date) return ''
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return date
+  const diff = Date.now() - d.getTime()
+  
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  
+  if (minutes < 1) return languageStore.t('just_now', 'just now')
+  if (minutes < 60) return `${minutes}${languageStore.t('m_ago', 'm ago')}`
+  if (hours < 24) return `${hours}${languageStore.t('h_ago', 'h ago')}`
+  if (days < 7) return `${days}${languageStore.t('d_ago', 'd ago')}`
+  
+  return d.toLocaleDateString()
+}
+
+const fetchNotifications = async () => {
+  try {
+    loading.value = true
+    error.value = null
+    notifications.value = []
+  } catch (err: any) {
+    console.error('[Notifications] Error fetching notifications:', err)
+    error.value = err.message || 'Failed to load notifications'
+  } finally {
+    loading.value = false
+  }
+}
+
+const markAsRead = (notificationId: string) => {
+  const notification = notifications.value.find(n => n.id === notificationId)
+  if (notification) {
+    notification.read = true
+  }
+}
+
+onMounted(() => {
+  fetchNotifications()
+})
+</script>
+
 <template>
   <DashboardLayout>
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
@@ -9,11 +62,11 @@
 
         <div v-if="loading" class="flex items-center justify-center py-16">
           <div class="text-center">
-            <div class="relative w-12 h-12">
+            <div class="relative w-12 h-12 mx-auto">
               <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="45" fill="none" stroke="#0EA5E9" stroke-width="6" opacity="0.3" />
               </svg>
-              <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+              <div class="absolute inset-0 animate-spin">
                 <svg viewBox="0 0 100 100" class="w-full h-full">
                   <circle cx="50" cy="50" r="45" fill="none" stroke="#FBBF24" stroke-width="8" stroke-linecap="round" stroke-dasharray="70 280" />
                 </svg>
@@ -64,75 +117,3 @@
     </div>
   </DashboardLayout>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import DashboardLayout from '@/Layouts/DashboardLayout.vue'
-import waiterService from '@/services/waiterService'
-import { useLanguageStore } from '@/stores/language'
-
-const languageStore = useLanguageStore()
-const loading = ref(true)
-const error = ref<string | null>(null)
-const notifications = ref<any[]>([])
-
-const formatDate = (date: string) => {
-  const d = new Date(date)
-  const now = new Date()
-  const diff = now.getTime() - d.getTime()
-  
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
-  
-  if (minutes < 1) return languageStore.t('just_now', 'just now')
-  if (minutes < 60) return `${minutes}${languageStore.t('m_ago', 'm ago')}`
-  if (hours < 24) return `${hours}${languageStore.t('h_ago', 'h ago')}`
-  if (days < 7) return `${days}${languageStore.t('d_ago', 'd ago')}`
-  
-  return d.toLocaleDateString()
-}
-
-const fetchNotifications = async () => {
-  try {
-    loading.value = true
-    error.value = null
-    notifications.value = []
-  } catch (err: any) {
-    console.error('[Notifications] Error fetching notifications:', err)
-    error.value = err.message || 'Failed to load notifications'
-  } finally {
-    loading.value = false
-  }
-}
-
-const markAsRead = async (notificationId: string) => {
-  try {
-    const notification = notifications.value.find(n => n.id === notificationId)
-    if (notification) {
-      notification.read = true
-    }
-  } catch (err: any) {
-    console.error('[Notifications] Error marking notification as read:', err)
-  }
-}
-
-onMounted(() => {
-  fetchNotifications()
-})
-</script>
-
-<style scoped>
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1.5s linear infinite;
-}
-</style>

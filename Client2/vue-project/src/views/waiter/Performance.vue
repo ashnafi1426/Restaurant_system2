@@ -1,3 +1,107 @@
+<script setup lang="ts">
+import { ref, computed, onMounted, watch } from 'vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import waiterService from '@/services/waiterService'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
+import {
+  Building2,
+  TrendingUp,
+  Truck,
+  CheckCircle2,
+  ShieldCheck,
+  Timer,
+  Zap,
+  Star,
+  Award,
+  Gauge,
+  History,
+  Inbox,
+  ArrowRight
+} from 'lucide-vue-next'
+
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
+
+const loading = ref(true)
+const selectedPeriod = ref<'today' | 'week' | 'month'>('today')
+
+const periodOptions = [
+  { key: 'today', label: 'Today' },
+  { key: 'week', label: 'This Week' },
+  { key: 'month', label: 'This Month' },
+] as const
+
+const rawPerformanceData = ref<any>(null)
+const recentDeliveries = ref<any[]>([])
+
+const defaultStats = {
+  deliveries: 0,
+  failed: 0,
+  averageDeliveryTime: 0,
+  rating: 4.8,
+  successRate: 100,
+}
+
+const currentStats = computed(() => {
+  if (!rawPerformanceData.value) return defaultStats
+
+  const periodData = rawPerformanceData.value[selectedPeriod.value] || {}
+  const deliveries = periodData.deliveries ?? 0
+  const failed = periodData.failed ?? 0
+  const averageDeliveryTime = periodData.average_delivery_time ?? periodData.average_time ?? 0
+  const rating = periodData.rating ?? periodData.guest_rating ?? 4.8
+  const total = deliveries + failed
+  const successRate = periodData.success_rate ?? (total > 0 ? Math.round((deliveries / total) * 100) : 100)
+
+  return {
+    deliveries,
+    failed,
+    averageDeliveryTime,
+    rating,
+    successRate,
+  }
+})
+
+const formatDate = (dateString: string) => {
+  if (!dateString) return ''
+  const d = new Date(dateString)
+  return isNaN(d.getTime()) ? dateString : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+const loadData = async () => {
+  try {
+    loading.value = true
+    const [perfData, completedData] = await Promise.all([
+      waiterService.getPerformance().catch((err: any) => {
+        console.error('[Performance] Error fetching performance:', err)
+        return null
+      }),
+      waiterService.getCompletedDeliveries(10).catch((err: any) => {
+        console.error('[Performance] Error fetching completed deliveries:', err)
+        return []
+      }),
+    ])
+
+    if (perfData) {
+      rawPerformanceData.value = perfData
+    }
+
+    if (Array.isArray(completedData)) {
+      recentDeliveries.value = completedData
+    }
+  } catch (err: any) {
+    console.error('[Performance] Error loading data:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(loadData)
+
+watch(() => hotelStore.hotelId, loadData)
+</script>
+
 <template>
   <DashboardLayout>
     <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 transition-colors duration-200 font-sans">
@@ -261,115 +365,3 @@
     </div>
   </DashboardLayout>
 </template>
-
-<script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import DashboardLayout from '@/Layouts/DashboardLayout.vue'
-import waiterService from '@/services/waiterService'
-import { useHotelStore } from '@/stores/hotelStore'
-import { useLanguageStore } from '@/stores/language'
-import {
-  Building2,
-  TrendingUp,
-  Truck,
-  CheckCircle2,
-  ShieldCheck,
-  Timer,
-  Zap,
-  Star,
-  Award,
-  Gauge,
-  History,
-  Inbox,
-  ArrowRight
-} from 'lucide-vue-next'
-
-const hotelStore = useHotelStore()
-const languageStore = useLanguageStore()
-
-const loading = ref(true)
-const selectedPeriod = ref<'today' | 'week' | 'month'>('today')
-
-const periodOptions = [
-  { key: 'today', label: 'Today' },
-  { key: 'week', label: 'This Week' },
-  { key: 'month', label: 'This Month' },
-] as const
-
-const rawPerformanceData = ref<any>(null)
-const recentDeliveries = ref<any[]>([])
-
-const currentStats = computed(() => {
-  if (!rawPerformanceData.value) {
-    return {
-      deliveries: 0,
-      failed: 0,
-      averageDeliveryTime: 0,
-      rating: 4.8,
-      successRate: 100,
-    }
-  }
-
-  const periodData = rawPerformanceData.value[selectedPeriod.value] || {}
-
-  const deliveries = periodData.deliveries ?? 0
-  const failed = periodData.failed ?? 0
-  const averageDeliveryTime = periodData.average_delivery_time ?? periodData.average_time ?? 0
-  const rating = periodData.rating ?? periodData.guest_rating ?? 4.8
-  const successRate = periodData.success_rate ?? (deliveries + failed > 0 ? Math.round((deliveries / (deliveries + failed)) * 100) : 100)
-
-  return {
-    deliveries,
-    failed,
-    averageDeliveryTime,
-    rating,
-    successRate,
-  }
-})
-
-const formatDate = (dateString: string) => {
-  if (!dateString) return ''
-  try {
-    const d = new Date(dateString)
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  } catch (err) {
-    console.error('[Performance] Error formatting date:', err)
-    return dateString
-  }
-}
-
-const loadData = async () => {
-  try {
-    loading.value = true
-    const [perfData, completedData] = await Promise.all([
-      waiterService.getPerformance().catch((err: any) => {
-        console.error('[Performance] Error fetching performance:', err)
-        return null
-      }),
-      waiterService.getCompletedDeliveries(10).catch((err: any) => {
-        console.error('[Performance] Error fetching completed deliveries:', err)
-        return []
-      }),
-    ])
-
-    if (perfData) {
-      rawPerformanceData.value = perfData
-    }
-
-    if (Array.isArray(completedData)) {
-      recentDeliveries.value = completedData
-    }
-  } catch (err: any) {
-    console.error('[Performance] Error loading data:', err)
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(loadData)
-
-watch(() => hotelStore.hotelId, loadData)
-</script>
-
-<style scoped>
-</style>

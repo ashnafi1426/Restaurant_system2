@@ -233,6 +233,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('click', handleOutsideClick)
+  if (messageTimeout) clearTimeout(messageTimeout)
 })
 
 watch([searchQuery, selectedHotelId, selectedStatus, itemsPerPage], () => {
@@ -256,7 +257,7 @@ const openCreateModal = () => {
 
 const handleCreateAdmin = async () => {
   if (!adminForm.value.first_name || !adminForm.value.last_name || !adminForm.value.email || !adminForm.value.hotel_id) {
-    errorMessage.value = 'Please fill all required fields.'
+    notify('error', 'Please fill all required fields.')
     return
   }
 
@@ -270,46 +271,32 @@ const handleCreateAdmin = async () => {
       email: adminForm.value.email,
       hotel_name: assignedHotel?.name || 'Assigned Property',
     }
-    successMessage.value = res.message || 'Hotel Admin created and login credentials securely sent via email.'
+    notify('success', res.message || 'Hotel Admin created and login credentials securely sent via email.')
     await loadAdmins()
-    setTimeout(() => { successMessage.value = '' }, 5000)
   } catch (err: any) {
     console.error('[HotelAdminManagement] Create admin error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to create hotel administrator.'
+    notify('error', err?.response?.data?.message || 'Failed to create hotel administrator.')
   } finally {
     saving.value = false
   }
 }
 
-const handleResetPassword = async (admin: AdminItem) => {
+const handlePasswordAction = async (admin: AdminItem, action: 'reset' | 'resend') => {
   if (!admin.user) return
   selectedAdminUser.value = admin.user
   saving.value = true
   try {
-    const res = await platformService.resetAdminPassword(admin.user.id)
+    const res = action === 'reset'
+      ? await platformService.resetAdminPassword(admin.user.id)
+      : await platformService.resendAdminPassword(admin.user.id)
     showResetModal.value = true
-    successMessage.value = res.message || `New system temporary password generated and emailed to ${admin.user.email}.`
-    setTimeout(() => { successMessage.value = '' }, 5000)
+    const defaultMsg = action === 'reset'
+      ? `New system temporary password generated and emailed to ${admin.user.email}.`
+      : `Temporary password sent to ${admin.user.email}!`
+    notify('success', res.message || defaultMsg)
   } catch (err: any) {
-    console.error('[HotelAdminManagement] Reset password error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to generate temporary password.'
-  } finally {
-    saving.value = false
-  }
-}
-
-const handleResendPasswordByEmail = async (admin: AdminItem) => {
-  if (!admin.user) return
-  selectedAdminUser.value = admin.user
-  saving.value = true
-  try {
-    const res = await platformService.resendAdminPassword(admin.user.id)
-    showResetModal.value = true
-    successMessage.value = res.message || `Temporary password sent to ${admin.user.email}!`
-    setTimeout(() => { successMessage.value = '' }, 5000)
-  } catch (err: any) {
-    console.error('[HotelAdminManagement] Resend password error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to resend password by email.'
+    console.error(`[HotelAdminManagement] ${action} password error:`, err)
+    notify('error', err?.response?.data?.message || `Failed to ${action} password.`)
   } finally {
     saving.value = false
   }
@@ -319,11 +306,10 @@ const handleToggleStatus = async (admin: AdminItem) => {
   try {
     const res = await platformService.toggleAdminStatus(admin.id)
     admin.is_active = res.data.is_active
-    successMessage.value = res.message || 'Status updated successfully.'
-    setTimeout(() => { successMessage.value = '' }, 3000)
+    notify('success', res.message || 'Status updated successfully.')
   } catch (err: any) {
     console.error('[HotelAdminManagement] Toggle status error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to toggle status.'
+    notify('error', err?.response?.data?.message || 'Failed to toggle status.')
   }
 }
 
@@ -619,7 +605,7 @@ const copyToClipboard = (text: string) => {
                       >
                         <button
                           type="button"
-                          @click="handleResendPasswordByEmail(adm); activeMenu = null"
+                          @click="handlePasswordAction(adm, 'resend'); activeMenu = null"
                           class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer"
                         >
                           <Send class="w-3.5 h-3.5" />
@@ -628,7 +614,7 @@ const copyToClipboard = (text: string) => {
 
                         <button
                           type="button"
-                          @click="handleResetPassword(adm); activeMenu = null"
+                          @click="handlePasswordAction(adm, 'reset'); activeMenu = null"
                           class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                         >
                           <KeyRound class="w-3.5 h-3.5 text-amber-500" />

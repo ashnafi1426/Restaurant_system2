@@ -38,31 +38,35 @@ const selectedPriority = ref('all')
 const selectedType = ref('all')
 
 const filteredDeliveries = computed(() => {
-  let list = deliveries.value || []
+  const list = deliveries.value || []
+  const priorityFilter = selectedPriority.value
+  const typeFilter = selectedType.value
+  const q = searchQuery.value.trim().toLowerCase()
 
-  if (selectedPriority.value !== 'all') {
-    list = list.filter((d) => (d.priority || 'normal').toLowerCase() === selectedPriority.value.toLowerCase())
+  if (priorityFilter === 'all' && typeFilter === 'all' && !q) {
+    return list
   }
 
-  if (selectedType.value !== 'all') {
-    if (selectedType.value === 'room') {
-      list = list.filter((d) => Boolean(d.room_number || d.room?.room_number))
-    } else if (selectedType.value === 'walk_in') {
-      list = list.filter((d) => !d.room_number && !d.room?.room_number)
+  return list.filter((d) => {
+    if (priorityFilter !== 'all' && (d.priority || 'normal').toLowerCase() !== priorityFilter.toLowerCase()) {
+      return false
     }
-  }
 
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim()
-    list = list.filter((d) => {
+    const hasRoom = Boolean(d.room_number || d.room?.room_number)
+    if (typeFilter === 'room' && !hasRoom) return false
+    if (typeFilter === 'walk_in' && hasRoom) return false
+
+    if (q) {
       const ordNum = String(d.order_number || d.order_id || d.id || '').toLowerCase()
       const roomNum = String(d.room_number || d.room?.room_number || '').toLowerCase()
       const guest = String(d.guest_name || d.guest?.full_name || '').toLowerCase()
-      return ordNum.includes(q) || roomNum.includes(q) || guest.includes(q)
-    })
-  }
+      if (!ordNum.includes(q) && !roomNum.includes(q) && !guest.includes(q)) {
+        return false
+      }
+    }
 
-  return list
+    return true
+  })
 })
 
 const total = computed(() => filteredDeliveries.value.length)
@@ -70,8 +74,7 @@ const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value) ||
 
 const paginatedDeliveries = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredDeliveries.value.slice(start, end)
+  return filteredDeliveries.value.slice(start, start + itemsPerPage.value)
 })
 
 const showingFrom = computed(() => {
@@ -94,12 +97,6 @@ const paginationPages = computed(() => {
   return pages
 })
 
-const changeItemsPerPage = (event: Event) => {
-  const target = event.target as HTMLSelectElement
-  itemsPerPage.value = Number(target.value)
-  currentPage.value = 1
-}
-
 const goToPage = (p: number) => {
   if (p >= 1 && p <= totalPages.value) {
     currentPage.value = p
@@ -117,6 +114,10 @@ const nextPage = () => {
     currentPage.value++
   }
 }
+
+watch(itemsPerPage, () => {
+  currentPage.value = 1
+})
 
 const resetFilters = () => {
   searchQuery.value = ''
@@ -168,13 +169,8 @@ const completeDelivery = async (deliveryId: string) => {
 
 const formatDateTime = (dateStr: string) => {
   if (!dateStr) return '-'
-  try {
-    const d = new Date(dateStr)
-    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-  } catch (err) {
-    console.error('[OnDelivery] Error formatting date:', err)
-    return dateStr
-  }
+  const d = new Date(dateStr)
+  return isNaN(d.getTime()) ? dateStr : d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 }
 
 onMounted(() => {
@@ -468,8 +464,7 @@ watch(() => hotelStore.hotelId, () => {
             <div class="flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
               <select
-                :value="itemsPerPage"
-                @change="changeItemsPerPage"
+                v-model.number="itemsPerPage"
                 class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
               >
                 <option :value="10">10</option>

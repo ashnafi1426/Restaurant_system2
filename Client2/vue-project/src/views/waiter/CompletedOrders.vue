@@ -1,3 +1,103 @@
+<script setup lang="ts">
+import { ref, onMounted, computed, watch } from 'vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import waiterService from '@/services/waiterService'
+import { useHotelStore } from '@/stores/hotelStore'
+import { useLanguageStore } from '@/stores/language'
+import { Building2, CheckCheck, Inbox, Timer } from 'lucide-vue-next'
+
+const hotelStore = useHotelStore()
+const languageStore = useLanguageStore()
+
+const loading = ref(true)
+const completed = ref<any[]>([])
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
+const totalPages = computed(() => Math.ceil(completed.value.length / itemsPerPage.value))
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value)
+const endIndex = computed(() => startIndex.value + itemsPerPage.value)
+const paginatedCompleted = computed(() => completed.value.slice(startIndex.value, endIndex.value))
+
+const visiblePages = computed(() => {
+  const pages: (number | string)[] = []
+  const total = totalPages.value
+  const current = currentPage.value
+
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+  } else {
+    pages.push(1)
+    if (current > 3) pages.push('...')
+    
+    const start = Math.max(2, current - 1)
+    const end = Math.min(total - 1, current + 1)
+    for (let i = start; i <= end; i++) {
+      if (!pages.includes(i)) pages.push(i)
+    }
+    
+    if (current < total - 2) pages.push('...')
+    if (!pages.includes(total)) pages.push(total)
+  }
+  return pages
+})
+
+const formatDateTime = (date: string) => {
+  if (!date) return '—'
+  const dateObj = new Date(date)
+  if (isNaN(dateObj.getTime())) return date
+  return dateObj.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
+
+const formatDuration = (mins: any) => {
+  const num = parseInt(mins, 10)
+  if (isNaN(num) || num <= 0) return 15
+  if (num > 60) return 12 + (num % 18)
+  return num
+}
+
+const previousPage = () => {
+  if (currentPage.value > 1) currentPage.value--
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) currentPage.value++
+}
+
+const goToPage = (page: number) => {
+  currentPage.value = page
+}
+
+const loadData = async () => {
+  try {
+    loading.value = true
+    const data = await waiterService.getCompletedDeliveries(100)
+    completed.value = data || []
+    currentPage.value = 1
+  } catch (err: any) {
+    console.error('[CompletedOrders] Error:', err)
+    completed.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+watch(itemsPerPage, () => {
+  currentPage.value = 1
+})
+
+onMounted(loadData)
+
+watch(() => hotelStore.hotelId, loadData)
+</script>
+
 <template>
   <DashboardLayout>
     <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 transition-colors duration-200 font-sans">
@@ -88,8 +188,7 @@
               <div class="flex items-center gap-1.5">
                 <label class="font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">{{ languageStore.t('per_page', 'Per page:') }}</label>
                 <select
-                  v-model="itemsPerPage"
-                  @change="currentPage = 1"
+                  v-model.number="itemsPerPage"
                   class="px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs outline-none"
                 >
                   <option :value="5">5</option>
@@ -137,104 +236,3 @@
     </div>
   </DashboardLayout>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
-import DashboardLayout from '@/Layouts/DashboardLayout.vue'
-import waiterService from '@/services/waiterService'
-import { useHotelStore } from '@/stores/hotelStore'
-import { useLanguageStore } from '@/stores/language'
-import { Building2, CheckCheck, Inbox, Timer } from 'lucide-vue-next'
-
-const hotelStore = useHotelStore()
-const languageStore = useLanguageStore()
-
-const loading = ref(true)
-const completed = ref<any[]>([])
-const currentPage = ref(1)
-const itemsPerPage = ref(10)
-
-const totalPages = computed(() => Math.ceil(completed.value.length / itemsPerPage.value))
-const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value)
-const endIndex = computed(() => startIndex.value + itemsPerPage.value)
-const paginatedCompleted = computed(() => completed.value.slice(startIndex.value, endIndex.value))
-
-const visiblePages = computed(() => {
-  const pages: (number | string)[] = []
-  if (totalPages.value <= 7) {
-    for (let i = 1; i <= totalPages.value; i++) pages.push(i)
-  } else {
-    pages.push(1)
-    if (currentPage.value > 3) pages.push('...')
-    
-    const start = Math.max(2, currentPage.value - 1)
-    const end = Math.min(totalPages.value - 1, currentPage.value + 1)
-    
-    for (let i = start; i <= end; i++) {
-      if (!pages.includes(i)) pages.push(i)
-    }
-    
-    if (currentPage.value < totalPages.value - 2) pages.push('...')
-    if (!pages.includes(totalPages.value)) pages.push(totalPages.value)
-  }
-  return pages
-})
-
-const formatDateTime = (date: string) => {
-  if (!date) return '—'
-  try {
-    const dateObj = new Date(date)
-    return dateObj.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    })
-  } catch (e) {
-    console.error('[CompletedOrders] Error formatting date:', e)
-    return date
-  }
-}
-
-const formatDuration = (mins: any) => {
-  const num = parseInt(mins, 10)
-  if (isNaN(num) || num <= 0) return 15
-  if (num > 60) return 12 + (num % 18)
-  return num
-}
-
-const previousPage = () => {
-  if (currentPage.value > 1) currentPage.value--
-}
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) currentPage.value++
-}
-
-const goToPage = (page: number) => {
-  currentPage.value = page
-}
-
-const loadData = async () => {
-  try {
-    loading.value = true
-    const data = await waiterService.getCompletedDeliveries(100)
-    completed.value = data || []
-    currentPage.value = 1
-  } catch (err: any) {
-    console.error('[CompletedOrders] Error:', err)
-    completed.value = []
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(loadData)
-
-watch(() => hotelStore.hotelId, loadData)
-</script>
-
-<style scoped>
-</style>

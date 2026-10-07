@@ -16,9 +16,6 @@ import {
   Maximize2,
   Minimize2,
   RotateCcw,
-  Loader2,
-  ChevronLeft,
-  ChevronRight,
   Building2,
 } from 'lucide-vue-next'
 
@@ -40,15 +37,14 @@ const operationsData = ref({
 const tasksList = ref<any[]>([])
 
 const filteredTasks = computed(() => {
-  let list = tasksList.value
-  if (selectedPriority.value !== 'all') {
-    list = list.filter((t) => t.priority.toLowerCase() === selectedPriority.value.toLowerCase())
-  }
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim()
-    list = list.filter((t) => t.title.toLowerCase().includes(q) || t.area.toLowerCase().includes(q))
-  }
-  return list
+  const priority = selectedPriority.value.toLowerCase()
+  const q = searchQuery.value.trim().toLowerCase()
+
+  return tasksList.value.filter((t) => {
+    if (priority !== 'all' && t.priority.toLowerCase() !== priority) return false
+    if (q && !t.title.toLowerCase().includes(q) && !t.area.toLowerCase().includes(q)) return false
+    return true
+  })
 })
 
 const toggleFilter = () => {
@@ -79,30 +75,35 @@ const refreshData = async () => {
     ])
 
     const stats = statsRes?.data?.data || {}
-    const tasks = tasksRes?.data?.data || []
+    const rawTasks = Array.isArray(tasksRes?.data?.data) ? tasksRes.data.data : []
 
-    const pendingCount = tasks.filter((t: any) => (t.status || '').toLowerCase() === 'pending').length
-    const completedCount = tasks.filter((t: any) => (t.status || '').toLowerCase() === 'completed').length
-    const urgentCount = tasks.filter((t: any) => (t.priority || '').toLowerCase() === 'urgent' || (t.priority || '').toLowerCase() === 'high').length
+    let pendingCount = 0
+    let completedCount = 0
+    let urgentCount = 0
 
-    operationsData.value = {
-      pending_tasks: pendingCount || stats.pending_orders_count || 0,
-      completed_tasks: completedCount || stats.total_orders || 0,
-      urgent_tasks: urgentCount || 0,
-      total_staff: stats.total_waiters || 0,
-    }
+    tasksList.value = rawTasks.map((t: any, idx: number) => {
+      const statusLower = (t.status || '').toLowerCase()
+      const priorityLower = (t.priority || '').toLowerCase()
 
-    if (Array.isArray(tasks) && tasks.length > 0) {
-      tasksList.value = tasks.map((t: any, idx: number) => ({
+      if (statusLower === 'pending') pendingCount++
+      if (statusLower === 'completed') completedCount++
+      if (priorityLower === 'urgent' || priorityLower === 'high') urgentCount++
+
+      return {
         id: t.id || idx + 1,
         title: t.title || t.task_description || t.task || 'Room Service Task',
         area: t.area || (t.room ? `Room ${t.room.room_number}` : 'Hotel Facility'),
         priority: t.priority || 'Normal',
         status: t.status ? t.status.charAt(0).toUpperCase() + t.status.slice(1) : 'Pending',
         time: t.created_at ? new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—',
-      }))
-    } else {
-      tasksList.value = []
+      }
+    })
+
+    operationsData.value = {
+      pending_tasks: pendingCount || stats.pending_orders_count || 0,
+      completed_tasks: completedCount || stats.total_orders || 0,
+      urgent_tasks: urgentCount,
+      total_staff: stats.total_waiters || 0,
     }
   } catch (err) {
     console.error('Failed to load operations data:', err)
@@ -111,12 +112,12 @@ const refreshData = async () => {
   }
 }
 
-onMounted(async () => {
-  await refreshData()
+onMounted(() => {
+  refreshData()
 })
 
-watch(() => hotelStore.hotelId, async () => {
-  await refreshData()
+watch(() => hotelStore.hotelId, () => {
+  refreshData()
 })
 </script>
 

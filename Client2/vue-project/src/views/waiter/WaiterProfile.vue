@@ -1,3 +1,250 @@
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import {
+  Briefcase, Mail, Phone, Save, Lock, Eye, EyeOff,
+  Camera, Clock, CheckCircle, AlertCircle, X
+} from 'lucide-vue-next'
+import api from '@/api/auth'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
+const loading = ref(true)
+const saving = ref(false)
+const changingPw = ref(false)
+const uploadingPhoto = ref(false)
+
+const photoInput = ref<HTMLInputElement | null>(null)
+const photoPreview = ref<string | null>(null)
+
+const profileData = ref<any>({
+  first_name: '',
+  last_name: '',
+  email: '',
+  phone: '',
+  role: '',
+  waiter: null,
+})
+
+const form = ref({
+  first_name: '',
+  last_name: '',
+  email: '',
+  phone: '',
+  shift: '',
+  bio: '',
+})
+
+const pwForm = ref({
+  current_password: '',
+  new_password: '',
+  new_password_confirmation: '',
+})
+
+const showCurrentPw = ref(false)
+const showNewPw = ref(false)
+const showConfirmPw = ref(false)
+
+const alert = ref({ show: false, type: 'success' as 'success' | 'error', message: '' })
+let alertTimer: ReturnType<typeof setTimeout> | null = null
+
+const showAlert = (type: 'success' | 'error', message: string) => {
+  if (alertTimer) clearTimeout(alertTimer)
+  alert.value = { show: true, type, message }
+  alertTimer = setTimeout(() => { alert.value.show = false }, 5000)
+}
+
+onUnmounted(() => {
+  if (alertTimer) clearTimeout(alertTimer)
+})
+
+const getPhotoUrl = (path: string | null | undefined) => {
+  if (!path) return null
+  if (path.startsWith('http')) return path
+  return `http://127.0.0.1:8000/storage/${path}`
+}
+
+const populateForm = (data: any) => {
+  form.value.first_name = data.first_name || ''
+  form.value.last_name = data.last_name || ''
+  form.value.email = data.email || ''
+  form.value.phone = data.phone || ''
+  form.value.shift = data.waiter?.shift || ''
+  form.value.bio = data.waiter?.bio || ''
+}
+
+const passwordStrength = computed(() => {
+  const pw = pwForm.value.new_password
+  if (!pw) return 0
+  let score = 0
+  if (pw.length >= 8) score++
+  if (/[A-Z]/.test(pw)) score++
+  if (/[0-9]/.test(pw)) score++
+  if (/[^A-Za-z0-9]/.test(pw)) score++
+  return score
+})
+
+const strengthConfig = computed(() => {
+  const s = passwordStrength.value
+  switch (s) {
+    case 1:
+      return { bar: 'bg-red-500', text: 'text-red-500', label: languageStore.t('weak', 'Weak') }
+    case 2:
+      return { bar: 'bg-amber-400', text: 'text-amber-500', label: languageStore.t('fair', 'Fair') }
+    case 3:
+      return { bar: 'bg-blue-400', text: 'text-blue-500', label: languageStore.t('good', 'Good') }
+    default:
+      return { bar: 'bg-emerald-500', text: 'text-emerald-500', label: languageStore.t('strong', 'Strong') }
+  }
+})
+
+const fetchProfile = async () => {
+  loading.value = true
+  try {
+    const res = await api.get('/waiter/profile')
+    if (res.data?.success) {
+      profileData.value = res.data.data
+      populateForm(res.data.data)
+    } else {
+      showAlert('error', res.data?.message || 'Failed to load profile.')
+    }
+  } catch (err: any) {
+    console.error('[WaiterProfile] Error loading profile:', err)
+    showAlert('error', err.response?.data?.message || 'Failed to load profile data.')
+  } finally {
+    loading.value = false
+  }
+}
+
+const saveProfile = async () => {
+  saving.value = true
+  try {
+    const res = await api.put('/waiter/profile', {
+      first_name: form.value.first_name,
+      last_name: form.value.last_name,
+      phone: form.value.phone,
+      shift: form.value.shift,
+      bio: form.value.bio,
+    })
+    if (res.data?.success) {
+      profileData.value = {
+        ...profileData.value,
+        first_name: res.data.data.first_name,
+        last_name: res.data.data.last_name,
+        phone: res.data.data.phone,
+        waiter: res.data.data.waiter
+          ? { ...profileData.value.waiter, ...res.data.data.waiter }
+          : profileData.value.waiter,
+      }
+      showAlert('success', 'Profile updated successfully!')
+    } else {
+      showAlert('error', res.data?.message || 'Failed to update profile.')
+    }
+  } catch (err: any) {
+    console.error('[WaiterProfile] Error saving profile:', err)
+    const errors = err.response?.data?.errors
+    if (errors) {
+      const first = Object.values(errors)[0] as string[]
+      showAlert('error', first[0])
+    } else {
+      showAlert('error', err.response?.data?.message || 'Failed to update profile.')
+    }
+  } finally {
+    saving.value = false
+  }
+}
+
+const changePassword = async () => {
+  if (pwForm.value.new_password !== pwForm.value.new_password_confirmation) {
+    showAlert('error', 'New passwords do not match.')
+    return
+  }
+  if (pwForm.value.new_password.length < 8) {
+    showAlert('error', 'New password must be at least 8 characters.')
+    return
+  }
+  changingPw.value = true
+  try {
+    const res = await api.post('/waiter/profile/change-password', {
+      current_password: pwForm.value.current_password,
+      new_password: pwForm.value.new_password,
+      new_password_confirmation: pwForm.value.new_password_confirmation,
+    })
+    if (res.data?.success) {
+      pwForm.value = { current_password: '', new_password: '', new_password_confirmation: '' }
+      showAlert('success', 'Password changed successfully! Your account is now secured.')
+    } else {
+      showAlert('error', res.data?.message || 'Failed to change password.')
+    }
+  } catch (err: any) {
+    console.error('[WaiterProfile] Error changing password:', err)
+    const errors = err.response?.data?.errors
+    if (errors) {
+      const first = Object.values(errors)[0] as string[]
+      showAlert('error', first[0])
+    } else {
+      showAlert('error', err.response?.data?.message || 'Incorrect current password or server error.')
+    }
+  } finally {
+    changingPw.value = false
+  }
+}
+
+const triggerPhotoUpload = () => {
+  photoInput.value?.click()
+}
+
+const onPhotoSelected = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
+  if (!validTypes.includes(file.type)) {
+    showAlert('error', 'Please select a valid image file (JPEG, PNG, JPG, or GIF)')
+    if (photoInput.value) photoInput.value.value = ''
+    return
+  }
+
+  if (file.size > 2048 * 1024) {
+    showAlert('error', 'Image file size must be less than 2MB')
+    if (photoInput.value) photoInput.value.value = ''
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = (e) => { photoPreview.value = e.target?.result as string }
+  reader.readAsDataURL(file)
+
+  uploadingPhoto.value = true
+  try {
+    const formData = new FormData()
+    formData.append('photo', file)
+    
+    const res = await api.post('/waiter/profile/photo', formData)
+    
+    if (res.data?.success) {
+      if (profileData.value.waiter) {
+        profileData.value.waiter.profile_photo = res.data.data?.profile_photo
+      }
+      showAlert('success', 'Profile photo updated successfully!')
+    } else {
+      photoPreview.value = null
+      showAlert('error', res.data?.message || 'Failed to upload photo.')
+    }
+  } catch (err: any) {
+    console.error('[WaiterProfile] Error uploading photo:', err)
+    photoPreview.value = null
+    showAlert('error', err.response?.data?.message || 'Failed to upload photo. Please try again.')
+  } finally {
+    uploadingPhoto.value = false
+    if (photoInput.value) photoInput.value.value = ''
+  }
+}
+
+onMounted(fetchProfile)
+</script>
+
 <template>
   <DashboardLayout>
     <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans">
@@ -259,10 +506,10 @@
                         v-for="i in 4"
                         :key="i"
                         class="h-1 flex-1 rounded-full transition-all"
-                        :class="passwordStrength >= i ? strengthColor : 'bg-slate-200 dark:bg-slate-700'"
+                        :class="passwordStrength >= i ? strengthConfig.bar : 'bg-slate-200 dark:bg-slate-700'"
                       ></div>
                     </div>
-                    <p class="text-[10px] font-bold" :class="strengthTextColor">{{ strengthLabel }}</p>
+                    <p class="text-[10px] font-bold" :class="strengthConfig.text">{{ strengthConfig.label }}</p>
                   </div>
                 </div>
 
@@ -317,257 +564,6 @@
     </div>
   </DashboardLayout>
 </template>
-
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import DashboardLayout from '@/Layouts/DashboardLayout.vue'
-import {
-  Briefcase, Mail, Phone, Save, Lock, Eye, EyeOff,
-  Camera, Clock, CheckCircle, AlertCircle, X
-} from 'lucide-vue-next'
-import api from '@/api/auth'
-import { useLanguageStore } from '@/stores/language'
-
-const languageStore = useLanguageStore()
-const loading = ref(true)
-const saving = ref(false)
-const changingPw = ref(false)
-const uploadingPhoto = ref(false)
-
-const photoInput = ref<HTMLInputElement | null>(null)
-const photoPreview = ref<string | null>(null)
-
-const profileData = ref<any>({
-  first_name: '',
-  last_name: '',
-  email: '',
-  phone: '',
-  role: '',
-  waiter: null,
-})
-
-const form = ref({
-  first_name: '',
-  last_name: '',
-  email: '',
-  phone: '',
-  shift: '',
-  bio: '',
-})
-
-const pwForm = ref({
-  current_password: '',
-  new_password: '',
-  new_password_confirmation: '',
-})
-
-const showCurrentPw = ref(false)
-const showNewPw = ref(false)
-const showConfirmPw = ref(false)
-
-const alert = ref({ show: false, type: 'success' as 'success' | 'error', message: '' })
-
-const showAlert = (type: 'success' | 'error', message: string) => {
-  alert.value = { show: true, type, message }
-  setTimeout(() => { alert.value.show = false }, 5000)
-}
-
-const getPhotoUrl = (path: string | null | undefined) => {
-  if (!path) return null
-  if (path.startsWith('http')) return path
-  return `http://127.0.0.1:8000/storage/${path}`
-}
-
-const populateForm = (data: any) => {
-  form.value.first_name = data.first_name || ''
-  form.value.last_name = data.last_name || ''
-  form.value.email = data.email || ''
-  form.value.phone = data.phone || ''
-  form.value.shift = data.waiter?.shift || ''
-  form.value.bio = data.waiter?.bio || ''
-}
-
-const passwordStrength = computed(() => {
-  const pw = pwForm.value.new_password
-  if (!pw) return 0
-  let score = 0
-  if (pw.length >= 8) score++
-  if (/[A-Z]/.test(pw)) score++
-  if (/[0-9]/.test(pw)) score++
-  if (/[^A-Za-z0-9]/.test(pw)) score++
-  return score
-})
-
-const strengthColor = computed(() => {
-  const s = passwordStrength.value
-  if (s === 1) return 'bg-red-500'
-  if (s === 2) return 'bg-amber-400'
-  if (s === 3) return 'bg-blue-400'
-  return 'bg-emerald-500'
-})
-
-const strengthTextColor = computed(() => {
-  const s = passwordStrength.value
-  if (s === 1) return 'text-red-500'
-  if (s === 2) return 'text-amber-500'
-  if (s === 3) return 'text-blue-500'
-  return 'text-emerald-500'
-})
-
-const strengthLabel = computed(() => {
-  const s = passwordStrength.value
-  if (s === 1) return languageStore.t('weak', 'Weak')
-  if (s === 2) return languageStore.t('fair', 'Fair')
-  if (s === 3) return languageStore.t('good', 'Good')
-  return languageStore.t('strong', 'Strong')
-})
-
-const fetchProfile = async () => {
-  loading.value = true
-  try {
-    const res = await api.get('/waiter/profile')
-    if (res.data?.success) {
-      profileData.value = res.data.data
-      populateForm(res.data.data)
-    } else {
-      showAlert('error', res.data?.message || 'Failed to load profile.')
-    }
-  } catch (err: any) {
-    console.error('[WaiterProfile] Error loading profile:', err)
-    showAlert('error', err.response?.data?.message || 'Failed to load profile data.')
-  } finally {
-    loading.value = false
-  }
-}
-
-const saveProfile = async () => {
-  saving.value = true
-  try {
-    const res = await api.put('/waiter/profile', {
-      first_name: form.value.first_name,
-      last_name: form.value.last_name,
-      phone: form.value.phone,
-      shift: form.value.shift,
-      bio: form.value.bio,
-    })
-    if (res.data?.success) {
-      profileData.value = {
-        ...profileData.value,
-        first_name: res.data.data.first_name,
-        last_name: res.data.data.last_name,
-        phone: res.data.data.phone,
-        waiter: res.data.data.waiter
-          ? { ...profileData.value.waiter, ...res.data.data.waiter }
-          : profileData.value.waiter,
-      }
-      showAlert('success', 'Profile updated successfully!')
-    } else {
-      showAlert('error', res.data?.message || 'Failed to update profile.')
-    }
-  } catch (err: any) {
-    console.error('[WaiterProfile] Error saving profile:', err)
-    const errors = err.response?.data?.errors
-    if (errors) {
-      const first = Object.values(errors)[0] as string[]
-      showAlert('error', first[0])
-    } else {
-      showAlert('error', err.response?.data?.message || 'Failed to update profile.')
-    }
-  } finally {
-    saving.value = false
-  }
-}
-
-const changePassword = async () => {
-  if (pwForm.value.new_password !== pwForm.value.new_password_confirmation) {
-    showAlert('error', 'New passwords do not match.')
-    return
-  }
-  if (pwForm.value.new_password.length < 8) {
-    showAlert('error', 'New password must be at least 8 characters.')
-    return
-  }
-  changingPw.value = true
-  try {
-    const res = await api.post('/waiter/profile/change-password', {
-      current_password: pwForm.value.current_password,
-      new_password: pwForm.value.new_password,
-      new_password_confirmation: pwForm.value.new_password_confirmation,
-    })
-    if (res.data?.success) {
-      pwForm.value = { current_password: '', new_password: '', new_password_confirmation: '' }
-      showAlert('success', 'Password changed successfully! Your account is now secured.')
-    } else {
-      showAlert('error', res.data?.message || 'Failed to change password.')
-    }
-  } catch (err: any) {
-    console.error('[WaiterProfile] Error changing password:', err)
-    const errors = err.response?.data?.errors
-    if (errors) {
-      const first = Object.values(errors)[0] as string[]
-      showAlert('error', first[0])
-    } else {
-      showAlert('error', err.response?.data?.message || 'Incorrect current password or server error.')
-    }
-  } finally {
-    changingPw.value = false
-  }
-}
-
-const triggerPhotoUpload = () => {
-  photoInput.value?.click()
-}
-
-const onPhotoSelected = async (event: Event) => {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
-
-  const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
-  if (!validTypes.includes(file.type)) {
-    showAlert('error', 'Please select a valid image file (JPEG, PNG, JPG, or GIF)')
-    if (photoInput.value) photoInput.value.value = ''
-    return
-  }
-
-  if (file.size > 2048 * 1024) {
-    showAlert('error', 'Image file size must be less than 2MB')
-    if (photoInput.value) photoInput.value.value = ''
-    return
-  }
-
-  const reader = new FileReader()
-  reader.onload = (e) => { photoPreview.value = e.target?.result as string }
-  reader.readAsDataURL(file)
-
-  uploadingPhoto.value = true
-  try {
-    const formData = new FormData()
-    formData.append('photo', file)
-    
-    const res = await api.post('/waiter/profile/photo', formData)
-    
-    if (res.data?.success) {
-      if (profileData.value.waiter) {
-        profileData.value.waiter.profile_photo = res.data.data?.profile_photo
-      }
-      showAlert('success', 'Profile photo updated successfully!')
-    } else {
-      photoPreview.value = null
-      showAlert('error', res.data?.message || 'Failed to upload photo.')
-    }
-  } catch (err: any) {
-    console.error('[WaiterProfile] Error uploading photo:', err)
-    photoPreview.value = null
-    showAlert('error', err.response?.data?.message || 'Failed to upload photo. Please try again.')
-  } finally {
-    uploadingPhoto.value = false
-    if (photoInput.value) photoInput.value.value = ''
-  }
-}
-
-onMounted(fetchProfile)
-</script>
 
 <style scoped>
 .fade-slide-enter-active,

@@ -46,26 +46,29 @@ const filters = ref({
 })
 
 const filteredHistory = computed(() => {
-  let list = history.value || []
+  const list = history.value || []
+  const typeFilter = filters.value.type
+  const q = searchQuery.value.trim().toLowerCase()
 
-  if (filters.value.type !== 'all') {
-    if (filters.value.type === 'room') {
-      list = list.filter((item) => Boolean(item.room_number || item.room?.room_number))
-    } else if (filters.value.type === 'walk_in') {
-      list = list.filter((item) => !item.room_number && !item.room?.room_number)
-    }
+  if (typeFilter === 'all' && !q) {
+    return list
   }
 
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim()
-    list = list.filter((item) => {
+  return list.filter((item) => {
+    const hasRoom = Boolean(item.room_number || item.room?.room_number)
+    if (typeFilter === 'room' && !hasRoom) return false
+    if (typeFilter === 'walk_in' && hasRoom) return false
+
+    if (q) {
       const ordNum = String(item.order_number || item.order_id || item.id || '').toLowerCase()
       const roomNum = String(item.room_number || item.room?.room_number || '').toLowerCase()
-      return ordNum.includes(q) || roomNum.includes(q)
-    })
-  }
+      if (!ordNum.includes(q) && !roomNum.includes(q)) {
+        return false
+      }
+    }
 
-  return list
+    return true
+  })
 })
 
 const total = computed(() => filteredHistory.value.length)
@@ -73,8 +76,7 @@ const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value) ||
 
 const paginatedHistory = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredHistory.value.slice(start, end)
+  return filteredHistory.value.slice(start, start + itemsPerPage.value)
 })
 
 const showingFrom = computed(() => {
@@ -97,12 +99,6 @@ const paginationPages = computed(() => {
   return pages
 })
 
-const changeItemsPerPage = (event: Event) => {
-  const target = event.target as HTMLSelectElement
-  itemsPerPage.value = Number(target.value)
-  currentPage.value = 1
-}
-
 const goToPage = (p: number) => {
   if (p >= 1 && p <= totalPages.value) {
     currentPage.value = p
@@ -120,6 +116,10 @@ const nextPage = () => {
     currentPage.value++
   }
 }
+
+watch(itemsPerPage, () => {
+  currentPage.value = 1
+})
 
 const resetFilters = () => {
   searchQuery.value = ''
@@ -161,18 +161,13 @@ const fetchHistory = async () => {
 
 const formatDateTime = (dateStr: string) => {
   if (!dateStr) return '-'
-  try {
-    const d = new Date(dateStr)
-    return d.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  } catch (err) {
-    console.error('[DeliveryHistory] Error formatting date:', err)
-    return dateStr
-  }
+  const d = new Date(dateStr)
+  return isNaN(d.getTime()) ? dateStr : d.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 const formatDuration = (val: any) => {
@@ -478,8 +473,7 @@ onMounted(() => {
             <div class="flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
               <select
-                :value="itemsPerPage"
-                @change="changeItemsPerPage"
+                v-model.number="itemsPerPage"
                 class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
               >
                 <option :value="10">10</option>

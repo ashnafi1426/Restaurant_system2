@@ -1,3 +1,141 @@
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import waiterService from '@/services/waiterService'
+import { useLanguageStore } from '@/stores/language'
+
+const languageStore = useLanguageStore()
+
+const loading = ref(true)
+const saving = ref(false)
+const passwordSaving = ref(false)
+const error = ref<string | null>(null)
+const successMessage = ref<string | null>(null)
+const changePasswordModal = ref(false)
+let messageTimer: ReturnType<typeof setTimeout> | null = null
+
+const notifySuccess = (msg: string) => {
+  if (messageTimer) clearTimeout(messageTimer)
+  successMessage.value = msg
+  error.value = null
+  messageTimer = setTimeout(() => {
+    successMessage.value = null
+  }, 5000)
+}
+
+const notifyError = (msg: string) => {
+  if (messageTimer) clearTimeout(messageTimer)
+  error.value = msg
+  successMessage.value = null
+  messageTimer = setTimeout(() => {
+    error.value = null
+  }, 5000)
+}
+
+const settings = ref({
+  notifications_enabled: true,
+  email_notifications: true,
+  sms_notifications: false,
+  theme: 'light',
+  language: 'en',
+})
+
+const originalSettings = ref({ ...settings.value })
+
+const passwordForm = ref({
+  current_password: '',
+  new_password: '',
+  new_password_confirmation: '',
+})
+
+onMounted(async () => {
+  try {
+    loading.value = true
+    error.value = null
+    
+    const data = await waiterService.getSettings()
+    
+    if (data) {
+      settings.value = {
+        notifications_enabled: data.notifications_enabled ?? true,
+        email_notifications: data.email_notifications ?? true,
+        sms_notifications: data.sms_notifications ?? false,
+        theme: data.theme ?? 'light',
+        language: data.language ?? 'en',
+      }
+      originalSettings.value = { ...settings.value }
+    }
+  } catch (err: any) {
+    console.error('[WaiterSettings] Error loading settings:', err)
+    error.value = err.message || 'Failed to load settings'
+  } finally {
+    loading.value = false
+  }
+})
+
+onUnmounted(() => {
+  if (messageTimer) clearTimeout(messageTimer)
+})
+
+const saveSettings = async () => {
+  try {
+    saving.value = true
+    await waiterService.updateSettings(settings.value)
+    originalSettings.value = { ...settings.value }
+    notifySuccess('Settings saved successfully!')
+  } catch (err: any) {
+    console.error('[WaiterSettings] Error saving settings:', err)
+    notifyError(err.message || 'Failed to save settings')
+  } finally {
+    saving.value = false
+  }
+}
+
+const resetSettings = () => {
+  settings.value = { ...originalSettings.value }
+}
+
+const updatePassword = async () => {
+  if (passwordForm.value.new_password !== passwordForm.value.new_password_confirmation) {
+    notifyError('Passwords do not match')
+    return
+  }
+
+  if (passwordForm.value.new_password.length < 8) {
+    notifyError('Password must be at least 8 characters')
+    return
+  }
+
+  try {
+    passwordSaving.value = true
+    await waiterService.changePassword({
+      current_password: passwordForm.value.current_password,
+      new_password: passwordForm.value.new_password,
+      new_password_confirmation: passwordForm.value.new_password_confirmation,
+    })
+    
+    notifySuccess('Password updated successfully!')
+    changePasswordModal.value = false
+    passwordForm.value = {
+      current_password: '',
+      new_password: '',
+      new_password_confirmation: '',
+    }
+  } catch (err: any) {
+    console.error('[WaiterSettings] Error updating password:', err)
+    notifyError(err.message || 'Failed to update password')
+  } finally {
+    passwordSaving.value = false
+  }
+}
+
+const onLanguageChange = () => {
+  if (settings.value.language === 'am' || settings.value.language === 'en') {
+    languageStore.setLanguage(settings.value.language)
+  }
+}
+</script>
+
 <template>
   <DashboardLayout>
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
@@ -223,130 +361,3 @@
     </div>
   </DashboardLayout>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import DashboardLayout from '@/Layouts/DashboardLayout.vue'
-import waiterService from '@/services/waiterService'
-import { useLanguageStore } from '@/stores/language'
-
-const languageStore = useLanguageStore()
-
-const loading = ref(true)
-const saving = ref(false)
-const passwordSaving = ref(false)
-const error = ref<string | null>(null)
-const successMessage = ref<string | null>(null)
-const changePasswordModal = ref(false)
-
-const settings = ref({
-  notifications_enabled: true,
-  email_notifications: true,
-  sms_notifications: false,
-  theme: 'light',
-  language: 'en',
-})
-
-const originalSettings = ref({ ...settings.value })
-
-const passwordForm = ref({
-  current_password: '',
-  new_password: '',
-  new_password_confirmation: '',
-})
-
-onMounted(async () => {
-  try {
-    loading.value = true
-    error.value = null
-    
-    const data = await waiterService.getSettings()
-    
-    if (data) {
-      settings.value = {
-        notifications_enabled: data.notifications_enabled ?? true,
-        email_notifications: data.email_notifications ?? true,
-        sms_notifications: data.sms_notifications ?? false,
-        theme: data.theme ?? 'light',
-        language: data.language ?? 'en',
-      }
-      originalSettings.value = { ...settings.value }
-    }
-  } catch (err: any) {
-    console.error('[WaiterSettings] Error loading settings:', err)
-    error.value = err.message || 'Failed to load settings'
-  } finally {
-    loading.value = false
-  }
-})
-
-const saveSettings = async () => {
-  try {
-    saving.value = true
-    successMessage.value = null
-    
-    await waiterService.updateSettings(settings.value)
-    
-    originalSettings.value = { ...settings.value }
-    successMessage.value = 'Settings saved successfully!'
-    
-    setTimeout(() => {
-      successMessage.value = null
-    }, 5000)
-  } catch (err: any) {
-    console.error('[WaiterSettings] Error saving settings:', err)
-    error.value = err.message || 'Failed to save settings'
-  } finally {
-    saving.value = false
-  }
-}
-
-const resetSettings = () => {
-  settings.value = { ...originalSettings.value }
-}
-
-const updatePassword = async () => {
-  try {
-    if (passwordForm.value.new_password !== passwordForm.value.new_password_confirmation) {
-      error.value = 'Passwords do not match'
-      return
-    }
-
-    if (passwordForm.value.new_password.length < 8) {
-      error.value = 'Password must be at least 8 characters'
-      return
-    }
-
-    passwordSaving.value = true
-    
-    await waiterService.changePassword({
-      current_password: passwordForm.value.current_password,
-      new_password: passwordForm.value.new_password,
-      new_password_confirmation: passwordForm.value.new_password_confirmation,
-    })
-    
-    successMessage.value = 'Password updated successfully!'
-    changePasswordModal.value = false
-    passwordForm.value = {
-      current_password: '',
-      new_password: '',
-      new_password_confirmation: '',
-    }
-
-    setTimeout(() => {
-      successMessage.value = null
-    }, 5000)
-  } catch (err: any) {
-    console.error('[WaiterSettings] Error updating password:', err)
-    error.value = err.message || 'Failed to update password'
-  } finally {
-    passwordSaving.value = false
-  }
-}
-
-const onLanguageChange = () => {
-  if (settings.value.language === 'am' || settings.value.language === 'en') {
-    languageStore.setLanguage(settings.value.language)
-  }
-}
-</script>

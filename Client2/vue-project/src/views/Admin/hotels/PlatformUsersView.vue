@@ -8,10 +8,6 @@ import {
   Search,
   RefreshCw,
   Building2,
-  Shield,
-  Phone,
-  Mail,
-  CheckCircle2,
   AlertCircle,
   ChevronLeft,
   ChevronRight,
@@ -30,7 +26,7 @@ const errorMessage = ref('')
 const currentPage = ref(1)
 const lastPage = ref(1)
 const totalUsers = ref(0)
-const perPage = ref(10) // Default items per page
+const perPage = ref(10)
 const perPageOptions = [5, 10, 20, 50]
 
 // Computed property for pagination display
@@ -42,35 +38,20 @@ const paginationInfo = computed(() => {
 
 // Computed property for page numbers to display
 const visiblePages = computed(() => {
-  const pages = []
+  const pages: (number | string)[] = []
   const total = lastPage.value
   const current = currentPage.value
   
   if (total <= 7) {
-    // Show all pages if total <= 7
-    for (let i = 1; i <= total; i++) {
-      pages.push(i)
-    }
+    for (let i = 1; i <= total; i++) pages.push(i)
+  } else if (current <= 4) {
+    for (let i = 1; i <= 5; i++) pages.push(i)
+    pages.push('ellipsis', total)
+  } else if (current >= total - 3) {
+    pages.push(1, 'ellipsis')
+    for (let i = total - 4; i <= total; i++) pages.push(i)
   } else {
-    // Show ellipsis logic for many pages
-    if (current <= 4) {
-      // Show first 5 pages + ellipsis + last page
-      for (let i = 1; i <= 5; i++) pages.push(i)
-      if (total > 6) pages.push('ellipsis')
-      pages.push(total)
-    } else if (current >= total - 3) {
-      // Show first page + ellipsis + last 5 pages
-      pages.push(1)
-      if (total > 6) pages.push('ellipsis')
-      for (let i = total - 4; i <= total; i++) pages.push(i)
-    } else {
-      // Show first page + ellipsis + current-1, current, current+1 + ellipsis + last page
-      pages.push(1)
-      pages.push('ellipsis')
-      for (let i = current - 1; i <= current + 1; i++) pages.push(i)
-      pages.push('ellipsis')
-      pages.push(total)
-    }
+    pages.push(1, 'ellipsis', current - 1, current, current + 1, 'ellipsis', total)
   }
   
   return pages
@@ -108,7 +89,6 @@ const loadHotels = async () => {
   }
 }
 
-// Navigation functions
 const goToPage = (page: number) => {
   if (page >= 1 && page <= lastPage.value && page !== currentPage.value) {
     currentPage.value = page
@@ -116,55 +96,27 @@ const goToPage = (page: number) => {
   }
 }
 
-const goToFirstPage = () => {
-  goToPage(1)
-}
-
-const goToLastPage = () => {
-  goToPage(lastPage.value)
-}
-
-const goToPreviousPage = () => {
-  goToPage(currentPage.value - 1)
-}
-
-const goToNextPage = () => {
-  goToPage(currentPage.value + 1)
-}
-
-// Handle per page change
-const handlePerPageChange = () => {
-  currentPage.value = 1 // Reset to first page when changing per page
-  loadUsers()
-}
-
 onMounted(() => {
   loadUsers()
   loadHotels()
 })
 
-watch([searchQuery, selectedRole, selectedHotelId], () => {
+watch([searchQuery, selectedRole, selectedHotelId, perPage], () => {
   currentPage.value = 1
   loadUsers()
 })
 
+const roleBadgeClasses: Record<string, string> = {
+  admin: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+  manager: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+  receptionist: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20',
+  chef: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
+  waiter: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+  cashier: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+}
+
 const getRoleBadgeClass = (role: string) => {
-  switch (String(role).toLowerCase()) {
-    case 'admin':
-      return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
-    case 'manager':
-      return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
-    case 'receptionist':
-      return 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20'
-    case 'chef':
-      return 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20'
-    case 'waiter':
-      return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-    case 'cashier':
-      return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-    default:
-      return 'bg-slate-500/10 text-slate-600 border-slate-500/20'
-  }
+  return roleBadgeClasses[String(role).toLowerCase()] || 'bg-slate-500/10 text-slate-600 border-slate-500/20'
 }
 </script>
 
@@ -358,7 +310,6 @@ const getRoleBadgeClass = (role: string) => {
                 <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Per page:</label>
                 <select 
                   v-model="perPage" 
-                  @change="handlePerPageChange"
                   class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option v-for="option in perPageOptions" :key="option" :value="option">
@@ -378,7 +329,7 @@ const getRoleBadgeClass = (role: string) => {
               <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Go to page:</label>
               <select 
                 :value="currentPage" 
-                @change="goToPage(Number($event.target.value))"
+                @change="goToPage(Number(($event.target as HTMLSelectElement).value))"
                 class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option v-for="page in lastPage" :key="page" :value="page">
@@ -393,7 +344,7 @@ const getRoleBadgeClass = (role: string) => {
             <!-- First Page -->
             <button
               :disabled="currentPage <= 1"
-              @click="goToFirstPage"
+              @click="goToPage(1)"
               class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800"
               title="First page"
             >
@@ -403,7 +354,7 @@ const getRoleBadgeClass = (role: string) => {
             <!-- Previous Page -->
             <button
               :disabled="currentPage <= 1"
-              @click="goToPreviousPage"
+              @click="goToPage(currentPage - 1)"
               class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800"
               title="Previous page"
             >
@@ -421,7 +372,7 @@ const getRoleBadgeClass = (role: string) => {
                       ? 'bg-indigo-500 text-white shadow-lg'
                       : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
                   ]"
-                  @click="goToPage(page)"
+                  @click="goToPage(Number(page))"
                 >
                   {{ page }}
                 </button>
@@ -437,7 +388,7 @@ const getRoleBadgeClass = (role: string) => {
             <!-- Next Page -->
             <button
               :disabled="currentPage >= lastPage"
-              @click="goToNextPage"
+              @click="goToPage(currentPage + 1)"
               class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800"
               title="Next page"
             >
@@ -447,7 +398,7 @@ const getRoleBadgeClass = (role: string) => {
             <!-- Last Page -->
             <button
               :disabled="currentPage >= lastPage"
-              @click="goToLastPage"
+              @click="goToPage(lastPage)"
               class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800"
               title="Last page"
             >

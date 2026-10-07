@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from 'vue'
-import { useAuthStore } from '@/stores/auth'
 import { useHotelStore } from '@/stores/hotelStore'
 import { useManagerStore } from '@/stores/managerStore'
 import { useLanguageStore } from '@/stores/language'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
 import managerService from '@/services/managerService'
-import { Calendar, Home, Users, AlertCircle, TrendingUp, Sparkles, RefreshCw, Building2 } from 'lucide-vue-next'
+import { Calendar, Home, Users, AlertCircle, TrendingUp, RefreshCw, Building2 } from 'lucide-vue-next'
 import { Bar, Doughnut } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -35,7 +34,6 @@ ChartJS.register(
   Filler
 )
 
-const auth = useAuthStore()
 const hotelStore = useHotelStore()
 const manager = useManagerStore()
 const languageStore = useLanguageStore()
@@ -43,14 +41,17 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 const trendTab = ref<'weekly' | 'monthly'>('weekly')
 
-const stats = computed(() => ({
-  total_reservations: Number(manager.dashboardStats.totalReservations ?? 0),
-  rooms_occupied: Number(manager.dashboardStats.occupiedRooms ?? 0),
-  max_rooms: Number(manager.dashboardStats.totalRooms ?? 0),
-  active_waiters: Number(manager.dashboardStats.activeStaff ?? 0),
-  kitchen_ready: Number(manager.dashboardStats.preparingOrders ?? 0),
-  today_revenue: Number(manager.dashboardStats.todayRevenue ?? 0),
-}))
+const stats = computed(() => {
+  const ds = manager.dashboardStats
+  return {
+    total_reservations: Number(ds.totalReservations ?? 0),
+    rooms_occupied: Number(ds.occupiedRooms ?? 0),
+    max_rooms: Number(ds.totalRooms ?? 0),
+    active_waiters: Number(ds.activeStaff ?? 0),
+    kitchen_ready: Number(ds.preparingOrders ?? 0),
+    today_revenue: Number(ds.todayRevenue ?? 0),
+  }
+})
 
 const activities = computed(() => manager.dashboardActivities || [])
 
@@ -58,41 +59,50 @@ const activities = computed(() => manager.dashboardActivities || [])
 const weeklyTrends = ref<{ label: string; revenue: number }[]>([])
 const monthlyTrends = ref<{ label: string; revenue: number }[]>([])
 
-const weeklyRevenueChartData = computed(() => {
-  const labels = weeklyTrends.value.length ? weeklyTrends.value.map(t => t.label) : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  const data = weeklyTrends.value.length ? weeklyTrends.value.map(t => t.revenue) : [0, 0, 0, 0, 0, 0, 0]
+const buildRevenueDataset = (
+  trends: { label: string; revenue: number }[],
+  fallbackLabels: string[],
+  color: string,
+  hoverColor: string,
+  labelPrefix: string
+) => {
+  const currency = hotelStore.currentHotel?.currency || 'ETB'
+  const labels = trends.length ? trends.map(t => t.label) : fallbackLabels
+  const data = trends.length ? trends.map(t => t.revenue) : fallbackLabels.map(() => 0)
   return {
     labels,
     datasets: [
       {
-        label: `Revenue (${hotelStore.currentHotel?.currency || 'ETB'})`,
+        label: `${labelPrefix} (${currency})`,
         data,
-        backgroundColor: '#3B82F6',
+        backgroundColor: color,
         borderRadius: 8,
         borderSkipped: false,
-        hoverBackgroundColor: '#2563EB',
+        hoverBackgroundColor: hoverColor,
       }
     ]
   }
-})
+}
 
-const monthlyRevenueChartData = computed(() => {
-  const labels = monthlyTrends.value.length ? monthlyTrends.value.map(t => t.label) : ['Day 1', 'Day 10', 'Day 20', 'Day 30']
-  const data = monthlyTrends.value.length ? monthlyTrends.value.map(t => t.revenue) : [0, 0, 0, 0]
-  return {
-    labels,
-    datasets: [
-      {
-        label: `Monthly Revenue (${hotelStore.currentHotel?.currency || 'ETB'})`,
-        data,
-        backgroundColor: '#6366F1',
-        borderRadius: 8,
-        borderSkipped: false,
-        hoverBackgroundColor: '#4F46E5',
-      }
-    ]
-  }
-})
+const weeklyRevenueChartData = computed(() =>
+  buildRevenueDataset(
+    weeklyTrends.value,
+    ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    '#3B82F6',
+    '#2563EB',
+    'Revenue'
+  )
+)
+
+const monthlyRevenueChartData = computed(() =>
+  buildRevenueDataset(
+    monthlyTrends.value,
+    ['Day 1', 'Day 10', 'Day 20', 'Day 30'],
+    '#6366F1',
+    '#4F46E5',
+    'Monthly Revenue'
+  )
+)
 
 const chartOptions = computed(() => ({
   responsive: true,
@@ -146,24 +156,6 @@ const doughnutOptions = {
   },
   cutout: '70%'
 }
-
-// AI Smart Insights with high-contrast text styling
-const aiInsights = ref([
-  {
-    type: 'peak',
-    title: 'Predicted Peak Room Service Hours',
-    description: 'Demand projected to spike between 7:00 PM – 9:00 PM tonight. Recommend assigning 2 extra staff to Floor 2 & 3.',
-    tag: 'Operational Forecast',
-    tagBg: 'bg-blue-500/20 text-blue-300 border-blue-400/30'
-  },
-  {
-    type: 'efficiency',
-    title: 'High Delivery Completion Efficiency',
-    description: 'Average room delivery turnaround time improved to 16.5 mins today (15% faster than weekly target).',
-    tag: 'Staff Performance',
-    tagBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
-  }
-])
 
 const loadData = async () => {
   try {
@@ -389,6 +381,3 @@ onMounted(() => {
     </div>
   </DashboardLayout>
 </template>
-
-<style scoped>
-</style>

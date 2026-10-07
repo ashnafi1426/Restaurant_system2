@@ -38,27 +38,30 @@ const searchQuery = ref('')
 const selectedType = ref('all')
 
 const filteredOrders = computed(() => {
-  let list = orders.value || []
+  const list = orders.value || []
+  const typeFilter = selectedType.value
+  const q = searchQuery.value.trim().toLowerCase()
 
-  if (selectedType.value !== 'all') {
-    if (selectedType.value === 'room') {
-      list = list.filter((o) => Boolean(o.room_number || o.room?.room_number))
-    } else if (selectedType.value === 'walk_in') {
-      list = list.filter((o) => !o.room_number && !o.room?.room_number)
-    }
+  if (typeFilter === 'all' && !q) {
+    return list
   }
 
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim()
-    list = list.filter((o) => {
+  return list.filter((o) => {
+    const hasRoom = Boolean(o.room_number || o.room?.room_number)
+    if (typeFilter === 'room' && !hasRoom) return false
+    if (typeFilter === 'walk_in' && hasRoom) return false
+
+    if (q) {
       const ordNum = String(o.order_number || o.order_id || o.id || '').toLowerCase()
       const roomNum = String(o.room_number || o.room?.room_number || '').toLowerCase()
       const guest = String(o.guest_name || o.guest?.full_name || '').toLowerCase()
-      return ordNum.includes(q) || roomNum.includes(q) || guest.includes(q)
-    })
-  }
+      if (!ordNum.includes(q) && !roomNum.includes(q) && !guest.includes(q)) {
+        return false
+      }
+    }
 
-  return list
+    return true
+  })
 })
 
 const total = computed(() => filteredOrders.value.length)
@@ -66,8 +69,7 @@ const totalPages = computed(() => Math.ceil(total.value / itemsPerPage.value) ||
 
 const paginatedOrders = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredOrders.value.slice(start, end)
+  return filteredOrders.value.slice(start, start + itemsPerPage.value)
 })
 
 const showingFrom = computed(() => {
@@ -90,12 +92,6 @@ const paginationPages = computed(() => {
   return pages
 })
 
-const changeItemsPerPage = (event: Event) => {
-  const target = event.target as HTMLSelectElement
-  itemsPerPage.value = Number(target.value)
-  currentPage.value = 1
-}
-
 const goToPage = (p: number) => {
   if (p >= 1 && p <= totalPages.value) {
     currentPage.value = p
@@ -113,6 +109,10 @@ const nextPage = () => {
     currentPage.value++
   }
 }
+
+watch(itemsPerPage, () => {
+  currentPage.value = 1
+})
 
 const resetFilters = () => {
   searchQuery.value = ''
@@ -427,8 +427,7 @@ watch(() => hotelStore.hotelId, () => {
             <div class="flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
               <select
-                :value="itemsPerPage"
-                @change="changeItemsPerPage"
+                v-model.number="itemsPerPage"
                 class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
               >
                 <option :value="10">10</option>

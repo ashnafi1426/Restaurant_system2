@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import { platformService, type Hotel, type CreateHotelPayload } from '@/services/platformService'
@@ -55,13 +55,37 @@ const selectedStatus = ref('all')
 const selectedCity = ref('all')
 const successMessage = ref('')
 const errorMessage = ref('')
+let messageTimeout: ReturnType<typeof setTimeout> | null = null
+
+const notify = (type: 'success' | 'error', msg: string) => {
+  if (messageTimeout) clearTimeout(messageTimeout)
+  if (type === 'success') {
+    successMessage.value = msg
+    errorMessage.value = ''
+  } else {
+    errorMessage.value = msg
+    successMessage.value = ''
+  }
+  messageTimeout = setTimeout(() => {
+    successMessage.value = ''
+    errorMessage.value = ''
+  }, 4000)
+}
 
 const toggleFilter = () => {
   isFilterOpen.value = !isFilterOpen.value
 }
 
+const syncFullscreen = () => {
+  isFullscreen.value = !!document.fullscreenElement
+}
+
 const toggleFullscreen = () => {
-  isFullscreen.value = !isFullscreen.value
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen?.().catch(() => {})
+  } else {
+    document.exitFullscreen?.().catch(() => {})
+  }
 }
 
 const resetFilters = () => {
@@ -89,9 +113,7 @@ const showDeleteModal = ref(false)
 const selectedHotel = ref<Hotel | null>(null)
 const deleteConfirmName = ref('')
 
-// Form State
-const createInitialAdmin = ref(true)
-const hotelForm = ref<CreateHotelPayload>({
+const defaultHotelForm = (): CreateHotelPayload => ({
   name: '',
   slug: '',
   email: '',
@@ -107,6 +129,10 @@ const hotelForm = ref<CreateHotelPayload>({
   admin_email: '',
   admin_password: '',
 })
+
+// Form State
+const createInitialAdmin = ref(true)
+const hotelForm = ref<CreateHotelPayload>(defaultHotelForm())
 
 const editForm = ref({
   id: '',
@@ -152,13 +178,27 @@ const loadHotels = async () => {
     totalHotels.value = res.total || 0
   } catch (err: any) {
     console.error('Failed to load hotels:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to load hotels catalog.'
+    notify('error', err?.response?.data?.message || 'Failed to load hotels catalog.')
   } finally {
     loading.value = false
   }
 }
 
-onMounted(loadHotels)
+const handleOutsideClick = () => {
+  activeDropdownId.value = null
+}
+
+onMounted(() => {
+  loadHotels()
+  document.addEventListener('fullscreenchange', syncFullscreen)
+  window.addEventListener('click', handleOutsideClick)
+})
+
+onUnmounted(() => {
+  if (messageTimeout) clearTimeout(messageTimeout)
+  document.removeEventListener('fullscreenchange', syncFullscreen)
+  window.removeEventListener('click', handleOutsideClick)
+})
 
 watch([searchQuery, selectedStatus, selectedCity], () => {
   currentPage.value = 1
@@ -180,22 +220,7 @@ const toggleDropdown = (id: string) => {
 
 // Modal Triggers
 const openCreateModal = () => {
-  hotelForm.value = {
-    name: '',
-    slug: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    country: 'Ethiopia',
-    timezone: 'Africa/Addis_Ababa',
-    currency: 'ETB',
-    status: 'active',
-    admin_first_name: '',
-    admin_last_name: '',
-    admin_email: '',
-    admin_password: '',
-  }
+  hotelForm.value = defaultHotelForm()
   createInitialAdmin.value = true
   showCreateModal.value = true
 }
@@ -253,7 +278,7 @@ const triggerDeleteModal = (hotel: Hotel) => {
 // Actions
 const handleCreateHotel = async () => {
   if (!hotelForm.value.name.trim() || !hotelForm.value.slug.trim()) {
-    errorMessage.value = 'Hotel Name and Slug are required.'
+    notify('error', 'Hotel Name and Slug are required.')
     return
   }
 
@@ -269,13 +294,12 @@ const handleCreateHotel = async () => {
     }
 
     const created = await platformService.createHotel(payload)
-    successMessage.value = `Hotel "${created.name}" onboarded successfully!`
+    notify('success', `Hotel "${created.name}" onboarded successfully!`)
     showCreateModal.value = false
     await loadHotels()
-    setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
     console.error('[HotelManagement] Create hotel error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to create hotel.'
+    notify('error', err?.response?.data?.message || 'Failed to create hotel.')
   } finally {
     saving.value = false
   }
@@ -287,13 +311,12 @@ const handleUpdateHotel = async () => {
   errorMessage.value = ''
   try {
     await platformService.updateHotel(selectedHotel.value.id, editForm.value)
-    successMessage.value = `Hotel "${editForm.value.name}" updated successfully!`
+    notify('success', `Hotel "${editForm.value.name}" updated successfully!`)
     showEditModal.value = false
     await loadHotels()
-    setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
     console.error('[HotelManagement] Update hotel error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to update hotel.'
+    notify('error', err?.response?.data?.message || 'Failed to update hotel.')
   } finally {
     saving.value = false
   }
@@ -314,51 +337,38 @@ const handleEnterHotelViewMode = async (hotel: Hotel) => {
     router.push('/admin')
   } catch (err: any) {
     console.error('[HotelManagement] Enter hotel view mode error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to enter hotel view mode.'
+    notify('error', err?.response?.data?.message || 'Failed to enter hotel view mode.')
   }
 }
 
-const handleActivateHotel = async (hotel: Hotel) => {
-  activeDropdownId.value = null
+const updateStatus = async (hotelId: string, status: 'active' | 'inactive' | 'suspended', successText: string) => {
+  saving.value = true
   try {
-    await platformService.updateHotelStatus(hotel.id, 'active')
-    successMessage.value = `Hotel "${hotel.name}" has been activated. Operations restored.`
+    await platformService.updateHotelStatus(hotelId, status)
+    notify('success', successText)
     await loadHotels()
-    setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
-    console.error('[HotelManagement] Activate hotel error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to activate hotel.'
+    console.error(`[HotelManagement] Set status ${status} error:`, err)
+    notify('error', err?.response?.data?.message || 'Failed to update hotel status.')
+  } finally {
+    saving.value = false
   }
 }
 
-const handleDeactivateHotel = async (hotel: Hotel) => {
+const handleActivateHotel = (hotel: Hotel) => {
   activeDropdownId.value = null
-  try {
-    await platformService.updateHotelStatus(hotel.id, 'inactive')
-    successMessage.value = `Hotel "${hotel.name}" has been set to inactive.`
-    await loadHotels()
-    setTimeout(() => { successMessage.value = '' }, 4000)
-  } catch (err: any) {
-    console.error('[HotelManagement] Deactivate hotel error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to deactivate hotel.'
-  }
+  updateStatus(hotel.id, 'active', `Hotel "${hotel.name}" has been activated. Operations restored.`)
+}
+
+const handleDeactivateHotel = (hotel: Hotel) => {
+  activeDropdownId.value = null
+  updateStatus(hotel.id, 'inactive', `Hotel "${hotel.name}" has been set to inactive.`)
 }
 
 const handleConfirmSuspend = async () => {
   if (!selectedHotel.value) return
-  saving.value = true
-  try {
-    await platformService.updateHotelStatus(selectedHotel.value.id, 'suspended')
-    successMessage.value = `Hotel "${selectedHotel.value.name}" is now SUSPENDED. Data is safely preserved.`
-    showSuspendModal.value = false
-    await loadHotels()
-    setTimeout(() => { successMessage.value = '' }, 4000)
-  } catch (err: any) {
-    console.error('[HotelManagement] Suspend hotel error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to suspend hotel.'
-  } finally {
-    saving.value = false
-  }
+  await updateStatus(selectedHotel.value.id, 'suspended', `Hotel "${selectedHotel.value.name}" is now SUSPENDED. Data is safely preserved.`)
+  showSuspendModal.value = false
 }
 
 const handleConfirmArchive = async () => {
@@ -366,13 +376,12 @@ const handleConfirmArchive = async () => {
   saving.value = true
   try {
     await platformService.archiveHotel(selectedHotel.value.id)
-    successMessage.value = `Hotel "${selectedHotel.value.name}" has been ARCHIVED. All records are preserved.`
+    notify('success', `Hotel "${selectedHotel.value.name}" has been ARCHIVED. All records are preserved.`)
     showArchiveModal.value = false
     await loadHotels()
-    setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
     console.error('[HotelManagement] Archive hotel error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to archive hotel.'
+    notify('error', err?.response?.data?.message || 'Failed to archive hotel.')
   } finally {
     saving.value = false
   }
@@ -381,20 +390,19 @@ const handleConfirmArchive = async () => {
 const handleConfirmPermanentDelete = async () => {
   if (!selectedHotel.value) return
   if (deleteConfirmName.value.trim() !== selectedHotel.value.name.trim()) {
-    errorMessage.value = 'Typed hotel name does not match.'
+    notify('error', 'Typed hotel name does not match.')
     return
   }
 
   saving.value = true
   try {
     await platformService.deleteHotel(selectedHotel.value.id, deleteConfirmName.value.trim())
-    successMessage.value = `Hotel "${selectedHotel.value.name}" deleted permanently.`
+    notify('success', `Hotel "${selectedHotel.value.name}" deleted permanently.`)
     showDeleteModal.value = false
     await loadHotels()
-    setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
     console.error('[HotelManagement] Delete hotel error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to permanently delete hotel.'
+    notify('error', err?.response?.data?.message || 'Failed to permanently delete hotel.')
   } finally {
     saving.value = false
   }
