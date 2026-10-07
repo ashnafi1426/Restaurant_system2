@@ -356,46 +356,27 @@ async function completeReservationAndFetchDetails(): Promise<void> {
   try {
     isLoading.value = true
     
-    await fetch(
-      `http://127.0.0.1:8000/api/payments/verify/${txRef.value}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+    await publicAxios.get(`/payments/verify/${txRef.value}`)
 
-    const completeResponse = await fetch(
-      `http://127.0.0.1:8000/api/reservation-payments/complete/${txRef.value}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-
-    if (completeResponse.ok) {
-      const completeData = await completeResponse.json()
+    const completeResponse = await publicAxios.post(`/reservation-payments/complete/${txRef.value}`)
+    const completeData = completeResponse.data
       
-      if (completeData.success && completeData.reservation) {
-        reservationData.value = {
-          booking_reference: completeData.reservation.booking_reference || 'REF-' + txRef.value?.substring(0, 8).toUpperCase(),
-          check_in_date: completeData.reservation.check_in_date,
-          check_out_date: completeData.reservation.check_out_date,
-          room_number: completeData.reservation.room_number || completeData.reservation.room?.room_number,
-          room_id: completeData.reservation.room_id,
-          number_of_guests: completeData.reservation.number_of_guests,
-          first_name: completeData.reservation.first_name,
-          last_name: completeData.reservation.last_name,
-          email: completeData.reservation.email,
-          phone: completeData.reservation.phone,
-          special_requests: completeData.reservation.special_requests,
-          total_amount: completeData.reservation.total_amount || completeData.payment?.amount,
-        }
-        return
+    if (completeData?.success && completeData.reservation) {
+      reservationData.value = {
+        booking_reference: completeData.reservation.booking_reference || 'REF-' + txRef.value?.substring(0, 8).toUpperCase(),
+        check_in_date: completeData.reservation.check_in_date,
+        check_out_date: completeData.reservation.check_out_date,
+        room_number: completeData.reservation.room_number || completeData.reservation.room?.room_number,
+        room_id: completeData.reservation.room_id,
+        number_of_guests: completeData.reservation.number_of_guests,
+        first_name: completeData.reservation.first_name,
+        last_name: completeData.reservation.last_name,
+        email: completeData.reservation.email,
+        phone: completeData.reservation.phone,
+        special_requests: completeData.reservation.special_requests,
+        total_amount: completeData.reservation.total_amount || completeData.payment?.amount,
       }
+      return
     }
 
     await fetchReservationDetails()
@@ -410,24 +391,16 @@ async function fetchReservationDetails(): Promise<void> {
   try {
     isLoading.value = true
 
-    const response = await fetch(
-      `http://127.0.0.1:8000/api/reservation-payments/${txRef.value}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    )
+    const response = await publicAxios.get(`/reservation-payments/${txRef.value}`)
+    const data = response.data
 
-    if (response.ok) {
-      const data = await response.json()
-      if (data.success && data.reservation) {
-        reservationData.value = {
-          ...reservationData.value,
-          booking_reference: data.reservation.booking_reference || 'REF-' + txRef.value?.substring(0, 8).toUpperCase(),
-          check_in_date: data.reservation.check_in_date,
-          check_out_date: data.reservation.check_out_date,
-          room_number: data.reservation.room_number || data.reservation.room?.room_number,
+    if (data?.success && data.reservation) {
+      reservationData.value = {
+        ...reservationData.value,
+        booking_reference: data.reservation.booking_reference || 'REF-' + txRef.value?.substring(0, 8).toUpperCase(),
+        check_in_date: data.reservation.check_in_date,
+        check_out_date: data.reservation.check_out_date,
+        room_number: data.reservation.room_number || data.reservation.room?.room_number,
           room_id: data.reservation.room_id,
           number_of_guests: data.reservation.number_of_guests,
           first_name: data.reservation.first_name,
