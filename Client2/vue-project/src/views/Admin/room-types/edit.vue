@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import RoomTypeForm from '../../../components/room-types/RoomTypeForm.vue'
-import { roomTypeService } from '../../../services/roomtypeService'
+import { roomTypeService } from '@/services/roomTypeService'
 import { useRoomTypeStore } from '../../../stores/roomType'
 import { useHotelStore } from '@/stores/hotelStore'
 import { Building2, AlertTriangle, CheckCircle2, X } from 'lucide-vue-next'

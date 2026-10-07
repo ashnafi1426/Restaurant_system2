@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
-import GuestForm from '../../../components/guest/guestForm.vue'
+import GuestForm from '../../../components/guest/GuestForm.vue'
 
 import { useGuestStore } from '../../../stores/guestStore'
 import { useLanguageStore } from '@/stores/language'

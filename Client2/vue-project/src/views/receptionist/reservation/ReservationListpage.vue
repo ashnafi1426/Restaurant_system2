@@ -44,7 +44,7 @@ import { useGuestStore } from '@/stores/guestStore'
 import { useHotelStore } from '@/stores/hotelStore'
 import { useLanguageStore } from '@/stores/language'
 import roomService from '@/services/roomService'
-import { roomTypeService } from '@/services/roomtypeService'
+import { roomTypeService } from '@/services/roomTypeService'
 import reservationService from '@/services/reservationService'
 import type { Reservation, ReservationFilter as FilterType } from '@/types/reservation'
 

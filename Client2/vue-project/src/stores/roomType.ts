@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { roomTypeService } from '@/services/roomtypeService'
+import { roomTypeService } from '@/services/roomTypeService'
 import type { RoomType } from '@/types/roomType'
 
 export const useRoomTypeStore = defineStore('roomTypes', {

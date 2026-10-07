@@ -268,10 +268,12 @@ const handleEditSuccess = async () => {
   showToast('Table assignment updated successfully')
 }
 
-const handleDeleteClick = (assignment: any) => {
+const promptDeleteAssignment = (assignment: any) => {
   selectedAssignment.value = assignment
   showDeleteConfirm.value = true
 }
+
+const handleDeleteClick = promptDeleteAssignment
 
 const confirmDelete = async () => {
   if (!selectedAssignment.value) return
@@ -607,7 +609,7 @@ const handleAssignSuccess = async () => {
                         <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
 
                         <button
-                          @click="handleDeleteClick(assignment); closeMenu()"
+                          @click="promptDeleteAssignment(assignment); closeMenu()"
                           class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
                         >
                           <Trash2 class="w-3.5 h-3.5" />
@@ -669,7 +671,7 @@ const handleAssignSuccess = async () => {
               </div>
               <div class="flex gap-2.5">
                 <button @click="handleEdit(assignment)" class="text-blue-600 dark:text-blue-400 font-bold cursor-pointer">{{ languageStore.t('edit', 'Edit') }}</button>
-                <button @click="handleDeleteClick(assignment)" class="text-rose-600 dark:text-rose-400 font-bold cursor-pointer">{{ languageStore.t('delete', 'Delete') }}</button>
+                <button @click="promptDeleteAssignment(assignment)" class="text-rose-600 dark:text-rose-400 font-bold cursor-pointer">{{ languageStore.t('delete', 'Delete') }}</button>
               </div>
             </div>
           </div>

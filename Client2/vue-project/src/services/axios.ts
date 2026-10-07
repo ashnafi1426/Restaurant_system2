@@ -1,7 +1,10 @@
 import axios from 'axios'
 
+const rawApiBase = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+const apiBaseUrl = rawApiBase.endsWith('/api') ? rawApiBase : `${rawApiBase}/api`
+
 export const axiosInstance = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: apiBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -55,8 +58,14 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      const url = error.config?.url || ''
-      if (!url.includes('/guest-reviews') && !url.includes('/review-stats')) {
+      const currentPath = window.location.pathname
+      const isPublicPath =
+        currentPath.startsWith('/guest') ||
+        currentPath.startsWith('/order') ||
+        currentPath.startsWith('/payment') ||
+        currentPath === '/login'
+
+      if (!isPublicPath) {
         localStorage.removeItem('token')
         localStorage.removeItem('user')
         window.location.href = '/login'
@@ -67,7 +76,7 @@ axiosInstance.interceptors.response.use(
 )
 
 export const publicAxios = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: apiBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },

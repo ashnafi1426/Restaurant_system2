@@ -13,7 +13,7 @@ import MenuManagement from '../views/Admin/menu/MenuView.vue'
 import AddMenuItemView from '../views/Admin/menu/AddMenuItemView.vue'
 import AddCategoryView from '../views/Admin/menu/AddCategoryView.vue'
 import CashierDashboard from '../views/Cashier/CashierDashboard.vue'
-import kitchenDashboard from '../views/kitchen/kitchenDashboard.vue'
+import KitchenDashboard from '../views/kitchen/KitchenDashboard.vue'
 import FoodOrdersView from '../views/kitchen/FoodOrdersView.vue'
 import PendingOrdersView from '../views/kitchen/PendingOrdersView.vue'
 import PreparingOrdersView from '../views/kitchen/PreparingOrdersView.vue'
@@ -29,11 +29,11 @@ import RoomTypeList from '../views/Admin/room-types/index.vue'
 import CreateRoomType from '../views/Admin/room-types/create.vue'
 import EditRoomType from '../views/Admin/room-types/edit.vue'
 import ViewRoomType from '../views/Admin/room-types/show.vue'
-import GuestList from '../views/receptionist/guest/guestList.vue'
-import CreateGuest from '../views/receptionist/guest/createGuest.vue'
-import EditGuest from '../views/receptionist/guest/editGuest.vue'
-import GuestDetails from '../views/receptionist/guest/guestDetail.vue'
-import CheckInView from '../views/receptionist/checkIn/checkInView.vue'
+import GuestList from '../views/receptionist/guest/GuestList.vue'
+import CreateGuest from '../views/receptionist/guest/CreateGuest.vue'
+import EditGuest from '../views/receptionist/guest/EditGuest.vue'
+import GuestDetails from '../views/receptionist/guest/GuestDetail.vue'
+import CheckInView from '../views/receptionist/checkIn/CheckInView.vue'
 import CheckOutView from '../views/receptionist/checkOut/CheckOutView.vue'
 import ReportsPage from '../views/receptionist/reports/ReportsPage.vue'
 import AddOrder from '@/views/Admin/order/AddOrder.vue'
@@ -237,7 +237,7 @@ const router = createRouter({
       path: '/chef',
       alias: ['/kitchen', '/chef/dashboard', '/kitchen/dashboard'],
       name: 'chef-dashboard',
-      component: kitchenDashboard,
+      component: KitchenDashboard,
       meta: {
         requiresAuth: true,
         title: 'Kitchen Dashboard',

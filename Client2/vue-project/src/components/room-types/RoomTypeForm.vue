@@ -2,7 +2,7 @@
 import { reactive, ref, watch, onMounted, computed } from 'vue'
 import { Save, X, Plus, Loader2, AlertCircle, CheckCircle2 } from 'lucide-vue-next'
 import { useHotelStore } from '@/stores/hotelStore'
-import { roomTypeService } from '../../services/roomtypeService'
+import { roomTypeService } from '@/services/roomTypeService'
 import type { RoomType } from '../../types/roomType'
 
 const props = defineProps<{
