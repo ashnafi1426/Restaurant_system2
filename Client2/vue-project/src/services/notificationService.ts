@@ -58,15 +58,22 @@ export const notificationService = {
       return pendingRequests.get('unread-count')!
     }
 
-    // If fetched within debounce window, skip
+    // If fetched within debounce window, return actual last known count
     if (now - lastUnreadCountFetch < UNREAD_COUNT_DEBOUNCE_MS) {
-      return Promise.resolve({ data: { unread_count: 0 } })
+      return Promise.resolve({ data: { unread_count: lastKnownUnreadCount } })
     }
 
     lastUnreadCountFetch = now
-    const request = api.get('/notifications/unread-count').finally(() => {
-      pendingRequests.delete('unread-count')
-    })
+    const request = api.get('/notifications/unread-count')
+      .then((res) => {
+        if (res.data?.unread_count !== undefined) {
+          lastKnownUnreadCount = res.data.unread_count
+        }
+        return res
+      })
+      .finally(() => {
+        pendingRequests.delete('unread-count')
+      })
 
     pendingRequests.set('unread-count', request)
     return request

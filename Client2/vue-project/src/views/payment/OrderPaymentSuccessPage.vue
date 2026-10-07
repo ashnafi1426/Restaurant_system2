@@ -29,17 +29,7 @@
       </div>
 
       <!-- Success State (shown after verification completes) -->
-      <div v-else>
-        <!-- Demo Mode Warning (only shows when no tx_ref) -->
-        <div v-if="!txRef" class="bg-yellow-100 border-2 border-yellow-400 rounded-2xl p-4 mb-4 shadow-lg">
-          <div class="flex items-start gap-3">
-            <div class="text-2xl flex-shrink-0">⚠️</div>
-            <div class="text-sm">
-              <p class="font-bold text-yellow-900 mb-1">Demo Mode Active</p>
-              <p class="text-yellow-800">You're viewing demo data because you navigated directly to this page. To test the real payment flow, start from the QR Menu page and complete a payment.</p>
-            </div>
-          </div>
-        </div>
+      <div v-else-if="orderData">
       
       <!-- Success Notification Toast -->
       <div class="bg-[#3d4f3d] rounded-2xl p-4 mb-6 shadow-lg flex items-center gap-3">
@@ -140,7 +130,25 @@
       </div>
 
       </div>
-      <!-- End of v-else (success state) -->
+      <!-- End of v-else-if (success state) -->
+
+      <div v-else class="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-8 text-center space-y-4">
+        <div class="w-16 h-16 bg-slate-100 dark:bg-slate-700 text-slate-500 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+          ℹ️
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">No Order Found</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+          We could not find an active completed payment session. If you recently placed an order, please check your status or return to the menu.
+        </p>
+        <div class="pt-2">
+          <button
+            @click="backToMenu"
+            class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow transition cursor-pointer"
+          >
+            Return to Menu
+          </button>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -150,6 +158,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { generateAndDownloadReceipt } from '@/services/receiptService'
+import { publicAxios } from '@/services/axios'
 
 const router = useRouter()
 const route = useRoute()
@@ -258,94 +267,41 @@ onMounted(async () => {
     sessionStorage.setItem('guest_qr_token', route.query.qr_token as string)
   }
 
-  // Provide realistic fallback if visited directly or after session clear
+  // If no stored order, check if we have direct order ID to fetch
   if (!orderData.value) {
-    const demoOrderId = Math.floor(Math.random() * 1000) + 1 // Random order ID between 1-1000
-    orderData.value = {
-      id: demoOrderId, // Add the missing ID field
-      order_id: demoOrderId, // Alternative field for compatibility
-      order_number: 'ORD-' + (txRef.value ? txRef.value.substring(0, 8).toUpperCase() : 'DEMO' + Math.floor(1000 + Math.random() * 9000)),
-      is_walk_in: true,
-      table_number: 'Table 4',
-      room_number: null,
-      estimated_time: 30,
-      items: [
-        { name: 'Special Tibs', quantity: 1, total: 420 },
-        { name: 'Shiro Tegabino', quantity: 1, total: 220 },
-        { name: 'Fresh Juice', quantity: 2, total: 160 },
-      ],
-      calculation: {
-        subtotal: 800,
-        tax: 120,
-        service_charge: 80,
-        total: 1000,
-      }
-    }
-    
-    // Store in localStorage so it persists
-    localStorage.setItem('last_order_id', demoOrderId.toString())
-    console.log('[OrderPaymentSuccess] Demo order created with ID:', demoOrderId)
-  }
-  
-  console.log('[OrderPaymentSuccess] After loading session data:')
-  console.log('- txRef:', txRef.value)
-  console.log('- orderData:', orderData.value)
-  console.log('- localStorage keys:', Object.keys(localStorage))
-  console.log('- sessionStorage keys:', Object.keys(sessionStorage))
-  console.log('- localStorage.walk_in_payment_data:', localStorage.getItem('walk_in_payment_data'))
-  console.log('- sessionStorage.walk_in_payment_data:', sessionStorage.getItem('walk_in_payment_data'))
-  
-  // If still no tx_ref, we can't proceed with payment verification
-  if (!txRef.value) {
-    console.warn('[OrderPaymentSuccess] ⚠️ No tx_ref found - entering demo mode')
-    console.info('[OrderPaymentSuccess] 💡 To test real payments, start from QR Menu and complete checkout')
-    
-    // Check if we have order_id directly in URL or storage
     const directOrderId = (route.query.order_id as string) || localStorage.getItem('last_order_id')
     if (directOrderId) {
-      console.log('[OrderPaymentSuccess] Found direct order ID, storing:', directOrderId)
-      orderData.value = { ...orderData.value, id: directOrderId, order_id: directOrderId }
-      localStorage.setItem('last_order_id', directOrderId)
+      try {
+        const directRes = await publicAxios.get(`/orders/${directOrderId}`)
+        if (directRes.data?.success && directRes.data?.data) {
+          orderData.value = directRes.data.data
+        }
+      } catch (err) {
+        console.warn('[OrderPaymentSuccess] Direct order fetch failed:', err)
+      }
     }
-    
-    isVerifying.value = false // Stop showing loading state
-    return // Skip payment verification if no tx_ref
+  }
+
+  // If still no tx_ref and no order data, stop verification
+  if (!txRef.value && !orderData.value) {
+    isVerifying.value = false
+    return
   }
 
   if (txRef.value) {
     try {
       console.log('[OrderPaymentSuccess] Verifying payment with tx_ref:', txRef.value)
-      const verifyResponse = await fetch(
-        `http://127.0.0.1:8000/api/payments/verify/${txRef.value}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        }
-      )
+      const verifyRes = await publicAxios.get(`/payments/verify/${txRef.value}`)
+      const verifyData = verifyRes.data
 
-      const verifyData = await verifyResponse.json()
-      console.log('[OrderPaymentSuccess] Verify response:', verifyData)
-
-      if (verifyResponse.ok && verifyData.success) {
-        let completeEndpoint = ''
-        if (isWalkInOrder) {
-          completeEndpoint = `http://127.0.0.1:8000/api/walk-in-payments/complete/${txRef.value}`
-        } else {
-          completeEndpoint = `http://127.0.0.1:8000/api/order-payments/complete/${txRef.value}`
-        }
+      if (verifyData?.success) {
+        const completeEndpoint = isWalkInOrder
+          ? `/walk-in-payments/complete/${txRef.value}`
+          : `/order-payments/complete/${txRef.value}`
 
         console.log('[OrderPaymentSuccess] Completing payment at:', completeEndpoint)
-        const completeResponse = await fetch(completeEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-
-        const completeData = await completeResponse.json()
+        const completeRes = await publicAxios.post(completeEndpoint)
+        const completeData = completeRes.data
         console.log('[OrderPaymentSuccess] Complete response:', completeData)
 
         if (completeResponse.ok && completeData.success && completeData.order) {
@@ -508,47 +464,39 @@ function trackOrder(): void {
 async function fetchOrderByTxRef(txRefValue: string): Promise<void> {
   try {
     console.log('[OrderPaymentSuccess] Fetching order by tx_ref:', txRefValue)
-    const response = await fetch(`http://127.0.0.1:8000/api/order-payments/${txRefValue}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
-    })
+    const response = await publicAxios.get(`/order-payments/${txRefValue}`)
+    const data = response.data
+    console.log('[OrderPaymentSuccess] Fetched order data:', data)
     
-    if (response.ok) {
-      const data = await response.json()
-      console.log('[OrderPaymentSuccess] Fetched order data:', data)
+    if (data?.success && data.order?.id) {
+      const orderId = data.order.id
+      localStorage.setItem('last_order_id', orderId)
+      console.log('[OrderPaymentSuccess] Got order ID from API, redirecting:', orderId)
       
-      if (data.success && data.order?.id) {
-        const orderId = data.order.id
-        localStorage.setItem('last_order_id', orderId)
-        console.log('[OrderPaymentSuccess] Got order ID from API, redirecting:', orderId)
-        
-        const qrToken = data.order?.qr_token || 
-                        data.order?.table?.qr_token || 
-                        data.order?.room?.qr_token || 
-                        orderData.value?.qr_token || 
-                        localStorage.getItem('guest_qr_token')
-        if (qrToken) {
-          localStorage.setItem('guest_qr_token', qrToken)
-        }
-        
-        const hotelId = data.order?.hotel_id || 
-                        orderData.value?.hotel_id || 
-                        localStorage.getItem('hotel_id') || 
-                        localStorage.getItem('active_hotel_id')
-        
-        router.push({
-          name: 'order-status',
-          params: { orderId },
-          query: {
-            qr_token: qrToken || undefined,
-            hotel_id: hotelId || undefined,
-            order_number: data.order.order_number || undefined
-          }
-        })
-        return
+      const qrToken = data.order?.qr_token || 
+                      data.order?.table?.qr_token || 
+                      data.order?.room?.qr_token || 
+                      orderData.value?.qr_token || 
+                      localStorage.getItem('guest_qr_token')
+      if (qrToken) {
+        localStorage.setItem('guest_qr_token', qrToken)
       }
+      
+      const hotelId = data.order?.hotel_id || 
+                      orderData.value?.hotel_id || 
+                      localStorage.getItem('hotel_id') || 
+                      localStorage.getItem('active_hotel_id')
+      
+      router.push({
+        name: 'order-status',
+        params: { orderId },
+        query: {
+          qr_token: qrToken || undefined,
+          hotel_id: hotelId || undefined,
+          order_number: data.order.order_number || undefined
+        }
+      })
+      return
     }
     
     throw new Error('Failed to fetch order by transaction reference')
@@ -585,31 +533,26 @@ async function manualComplete(): Promise<void> {
     const isWalkInOrder = !!walkInDataString
     
     // Verify payment
-    const verifyResponse = await fetch(`http://127.0.0.1:8000/api/payments/verify/${txRef.value}`, {
-      headers: { 'Accept': 'application/json' }
-    })
-    const verifyData = await verifyResponse.json()
+    const verifyRes = await publicAxios.get(`/payments/verify/${txRef.value}`)
+    const verifyData = verifyRes.data
     console.log('[Manual] Verify response:', verifyData)
     
-    if (!verifyResponse.ok || !verifyData.success) {
-      alert('Payment verification failed: ' + (verifyData.message || 'Unknown error'))
+    if (!verifyData?.success) {
+      alert('Payment verification failed: ' + (verifyData?.message || 'Unknown error'))
       return
     }
     
     // Complete order
     const completeEndpoint = isWalkInOrder 
-      ? `http://127.0.0.1:8000/api/walk-in-payments/complete/${txRef.value}`
-      : `http://127.0.0.1:8000/api/order-payments/complete/${txRef.value}`
+      ? `/walk-in-payments/complete/${txRef.value}`
+      : `/order-payments/complete/${txRef.value}`
     
     console.log('[Manual] Completing at:', completeEndpoint)
-    const completeResponse = await fetch(completeEndpoint, {
-      method: 'POST',
-      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
-    })
-    const completeData = await completeResponse.json()
+    const completeRes = await publicAxios.post(completeEndpoint)
+    const completeData = completeRes.data
     console.log('[Manual] Complete response:', completeData)
     
-    if (completeResponse.ok && completeData.success && completeData.order) {
+    if (completeData?.success && completeData.order) {
       // Update orderData with real order
       orderData.value = {
         ...orderData.value,

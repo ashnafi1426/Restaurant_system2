@@ -31,38 +31,21 @@
       <p class="text-gray-500 text-sm">Loading your order...</p>
     </div>
 
-    <!-- Error or Demo Warning -->
+    <!-- Error State -->
     <div v-else-if="error" class="p-4">
-      <div 
-        class="rounded-xl p-6 text-center"
-        :class="error.includes('Demo Mode') ? 'bg-yellow-50 border border-yellow-200' : 'bg-red-50 border border-red-200'"
-      >
-        <div class="text-4xl mb-3">{{ error.includes('Demo Mode') ? '🎭' : '⚠️' }}</div>
-        <h2 
-          class="font-bold mb-1"
-          :class="error.includes('Demo Mode') ? 'text-yellow-800' : 'text-red-800'"
-        >
-          {{ error.includes('Demo Mode') ? 'Demo Mode Active' : 'Unable to Load Order' }}
+      <div class="rounded-xl p-6 text-center bg-red-50 border border-red-200">
+        <div class="text-4xl mb-3">⚠️</div>
+        <h2 class="font-bold mb-1 text-red-800">
+          Unable to Load Order
         </h2>
-        <p 
-          class="text-sm mb-4"
-          :class="error.includes('Demo Mode') ? 'text-yellow-600' : 'text-red-600'"
-        >
+        <p class="text-sm mb-4 text-red-600">
           {{ error }}
         </p>
         <button
-          v-if="!error.includes('Demo Mode')"
           @click="refresh"
-          class="px-5 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+          class="px-5 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
         >
           Try Again
-        </button>
-        <button
-          v-else
-          @click="goBack"
-          class="px-5 py-2 bg-yellow-600 text-white rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors"
-        >
-          Back to Payment
         </button>
       </div>
     </div>

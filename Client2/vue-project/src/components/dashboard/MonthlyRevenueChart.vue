@@ -32,37 +32,6 @@ const revenueData = ref<MonthlyRevenueData[]>([])
 const loading = ref(false)
 const selectedTimeframe = ref<'week' | 'month' | 'year'>(props.timeframe)
 
-const sampleData = {
-  week: [
-    { month: 'Mon', revenue: 34000 },
-    { month: 'Tue', revenue: 45000 },
-    { month: 'Wed', revenue: 52000 },
-    { month: 'Thu', revenue: 38000 },
-    { month: 'Fri', revenue: 62000 },
-    { month: 'Sat', revenue: 85000 },
-    { month: 'Sun', revenue: 70000 },
-  ],
-  month: [
-    { month: 'Week 1', revenue: 120000 },
-    { month: 'Week 2', revenue: 145000 },
-    { month: 'Week 3', revenue: 160000 },
-    { month: 'Week 4', revenue: 138000 },
-  ],
-  year: [
-    { month: 'Jan', revenue: 120000 },
-    { month: 'Feb', revenue: 140000 },
-    { month: 'Mar', revenue: 160000 },
-    { month: 'Apr', revenue: 145000 },
-    { month: 'May', revenue: 180000 },
-    { month: 'Jun', revenue: 210000 },
-    { month: 'Jul', revenue: 190000 },
-    { month: 'Aug', revenue: 220000 },
-    { month: 'Sep', revenue: 195000 },
-    { month: 'Oct', revenue: 230000 },
-    { month: 'Nov', revenue: 240000 },
-    { month: 'Dec', revenue: 260000 },
-  ],
-}
 
 const chartData = ref({
   labels: [] as string[],
@@ -147,11 +116,11 @@ const fetchRevenueData = async (timeframe: 'week' | 'month' | 'year') => {
     if (response.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
       revenueData.value = response.data.data
     } else {
-      revenueData.value = sampleData[timeframe]
+      revenueData.value = []
     }
   } catch (err) {
-    console.error('[MonthlyRevenueChart] Failed to fetch revenue, using sample data:', err)
-    revenueData.value = sampleData[timeframe]
+    console.error('[MonthlyRevenueChart] Failed to fetch revenue:', err)
+    revenueData.value = []
   } finally {
     updateChart()
     loading.value = false

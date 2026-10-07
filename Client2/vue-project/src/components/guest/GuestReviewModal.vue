@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import reviewService from '@/services/reviewService'
+import { useAuthStore } from '@/stores/auth'
 import type { MenuItem } from '@/types/menu'
 import { Star } from 'lucide-vue-next'
+
+const authStore = useAuthStore()
 
 interface Props {
   isOpen: boolean
@@ -71,12 +74,16 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try {
+    const email = props.guestEmail || authStore.user?.email
     const reviewPayload: any = {
       menu_item_id: String(props.menuItem.id),
       rating: rating.value,
       review_text: reviewText.value.trim(),
-      guest_name: props.guestName || 'Guest',
-      guest_email: props.guestEmail || 'guest@example.com',
+      guest_name: props.guestName || authStore.user?.name || 'Guest',
+    }
+
+    if (email) {
+      reviewPayload.guest_email = email
     }
 
     if (props.orderId && isValidUUID(props.orderId)) {

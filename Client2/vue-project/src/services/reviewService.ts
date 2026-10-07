@@ -215,6 +215,11 @@ export const getReviewTrends = async (period: 'daily' | 'weekly' | 'monthly' = '
   return response.data.data
 }
 
+export const getOverallStatistics = async (): Promise<any> => {
+  const response = await axios.get('/reviews/overall')
+  return response.data.data
+}
+
 export default {
   createReview,
   getReview,
@@ -239,4 +244,5 @@ export default {
   getLowestRatedItems,
   getPendingReviewCount,
   getReviewTrends,
+  getOverallStatistics,
 }

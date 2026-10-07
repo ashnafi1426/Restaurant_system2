@@ -53,7 +53,6 @@ export interface OrderData {
   updated_at: string
   served_at?: string
   notes?: string
-  _isDemoMode?: boolean
 }
 
 export interface OrderStatusEvent {
@@ -202,69 +201,11 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
         throw new Error(response.data.message || 'Failed to fetch order data')
       }
     } catch (err: any) {
-      // Check if this is a 404 (order not found) - might be demo data
       if (err.response?.status === 404) {
-        console.warn('[useOrderStatus] Order not found (404). Checking for demo mode...')
-
-        // Check if we came from payment success page with demo data
-        const isDemoMode = !localStorage.getItem('walk_in_payment_data') &&
-          !sessionStorage.getItem('walk_in_payment_data')
-
-        if (isDemoMode) {
-          console.log('[useOrderStatus] Demo mode detected - showing demo order data')
-
-          // Create demo order data matching the expected structure
-          orderData.value = {
-            id: orderId,
-            order_id: orderId,
-            order_number: `ORD-DEMO${orderId}`,
-            status: 'preparing',
-            payment_status: 'paid',
-            table_number: 'Demo Table',
-            room_number: null,
-            estimated_time: 25,
-            is_walk_in: true,
-            items: [ // Use 'items' not 'order_items' to match template
-              {
-                id: '1',
-                name: 'Special Tibs',
-                quantity: 1,
-                price: 420,
-                total: 420
-              },
-              {
-                id: '2',
-                name: 'Shiro Tegabino',
-                quantity: 1,
-                price: 220,
-                total: 220
-              },
-              {
-                id: '3',
-                name: 'Fresh Juice',
-                quantity: 2,
-                price: 80,
-                total: 160
-              }
-            ],
-            subtotal: 800,
-            tax: 120,
-            service_charge: 80,
-            total: 1000,
-            updated_at: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            order_time: new Date().toISOString(),
-            hotel_id: hotelId.value || '',
-            _isDemoMode: true // Flag to indicate this is demo data
-          }
-
-          status.value = 'preparing'
-          paymentStatus.value = 'paid'
-          lastUpdate.value = new Date().toISOString()
-
-          isLoading.value = false
-          return // Exit early, skip WebSocket subscription and don't set error
-        }
+        console.warn('[useOrderStatus] Order not found (404)')
+        error.value = 'Order not found'
+        isLoading.value = false
+        return
       }
 
       // Check for 403 Invalid QR token and attempt recovery using fallback token from stored data
@@ -493,12 +434,6 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
   onMounted(async () => {
     console.log('[useOrderStatus] onMounted - fetching order data first')
     await fetchOrderData()
-
-    // Skip WebSocket subscription if this is demo data
-    if (orderData.value?._isDemoMode) {
-      console.log('[useOrderStatus] ⏭️ Skipping WebSocket subscription for demo mode')
-      return
-    }
 
     // Only subscribe if we have a valid hotel_id after fetch
     if (!hotelId.value) {

@@ -136,11 +136,12 @@ const maxTrendCount = ref(0)
 const loadAnalytics = async () => {
   loading.value = true
   try {
-    const [pending, topItems, lowestItems, trendsData] = await Promise.all([
+    const [pending, topItems, lowestItems, trendsData, overallStats] = await Promise.all([
       reviewService.getPendingReviewCount(),
       reviewService.getTopRatedItems(5, 5),
       reviewService.getLowestRatedItems(5, 5),
       reviewService.getReviewTrends(selectedPeriod.value),
+      reviewService.getOverallStatistics().catch(() => null),
     ])
 
     pendingCount.value = pending
@@ -150,13 +151,19 @@ const loadAnalytics = async () => {
 
     maxTrendCount.value = Math.max(...trends.value.map(t => t.count), 1)
 
-    totalReviews.value = topItems.reduce((sum, item) => sum + item.review_count, 0)
-    if (topItems.length > 0) {
-      const avgSum = topItems.reduce((sum, item) => sum + item.average_rating, 0)
-      avgRating.value = (avgSum / topItems.length).toFixed(1)
+    if (overallStats) {
+      totalReviews.value = overallStats.total_reviews || 0
+      avgRating.value = (overallStats.average_rating || 0).toFixed(1)
+      const total = (overallStats.approved_reviews || 0) + (overallStats.rejected_reviews || 0) + (overallStats.pending_reviews || 0)
+      responseRate.value = total > 0 ? Math.round(((overallStats.approved_reviews + overallStats.rejected_reviews) / total) * 100) : 0
+    } else {
+      totalReviews.value = topItems.reduce((sum, item) => sum + item.review_count, 0)
+      if (topItems.length > 0) {
+        const avgSum = topItems.reduce((sum, item) => sum + item.average_rating, 0)
+        avgRating.value = (avgSum / topItems.length).toFixed(1)
+      }
+      responseRate.value = 0
     }
-    
-    responseRate.value = Math.floor(Math.random() * 100)
   } catch (error) {
     console.error('[AnalyticsDashboard] Failed to load analytics:', error)
   } finally {

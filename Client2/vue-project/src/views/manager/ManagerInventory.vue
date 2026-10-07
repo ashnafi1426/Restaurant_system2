@@ -1,37 +1,26 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
 import { useManagerStore } from '@/stores/managerStore'
+import { useMenuStore } from '@/stores/menuStore'
 import { useHotelStore } from '@/stores/hotelStore'
 import { useLanguageStore } from '@/stores/language'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
-import { Package, Building2 } from 'lucide-vue-next'
+import { Package, Building2, BedDouble, Utensils, Wrench, Sparkles, Shirt } from 'lucide-vue-next'
 
 const manager = useManagerStore()
+const menuStore = useMenuStore()
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
 
 const loadData = async () => {
-  await manager.loadStatistics()
+  await Promise.allSettled([
+    manager.loadStatistics(),
+    menuStore.fetchStatistics(),
+  ])
 }
 
 onMounted(loadData)
-
 watch(() => hotelStore.hotelId, loadData)
-
-const categories = [
-  { key: 'linens_textiles', fallback: 'Linens & Textiles', items: 450, utilization: 85 },
-  { key: 'kitchen_supplies', fallback: 'Kitchen Supplies', items: 320, utilization: 72 },
-  { key: 'toiletries', fallback: 'Toiletries', items: 280, utilization: 90 },
-  { key: 'cleaning_materials', fallback: 'Cleaning Materials', items: 200, utilization: 65 },
-]
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'ETB',
-    maximumFractionDigits: 0,
-  }).format(value)
-}
 </script>
 
 <template>
@@ -42,13 +31,13 @@ function formatCurrency(value: number) {
         <div class="flex items-center justify-between">
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">{{ languageStore.t('inventory_management', 'Inventory Management') }}</h1>
+              <h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">{{ languageStore.t('inventory_management', 'Property & Stock Inventory') }}</h1>
               <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
                 <Building2 class="w-3 h-3" />
                 {{ hotelStore.hotelName }}
               </span>
             </div>
-            <p class="text-sm md:text-base text-slate-600 dark:text-slate-400">{{ languageStore.t('track_manage_inventory', 'Track and manage hotel and restaurant inventory') }}</p>
+            <p class="text-sm md:text-base text-slate-600 dark:text-slate-400">{{ languageStore.t('track_manage_inventory', 'Live inventory for room assets, restaurant stock, and service items') }}</p>
           </div>
           <div class="w-12 h-12 bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900 dark:to-amber-800 rounded-xl flex items-center justify-center">
             <Package class="w-6 h-6 text-amber-600 dark:text-amber-400" />
@@ -57,9 +46,9 @@ function formatCurrency(value: number) {
       </div>
 
       <!-- Loading State -->
-      <div v-if="manager.loading" class="flex justify-center items-center py-32">
+      <div v-if="manager.loading || menuStore.loading" class="flex justify-center items-center py-32">
         <div class="text-center">
-          <div class="relative w-12 h-12">
+          <div class="relative w-12 h-12 mx-auto">
             <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="45" fill="none" stroke="#0EA5E9" stroke-width="6" opacity="0.3" />
             </svg>
@@ -79,70 +68,103 @@ function formatCurrency(value: number) {
       </div>
 
       <!-- Content -->
-      <div v-if="!manager.loading" class="space-y-6">
+      <div v-if="!manager.loading && !menuStore.loading" class="space-y-6">
 
-        <!-- Inventory Status -->
+        <!-- Top Overview Cards (Real data from database) -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('total_items', 'Total Items') }}</p>
-            <h3 class="mt-3 text-3xl font-bold text-slate-900 dark:text-slate-100">1,250</h3>
-            <p class="text-sm text-slate-400 dark:text-slate-500 mt-2">{{ languageStore.t('in_stock_all_categories', 'In stock across all categories') }}</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('total_room_units', 'Total Room Assets') }}</p>
+            <h3 class="mt-3 text-3xl font-bold text-slate-900 dark:text-slate-100">
+              {{ manager.safeStatistics.totalRooms }}
+            </h3>
+            <p class="text-sm text-slate-400 dark:text-slate-500 mt-2">
+              {{ manager.safeStatistics.availableRooms }} {{ languageStore.t('available', 'available') }} • {{ manager.safeStatistics.occupiedRooms }} {{ languageStore.t('occupied', 'occupied') }}
+            </p>
           </div>
+
           <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('low_stock_items', 'Low Stock Items') }}</p>
-            <h3 class="mt-3 text-3xl font-bold text-amber-600 dark:text-amber-400">23</h3>
-            <p class="text-sm text-amber-600 dark:text-amber-400 mt-2">{{ languageStore.t('require_urgent_reorder', 'Require urgent reorder') }}</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('menu_stock_catalog', 'Menu Stock Catalog') }}</p>
+            <h3 class="mt-3 text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+              {{ menuStore.statistics.total_items }}
+            </h3>
+            <p class="text-sm text-slate-400 dark:text-slate-500 mt-2">
+              {{ menuStore.statistics.available_items }} {{ languageStore.t('available_in_kitchen', 'available in kitchen') }}
+            </p>
           </div>
+
           <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('stock_value', 'Stock Value') }}</p>
-            <h3 class="mt-3 text-3xl font-bold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(45000) }}</h3>
-            <p class="text-sm text-slate-400 dark:text-slate-500 mt-2">{{ languageStore.t('total_inventory_value', 'Total inventory value') }}</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('maintenance_attention', 'Attention & Restock') }}</p>
+            <h3 class="mt-3 text-3xl font-bold text-amber-600 dark:text-amber-400">
+              {{ (menuStore.statistics.unavailable_items || 0) + (manager.safeStatistics.maintenanceRooms || 0) }}
+            </h3>
+            <p class="text-sm text-amber-600 dark:text-amber-400 mt-2">
+              {{ menuStore.statistics.unavailable_items || 0 }} {{ languageStore.t('out_of_stock_items', 'out of stock items') }} • {{ manager.safeStatistics.maintenanceRooms || 0 }} {{ languageStore.t('rooms_in_repair', 'rooms under repair') }}
+            </p>
           </div>
         </div>
 
-        <!-- Categories -->
+        <!-- Inventory by Category (Real Database Categories) -->
         <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">{{ languageStore.t('inventory_by_category', 'Inventory by Category') }}</h2>
+          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">{{ languageStore.t('inventory_by_category', 'Inventory by Department') }}</h2>
           <div class="space-y-4">
-            <div v-for="category in categories" :key="category.key" class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
+            <!-- Room Inventory -->
+            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
               <div class="flex items-center gap-3">
-                <span class="font-semibold text-slate-900 dark:text-slate-100">{{ languageStore.t(category.key, category.fallback) }}</span>
-                <span class="text-sm text-slate-500 dark:text-slate-400">{{ category.items }} {{ languageStore.t('items', 'items') }}</span>
-              </div>
-              <div class="flex items-center gap-4">
-                <div class="w-32 h-2 bg-slate-200 dark:bg-slate-600 rounded-full overflow-hidden">
-                  <div class="h-full bg-blue-600 dark:bg-blue-400" :style="{ width: category.utilization + '%' }"></div>
+                <BedDouble class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <p class="font-semibold text-slate-900 dark:text-slate-100">{{ languageStore.t('room_assets', 'Room Accommodations') }}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ manager.safeStatistics.availableRooms }} {{ languageStore.t('ready_for_guests', 'ready for guests') }}</p>
                 </div>
-                <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ category.utilization }}%</span>
               </div>
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ manager.safeStatistics.totalRooms }} {{ languageStore.t('rooms', 'Rooms') }}</span>
             </div>
-          </div>
-        </div>
 
-        <!-- Recent Transactions -->
-        <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">{{ languageStore.t('recent_inventory_movements', 'Recent Inventory Movements') }}</h2>
-          <div class="space-y-3">
-            <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
-              <div>
-                <p class="font-semibold text-slate-900 dark:text-slate-100">{{ languageStore.t('linen_stock_added', 'Linen Stock - Added') }}</p>
-                <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('today_at', 'Today at') }} 10:30 AM</p>
+            <!-- Restaurant Menu Items -->
+            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
+              <div class="flex items-center gap-3">
+                <Utensils class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <div>
+                  <p class="font-semibold text-slate-900 dark:text-slate-100">{{ languageStore.t('restaurant_menu_items', 'Restaurant Menu Catalog') }}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ menuStore.statistics.available_items }} {{ languageStore.t('in_stock', 'in stock') }}</p>
+                </div>
               </div>
-              <span class="text-emerald-600 dark:text-emerald-400 font-semibold">+150 {{ languageStore.t('units', 'units') }}</span>
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ menuStore.statistics.total_items }} {{ languageStore.t('items', 'Items') }}</span>
             </div>
-            <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
-              <div>
-                <p class="font-semibold text-slate-900 dark:text-slate-100">{{ languageStore.t('kitchen_supplies_used', 'Kitchen Supplies - Used') }}</p>
-                <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('today_at', 'Today at') }} 9:15 AM</p>
+
+            <!-- Maintenance Status -->
+            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
+              <div class="flex items-center gap-3">
+                <Wrench class="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <div>
+                  <p class="font-semibold text-slate-900 dark:text-slate-100">{{ languageStore.t('maintenance_units', 'Units in Maintenance') }}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ languageStore.t('offline_for_repair', 'Offline for repairs') }}</p>
+                </div>
               </div>
-              <span class="text-red-600 dark:text-red-400 font-semibold">-45 {{ languageStore.t('units', 'units') }}</span>
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ manager.safeStatistics.maintenanceRooms }} {{ languageStore.t('rooms', 'Rooms') }}</span>
             </div>
-            <div class="flex items-center justify-between p-4">
-              <div>
-                <p class="font-semibold text-slate-900 dark:text-slate-100">{{ languageStore.t('toiletries_added', 'Toiletries - Added') }}</p>
-                <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('yesterday_at', 'Yesterday at') }} 3:20 PM</p>
+
+            <!-- Housekeeping Queue -->
+            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
+              <div class="flex items-center gap-3">
+                <Sparkles class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <div>
+                  <p class="font-semibold text-slate-900 dark:text-slate-100">{{ languageStore.t('housekeeping_queue', 'Rooms Awaiting Cleaning') }}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ languageStore.t('turnover_required', 'Turnover service required') }}</p>
+                </div>
               </div>
-              <span class="text-emerald-600 dark:text-emerald-400 font-semibold">+200 {{ languageStore.t('units', 'units') }}</span>
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ manager.safeStatistics.pendingHousekeeping }} {{ languageStore.t('rooms', 'Rooms') }}</span>
+            </div>
+
+            <!-- Laundry in Processing -->
+            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
+              <div class="flex items-center gap-3">
+                <Shirt class="w-5 h-5 text-sky-600 dark:text-sky-400" />
+                <div>
+                  <p class="font-semibold text-slate-900 dark:text-slate-100">{{ languageStore.t('active_laundry_requests', 'Active Laundry in Service') }}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ languageStore.t('in_cleaning_process', 'In cleaning cycle') }}</p>
+                </div>
+              </div>
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ manager.safeStatistics.pendingLaundry }} {{ languageStore.t('requests', 'Requests') }}</span>
             </div>
           </div>
         </div>

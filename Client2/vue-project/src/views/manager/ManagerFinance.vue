@@ -1,25 +1,44 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useManagerRevenueStore } from '@/stores/manager/revenueStore'
+import { useHotelStore } from '@/stores/hotelStore'
 import { useLanguageStore } from '@/stores/language'
 import RevenueOverview from '@/components/manager/RevenueOverview.vue'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
-import { Wallet } from 'lucide-vue-next'
+import { Wallet, TrendingUp, TrendingDown, Calendar, BarChart3 } from 'lucide-vue-next'
 
 const revenueStore = useManagerRevenueStore()
+const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
 
-onMounted(async () => {
-  await revenueStore.loadSummary()
-})
+const loadData = async () => {
+  await revenueStore.initialize()
+}
+
+onMounted(loadData)
+watch(() => hotelStore.hotelId, loadData)
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'ETB',
+    currency: hotelStore.currentHotel?.currency || 'ETB',
     maximumFractionDigits: 0,
   }).format(value)
 }
+
+const todayVsYesterdayDiff = computed(() => {
+  const today = revenueStore.revenueSummary?.today ?? 0
+  const yesterday = revenueStore.revenueSummary?.yesterday ?? 0
+  if (yesterday === 0) return today > 0 ? 100 : 0
+  return Math.round(((today - yesterday) / yesterday) * 100)
+})
+
+const monthVsYearPercent = computed(() => {
+  const month = revenueStore.revenueSummary?.thisMonth ?? 0
+  const year = revenueStore.revenueSummary?.thisYear ?? 0
+  if (year === 0) return 0
+  return Math.round((month / year) * 100)
+})
 </script>
 
 <template>
@@ -66,107 +85,85 @@ function formatCurrency(value: number) {
         <!-- Revenue Overview Component -->
         <RevenueOverview />
 
-        <!-- Financial Summary -->
+        <!-- Real Financial Period Comparison -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">{{ languageStore.t('income_statement', 'Income Statement') }}</h2>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6 flex items-center gap-2">
+              <Calendar class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              {{ languageStore.t('period_breakdown', 'Period Performance') }}
+            </h2>
             <div class="space-y-4">
               <div class="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700">
-                <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('total_revenue', 'Total Revenue') }}</span>
-                <span class="font-bold text-slate-900 dark:text-slate-100">{{ formatCurrency(revenueStore.revenueSummary?.thisMonth ?? 0) }}</span>
+                <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('today', 'Today') }}</span>
+                <span class="font-bold text-slate-900 dark:text-slate-100">{{ formatCurrency(revenueStore.revenueSummary?.today ?? 0) }}</span>
               </div>
               <div class="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700">
-                <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('operating_expenses', 'Operating Expenses') }}</span>
-                <span class="font-bold text-red-600 dark:text-red-400">-{{ formatCurrency(15000) }}</span>
+                <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('yesterday', 'Yesterday') }}</span>
+                <span class="font-bold text-slate-700 dark:text-slate-300">{{ formatCurrency(revenueStore.revenueSummary?.yesterday ?? 0) }}</span>
               </div>
               <div class="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700">
-                <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('staff_costs', 'Staff Costs') }}</span>
-                <span class="font-bold text-red-600 dark:text-red-400">-{{ formatCurrency(8000) }}</span>
+                <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('this_week', 'This Week') }}</span>
+                <span class="font-bold text-slate-900 dark:text-slate-100">{{ formatCurrency(revenueStore.revenueSummary?.thisWeek ?? 0) }}</span>
               </div>
-              <div class="flex justify-between items-center text-lg">
-                <span class="font-bold text-slate-900 dark:text-slate-100">{{ languageStore.t('net_profit', 'Net Profit') }}</span>
-                <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(revenueStore.revenueSummary?.thisMonth ?? 0 - 23000) }}</span>
+              <div class="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700">
+                <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('this_month', 'This Month') }}</span>
+                <span class="font-bold text-blue-600 dark:text-blue-400">{{ formatCurrency(revenueStore.revenueSummary?.thisMonth ?? 0) }}</span>
+              </div>
+              <div class="flex justify-between items-center text-lg pt-1">
+                <span class="font-bold text-slate-900 dark:text-slate-100">{{ languageStore.t('this_year', 'Year to Date') }}</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(revenueStore.revenueSummary?.thisYear ?? 0) }}</span>
               </div>
             </div>
           </div>
 
           <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">{{ languageStore.t('key_metrics', 'Key Metrics') }}</h2>
-            <div class="space-y-4">
+            <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6 flex items-center gap-2">
+              <BarChart3 class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              {{ languageStore.t('growth_indicators', 'Revenue Indicators') }}
+            </h2>
+            <div class="space-y-6">
               <div>
-                <div class="flex justify-between mb-2">
-                  <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('profit_margin', 'Profit Margin') }}</span>
-                  <span class="font-bold text-slate-900 dark:text-slate-100">42%</span>
+                <div class="flex justify-between mb-2 items-center">
+                  <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('day_over_day_change', 'Day-over-Day Trend') }}</span>
+                  <span :class="['font-bold flex items-center gap-1', todayVsYesterdayDiff >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400']">
+                    <TrendingUp v-if="todayVsYesterdayDiff >= 0" class="w-4 h-4" />
+                    <TrendingDown v-else class="w-4 h-4" />
+                    {{ todayVsYesterdayDiff >= 0 ? '+' : '' }}{{ todayVsYesterdayDiff }}%
+                  </span>
                 </div>
                 <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div class="h-full bg-emerald-500 dark:bg-emerald-400" style="width: 42%"></div>
+                  <div
+                    class="h-full"
+                    :class="todayVsYesterdayDiff >= 0 ? 'bg-emerald-500 dark:bg-emerald-400' : 'bg-red-500 dark:bg-red-400'"
+                    :style="{ width: Math.min(Math.abs(todayVsYesterdayDiff), 100) + '%' }"
+                  ></div>
                 </div>
               </div>
+
               <div>
                 <div class="flex justify-between mb-2">
-                  <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('operating_ratio', 'Operating Ratio') }}</span>
-                  <span class="font-bold text-slate-900 dark:text-slate-100">58%</span>
+                  <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('month_of_year_share', 'Month Share of Annual Revenue') }}</span>
+                  <span class="font-bold text-slate-900 dark:text-slate-100">{{ monthVsYearPercent }}%</span>
                 </div>
                 <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div class="h-full bg-blue-500 dark:bg-blue-400" style="width: 58%"></div>
-                </div>
-              </div>
-              <div>
-                <div class="flex justify-between mb-2">
-                  <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('growth_rate', 'Growth Rate') }}</span>
-                  <span class="font-bold text-emerald-600 dark:text-emerald-400">+15%</span>
-                </div>
-                <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div class="h-full bg-emerald-500 dark:bg-emerald-400" style="width: 15%"></div>
+                  <div class="h-full bg-blue-500 dark:bg-blue-400" :style="{ width: Math.min(monthVsYearPercent, 100) + '%' }"></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Expense Breakdown -->
-        <div class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">{{ languageStore.t('expense_breakdown', 'Expense Breakdown') }}</h2>
-          <div class="space-y-3">
-            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-              <div class="flex items-center gap-3">
-                <div class="w-3 h-3 rounded-full bg-red-500 dark:bg-red-400"></div>
-                <span class="text-slate-900 dark:text-slate-100">{{ languageStore.t('staff_salaries', 'Staff Salaries') }}</span>
-              </div>
-              <div class="text-right">
-                <p class="font-bold text-slate-900 dark:text-slate-100">8,000 ETB</p>
-                <p class="text-sm text-slate-500 dark:text-slate-400">35%</p>
-              </div>
-            </div>
-            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-              <div class="flex items-center gap-3">
-                <div class="w-3 h-3 rounded-full bg-blue-500 dark:bg-blue-400"></div>
-                <span class="text-slate-900 dark:text-slate-100">{{ languageStore.t('utilities', 'Utilities') }}</span>
-              </div>
-              <div class="text-right">
-                <p class="font-bold text-slate-900 dark:text-slate-100">4,500 ETB</p>
-                <p class="text-sm text-slate-500 dark:text-slate-400">20%</p>
-              </div>
-            </div>
-            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-              <div class="flex items-center gap-3">
-                <div class="w-3 h-3 rounded-full bg-amber-500 dark:bg-amber-400"></div>
-                <span class="text-slate-900 dark:text-slate-100">{{ languageStore.t('inventory_supplies', 'Inventory & Supplies') }}</span>
-              </div>
-              <div class="text-right">
-                <p class="font-bold text-slate-900 dark:text-slate-100">3,500 ETB</p>
-                <p class="text-sm text-slate-500 dark:text-slate-400">15%</p>
-              </div>
-            </div>
-            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl">
-              <div class="flex items-center gap-3">
-                <div class="w-3 h-3 rounded-full bg-purple-500 dark:bg-purple-400"></div>
-                <span class="text-slate-900 dark:text-slate-100">{{ languageStore.t('maintenance_repairs', 'Maintenance & Repairs') }}</span>
-              </div>
-              <div class="text-right">
-                <p class="font-bold text-slate-900 dark:text-slate-100">2,000 ETB</p>
-                <p class="text-sm text-slate-500 dark:text-slate-400">10%</p>
-              </div>
+        <!-- Real Chart Trends if available from API -->
+        <div v-if="revenueStore.revenueChart.length > 0" class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+          <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">{{ languageStore.t('recent_periods', 'Period Revenue Breakdown') }}</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <div
+              v-for="(point, idx) in revenueStore.revenueChart"
+              :key="idx"
+              class="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl text-center"
+            >
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ point.period || point.label || `P${idx + 1}` }}</p>
+              <p class="font-bold text-slate-900 dark:text-slate-100 mt-1">{{ formatCurrency(point.revenue || 0) }}</p>
             </div>
           </div>
         </div>
@@ -174,16 +171,6 @@ function formatCurrency(value: number) {
     </div>
   </DashboardLayout>
 </template>
-
-<script lang="ts">
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'ETB',
-    maximumFractionDigits: 0,
-  }).format(value)
-}
-</script>
 
 <style scoped>
 @keyframes spin {
