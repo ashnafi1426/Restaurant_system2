@@ -11,6 +11,8 @@ const props = withDefaults(defineProps<Props>(), {
   alerts: () => [],
 })
 
+const languageStore = useLanguageStore()
+
 const safeAlerts = computed<MaintenanceAlert[]>(() => {
   const raw = props.alerts
   const list = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.values(raw) : [])
@@ -22,33 +24,37 @@ const safeAlerts = computed<MaintenanceAlert[]>(() => {
     }))
 })
 
-const languageStore = useLanguageStore()
-
-const getSeverityColor = (severity: string) => {
-  const colors: Record<string, string> = {
-    high: 'bg-red-50 border-red-200 hover:bg-red-100/50',
-    medium: 'bg-amber-50 border-amber-200 hover:bg-amber-100/50',
-    low: 'bg-blue-50 border-blue-200 hover:bg-blue-100/50',
-  }
-  return colors[severity] || 'bg-gray-50 border-gray-200'
+const severityThemes: Record<string, {
+  card: string
+  badge: string
+  iconBg: string
+  button: string
+}> = {
+  high: {
+    card: 'bg-red-50 border-red-200 hover:bg-red-100/50',
+    badge: 'text-red-700 bg-red-100',
+    iconBg: 'bg-red-600',
+    button: 'bg-red-100 text-red-700 hover:bg-red-200',
+  },
+  medium: {
+    card: 'bg-amber-50 border-amber-200 hover:bg-amber-100/50',
+    badge: 'text-amber-700 bg-amber-100',
+    iconBg: 'bg-amber-600',
+    button: 'bg-amber-100 text-amber-700 hover:bg-amber-200',
+  },
+  low: {
+    card: 'bg-blue-50 border-blue-200 hover:bg-blue-100/50',
+    badge: 'text-blue-700 bg-blue-100',
+    iconBg: 'bg-blue-600',
+    button: 'bg-blue-100 text-blue-700 hover:bg-blue-200',
+  },
 }
 
-const getSeverityBadgeColor = (severity: string) => {
-  const colors: Record<string, string> = {
-    high: 'text-red-700 bg-red-100',
-    medium: 'text-amber-700 bg-amber-100',
-    low: 'text-blue-700 bg-blue-100',
-  }
-  return colors[severity] || 'text-gray-700 bg-gray-100'
-}
+const getTheme = (severity: string) => severityThemes[severity] || severityThemes.low
 
-const getSeverityIcon = (severity: string) => {
-  const icons: Record<string, string> = {
-    high: 'high',
-    medium: 'medium',
-    low: 'low',
-  }
-  return icons[severity] || 'low'
+const formatSeverity = (severity: string) => {
+  const s = severity || 'medium'
+  return languageStore.t(s, s.charAt(0).toUpperCase() + s.slice(1))
 }
 </script>
 
@@ -64,12 +70,13 @@ const getSeverityIcon = (severity: string) => {
         <p class="text-sm text-slate-600 mt-1">{{ languageStore.t('maintenance_alerts_desc', 'System status and maintenance tasks') }}</p>
       </div>
       <button
-        class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-semibold rounded-lg transition-colors"
+        class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
       >
         {{ languageStore.t('clear_all', 'Clear All') }}
       </button>
     </div>
 
+    <!-- Empty State -->
     <div v-if="safeAlerts.length === 0" class="text-center py-16">
       <div
         class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4"
@@ -87,35 +94,25 @@ const getSeverityIcon = (severity: string) => {
       <p class="text-sm text-slate-500 mt-1">{{ languageStore.t('no_active_alerts', 'No active alerts at the moment') }}</p>
     </div>
 
+    <!-- Alert List -->
     <div v-else class="space-y-3 sm:space-y-4">
       <div
         v-for="alert in safeAlerts"
         :key="alert.id"
         :class="[
-          getSeverityColor(alert.severity),
+          getTheme(alert.severity).card,
           'px-4 sm:px-5 py-4 sm:py-5 rounded-xl border transition-all duration-300 group',
         ]"
       >
         <div class="flex gap-3 sm:gap-4">
           <div class="flex-shrink-0 mt-0.5">
             <div
-              v-if="alert.severity === 'high'"
-              class="w-6 h-6 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0"
+              :class="[
+                getTheme(alert.severity).iconBg,
+                'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0'
+              ]"
             >
-              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 9v2m0 4v2m0 4v2"
-                />
-              </svg>
-            </div>
-            <div
-              v-else-if="alert.severity === 'medium'"
-              class="w-6 h-6 rounded-full bg-amber-600 flex items-center justify-center flex-shrink-0"
-            >
-              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg v-if="alert.severity === 'high' || alert.severity === 'medium'" class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -123,12 +120,7 @@ const getSeverityIcon = (severity: string) => {
                   d="M12 9v2m0 4v2"
                 />
               </svg>
-            </div>
-            <div
-              v-else
-              class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0"
-            >
-              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg v-else class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -151,24 +143,20 @@ const getSeverityIcon = (severity: string) => {
               </div>
               <span
                 :class="[
-                  getSeverityBadgeColor(alert.severity),
+                  getTheme(alert.severity).badge,
                   'text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-1 rounded-full flex-shrink-0 whitespace-nowrap',
                 ]"
               >
-                {{ languageStore.t(alert.severity, ((alert.severity || 'medium').charAt(0).toUpperCase() + (alert.severity || 'medium').slice(1))) }}
+                {{ formatSeverity(alert.severity) }}
               </span>
             </div>
 
             <div class="flex gap-2 mt-3 flex-wrap">
               <button
-                class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer"
-                :class="
-                  alert.severity === 'high'
-                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                    : alert.severity === 'medium'
-                      ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                "
+                :class="[
+                  getTheme(alert.severity).button,
+                  'text-xs font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer'
+                ]"
               >
                 {{ languageStore.t('acknowledge', '✓ Acknowledge') }}
               </button>

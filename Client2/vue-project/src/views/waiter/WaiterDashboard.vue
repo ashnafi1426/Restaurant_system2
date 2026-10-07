@@ -49,8 +49,8 @@
           <p class="text-rose-700 dark:text-rose-400 font-semibold text-sm">Error loading dashboard</p>
           <p class="text-rose-600 dark:text-rose-300 text-xs mt-1">{{ error }}</p>
           <button 
-            @click="loadDashboard"
-            class="mt-4 px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-semibold hover:bg-rose-700 transition"
+            @click="loadDashboard(false)"
+            class="mt-4 px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-semibold hover:bg-rose-700 transition cursor-pointer"
           >
             Retry
           </button>
@@ -108,7 +108,7 @@
                   <span class="pulse-dot"></span>
                   Active Delivery In Progress
                 </div>
-                <h3 class="active-delivery-title">Order #{{ activeDelivery.order_number || activeDelivery.id }}</h3>
+                <h3 class="active-delivery-title">Order #{{ getOrderNumber(activeDelivery) }}</h3>
                 <p class="active-delivery-details">
                   Delivering to Room <span class="room-badge">{{ activeDelivery.room_number || 'N/A' }}</span> 
                   • Guest: <span class="guest-name">{{ activeDelivery.guest_name || 'Guest' }}</span>
@@ -119,6 +119,7 @@
               </router-link>
             </div>
           </div>
+
           <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
             <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div>
@@ -160,7 +161,7 @@
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-xs sm:text-sm">
                   <tr v-for="assignment in recentAssignments" :key="assignment.id" v-memo="[assignment.id, assignment.status]" class="hover:bg-slate-50/80 dark:hover:bg-slate-950/50 transition">
                     <td class="px-4 py-3 font-bold text-slate-900 dark:text-white max-w-[140px] truncate" :title="assignment.order_number || assignment.order_id">
-                      #{{ assignment.order_number || assignment.order_id || assignment.id.substring(0,8) }}
+                      #{{ getOrderNumber(assignment) }}
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap">
                       <span class="px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 rounded text-xs font-bold">
@@ -172,17 +173,11 @@
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap">
                       <span class="px-2 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 rounded text-xs font-bold">
-                        {{ typeof assignment.items === 'number' ? assignment.items : (Array.isArray(assignment.items) ? assignment.items.length : 1) }} items
+                        {{ getItemCount(assignment.items) }} items
                       </span>
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap">
-                      <span :class="[
-                        'px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider border',
-                        assignment.status === 'delivered' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' :
-                        assignment.status === 'on_delivery' ? 'bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-500/20' :
-                        assignment.status === 'picked_up' ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-500/20' :
-                        'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20'
-                      ]">
+                      <span :class="['px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider border', getStatusBadgeClass(assignment.status)]">
                         {{ assignment.status || 'assigned' }}
                       </span>
                     </td>
@@ -250,7 +245,7 @@
         <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
           <div class="flex items-center gap-2">
             <h3 class="text-base font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('order_details', 'Order Details') }}</h3>
-            <span class="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">#{{ selectedOrder.order_number || selectedOrder.order_id || selectedOrder.id }}</span>
+            <span class="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">#{{ getOrderNumber(selectedOrder) }}</span>
           </div>
           <button @click="showDetailModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg transition cursor-pointer">
             <X class="w-4 h-4" />
@@ -272,7 +267,7 @@
           </div>
           <div class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
             <span class="text-slate-500 dark:text-slate-400">{{ languageStore.t('items', 'Items') }}:</span>
-            <span class="font-bold text-slate-900 dark:text-white">{{ typeof selectedOrder.items === 'number' ? selectedOrder.items : (Array.isArray(selectedOrder.items) ? selectedOrder.items.length : 1) }} items</span>
+            <span class="font-bold text-slate-900 dark:text-white">{{ getItemCount(selectedOrder.items) }} items</span>
           </div>
           <div v-if="selectedOrder.delivery_address || selectedOrder.address" class="flex justify-between py-1.5 border-b border-slate-100 dark:border-slate-800">
             <span class="text-slate-500 dark:text-slate-400">{{ languageStore.t('address', 'Address') }}:</span>
@@ -336,7 +331,41 @@ const activeDelivery = ref<any | null>(null)
 const activeMenuId = ref<string | null>(null)
 const showDetailModal = ref(false)
 const selectedOrder = ref<any | null>(null)
-const showBelowFold = ref(false)
+
+// Format Helpers
+const getItemCount = (items: any): number => {
+  if (typeof items === 'number') return items
+  if (Array.isArray(items)) return items.length
+  return 1
+}
+
+const getOrderNumber = (order: any): string => {
+  if (!order) return ''
+  return order.order_number || order.order_id || (typeof order.id === 'string' ? order.id.slice(0, 8) : order.id) || ''
+}
+
+const getStatusBadgeClass = (status?: string): string => {
+  switch (status) {
+    case 'delivered':
+      return 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20'
+    case 'on_delivery':
+      return 'bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-500/20'
+    case 'picked_up':
+      return 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-500/20'
+    default:
+      return 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20'
+  }
+}
+
+const updateStats = (todayStats?: any) => {
+  if (!todayStats) return
+  stats.value = {
+    todayDeliveries: todayStats.completed_deliveries ?? 0,
+    pendingDeliveries: todayStats.pending_assignments ?? 0,
+    onDelivery: todayStats.on_delivery_count ?? 0,
+    avgDeliveryTime: Math.round(todayStats.average_delivery_time ?? 0),
+  }
+}
 
 const getCacheKey = () => `waiter_dashboard_cache_${hotelStore.hotelId || 'default'}`
 
@@ -346,15 +375,7 @@ const restoreCachedData = () => {
     if (cached) {
       const parsed = JSON.parse(cached)
       if (parsed && typeof parsed === 'object') {
-        if (parsed.today_stats) {
-          const ts = parsed.today_stats
-          stats.value = {
-            todayDeliveries: ts.completed_deliveries ?? 0,
-            pendingDeliveries: ts.pending_assignments ?? 0,
-            onDelivery: ts.on_delivery_count ?? 0,
-            avgDeliveryTime: Math.round(ts.average_delivery_time ?? 0),
-          }
-        }
+        updateStats(parsed.today_stats)
         if (parsed.active_delivery) {
           activeDelivery.value = parsed.active_delivery
         } else if (Array.isArray(parsed.recent_assignments)) {
@@ -363,7 +384,6 @@ const restoreCachedData = () => {
             activeDelivery.value = currentOnDelivery
           }
         }
-        // Cached data allows instant paint with no blocking skeleton
         loading.value = false
       }
     }
@@ -389,7 +409,6 @@ const handleOutsideClick = () => {
 
 const loadDashboard = async (isManualRefresh = false) => {
   try {
-    // Only show skeleton if we don't have any cached or current data
     if (!recentAssignments.value.length && !activeDelivery.value && !stats.value.todayDeliveries) {
       loading.value = true
     }
@@ -400,29 +419,17 @@ const loadDashboard = async (isManualRefresh = false) => {
       ...(isManualRefresh ? { refresh: 'true' } : {})
     })
 
-    if (dashboardData && dashboardData.today_stats) {
-      const ts = dashboardData.today_stats
-      stats.value = {
-        todayDeliveries: ts.completed_deliveries ?? 0,
-        pendingDeliveries: ts.pending_assignments ?? 0,
-        onDelivery: ts.on_delivery_count ?? 0,
-        avgDeliveryTime: Math.round(ts.average_delivery_time ?? 0),
-      }
+    if (dashboardData) {
+      updateStats(dashboardData.today_stats)
+      recentAssignments.value = dashboardData.recent_assignments || []
+      activeDelivery.value = dashboardData.active_delivery ||
+        recentAssignments.value.find((a: any) => a.status === 'on_delivery' || a.status === 'picked_up') ||
+        null
+
+      try {
+        localStorage.setItem(getCacheKey(), JSON.stringify(dashboardData))
+      } catch (e) {}
     }
-
-    // Use recent_assignments and active_delivery from single dashboard response
-    recentAssignments.value = dashboardData.recent_assignments || []
-
-    activeDelivery.value = dashboardData.active_delivery ||
-      recentAssignments.value.find((a: any) => a.status === 'on_delivery' || a.status === 'picked_up') ||
-      null
-
-    // Cache latest dashboard response for instant paint on next visit
-    try {
-      localStorage.setItem(getCacheKey(), JSON.stringify(dashboardData))
-    } catch (e) {}
-
-    showBelowFold.value = true
   } catch (err: any) {
     console.error('[WaiterDashboard] Error loading dashboard:', err)
     if (!recentAssignments.value.length) {
@@ -450,7 +457,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Optimized stat card styles - reduces render complexity */
 .stat-card {
   @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5;
   will-change: auto;
@@ -496,7 +502,6 @@ onUnmounted(() => {
   @apply text-xs text-slate-500 dark:text-slate-400 mt-1;
 }
 
-/* Optimized active delivery banner - simpler gradient */
 .active-delivery-banner {
   @apply bg-emerald-600 text-white rounded-2xl p-6;
   background: linear-gradient(135deg, #059669 0%, #0d9488 100%);

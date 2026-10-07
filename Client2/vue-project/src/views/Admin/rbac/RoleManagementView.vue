@@ -17,21 +17,14 @@ import {
   Trash2,
   CheckCircle2,
   Users,
-  Key,
   RefreshCw,
   AlertCircle,
   Search,
-  SlidersHorizontal,
   Copy,
-  Layers,
   Sparkles,
-  Check,
   X,
-  ExternalLink,
   Shield,
   Activity,
-  ArrowUpDown,
-  Table,
   Crown,
   Briefcase,
   Contact,
@@ -42,14 +35,10 @@ import {
   MoreVertical,
   Filter,
   Columns,
-  Maximize2,
-  Minimize2,
   RotateCcw,
-  Loader2,
   ArrowRight,
   Monitor,
   ChevronRight,
-  AlertTriangle,
   Grid
 } from 'lucide-vue-next'
 
@@ -58,60 +47,54 @@ const authStore = useAuthStore()
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
 
+// Main Data State
 const roles = ref<Role[]>([])
 const permissions = ref<Permission[]>([])
 const userSummaries = ref<RbacUserSummary[]>([])
+
+// Loading States
 const loading = ref(true)
 const isRefreshing = ref(false)
 const saving = ref(false)
 const loadingPermissions = ref(false)
 const loadingUsers = ref(false)
+
+// Feedback Messages
 const errorMessage = ref('')
 const successMessage = ref('')
+let messageTimeout: ReturnType<typeof setTimeout> | null = null
 
-// View mode: 'table' | 'cards' | 'matrix'
-const viewMode = ref<'table' | 'cards' | 'matrix'>('table')
+// View & Filter States
+const viewMode = ref<'table' | 'cards'>('table')
 const isFilterOpen = ref(false)
-const isFullscreen = ref(false)
-
-// Checkbox selection
-const selectedRoleIds = ref<(string | number)[]>([])
-
-// Three-dot action dropdown state
-const activeDropdownRoleId = ref<string | number | null>(null)
-
-// Search & Filtering
 const searchQuery = ref('')
 const filterCategory = ref<'all' | 'system' | 'custom' | 'active' | 'inactive'>('all')
 const sortBy = ref<'name' | 'users' | 'permissions'>('name')
 
-const toggleFilter = () => {
-  isFilterOpen.value = !isFilterOpen.value
-}
+// Selection & Dropdown States
+const selectedRoleIds = ref<(string | number)[]>([])
+const activeDropdownRoleId = ref<string | number | null>(null)
 
-const toggleFullscreen = () => {
-  isFullscreen.value = !isFullscreen.value
-}
-
-const resetFilters = () => {
-  searchQuery.value = ''
-  filterCategory.value = 'all'
-  sortBy.value = 'name'
-}
-
-// Configure Modal state
+// Configure Role Modal
 const showModal = ref(false)
 const editingRole = ref<Role | null>(null)
 const initialPermissionIds = ref<number[]>([])
 
-// View Users Modal state
+// View Users Modal
 const showUsersModal = ref(false)
 const selectedRoleForUsers = ref<Role | null>(null)
 
-// Delete Confirm Modal state
+// Delete Confirm Modal
 const showDeleteModal = ref(false)
 const roleToDelete = ref<Role | null>(null)
 const deleting = ref(false)
+
+// Helper Functions
+const isRoleActive = (role: Role): boolean => role.is_active ?? true
+
+const getPermissionCount = (role: Role): number => {
+  return role.permissions_count ?? role.permissions?.length ?? 0
+}
 
 const getRoleIcon = (slugOrName: string) => {
   const s = String(slugOrName || '').toLowerCase()
@@ -124,6 +107,22 @@ const getRoleIcon = (slugOrName: string) => {
   return User
 }
 
+const notify = (type: 'success' | 'error', text: string) => {
+  if (messageTimeout) clearTimeout(messageTimeout)
+  if (type === 'success') {
+    successMessage.value = text
+    errorMessage.value = ''
+  } else {
+    errorMessage.value = text
+    successMessage.value = ''
+  }
+  messageTimeout = setTimeout(() => {
+    successMessage.value = ''
+    errorMessage.value = ''
+  }, 3500)
+}
+
+// Local Storage Cache
 const getClientCacheKey = () => `rbac_roles_cache_${hotelStore.hotelId || 'default'}`
 
 const loadFromClientCache = (): boolean => {
@@ -151,6 +150,32 @@ const saveToClientCache = (data: Role[]) => {
   }
 }
 
+// Data Fetching
+const ensurePermissionsLoaded = async (forceRefresh = false) => {
+  if (permissions.value.length > 0 && !forceRefresh) return
+  try {
+    const permsData = await rbacService.getPermissions({ refresh: forceRefresh })
+    if (permsData?.data) permissions.value = permsData.data
+  } catch (err) {
+    console.warn('[RoleManagement] Permissions fetch error:', err)
+  }
+}
+
+const loadRolePermissionIds = async (roleId: string | number): Promise<number[]> => {
+  try {
+    const permData = await rbacService.getRolePermissions(roleId)
+    if (permData && Array.isArray(permData.permission_ids)) {
+      return [...permData.permission_ids]
+    }
+    if (permData && Array.isArray(permData.data)) {
+      return permData.data.map((p: any) => p.id)
+    }
+  } catch (err) {
+    console.error('[RoleManagement] Failed to load role permissions:', err)
+  }
+  return []
+}
+
 const fetchRolesAndPermissions = async (silent = false, forceServerRefresh = false) => {
   if (!silent && roles.value.length === 0) {
     loading.value = true
@@ -160,36 +185,27 @@ const fetchRolesAndPermissions = async (silent = false, forceServerRefresh = fal
   errorMessage.value = ''
 
   try {
-    // 1. Fetch roles fast & display them immediately so page renders with zero wait time
     const rolesData = await rbacService.getRoles({ refresh: forceServerRefresh })
     if (Array.isArray(rolesData)) {
       roles.value = rolesData
       saveToClientCache(rolesData)
     }
 
-    // Immediately stop page-level loading state
     loading.value = false
     isRefreshing.value = false
 
-    // 2. Pre-fetch permissions in the background so modals & filters are snappy
-    if (permissions.value.length === 0 || forceServerRefresh) {
-      rbacService.getPermissions({ refresh: forceServerRefresh })
-        .then(permsData => {
-          if (permsData?.data) permissions.value = permsData.data
-        })
-        .catch(err => {
-          console.warn('[RoleManagement] Background permissions fetch:', err)
-        })
-    }
+    // Pre-fetch permissions in the background so modals & filters are snappy
+    ensurePermissionsLoaded(forceServerRefresh)
   } catch (err: any) {
     console.error('[RoleManagement] Fetch error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to load system roles.'
+    notify('error', err?.response?.data?.message || 'Failed to load system roles.')
   } finally {
     loading.value = false
     isRefreshing.value = false
   }
 }
 
+// Dropdown & Selection Handlers
 const handleGlobalClick = (event: MouseEvent) => {
   const target = event.target as HTMLElement
   if (!target.closest('[data-role-dropdown]')) {
@@ -208,11 +224,7 @@ const closeDropdown = () => {
 
 const toggleSelectAll = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked
-  if (checked) {
-    selectedRoleIds.value = filteredRoles.value.map(r => r.id)
-  } else {
-    selectedRoleIds.value = []
-  }
+  selectedRoleIds.value = checked ? filteredRoles.value.map(r => r.id) : []
 }
 
 const toggleSelectRole = (id: string | number) => {
@@ -224,6 +236,17 @@ const toggleSelectRole = (id: string | number) => {
   }
 }
 
+const toggleFilter = () => {
+  isFilterOpen.value = !isFilterOpen.value
+}
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  filterCategory.value = 'all'
+  sortBy.value = 'name'
+}
+
+// Lifecycle & Hotel Watcher
 onMounted(async () => {
   document.addEventListener('click', handleGlobalClick)
   const hasCached = loadFromClientCache()
@@ -232,47 +255,44 @@ onMounted(async () => {
 
 onUnmounted(() => {
   document.removeEventListener('click', handleGlobalClick)
+  if (messageTimeout) clearTimeout(messageTimeout)
 })
-
-let lastHotelId = hotelStore.hotelId
 
 watch(
   () => hotelStore.hotelId,
   async (newVal, oldVal) => {
-    // Only re-fetch if hotelId actually changed to a valid different hotel
     if (newVal && newVal !== oldVal && oldVal !== undefined) {
-      lastHotelId = newVal
-      userSummaries.value = [] // Invalidate previous hotel users cache
+      userSummaries.value = []
       const hasCached = loadFromClientCache()
       await fetchRolesAndPermissions(hasCached, false)
     }
   }
 )
 
-// Metrics summary calculations (matching the screenshot cards)
+// Summary Metrics
 const allRolesCount = computed(() => roles.value.length)
-const activeRolesCount = computed(() => roles.value.filter(r => r.is_active ?? true).length)
+const activeRolesCount = computed(() => roles.value.filter(isRoleActive).length)
 const totalAssignedUsersCount = computed(() => roles.value.reduce((acc, r) => acc + (r.users_count ?? 0), 0))
 const unassignedRolesCount = computed(() => roles.value.filter(r => (r.users_count ?? 0) === 0).length)
 
 // Filtered & Sorted Roles
 const filteredRoles = computed(() => {
-  let list = [...roles.value]
+  let list = roles.value
 
-  // Category filter
+  // Classification filter
   if (filterCategory.value === 'system') {
     list = list.filter(r => r.is_system)
   } else if (filterCategory.value === 'custom') {
     list = list.filter(r => !r.is_system)
   } else if (filterCategory.value === 'active') {
-    list = list.filter(r => (r.is_active ?? true))
+    list = list.filter(r => isRoleActive(r))
   } else if (filterCategory.value === 'inactive') {
-    list = list.filter(r => !(r.is_active ?? true))
+    list = list.filter(r => !isRoleActive(r))
   }
 
   // Search filter
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim()
+  const q = searchQuery.value.trim().toLowerCase()
+  if (q) {
     list = list.filter(r =>
       r.name.toLowerCase().includes(q) ||
       r.slug.toLowerCase().includes(q) ||
@@ -282,16 +302,13 @@ const filteredRoles = computed(() => {
 
   // Sorting
   return [...list].sort((a, b) => {
-    if (sortBy.value === 'name') {
-      return a.name.localeCompare(b.name)
-    } else if (sortBy.value === 'users') {
+    if (sortBy.value === 'users') {
       return (b.users_count ?? 0) - (a.users_count ?? 0)
-    } else if (sortBy.value === 'permissions') {
-      const aPerms = a.permissions_count ?? a.permissions?.length ?? 0
-      const bPerms = b.permissions_count ?? b.permissions?.length ?? 0
-      return bPerms - aPerms
     }
-    return 0
+    if (sortBy.value === 'permissions') {
+      return getPermissionCount(b) - getPermissionCount(a)
+    }
+    return a.name.localeCompare(b.name)
   })
 })
 
@@ -299,6 +316,7 @@ const isAllSelected = computed(() => {
   return filteredRoles.value.length > 0 && selectedRoleIds.value.length === filteredRoles.value.length
 })
 
+// Modal Open Handlers
 const openCreateModal = async () => {
   editingRole.value = null
   initialPermissionIds.value = []
@@ -306,15 +324,7 @@ const openCreateModal = async () => {
 
   if (permissions.value.length === 0) {
     loadingPermissions.value = true
-    try {
-      const permsData = await rbacService.getPermissions()
-      if (permsData?.data) permissions.value = permsData.data
-    } catch (err) {
-      console.error('[RoleManagement] Failed to load permissions for modal:', err)
-    } finally {
-      loadingPermissions.value = false
-    }
-  } else {
+    await ensurePermissionsLoaded()
     loadingPermissions.value = false
   }
 }
@@ -325,24 +335,9 @@ const openEditModal = async (role: Role) => {
   loadingPermissions.value = true
   showModal.value = true
 
-  if (permissions.value.length === 0) {
-    rbacService.getPermissions().then(permsData => {
-      if (permsData?.data) permissions.value = permsData.data
-    }).catch(err => console.warn(err))
-  }
-
-  try {
-    const permData = await rbacService.getRolePermissions(role.id)
-    if (permData && Array.isArray(permData.permission_ids)) {
-      initialPermissionIds.value = [...permData.permission_ids]
-    } else if (permData && Array.isArray(permData.data)) {
-      initialPermissionIds.value = permData.data.map((p: any) => p.id)
-    }
-  } catch (err) {
-    console.error('Failed to load role permissions:', err)
-  } finally {
-    loadingPermissions.value = false
-  }
+  ensurePermissionsLoaded()
+  initialPermissionIds.value = await loadRolePermissionIds(role.id)
+  loadingPermissions.value = false
 }
 
 const openCloneModal = async (role: Role) => {
@@ -351,33 +346,15 @@ const openCloneModal = async (role: Role) => {
   loadingPermissions.value = true
   showModal.value = true
 
-  if (permissions.value.length === 0) {
-    rbacService.getPermissions().then(permsData => {
-      if (permsData?.data) permissions.value = permsData.data
-    }).catch(err => console.warn(err))
-  }
-
-  try {
-    const permData = await rbacService.getRolePermissions(role.id)
-    let permIds: number[] = []
-    if (permData && Array.isArray(permData.permission_ids)) {
-      permIds = [...permData.permission_ids]
-    } else if (permData && Array.isArray(permData.data)) {
-      permIds = permData.data.map((p: any) => p.id)
-    }
-    initialPermissionIds.value = permIds
-  } catch (err) {
-    console.error('Failed to clone role permissions:', err)
-  } finally {
-    loadingPermissions.value = false
-  }
+  ensurePermissionsLoaded()
+  initialPermissionIds.value = await loadRolePermissionIds(role.id)
+  loadingPermissions.value = false
 }
 
 const openUsersModal = async (role: Role) => {
   selectedRoleForUsers.value = role
   showUsersModal.value = true
 
-  // Lazily load user summaries on demand when modal is viewed
   if (userSummaries.value.length === 0) {
     loadingUsers.value = true
     try {
@@ -391,24 +368,22 @@ const openUsersModal = async (role: Role) => {
   }
 }
 
+// Role Mutation Handlers
 const toggleRoleActive = async (role: Role) => {
   if (role.slug === 'admin') {
-    errorMessage.value = 'System Administrator role status cannot be altered.'
-    setTimeout(() => { errorMessage.value = '' }, 3500)
+    notify('error', 'System Administrator role status cannot be altered.')
     return
   }
 
-  const targetState = !(role.is_active ?? true)
+  const targetState = !isRoleActive(role)
   try {
     await rbacService.updateRole(role.id, { is_active: targetState })
     role.is_active = targetState
     saveToClientCache(roles.value)
-    successMessage.value = `Role "${role.name}" is now ${targetState ? 'active' : 'inactive'}.`
-    setTimeout(() => { successMessage.value = '' }, 3500)
+    notify('success', `Role "${role.name}" is now ${targetState ? 'active' : 'inactive'}.`)
   } catch (err: any) {
     console.error('[RoleManagement] Toggle active error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to update role active status.'
-    setTimeout(() => { errorMessage.value = '' }, 3500)
+    notify('error', err?.response?.data?.message || 'Failed to update role active status.')
   }
 }
 
@@ -422,17 +397,11 @@ const handleSaveRole = async (payload: { name: string; description: string; is_a
         description: payload.description,
         is_active: payload.is_active,
       })
-
       await rbacService.syncRolePermissions(editingRole.value.id, payload.permissions)
-      successMessage.value = `Role "${payload.name}" updated successfully!`
+      notify('success', `Role "${payload.name}" updated successfully!`)
     } else {
-      await rbacService.createRole({
-        name: payload.name,
-        description: payload.description,
-        is_active: payload.is_active,
-        permissions: payload.permissions,
-      })
-      successMessage.value = `Role "${payload.name}" created successfully!`
+      await rbacService.createRole(payload)
+      notify('success', `Role "${payload.name}" created successfully!`)
     }
 
     try {
@@ -444,10 +413,9 @@ const handleSaveRole = async (payload: { name: string; description: string; is_a
 
     showModal.value = false
     await fetchRolesAndPermissions(true, true)
-    setTimeout(() => { successMessage.value = '' }, 4000)
   } catch (err: any) {
     console.error('[RoleManagement] Save role error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to save role configuration.'
+    notify('error', err?.response?.data?.message || 'Failed to save role configuration.')
   } finally {
     saving.value = false
   }
@@ -455,8 +423,7 @@ const handleSaveRole = async (payload: { name: string; description: string; is_a
 
 const triggerDeleteConfirmation = (role: Role) => {
   if (role.is_system) {
-    errorMessage.value = 'Core system roles cannot be deleted.'
-    setTimeout(() => { errorMessage.value = '' }, 3500)
+    notify('error', 'Core system roles cannot be deleted.')
     return
   }
   roleToDelete.value = role
@@ -466,17 +433,15 @@ const triggerDeleteConfirmation = (role: Role) => {
 const confirmDeleteRole = async () => {
   if (!roleToDelete.value) return
   deleting.value = true
-  errorMessage.value = ''
   try {
     await rbacService.deleteRole(roleToDelete.value.id)
-    successMessage.value = `Role "${roleToDelete.value.name}" deleted successfully.`
+    notify('success', `Role "${roleToDelete.value.name}" deleted successfully.`)
     showDeleteModal.value = false
     roleToDelete.value = null
     await fetchRolesAndPermissions(true, true)
-    setTimeout(() => { successMessage.value = '' }, 3500)
   } catch (err: any) {
     console.error('[RoleManagement] Delete role error:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to delete role.'
+    notify('error', err?.response?.data?.message || 'Failed to delete role.')
   } finally {
     deleting.value = false
   }
@@ -491,7 +456,6 @@ const navigateToUserAssignments = () => {
 <template>
   <DashboardLayout>
     <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white p-4 sm:p-6 space-y-6 font-sans transition-colors duration-200">
-
       <!-- TOP BREADCRUMB -->
       <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
         <Monitor class="w-4 h-4 text-slate-400 dark:text-slate-500" />
@@ -823,7 +787,7 @@ const navigateToUserAssignments = () => {
                     class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-600/15 dark:hover:bg-blue-600/25 dark:text-blue-400 dark:border-blue-500/30 text-xs font-bold transition cursor-pointer"
                     :title="languageStore.t('configure_role', 'Configure role permissions')"
                   >
-                    <span>{{ role.permissions_count ?? role.permissions?.length ?? 0 }} {{ languageStore.t('permissions', 'Permissions') }}</span>
+                    <span>{{ getPermissionCount(role) }} {{ languageStore.t('permissions', 'Permissions') }}</span>
                     <ArrowRight class="w-3 h-3" />
                   </button>
                 </td>
@@ -845,12 +809,12 @@ const navigateToUserAssignments = () => {
                   <span
                     :class="[
                       'px-2.5 py-0.5 rounded-full text-[11px] font-bold border inline-block',
-                      (role.is_active ?? true)
+                      isRoleActive(role)
                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30'
                         : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
                     ]"
                   >
-                    {{ (role.is_active ?? true) ? languageStore.t('active', 'Active') : languageStore.t('inactive', 'Inactive') }}
+                    {{ isRoleActive(role) ? languageStore.t('active', 'Active') : languageStore.t('inactive', 'Inactive') }}
                   </span>
                 </td>
 
@@ -900,7 +864,7 @@ const navigateToUserAssignments = () => {
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
                       <Activity class="w-3.5 h-3.5 text-emerald-500" />
-                      <span>{{ (role.is_active ?? true) ? languageStore.t('deactivate_role', 'Deactivate Role') : languageStore.t('activate_role', 'Activate Role') }}</span>
+                      <span>{{ isRoleActive(role) ? languageStore.t('deactivate_role', 'Deactivate Role') : languageStore.t('activate_role', 'Activate Role') }}</span>
                     </button>
 
                     <div v-if="!role.is_system" class="my-1 border-t border-slate-200 dark:border-slate-800"></div>
@@ -928,7 +892,7 @@ const navigateToUserAssignments = () => {
       </div>
 
       <!-- VIEW MODE: CARDS GRID (ALTERNATIVE) -->
-      <div v-else-if="viewMode === 'cards'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         <div
           v-for="role in filteredRoles"
           :key="role.id"
@@ -948,17 +912,17 @@ const navigateToUserAssignments = () => {
               <span
                 :class="[
                   'px-2 py-0.5 rounded-full text-[10px] font-bold border',
-                  (role.is_active ?? true)
+                  isRoleActive(role)
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30'
                     : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
                 ]"
               >
-                {{ (role.is_active ?? true) ? languageStore.t('active', 'Active') : languageStore.t('inactive', 'Inactive') }}
+                {{ isRoleActive(role) ? languageStore.t('active', 'Active') : languageStore.t('inactive', 'Inactive') }}
               </span>
             </div>
 
             <div class="flex items-center justify-between pt-2 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800">
-              <span class="font-medium">{{ languageStore.t('permissions', 'Permissions') }}: <strong class="text-blue-600 dark:text-blue-400">{{ role.permissions_count ?? role.permissions?.length ?? 0 }}</strong></span>
+              <span class="font-medium">{{ languageStore.t('permissions', 'Permissions') }}: <strong class="text-blue-600 dark:text-blue-400">{{ getPermissionCount(role) }}</strong></span>
               <span class="font-medium">{{ languageStore.t('staff', 'Staff') }}: <strong class="text-slate-900 dark:text-white">{{ role.users_count ?? 0 }}</strong></span>
             </div>
           </div>
