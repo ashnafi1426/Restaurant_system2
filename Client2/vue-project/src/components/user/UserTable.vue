@@ -36,14 +36,17 @@ const emit = defineEmits<{
   (e: 'create'): void
 }>()
 
+// UI state
 const activeMenu = ref<string | null>(null)
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
 
+// Filters
 const search = ref('')
 const roleFilter = ref('')
 const statusFilter = ref('')
 
+// Pagination
 const currentPage = ref(1)
 const perPage = ref(10)
 
@@ -61,11 +64,11 @@ const filteredList = computed(() => {
     })
   }
 
-  if (roleFilter.value !== '') {
+  if (roleFilter.value) {
     list = list.filter((u) => (u.role || '').toLowerCase() === roleFilter.value.toLowerCase())
   }
 
-  if (statusFilter.value !== '') {
+  if (statusFilter.value) {
     const isActive = statusFilter.value === 'active'
     list = list.filter((u) => u.is_active === isActive)
   }
@@ -78,18 +81,11 @@ const lastPage = computed(() => Math.ceil(total.value / perPage.value) || 1)
 
 const paginatedUsers = computed(() => {
   const start = (currentPage.value - 1) * perPage.value
-  const end = start + perPage.value
-  return filteredList.value.slice(start, end)
+  return filteredList.value.slice(start, start + perPage.value)
 })
 
-const showingFrom = computed(() => {
-  if (total.value === 0) return 0
-  return (currentPage.value - 1) * perPage.value + 1
-})
-
-const showingTo = computed(() => {
-  return Math.min(currentPage.value * perPage.value, total.value)
-})
+const showingFrom = computed(() => (total.value === 0 ? 0 : (currentPage.value - 1) * perPage.value + 1))
+const showingTo = computed(() => Math.min(currentPage.value * perPage.value, total.value))
 
 const paginationPages = computed(() => {
   const pages: number[] = []
@@ -102,15 +98,10 @@ const paginationPages = computed(() => {
   return pages
 })
 
-watch([search, roleFilter, statusFilter], () => {
+// Reset to page 1 on filter or perPage changes
+watch([search, roleFilter, statusFilter, perPage], () => {
   currentPage.value = 1
 })
-
-const changePerPage = (event: Event) => {
-  const target = event.target as HTMLSelectElement
-  perPage.value = Number(target.value)
-  currentPage.value = 1
-}
 
 const goToPage = (p: number) => {
   if (p >= 1 && p <= lastPage.value) {
@@ -119,15 +110,11 @@ const goToPage = (p: number) => {
 }
 
 const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
+  if (currentPage.value > 1) currentPage.value--
 }
 
 const nextPage = () => {
-  if (currentPage.value < lastPage.value) {
-    currentPage.value++
-  }
+  if (currentPage.value < lastPage.value) currentPage.value++
 }
 
 const resetFilters = () => {
@@ -154,26 +141,14 @@ const closeMenu = () => {
   activeMenu.value = null
 }
 
-const handleView = (user: User) => {
-  emit('view', user)
+const handleAction = (action: 'view' | 'edit' | 'delete', user: User) => {
+  emit(action, user)
   closeMenu()
 }
 
-const handleEdit = (user: User) => {
-  emit('edit', user)
-  closeMenu()
-}
+const getUserInitial = (user: User) => (user.first_name?.[0] || 'U').toUpperCase()
 
-const handleDelete = (user: User) => {
-  emit('delete', user)
-  closeMenu()
-}
-
-const handleClickOutside = () => {
-  closeMenu()
-}
-
-function getRoleBadgeClass(role?: string): string {
+const getRoleBadgeClass = (role?: string): string => {
   const r = (role || '').toLowerCase()
   if (r.includes('admin')) return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
   if (r.includes('manager')) return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
@@ -184,11 +159,11 @@ function getRoleBadgeClass(role?: string): string {
 }
 
 onMounted(() => {
-  window.addEventListener('click', handleClickOutside)
+  window.addEventListener('click', closeMenu)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('click', closeMenu)
 })
 </script>
 
@@ -197,6 +172,7 @@ onBeforeUnmount(() => {
     class="space-y-3 font-sans w-full"
     :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
   >
+    <!-- Top Bar Toolbar -->
     <div
       class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
     >
@@ -257,6 +233,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
+    <!-- Filter Panel -->
     <Transition
       enter-active-class="transition duration-200 ease-out"
       enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -316,6 +293,7 @@ onBeforeUnmount(() => {
       </div>
     </Transition>
 
+    <!-- Table Container -->
     <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full min-h-[220px]">
       <div v-if="loading" class="py-20 px-4 text-center flex flex-col items-center justify-center space-y-3">
         <div class="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/50 shadow-xs">
@@ -328,244 +306,246 @@ onBeforeUnmount(() => {
       </div>
 
       <template v-else>
+        <!-- Desktop Table -->
         <div class="hidden md:block overflow-x-auto w-full">
-        <table class="w-full text-left border-collapse">
-          <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
-            <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-              <th class="px-3 py-3 pl-5 whitespace-nowrap">{{ languageStore.t('full_name', 'Staff Name') }}</th>
-              <th class="px-3 py-3 whitespace-nowrap">{{ languageStore.t('email_address', 'Email') }}</th>
-              <th class="px-3 py-3 whitespace-nowrap">{{ languageStore.t('phone_number', 'Phone') }}</th>
-              <th class="px-3 py-3 whitespace-nowrap">{{ languageStore.t('Role', 'Role') }}</th>
-              <th class="px-3 py-3 text-center whitespace-nowrap">{{ languageStore.t('Status', 'Status') }}</th>
-              <th class="px-3 py-3 text-right pr-5 whitespace-nowrap">{{ languageStore.t('Actions', 'Actions') }}</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-            <tr
-              v-for="user in paginatedUsers"
-              :key="user.id"
-              class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
-            >
-              <td class="px-3 py-3 pl-5 whitespace-nowrap">
-                <div class="flex items-center gap-2 max-w-[180px]">
-                  <div class="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center justify-center flex-shrink-0">
-                    {{ (user.first_name?.[0] || 'U').toUpperCase() }}
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <div class="font-bold text-slate-900 dark:text-white truncate text-xs sm:text-sm">
-                      {{ user.first_name }} {{ user.last_name }}
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+              <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
+                <th class="px-3 py-3 pl-5 whitespace-nowrap">{{ languageStore.t('full_name', 'Staff Name') }}</th>
+                <th class="px-3 py-3 whitespace-nowrap">{{ languageStore.t('email_address', 'Email') }}</th>
+                <th class="px-3 py-3 whitespace-nowrap">{{ languageStore.t('phone_number', 'Phone') }}</th>
+                <th class="px-3 py-3 whitespace-nowrap">{{ languageStore.t('Role', 'Role') }}</th>
+                <th class="px-3 py-3 text-center whitespace-nowrap">{{ languageStore.t('Status', 'Status') }}</th>
+                <th class="px-3 py-3 text-right pr-5 whitespace-nowrap">{{ languageStore.t('Actions', 'Actions') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
+              <tr
+                v-for="user in paginatedUsers"
+                :key="user.id"
+                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+              >
+                <td class="px-3 py-3 pl-5 whitespace-nowrap">
+                  <div class="flex items-center gap-2 max-w-[180px]">
+                    <div class="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                      {{ getUserInitial(user) }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="font-bold text-slate-900 dark:text-white truncate text-xs sm:text-sm">
+                        {{ user.first_name }} {{ user.last_name }}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </td>
+                </td>
 
-              <td class="px-3 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 font-medium">
-                {{ user.email }}
-              </td>
+                <td class="px-3 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 font-medium">
+                  {{ user.email }}
+                </td>
 
-              <td class="px-3 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">
-                {{ user.phone || '-' }}
-              </td>
+                <td class="px-3 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">
+                  {{ user.phone || '-' }}
+                </td>
 
-              <td class="px-3 py-3 whitespace-nowrap">
-                <span
-                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold border uppercase tracking-wider"
-                  :class="getRoleBadgeClass(user.role)"
-                >
-                  <Shield class="w-3 h-3" />
-                  {{ languageStore.t(user.role, user.role || 'Staff') }}
-                </span>
-              </td>
-
-              <td class="px-3 py-3 text-center whitespace-nowrap">
-                <span
-                  v-if="user.is_active"
-                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  {{ languageStore.t('Active', 'Active') }}
-                </span>
-                <span
-                  v-else
-                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                  {{ languageStore.t('Inactive', 'Inactive') }}
-                </span>
-              </td>
-
-              <td class="px-3 py-3 text-right whitespace-nowrap pr-5 relative" @click.stop>
-                <div class="relative inline-block text-left">
-                  <button
-                    @click="toggleMenu(String(user.id), $event)"
-                    class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                    :class="{ 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white': activeMenu === String(user.id) }"
-                    :title="languageStore.t('Actions', 'Actions')"
+                <td class="px-3 py-3 whitespace-nowrap">
+                  <span
+                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold border uppercase tracking-wider"
+                    :class="getRoleBadgeClass(user.role)"
                   >
-                    <MoreVertical class="w-4 h-4" />
-                  </button>
+                    <Shield class="w-3 h-3" />
+                    {{ languageStore.t(user.role, user.role || 'Staff') }}
+                  </span>
+                </td>
 
-                  <transition
-                    enter-active-class="transition duration-100 ease-out"
-                    leave-active-class="transition duration-75 ease-in"
-                    enter-from-class="opacity-0 scale-95 -translate-y-2"
-                    enter-to-class="opacity-100 scale-100 translate-y-0"
-                    leave-from-class="opacity-100 scale-100 translate-y-0"
-                    leave-to-class="opacity-0 scale-95 -translate-y-2"
+                <td class="px-3 py-3 text-center whitespace-nowrap">
+                  <span
+                    v-if="user.is_active"
+                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                   >
-                    <div
-                      v-if="activeMenu === String(user.id)"
-                      class="absolute right-0 top-8 z-50 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 text-left"
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    {{ languageStore.t('Active', 'Active') }}
+                  </span>
+                  <span
+                    v-else
+                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                    {{ languageStore.t('Inactive', 'Inactive') }}
+                  </span>
+                </td>
+
+                <td class="px-3 py-3 text-right whitespace-nowrap pr-5 relative" @click.stop>
+                  <div class="relative inline-block text-left">
+                    <button
+                      @click="toggleMenu(String(user.id), $event)"
+                      class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                      :class="{ 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white': activeMenu === String(user.id) }"
+                      :title="languageStore.t('Actions', 'Actions')"
                     >
-                      <button
-                        @click="handleView(user)"
-                        class="flex w-full items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                      <MoreVertical class="w-4 h-4" />
+                    </button>
+
+                    <transition
+                      enter-active-class="transition duration-100 ease-out"
+                      leave-active-class="transition duration-75 ease-in"
+                      enter-from-class="opacity-0 scale-95 -translate-y-2"
+                      enter-to-class="opacity-100 scale-100 translate-y-0"
+                      leave-from-class="opacity-100 scale-100 translate-y-0"
+                      leave-to-class="opacity-0 scale-95 -translate-y-2"
+                    >
+                      <div
+                        v-if="activeMenu === String(user.id)"
+                        class="absolute right-0 top-8 z-50 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 text-left"
                       >
-                        <Eye class="w-3.5 h-3.5 text-blue-500" />
-                        <span>{{ languageStore.t('View', 'View') }}</span>
-                      </button>
+                        <button
+                          @click="handleAction('view', user)"
+                          class="flex w-full items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                        >
+                          <Eye class="w-3.5 h-3.5 text-blue-500" />
+                          <span>{{ languageStore.t('View', 'View') }}</span>
+                        </button>
 
-                      <button
-                        @click="handleEdit(user)"
-                        class="flex w-full items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition cursor-pointer"
-                      >
-                        <Edit class="w-3.5 h-3.5 text-amber-500" />
-                        <span>{{ languageStore.t('Edit', 'Edit') }}</span>
-                      </button>
+                        <button
+                          @click="handleAction('edit', user)"
+                          class="flex w-full items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition cursor-pointer"
+                        >
+                          <Edit class="w-3.5 h-3.5 text-amber-500" />
+                          <span>{{ languageStore.t('Edit', 'Edit') }}</span>
+                        </button>
 
-                      <div class="border-t border-slate-100 dark:border-slate-800 my-0.5"></div>
+                        <div class="border-t border-slate-100 dark:border-slate-800 my-0.5"></div>
 
-                      <button
-                        @click="handleDelete(user)"
-                        class="flex w-full items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer"
-                      >
-                        <Trash2 class="w-3.5 h-3.5 text-rose-500" />
-                        <span>{{ languageStore.t('Delete', 'Delete') }}</span>
-                      </button>
-                    </div>
-                  </transition>
-                </div>
-              </td>
-            </tr>
+                        <button
+                          @click="handleAction('delete', user)"
+                          class="flex w-full items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer"
+                        >
+                          <Trash2 class="w-3.5 h-3.5 text-rose-500" />
+                          <span>{{ languageStore.t('Delete', 'Delete') }}</span>
+                        </button>
+                      </div>
+                    </transition>
+                  </div>
+                </td>
+              </tr>
 
-            <tr v-if="paginatedUsers.length === 0">
-              <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                {{ languageStore.t('no_users_match', 'No users match your current search or filter criteria.') }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              <tr v-if="paginatedUsers.length === 0">
+                <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                  {{ languageStore.t('no_users_match', 'No users match your current search or filter criteria.') }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+        <!-- Mobile Card List -->
+        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+          <div
+            v-if="paginatedUsers.length === 0"
+            class="p-8 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
+          >
+            {{ languageStore.t('no_users_match', 'No users match your current search or filter criteria.') }}
+          </div>
+          <div
+            v-else
+            v-for="user in paginatedUsers"
+            :key="user.id"
+            class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+          >
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-900 dark:text-white text-sm">
+                {{ user.first_name }} {{ user.last_name }}
+              </span>
+              <span
+                class="px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase"
+                :class="getRoleBadgeClass(user.role)"
+              >
+                {{ languageStore.t(user.role, user.role) }}
+              </span>
+            </div>
+
+            <div class="text-xs text-slate-500 dark:text-slate-400">
+              {{ user.email }}
+            </div>
+
+            <div class="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                @click="handleAction('view', user)"
+                class="flex-1 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer"
+              >
+                {{ languageStore.t('View', 'View') }}
+              </button>
+              <button
+                @click="handleAction('edit', user)"
+                class="flex-1 py-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-lg cursor-pointer"
+              >
+                {{ languageStore.t('Edit', 'Edit') }}
+              </button>
+              <button
+                @click="handleAction('delete', user)"
+                class="flex-1 py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 rounded-lg cursor-pointer"
+              >
+                {{ languageStore.t('Delete', 'Delete') }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Controls -->
         <div
-          v-if="paginatedUsers.length === 0"
-          class="p-8 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
+          v-if="total > 0"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
-          {{ languageStore.t('no_users_match', 'No users match your current search or filter criteria.') }}
-        </div>
-        <div
-          v-else
-          v-for="user in paginatedUsers"
-          :key="user.id"
-          class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
-        >
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-900 dark:text-white text-sm">
-              {{ user.first_name }} {{ user.last_name }}
-            </span>
-            <span
-              class="px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase"
-              :class="getRoleBadgeClass(user.role)"
-            >
-              {{ languageStore.t(user.role, user.role) }}
-            </span>
+          <div class="text-slate-500 dark:text-slate-400 font-medium">
+            {{ languageStore.t('Showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> {{ languageStore.t('records', 'records') }}
           </div>
 
-          <div class="text-xs text-slate-500 dark:text-slate-400">
-            {{ user.email }}
-          </div>
+          <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-1.5">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
+              <select
+                v-model.number="perPage"
+                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none cursor-pointer"
+              >
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
 
-          <div class="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-            <button
-              @click="handleView(user)"
-              class="flex-1 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer"
-            >
-              {{ languageStore.t('View', 'View') }}
-            </button>
-            <button
-              @click="handleEdit(user)"
-              class="flex-1 py-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-lg cursor-pointer"
-            >
-              {{ languageStore.t('Edit', 'Edit') }}
-            </button>
-            <button
-              @click="handleDelete(user)"
-              class="flex-1 py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 rounded-lg cursor-pointer"
-            >
-              {{ languageStore.t('Delete', 'Delete') }}
-            </button>
-          </div>
-        </div>
-      </div>
+            <div class="flex items-center gap-1">
+              <button
+                @click="prevPage"
+                :disabled="currentPage === 1"
+                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              >
+                <ChevronLeft class="w-4 h-4" />
+              </button>
 
-      <div
-        v-if="total > 0"
-        class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
-      >
-        <div class="text-slate-500 dark:text-slate-400 font-medium">
-          {{ languageStore.t('Showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
-          <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
-          <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> {{ languageStore.t('records', 'records') }}
-        </div>
+              <button
+                v-for="page in paginationPages"
+                :key="page"
+                @click="goToPage(page)"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                :class="[
+                  currentPage === page
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                ]"
+              >
+                {{ page }}
+              </button>
 
-        <div class="flex items-center gap-2 sm:gap-3">
-          <div class="flex items-center gap-1.5">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
-            <select
-              :value="perPage"
-              @change="changePerPage"
-              class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
-            >
-              <option :value="10">10</option>
-              <option :value="20">20</option>
-              <option :value="50">50</option>
-            </select>
-          </div>
-
-          <div class="flex items-center gap-1">
-            <button
-              @click="prevPage"
-              :disabled="currentPage === 1"
-              class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
-            >
-              <ChevronLeft class="w-4 h-4" />
-            </button>
-
-            <button
-              v-for="page in paginationPages"
-              :key="page"
-              @click="goToPage(page)"
-              class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
-              :class="[
-                currentPage === page
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-              ]"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              @click="nextPage"
-              :disabled="currentPage === lastPage"
-              class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
-            >
-              <ChevronRight class="w-4 h-4" />
-            </button>
+              <button
+                @click="nextPage"
+                :disabled="currentPage === lastPage"
+                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              >
+                <ChevronRight class="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
       </template>
     </div>
   </div>

@@ -9,20 +9,14 @@ import {
   Search,
   RefreshCw,
   KeyRound,
-  Shield,
   Building2,
-  Mail,
-  Phone,
   Power,
   CheckCircle2,
   AlertCircle,
   X,
   Copy,
-  ExternalLink,
   Send,
   Filter,
-  Minimize2,
-  Maximize2,
   RotateCcw,
   Loader2,
   MoreVertical,
@@ -59,20 +53,31 @@ const hotels = ref<Hotel[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const isFilterOpen = ref(false)
-const isFullscreen = ref(false)
 const searchQuery = ref('')
 const selectedHotelId = ref('all')
 const selectedStatus = ref('all')
 const successMessage = ref('')
 const errorMessage = ref('')
 const copied = ref(false)
+let messageTimeout: ReturnType<typeof setTimeout> | null = null
+
+const notify = (type: 'success' | 'error', msg: string) => {
+  if (messageTimeout) clearTimeout(messageTimeout)
+  if (type === 'success') {
+    successMessage.value = msg
+    errorMessage.value = ''
+  } else {
+    errorMessage.value = msg
+    successMessage.value = ''
+  }
+  messageTimeout = setTimeout(() => {
+    successMessage.value = ''
+    errorMessage.value = ''
+  }, 5000)
+}
 
 const toggleFilter = () => {
   isFilterOpen.value = !isFilterOpen.value
-}
-
-const toggleFullscreen = () => {
-  isFullscreen.value = !isFullscreen.value
 }
 
 const resetFilters = () => {

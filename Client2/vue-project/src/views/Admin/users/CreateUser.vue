@@ -1,27 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import UserForm from '../../../components/user/UserForm.vue'
-
 import { useUserStore } from '../../../stores/user'
-
 import type { User } from '../../../types/user'
 
 const router = useRouter()
-
 const userStore = useUserStore()
 
-const successMessage = ref<string>('')
+const successMessage = ref('')
+const hasErrors = computed(() => Object.keys(userStore.errors).length > 0)
 
 const createUser = async (data: User) => {
   successMessage.value = ''
-
   try {
-    const result = await userStore.createUser(data)
-
+    await userStore.createUser(data)
     successMessage.value = `User created successfully! An activation email has been sent to ${data.email}`
-
     setTimeout(() => {
       router.push('/users')
     }, 2000)
@@ -35,9 +30,7 @@ const createUser = async (data: User) => {
   <DashboardLayout>
     <div class="w-full px-4 sm:px-0">
       <!-- Header -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-0"
-      >
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
         <div>
           <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Create User</h1>
           <p class="text-gray-500 text-sm sm:text-base mt-1">Add a new system user.</p>
@@ -45,7 +38,7 @@ const createUser = async (data: User) => {
 
         <button
           @click="$router.back()"
-          class="px-4 sm:px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-sm sm:text-base font-medium"
+          class="px-4 sm:px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-sm sm:text-base font-medium cursor-pointer"
         >
           Cancel
         </button>
@@ -64,7 +57,7 @@ const createUser = async (data: User) => {
 
           <!-- Error Summary -->
           <div
-            v-if="Object.keys(userStore.errors).length > 0"
+            v-if="hasErrors"
             class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg"
           >
             <h3 class="text-red-800 font-semibold mb-2 text-sm sm:text-base">

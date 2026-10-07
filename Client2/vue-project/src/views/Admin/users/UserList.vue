@@ -36,46 +36,36 @@ const saveToCache = (users: User[]) => {
   } catch (e) {}
 }
 
-onMounted(async () => {
-  loadFromCache()
-  await userStore.fetchUsers({}, false)
+const loadUsers = async (forceRefresh = false) => {
+  if (!forceRefresh) loadFromCache()
+  await userStore.fetchUsers({}, forceRefresh)
   saveToCache(userStore.users || [])
-})
-
-// Re-fetch users whenever the selected hotel in the Navbar changes
-watch(() => hotelStore.hotelId, async () => {
-  loadFromCache()
-  await userStore.fetchUsers({}, false)
-  saveToCache(userStore.users || [])
-})
-
-const totalUsers = computed(() => (userStore.users || []).length)
-const activeUsers = computed(() => (userStore.users || []).filter((user) => user.is_active).length)
-const inactiveUsers = computed(() => (userStore.users || []).filter((user) => !user.is_active).length)
-
-const createUser = () => {
-  router.push('/users/create')
 }
 
-const viewUser = (user: User) => {
-  router.push(`/users/${user.id}`)
-}
+onMounted(() => loadUsers(false))
 
-const editUser = (user: User) => {
-  router.push(`/users/${user.id}/edit`)
-}
+watch(() => hotelStore.hotelId, () => loadUsers(false))
+
+// Computed metrics
+const usersList = computed(() => userStore.users || [])
+const totalUsers = computed(() => usersList.value.length)
+const activeUsers = computed(() => usersList.value.filter(u => u.is_active).length)
+const inactiveUsers = computed(() => totalUsers.value - activeUsers.value)
+
+// Navigation & Actions
+const createUser = () => router.push('/users/create')
+const viewUser = (user: User) => router.push(`/users/${user.id}`)
+const editUser = (user: User) => router.push(`/users/${user.id}/edit`)
 
 const deleteUser = async (user: User) => {
-  if (confirm(languageStore.t('delete_user_confirm', `Are you sure you want to delete ${user.first_name || 'this user'}?`))) {
+  const confirmMsg = languageStore.t('delete_user_confirm', `Are you sure you want to delete ${user.first_name || 'this user'}?`)
+  if (confirm(confirmMsg)) {
     await userStore.deleteUser(String(user.id))
     saveToCache(userStore.users || [])
   }
 }
 
-const refresh = async () => {
-  await userStore.fetchUsers({}, true)
-  saveToCache(userStore.users || [])
-}
+const refresh = () => loadUsers(true)
 </script>
 
 <template>
@@ -143,7 +133,7 @@ const refresh = async () => {
 
       <!-- Table Component With Integrated Toolbar & Filter -->
       <UserTable
-        :users="userStore.users || []"
+        :users="usersList"
         :loading="userStore.loading"
         @view="viewUser"
         @edit="editUser"

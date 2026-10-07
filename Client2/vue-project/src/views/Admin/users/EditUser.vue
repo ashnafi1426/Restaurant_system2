@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import UserForm from '../../../components/user/UserForm.vue'
@@ -15,12 +15,11 @@ const loadingUser = ref(true)
 const successMessage = ref('')
 const userData = ref<any>(null)
 
+const hasErrors = computed(() => Object.keys(userStore.errors).length > 0)
+
 const extractUserData = (raw: any) => {
   if (!raw) return null
-  if (raw.first_name) return raw
-  if (raw.data?.first_name) return raw.data
-  if (raw.data?.data?.first_name) return raw.data.data
-  return raw.data || raw
+  return raw.first_name ? raw : raw.data?.first_name ? raw.data : raw.data?.data || raw.data || raw
 }
 
 const loadUser = async () => {
@@ -28,7 +27,7 @@ const loadUser = async () => {
   try {
     const res = await userStore.fetchUser(id)
     const extracted = extractUserData(res) || extractUserData(userStore.user)
-    
+
     if (extracted) {
       userData.value = {
         first_name: extracted.first_name || '',
@@ -50,11 +49,9 @@ const loadUser = async () => {
 
 const updateUser = async (data: User) => {
   successMessage.value = ''
-
   try {
     await userStore.updateUser(id, data)
     successMessage.value = 'User updated successfully.'
-
     setTimeout(() => {
       router.push('/users')
     }, 1000)
@@ -63,9 +60,7 @@ const updateUser = async (data: User) => {
   }
 }
 
-onMounted(() => {
-  loadUser()
-})
+onMounted(loadUser)
 </script>
 
 <template>
@@ -77,7 +72,7 @@ onMounted(() => {
           <p class="text-gray-500 mt-1">Update an existing system user.</p>
         </div>
 
-        <button @click="$router.back()" class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 font-medium text-sm transition">
+        <button @click="$router.back()" class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 font-medium text-sm transition cursor-pointer">
           Cancel
         </button>
       </div>
@@ -96,13 +91,13 @@ onMounted(() => {
           </div>
 
           <div
-            v-if="Object.keys(userStore.errors).length"
+            v-if="hasErrors"
             class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4"
           >
             <h3 class="mb-2 font-semibold text-red-700">Please fix the following errors</h3>
             <ul class="list-disc list-inside text-sm text-red-600">
               <li v-for="(messages, field) in userStore.errors" :key="field">
-                <strong class="capitalize">{{ field.replace('_', ' ') }}</strong>: {{ messages[0] }}
+                <strong class="capitalize">{{ String(field).replace('_', ' ') }}</strong>: {{ messages[0] }}
               </li>
             </ul>
           </div>

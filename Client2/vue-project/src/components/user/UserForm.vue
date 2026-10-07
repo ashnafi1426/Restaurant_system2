@@ -15,20 +15,22 @@ interface UserFormProps {
   }
   loading?: boolean
   errors?: Record<string, string[]>
-  isEditMode?: boolean
 }
 
 const props = withDefaults(defineProps<UserFormProps>(), {
   initialData: () => ({}),
   loading: false,
   errors: () => ({}),
-  isEditMode: false,
 })
 
-const emit = defineEmits(['submit'])
-const languageStore = useLanguageStore()
+const emit = defineEmits<{
+  (e: 'submit', payload: typeof form): void
+}>()
 
+const languageStore = useLanguageStore()
 const availableRoles = ref<Role[]>([])
+
+const DEFAULT_ROLES = ['admin', 'receptionist', 'cashier', 'chef', 'manager', 'waiter']
 
 onMounted(async () => {
   try {
@@ -50,7 +52,7 @@ const form = reactive({
   is_active: true,
 })
 
-const populateForm = (data: any) => {
+const populateForm = (data?: Record<string, any>) => {
   if (!data) return
   form.first_name = data.first_name || ''
   form.last_name = data.last_name || ''
@@ -62,10 +64,8 @@ const populateForm = (data: any) => {
 
 watch(
   () => props.initialData,
-  (newData) => {
-    populateForm(newData)
-  },
-  { immediate: true, deep: true },
+  (newData) => populateForm(newData),
+  { immediate: true }
 )
 
 const saveUser = () => {
@@ -75,6 +75,11 @@ const saveUser = () => {
 const getFieldError = (fieldName: string): string | null => {
   return props.errors[fieldName]?.[0] || null
 }
+
+const getInputClass = (fieldName: string) => [
+  'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
+  getFieldError(fieldName) ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
+]
 </script>
 
 <template>
@@ -89,17 +94,14 @@ const getFieldError = (fieldName: string): string | null => {
           type="text"
           required
           :placeholder="languageStore.t('first_name', 'Enter first name')"
-          :class="[
-            'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
-            getFieldError('first_name') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
-          ]"
+          :class="getInputClass('first_name')"
           :disabled="loading"
         />
         <p
           v-if="getFieldError('first_name')"
           class="mt-1 text-xs text-red-600 flex items-center gap-1"
         >
-          <span></span> {{ getFieldError('first_name') }}
+          {{ getFieldError('first_name') }}
         </p>
       </div>
 
@@ -112,17 +114,14 @@ const getFieldError = (fieldName: string): string | null => {
           type="text"
           required
           :placeholder="languageStore.t('last_name', 'Enter last name')"
-          :class="[
-            'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
-            getFieldError('last_name') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
-          ]"
+          :class="getInputClass('last_name')"
           :disabled="loading"
         />
         <p
           v-if="getFieldError('last_name')"
           class="mt-1 text-xs text-red-600 flex items-center gap-1"
         >
-          <span></span> {{ getFieldError('last_name') }}
+          {{ getFieldError('last_name') }}
         </p>
       </div>
     </div>
@@ -136,14 +135,11 @@ const getFieldError = (fieldName: string): string | null => {
         type="email"
         required
         :placeholder="languageStore.t('email', 'Enter email address')"
-        :class="[
-          'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
-          getFieldError('email') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
-        ]"
+        :class="getInputClass('email')"
         :disabled="loading"
       />
       <p v-if="getFieldError('email')" class="mt-1 text-xs text-red-600 flex items-center gap-1">
-        <span></span> {{ getFieldError('email') }}
+        {{ getFieldError('email') }}
       </p>
     </div>
 
@@ -155,14 +151,11 @@ const getFieldError = (fieldName: string): string | null => {
         v-model="form.phone"
         type="tel"
         placeholder="+251 XXX XXX XXX"
-        :class="[
-          'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200',
-          getFieldError('phone') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
-        ]"
+        :class="getInputClass('phone')"
         :disabled="loading"
       />
       <p v-if="getFieldError('phone')" class="mt-1 text-xs text-red-600 flex items-center gap-1">
-        <span></span> {{ getFieldError('phone') }}
+        {{ getFieldError('phone') }}
       </p>
     </div>
 
@@ -173,10 +166,7 @@ const getFieldError = (fieldName: string): string | null => {
       <select
         v-model="form.role"
         required
-        :class="[
-          'w-full border rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white',
-          getFieldError('role') ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-300',
-        ]"
+        :class="[getInputClass('role'), 'bg-white cursor-pointer']"
         :disabled="loading"
       >
         <option value="">-- {{ languageStore.t('select_role', 'Select Role') }} --</option>
@@ -186,16 +176,13 @@ const getFieldError = (fieldName: string): string | null => {
           </option>
         </template>
         <template v-else>
-          <option value="admin">Admin</option>
-          <option value="receptionist">Receptionist</option>
-          <option value="cashier">Cashier</option>
-          <option value="chef">Chef</option>
-          <option value="manager">Manager</option>
-          <option value="waiter">Waiter</option>
+          <option v-for="r in DEFAULT_ROLES" :key="r" :value="r" class="capitalize">
+            {{ r.charAt(0).toUpperCase() + r.slice(1) }}
+          </option>
         </template>
       </select>
       <p v-if="getFieldError('role')" class="mt-1 text-xs text-red-600 flex items-center gap-1">
-        <span></span> {{ getFieldError('role') }}
+        {{ getFieldError('role') }}
       </p>
     </div>
 

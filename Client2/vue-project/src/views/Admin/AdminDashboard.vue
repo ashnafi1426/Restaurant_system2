@@ -9,8 +9,16 @@ import StaffActivityWidget from '../../components/dashboard/StaffActivityWidget.
 import MaintenanceAlerts from '../../components/dashboard/MaintenanceAlerts.vue'
 
 import {
-  RefreshCw, Plus, Users, ShieldCheck, BedDouble, DollarSign,
-  ArrowUpRight, Building2, Percent, AlertTriangle, Layers, TrendingUp
+  RefreshCw,
+  Plus,
+  Users,
+  BedDouble,
+  DollarSign,
+  ArrowUpRight,
+  Building2,
+  Percent,
+  AlertTriangle,
+  TrendingUp
 } from 'lucide-vue-next'
 
 import { getDashboard } from '../../services/dashboardService'
@@ -23,69 +31,11 @@ const router = useRouter()
 const auth = useAuthStore()
 const hotelStore = useHotelStore()
 
+// State
 const dashboard = ref<DashboardData | null>(null)
 const loading = ref<boolean>(true)
-const errorOccurred = ref<boolean>(false)
 const refreshing = ref<boolean>(false)
-
-// Platform Super Admin States
-const platformStats = ref<any>({})
-const platformHotels = ref<any[]>([])
-const showAddHotelModal = ref(false)
-const selectedHotelDetails = ref<any>(null)
-const newHotelForm = ref({
-  name: '',
-  slug: '',
-  city: '',
-  country: 'Ethiopia',
-  admin_email: '',
-  admin_first_name: '',
-  admin_last_name: '',
-})
-
-const loadPlatformData = async () => {
-  if (!auth.isPlatformAdmin) return
-  try {
-    const [statsRes, hotelsRes] = await Promise.all([
-      axios.get('/platform/statistics'),
-      axios.get('/platform/hotels'),
-    ])
-    platformStats.value = statsRes.data.data || {}
-    platformHotels.value = hotelsRes.data.data?.data || []
-  } catch (err) {
-    console.error('Failed to load platform data:', err)
-  }
-}
-
-const submitNewHotel = async () => {
-  try {
-    await axios.post('/platform/hotels', newHotelForm.value)
-    showAddHotelModal.value = false
-    await loadPlatformData()
-    await hotelStore.loadHotels()
-  } catch (err) {
-    console.error('Failed to create hotel:', err)
-  }
-}
-
-const toggleHotelStatus = async (hotelId: string, newStatus: string) => {
-  try {
-    await axios.patch(`/platform/hotels/${hotelId}/status`, { status: newStatus })
-    await loadPlatformData()
-  } catch (err) {
-    console.error('Failed to update hotel status:', err)
-  }
-}
-
-const archiveHotel = async (hotelId: string, name: string) => {
-  if (!confirm(`Are you sure you want to archive "${name}"? All data remains preserved.`)) return
-  try {
-    await axios.post(`/platform/hotels/${hotelId}/archive`)
-    await loadPlatformData()
-  } catch (err) {
-    console.error('Failed to archive hotel:', err)
-  }
-}
+const platformStats = ref<Record<string, any>>({})
 
 const getCacheKey = () => `admin_dashboard_cache_${hotelStore.hotelId || 'platform'}`
 
@@ -95,50 +45,60 @@ const ensureArray = <T = any>(val: any): T[] => {
   return []
 }
 
+const normalizeDashboardData = (data: any): DashboardData => {
+  if (!data || typeof data !== 'object') return data
+  return {
+    ...data,
+    recentReservations: ensureArray(data.recentReservations),
+    staffActivity: ensureArray(data.staffActivity),
+    maintenanceAlerts: ensureArray(data.maintenanceAlerts),
+  }
+}
+
 const restoreCachedData = () => {
   try {
     const cached = localStorage.getItem(getCacheKey())
     if (cached) {
       const parsed = JSON.parse(cached)
       if (parsed && typeof parsed === 'object') {
-        parsed.recentReservations = ensureArray(parsed.recentReservations)
-        parsed.staffActivity = ensureArray(parsed.staffActivity)
-        parsed.maintenanceAlerts = ensureArray(parsed.maintenanceAlerts)
-        dashboard.value = parsed
+        dashboard.value = normalizeDashboardData(parsed)
         loading.value = false
       }
     }
   } catch (e) {
-    // Ignore cache error
+    // Ignore cache parse error
+  }
+}
+
+const loadPlatformStats = async () => {
+  if (!auth.isPlatformAdmin) return
+  try {
+    const statsRes = await axios.get('/platform/statistics')
+    platformStats.value = statsRes.data.data || {}
+  } catch (err) {
+    console.error('[AdminDashboard] Failed to load platform stats:', err)
   }
 }
 
 const loadDashboard = async (isManualRefresh = false) => {
   try {
-    errorOccurred.value = false
     if (!dashboard.value) {
       loading.value = true
     }
+
     const response = await getDashboard(isManualRefresh ? { refresh: 'true' } : {})
-    const freshData = response.data || response
-    if (freshData && typeof freshData === 'object') {
-      freshData.recentReservations = ensureArray(freshData.recentReservations)
-      freshData.staffActivity = ensureArray(freshData.staffActivity)
-      freshData.maintenanceAlerts = ensureArray(freshData.maintenanceAlerts)
-    }
+    const freshData = normalizeDashboardData(response.data || response)
     dashboard.value = freshData
+
     try {
       localStorage.setItem(getCacheKey(), JSON.stringify(freshData))
     } catch (e) {}
 
     if (auth.isPlatformAdmin) {
-      await loadPlatformData()
+      await loadPlatformStats()
     }
   } catch (error) {
-    console.error('Failed to load dashboard:', error)
-    if (!dashboard.value) {
-      errorOccurred.value = true
-    }
+    console.error('[AdminDashboard] Failed to load dashboard:', error)
   } finally {
     loading.value = false
   }
@@ -148,6 +108,10 @@ const refreshDashboard = async () => {
   refreshing.value = true
   await loadDashboard(true)
   refreshing.value = false
+}
+
+const formatRevenue = (value?: number): string => {
+  return (value ?? 0).toLocaleString()
 }
 
 onMounted(() => {
@@ -164,6 +128,7 @@ watch(() => hotelStore.hotelId, () => {
 <template>
   <DashboardLayout>
     <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans transition-colors">
+      <!-- HEADER CARD -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <div class="flex flex-wrap items-center gap-2.5">
@@ -182,7 +147,7 @@ watch(() => hotelStore.hotelId, () => {
               v-if="auth.isPlatformAdmin"
               class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
             >
-             Super Admin
+              Super Admin
             </span>
             <span
               v-else
@@ -208,11 +173,11 @@ watch(() => hotelStore.hotelId, () => {
 
           <button
             v-if="auth.isPlatformAdmin"
-            @click="showAddHotelModal = true"
+            @click="router.push('/admin/hotels')"
             class="px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-blue-600/20 transition cursor-pointer"
           >
             <Plus class="w-4 h-4" />
-            <span>Onboard Hotel</span>
+            <span>Manage Hotels</span>
           </button>
         </div>
       </div>
@@ -225,7 +190,6 @@ watch(() => hotelStore.hotelId, () => {
 
       <!-- MAIN DASHBOARD CONTENT -->
       <div v-else class="space-y-6">
-
         <!-- 4 OVERVIEW STAT CARDS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- Total Rooms -->
@@ -281,7 +245,7 @@ watch(() => hotelStore.hotelId, () => {
             <div class="space-y-1">
               <p class="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">Today's Revenue</p>
               <h3 class="text-2xl font-black text-amber-500">
-                {{ (dashboard?.overview?.todayRevenue ?? 0).toLocaleString() }} ETB
+                {{ formatRevenue(dashboard?.overview?.todayRevenue) }} ETB
               </h3>
               <p class="text-[11px] text-slate-500 font-medium">From room reservations & orders</p>
             </div>
@@ -338,7 +302,7 @@ watch(() => hotelStore.hotelId, () => {
                 <ArrowUpRight class="w-3.5 h-3.5" />
               </button>
             </div>
-            <RecentReservationsTable :reservations="ensureArray(dashboard?.recentReservations)" />
+            <RecentReservationsTable :reservations="dashboard?.recentReservations || []" />
           </div>
 
           <!-- Staff Activity & Maintenance Alerts (1 col) -->
@@ -351,7 +315,7 @@ watch(() => hotelStore.hotelId, () => {
                   <Users class="w-4 h-4" />
                 </div>
               </div>
-              <StaffActivityWidget :activities="ensureArray(dashboard?.staffActivity)" />
+              <StaffActivityWidget :activities="dashboard?.staffActivity || []" />
             </div>
 
             <!-- Maintenance Alerts Widget -->
@@ -362,7 +326,7 @@ watch(() => hotelStore.hotelId, () => {
                   <AlertTriangle class="w-4 h-4" />
                 </div>
               </div>
-              <MaintenanceAlerts :alerts="ensureArray(dashboard?.maintenanceAlerts)" />
+              <MaintenanceAlerts :alerts="dashboard?.maintenanceAlerts || []" />
             </div>
           </div>
         </div>
