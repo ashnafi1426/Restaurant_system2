@@ -14,7 +14,7 @@ class PlatformAdminMiddleware
 
         if (!$user || !$user->isPlatformAdmin()) {
             return response()->json([
-                'error' => 'Forbidden',
+                'success' => false,
                 'message' => 'Platform administrator access required.',
             ], 403);
         }

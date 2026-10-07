@@ -476,7 +476,7 @@ class WalkInOrderPaymentController extends Controller
 
             return [
                 'success' => false,
-                'message' => 'Error calculating order total: ' . $e->getMessage(),
+                'message' => config('app.debug') ? $e->getMessage() : 'Unable to calculate order total. Please verify item availability.',
             ];
         }
     }

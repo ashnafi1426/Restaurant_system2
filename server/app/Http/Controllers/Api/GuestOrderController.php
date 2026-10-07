@@ -139,12 +139,14 @@ class GuestOrderController extends Controller
                 ],
             ]);
         } catch (Throwable $e) {
-            Log::error('[GUEST ORDER] Error resolving QR token: ' . $e->getMessage());
+            Log::error('[GUEST ORDER] Error resolving QR token: ' . $e->getMessage(), [
+                'token' => $qrToken,
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return response()->json([
                 'success' => false,
-                'error' => 'Server error',
-                'message' => 'Unable to validate QR code: ' . $e->getMessage(),
+                'message' => 'Unable to validate QR code. Please try scanning again or contact staff.',
             ], 500);
         }
     }
@@ -170,7 +172,7 @@ class GuestOrderController extends Controller
             if (!$hotelId && !$resolution['success']) {
                 return response()->json([
                     'success' => false,
-                    'error' => 'Invalid QR code',
+                    'message' => 'Invalid or expired QR code.',
                 ], 404);
             }
 
@@ -185,11 +187,10 @@ class GuestOrderController extends Controller
                 'data' => $categorized,
             ]);
         } catch (Throwable $e) {
-            Log::error('[GUEST ORDER] Error fetching menu items: ' . $e->getMessage());
+            Log::error('[GUEST ORDER] Error fetching menu items: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             return response()->json([
                 'success' => false,
-                'error' => 'Server error',
                 'message' => 'Unable to fetch menu items.',
             ], 500);
         }
@@ -238,11 +239,10 @@ class GuestOrderController extends Controller
                 'data' => $categorized,
             ]);
         } catch (Throwable $e) {
-            Log::error('[GUEST ORDER] Error fetching all menu items: ' . $e->getMessage());
+            Log::error('[GUEST ORDER] Error fetching all menu items: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             return response()->json([
                 'success' => false,
-                'error' => 'Server error',
                 'message' => 'Unable to fetch menu items.',
             ], 500);
         }
@@ -279,7 +279,7 @@ class GuestOrderController extends Controller
                 'data' => $categories,
             ]);
         } catch (Throwable $e) {
-            Log::error('[GUEST ORDER] Error fetching public categories: ' . $e->getMessage());
+            Log::error('[GUEST ORDER] Error fetching public categories: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             return response()->json([
                 'success' => false,
@@ -298,12 +298,11 @@ class GuestOrderController extends Controller
 
             return response()->json($result['response'], $result['status_code']);
         } catch (Throwable $e) {
-            Log::error('[GUEST ORDER] Error creating order: ' . $e->getMessage());
+            Log::error('[GUEST ORDER] Error creating order: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             return response()->json([
                 'success' => false,
-                'error' => 'Server error',
-                'message' => 'Unable to create order: ' . $e->getMessage(),
+                'message' => 'Unable to create order. Please try again or contact staff.',
             ], 500);
         }
     }
@@ -331,7 +330,7 @@ class GuestOrderController extends Controller
             if (!$room && !$table) {
                 return response()->json([
                     'success' => false,
-                    'error' => 'Room or table not found',
+                    'message' => 'Room or table not found.',
                 ], 404);
             }
 
@@ -356,11 +355,11 @@ class GuestOrderController extends Controller
                 }),
             ]);
         } catch (Throwable $e) {
-            Log::error('[GUEST ORDER] Error fetching order status: ' . $e->getMessage());
+            Log::error('[GUEST ORDER] Error fetching order status: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
             return response()->json([
                 'success' => false,
-                'error' => 'Server error',
+                'message' => 'Unable to fetch order status.',
             ], 500);
         }
     }

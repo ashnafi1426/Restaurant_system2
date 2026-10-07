@@ -41,9 +41,11 @@ class RoomController extends Controller
                 'data' => new RoomResource($room),
             ], 201);
         } catch (Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to create room: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create room: ' . $e->getMessage(),
+                'message' => 'Failed to create room. Please verify your input and try again.',
             ], 500);
         }
     }
@@ -67,9 +69,11 @@ class RoomController extends Controller
                 'data' => new RoomResource($updatedRoom),
             ]);
         } catch (Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to update room: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update room: ' . $e->getMessage(),
+                'message' => 'Failed to update room. Please try again.',
             ], 500);
         }
     }
@@ -107,9 +111,11 @@ class RoomController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         } catch (Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to delete room: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete room: ' . $e->getMessage(),
+                'message' => 'Failed to delete room. Please try again.',
             ], 500);
         }
     }
