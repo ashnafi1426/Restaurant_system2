@@ -277,14 +277,10 @@ watch(
     }
   }
 )
-
-// Summary Metrics
 const allRolesCount = computed(() => roles.value.length)
 const activeRolesCount = computed(() => roles.value.filter(isRoleActive).length)
 const totalAssignedUsersCount = computed(() => roles.value.reduce((acc, r) => acc + (r.users_count ?? 0), 0))
 const unassignedRolesCount = computed(() => roles.value.filter(r => (r.users_count ?? 0) === 0).length)
-
-// Filtered & Sorted Roles
 const filteredRoles = computed(() => {
   let list = roles.value
 
