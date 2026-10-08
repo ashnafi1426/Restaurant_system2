@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 import managerService from '@/services/managerService'
+import { getErrorMessage } from '@/utils/error'
 
 import type {
   ManagerDashboardResponse,
@@ -183,7 +184,7 @@ export const useManagerStore = defineStore('manager', () => {
       statistics.value = response
     } catch (err: any) {
       console.error('[managerStore] Failed loading statistics:', err)
-      dashboardError.value = err.message
+      dashboardError.value = getErrorMessage(err, 'Failed to load manager dashboard statistics')
     }
   }
 
@@ -263,7 +264,7 @@ export const useManagerStore = defineStore('manager', () => {
       activities.value = dashboardActivities.value
     } catch (err: any) {
       console.error('[managerStore] Failed loading activities:', err)
-      dashboardError.value = err.message
+      dashboardError.value = getErrorMessage(err, 'Failed to load recent activities')
     } finally {
       dashboardActivityLoading.value = false
     }
@@ -274,7 +275,7 @@ export const useManagerStore = defineStore('manager', () => {
       waiters.value = await managerService.getWaiters()
     } catch (err: any) {
       console.error('[managerStore] Failed loading waiters:', err)
-      error.value = err.message
+      error.value = getErrorMessage(err, 'Failed to load waiters')
     }
   }
 
@@ -295,7 +296,8 @@ export const useManagerStore = defineStore('manager', () => {
       waiters.value.push(newWaiter)
     } catch (err: any) {
       console.error('[managerStore] Failed creating waiter:', err)
-      error.value = err.message
+      error.value = getErrorMessage(err, 'Failed to create waiter')
+      throw err
     }
   }
 
@@ -308,7 +310,8 @@ export const useManagerStore = defineStore('manager', () => {
       }
     } catch (err: any) {
       console.error('[managerStore] Failed updating waiter status:', err)
-      error.value = err.message
+      error.value = getErrorMessage(err, 'Failed to update waiter status')
+      throw err
     }
   }
 
@@ -318,7 +321,8 @@ export const useManagerStore = defineStore('manager', () => {
       waiters.value = waiters.value.filter((w) => w.id !== waiterId)
     } catch (err: any) {
       console.error('[managerStore] Failed deleting waiter:', err)
-      error.value = err.message
+      error.value = getErrorMessage(err, 'Failed to delete waiter')
+      throw err
     }
   }
 
@@ -331,7 +335,7 @@ export const useManagerStore = defineStore('manager', () => {
       await loadActivities()
     } catch (err: any) {
       console.error('[managerStore] Failed initializing manager dashboard:', err)
-      dashboardError.value = err.message
+      dashboardError.value = getErrorMessage(err, 'Failed to initialize manager dashboard')
     } finally {
       dashboardLoading.value = false
     }

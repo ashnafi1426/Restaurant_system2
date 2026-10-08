@@ -4,6 +4,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import { useHotelStore } from '@/stores/hotelStore'
 import { useLanguageStore } from '@/stores/language'
 import axios from '@/services/axios'
+import { getErrorMessage } from '@/utils/error'
 import {
   ClipboardList,
   AlertCircle,
@@ -17,6 +18,7 @@ import {
   Minimize2,
   RotateCcw,
   Building2,
+  Loader2,
 } from 'lucide-vue-next'
 
 interface Task {
@@ -39,6 +41,7 @@ const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
 
 const isLoading = ref(false)
+const errorMessage = ref<string | null>(null)
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
 const searchQuery = ref('')
@@ -97,16 +100,11 @@ const formatTask = (raw: any, idx: number): Task => {
 
 const refreshData = async () => {
   isLoading.value = true
+  errorMessage.value = null
   try {
     const [statsRes, tasksRes] = await Promise.all([
-      axios.get('/manager/dashboard/statistics').catch((err) => {
-        console.error('[DailyOperations] Failed to load dashboard statistics:', err)
-        return null
-      }),
-      axios.get('/manager/operations/housekeeping').catch((err) => {
-        console.error('[DailyOperations] Failed to load housekeeping operations:', err)
-        return null
-      }),
+      axios.get('/manager/dashboard/statistics'),
+      axios.get('/manager/operations/housekeeping'),
     ])
 
     const stats = statsRes?.data?.data || {}
@@ -125,8 +123,9 @@ const refreshData = async () => {
       urgent_tasks: urgentCount,
       total_staff: stats.total_waiters || 0,
     }
-  } catch (err) {
-    console.error('Failed to load operations data:', err)
+  } catch (err: any) {
+    console.error('[DailyOperations] Failed to load operations data:', err)
+    errorMessage.value = getErrorMessage(err, 'Failed to load operations data. Please try again.')
   } finally {
     isLoading.value = false
   }
@@ -320,6 +319,24 @@ watch(() => hotelStore.hotelId, refreshData)
         </div>
       </Transition>
 
+      <!-- Error State Banner -->
+      <div
+        v-if="errorMessage"
+        class="rounded-2xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-4 flex items-center justify-between gap-3 text-rose-700 dark:text-rose-300 text-xs sm:text-sm font-semibold"
+      >
+        <div class="flex items-center gap-2.5">
+          <AlertCircle class="w-5 h-5 text-rose-500 shrink-0" />
+          <span>{{ errorMessage }}</span>
+        </div>
+        <button
+          type="button"
+          @click="refreshData"
+          class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition cursor-pointer shrink-0"
+        >
+          {{ languageStore.t('retry', 'Retry') }}
+        </button>
+      </div>
+
       <!-- Tasks Table -->
       <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
         <div class="overflow-x-auto w-full">
@@ -334,8 +351,18 @@ watch(() => hotelStore.hotelId, refreshData)
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <tr v-if="filteredTasks.length === 0">
-                <td colspan="5" class="py-12 text-center text-slate-400 dark:text-slate-500">
+              <!-- Loading Row -->
+              <tr v-if="isLoading">
+                <td colspan="5" class="py-16 text-center">
+                  <div class="flex flex-col items-center justify-center gap-3">
+                    <Loader2 class="w-7 h-7 text-blue-600 dark:text-blue-400 animate-spin" />
+                    <span class="text-xs font-bold text-slate-500">{{ languageStore.t('loading_tasks', 'Loading tasks...') }}</span>
+                  </div>
+                </td>
+              </tr>
+              <!-- Empty State Row -->
+              <tr v-else-if="filteredTasks.length === 0">
+                <td colspan="5" class="py-12 text-center text-slate-400 dark:text-slate-500 font-medium">
                   {{ languageStore.t('no_tasks_found', 'No operations tasks match your criteria.') }}
                 </td>
               </tr>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRestaurantTableStore } from '@/stores/restaurantTableStore'
 import { useRestaurantSectionStore } from '@/stores/restaurantSectionStore'
 import { useLanguageStore } from '@/stores/language'
@@ -11,7 +11,6 @@ import type { RestaurantTable } from '@/types/restaurantTable'
 import {
   UtensilsCrossed,
   CheckCircle2,
-  Sparkles,
   Users,
   RefreshCw,
   AlertCircle,
@@ -25,7 +24,6 @@ import {
   QrCode,
   Edit,
   Trash2,
-  Loader2,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -52,6 +50,10 @@ const showQRModal = ref(false)
 const showDeleteModal = ref(false)
 const selectedTable = ref<RestaurantTable | null>(null)
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+onUnmounted(() => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+})
 
 const getStatusBadgeClass = (status: string) => {
   const classes: Record<string, string> = {
@@ -162,7 +164,7 @@ const regenerateQRCode = async (tableId: string) => {
     try {
       await tableStore.regenerateQR(tableId)
       const updatedTable = await tableStore.fetchTableById(tableId)
-      selectedTable.value = updatedTable
+      selectedTable.value = (updatedTable as any)?.data ?? updatedTable
       alert('QR code regenerated successfully!')
     } catch (err: any) {
       console.error('[RestaurantTables] Error regenerating QR code:', err)

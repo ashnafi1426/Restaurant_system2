@@ -7,6 +7,7 @@ import RoomTypeForm from '../../../components/room-types/RoomTypeForm.vue'
 import { roomTypeService } from '@/services/roomTypeService'
 import { useRoomTypeStore } from '../../../stores/roomType'
 import { useHotelStore } from '@/stores/hotelStore'
+import { getErrorMessage, getValidationErrors } from '@/utils/error'
 import { Building2, AlertTriangle, CheckCircle2, X } from 'lucide-vue-next'
 
 import type { RoomType } from '../../../types/roomType'
@@ -18,7 +19,7 @@ const hotelStore = useHotelStore()
 
 const id = route.params.id as string
 
-const form = ref<RoomType>({
+let form = ref<RoomType>({
   name: '',
   description: '',
   base_price_per_night: 0,
@@ -52,7 +53,7 @@ const loadData = async () => {
     }
   } catch (err: any) {
     console.error('[RoomTypesEdit] Failed to load room type:', err)
-    error.value = err.response?.data?.message || 'Failed to load room type'
+    error.value = getErrorMessage(err, 'Failed to load room type')
   } finally {
     loading.value = false
   }
@@ -86,13 +87,8 @@ const submit = async () => {
     }, 1200)
   } catch (err: any) {
     console.error('[RoomTypesEdit] Failed to update room type:', err)
-    const errorData = err.response?.data
-    if (errorData?.errors) {
-      serverErrors.value = errorData.errors
-      error.value = errorData.message || 'Validation failed. Please correct the highlighted errors.'
-    } else {
-      error.value = errorData?.message || err.message || 'Failed to update room type'
-    }
+    serverErrors.value = getValidationErrors(err)
+    error.value = getErrorMessage(err, 'Failed to update room type')
   } finally {
     isSubmitting.value = false
   }

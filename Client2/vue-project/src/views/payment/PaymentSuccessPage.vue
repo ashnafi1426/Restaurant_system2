@@ -265,6 +265,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { generateAndDownloadReceipt } from '@/services/receiptService'
+import { publicAxios } from '@/services/axios'
 
 const router = useRouter()
 const route = useRoute()
@@ -401,15 +402,14 @@ async function fetchReservationDetails(): Promise<void> {
         check_in_date: data.reservation.check_in_date,
         check_out_date: data.reservation.check_out_date,
         room_number: data.reservation.room_number || data.reservation.room?.room_number,
-          room_id: data.reservation.room_id,
-          number_of_guests: data.reservation.number_of_guests,
-          first_name: data.reservation.first_name,
-          last_name: data.reservation.last_name,
-          email: data.reservation.email,
-          phone: data.reservation.phone,
-          special_requests: data.reservation.special_requests,
-          total_amount: data.reservation.total_amount || data.payment?.amount,
-        }
+        room_id: data.reservation.room_id,
+        number_of_guests: data.reservation.number_of_guests,
+        first_name: data.reservation.first_name,
+        last_name: data.reservation.last_name,
+        email: data.reservation.email,
+        phone: data.reservation.phone,
+        special_requests: data.reservation.special_requests,
+        total_amount: data.reservation.total_amount || data.payment?.amount,
       }
     }
   } catch (error) {

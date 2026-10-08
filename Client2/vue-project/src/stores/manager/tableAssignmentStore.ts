@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import tableAssignmentService, { type TableAssignment, type TableAssignmentStats } from '@/services/manager/tableAssignmentService'
+import { getErrorMessage } from '@/utils/error'
 
 export const useTableAssignmentStore = defineStore('tableAssignment', () => {
   const assignments = ref<TableAssignment[]>([])
@@ -60,7 +61,7 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
       return response
     } catch (err: any) {
       console.error('[tableAssignmentStore] Failed to load assignments:', err)
-      error.value = err.response?.data?.message || err.message || 'Failed to load assignments'
+      error.value = getErrorMessage(err, 'Failed to load assignments')
       throw err
     } finally {
       loading.value = false
@@ -77,7 +78,7 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
       return data
     } catch (err: any) {
       console.error('[tableAssignmentStore] Failed to load today assignments:', err)
-      error.value = err.response?.data?.message || err.message || 'Failed to load today assignments'
+      error.value = getErrorMessage(err, 'Failed to load today assignments')
       todayAssignments.value = []
     } finally {
       loading.value = false
@@ -98,7 +99,7 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
       return response
     } catch (err: any) {
       console.error('[tableAssignmentStore] Failed to assign waiters:', err)
-      error.value = err.response?.data?.message || err.message || 'Failed to assign waiters'
+      error.value = getErrorMessage(err, 'Failed to assign waiters')
       throw err
     } finally {
       loading.value = false
@@ -128,7 +129,7 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
       return updated
     } catch (err: any) {
       console.error('[tableAssignmentStore] Failed to update assignment:', err)
-      error.value = err.response?.data?.message || err.message || 'Failed to update assignment'
+      error.value = getErrorMessage(err, 'Failed to update assignment')
       throw err
     } finally {
       loading.value = false
@@ -149,7 +150,7 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
       return true
     } catch (err: any) {
       console.error('[tableAssignmentStore] Failed to delete assignment:', err)
-      error.value = err.response?.data?.message || err.message || 'Failed to delete assignment'
+      error.value = getErrorMessage(err, 'Failed to delete assignment')
       throw err
     } finally {
       loading.value = false

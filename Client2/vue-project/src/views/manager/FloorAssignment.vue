@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
 import AddStaffToFloorModal from '@/components/manager/AddStaffToFloorModal.vue'
 import { useFloorAssignmentStore } from '@/stores/manager/floorAssignmentStore'
@@ -8,15 +7,11 @@ import { useHotelStore } from '@/stores/hotelStore'
 import { useLanguageStore } from '@/stores/language'
 import floorManagementService from '@/services/manager/floorManagementService'
 import {
-  Hotel,
   Save,
-  Clock,
   Plus,
   Users,
   CheckCircle2,
   AlertCircle,
-  TrendingUp,
-  Loader2,
   ChevronLeft,
   ChevronRight,
   UserPlus,
@@ -31,7 +26,6 @@ import {
   Building2,
 } from 'lucide-vue-next'
 
-const router = useRouter()
 const assignmentStore = useFloorAssignmentStore()
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
@@ -57,36 +51,32 @@ const currentPage = ref(1)
 const perPage = ref(10)
 
 const filteredFloors = computed(() => {
-  let list = Array.isArray(allFloors.value) ? allFloors.value : []
+  const list = Array.isArray(allFloors.value) ? allFloors.value : []
+  const status = selectedStatus.value
+  const staffing = selectedStaffing.value
+  const q = searchQuery.value.trim().toLowerCase()
+  const grouped = assignmentStore.groupedByFloor || {}
 
-  if (selectedStatus.value !== 'all') {
-    const isActive = selectedStatus.value === 'active'
-    list = list.filter((f) => Boolean(f.is_active) === isActive)
-  }
+  return list.filter((f) => {
+    if (status !== 'all' && Boolean(f.is_active) !== (status === 'active')) return false
 
-  if (selectedStaffing.value !== 'all') {
-    const grouped = assignmentStore.groupedByFloor || {}
-    if (selectedStaffing.value === 'staffed') {
-      list = list.filter((f) => (grouped[f.id] || []).length > 0)
-    } else if (selectedStaffing.value === 'unstaffed') {
-      list = list.filter((f) => (grouped[f.id] || []).length === 0)
+    if (staffing !== 'all') {
+      const staffCount = (grouped[f.id] || []).length
+      if (staffing === 'staffed' && staffCount === 0) return false
+      if (staffing === 'unstaffed' && staffCount > 0) return false
     }
-  }
 
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim()
-    const grouped = assignmentStore.groupedByFloor || {}
-    list = list.filter((f) => {
+    if (q) {
       const name = (f.name || '').toLowerCase()
       const floorNum = String(f.floor_number || '').toLowerCase()
       const waiters = (grouped[f.id] || [])
         .map((a: any) => (a.waiter?.user?.name || a.waiter?.name || '').toLowerCase())
         .join(' ')
-      return name.includes(q) || floorNum.includes(q) || waiters.includes(q)
-    })
-  }
+      if (!name.includes(q) && !floorNum.includes(q) && !waiters.includes(q)) return false
+    }
 
-  return list
+    return true
+  })
 })
 
 const totalFloors = computed(() => (Array.isArray(filteredFloors.value) ? filteredFloors.value.length : 0))
@@ -95,8 +85,7 @@ const lastPage = computed(() => Math.ceil(totalFloors.value / perPage.value) || 
 const paginatedFloors = computed(() => {
   if (!Array.isArray(filteredFloors.value)) return []
   const start = (currentPage.value - 1) * perPage.value
-  const end = start + perPage.value
-  return filteredFloors.value.slice(start, end)
+  return filteredFloors.value.slice(start, start + perPage.value)
 })
 
 const showingFrom = computed(() => {
@@ -119,10 +108,13 @@ const paginationPages = computed(() => {
   return pages
 })
 
+watch(perPage, () => {
+  currentPage.value = 1
+})
+
 const changePerPage = (event: Event) => {
   const target = event.target as HTMLSelectElement
   perPage.value = Number(target.value)
-  currentPage.value = 1
 }
 
 const goToPage = (p: number) => {

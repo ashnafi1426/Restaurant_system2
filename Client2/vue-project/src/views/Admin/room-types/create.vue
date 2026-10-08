@@ -8,6 +8,8 @@ import { useHotelStore } from '@/stores/hotelStore'
 import { Building2, AlertTriangle, CheckCircle2, X } from 'lucide-vue-next'
 import type { RoomType } from '../../../types/roomType'
 
+import { getErrorMessage, getValidationErrors } from '@/utils/error'
+
 const router = useRouter()
 const store = useRoomTypeStore()
 const hotelStore = useHotelStore()
@@ -17,7 +19,7 @@ const serverErrors = ref<Record<string, string[]>>({})
 const errorMessage = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
 
-const form = reactive<RoomType>({
+let form = reactive<RoomType>({
   name: '',
   description: '',
   base_price_per_night: 0,
@@ -44,13 +46,8 @@ const submit = async () => {
     }, 1200)
   } catch (err: any) {
     console.error('[CreateRoomType] Failed to create room type:', err)
-    const errorData = err.response?.data
-    if (errorData?.errors) {
-      serverErrors.value = errorData.errors
-      errorMessage.value = errorData.message || 'Validation failed. Please correct the highlighted errors.'
-    } else {
-      errorMessage.value = errorData?.message || err.message || 'Failed to create room type'
-    }
+    serverErrors.value = getValidationErrors(err)
+    errorMessage.value = getErrorMessage(err, 'Failed to create room type')
   } finally {
     isSubmitting.value = false
   }

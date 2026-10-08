@@ -9,15 +9,11 @@
           :placeholder="placeholder"
           :disabled="disabled || loading"
           @focus="isOpen = true"
-          @blur="() => setTimeout(() => (isOpen = false), 200)"
+          @blur="handleBlur"
           class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100"
         />
 
-        <transition
-          name="dropdown"
-          @enter="onEnter"
-          @leave="onLeave"
-        >
+        <transition name="dropdown">
           <div
             v-if="isOpen && filteredWaiters.length > 0"
             class="absolute top-full left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-md border border-gray-300 bg-white shadow-lg z-10"
@@ -82,7 +78,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import managerService from '@/services/managerService'
 
 interface Props {
   modelValue?: (number | string)[] | number | string
@@ -93,7 +90,7 @@ interface Props {
 }
 
 interface Waiter {
-  id: number
+  id: number | string
   name: string
   email: string
   status: string
@@ -131,20 +128,35 @@ const filteredWaiters = computed(() => {
   )
 })
 
+let blurTimer: ReturnType<typeof setTimeout> | null = null
+
+const handleBlur = () => {
+  if (blurTimer) clearTimeout(blurTimer)
+  blurTimer = setTimeout(() => {
+    isOpen.value = false
+  }, 200)
+}
+
 onMounted(async () => {
   await loadWaiters()
+})
+
+onUnmounted(() => {
+  if (blurTimer) clearTimeout(blurTimer)
 })
 
 async function loadWaiters() {
   loading.value = true
   error.value = ''
   try {
-    waiters.value = [
-      { id: 1, name: 'Ahmed Hassan', email: 'ahmed@hotel.com', status: 'active', availability_status: 'available' },
-      { id: 2, name: 'Fatima Ali', email: 'fatima@hotel.com', status: 'active', availability_status: 'busy' },
-      { id: 3, name: 'Muhammad Khan', email: 'khan@hotel.com', status: 'active', availability_status: 'available' },
-      { id: 4, name: 'Sara Ibrahim', email: 'sara@hotel.com', status: 'active', availability_status: 'break' },
-    ]
+    const data = await managerService.getWaiters()
+    waiters.value = (Array.isArray(data) ? data : []).map((w: any) => ({
+      id: w.id,
+      name: w.name || w.user?.name || `Waiter #${w.id}`,
+      email: w.email || w.user?.email || '',
+      status: w.status || 'active',
+      availability_status: w.availability || w.availability_status || 'available',
+    }))
   } catch (err: any) {
     console.error('[WaiterSelector] Failed to load waiters:', err)
     error.value = 'Failed to load waiters'
@@ -167,24 +179,11 @@ function selectWaiter(waiter: Waiter) {
   }
 }
 
-function removeWaiter(waiterId: number) {
+function removeWaiter(waiterId: number | string) {
   if (Array.isArray(props.modelValue)) {
     const selected = props.modelValue.filter(id => id !== waiterId)
     emit('update:modelValue', selected)
   }
-}
-
-function onEnter(el: Element) {
-  (el as HTMLElement).style.opacity = '0'
-  setTimeout(() => {
-    (el as HTMLElement).style.transition = 'opacity 150ms'
-    (el as HTMLElement).style.opacity = '1'
-  }, 0)
-}
-
-function onLeave(el: Element) {
-  (el as HTMLElement).style.transition = 'opacity 150ms'
-  ;(el as HTMLElement).style.opacity = '0'
 }
 </script>
 

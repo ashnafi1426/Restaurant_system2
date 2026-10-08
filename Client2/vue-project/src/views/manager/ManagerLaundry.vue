@@ -102,15 +102,6 @@ function calculateCompletionRate() {
   </DashboardLayout>
 </template>
 
-<script lang="ts">
-function calculateCompletionRate() {
-  const manager = useManagerStore()
-  if (manager.laundryRequests.length === 0) return 0
-  const completed = manager.laundryRequests.filter(item => item.status === 'completed').length
-  return Math.round((completed / manager.laundryRequests.length) * 100)
-}
-</script>
-
 <style scoped>
 @keyframes spin {
   from {

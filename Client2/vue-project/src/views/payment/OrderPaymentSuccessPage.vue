@@ -304,7 +304,7 @@ onMounted(async () => {
         const completeData = completeRes.data
         console.log('[OrderPaymentSuccess] Complete response:', completeData)
 
-        if (completeResponse.ok && completeData.success && completeData.order) {
+        if (completeData?.success && completeData.order) {
           console.log('[OrderPaymentSuccess] Order completed, ID:', completeData.order.id)
           
           if (isWalkInOrder && walkInData) {

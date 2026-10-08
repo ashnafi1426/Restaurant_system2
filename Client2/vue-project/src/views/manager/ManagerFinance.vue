@@ -162,7 +162,7 @@ const monthVsYearPercent = computed(() => {
               :key="idx"
               class="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl text-center"
             >
-              <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ point.period || point.label || `P${idx + 1}` }}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ (point as any).period || point.label || `P${idx + 1}` }}</p>
               <p class="font-bold text-slate-900 dark:text-slate-100 mt-1">{{ formatCurrency(point.revenue || 0) }}</p>
             </div>
           </div>

@@ -70,11 +70,12 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
     }
   }
 
-  const fetchTableById = async (id: string) => {
+  const fetchTableById = async (id: string): Promise<RestaurantTable> => {
     loading.value = true
     error.value = null
     try {
-      const table = await restaurantTableService.getTableById(id)
+      const response = await restaurantTableService.getTableById(id)
+      const table = (response as any).data ?? response
       currentTable.value = table
       return table
     } catch (err: any) {

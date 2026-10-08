@@ -37,7 +37,7 @@
           <div class="space-y-3 text-sm">
             <div class="flex justify-between items-center py-2 border-b border-gray-100">
               <span class="text-gray-500">Transaction ID</span>
-              <span class="font-mono text-gray-900 font-semibold">{{ transactionId || 'AP5AFGGSXZT9' }}</span>
+              <span class="font-mono text-gray-900 font-semibold">{{ transactionId || '—' }}</span>
             </div>
             
             <div class="flex justify-between items-center py-2 border-b border-gray-100">
@@ -47,17 +47,17 @@
             
             <div class="flex justify-between items-center py-2 border-b border-gray-100">
               <span class="text-gray-500">Order Number</span>
-              <span class="font-semibold text-gray-900">#{{ orderNumber || '160' }}</span>
+              <span class="font-semibold text-gray-900">{{ orderNumber ? `#${orderNumber}` : '—' }}</span>
             </div>
             
             <div class="flex justify-between items-center py-2 border-b border-gray-100">
-              <span class="text-gray-500">Table</span>
-              <span class="font-semibold text-gray-900">{{ tableNumber || roomNumber || 'Table 11' }}</span>
+              <span class="text-gray-500">Table / Room</span>
+              <span class="font-semibold text-gray-900">{{ tableNumber || roomNumber || '—' }}</span>
             </div>
             
             <div class="flex justify-between items-center py-3">
               <span class="text-gray-500">Amount Paid</span>
-              <span class="text-2xl font-bold text-red-600">ETB {{ (amount || 540).toFixed(2) }}</span>
+              <span class="text-2xl font-bold text-red-600">ETB {{ (amount || 0).toFixed(2) }}</span>
             </div>
           </div>
 
@@ -169,7 +169,7 @@ onMounted(() => {
   // Get data from route query parameters (from Chapa redirect)
   transactionId.value = (route.query.tx_ref as string) || ''
   orderNumber.value = (route.query.order_number as string) || ''
-  amount.value = parseFloat((route.query.amount as string) || '540')
+  amount.value = parseFloat((route.query.amount as string) || '0')
   
   // Get order ID from query
   const queryOrderId = route.query.order_id as string

@@ -7,12 +7,9 @@ const emit = defineEmits<{
 
 const filters = reactive({
   guest: '',
-
   room: '',
-
   reservation: '',
 })
-
 watch(
   filters,
   () => {

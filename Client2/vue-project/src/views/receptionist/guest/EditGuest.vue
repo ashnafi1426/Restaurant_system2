@@ -16,7 +16,7 @@ const languageStore = useLanguageStore()
 
 const guestId = route.params.id as string
 const loading = ref(true)
-const form = ref<GuestFormType>({
+let form = ref<GuestFormType>({
   first_name: '',
   last_name: '',
   email: '',

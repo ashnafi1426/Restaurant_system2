@@ -26,7 +26,7 @@ const languageStore = useLanguageStore()
 const loading = ref(false)
 const loadingData = ref(true)
 
-const form = ref<Reservation | null>(null)
+let form = ref<Reservation | null>(null)
 
 const guests = ref<Guest[]>([])
 const rooms = ref<Room[]>([])

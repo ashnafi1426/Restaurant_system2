@@ -13,7 +13,7 @@ const router = useRouter()
 const guestStore = useGuestStore()
 const languageStore = useLanguageStore()
 
-const form = ref<GuestFormType>({
+let form = ref<GuestFormType>({
   first_name: '',
   last_name: '',
   email: '',

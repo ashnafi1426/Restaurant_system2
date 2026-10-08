@@ -40,7 +40,7 @@ import {
   Monitor,
   ChevronRight,
   Grid
-} from 'lucide-vue-next'
+} from 'lucide-vue-next';
 
 const router = useRouter()
 const authStore = useAuthStore()

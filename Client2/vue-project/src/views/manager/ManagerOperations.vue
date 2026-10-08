@@ -8,11 +8,7 @@ import RoomServiceMonitor from '@/components/manager/RoomServiceMonitor.vue'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
 import {
   Activity,
-  Clock,
   ChefHat,
-  Truck,
-  Shirt,
-  Loader2,
   AlertCircle,
   Search,
   Filter,

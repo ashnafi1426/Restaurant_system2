@@ -16,7 +16,6 @@ import {
   RotateCcw,
   Users,
   MapPin,
-  Award,
   Clock,
   Trash2,
   Edit3,
@@ -25,7 +24,6 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Loader2,
   MoreVertical,
 } from 'lucide-vue-next'
 
@@ -47,6 +45,7 @@ const searchQuery = ref('')
 const selectedAssignment = ref<any>(null)
 const showDeleteConfirm = ref(false)
 const toastMessage = ref<string | null>(null)
+let toastTimer: ReturnType<typeof setTimeout> | null = null
 const activeMenuId = ref<string | null>(null)
 
 const toggleMenu = (id: string) => {
@@ -117,27 +116,27 @@ const getTableCapacity = (assignment: any): number | null => {
 }
 
 const filteredAssignments = computed(() => {
-  let list = tableAssignmentStore.assignments || []
+  const list = tableAssignmentStore.assignments || []
+  const q = searchQuery.value.trim().toLowerCase()
+  const statusFilter = filterStatus.value.toLowerCase()
 
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim()
-    list = list.filter((a: any) => {
+  if (!q && !statusFilter) return list
+
+  return list.filter((a: any) => {
+    if (statusFilter && (a.status || 'active').toLowerCase() !== statusFilter) {
+      return false
+    }
+    if (q) {
       const waiterName = getWaiterName(a.waiter).toLowerCase()
       const tableNum = getTableNumber(a).toLowerCase()
       const section = getTableSection(a).toLowerCase()
       const status = (a.status || 'active').toLowerCase()
-      return waiterName.includes(q) || tableNum.includes(q) || section.includes(q) || status.includes(q)
-    })
-  }
-
-  if (filterStatus.value) {
-    list = list.filter((a: any) => {
-      const status = (a.status || 'active').toLowerCase()
-      return status === filterStatus.value.toLowerCase()
-    })
-  }
-
-  return list
+      if (!waiterName.includes(q) && !tableNum.includes(q) && !section.includes(q) && !status.includes(q)) {
+        return false
+      }
+    }
+    return true
+  })
 })
 
 const totalRecords = computed(() => filteredAssignments.value.length)
@@ -145,8 +144,7 @@ const lastPage = computed(() => Math.ceil(totalRecords.value / perPage.value) ||
 
 const paginatedAssignments = computed(() => {
   const start = (currentPage.value - 1) * perPage.value
-  const end = start + perPage.value
-  return filteredAssignments.value.slice(start, end)
+  return filteredAssignments.value.slice(start, start + perPage.value)
 })
 
 const showingFrom = computed(() => {
@@ -183,13 +181,14 @@ const loadData = async (dateVal?: string) => {
   }
 }
 
-onMounted(async () => {
-  await loadData()
+onMounted(() => {
+  loadData()
   document.addEventListener('click', closeMenu)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', closeMenu)
+  if (toastTimer) clearTimeout(toastTimer)
 })
 
 watch(() => hotelStore.hotelId, async () => {
@@ -204,6 +203,10 @@ watch([searchQuery, filterStatus], () => {
 watch(filterDate, async (newDate) => {
   currentPage.value = 1
   await loadData(newDate)
+})
+
+watch(perPage, () => {
+  currentPage.value = 1
 })
 
 const handleRefresh = async () => {
@@ -228,7 +231,6 @@ const toggleFullscreen = () => {
 const changePerPage = (event: Event) => {
   const target = event.target as HTMLSelectElement
   perPage.value = Number(target.value)
-  currentPage.value = 1
 }
 
 const goToPage = (page: number) => {
@@ -251,7 +253,8 @@ const nextPage = () => {
 
 const showToast = (msg: string) => {
   toastMessage.value = msg
-  setTimeout(() => {
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => {
     toastMessage.value = null
   }, 3000)
 }
@@ -272,8 +275,6 @@ const promptDeleteAssignment = (assignment: any) => {
   selectedAssignment.value = assignment
   showDeleteConfirm.value = true
 }
-
-const handleDeleteClick = promptDeleteAssignment
 
 const confirmDelete = async () => {
   if (!selectedAssignment.value) return

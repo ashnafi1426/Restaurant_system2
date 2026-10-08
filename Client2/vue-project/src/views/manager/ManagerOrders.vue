@@ -5,79 +5,19 @@ import { useManagerOperationsStore } from '@/stores/manager/operationsStore'
 import { useLanguageStore } from '@/stores/language'
 import RestaurantMonitor from '@/components/manager/RestaurantMonitor.vue'
 import DashboardLayout from '../../Layouts/DashboardLayout.vue'
-import { 
-  ChefHat, Beef, Coffee, Cake, Fish, Pizza, Soup, 
-  Sandwich, Apple, Wine, IceCream, Cookie, 
-  Egg, Salad, UtensilsCrossed 
-} from 'lucide-vue-next'
+import { ChefHat, UtensilsCrossed } from 'lucide-vue-next'
 
 const manager = useManagerStore()
 const operationsStore = useManagerOperationsStore()
 const languageStore = useLanguageStore()
 
-// Map food items to appropriate Lucide icons
-const getFoodIcon = (itemName: string, category?: string) => {
-  const name = itemName?.toLowerCase() || ''
-  const cat = category?.toLowerCase() || ''
-
-  // Breakfast items
-  if (name.includes('egg') || name.includes('omelet')) return Egg
-  if (name.includes('bacon') || name.includes('pancake') || name.includes('waffle')) return ChefHat
-  
-  // Main dishes
-  if (name.includes('burger') || name.includes('sandwich')) return Sandwich
-  if (name.includes('pizza')) return Pizza
-  if (name.includes('steak') || name.includes('beef') || name.includes('mignon')) return Beef
-  if (name.includes('chicken') || name.includes('poultry')) return ChefHat
-  if (name.includes('fish') || name.includes('salmon') || name.includes('tuna')) return Fish
-  
-  // Soups & bowls
-  if (name.includes('soup') || name.includes('ramen') || name.includes('noodle') || name.includes('bowl')) return Soup
-  
-  // Salads
-  if (cat.includes('salad') || name.includes('salad')) return Salad
-  
-  // Desserts
-  if (cat.includes('dessert') || name.includes('cake') || name.includes('lava')) return Cake
-  if (name.includes('ice cream') || name.includes('gelato')) return IceCream
-  if (name.includes('cookie') || name.includes('chocolate')) return Cookie
-  
-  // Drinks
-  if (cat.includes('drink') || cat.includes('beverage')) return Coffee
-  if (name.includes('coffee') || name.includes('espresso') || name.includes('tea')) return Coffee
-  if (name.includes('wine') || name.includes('beer') || name.includes('cocktail')) return Wine
-  
-  // Fruits
-  if (name.includes('fruit') || name.includes('apple') || name.includes('banana') || name.includes('orange')) return Apple
-  
-  // Default
-  return UtensilsCrossed
-}
-
 onMounted(async () => {
-  // Load from main manager store first (has aggregated data)
   if (!manager.orders || manager.orders.length === 0) {
     await manager.loadOrders()
   }
-  // Also load operations store
   await operationsStore.loadOrders()
 })
 </script>
-
-<style scoped>
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1.5s linear infinite;
-}
-</style>
 
 <template>
   <DashboardLayout>

@@ -24,7 +24,7 @@ const languageStore = useLanguageStore()
 
 const loading = ref(false)
 
-const form = ref<Reservation>({
+let form = ref<Reservation>({
   id: '',
   booking_reference: '',
   guest_id: '',

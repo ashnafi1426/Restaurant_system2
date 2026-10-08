@@ -187,17 +187,3 @@ watch(() => hotelStore.hotelId, loadData)
   </DashboardLayout>
 </template>
 
-<style scoped>
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1.5s linear infinite;
-}
-</style>
