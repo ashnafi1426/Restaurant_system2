@@ -1,60 +1,61 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import AboutPage from '../views/guest/About.vue'
-import roomPage from '../views/guest/Room.vue'
-import GuestHome from '../views/guest/Home.vue'
-import contactPage from '../views/guest/Contact.vue'
-import GalleryPage from '../views/guest/Gallary.vue'
-import LoginView from '../views/LoginView.vue'
-import ActivationPage from '../views/ActivationPage.vue'
-import AdminDashboard from '../views/Admin/AdminDashboard.vue'
-import orderManagment from '../views/Admin/order/OrderManagment.vue'
-import ReceptionDashboard from '../views/receptionist/reception/ReceptionDashboard.vue'
-import MenuManagement from '../views/Admin/menu/MenuView.vue'
-import AddMenuItemView from '../views/Admin/menu/AddMenuItemView.vue'
-import AddCategoryView from '../views/Admin/menu/AddCategoryView.vue'
-import CashierDashboard from '../views/Cashier/CashierDashboard.vue'
-import KitchenDashboard from '../views/kitchen/KitchenDashboard.vue'
-import FoodOrdersView from '../views/kitchen/FoodOrdersView.vue'
-import PendingOrdersView from '../views/kitchen/PendingOrdersView.vue'
-import PreparingOrdersView from '../views/kitchen/PreparingOrdersView.vue'
-import ServedOrdersView from '../views/kitchen/ServedOrdersView.vue'
-import UserList from '../views/Admin/users/UserList.vue'
-import CreateUser from '../views/Admin/users/CreateUser.vue'
-import EditUser from '../views/Admin/users/EditUser.vue'
-import RoomList from '../views/Admin/rooms/RoomList.vue'
-import CreateRoom from '../views/Admin/rooms/CreateRoom.vue'
-import EditRoom from '../views/Admin/rooms/EditRoom.vue'
-import ViewRoom from '../views/Admin/rooms/ViewRoom.vue'
-import RoomTypeList from '../views/Admin/room-types/index.vue'
-import CreateRoomType from '../views/Admin/room-types/create.vue'
-import EditRoomType from '../views/Admin/room-types/edit.vue'
-import ViewRoomType from '../views/Admin/room-types/show.vue'
-import GuestList from '../views/receptionist/guest/GuestList.vue'
-import CreateGuest from '../views/receptionist/guest/CreateGuest.vue'
-import EditGuest from '../views/receptionist/guest/EditGuest.vue'
-import GuestDetails from '../views/receptionist/guest/GuestDetail.vue'
-import CheckInView from '../views/receptionist/checkIn/CheckInView.vue'
-import CheckOutView from '../views/receptionist/checkOut/CheckOutView.vue'
-import ReportsPage from '../views/receptionist/reports/ReportsPage.vue'
-import AddOrder from '@/views/Admin/order/AddOrder.vue'
-import QRMenu from '../views/guest/QRMenu.vue'
-import PaymentSuccessPage from '../views/payment/PaymentSuccessPage.vue'
-import PaymentFailedPage from '../views/payment/PaymentFailedPage.vue'
-import PaymentPendingPage from '../views/payment/PaymentPendingPage.vue'
-import CheckoutPage from '../views/payment/CheckoutPage.vue'
-import OrderPaymentSuccessPage from '../views/payment/OrderPaymentSuccessPage.vue'
-import OrderPaymentPage from '../views/payment/OrderPaymentPage.vue'
+const AboutPage = () => import('../views/guest/About.vue')
+const roomPage = () => import('../views/guest/Room.vue')
+const GuestHome = () => import('../views/guest/Home.vue')
+const contactPage = () => import('../views/guest/Contact.vue')
+const GalleryPage = () => import('../views/guest/Gallary.vue')
+const LoginView = () => import('../views/LoginView.vue')
+const ActivationPage = () => import('../views/ActivationPage.vue')
+const AdminDashboard = () => import('../views/Admin/AdminDashboard.vue')
+const orderManagment = () => import('../views/Admin/order/OrderManagment.vue')
+const ReceptionDashboard = () => import('../views/receptionist/reception/ReceptionDashboard.vue')
+const MenuManagement = () => import('../views/Admin/menu/MenuView.vue')
+const AddMenuItemView = () => import('../views/Admin/menu/AddMenuItemView.vue')
+const AddCategoryView = () => import('../views/Admin/menu/AddCategoryView.vue')
+const CashierDashboard = () => import('../views/Cashier/CashierDashboard.vue')
+const KitchenDashboard = () => import('../views/kitchen/KitchenDashboard.vue')
+const FoodOrdersView = () => import('../views/kitchen/FoodOrdersView.vue')
+const PendingOrdersView = () => import('../views/kitchen/PendingOrdersView.vue')
+const PreparingOrdersView = () => import('../views/kitchen/PreparingOrdersView.vue')
+const ServedOrdersView = () => import('../views/kitchen/ServedOrdersView.vue')
+const UserList = () => import('../views/Admin/users/UserList.vue')
+const CreateUser = () => import('../views/Admin/users/CreateUser.vue')
+const EditUser = () => import('../views/Admin/users/EditUser.vue')
+const RoomList = () => import('../views/Admin/rooms/RoomList.vue')
+const CreateRoom = () => import('../views/Admin/rooms/CreateRoom.vue')
+const EditRoom = () => import('../views/Admin/rooms/EditRoom.vue')
+const ViewRoom = () => import('../views/Admin/rooms/ViewRoom.vue')
+const RoomTypeList = () => import('../views/Admin/room-types/index.vue')
+const CreateRoomType = () => import('../views/Admin/room-types/create.vue')
+const EditRoomType = () => import('../views/Admin/room-types/edit.vue')
+const ViewRoomType = () => import('../views/Admin/room-types/show.vue')
+const GuestList = () => import('../views/receptionist/guest/GuestList.vue')
+const CreateGuest = () => import('../views/receptionist/guest/CreateGuest.vue')
+const EditGuest = () => import('../views/receptionist/guest/EditGuest.vue')
+const GuestDetails = () => import('../views/receptionist/guest/GuestDetail.vue')
+const CheckInView = () => import('../views/receptionist/checkIn/CheckInView.vue')
+const CheckOutView = () => import('../views/receptionist/checkOut/CheckOutView.vue')
+const ReportsPage = () => import('../views/receptionist/reports/ReportsPage.vue')
+const AddOrder = () => import('@/views/Admin/order/AddOrder.vue')
+const QRMenu = () => import('../views/guest/QRMenu.vue')
+const PaymentSuccessPage = () => import('../views/payment/PaymentSuccessPage.vue')
+const PaymentFailedPage = () => import('../views/payment/PaymentFailedPage.vue')
+const PaymentPendingPage = () => import('../views/payment/PaymentPendingPage.vue')
+const CheckoutPage = () => import('../views/payment/CheckoutPage.vue')
+const OrderPaymentSuccessPage = () => import('../views/payment/OrderPaymentSuccessPage.vue')
+const OrderPaymentPage = () => import('../views/payment/OrderPaymentPage.vue')
+const RoleManagementView = () => import('@/views/Admin/rbac/RoleManagementView.vue')
+const PermissionManagementView = () => import('@/views/Admin/rbac/PermissionManagementView.vue')
+const RolePermissionMatrixView = () => import('@/views/Admin/rbac/RolePermissionMatrixView.vue')
+const UserRoleAssignmentView = () => import('@/views/Admin/rbac/UserRoleAssignmentView.vue')
+const TemporaryRoleAssignmentView = () => import('@/views/Admin/rbac/TemporaryRoleAssignmentView.vue')
+const AuditLogView = () => import('@/views/Admin/rbac/AuditLogView.vue')
+const UnauthorizedView = () => import('@/views/UnauthorizedView.vue')
+
 import managerRoutes from './managerRouter.ts'
 import waiterRoutes from './waiterRouter'
 import cashierRoutes from './cashierRouter'
 import reviewRoutes from './reviewRouter'
-import RoleManagementView from '@/views/Admin/rbac/RoleManagementView.vue'
-import PermissionManagementView from '@/views/Admin/rbac/PermissionManagementView.vue'
-import RolePermissionMatrixView from '@/views/Admin/rbac/RolePermissionMatrixView.vue'
-import UserRoleAssignmentView from '@/views/Admin/rbac/UserRoleAssignmentView.vue'
-import TemporaryRoleAssignmentView from '@/views/Admin/rbac/TemporaryRoleAssignmentView.vue'
-import AuditLogView from '@/views/Admin/rbac/AuditLogView.vue'
-import UnauthorizedView from '@/views/UnauthorizedView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({

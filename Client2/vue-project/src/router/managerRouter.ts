@@ -1,21 +1,22 @@
 import type { RouteRecordRaw } from 'vue-router'
-import ManagerDashboard from '../views/manager/ManagerDashboard.vue'
-import ManagerRevenue from '../views/manager/ManagerRevenue.vue'
-import ManagerOperations from '../views/manager/ManagerOperations.vue'
-import ManagerLaundry from '../views/manager/ManagerLaundry.vue'
-import ManagerOrders from '../views/manager/ManagerOrders.vue'
-import ManagerInventory from '../views/manager/ManagerInventory.vue'
-import ManagerFinance from '../views/manager/ManagerFinance.vue'
-import ManagerAnalytics from '../views/manager/ManagerAnalytics.vue'
-import ManagerWaiters from '../views/manager/ManagerWaiters.vue'
-import WaiterManagement from '../views/manager/WaiterManagement.vue'
-import FloorAssignment from '../views/manager/FloorAssignment.vue'
-import AddFloor from '../views/manager/AddFloor.vue'
-import DeliveryManagement from '../views/manager/DeliveryManagement.vue'
-import RestaurantTables from '../views/manager/RestaurantTables.vue'
-import TableAssignments from '../views/manager/TableAssignments.vue'
-import Setting from '../views/manager/Setting.vue'
-import ManagerProfile from '../views/manager/ManagerProfile.vue'
+
+const ManagerDashboard = () => import('../views/manager/ManagerDashboard.vue')
+const ManagerRevenue = () => import('../views/manager/ManagerRevenue.vue')
+const ManagerOperations = () => import('../views/manager/ManagerOperations.vue')
+const ManagerLaundry = () => import('../views/manager/ManagerLaundry.vue')
+const ManagerOrders = () => import('../views/manager/ManagerOrders.vue')
+const ManagerInventory = () => import('../views/manager/ManagerInventory.vue')
+const ManagerFinance = () => import('../views/manager/ManagerFinance.vue')
+const ManagerAnalytics = () => import('../views/manager/ManagerAnalytics.vue')
+const ManagerWaiters = () => import('../views/manager/ManagerWaiters.vue')
+const WaiterManagement = () => import('../views/manager/WaiterManagement.vue')
+const FloorAssignment = () => import('../views/manager/FloorAssignment.vue')
+const AddFloor = () => import('../views/manager/AddFloor.vue')
+const DeliveryManagement = () => import('../views/manager/DeliveryManagement.vue')
+const RestaurantTables = () => import('../views/manager/RestaurantTables.vue')
+const TableAssignments = () => import('../views/manager/TableAssignments.vue')
+const Setting = () => import('../views/manager/Setting.vue')
+const ManagerProfile = () => import('../views/manager/ManagerProfile.vue')
 
 const managerRoutes: RouteRecordRaw[] = [
   {

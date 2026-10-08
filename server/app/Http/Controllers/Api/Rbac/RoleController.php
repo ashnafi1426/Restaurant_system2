@@ -26,10 +26,6 @@ class RoleController extends Controller
         $this->authService = $authService;
         $this->tenantRoleService = $tenantRoleService;
     }
-
-    /**
-     * Invalidate cached role queries for a tenant or platform
-     */
     protected function invalidateRoleCaches(?string $hotelId = null): void
     {
         if ($hotelId) {
@@ -40,10 +36,6 @@ class RoleController extends Controller
         Cache::forget('rbac_active_roles:platform');
         Cache::forget('rbac_active_roles:public');
     }
-
-    /**
-     * Resolve the current authorized hotel ID for this request.
-     */
     protected function resolveHotelId(Request $request): ?string
     {
         $hotelId = app(TenantContext::class)->getHotelId()
@@ -92,11 +84,6 @@ class RoleController extends Controller
 
         return null;
     }
-
-    /**
-     * Display a listing of the roles for the current hotel or platform.
-     * Cached with high-performance query execution and eager-loaded relations.
-     */
     public function index(Request $request)
     {
         $hotelId = $this->resolveHotelId($request);
@@ -115,8 +102,6 @@ class RoleController extends Controller
         if ($request->boolean('refresh') || $request->header('X-Refresh') === 'true') {
             Cache::forget($cacheKey);
         }
-
-        // Cache role list for 10 minutes (600 seconds)
         $rolesData = Cache::remember($cacheKey, 600, function () use ($effectiveHotelId) {
             // Ensure default roles exist for this hotel if newly created (only check if provisioning needed)
             if ($effectiveHotelId) {
@@ -151,11 +136,8 @@ class RoleController extends Controller
             }
 
             $roles = $query->orderBy('name')->get();
-
-            // Calculate users count per role within this hotel context in optimized aggregate batches
             if ($effectiveHotelId && $roles->isNotEmpty()) {
                 $roleIds = $roles->pluck('id')->all();
-
                 $userRoleCounts = DB::table('user_roles')
                     ->where('hotel_id', $effectiveHotelId)
                     ->whereIn('role_id', $roleIds)
@@ -192,8 +174,6 @@ class RoleController extends Controller
                     return $role;
                 });
             }
-
-            // Convert to native array to guarantee fast and reliable cache serialization
             return $roles->toArray();
         });
 
@@ -203,11 +183,6 @@ class RoleController extends Controller
             'data' => $rolesData,
         ]);
     }
-
-    /**
-     * Get list of active roles for dynamic UI options in the current hotel.
-     * Cached with high-performance retrieval.
-     */
     public function getActiveRoles(Request $request)
     {
         $hotelId = $this->resolveHotelId($request);

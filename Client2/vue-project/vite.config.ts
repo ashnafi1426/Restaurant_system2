@@ -16,8 +16,8 @@ export default defineConfig({
       },
     }),
     vueJsx(),
-    // Only enable DevTools in development mode
-    ...(process.env.NODE_ENV !== 'production' ? [vueDevTools()] : []),
+    // Only enable DevTools when explicitly requested via env variable
+    ...(process.env.VITE_DEVTOOLS === 'true' ? [vueDevTools()] : []),
   ],
   resolve: {
     alias: {
@@ -25,15 +25,13 @@ export default defineConfig({
     },
   },
   build: {
-    // Optimize build output
-    target: 'es2015',
+    target: 'esnext',
     minify: 'esbuild',
-    // Chunk splitting for better caching
     rollupOptions: {
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            if (id.includes('vue') || id.includes('pinia')) {
+            if (id.includes('vue') || id.includes('pinia') || id.includes('vue-router')) {
               return 'vendor'
             }
             if (id.includes('lucide-vue-next')) {
@@ -43,18 +41,17 @@ export default defineConfig({
         },
       },
     },
-    // Reduce chunk size warning limit
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1200,
   },
-  // Server optimizations
   server: {
+    warmup: {
+      clientFiles: ['./src/main.ts', './src/App.vue', './src/router/index.ts'],
+    },
     fs: {
-      // Allow serving files outside root
       strict: false,
     },
   },
-  // Optimize dependencies
   optimizeDeps: {
-    include: ['vue', 'vue-router', 'pinia', 'lucide-vue-next'],
+    include: ['vue', 'vue-router', 'pinia', 'axios'],
   },
 })
