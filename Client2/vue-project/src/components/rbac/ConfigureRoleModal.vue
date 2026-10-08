@@ -112,14 +112,14 @@ const getModuleInfo = (mod: string) => {
 
 const availableActions = computed(() => {
   const actions = new Set<string>()
-  props.permissions.forEach(p => {
+  ;(props.permissions || []).forEach(p => {
     if (p.action) actions.add(p.action.toLowerCase())
   })
   return Array.from(actions)
 })
 
 const filteredPermissions = computed(() => {
-  let list = props.permissions
+  let list = props.permissions || []
   if (permissionSearch.value.trim()) {
     const q = permissionSearch.value.toLowerCase().trim()
     list = list.filter(p =>
@@ -213,22 +213,22 @@ const handleSave = () => {
 
       <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in duration-150">
         
-        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs">
+        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs flex-shrink-0">
           <div class="flex items-center gap-3.5">
-            <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-xs">
+            <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shadow-xs">
               <ShieldCheck class="w-6 h-6" />
             </div>
             <div>
               <div class="flex items-center gap-2">
                 <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">
-                  {{ editingRole ? `Configure Role: ${editingRole.name}` : 'Create New System Role' }}
+                  {{ editingRole ? `Configure Role: ${editingRole.name}` : 'Configure Role' }}
                 </h2>
-                <span v-if="editingRole?.is_system" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                <span v-if="editingRole?.is_system" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                   System Role
                 </span>
               </div>
               <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                Set role title, description, and select feature access privileges for your staff members.
+                Update role details and configure granular feature access privileges.
               </p>
             </div>
           </div>
@@ -449,9 +449,9 @@ const handleSave = () => {
           </div>
         </div>
 
-        <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs">
+        <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs flex-shrink-0">
           <div class="text-xs font-bold text-slate-500 dark:text-slate-400">
-            Selected Permissions: <strong class="text-amber-600 dark:text-amber-400 font-black">{{ roleForm.selectedPermissions.length }}</strong>
+            Selected Permissions: <strong class="text-blue-600 dark:text-blue-400 font-black">{{ roleForm.selectedPermissions.length }}</strong>
           </div>
 
           <div class="flex items-center gap-3">
@@ -466,11 +466,11 @@ const handleSave = () => {
               type="button"
               @click="handleSave"
               :disabled="loading || !roleForm.name.trim()"
-              class="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 text-xs font-black shadow-md shadow-amber-500/20 transition cursor-pointer flex items-center gap-2"
+              class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition cursor-pointer flex items-center gap-2"
             >
               <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
               <Check v-else class="w-4 h-4 stroke-[2.5]" />
-              <span>{{ loading ? 'Saving Role...' : (editingRole ? 'Save Changes' : 'Create Role') }}</span>
+              <span>{{ loading ? 'Saving...' : 'Save Changes' }}</span>
             </button>
           </div>
         </div>

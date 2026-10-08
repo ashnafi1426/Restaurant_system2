@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import ConfigureRoleModal from '@/components/rbac/ConfigureRoleModal.vue'
+import CreateRoleModal from '@/components/rbac/CreateRoleModal.vue'
 import ViewRoleUsersModal from '@/components/rbac/ViewRoleUsersModal.vue'
 import ConfirmDeleteModal from '@/components/rbac/ConfirmDeleteModal.vue'
 import { rbacService } from '@/services/rbacService'
@@ -75,7 +76,11 @@ const sortBy = ref<'name' | 'users' | 'permissions'>('name')
 const selectedRoleIds = ref<(string | number)[]>([])
 const activeDropdownRoleId = ref<string | number | null>(null)
 
-// Configure Role Modal
+// Create Role Modal
+const showCreateModal = ref(false)
+const createInitialPermissionIds = ref<number[]>([])
+
+// Configure / Edit Role Modal
 const showModal = ref(false)
 const editingRole = ref<Role | null>(null)
 const initialPermissionIds = ref<number[]>([])
@@ -155,7 +160,11 @@ const ensurePermissionsLoaded = async (forceRefresh = false) => {
   if (permissions.value.length > 0 && !forceRefresh) return
   try {
     const permsData = await rbacService.getPermissions({ refresh: forceRefresh })
-    if (permsData?.data) permissions.value = permsData.data
+    if (Array.isArray(permsData)) {
+      permissions.value = permsData
+    } else if (Array.isArray(permsData?.data)) {
+      permissions.value = permsData.data
+    }
   } catch (err) {
     console.warn('[RoleManagement] Permissions fetch error:', err)
   }
@@ -163,7 +172,7 @@ const ensurePermissionsLoaded = async (forceRefresh = false) => {
 
 const loadRolePermissionIds = async (roleId: string | number): Promise<number[]> => {
   try {
-    const permData = await rbacService.getRolePermissions(roleId)
+    const permData = await rbacService.getRolePermissions(Number(roleId))
     if (permData && Array.isArray(permData.permission_ids)) {
       return [...permData.permission_ids]
     }
@@ -318,9 +327,8 @@ const isAllSelected = computed(() => {
 
 // Modal Open Handlers
 const openCreateModal = async () => {
-  editingRole.value = null
-  initialPermissionIds.value = []
-  showModal.value = true
+  createInitialPermissionIds.value = []
+  showCreateModal.value = true
 
   if (permissions.value.length === 0) {
     loadingPermissions.value = true
@@ -341,13 +349,12 @@ const openEditModal = async (role: Role) => {
 }
 
 const openCloneModal = async (role: Role) => {
-  editingRole.value = null
-  initialPermissionIds.value = []
+  createInitialPermissionIds.value = []
   loadingPermissions.value = true
-  showModal.value = true
+  showCreateModal.value = true
 
   ensurePermissionsLoaded()
-  initialPermissionIds.value = await loadRolePermissionIds(role.id)
+  createInitialPermissionIds.value = await loadRolePermissionIds(role.id)
   loadingPermissions.value = false
 }
 
@@ -387,22 +394,42 @@ const toggleRoleActive = async (role: Role) => {
   }
 }
 
-const handleSaveRole = async (payload: { name: string; description: string; is_active: boolean; permissions: number[] }) => {
+const handleCreateRole = async (payload: { name: string; slug?: string; description: string; is_active: boolean; permissions: number[] }) => {
   saving.value = true
   errorMessage.value = ''
   try {
-    if (editingRole.value) {
-      await rbacService.updateRole(editingRole.value.id, {
-        name: payload.name,
-        description: payload.description,
-        is_active: payload.is_active,
-      })
-      await rbacService.syncRolePermissions(editingRole.value.id, payload.permissions)
-      notify('success', `Role "${payload.name}" updated successfully!`)
-    } else {
-      await rbacService.createRole(payload)
-      notify('success', `Role "${payload.name}" created successfully!`)
+    await rbacService.createRole(payload)
+    notify('success', `Role "${payload.name}" created successfully!`)
+
+    try {
+      await authStore.fetchCurrentUser()
+      window.dispatchEvent(new CustomEvent('permissions-updated'))
+    } catch (e) {
+      console.warn('[ROLES] Auth refresh error:', e)
     }
+
+    showCreateModal.value = false
+    await fetchRolesAndPermissions(true, true)
+  } catch (err: any) {
+    console.error('[RoleManagement] Create role error:', err)
+    notify('error', err?.response?.data?.message || 'Failed to create role.')
+  } finally {
+    saving.value = false
+  }
+}
+
+const handleSaveRole = async (payload: { name: string; description: string; is_active: boolean; permissions: number[] }) => {
+  if (!editingRole.value) return
+  saving.value = true
+  errorMessage.value = ''
+  try {
+    await rbacService.updateRole(editingRole.value.id, {
+      name: payload.name,
+      description: payload.description,
+      is_active: payload.is_active,
+    })
+    await rbacService.syncRolePermissions(editingRole.value.id, payload.permissions)
+    notify('success', `Role "${payload.name}" updated successfully!`)
 
     try {
       await authStore.fetchCurrentUser()
@@ -954,6 +981,18 @@ const navigateToUserAssignments = () => {
       </div>
 
       <!-- MODALS INTEGRATION -->
+      <!-- Create Role Modal -->
+      <CreateRoleModal
+        :show="showCreateModal"
+        :permissions="permissions"
+        :loading="saving"
+        :loading-permissions="loadingPermissions"
+        :initial-permission-ids="createInitialPermissionIds"
+        @close="showCreateModal = false"
+        @save="handleCreateRole"
+      />
+
+      <!-- Configure / Edit Role Modal -->
       <ConfigureRoleModal
         :show="showModal"
         :editing-role="editingRole"

@@ -47,23 +47,23 @@ export const rbacService = {
     return response.data.data
   },
 
-  async updateRole(id: number, data: { name?: string; description?: string; is_active?: boolean }): Promise<Role> {
+  async updateRole(id: number | string, data: { name?: string; description?: string; is_active?: boolean }): Promise<Role> {
     const response = await api.put(`/roles/${id}`, data)
     return response.data.data
   },
 
-  async deleteRole(id: number): Promise<void> {
+  async deleteRole(id: number | string): Promise<void> {
     await api.delete(`/roles/${id}`)
   },
 
-  async getRolePermissions(roleId: number, options?: { refresh?: boolean }): Promise<{ permission_ids: number[]; data: Permission[] }> {
+  async getRolePermissions(roleId: number | string, options?: { refresh?: boolean }): Promise<{ permission_ids: number[]; data: Permission[] }> {
     const response = await api.get(`/roles/${roleId}/permissions`, {
       params: options?.refresh ? { refresh: 1 } : undefined
     })
     return response.data
   },
 
-  async syncRolePermissions(roleId: number, permissionIds: number[]): Promise<Role> {
+  async syncRolePermissions(roleId: number | string, permissionIds: number[]): Promise<Role> {
     const response = await api.post(`/roles/${roleId}/permissions`, { permission_ids: permissionIds })
     return response.data.data
   },
