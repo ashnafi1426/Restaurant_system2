@@ -220,8 +220,10 @@ export const useAuthStore = defineStore('auth', () => {
       // Set a flag to indicate logout is in progress
       isInitialized.value = false
       
+      // Capture current token before clearing local state
+      const currentToken = token.value || localStorage.getItem('token')
+      
       // Clear auth data immediately for instant UI response
-      const currentToken = token.value
       setToken(null)
       setUser(null)
       setCurrentHotel(null)
@@ -234,11 +236,27 @@ export const useAuthStore = defineStore('auth', () => {
       } catch (err: any) {
         console.error('[AuthStore] Error stopping notification polling during logout:', err)
       }
+
+      // Disconnect WebSocket if active
+      if (typeof window !== 'undefined' && (window as any).Echo?.disconnect) {
+        try {
+          (window as any).Echo.disconnect()
+        } catch {
+          // Ignore echo disconnect errors
+        }
+      }
       
-      // Make logout API call in background (don't block navigation)
+      // Make logout API call in background with the captured token
       if (currentToken) {
-        api.post('/logout').catch((err: any) => {
-          console.error('[AuthStore] Error during logout API call:', err)
+        api.post('/logout', null, {
+          headers: {
+            Authorization: `Bearer ${currentToken}`
+          }
+        }).catch((err: any) => {
+          // If status is 401, the token was already expired or revoked on the server; ignore silently
+          if (err?.response?.status !== 401) {
+            console.warn('[AuthStore] Logout API call warning:', err?.message || err)
+          }
         })
       }
     } catch (err: any) {
