@@ -34,7 +34,6 @@
     <!-- Error State -->
     <div v-else-if="error" class="p-4">
       <div class="rounded-xl p-6 text-center bg-red-50 border border-red-200">
-        <div class="text-4xl mb-3">⚠️</div>
         <h2 class="font-bold mb-1 text-red-800">
           Unable to Load Order
         </h2>
