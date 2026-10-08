@@ -90,6 +90,18 @@ export const useCashierStore = defineStore('cashier', () => {
   const revenueChartData = ref<any[]>([])
   const paymentMethodChartData = ref<any[]>([])
   const refundRequests = ref<Payment[]>([])
+  const activeOrders = ref<any[]>([])
+  const orderCounts = ref<{
+    total_active: number
+    paid_orders: number
+    unpaid_orders: number
+    cleared_today: number
+  }>({
+    total_active: 0,
+    paid_orders: 0,
+    unpaid_orders: 0,
+    cleared_today: 0,
+  })
 
   const payments = ref<Payment[]>([])
   const selectedPayment = ref<Payment | null>(null)
@@ -208,6 +220,41 @@ export const useCashierStore = defineStore('cashier', () => {
     }
   }
 
+  async function fetchOrders(filters?: { filter?: string; search?: string }) {
+    try {
+      const response = await cashierService.getActiveOrders(filters)
+      if (response.success) {
+        activeOrders.value = response.data || []
+        if (response.counts) {
+          orderCounts.value = response.counts
+        }
+      }
+    } catch (err: any) {
+      console.error('[cashierStore] Failed to fetch active orders:', err)
+    }
+  }
+
+  async function clearOrder(id: string, payload?: { mark_as_paid?: boolean; payment_method?: string }) {
+    try {
+      loading.value = true
+      const response = await cashierService.clearOrder(id, payload)
+      if (response.success) {
+        await Promise.all([
+          fetchOrders(),
+          fetchDashboardStats(),
+          fetchRecentPayments(),
+        ])
+        return response
+      }
+      throw new Error(response.message || 'Failed to clear order')
+    } catch (err: any) {
+      console.error('[cashierStore] Failed to clear order:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function loadDashboard() {
     loading.value = true
     error.value = null
@@ -220,6 +267,7 @@ export const useCashierStore = defineStore('cashier', () => {
         revRes,
         payMethodRes,
         refundRes,
+        ordersRes,
       ] = await Promise.allSettled([
         cashierService.getDashboardStats(),
         cashierService.getRecentPayments(),
@@ -228,6 +276,7 @@ export const useCashierStore = defineStore('cashier', () => {
         cashierService.getRevenueChart(),
         cashierService.getPaymentMethodChart(),
         cashierService.getRefundRequests(),
+        cashierService.getActiveOrders(),
       ])
 
       if (statsRes.status === 'fulfilled' && statsRes.value?.success) {
@@ -250,6 +299,12 @@ export const useCashierStore = defineStore('cashier', () => {
       }
       if (refundRes.status === 'fulfilled' && refundRes.value?.success) {
         refundRequests.value = refundRes.value.data
+      }
+      if (ordersRes.status === 'fulfilled' && ordersRes.value?.success) {
+        activeOrders.value = ordersRes.value.data || []
+        if (ordersRes.value.counts) {
+          orderCounts.value = ordersRes.value.counts
+        }
       }
     } catch (err: any) {
       console.error('[cashierStore] Error loading dashboard:', err)
@@ -373,6 +428,11 @@ export const useCashierStore = defineStore('cashier', () => {
     fetchRevenueReport,
     fetchPaymentReport,
     fetchRefundReport,
+
+    activeOrders,
+    orderCounts,
+    fetchOrders,
+    clearOrder,
 
     clearError,
     clearSelectedPayment,

@@ -199,6 +199,15 @@ class OrderStatusService
             'served_at' => now(),
         ]);
 
+        // Release restaurant table back to available
+        if ($order->table_id && $order->table) {
+            try {
+                $order->table->update(['status' => \App\Models\RestaurantTable::STATUS_AVAILABLE]);
+            } catch (\Throwable $te) {
+                Log::warning("Failed to reset table status upon serving order #{$order->id}: {$te->getMessage()}");
+            }
+        }
+
         // Complete delivery task if active
         try {
             DeliveryTask::withoutGlobalScopes()

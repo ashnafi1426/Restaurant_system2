@@ -273,6 +273,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/orders/{id}', [OrderController::class, 'update']);
         Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
         Route::patch('/orders/{id}/status', [OrderController::class, 'changeStatus']);
+        Route::post('/orders/{id}/clear', [CashierDashboardController::class, 'clearOrder']);
     });
     // Reservations, Guests, Check-Ins, Rooms & Room Types Access (Permission & Role Driven)
     Route::middleware('role:staff')->group(function () {
@@ -699,6 +700,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/revenue-chart', [CashierDashboardController::class, 'revenueChart']);
             Route::get('/payment-method-chart', [CashierDashboardController::class, 'paymentMethodChart']);
             Route::get('/refund-requests', [CashierDashboardController::class, 'refundRequests']);
+            Route::get('/orders', [CashierDashboardController::class, 'activeOrders']);
+            Route::post('/orders/{id}/clear', [CashierDashboardController::class, 'clearOrder']);
         });
 
         // Payments Management

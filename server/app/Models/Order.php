@@ -122,6 +122,16 @@ class Order extends Model
         return $this->hasOne(RestaurantCharge::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(\App\Models\Payment::class, 'order_id');
+    }
+
+    public function payment()
+    {
+        return $this->hasOne(\App\Models\Payment::class, 'order_id')->latestOfMany();
+    }
+
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;

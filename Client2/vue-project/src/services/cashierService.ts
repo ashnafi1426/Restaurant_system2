@@ -93,6 +93,23 @@ export async function getRefundReport(filters?: ReportFilters) {
   return response.data
 }
 
+export interface CashierOrderFilters {
+  filter?: 'all' | 'paid' | 'unpaid' | 'cleared' | 'pending_clear'
+  search?: string
+}
+
+export async function getActiveOrders(filters?: CashierOrderFilters) {
+  const response = await api.get(`/cashier/dashboard/orders`, {
+    params: filters,
+  })
+  return response.data
+}
+
+export async function clearOrder(id: string, payload?: { mark_as_paid?: boolean; payment_method?: string }) {
+  const response = await api.post(`/cashier/dashboard/orders/${id}/clear`, payload || {})
+  return response.data
+}
+
 export default {
   getDashboardStats,
   getRecentPayments,
@@ -101,6 +118,8 @@ export default {
   getRevenueChart,
   getPaymentMethodChart,
   getRefundRequests,
+  getActiveOrders,
+  clearOrder,
 
   getPayments,
   getPaymentById,
