@@ -87,9 +87,15 @@ class MenuItem extends Model
 
     public function getRatingDistributionAttribute(): array
     {
+        $counts = $this->approvedReviews()
+            ->selectRaw('rating, count(*) as count')
+            ->groupBy('rating')
+            ->pluck('count', 'rating')
+            ->toArray();
+
         $distribution = [];
         for ($i = 1; $i <= 5; $i++) {
-            $distribution[$i] = $this->approvedReviews()->where('rating', $i)->count();
+            $distribution[$i] = (int) ($counts[$i] ?? 0);
         }
         return $distribution;
     }

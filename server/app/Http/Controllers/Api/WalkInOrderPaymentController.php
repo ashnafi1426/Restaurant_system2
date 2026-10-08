@@ -64,9 +64,6 @@ class WalkInOrderPaymentController extends Controller
                     ->orWhere('table_number', $validated['qr_token'])
                     ->first();
             }
-            if (!$table) {
-                $table = RestaurantTable::where('is_active', true)->first();
-            }
 
             if (!$table) {
                 return response()->json([

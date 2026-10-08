@@ -204,17 +204,6 @@ Route::prefix('guest')->group(function () {
     
     // Real-time order status tracking (NEW - WebSocket support)
     Route::get('/orders/{orderId}/realtime-status', [CustomerOrderController::class, 'getOrderStatus']);
-    
-    // Debug route to test order lookup
-    Route::get('/debug/orders/{orderId}', function($orderId) {
-        $order = \App\Models\Order::withoutGlobalScopes()->where('id', $orderId)->orWhere('order_number', $orderId)->first();
-        return response()->json([
-            'found' => !!$order,
-            'order_id' => $order?->id,
-            'hotel_id' => $order?->hotel_id,
-            'status' => $order?->status
-        ]);
-    });
 });
 
 // Broadcasting Auth Route - Required for Laravel Echo WebSocket authorization
@@ -393,39 +382,29 @@ Route::middleware('auth:sanctum')->group(function () {
            Route::post('/status', [ChefProfileController::class, 'updateStatus']);
        });
     });
-    // Route::prefix('notifications')->group(function () {
-    //     Route::get('/latest', [NotificationController::class, 'latest']);
-    //     Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
-    //     Route::put('/read-all', [NotificationController::class, 'markAllAsRead']);
-    //     Route::delete('/clear-all', [NotificationController::class, 'clearAll']);
-    //     Route::get('/', [NotificationController::class, 'index']);
-    //     Route::put('/{id}/read', [NotificationController::class, 'markAsRead']);
-    //     Route::delete('/{id}', [NotificationController::class, 'destroy']);
-    // });
-    Route::middleware('role:staff')->group(function(){
+    Route::middleware('role:staff')->group(function () {
         Route::get('/menu-items', [MenuItemController::class, 'index']);
         Route::get('/menu-items/statistics', [MenuItemController::class, 'statistics']);
         Route::get('/menu-items/{menuItem}', [MenuItemController::class, 'show']);
-        Route::get('/categories', [CategoryController::class, 'index']);
-        Route::get('/categories/{category}', [CategoryController::class, 'show']);
-    });
-    Route::middleware('role:staff')->group(function(){
         Route::post('/menu-items', [MenuItemController::class, 'store']);
         Route::put('/menu-items/{menuItem}', [MenuItemController::class, 'update']);
         Route::patch('/menu-items/{menuItem}/toggle-availability', [MenuItemController::class, 'toggleAvailability']);
         Route::delete('/menu-items/{menuItem}', [MenuItemController::class, 'destroy']);
+
+        Route::get('/categories', [CategoryController::class, 'index']);
+        Route::get('/categories/{category}', [CategoryController::class, 'show']);
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::put('/categories/{category}', [CategoryController::class, 'update']);
         Route::patch('/categories/{category}/toggle', [CategoryController::class, 'toggle']);
         Route::post('/categories/reorder', [CategoryController::class, 'reorder']);
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+
         Route::get('/tax-rates/{taxRate}', [TaxRateController::class, 'show']);
         Route::post('/tax-rates', [TaxRateController::class, 'store']);
         Route::put('/tax-rates/{taxRate}', [TaxRateController::class, 'update']);
         Route::patch('/tax-rates/{taxRate}/toggle', [TaxRateController::class, 'toggleStatus']);
         Route::delete('/tax-rates/{taxRate}', [TaxRateController::class, 'destroy']);
-    });
-    Route::middleware('role:staff')->group(function(){
+
         Route::prefix('receptionist/profile')->group(function () {
             Route::get('/', [ReceptionistProfileController::class, 'getProfile']);
             Route::put('/', [ReceptionistProfileController::class, 'updateProfile']);

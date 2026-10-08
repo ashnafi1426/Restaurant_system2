@@ -23,10 +23,9 @@ class DashboardController extends Controller
             
             if (!$user) {
                 return response()->json([
-                    'success' => true,
-                    'data' => $defaultData,
-                    'timestamp' => now()->toIso8601String(),
-                ], 200);
+                    'success' => false,
+                    'message' => 'Unauthenticated.',
+                ], 401);
             }
 
             $result = $action();
@@ -40,10 +39,11 @@ class DashboardController extends Controller
             Log::error('Manager dashboard action error', ['error' => $e->getMessage()]);
             
             return response()->json([
-                'success' => true,
+                'success' => false,
+                'message' => config('app.debug') ? $e->getMessage() : 'Failed to retrieve dashboard data',
                 'data' => $defaultData,
                 'timestamp' => now()->toIso8601String(),
-            ], 200);
+            ], 500);
         }
     }
 

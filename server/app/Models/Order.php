@@ -63,22 +63,18 @@ class Order extends Model
 
     public static function generateOrderNumber(?string $hotelId = null): string
     {
-        $prefix = 'ORD-' . now()->format('Ymd');
-        $count = static::withoutGlobalScopes()->whereDate('created_at', today())->count() + 1;
-        $orderNumber = sprintf('%s-%04d', $prefix, $count);
+        $datePrefix = 'ORD-' . now()->format('Ymd');
+        $latest = static::withoutGlobalScopes()
+            ->where('order_number', 'like', "{$datePrefix}-%")
+            ->orderByDesc('order_number')
+            ->value('order_number');
 
-        $attempts = 0;
-        while (static::withoutGlobalScopes()->where('order_number', $orderNumber)->exists() && $attempts < 1000) {
-            $count++;
-            $orderNumber = sprintf('%s-%04d', $prefix, $count);
-            $attempts++;
+        $nextSeq = 1;
+        if ($latest && preg_match('/-(\d{4})$/', $latest, $matches)) {
+            $nextSeq = ((int) $matches[1]) + 1;
         }
 
-        if ($attempts >= 1000) {
-            $orderNumber = sprintf('%s-%s-%s', $prefix, now()->format('His'), strtoupper(\Illuminate\Support\Str::random(4)));
-        }
-
-        return $orderNumber;
+        return sprintf('%s-%04d', $datePrefix, $nextSeq);
     }
 
     public function reservation()

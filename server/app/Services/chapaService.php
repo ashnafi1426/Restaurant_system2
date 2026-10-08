@@ -118,21 +118,6 @@ class ChapaService
                 'trace'   => $e->getTraceAsString(),
             ]);
 
-            if (config('app.env') === 'local' && (str_contains($e->getMessage(), 'Could not resolve host') || str_contains($e->getMessage(), 'Connection refused') || str_contains($e->getMessage(), 'cURL error'))) {
-                Log::warning(' [CHAPA MOCK] External Chapa gateway unreachable in local environment. Generating local development mock checkout URL.');
-                $returnUrl = $data['return_url'] ?? (config('chapa.return_url') . '?tx_ref=' . urlencode($data['tx_ref']));
-                return [
-                    'success' => true,
-                    'data'    => [
-                        'status'  => 'success',
-                        'message' => 'Mock Hosted Link (Local Dev Fallback)',
-                        'data'    => [
-                            'checkout_url' => $returnUrl,
-                        ],
-                    ],
-                ];
-            }
-
             return [
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -186,26 +171,9 @@ class ChapaService
 
             ]);
 
-            if (config('app.env') === 'local' && (str_contains($e->getMessage(), 'Could not resolve host') || str_contains($e->getMessage(), 'Connection refused') || str_contains($e->getMessage(), 'cURL error'))) {
-                Log::warning(' [CHAPA MOCK] External Chapa gateway unreachable during verification in local environment. Returning mock verified status.');
-                return [
-                    'success' => true,
-                    'data' => [
-                        'status' => 'success',
-                        'data' => [
-                            'status' => 'success',
-                            'tx_ref' => $txRef,
-                        ],
-                    ],
-                ];
-            }
-
             return [
-
                 'success' => false,
-
                 'message' => $e->getMessage(),
-
             ];
         }
     }
