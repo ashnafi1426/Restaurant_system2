@@ -117,6 +117,7 @@ class DeliveryWorkloadService
                 'reservation_id'  => $order->reservation_id,
                 'room_id'         => $order->room_id,
                 'floor_id'        => $floor?->id,
+                'table_id'        => $order->table_id,
                 'waiter_id'       => null,
                 'assigned_by'     => $this->resolveSystemAssignedBy(),
                 'assignment_type' => 'automatic',

@@ -18,6 +18,7 @@ class DeliveryTask extends Model
         'reservation_id',
         'room_id',
         'floor_id',
+        'table_id',
         'waiter_id',
         'assigned_by',
         'assignment_type',
@@ -49,6 +50,11 @@ class DeliveryTask extends Model
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class);
+    }
+
+    public function table(): BelongsTo
+    {
+        return $this->belongsTo(RestaurantTable::class, 'table_id');
     }
 
     public function order(): BelongsTo
