@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { MenuItem } from '@/types/menu'
-import { ShoppingCart, MessageSquare } from 'lucide-vue-next'
+import { ShoppingCart, MessageSquare, Star } from 'lucide-vue-next'
 import { useLanguageStore } from '@/stores/language'
 
 interface Props {
@@ -22,6 +22,7 @@ const languageStore = useLanguageStore()
 const emit = defineEmits<{
   (e: 'add-to-cart', quantity: number): void
   (e: 'write-review'): void
+  (e: 'view-reviews'): void
 }>()
 
 const quantity = ref(1)

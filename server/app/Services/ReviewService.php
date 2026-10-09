@@ -93,8 +93,9 @@ class ReviewService
             ]);
         }
 
-        // Instantly recalculate menu item rating stats
+        // Instantly recalculate menu item rating stats and invalidate menu caches
         $this->ratingCalculationService->recalculateForMenuItem($data['menu_item_id']);
+        MenuService::invalidateMenuCache($hotelId);
 
         $review->load('guest', 'menuItem');
 
@@ -253,8 +254,9 @@ class ReviewService
             ]);
         }
 
-        // Instantly recalculate menu item rating stats
+        // Instantly recalculate menu item rating stats and invalidate menu caches
         $this->ratingCalculationService->recalculateForMenuItem($data['menu_item_id']);
+        MenuService::invalidateMenuCache($hotelId);
 
         $review->load('guest', 'menuItem');
 
