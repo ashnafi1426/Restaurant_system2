@@ -1,9 +1,3 @@
-/**
- * ============================================================================
- * COLOR TOKEN UTILITIES & WCAG ACCESSIBILITY ENGINE
- * Mathematical color derivation, contrast calculation, and runtime injection
- * ============================================================================
- */
 
 export interface PropertyThemeTokens {
   id: string
@@ -15,10 +9,6 @@ export interface PropertyThemeTokens {
   canvasLightHex?: string
   canvasDarkHex?: string
 }
-
-/**
- * Converts a 3 or 6 digit hex code to RGB numbers
- */
 export function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const clean = hex.replace('#', '').trim()
   if (clean.length === 3) {
@@ -35,20 +25,11 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } | nul
   }
   return null
 }
-
-/**
- * Returns RGB numbers as comma-separated string for CSS variable: "233, 161, 26"
- */
 export function hexToRgbString(hex: string): string {
   const rgb = hexToRgb(hex)
   if (!rgb) return '233, 161, 26'
   return `${rgb.r}, ${rgb.g}, ${rgb.b}`
 }
-
-/**
- * WCAG 2.1 Relative Luminance Calculation
- * https://www.w3.org/WAI/GL/wiki/Relative_luminance
- */
 export function getRelativeLuminance(r: number, g: number, b: number): number {
   const [rs, gs, bs] = [r, g, b].map(val => {
     const s = val / 255
@@ -56,11 +37,6 @@ export function getRelativeLuminance(r: number, g: number, b: number): number {
   })
   return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs
 }
-
-/**
- * Derives WCAG AA/AAA compliant text color (dark ink vs pure white)
- * on top of any arbitrary background color.
- */
 export function getCompliantCtaTextColor(backgroundHex: string): {
   hex: string
   rgbString: string

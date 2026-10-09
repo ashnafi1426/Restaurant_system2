@@ -1,8 +1,3 @@
-/**
- * Error Handling Utility
- * Provides simple, consistent error extraction from Laravel API responses and network errors.
- */
-
 export function getErrorMessage(
   error: unknown,
   fallbackMessage = 'An unexpected error occurred. Please try again.'
@@ -13,14 +8,10 @@ export function getErrorMessage(
 
   if (typeof error === 'object' && error !== null) {
     const err = error as Record<string, any>
-
-    // 1. Direct message from API response (Laravel standard)
-    if (typeof err.response?.data?.message === 'string' && err.response.data.message.trim().length > 0) {
+  if (typeof err.response?.data?.message === 'string' && err.response.data.message.trim().length > 0) {
       return err.response.data.message
     }
-
-    // 2. Direct error property from API response
-    if (typeof err.response?.data?.error === 'string' && err.response.data.error.trim().length > 0) {
+   if (typeof err.response?.data?.error === 'string' && err.response.data.error.trim().length > 0) {
       return err.response.data.error
     }
 
