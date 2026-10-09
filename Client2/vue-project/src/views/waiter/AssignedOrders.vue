@@ -20,6 +20,7 @@ import {
   BedDouble,
   ShoppingBag,
   Building2,
+  UtensilsCrossed,
 } from 'lucide-vue-next'
 
 const hotelStore = useHotelStore()
@@ -54,15 +55,19 @@ const filteredAssignments = computed(() => {
       return false
     }
 
-    const hasRoom = Boolean(o.room_number || o.room?.room_number)
+    const isTable = Boolean(o.table_number || o.table?.table_number || o.is_table_order || o.order_type === 'dine_in' || o.order_type === 'walk_in')
+    const hasRoom = Boolean(o.room_number || o.room?.room_number) && !isTable && o.room_number !== 'Room Service'
+
     if (typeFilter === 'room' && !hasRoom) return false
-    if (typeFilter === 'walk_in' && hasRoom) return false
+    if (typeFilter === 'walk_in' && !isTable && hasRoom) return false
 
     if (q) {
       const ordNum = String(o.order_number || o.order_id || o.id || '').toLowerCase()
       const roomNum = String(o.room_number || o.room?.room_number || '').toLowerCase()
+      const tableNum = String(o.table_number || o.table?.table_number || '').toLowerCase()
       const guest = String(o.guest_name || o.guest?.full_name || '').toLowerCase()
-      if (!ordNum.includes(q) && !roomNum.includes(q) && !guest.includes(q)) {
+      const dest = String(o.destination || '').toLowerCase()
+      if (!ordNum.includes(q) && !roomNum.includes(q) && !tableNum.includes(q) && !guest.includes(q) && !dest.includes(q)) {
         return false
       }
     }
@@ -383,21 +388,28 @@ watch(() => hotelStore.hotelId, () => {
                     #{{ order.order_number || order.order_id || String(order.id).substring(0, 8) }}
                   </td>
 
-                  <!-- Room / Service -->
+                  <!-- Room / Service / Table -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <span
-                      v-if="order.room_number || order.room?.room_number"
-                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
+                      v-if="order.table_number || order.table?.table_number"
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-800"
                     >
-                      <BedDouble class="w-3 h-3 text-slate-400" />
+                      <UtensilsCrossed class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      {{ languageStore.t('table', 'Table') }} {{ order.table_number || order.table?.table_number }}
+                    </span>
+                    <span
+                      v-else-if="(order.room_number || order.room?.room_number) && order.room_number !== 'Room Service'"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
+                    >
+                      <BedDouble class="w-3.5 h-3.5 text-slate-400" />
                       {{ languageStore.t('room', 'Room') }} {{ order.room_number || order.room?.room_number }}
                     </span>
                     <span
                       v-else
-                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
                     >
-                      <ShoppingBag class="w-3 h-3" />
-                      {{ languageStore.t('takeout', 'Takeout') }}
+                      <ShoppingBag class="w-3.5 h-3.5" />
+                      {{ order.destination || languageStore.t('takeout', 'Takeout / Table') }}
                     </span>
                   </td>
 

@@ -57,6 +57,51 @@ class WaiterDashboardService
         Cache::forget($cacheKey);
     }
 
+    public function getWaiterAssignedTableIds($waiterId): array
+    {
+        if (!$waiterId) {
+            return [];
+        }
+
+        $hotelId = app(TenantContext::class)->getHotelId();
+        $cacheKey = $hotelId ? "waiter_table_ids:{$hotelId}:{$waiterId}" : "waiter_table_ids:{$waiterId}";
+
+        return Cache::remember($cacheKey, 60, function () use ($waiterId, $hotelId) {
+            try {
+                $query = \App\Models\WaiterTableAssignment::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
+                    ->where('waiter_id', $waiterId)
+                    ->where('status', 'active')
+                    ->where(function ($q) {
+                        $q->whereDate('assignment_date', today())
+                          ->orWhereNull('assignment_date');
+                    });
+
+                if ($hotelId) {
+                    $query->where(function ($q) use ($hotelId) {
+                        $q->where('hotel_id', $hotelId)
+                          ->orWhereNull('hotel_id');
+                    });
+                }
+
+                return $query->pluck('table_id')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->toArray();
+            } catch (\Throwable $e) {
+                \Log::error('Error resolving waiter assigned table IDs: ' . $e->getMessage());
+                return [];
+            }
+        });
+    }
+
+    public function clearWaiterTableCache($waiterId): void
+    {
+        $hotelId = app(TenantContext::class)->getHotelId();
+        $cacheKey = $hotelId ? "waiter_table_ids:{$hotelId}:{$waiterId}" : "waiter_table_ids:{$waiterId}";
+        Cache::forget($cacheKey);
+    }
+
     public function getDashboardStats($waiterId = null): array
     {
         try {
@@ -392,7 +437,8 @@ class WaiterDashboardService
 
             if (!$isAdminOrManager && $waiterId) {
                 $assignedFloorIds = $this->getWaiterAssignedFloorIds($waiterId);
-                $baseQuery->where(function ($q) use ($waiterId, $assignedFloorIds) {
+                $assignedTableIds = $this->getWaiterAssignedTableIds($waiterId);
+                $baseQuery->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds) {
                     $q->where('delivery_tasks.waiter_id', $waiterId);
                     if (!empty($assignedFloorIds)) {
                         $q->orWhere(function ($sub) use ($assignedFloorIds) {
@@ -401,6 +447,21 @@ class WaiterDashboardService
                                 ->where('delivery_tasks.status', 'waiting_assignment');
                         });
                     }
+                    if (!empty($assignedTableIds)) {
+                        $q->orWhere(function ($sub) use ($assignedTableIds) {
+                            $sub->whereNull('delivery_tasks.waiter_id')
+                                ->whereIn('delivery_tasks.table_id', $assignedTableIds)
+                                ->where('delivery_tasks.status', 'waiting_assignment');
+                        });
+                    }
+                    $q->orWhere(function ($sub) {
+                        $sub->whereNull('delivery_tasks.waiter_id')
+                            ->where('delivery_tasks.status', 'waiting_assignment')
+                            ->where(function ($tableSub) {
+                                $tableSub->whereNotNull('delivery_tasks.table_id')
+                                    ->orWhereHas('order', fn($oSub) => $oSub->whereNotNull('table_id'));
+                            });
+                    });
                 });
             }
 
@@ -408,12 +469,14 @@ class WaiterDashboardService
                 ->with([
                     'room:id,room_number,floor_id',
                     'floor:id,floor_number',
-                    'order:id,order_number,room_id,guest_id,notes,special_requests',
+                    'table:id,table_number,section',
+                    'order:id,order_number,room_id,table_id,order_type,guest_id,notes,special_requests',
+                    'order.table:id,table_number,section',
                     'order.guest:id,first_name,last_name',
                     'order.orderItems:id,order_id,quantity'
                 ])
                 ->select([
-                    'id', 'order_id', 'room_id', 'floor_id', 'status', 'assignment_type',
+                    'id', 'order_id', 'room_id', 'floor_id', 'table_id', 'status', 'assignment_type',
                     'assigned_at', 'accepted_at', 'picked_up_at', 'on_delivery_at', 
                     'delivered_at', 'remarks', 'created_at'
                 ])
@@ -429,11 +492,13 @@ class WaiterDashboardService
                     $orderNumber = $delivery->order?->order_number
                         ?? 'ORD-' . substr($delivery->id, 0, 8);
 
-                    // Use room from delivery_tasks directly (already loaded)
-                    $roomNumber = $delivery->room?->room_number ?? 'N/A';
+                    $tableNumber = $delivery->table?->table_number ?? $delivery->order?->table?->table_number ?? null;
+                    $isTableOrder = !empty($tableNumber) || !empty($delivery->table_id) || !empty($delivery->order?->table_id);
+                    $roomNumber = !$isTableOrder ? ($delivery->room?->room_number ?? 'N/A') : null;
+                    $destination = $tableNumber ? "Table {$tableNumber}" : ($roomNumber && $roomNumber !== 'N/A' ? "Room {$roomNumber}" : ($isTableOrder ? 'Table Order' : 'Room Service'));
 
                     $guest = $delivery->order?->guest;
-                    $guestName = $guest ? trim($guest->first_name . ' ' . $guest->last_name) : ($roomNumber !== 'N/A' ? 'Guest Room ' . $roomNumber : 'Guest');
+                    $guestName = $guest ? trim($guest->first_name . ' ' . $guest->last_name) : ($tableNumber ? "Table {$tableNumber} Guest" : ($roomNumber && $roomNumber !== 'N/A' ? 'Guest Room ' . $roomNumber : 'Guest'));
 
                     $itemCount = $delivery->order?->orderItems?->count() ?? 1;
 
@@ -442,6 +507,10 @@ class WaiterDashboardService
                         'order_id' => $delivery->order_id,
                         'room_id' => $delivery->room_id,
                         'room_number' => $roomNumber,
+                        'table_id' => $delivery->table_id ?? $delivery->order?->table_id,
+                        'table_number' => $tableNumber,
+                        'destination' => $destination,
+                        'order_type' => $delivery->order?->order_type ?? ($isTableOrder ? 'dine_in' : 'room_service'),
                         'floor_id' => $delivery->floor_id,
                         'floor_number' => $delivery->floor?->floor_number,
                         'guest_name' => $guestName,
@@ -608,11 +677,19 @@ class WaiterDashboardService
 
             if (!$isAdminOrManager && $waiterId) {
                 $assignedFloorIds = $this->getWaiterAssignedFloorIds($waiterId);
-                $query->where(function ($q) use ($waiterId, $assignedFloorIds) {
+                $assignedTableIds = $this->getWaiterAssignedTableIds($waiterId);
+                $query->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds) {
                     $q->whereHas('deliveryTasks', fn($dt) => $dt->where('waiter_id', $waiterId));
                     if (!empty($assignedFloorIds)) {
                         $q->orWhereHas('room', fn($rq) => $rq->whereIn('floor_id', $assignedFloorIds));
                     }
+                    if (!empty($assignedTableIds)) {
+                        $q->orWhereIn('table_id', $assignedTableIds);
+                    }
+                    $q->orWhere(function ($sub) {
+                        $sub->whereNotNull('table_id')
+                            ->whereDoesntHave('deliveryTasks', fn($dt) => $dt->whereNotNull('waiter_id'));
+                    });
                 });
             }
 
@@ -620,30 +697,43 @@ class WaiterDashboardService
                 ->with([
                     'guest:id,first_name,last_name',
                     'room:id,room_number,floor_id',
+                    'table:id,table_number,section',
                     'orderItems:id,order_id,menu_item_id,quantity,notes',
                     'orderItems.menuItem:id,name',
                 ])
                 ->orderBy('updated_at', 'asc')
                 ->limit($limit)
                 ->get()
-                ->map(fn ($order) => [
-                    'id' => $order->id,
-                    'order_number' => $order->order_number,
-                    'room_number' => $order->room?->room_number ?? 'Room Service',
-                    'guest_name' => ($order->guest ? $order->guest->first_name . ' ' . $order->guest->last_name : 'Guest'),
-                    'items' => $order->orderItems?->count() ?? 0,
-                    'special_requests' => $order->notes ?? $order->special_requests ?? 'None',
-                    'priority' => $order->priority ?? 'normal',
-                    'prepared_by' => 'Kitchen',
-                    'ready_at' => $order->updated_at?->format('Y-m-d H:i:s'),
-                    'wait_time_minutes' => $order->updated_at ? $order->updated_at->diffInMinutes(now()) : 0,
-                    'total' => $order->total,
-                    'items_detail' => $order->orderItems?->map(fn ($item) => [
-                        'name' => $item->menuItem?->name ?? 'Unknown Item',
-                        'quantity' => $item->quantity,
-                        'notes' => $item->notes ?? 'None',
-                    ])->toArray() ?? [],
-                ])
+                ->map(function ($order) {
+                    $tableNumber = $order->table?->table_number ?? null;
+                    $isTableOrder = !empty($tableNumber) || !empty($order->table_id) || in_array($order->order_type, ['dine_in', 'walk_in']);
+                    $roomNumber = !$isTableOrder ? ($order->room?->room_number ?? null) : null;
+                    $destination = $tableNumber ? "Table {$tableNumber}" : ($roomNumber ? "Room {$roomNumber}" : ($isTableOrder ? 'Table Order' : 'Room Service'));
+
+                    return [
+                        'id' => $order->id,
+                        'order_number' => $order->order_number,
+                        'order_type' => $order->order_type ?? ($isTableOrder ? 'dine_in' : 'room_service'),
+                        'is_table_order' => $isTableOrder,
+                        'room_number' => $roomNumber,
+                        'table_number' => $tableNumber,
+                        'table_section' => $order->table?->section ?? null,
+                        'destination' => $destination,
+                        'guest_name' => ($order->guest ? $order->guest->first_name . ' ' . $order->guest->last_name : ($tableNumber ? "Table {$tableNumber} Guest" : 'Guest')),
+                        'items' => $order->orderItems?->count() ?? 0,
+                        'special_requests' => $order->notes ?? $order->special_requests ?? 'None',
+                        'priority' => $order->priority ?? 'normal',
+                        'prepared_by' => 'Kitchen',
+                        'ready_at' => $order->updated_at?->format('Y-m-d H:i:s'),
+                        'wait_time_minutes' => $order->updated_at ? $order->updated_at->diffInMinutes(now()) : 0,
+                        'total' => $order->total,
+                        'items_detail' => $order->orderItems?->map(fn ($item) => [
+                            'name' => $item->menuItem?->name ?? 'Unknown Item',
+                            'quantity' => $item->quantity,
+                            'notes' => $item->notes ?? 'None',
+                        ])->toArray() ?? [],
+                    ];
+                })
                 ->toArray();
         } catch (\Throwable $e) {
             \Log::error('All kitchen ready orders error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
@@ -657,6 +747,7 @@ class WaiterDashboardService
             $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
             $assignedFloorIds = (!$isAdminOrManager && $waiterId) ? $this->getWaiterAssignedFloorIds($waiterId) : [];
+            $assignedTableIds = (!$isAdminOrManager && $waiterId) ? $this->getWaiterAssignedTableIds($waiterId) : [];
 
             $tasksQuery = DeliveryTask::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['assigned', 'waiting_assignment', 'accepted']);
@@ -669,7 +760,7 @@ class WaiterDashboardService
             }
 
             if (!$isAdminOrManager && $waiterId) {
-                $tasksQuery->where(function ($q) use ($waiterId, $assignedFloorIds) {
+                $tasksQuery->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds) {
                     $q->where('delivery_tasks.waiter_id', $waiterId);
                     if (!empty($assignedFloorIds)) {
                         $q->orWhere(function ($sub) use ($assignedFloorIds) {
@@ -677,17 +768,32 @@ class WaiterDashboardService
                                 ->whereIn('delivery_tasks.floor_id', $assignedFloorIds);
                         });
                     }
+                    if (!empty($assignedTableIds)) {
+                        $q->orWhere(function ($sub) use ($assignedTableIds) {
+                            $sub->whereNull('delivery_tasks.waiter_id')
+                                ->whereIn('delivery_tasks.table_id', $assignedTableIds);
+                        });
+                    }
+                    $q->orWhere(function ($sub) {
+                        $sub->whereNull('delivery_tasks.waiter_id')
+                            ->where(function ($tableSub) {
+                                $tableSub->whereNotNull('delivery_tasks.table_id')
+                                    ->orWhereHas('order', fn($oSub) => $oSub->whereNotNull('table_id'));
+                            });
+                    });
                 });
             }
 
             $tasks = $tasksQuery->with([
-                'order:id,order_number,room_id,guest_id,status,notes,special_requests,updated_at',
+                'order:id,order_number,room_id,table_id,order_type,guest_id,status,notes,special_requests,total,updated_at',
                 'order.guest:id,first_name,last_name',
                 'order.room:id,room_number',
+                'order.table:id,table_number,section',
                 'order.orderItems:id,order_id,menu_item_id,quantity,notes',
                 'order.orderItems.menuItem:id,name',
                 'floor:id,floor_number',
-                'room:id,room_number'
+                'room:id,room_number',
+                'table:id,table_number,section',
             ])
             ->whereHas('order', function ($q) {
                 $q->whereIn('status', ['ready', 'pending', 'preparing']);
@@ -701,17 +807,39 @@ class WaiterDashboardService
                 $order = $task->order;
                 if (!$order) continue;
 
-                $roomNumber = $task->room?->room_number 
-                    ?? $order->room?->room_number 
-                    ?? 'Room Service';
+                $tableNumber = $task->table?->table_number ?? $order->table?->table_number ?? null;
+                $tableSection = $task->table?->section ?? $order->table?->section ?? null;
+                $isTableOrder = !empty($tableNumber) || !empty($task->table_id) || !empty($order->table_id) || in_array($order->order_type, ['dine_in', 'walk_in']);
 
-                $guestName = $order->guest ? trim($order->guest->first_name . ' ' . $order->guest->last_name) : 'Guest';
+                $roomNumber = !$isTableOrder 
+                    ? ($task->room?->room_number ?? $order->room?->room_number ?? null)
+                    : null;
+
+                $destination = $tableNumber 
+                    ? "Table {$tableNumber}" 
+                    : ($roomNumber ? "Room {$roomNumber}" : ($isTableOrder ? 'Table Order' : 'Room Service'));
+
+                $guestName = $order->guest ? trim($order->guest->first_name . ' ' . $order->guest->last_name) : ($tableNumber ? "Table {$tableNumber} Guest" : 'Guest');
 
                 $results[] = [
                     'id' => $task->id,
                     'order_id' => $order->id,
                     'order_number' => $order->order_number ?? 'ORD-' . substr($order->id, 0, 8),
+                    'order_type' => $order->order_type ?? ($isTableOrder ? 'dine_in' : 'room_service'),
+                    'is_table_order' => $isTableOrder,
                     'room_number' => $roomNumber,
+                    'table_number' => $tableNumber,
+                    'table_section' => $tableSection,
+                    'destination' => $destination,
+                    'table' => $task->table ? [
+                        'id' => $task->table->id,
+                        'table_number' => $task->table->table_number,
+                        'section' => $task->table->section,
+                    ] : ($order->table ? [
+                        'id' => $order->table->id,
+                        'table_number' => $order->table->table_number,
+                        'section' => $order->table->section,
+                    ] : null),
                     'guest_name' => $guestName,
                     'items' => $order->orderItems?->count() ?? 0,
                     'assigned_at' => ($task->assigned_at ?? $task->created_at ?? now())->format('Y-m-d H:i:s'),
@@ -740,6 +868,7 @@ class WaiterDashboardService
             $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
             $assignedFloorIds = (!$isAdminOrManager && $waiterId) ? $this->getWaiterAssignedFloorIds($waiterId) : [];
+            $assignedTableIds = (!$isAdminOrManager && $waiterId) ? $this->getWaiterAssignedTableIds($waiterId) : [];
 
             $query = DeliveryTask::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['assigned', 'waiting_assignment']);
@@ -752,7 +881,7 @@ class WaiterDashboardService
             }
 
             if (!$isAdminOrManager && $waiterId) {
-                $query->where(function ($q) use ($waiterId, $assignedFloorIds) {
+                $query->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds) {
                     $q->where('delivery_tasks.waiter_id', $waiterId);
                     if (!empty($assignedFloorIds)) {
                         $q->orWhere(function ($sub) use ($assignedFloorIds) {
@@ -760,16 +889,31 @@ class WaiterDashboardService
                                 ->whereIn('delivery_tasks.floor_id', $assignedFloorIds);
                         });
                     }
+                    if (!empty($assignedTableIds)) {
+                        $q->orWhere(function ($sub) use ($assignedTableIds) {
+                            $sub->whereNull('delivery_tasks.waiter_id')
+                                ->whereIn('delivery_tasks.table_id', $assignedTableIds);
+                        });
+                    }
+                    $q->orWhere(function ($sub) {
+                        $sub->whereNull('delivery_tasks.waiter_id')
+                            ->where(function ($tableSub) {
+                                $tableSub->whereNotNull('delivery_tasks.table_id')
+                                    ->orWhereHas('order', fn($oSub) => $oSub->whereNotNull('table_id'));
+                            });
+                    });
                 });
             }
 
             $assignments = $query
                 ->with([
-                    'order:id,order_number,room_id,guest_id,status,special_requests',
+                    'order:id,order_number,room_id,table_id,order_type,guest_id,status,special_requests',
                     'order.guest:id,first_name,last_name',
                     'order.room:id,room_number',
+                    'order.table:id,table_number,section',
                     'order.orderItems:id,order_id,menu_item_id,quantity,notes',
                     'order.orderItems.menuItem:id,name',
+                    'table:id,table_number,section',
                     'assignedBy:id,first_name,last_name'
                 ])
                 ->whereHas('order', fn($q) => $q->whereIn('status', ['preparing', 'ready']))
@@ -777,25 +921,36 @@ class WaiterDashboardService
                 ->limit($limit)
                 ->get();
 
-            return $assignments->map(fn ($assignment) => [
-                'id' => $assignment->id,
-                'order_id' => $assignment->order_id,
-                'order_number' => $assignment->order?->order_number ?? (is_numeric($assignment->order_id) ? 'ORD-' . $assignment->order_id : substr($assignment->id, 0, 8)),
-                'room_number' => $assignment->order?->room?->room_number ?? 'N/A',
-                'guest_name' => ($assignment->order?->guest ? $assignment->order->guest->first_name . ' ' . $assignment->order->guest->last_name : 'Guest'),
-                'items' => $assignment->order?->orderItems?->count() ?? 0,
-                'priority' => $assignment->order?->priority ?? 'normal',
-                'assigned_at' => $assignment->assigned_at?->format('Y-m-d H:i:s') ?? now()->format('Y-m-d H:i:s'),
-                'order_status' => $assignment->order?->status,
-                'is_ready' => $assignment->order?->status === 'ready',
-                'assigned_by_name' => ($assignment->assignedBy ? $assignment->assignedBy->first_name . ' ' . $assignment->assignedBy->last_name : 'System'),
-                'items_detail' => $assignment->order?->orderItems?->map(fn ($item) => [
-                    'name' => $item->menuItem?->name ?? 'Unknown Item',
-                    'quantity' => $item->quantity,
-                    'notes' => $item->notes ?? 'None',
-                ])->toArray() ?? [],
-                'special_requests' => $assignment->order?->special_requests ?? 'None',
-            ])->toArray();
+            return $assignments->map(function ($assignment) {
+                $tableNumber = $assignment->table?->table_number ?? $assignment->order?->table?->table_number ?? null;
+                $isTableOrder = !empty($tableNumber) || !empty($assignment->table_id) || !empty($assignment->order?->table_id);
+                $roomNumber = !$isTableOrder ? ($assignment->order?->room?->room_number ?? 'N/A') : null;
+                $destination = $tableNumber ? "Table {$tableNumber}" : ($roomNumber && $roomNumber !== 'N/A' ? "Room {$roomNumber}" : ($isTableOrder ? 'Table Order' : 'Room Service'));
+
+                return [
+                    'id' => $assignment->id,
+                    'order_id' => $assignment->order_id,
+                    'order_number' => $assignment->order?->order_number ?? (is_numeric($assignment->order_id) ? 'ORD-' . $assignment->order_id : substr($assignment->id, 0, 8)),
+                    'order_type' => $assignment->order?->order_type ?? ($isTableOrder ? 'dine_in' : 'room_service'),
+                    'is_table_order' => $isTableOrder,
+                    'room_number' => $roomNumber,
+                    'table_number' => $tableNumber,
+                    'destination' => $destination,
+                    'guest_name' => ($assignment->order?->guest ? $assignment->order->guest->first_name . ' ' . $assignment->order->guest->last_name : ($tableNumber ? "Table {$tableNumber} Guest" : 'Guest')),
+                    'items' => $assignment->order?->orderItems?->count() ?? 0,
+                    'priority' => $assignment->order?->priority ?? 'normal',
+                    'assigned_at' => $assignment->assigned_at?->format('Y-m-d H:i:s') ?? now()->format('Y-m-d H:i:s'),
+                    'order_status' => $assignment->order?->status,
+                    'is_ready' => $assignment->order?->status === 'ready',
+                    'assigned_by_name' => ($assignment->assignedBy ? $assignment->assignedBy->first_name . ' ' . $assignment->assignedBy->last_name : 'System'),
+                    'items_detail' => $assignment->order?->orderItems?->map(fn ($item) => [
+                        'name' => $item->menuItem?->name ?? 'Unknown Item',
+                        'quantity' => $item->quantity,
+                        'notes' => $item->notes ?? 'None',
+                    ])->toArray() ?? [],
+                    'special_requests' => $assignment->order?->special_requests ?? 'None',
+                ];
+            })->toArray();
         } catch (\Throwable $e) {
             \Log::error(' Pending pickup orders error', [
                 'error' => $e->getMessage(),
@@ -830,24 +985,35 @@ class WaiterDashboardService
 
             $tasks = $baseQuery
                 ->with([
-                    'order:id,order_number,priority,special_requests',
+                    'order:id,order_number,room_id,table_id,order_type,priority,special_requests',
                     'order.guest:id,first_name,last_name',
                     'order.room:id,room_number',
+                    'order.table:id,table_number,section',
+                    'table:id,table_number,section',
                 ])
                 ->select([
-                    'id', 'order_id', 'status', 'picked_up_at', 'on_delivery_at', 'created_at'
+                    'id', 'order_id', 'room_id', 'table_id', 'status', 'picked_up_at', 'on_delivery_at', 'created_at'
                 ])
                 ->orderBy('created_at', 'asc')
                 ->limit($limit)
                 ->get();
             
             return $tasks->map(function ($assignment) {
+                $tableNumber = $assignment->table?->table_number ?? $assignment->order?->table?->table_number ?? null;
+                $isTableOrder = !empty($tableNumber) || !empty($assignment->table_id) || !empty($assignment->order?->table_id);
+                $roomNumber = !$isTableOrder ? ($assignment->order?->room?->room_number ?? null) : null;
+                $destination = $tableNumber ? "Table {$tableNumber}" : ($roomNumber ? "Room {$roomNumber}" : ($isTableOrder ? 'Table Order' : 'Room Service'));
+
                 return [
                     'id' => $assignment->id,
                     'order_id' => $assignment->order_id,
                     'order_number' => $assignment->order?->order_number,
-                    'room_number' => $assignment->order?->room?->room_number,
-                    'guest_name' => ($assignment->order?->guest ? $assignment->order->guest->first_name . ' ' . $assignment->order->guest->last_name : 'N/A'),
+                    'order_type' => $assignment->order?->order_type ?? ($isTableOrder ? 'dine_in' : 'room_service'),
+                    'is_table_order' => $isTableOrder,
+                    'room_number' => $roomNumber,
+                    'table_number' => $tableNumber,
+                    'destination' => $destination,
+                    'guest_name' => ($assignment->order?->guest ? $assignment->order->guest->first_name . ' ' . $assignment->order->guest->last_name : ($tableNumber ? "Table {$tableNumber} Guest" : 'N/A')),
                     'priority' => $assignment->order?->priority ?? 'normal',
                     'picked_up_at' => $assignment->picked_up_at?->format('Y-m-d H:i:s'),
                     'on_delivery_at' => $assignment->on_delivery_at?->format('Y-m-d H:i:s'),

@@ -461,6 +461,7 @@ class WaiterAssignmentService
                     'order_id' => $order->id,
                     'room_id' => $order->room_id,
                     'floor_id' => $floorId,
+                    'table_id' => $order->table_id,
                     'waiter_id' => $waiterId,
                     'status' => 'assigned',
                     'assigned_at' => now(),
@@ -470,7 +471,11 @@ class WaiterAssignmentService
             }
         }
 
-        if ($task->waiter_id && (int) $task->waiter_id !== (int) $waiterId && !$isAdminOrManager) {
+        if (!$task->table_id && $task->order?->table_id) {
+            $task->table_id = $task->order->table_id;
+        }
+
+        if ($task->waiter_id && (int) $task->waiter_id !== (int) $waiterId && !$isAdminOrManager && $task->status !== 'waiting_assignment') {
             throw new \Exception("This delivery task is assigned to another waiter");
         }
 
@@ -485,7 +490,7 @@ class WaiterAssignmentService
             if ($task->order) {
                 $task->order->update(['status' => 'on_delivery']);
             }
-            return DeliveryTask::with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy'])->find($task->id);
+            return DeliveryTask::with(['order.guest', 'order.orderItems', 'order.room', 'order.table', 'waiter.user', 'floor', 'table', 'assignedBy'])->find($task->id);
         } catch (\Exception $e) {
             \Log::error(' [SERVICE] Error in pickup workflow', [
                 'task_id' => $task->id,

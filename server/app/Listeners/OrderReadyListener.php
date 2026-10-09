@@ -53,64 +53,10 @@ class OrderReadyListener implements ShouldQueue
                 'guest_id' => $order->guest_id,
             ]);
 
-            if ($order->order_type === 'walk_in' && $order->table_id) {
-                Log::info('🟡 [LISTENER] Walk-in order detected - checking table assignment', [
-                    'order_id' => $order->id,
-                    'table_id' => $order->table_id,
-                ]);
-
-                $currentShift = HotelShift::getCurrentShift();
-                
-                if ($currentShift) {
-                    Log::info('🟡 [LISTENER] Current shift found', [
-                        'shift_id' => $currentShift->id,
-                        'shift_name' => $currentShift->name,
-                    ]);
-
-                    $assignment = WaiterTableAssignment::getAssignedWaiter(
-                        $order->table_id,
-                        $currentShift->id,
-                        today()
-                    );
-
-                    if ($assignment && $assignment->waiter) {
-                        Log::info(' [LISTENER] Found waiter assigned to table', [
-                            'assignment_id' => $assignment->id,
-                            'waiter_id' => $assignment->waiter_id,
-                            'waiter_name' => $assignment->waiter->user->name ?? 'Unknown',
-                            'priority' => $assignment->priority,
-                        ]);
-
-                        $deliveryTask = DeliveryTask::create([
-                            'order_id' => $order->id,
-                            'waiter_id' => $assignment->waiter_id,
-                            'table_id' => $order->table_id,
-                            'status' => 'pending',
-                            'assigned_at' => now(),
-                        ]);
-
-                        Log::info(' [LISTENER] Delivery task created for walk-in order', [
-                            'delivery_task_id' => $deliveryTask->id,
-                            'waiter_id' => $assignment->waiter_id,
-                            'table_id' => $order->table_id,
-                        ]);
-
-                        return;
-                    } else {
-                        Log::warning(' [LISTENER] No waiter assigned to this table', [
-                            'table_id' => $order->table_id,
-                            'shift_id' => $currentShift->id,
-                            'date' => today()->toDateString(),
-                        ]);
-                    }
-                } else {
-                    Log::warning(' [LISTENER] No active shift found at current time');
-                }
-            }
-
-            Log::info('🟢 [LISTENER] Using automatic waiter assignment', [
+            Log::info('🟢 [LISTENER] Using automatic waiter assignment for ready order', [
                 'order_id' => $order->id,
                 'order_type' => $order->order_type,
+                'table_id' => $order->table_id,
             ]);
 
             $assignmentService = app(AutomaticWaiterAssignmentService::class);

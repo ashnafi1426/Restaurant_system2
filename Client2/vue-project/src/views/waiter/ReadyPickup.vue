@@ -20,16 +20,23 @@ import {
   ShoppingBag,
   PackageCheck,
   Building2,
+  UtensilsCrossed,
 } from 'lucide-vue-next'
 
 interface ReadyOrder {
   id: string | number
   order_number?: string
   order_id?: string
+  order_type?: string
+  is_table_order?: boolean
   guest_name?: string
   guest?: { full_name?: string }
   room_number?: string | number
   room?: { room_number?: string | number }
+  table_number?: string | number
+  table_section?: string
+  table?: { id?: string; table_number?: string | number; section?: string }
+  destination?: string
   items?: number | any[]
   special_requests?: string
 }
@@ -48,7 +55,18 @@ const isFullscreen = ref(false)
 const searchQuery = ref('')
 const selectedType = ref('all')
 
-const getOrderRoomNumber = (order: ReadyOrder) => order.room_number || order.room?.room_number
+const getOrderTableNumber = (order: ReadyOrder) => order.table_number || order.table?.table_number
+const getOrderRoomNumber = (order: ReadyOrder) => {
+  if (order.room_number && order.room_number !== 'Room Service') return order.room_number
+  if (order.room?.room_number && order.room.room_number !== 'Room Service') return order.room.room_number
+  return null
+}
+const isTableOrder = (order: ReadyOrder) => {
+  return Boolean(getOrderTableNumber(order)) || 
+    Boolean(order.is_table_order) || 
+    order.order_type === 'dine_in' || 
+    order.order_type === 'walk_in'
+}
 const getOrderGuestName = (order: ReadyOrder) => order.guest_name || order.guest?.full_name || languageStore.t('guest', 'Guest')
 const getOrderReference = (order: ReadyOrder) => order.order_number || order.order_id || String(order.id).substring(0, 8)
 const getOrderItemsCount = (order: ReadyOrder) => {
@@ -65,16 +83,20 @@ const filteredOrders = computed(() => {
   if (typeFilter === 'all' && !query) return list
 
   return list.filter((order) => {
-    const hasRoom = Boolean(getOrderRoomNumber(order))
+    const isTable = isTableOrder(order)
+    const hasRoom = Boolean(getOrderRoomNumber(order)) && !isTable
+
     if (typeFilter === 'room' && !hasRoom) return false
-    if (typeFilter === 'walk_in' && hasRoom) return false
+    if (typeFilter === 'walk_in' && !isTable && hasRoom) return false
 
     if (query) {
       const orderRef = String(getOrderReference(order)).toLowerCase()
       const roomNum = String(getOrderRoomNumber(order) || '').toLowerCase()
+      const tableNum = String(getOrderTableNumber(order) || '').toLowerCase()
       const guestName = String(getOrderGuestName(order)).toLowerCase()
+      const dest = String(order.destination || '').toLowerCase()
 
-      if (!orderRef.includes(query) && !roomNum.includes(query) && !guestName.includes(query)) {
+      if (!orderRef.includes(query) && !roomNum.includes(query) && !tableNum.includes(query) && !guestName.includes(query) && !dest.includes(query)) {
         return false
       }
     }
@@ -335,18 +357,26 @@ watch(() => hotelStore.hotelId, loadOrders)
 
                   <td class="py-3 px-4 whitespace-nowrap">
                     <span
-                      v-if="getOrderRoomNumber(order)"
-                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
+                      v-if="getOrderTableNumber(order)"
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-800 shadow-xs"
+                    >
+                      <UtensilsCrossed class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      {{ languageStore.t('table', 'Table') }} {{ getOrderTableNumber(order) }}
+                      <span v-if="order.table_section" class="text-[10px] font-normal opacity-80">({{ order.table_section }})</span>
+                    </span>
+                    <span
+                      v-else-if="getOrderRoomNumber(order)"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
                     >
                       <BedDouble class="w-3 h-3 text-slate-400" />
                       {{ languageStore.t('room', 'Room') }} {{ getOrderRoomNumber(order) }}
                     </span>
                     <span
                       v-else
-                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
                     >
                       <ShoppingBag class="w-3 h-3" />
-                      {{ languageStore.t('takeout', 'Takeout') }}
+                      {{ order.destination || languageStore.t('takeout', 'Takeout / Table') }}
                     </span>
                   </td>
 
@@ -407,7 +437,17 @@ watch(() => hotelStore.hotelId, loadOrders)
               </div>
               <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
                 <span>{{ getOrderGuestName(order) }}</span>
-                <span>{{ languageStore.t('room', 'Room') }} {{ getOrderRoomNumber(order) || 'N/A' }}</span>
+                <span v-if="getOrderTableNumber(order)" class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                  <UtensilsCrossed class="w-3 h-3" />
+                  {{ languageStore.t('table', 'Table') }} {{ getOrderTableNumber(order) }}
+                </span>
+                <span v-else-if="getOrderRoomNumber(order)" class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                  <BedDouble class="w-3 h-3" />
+                  {{ languageStore.t('room', 'Room') }} {{ getOrderRoomNumber(order) }}
+                </span>
+                <span v-else class="text-amber-600 dark:text-amber-400">
+                  {{ order.destination || 'Takeout / Table' }}
+                </span>
               </div>
             </div>
             <div v-if="paginatedOrders.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">
