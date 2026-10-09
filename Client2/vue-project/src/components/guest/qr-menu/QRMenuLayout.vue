@@ -201,6 +201,7 @@
             @add-to-cart="handleAddToCart"
             @toggle-favorite="handleToggleFavorite"
             @write-review="handleWriteReview"
+            @view-reviews="handleViewReviews"
           />
         </div>
 
@@ -323,16 +324,73 @@
       @success="handleReviewSuccess"
       @error="handleReviewError"
     />
+
+    <!-- View Reviews Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="showViewReviewsModal && selectedMenuItemForReview"
+          class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
+          @click.self="showViewReviewsModal = false"
+        >
+          <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-xl w-full max-h-[85vh] overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col">
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-900 z-10">
+              <div class="flex items-center gap-3">
+                <img
+                  v-if="selectedMenuItemForReview.image"
+                  :src="selectedMenuItemForReview.image"
+                  :alt="selectedMenuItemForReview.name"
+                  class="w-12 h-12 rounded-xl object-cover"
+                />
+                <div>
+                  <h3 class="font-bold text-base text-slate-900 dark:text-white">{{ selectedMenuItemForReview.name }}</h3>
+                  <p class="text-xs text-slate-500">{{ languageStore.t('customer_reviews', 'Customer Ratings & Reviews') }}</p>
+                </div>
+              </div>
+              <button
+                @click="showViewReviewsModal = false"
+                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-lg text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <!-- Reviews Content -->
+            <div class="p-4 sm:p-6 flex-1 overflow-y-auto">
+              <PublicReviewsList :menu-item-id="String(selectedMenuItemForReview.id)" />
+            </div>
+
+            <!-- Footer Action -->
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex gap-3">
+              <button
+                @click="showViewReviewsModal = false"
+                class="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs sm:text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition text-center"
+              >
+                {{ languageStore.t('close', 'Close') }}
+              </button>
+              <button
+                @click="showViewReviewsModal = false; showReviewModal = true"
+                class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs sm:text-sm shadow hover:shadow-md transition text-center"
+              >
+                ⭐ {{ languageStore.t('write_review', 'Write Review') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Utensils, Truck, ShieldCheck, Clock, ChevronRight } from 'lucide-vue-next'
 import GuestNavbar from './GuestNavbar.vue'
 import CategorySidebar from './CategorySidebar.vue'
 import MenuSearch from './MenuSearch.vue'
 import GuestReviewModal from '../GuestReviewModal.vue'
+import PublicReviewsList from '@/components/reviews/PublicReviewsList.vue'
 import MenuGrid from './MenuGrid.vue'
 import { useLanguageStore } from '@/stores/language'
 import api from '@/api/auth'
@@ -613,7 +671,9 @@ const loadMenuItems = async (forceRefresh = false) => {
               tax_included: item.tax_included,
               image: item.image || '/images/placeholder.png',
               category: categoryName || parseCategoryName(item),
-              rating: item.rating || 4.5,
+              rating: item.average_rating != null ? Number(item.average_rating) : (item.rating != null ? Number(item.rating) : null),
+              average_rating: item.average_rating != null ? Number(item.average_rating) : (item.rating != null ? Number(item.rating) : null),
+              review_count: item.review_count != null ? Number(item.review_count) : 0,
               is_available: item.is_available !== false,
             }
           })
@@ -634,7 +694,9 @@ const loadMenuItems = async (forceRefresh = false) => {
             tax_included: item.tax_included,
             image: item.image || '/images/placeholder.png',
             category: parseCategoryName(item),
-            rating: item.rating || 4.5,
+            rating: item.average_rating != null ? Number(item.average_rating) : (item.rating != null ? Number(item.rating) : null),
+            average_rating: item.average_rating != null ? Number(item.average_rating) : (item.rating != null ? Number(item.rating) : null),
+            review_count: item.review_count != null ? Number(item.review_count) : 0,
             is_available: item.is_available !== false,
           }
         })
@@ -655,7 +717,9 @@ const loadMenuItems = async (forceRefresh = false) => {
           tax_included: item.tax_included,
           image: item.image || '/images/placeholder.png',
           category: parseCategoryName(item),
-          rating: item.rating || 4.5,
+          rating: item.average_rating != null ? Number(item.average_rating) : (item.rating != null ? Number(item.rating) : null),
+          average_rating: item.average_rating != null ? Number(item.average_rating) : (item.rating != null ? Number(item.rating) : null),
+          review_count: item.review_count != null ? Number(item.review_count) : 0,
           is_available: item.is_available !== false,
         }
       })
@@ -886,14 +950,22 @@ const handleViewCart = () => {
   emit('view-cart', cartItems.value)
 }
 
+const showViewReviewsModal = ref(false)
+
 const handleWriteReview = (item: MenuItem) => {
   selectedMenuItemForReview.value = item
   showReviewModal.value = true
 }
 
+const handleViewReviews = (item: MenuItem) => {
+  selectedMenuItemForReview.value = item
+  showViewReviewsModal.value = true
+}
+
 const handleReviewSuccess = (_message: string) => {
   showReviewModal.value = false
   window.dispatchEvent(new Event('review-stats-updated'))
+  loadMenuItems(true)
 }
 
 const handleReviewError = (_message: string) => {}
@@ -929,13 +1001,23 @@ watch(
   },
 )
 
+const handleReviewStatsUpdated = () => {
+  loadMenuItems(true)
+}
+
 onMounted(() => {
   const hasCached = loadFromClientCache()
   if (hasCached) {
     isLoadingMenu.value = false
   }
   loadCategories(false)
-  loadMenuItems(false)
+  loadMenuItems(true)
+
+  window.addEventListener('review-stats-updated', handleReviewStatsUpdated)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('review-stats-updated', handleReviewStatsUpdated)
 })
 
 defineExpose({

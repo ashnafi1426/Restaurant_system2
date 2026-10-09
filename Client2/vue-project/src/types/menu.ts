@@ -17,6 +17,9 @@ export interface MenuItem {
   formatted_total_price?: string
   category: string
   is_available: boolean
+  rating?: number | null
+  average_rating?: number | null
+  review_count?: number
   tax_rate_id?: string | null
   tax_included?: boolean
   tax_rate?: {
