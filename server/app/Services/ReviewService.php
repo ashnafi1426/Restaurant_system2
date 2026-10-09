@@ -5,8 +5,7 @@ namespace App\Services;
 use App\Models\MenuItemReview;
 use App\Models\Guest;
 use App\Models\MenuItem;
-use App\Exceptions\PurchaseNotVerifiedException;
-use App\Exceptions\DuplicateReviewException;
+use App\Models\Order;
 use App\Exceptions\ReviewNotModifiableException;
 use App\Exceptions\UnauthorizedReviewAccessException;
 use Illuminate\Support\Facades\DB;
@@ -15,13 +14,16 @@ class ReviewService
 {
     protected PurchaseVerificationService $purchaseVerificationService;
     protected NotificationService $notificationService;
+    protected RatingCalculationService $ratingCalculationService;
 
     public function __construct(
         PurchaseVerificationService $purchaseVerificationService,
-        NotificationService $notificationService
+        NotificationService $notificationService,
+        RatingCalculationService $ratingCalculationService
     ) {
         $this->purchaseVerificationService = $purchaseVerificationService;
         $this->notificationService = $notificationService;
+        $this->ratingCalculationService = $ratingCalculationService;
     }
 
     public function createReview(array $data): MenuItemReview
@@ -30,30 +32,78 @@ class ReviewService
             throw new \InvalidArgumentException('Rating must be between 1 and 5');
         }
 
-        $this->purchaseVerificationService->verifyPurchase(
-            $data['guest_id'],
-            $data['menu_item_id'],
-            $data['order_id']
-        );
+        $menuItem = MenuItem::findOrFail($data['menu_item_id']);
+        $hotelId = $menuItem->hotel_id ?? app(TenantContext::class)->getHotelId();
 
-        $this->purchaseVerificationService->checkDuplicateReview(
-            $data['guest_id'],
-            $data['menu_item_id'],
-            $data['order_id']
-        );
+        $guestId = $data['guest_id'] ?? null;
+        if (!$guestId && auth()->check()) {
+            $user = auth()->user();
+            $guest = Guest::where('email', $user->email)->first();
+            if (!$guest) {
+                $nameParts = explode(' ', $user->name ?? 'Guest', 2);
+                $guest = Guest::create([
+                    'hotel_id' => $hotelId,
+                    'first_name' => $nameParts[0] ?? 'Guest',
+                    'last_name' => $nameParts[1] ?? '',
+                    'email' => $user->email,
+                    'phone' => $user->phone ?? '',
+                ]);
+            }
+            $guestId = $guest->id;
+        }
 
-        $review = MenuItemReview::create([
-            'guest_id' => $data['guest_id'],
-            'order_id' => $data['order_id'],
-            'menu_item_id' => $data['menu_item_id'],
-            'rating' => $data['rating'],
-            'review_text' => $data['review_text'] ?? null,
-            'status' => MenuItemReview::STATUS_PENDING,
-        ]);
+        if (!$guestId) {
+            $guest = Guest::create([
+                'hotel_id' => $hotelId,
+                'first_name' => 'Guest',
+                'last_name' => '',
+                'email' => 'guest_' . substr(uniqid(), -6) . '@guest.local',
+            ]);
+            $guestId = $guest->id;
+        }
+
+        $orderId = null;
+        if (!empty($data['order_id']) && Order::where('id', $data['order_id'])->exists()) {
+            $orderId = $data['order_id'];
+        }
+
+        // Real-world rating system: if review exists from this guest for this item, update it; otherwise create it.
+        $review = MenuItemReview::where('guest_id', $guestId)
+            ->where('menu_item_id', $data['menu_item_id'])
+            ->first();
+
+        if ($review) {
+            $review->update([
+                'order_id' => $orderId ?? $review->order_id,
+                'rating' => $data['rating'],
+                'review_text' => $data['review_text'] ?? $review->review_text,
+                'status' => MenuItemReview::STATUS_APPROVED,
+                'approved_at' => now(),
+            ]);
+        } else {
+            $review = MenuItemReview::create([
+                'hotel_id' => $hotelId,
+                'guest_id' => $guestId,
+                'order_id' => $orderId,
+                'menu_item_id' => $data['menu_item_id'],
+                'rating' => $data['rating'],
+                'review_text' => $data['review_text'] ?? null,
+                'status' => MenuItemReview::STATUS_APPROVED,
+                'approved_at' => now(),
+            ]);
+        }
+
+        // Instantly recalculate menu item rating stats
+        $this->ratingCalculationService->recalculateForMenuItem($data['menu_item_id']);
 
         $review->load('guest', 'menuItem');
 
-        $this->notificationService->notifyModeratorsOfNewReview($review);
+        // Optional notification
+        try {
+            $this->notificationService->notifyModeratorsOfNewReview($review);
+        } catch (\Throwable $e) {
+            // Non-blocking notification failure
+        }
 
         return $review;
     }
@@ -87,6 +137,8 @@ class ReviewService
             'review_text' => $data['review_text'] ?? $review->review_text,
         ]);
 
+        $this->ratingCalculationService->recalculateForMenuItem($review->menu_item_id);
+
         return $review->fresh();
     }
 
@@ -106,7 +158,14 @@ class ReviewService
             throw new ReviewNotModifiableException();
         }
 
-        return $review->delete();
+        $menuItemId = $review->menu_item_id;
+        $deleted = $review->delete();
+
+        if ($deleted) {
+            $this->ratingCalculationService->recalculateForMenuItem($menuItemId);
+        }
+
+        return (bool) $deleted;
     }
 
     public function getEligibleItems(string $guestId)
@@ -137,35 +196,90 @@ class ReviewService
             throw new \InvalidArgumentException('Rating must be between 1 and 5');
         }
 
-        $guest = Guest::where('email', $data['guest_email'])->first();
+        $menuItem = MenuItem::findOrFail($data['menu_item_id']);
+        $hotelId = $menuItem->hotel_id ?? app(TenantContext::class)->getHotelId();
+
+        $guestEmail = !empty($data['guest_email']) ? trim($data['guest_email']) : null;
+        $guestName = !empty($data['guest_name']) ? trim($data['guest_name']) : 'Guest';
+
+        $guest = null;
+        if ($guestEmail) {
+            $guest = Guest::where('email', $guestEmail)->first();
+        }
         
         if (!$guest) {
-            $nameParts = explode(' ', $data['guest_name'], 2);
-            $firstName = $nameParts[0] ?? 'Guest';
+            $nameParts = explode(' ', $guestName, 2);
+            $firstName = !empty($nameParts[0]) ? $nameParts[0] : 'Guest';
             $lastName = $nameParts[1] ?? '';
+            $email = $guestEmail ?: ('guest_' . substr(uniqid(), -6) . '@guest.local');
             
             $guest = Guest::create([
+                'hotel_id' => $hotelId,
                 'first_name' => $firstName,
                 'last_name' => $lastName,
-                'email' => $data['guest_email'],
+                'email' => $email,
                 'phone' => $data['guest_phone'] ?? '',
             ]);
         }
 
-        $review = MenuItemReview::create([
-            'guest_id' => $guest->id,
-            'order_id' => $data['order_id'] ?? null,
-            'menu_item_id' => $data['menu_item_id'],
-            'rating' => $data['rating'],
-            'review_text' => $data['review_text'] ?? null,
-            'status' => MenuItemReview::STATUS_PENDING,
-        ]);
+        $orderId = null;
+        if (!empty($data['order_id']) && Order::where('id', $data['order_id'])->exists()) {
+            $orderId = $data['order_id'];
+        }
+
+        // Real-world rating system: if review exists from this guest for this item, update it; otherwise create it.
+        $review = MenuItemReview::where('guest_id', $guest->id)
+            ->where('menu_item_id', $data['menu_item_id'])
+            ->first();
+
+        if ($review) {
+            $review->update([
+                'order_id' => $orderId ?? $review->order_id,
+                'rating' => $data['rating'],
+                'review_text' => $data['review_text'] ?? $review->review_text,
+                'status' => MenuItemReview::STATUS_APPROVED,
+                'approved_at' => now(),
+            ]);
+        } else {
+            $review = MenuItemReview::create([
+                'hotel_id' => $hotelId,
+                'guest_id' => $guest->id,
+                'order_id' => $orderId,
+                'menu_item_id' => $data['menu_item_id'],
+                'rating' => $data['rating'],
+                'review_text' => $data['review_text'] ?? null,
+                'status' => MenuItemReview::STATUS_APPROVED,
+                'approved_at' => now(),
+            ]);
+        }
+
+        // Instantly recalculate menu item rating stats
+        $this->ratingCalculationService->recalculateForMenuItem($data['menu_item_id']);
 
         $review->load('guest', 'menuItem');
 
-        $this->notificationService->notifyModeratorsOfNewReview($review);
+        try {
+            $this->notificationService->notifyModeratorsOfNewReview($review);
+        } catch (\Throwable $e) {
+            // Non-blocking notification failure
+        }
 
         return $review;
+    }
+
+    public function getPublicReviews(string $menuItemId, int $perPage = 10, string $sortBy = 'recent')
+    {
+        $query = MenuItemReview::where('menu_item_id', $menuItemId)
+            ->where('status', MenuItemReview::STATUS_APPROVED)
+            ->with(['guest', 'response.responder']);
+
+        if ($sortBy === 'helpful') {
+            $query->byHelpfulness();
+        } else {
+            $query->recentFirst();
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function getMenuItemStats(string $menuItemId): array
@@ -187,7 +301,14 @@ class ReviewService
                     '3' => 0,
                     '4' => 0,
                     '5' => 0,
-                ]
+                ],
+                'rating_percentages' => [
+                    '1' => 0,
+                    '2' => 0,
+                    '3' => 0,
+                    '4' => 0,
+                    '5' => 0,
+                ],
             ];
         }
 
@@ -201,11 +322,17 @@ class ReviewService
             '5' => $reviews->where('rating', 5)->count(),
         ];
 
+        $percentages = [];
+        foreach ($ratingDistribution as $star => $count) {
+            $percentages[$star] = $totalReviews > 0 ? round(($count / $totalReviews) * 100, 1) : 0;
+        }
+
         return [
             'menu_item_id' => $menuItemId,
             'total_reviews' => $totalReviews,
             'average_rating' => $averageRating,
-            'rating_distribution' => $ratingDistribution
+            'rating_distribution' => $ratingDistribution,
+            'rating_percentages' => $percentages,
         ];
     }
 }

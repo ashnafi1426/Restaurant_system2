@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Http\Requests;
 
@@ -14,9 +14,9 @@ class CreateReviewRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'guest_id' => ['required', 'uuid', 'exists:guests,id'],
-            'order_id' => ['required', 'uuid', 'exists:orders,id'],
-            'menu_item_id' => ['required', 'uuid', 'exists:menu_items,id'],
+            'guest_id' => ['nullable', 'string'],
+            'order_id' => ['nullable', 'string'],
+            'menu_item_id' => ['required', 'string', 'exists:menu_items,id'],
             'rating' => ['required', 'integer', 'between:1,5'],
             'review_text' => ['nullable', 'string', 'max:1000'],
         ];

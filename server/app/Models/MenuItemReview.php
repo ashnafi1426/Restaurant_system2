@@ -138,7 +138,7 @@ class MenuItemReview extends Model
 
     public function canBeModifiedByGuest(): bool
     {
-        return $this->isPending();
+        return !$this->isRejected();
     }
 
     public function getAnonymizedGuestNameAttribute(): string
@@ -167,7 +167,7 @@ class MenuItemReview extends Model
             'helpful_count' => $this->helpful_count,
             'not_helpful_count' => $this->not_helpful_count,
             'helpfulness_ratio' => $this->helpfulness_ratio,
-            'created_at' => $this->created_at->toIso8601String(),
+            'created_at' => $this->created_at ? $this->created_at->toIso8601String() : now()->toIso8601String(),
             'response' => $this->response ? [
                 'text' => $this->response->response_text,
                 'responder_role' => $this->response->responder->role ?? 'Manager',

@@ -185,7 +185,7 @@ const selectedOrderId = ref<string | null>(null)
 const reviewTab = ref<'reviews' | 'submit'>('reviews')
 
 const canReview = computed(() => {
-  return currentUser?.id && item.value?.is_available
+  return item.value?.is_available !== false
 })
 
 const goBack = () => {

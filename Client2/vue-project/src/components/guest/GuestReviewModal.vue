@@ -29,18 +29,19 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
+const customName = ref('')
+const customEmail = ref('')
 const rating = ref(5)
 const reviewText = ref('')
 const isSubmitting = ref(false)
 const hoverRating = ref(0)
 
 const isFormValid = computed(() => {
-  return rating.value >= 1 && rating.value <= 5 && reviewText.value.trim().length >= 10
+  return rating.value >= 1 && rating.value <= 5 && reviewText.value.length <= 500
 })
 
 const errorMessage = computed(() => {
-  if (!reviewText.value.trim()) return 'Please write a review'
-  if (reviewText.value.trim().length < 10) return 'Review must be at least 10 characters'
+  if (reviewText.value.length > 500) return 'Review must not exceed 500 characters'
   return null
 })
 
@@ -49,6 +50,9 @@ watch(
   (newVal) => {
     if (!newVal) {
       resetForm()
+    } else {
+      customName.value = props.guestName && props.guestName !== 'Guest' ? props.guestName : (authStore.user?.name || '')
+      customEmail.value = props.guestEmail || (authStore.user?.email || '')
     }
   }
 )
@@ -74,12 +78,13 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try {
-    const email = props.guestEmail || authStore.user?.email
+    const email = customEmail.value.trim() || props.guestEmail || authStore.user?.email || ''
+    const name = customName.value.trim() || props.guestName || authStore.user?.name || 'Guest'
     const reviewPayload: any = {
       menu_item_id: String(props.menuItem.id),
       rating: rating.value,
-      review_text: reviewText.value.trim(),
-      guest_name: props.guestName || authStore.user?.name || 'Guest',
+      review_text: reviewText.value.trim() || null,
+      guest_name: name,
     }
 
     if (email) {
@@ -93,7 +98,7 @@ const handleSubmit = async () => {
     const response = await reviewService.createReview(reviewPayload)
 
     if (response.success || response.data || response) {
-      emit('success', `Review submitted successfully! Status: Pending approval`)
+      emit('success', 'Review submitted and published successfully! Thank you for your feedback.')
       resetForm()
       emit('close')
     } else {
@@ -195,13 +200,13 @@ const renderStars = (count: number): string => {
             <div class="space-y-2">
               <label class="block text-sm font-bold text-gray-800">
                 Your Review
-                <span class="text-gray-500 font-normal">(min 10 characters)</span>
+                <span class="text-gray-500 font-normal">(optional)</span>
               </label>
               <textarea
                 v-model="reviewText"
                 placeholder="Tell us about your experience with this dish... Was it delicious? Any suggestions?"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
-                rows="5"
+                rows="4"
               />
               <div class="flex items-center justify-between">
                 <p v-if="errorMessage" class="text-sm text-red-600 font-medium">
@@ -213,16 +218,32 @@ const renderStars = (count: number): string => {
               </div>
             </div>
 
-            <div v-if="guestName" class="bg-blue-50 rounded-lg p-3 border border-blue-200">
-              <p class="text-xs text-blue-700">
-                <span class="font-bold">Posting as:</span> {{ guestName }}
-                <span v-if="guestEmail" class="block text-blue-600">{{ guestEmail }}</span>
-              </p>
+            <!-- Optional Name & Email -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Your Name (optional)</label>
+                <input
+                  v-model="customName"
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Email (optional)</label>
+                <input
+                  v-model="customEmail"
+                  type="email"
+                  placeholder="e.g. john@example.com"
+                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                />
+              </div>
             </div>
 
-            <div class="bg-blue-50 rounded-lg p-3 border border-blue-200">
-              <p class="text-xs text-blue-700">
-                 Your review will be shown publicly after manager approval.
+            <div class="bg-emerald-50 rounded-lg p-3 border border-emerald-200 flex items-center gap-2">
+              <span class="text-emerald-600 font-bold text-base">✓</span>
+              <p class="text-xs text-emerald-800 font-medium">
+                Your rating and review will be published immediately for other guests to see.
               </p>
             </div>
           </div>

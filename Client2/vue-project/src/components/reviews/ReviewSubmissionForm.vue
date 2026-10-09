@@ -88,8 +88,8 @@ import { useLanguageStore } from '@/stores/language'
 
 interface Props {
   menuItem?: MenuItem
-  guestId: string
-  orderId: string
+  guestId?: string
+  orderId?: string
   menuItemId: string
 }
 
@@ -103,9 +103,9 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 const languageStore = useLanguageStore()
 
-const form = ref<CreateReviewRequest>({
-  guest_id: props.guestId,
-  order_id: props.orderId,
+const form = ref<any>({
+  guest_id: props.guestId || '',
+  order_id: props.orderId || '',
   menu_item_id: props.menuItemId,
   rating: 0,
   review_text: '',

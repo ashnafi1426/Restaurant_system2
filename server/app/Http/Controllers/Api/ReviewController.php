@@ -65,19 +65,20 @@ class ReviewController extends Controller
     {
         try {
             $validated = $request->validate([
-                'order_id' => 'nullable|uuid',
-                'menu_item_id' => 'required|uuid',
+                'order_id' => 'nullable|string',
+                'menu_item_id' => 'required|string|exists:menu_items,id',
                 'rating' => 'required|integer|between:1,5',
-                'review_text' => 'required|string|min:10|max:500',
-                'guest_name' => 'required|string',
-                'guest_email' => 'required|email',
+                'review_text' => 'nullable|string|max:1000',
+                'guest_name' => 'nullable|string|max:255',
+                'guest_email' => 'nullable|email|max:255',
+                'guest_phone' => 'nullable|string|max:50',
             ]);
 
             $review = $this->reviewService->createGuestReview($validated);
 
             return response()->json([
                 'success' => true,
-                'message' => trans_msg('review_submitted', default: 'Review submitted successfully'),
+                'message' => trans_msg('review_submitted', default: 'Review submitted and published successfully'),
                 'data' => $review,
             ], 201);
         } catch (PurchaseNotVerifiedException $e) {

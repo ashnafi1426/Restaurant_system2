@@ -173,9 +173,8 @@ const decrementQuantity = () => {
         <!-- Write Review Button -->
         <button
           @click.stop="$emit('write-review')"
-          :disabled="!orderId"
-          :title="orderId ? languageStore.t('write_review', 'Write Review') : 'Complete your order first'"
-          class="w-full h-8 sm:h-9 flex items-center justify-center gap-1.5 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+          :title="languageStore.t('write_review', 'Write Review')"
+          class="w-full h-8 sm:h-9 flex items-center justify-center gap-1.5 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
         >
           <MessageSquare :size="13" class="shrink-0" />
           <span>{{ languageStore.t('write_review', 'Write Review') }}</span>
