@@ -62,6 +62,8 @@ class MenuService
                     'updated_at',
                 ])
                 ->with(['taxRate:id,name,rate,type'])
+                ->withCount(['approvedReviews as review_count'])
+                ->withAvg('approvedReviews as average_rating', 'rating')
                 ->where('is_available', true);
 
             if ($hotelId) {
@@ -225,6 +227,9 @@ class MenuService
             'image' => $imageUrl,
             'category' => $item->category,
             'is_available' => (bool) $item->is_available,
+            'average_rating' => $item->average_rating ? round((float) $item->average_rating, 1) : null,
+            'rating' => $item->average_rating ? round((float) $item->average_rating, 1) : null,
+            'review_count' => (int) ($item->review_count ?? 0),
         ];
     }
 
