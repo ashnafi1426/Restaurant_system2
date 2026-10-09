@@ -1051,7 +1051,7 @@ class WaiterDashboardService
 
             $tasks = $baseQuery
                 ->with([
-                    'order:id,order_number,room_id,table_id,order_type,priority,special_requests',
+                    'order:id,order_number,room_id,table_id,order_type,guest_id,notes,special_requests',
                     'order.guest:id,first_name,last_name',
                     'order.room:id,room_number',
                     'order.table:id,table_number,section',
