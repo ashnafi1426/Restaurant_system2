@@ -11,6 +11,7 @@ export interface DashboardStats {
   failed_payments: number
   refund_requests: number
   total_transactions: number
+  today_transactions?: number
 }
 
 export interface Payment {
@@ -101,6 +102,22 @@ export const useCashierStore = defineStore('cashier', () => {
     paid_orders: 0,
     unpaid_orders: 0,
     cleared_today: 0,
+  })
+
+  const orderPagination = ref<{
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    from: number | null
+    to: number | null
+  }>({
+    current_page: 1,
+    last_page: 1,
+    per_page: 10,
+    total: 0,
+    from: null,
+    to: null,
   })
 
   const payments = ref<Payment[]>([])
@@ -220,13 +237,26 @@ export const useCashierStore = defineStore('cashier', () => {
     }
   }
 
-  async function fetchOrders(filters?: { filter?: string; search?: string }) {
+  async function fetchOrders(filters?: { filter?: string; search?: string; page?: number; per_page?: number }) {
     try {
-      const response = await cashierService.getActiveOrders(filters)
+      const params = {
+        page: filters?.page ?? orderPagination.value.current_page,
+        per_page: filters?.per_page ?? orderPagination.value.per_page,
+        filter: filters?.filter,
+        search: filters?.search,
+        payment_status: filters?.payment_status,
+        order_status: filters?.order_status,
+        order_type: filters?.order_type,
+        payment_method: filters?.payment_method,
+      }
+      const response = await cashierService.getActiveOrders(params)
       if (response.success) {
         activeOrders.value = response.data || []
         if (response.counts) {
           orderCounts.value = response.counts
+        }
+        if (response.pagination) {
+          orderPagination.value = response.pagination
         }
       }
     } catch (err: any) {
@@ -431,6 +461,7 @@ export const useCashierStore = defineStore('cashier', () => {
 
     activeOrders,
     orderCounts,
+    orderPagination,
     fetchOrders,
     clearOrder,
 

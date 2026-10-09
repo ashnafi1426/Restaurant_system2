@@ -50,6 +50,10 @@ class BroadcastAuthController extends Controller
                 return $this->authorizeHotelChannel($request, $channelName, $socketId);
             }
 
+            if (str_starts_with($channelName, 'private-payments.')) {
+                return $this->authorizePaymentsChannel($request, $channelName, $socketId);
+            }
+
             // Default: deny unknown channels
             Log::warning('[BroadcastAuth] Unknown channel type', ['channel' => $channelName]);
             return response()->json(['error' => 'Channel not found'], 404);
@@ -116,6 +120,12 @@ class BroadcastAuthController extends Controller
             if ($order->room && $order->room->qr_token === $qrToken) {
                 $isValidToken = true;
             } elseif ($order->table && $order->table->qr_token === $qrToken) {
+                $isValidToken = true;
+            } elseif ($order->hotel_id && \App\Models\RestaurantTable::withoutGlobalScopes()->where('hotel_id', $order->hotel_id)->where('qr_token', $qrToken)->exists()) {
+                $isValidToken = true;
+            } elseif ($order->hotel_id && \App\Models\Room::withoutGlobalScopes()->where('hotel_id', $order->hotel_id)->where('qr_token', $qrToken)->exists()) {
+                $isValidToken = true;
+            } elseif (\App\Models\Payment::withoutGlobalScopes()->where('order_id', $order->id)->where('metadata->qr_token', $qrToken)->exists()) {
                 $isValidToken = true;
             }
             
@@ -198,24 +208,76 @@ class BroadcastAuthController extends Controller
         }
 
         // Validate user belongs to the hotel
-        if ($user->hotel_id !== $hotelId) {
+        $hasAccess = false;
+        if (method_exists($user, 'isPlatformAdmin') && $user->isPlatformAdmin()) {
+            $hasAccess = true;
+        } elseif (method_exists($user, 'belongsToHotel') && $user->belongsToHotel($hotelId)) {
+            $hasAccess = true;
+        } elseif (isset($user->hotel_id) && $user->hotel_id === $hotelId) {
+            $hasAccess = true;
+        } elseif (\App\Models\HotelUser::where('user_id', $user->id)->where('hotel_id', $hotelId)->where('is_active', true)->exists()) {
+            $hasAccess = true;
+        }
+
+        if (!$hasAccess) {
             Log::warning('[BroadcastAuth] Hotel channel unauthorized', [
                 'channel' => $channelName,
-                'user_hotel_id' => $user->hotel_id,
                 'requested_hotel_id' => $hotelId,
                 'user_id' => $user->id
             ]);
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        // Additional role-based authorization could be added here
-        // For now, any authenticated user from the hotel can access these channels
-
         Log::info('[BroadcastAuth] Hotel channel authorized', [
             'channel' => $channelName,
             'user_id' => $user->id,
-            'hotel_id' => $user->hotel_id,
+            'hotel_id' => $hotelId,
             'scope' => $scope
+        ]);
+
+        $auth = $this->generateChannelAuth($channelName, $socketId);
+
+        return response()->json([
+            'auth' => $auth,
+            'channel_data' => null
+        ]);
+    }
+
+    /**
+     * Authorize access to payment channels: payments.{hotelId}
+     */
+    protected function authorizePaymentsChannel(Request $request, string $channelName, string $socketId): JsonResponse
+    {
+        $hotelId = str_replace('private-payments.', '', $channelName);
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Authentication required'], 401);
+        }
+
+        $hasAccess = false;
+        if (method_exists($user, 'isPlatformAdmin') && $user->isPlatformAdmin()) {
+            $hasAccess = true;
+        } elseif (method_exists($user, 'belongsToHotel') && $user->belongsToHotel($hotelId)) {
+            $hasAccess = true;
+        } elseif (isset($user->hotel_id) && $user->hotel_id === $hotelId) {
+            $hasAccess = true;
+        } elseif (\App\Models\HotelUser::where('user_id', $user->id)->where('hotel_id', $hotelId)->where('is_active', true)->exists()) {
+            $hasAccess = true;
+        }
+
+        if (!$hasAccess) {
+            Log::warning('[BroadcastAuth] Payments channel unauthorized', [
+                'channel' => $channelName,
+                'requested_hotel_id' => $hotelId,
+                'user_id' => $user->id
+            ]);
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        Log::info('[BroadcastAuth] Payments channel authorized', [
+            'channel' => $channelName,
+            'user_id' => $user->id,
+            'hotel_id' => $hotelId
         ]);
 
         $auth = $this->generateChannelAuth($channelName, $socketId);

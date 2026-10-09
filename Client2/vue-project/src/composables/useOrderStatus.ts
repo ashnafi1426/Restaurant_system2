@@ -425,10 +425,10 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
   const isPending = computed(() => status.value === 'pending')
   const isPreparing = computed(() => status.value === 'preparing')
   const isReady = computed(() => status.value === 'ready')
-  const isServed = computed(() => status.value === 'served')
+  const isServed = computed(() => ['served', 'cleared', 'completed'].includes(status.value))
   const isCancelled = computed(() => status.value === 'cancelled')
-  const isPaymentPending = computed(() => paymentStatus.value === 'pending')
-  const isPaymentPaid = computed(() => paymentStatus.value === 'paid')
+  const isPaymentPending = computed(() => !isServed.value && (paymentStatus.value === 'pending' || paymentStatus.value === 'unpaid'))
+  const isPaymentPaid = computed(() => isServed.value || paymentStatus.value === 'paid' || paymentStatus.value === 'verified')
 
   // Lifecycle hooks
   onMounted(async () => {

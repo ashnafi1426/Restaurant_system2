@@ -54,10 +54,12 @@ class CashierDashboardController extends Controller
                 Payment::STATUS_REFUNDED,
             ])->first();
 
-            $todayRevenue = (float) (clone $baseQuery)
+            $todayQuery = (clone $baseQuery)
                 ->whereDate('paid_at', today())
-                ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
-                ->sum('amount');
+                ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED]);
+
+            $todayRevenue = (float) (clone $todayQuery)->sum('amount');
+            $todayTransactions = (int) (clone $todayQuery)->count();
 
             $weeklyRevenue = (float) (clone $baseQuery)
                 ->whereBetween('paid_at', [now()->startOfWeek(), now()->endOfWeek()])
@@ -72,6 +74,7 @@ class CashierDashboardController extends Controller
 
             $stats = [
                 'today_revenue' => $todayRevenue,
+                'today_transactions' => $todayTransactions,
                 'weekly_revenue' => $weeklyRevenue,
                 'monthly_revenue' => $monthlyRevenue,
                 'pending_payments' => (int) ($counts->pending_payments ?? 0),
@@ -347,23 +350,58 @@ class CashierDashboardController extends Controller
                 $query->where(function ($q) use ($search) {
                     $q->where('order_number', 'like', "%{$search}%")
                       ->orWhereHas('table', fn($tq) => $tq->where('table_number', 'like', "%{$search}%"))
-                      ->orWhereHas('guest', fn($gq) => $gq->where('first_name', 'like', "%{$search}%")->orWhere('last_name', 'like', "%{$search}%"));
+                      ->orWhereHas('room', fn($rq) => $rq->where('room_number', 'like', "%{$search}%"))
+                      ->orWhereHas('guest', fn($gq) => $gq->where('first_name', 'like', "%{$search}%")
+                                                          ->orWhere('last_name', 'like', "%{$search}%")
+                                                          ->orWhere('phone', 'like', "%{$search}%"));
                 });
             }
 
-            if ($filter === 'paid') {
+            // Payment status / Tab filter
+            $paymentStatus = $request->query('payment_status', $filter);
+            if ($paymentStatus === 'paid') {
                 $query->whereHas('payments', fn($pq) => $pq->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED]));
-            } elseif ($filter === 'unpaid') {
+            } elseif ($paymentStatus === 'unpaid') {
                 $query->whereDoesntHave('payments', fn($pq) => $pq->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED]))
                       ->where('status', '!=', Order::STATUS_CANCELLED);
-            } elseif ($filter === 'cleared') {
+            } elseif ($paymentStatus === 'cleared') {
                 $query->where('status', Order::STATUS_SERVED);
-            } elseif ($filter === 'pending_clear') {
+            } elseif ($paymentStatus === 'pending_clear') {
                 $query->where('status', '!=', Order::STATUS_SERVED)
                       ->where('status', '!=', Order::STATUS_CANCELLED);
             }
 
-            $orders = $query->latest('created_at')->limit(50)->get()->map(function ($order) {
+            // Kitchen / Order status filter
+            $orderStatus = $request->query('order_status');
+            if ($orderStatus && $orderStatus !== 'all') {
+                $query->where('status', $orderStatus);
+            }
+
+            // Order type filter (dine_in, room_service, takeaway, etc.)
+            $orderType = $request->query('order_type');
+            if ($orderType && $orderType !== 'all') {
+                $query->where('order_type', $orderType);
+            }
+
+            // Payment method filter
+            $paymentMethod = $request->query('payment_method');
+            if ($paymentMethod && $paymentMethod !== 'all') {
+                $query->where(function ($q) use ($paymentMethod) {
+                    $q->where('payment_type', $paymentMethod)
+                      ->orWhereHas('payments', fn($pq) => $pq->where('payment_method', $paymentMethod));
+                });
+            }
+
+            $perPage = (int) $request->query('per_page', 10);
+            $allowedPerPage = [5, 10, 20, 30, 50];
+            if (!in_array($perPage, $allowedPerPage)) {
+                $perPage = 10;
+            }
+            $page = max(1, (int) $request->query('page', 1));
+
+            $paginator = $query->latest('created_at')->paginate($perPage, ['*'], 'page', $page);
+
+            $orders = collect($paginator->items())->map(function ($order) {
                 $successfulPayment = $order->payments->first(fn($p) => in_array($p->status, [Payment::STATUS_PAID, Payment::STATUS_VERIFIED]));
                 $pendingPayment = $order->payments->first(fn($p) => in_array($p->status, [Payment::STATUS_PENDING, Payment::STATUS_INITIALIZED]));
 
@@ -433,9 +471,19 @@ class CashierDashboardController extends Controller
                     ->count(),
             ];
 
+            $pagination = [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'from' => $paginator->firstItem(),
+                'to' => $paginator->lastItem(),
+            ];
+
             return response()->json([
                 'success' => true,
                 'data' => $orders,
+                'pagination' => $pagination,
                 'counts' => $counts,
             ]);
         } catch (Exception $e) {
@@ -517,7 +565,17 @@ class CashierDashboardController extends Controller
                     $order->table->update([
                         'status' => \App\Models\RestaurantTable::STATUS_AVAILABLE,
                     ]);
-                    Log::info("Table {$tableNumber} released to available status upon clearing order #{$order->order_number}");
+                }
+
+                // 5. Invalidate customer order cache and broadcast real-time websocket events
+                try {
+                    \Illuminate\Support\Facades\Cache::forget("customer_order_status_{$order->id}");
+                    broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
+                    if ($markAsPaid || !$hasSuccessfulPayment) {
+                        broadcast(new \App\Events\PaymentStatusUpdated($order, null, $paymentMethod))->toOthers();
+                    }
+                } catch (\Throwable $be) {
+                    Log::warning('Broadcast failed in clearOrder: ' . $be->getMessage());
                 }
 
                 return response()->json([

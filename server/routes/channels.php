@@ -245,3 +245,33 @@ Broadcast::channel('hotel.{hotelId}.orders', function ($user, string $hotelId) {
         return false;
     }
 });
+
+/**
+ * Hotel Payments Channel (Cashier & Accounting)
+ * 
+ * Channel: payments.{hotelId}
+ * 
+ * Authorization:
+ * - User must be authenticated staff of the specified hotel
+ */
+Broadcast::channel('payments.{hotelId}', function ($user, string $hotelId) {
+    if (!$user) {
+        return false;
+    }
+    
+    try {
+        if (method_exists($user, 'isPlatformAdmin') && $user->isPlatformAdmin()) {
+            return true;
+        }
+        
+        $isMember = \App\Models\HotelUser::where('user_id', $user->id)
+            ->where('hotel_id', $hotelId)
+            ->where('is_active', true)
+            ->exists();
+        
+        return $isMember;
+    } catch (\Exception $e) {
+        Log::error("[WebSocket Auth] Payments channel error: " . $e->getMessage());
+        return false;
+    }
+});

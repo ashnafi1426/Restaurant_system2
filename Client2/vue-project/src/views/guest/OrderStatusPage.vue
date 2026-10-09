@@ -9,8 +9,8 @@
       </button>
       <div class="flex-1">
         <h1 class="text-lg font-bold text-gray-900">Order Status</h1>
-        <p class="text-xs text-gray-500">
-          {{orderData?.table_number ? 'Table ' + orderData.table_number : orderData?.room_number ? 'Room ' + orderData.room_number : ''}}
+        <p class="text-xs text-gray-500 font-medium">
+          {{ orderData?.table_number ? 'Table ' + orderData.table_number : orderData?.room_number ? 'Room ' + orderData.room_number : (orderData?.order_type === 'walk_in' ? 'Walk-in Dining' : orderData?.order_type === 'takeaway' ? 'Takeaway Order' : 'Restaurant Order') }}
         </p>
       </div>
       <!-- Live connection dot -->
@@ -53,27 +53,37 @@
     <div v-else-if="orderData" class="p-4 space-y-4 pb-8">
       <!-- Status Card -->
       <div
-        class="rounded-xl p-4 flex items-start gap-3"
+        class="rounded-xl p-4 flex items-start gap-3 shadow-xs transition-all"
         :class="{
-          'bg-yellow-50 border border-yellow-200': isPending,
+          'bg-amber-50 border border-amber-200': isPending,
           'bg-orange-50 border border-orange-200': isPreparing,
-          'bg-green-50 border border-green-200': isReady || isServed,
-          'bg-red-50 border border-red-200': isCancelled
+          'bg-blue-50 border border-blue-200': isReady,
+          'bg-emerald-50 border border-emerald-200': isServed,
+          'bg-rose-50 border border-rose-200': isCancelled
         }"
       >
         <div
-          class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 text-2xl"
+          class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 text-white shadow-xs"
           :class="{
-            'bg-yellow-400': isPending,
-            'bg-orange-400': isPreparing,
-            'bg-green-400': isReady || isServed,
-            'bg-red-400': isCancelled
+            'bg-amber-500': isPending,
+            'bg-orange-500': isPreparing,
+            'bg-blue-600': isReady,
+            'bg-emerald-600': isServed,
+            'bg-rose-500': isCancelled
           }"
         >
-          {{statusIcon}}
+          <component :is="statusIconComponent" class="w-6 h-6 text-white" />
         </div>
-        <div>
-          <h2 class="font-bold text-gray-900 text-base">{{statusTitle}}</h2>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <h2 class="font-bold text-gray-900 text-base">{{statusTitle}}</h2>
+            <span
+              v-if="isServed"
+              class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-600 text-white flex-shrink-0"
+            >
+              Cleared
+            </span>
+          </div>
           <p class="text-sm text-gray-600 mt-0.5">{{statusMessage}}</p>
         </div>
       </div>
@@ -101,14 +111,17 @@
                 ETB {{((item.price || 0) * item.quantity).toFixed(2)}}
               </span>
               <span
-                class="px-2 py-0.5 text-xs rounded-full font-medium"
+                class="px-2 py-0.5 text-xs rounded-full font-bold inline-flex items-center gap-1"
                 :class="{
-                  'bg-yellow-100 text-yellow-800': isPending || isPreparing,
-                  'bg-green-100 text-green-800': isReady || isServed,
-                  'bg-red-100 text-red-800': isCancelled
+                  'bg-amber-100 text-amber-800': isPending,
+                  'bg-orange-100 text-orange-800': isPreparing,
+                  'bg-blue-100 text-blue-800': isReady,
+                  'bg-emerald-100 text-emerald-800': isServed,
+                  'bg-rose-100 text-rose-800': isCancelled
                 }"
               >
-                {{status === 'pending' ? 'Pending' : status === 'preparing' ? 'Preparing' : status === 'ready' ? 'Ready' : status === 'served' ? 'Served' : 'Cancelled'}}
+                <Check v-if="isServed" class="w-3 h-3 text-emerald-600" />
+                <span>{{ isServed ? 'Cleared' : status === 'pending' ? 'Pending' : status === 'preparing' ? 'Preparing' : status === 'ready' ? 'Ready' : 'Cancelled' }}</span>
               </span>
             </div>
           </div>
@@ -127,16 +140,17 @@
         <div class="flex items-center justify-between text-sm">
           <span class="text-gray-500">Status</span>
           <span
-            class="font-medium"
-            :class="paymentStatus === 'paid' ? 'text-green-600' : 'text-amber-600'"
+            class="font-medium inline-flex items-center gap-1"
+            :class="isPaymentPaid || isServed ? 'text-emerald-600' : 'text-amber-600'"
           >
-            {{paymentStatus === 'paid' ? ' Paid' : '⏳ Pending'}}
+            <CheckCircle2 v-if="isPaymentPaid || isServed" class="w-4 h-4 text-emerald-600" />
+            <span>{{ isPaymentPaid || isServed ? 'Paid & Settled' : '⏳ Pending' }}</span>
           </span>
         </div>
         <div class="flex items-center justify-between text-sm">
           <span class="text-gray-500">Method</span>
-          <span class="font-medium text-gray-800">
-            {{orderData.payment_type === 'room_charge' ? 'Room Charge' : orderData.payment_type === 'cash' ? 'Cash' : 'Online'}}
+          <span class="font-medium text-gray-800 capitalize">
+            {{ orderData.payment_type === 'room_charge' ? 'Room Charge' : (orderData.payment_type || 'Cash') }}
           </span>
         </div>
       </div>
@@ -158,11 +172,11 @@
 
       <!-- Payment Completed -->
       <div
-        v-else-if="isPaymentPaid"
-        class="w-full py-4 rounded-xl font-bold text-white text-base text-center"
-        style="background: linear-gradient(135deg, #10B981 0%, #059669 100%)"
+        v-else-if="isPaymentPaid || isServed"
+        class="w-full py-3.5 rounded-xl font-bold text-white text-base text-center flex items-center justify-center gap-2 shadow-sm bg-gradient-to-r from-emerald-600 to-teal-600"
       >
-         Payment Completed
+        <CheckCircle2 class="w-5 h-5 text-white" />
+        <span>Payment Completed & Cleared</span>
       </div>
 
       <!-- Room charge note -->
@@ -194,6 +208,18 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOrderStatus } from '@/composables/useOrderStatus'
+import {
+  Clock,
+  ChefHat,
+  Bell,
+  CheckCircle2,
+  XCircle,
+  Check,
+  CreditCard,
+  Utensils,
+  Receipt,
+  Sparkles,
+} from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -340,20 +366,19 @@ const handlePayNow = () => {
     console.error('[OrderStatus] Failed to prepare payment navigation:', err)
   }
 }
-const statusIcon = computed(() => {
-  if (isPending.value) return ''
-  if (isPreparing.value) return '\u200d'
-  if (isReady.value) return ''
-  if (isServed.value) return ''
-  if (isCancelled.value) return ''
-  return ''
+const statusIconComponent = computed(() => {
+  if (isCancelled.value) return XCircle
+  if (isServed.value) return CheckCircle2
+  if (isReady.value) return Bell
+  if (isPreparing.value) return ChefHat
+  return Clock
 })
 
 const statusTitle = computed(() => {
   if (isPending.value) return 'Order Received'
   if (isPreparing.value) return 'Preparing Your Order'
   if (isReady.value) return 'Order Ready!'
-  if (isServed.value) return 'Order Completed'
+  if (isServed.value) return 'Order Cleared & Completed'
   if (isCancelled.value) return 'Order Cancelled'
   return 'Order Status'
 })
@@ -362,7 +387,7 @@ const statusMessage = computed(() => {
   if (isPending.value) return 'Your order has been received and will be prepared shortly.'
   if (isPreparing.value) return 'Our chef is preparing your delicious meal right now.'
   if (isReady.value) return 'Your order is ready! Please wait for delivery.'
-  if (isServed.value) return 'Your order has been completed. Enjoy your meal!'
+  if (isServed.value) return 'Your order has been served, paid, and cleared. Thank you for dining with us!'
   if (isCancelled.value) return 'This order has been cancelled.'
   return ''
 })

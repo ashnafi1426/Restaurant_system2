@@ -60,6 +60,9 @@ class PaymentStatusUpdated implements ShouldBroadcast, ShouldQueue
         return [
             // Customer's order channel
             new PrivateChannel("orders.{$this->hotelId}.{$this->orderId}"),
+            // Cashier and hotel channels
+            new PrivateChannel("hotel.{$this->hotelId}.orders"),
+            new PrivateChannel("payments.{$this->hotelId}"),
         ];
     }
 

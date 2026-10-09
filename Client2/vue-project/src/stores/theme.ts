@@ -3,18 +3,12 @@ import { ref, computed } from 'vue'
 import { resolveHotelThemeId, HOTEL_PRESET_THEMES, type PropertyThemeTokens } from '@/utils/colorTokens'
 
 export const useThemeStore = defineStore('theme', () => {
-  // 1. Dark Mode State
   const savedMode = localStorage.getItem('app-theme') || localStorage.getItem('theme')
   const prefersDark = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)').matches : false
   const isDark = ref<boolean>(savedMode ? savedMode === 'dark' : prefersDark)
 
-  // 2. Hotel Property Theme State (default: 'luxury-gold' or 'heritage-wine')
   const savedHotelTheme = localStorage.getItem('guest_hotel_theme') || 'luxury-gold'
   const hotelTheme = ref<string>(savedHotelTheme)
-
-  /**
-   * Safely updates mobile browser address bar theme color
-   */
   const updateMobileMetaThemeColor = () => {
     if (typeof document === 'undefined') return
     let metaTag = document.querySelector('meta[name="theme-color"]')
@@ -32,16 +26,11 @@ export const useThemeStore = defineStore('theme', () => {
 
     metaTag.setAttribute('content', color)
   }
-
-  /**
-   * Applies all semantic tokens and dark mode classes to the DOM
-   */
   const applyTheme = () => {
     if (typeof document === 'undefined') return
     const root = document.documentElement
     const body = document.body
 
-    // 1. Set / toggle dark class
     if (isDark.value) {
       root.classList.add('dark')
       if (body) body.classList.add('dark')
@@ -53,26 +42,14 @@ export const useThemeStore = defineStore('theme', () => {
       localStorage.setItem('app-theme', 'light')
       localStorage.setItem('theme', 'light')
     }
-
-    // 2. Set dynamic property theme attribute for CSS selector matching
     root.setAttribute('data-hotel-theme', hotelTheme.value)
     localStorage.setItem('guest_hotel_theme', hotelTheme.value)
-
-    // 3. Update mobile browser chrome color
     updateMobileMetaThemeColor()
   }
-
-  /**
-   * Switches the active hotel property theme
-   */
   const setHotelTheme = (themeId: string) => {
     hotelTheme.value = themeId
     applyTheme()
   }
-
-  /**
-   * Syncs theme automatically with a hotel entity
-   */
   const syncWithHotel = (hotel: { name?: string; slug?: string } | null) => {
     if (!hotel) return
     const resolvedId = resolveHotelThemeId(hotel.slug || hotel.name)

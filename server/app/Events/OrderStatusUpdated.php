@@ -67,6 +67,9 @@ class OrderStatusUpdated implements ShouldBroadcast, ShouldQueue
             
             // Private channel for kitchen dashboard (hotel-wide)
             new PrivateChannel("hotel.{$this->hotelId}.kitchen"),
+
+            // Private channel for cashier and hotel management dashboards
+            new PrivateChannel("hotel.{$this->hotelId}.orders"),
         ];
     }
 

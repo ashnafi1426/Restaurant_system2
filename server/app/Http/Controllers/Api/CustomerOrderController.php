@@ -141,12 +141,15 @@ class CustomerOrderController extends Controller
                     'order_number' => $order->order_number,
                     'hotel_id' => $order->hotel_id,
                     'status' => $order->status,
+                    'is_cleared' => $order->status === Order::STATUS_SERVED,
+                    'status_label' => $order->status === Order::STATUS_SERVED ? 'Cleared & Completed' : ucfirst($order->status),
                     'order_type' => $order->order_type,
                     'order_time' => $order->order_time?->toISOString() ?? $order->created_at->toISOString(),
                     
                     // Location info
                     'room_number' => $order->room?->room_number,
                     'table_number' => $order->table?->table_number,
+                    'table_id' => $order->table_id,
                     
                     // Customer info
                     'customer_name' => $this->getCustomerName($order),
