@@ -173,7 +173,9 @@ class WaiterDashboardService
             $today = Carbon::today();
             $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
-            $assignedFloorIds = $this->getWaiterAssignedFloorIds($waiterId);
+            $assignedFloorIds = $waiterId ? $this->getWaiterAssignedFloorIds($waiterId) : [];
+            $assignedTableIds = $waiterId ? $this->getWaiterAssignedTableIds($waiterId) : [];
+            $hasAssignments = !empty($assignedTableIds) || !empty($assignedFloorIds);
 
             $taskQuery = DeliveryTask::withoutGlobalScope(TenantScope::class);
 
@@ -182,7 +184,7 @@ class WaiterDashboardService
                 $taskQuery->where('delivery_tasks.hotel_id', $hotelId);
             }
 
-            if (!$isAdminOrManager && $waiterId) {
+            if ($waiterId && (!$isAdminOrManager || $hasAssignments)) {
                 $taskQuery->where(function($q) use ($waiterId) {
                     $q->where('delivery_tasks.waiter_id', $waiterId)
                       ->orWhere('delivery_tasks.waiter_id', auth()->id());
@@ -227,11 +229,17 @@ class WaiterDashboardService
             if ($hotelId) {
                 $orderReadyQuery->where('orders.hotel_id', $hotelId);
             }
-            if (!$isAdminOrManager && $waiterId) {
-                $orderReadyQuery->where(function ($q) use ($waiterId, $assignedFloorIds) {
+            if ($waiterId && (!$isAdminOrManager || $hasAssignments)) {
+                $orderReadyQuery->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds, $hasAssignments) {
                     $q->whereHas('deliveryTasks', fn($dt) => $dt->where('waiter_id', $waiterId));
                     if (!empty($assignedFloorIds)) {
                         $q->orWhereHas('room', fn($rq) => $rq->whereIn('floor_id', $assignedFloorIds));
+                    }
+                    if (!empty($assignedTableIds)) {
+                        $q->orWhereIn('table_id', $assignedTableIds);
+                    }
+                    if (!$hasAssignments) {
+                        $q->orWhereDoesntHave('deliveryTasks', fn($dt) => $dt->whereNotNull('waiter_id'));
                     }
                 });
             }
@@ -427,6 +435,9 @@ class WaiterDashboardService
         try {
             $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
+            $assignedFloorIds = $waiterId ? $this->getWaiterAssignedFloorIds($waiterId) : [];
+            $assignedTableIds = $waiterId ? $this->getWaiterAssignedTableIds($waiterId) : [];
+            $hasAssignments = !empty($assignedTableIds) || !empty($assignedFloorIds);
 
             $baseQuery = DeliveryTask::withoutGlobalScope(TenantScope::class);
             
@@ -435,33 +446,40 @@ class WaiterDashboardService
                 $baseQuery->where('delivery_tasks.hotel_id', $hotelId);
             }
 
-            if (!$isAdminOrManager && $waiterId) {
-                $assignedFloorIds = $this->getWaiterAssignedFloorIds($waiterId);
-                $assignedTableIds = $this->getWaiterAssignedTableIds($waiterId);
-                $baseQuery->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds) {
+            if ($waiterId && (!$isAdminOrManager || $hasAssignments)) {
+                $baseQuery->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds, $hasAssignments) {
                     $q->where('delivery_tasks.waiter_id', $waiterId);
+
                     if (!empty($assignedFloorIds)) {
-                        $q->orWhere(function ($sub) use ($assignedFloorIds) {
-                            $sub->whereNull('delivery_tasks.waiter_id')
-                                ->whereIn('delivery_tasks.floor_id', $assignedFloorIds)
-                                ->where('delivery_tasks.status', 'waiting_assignment');
+                        $q->orWhere(function ($sub) use ($assignedFloorIds, $waiterId) {
+                            $sub->where(function ($w) use ($waiterId) {
+                                $w->whereNull('delivery_tasks.waiter_id')
+                                  ->orWhere('delivery_tasks.waiter_id', $waiterId);
+                            })->where(function ($f) use ($assignedFloorIds) {
+                                $f->whereIn('delivery_tasks.floor_id', $assignedFloorIds)
+                                  ->orWhereHas('order.room', fn($r) => $r->whereIn('floor_id', $assignedFloorIds));
+                            })->where('delivery_tasks.status', 'waiting_assignment');
                         });
                     }
+
                     if (!empty($assignedTableIds)) {
-                        $q->orWhere(function ($sub) use ($assignedTableIds) {
+                        $q->orWhere(function ($sub) use ($assignedTableIds, $waiterId) {
+                            $sub->where(function ($w) use ($waiterId) {
+                                $w->whereNull('delivery_tasks.waiter_id')
+                                  ->orWhere('delivery_tasks.waiter_id', $waiterId);
+                            })->where(function ($t) use ($assignedTableIds) {
+                                $t->whereIn('delivery_tasks.table_id', $assignedTableIds)
+                                  ->orWhereHas('order', fn($o) => $o->whereIn('table_id', $assignedTableIds));
+                            })->where('delivery_tasks.status', 'waiting_assignment');
+                        });
+                    }
+
+                    if (!$hasAssignments) {
+                        $q->orWhere(function ($sub) {
                             $sub->whereNull('delivery_tasks.waiter_id')
-                                ->whereIn('delivery_tasks.table_id', $assignedTableIds)
                                 ->where('delivery_tasks.status', 'waiting_assignment');
                         });
                     }
-                    $q->orWhere(function ($sub) {
-                        $sub->whereNull('delivery_tasks.waiter_id')
-                            ->where('delivery_tasks.status', 'waiting_assignment')
-                            ->where(function ($tableSub) {
-                                $tableSub->whereNotNull('delivery_tasks.table_id')
-                                    ->orWhereHas('order', fn($oSub) => $oSub->whereNotNull('table_id'));
-                            });
-                    });
                 });
             }
 
@@ -611,8 +629,11 @@ class WaiterDashboardService
         try {
             $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
+            $assignedFloorIds = $waiterId ? $this->getWaiterAssignedFloorIds($waiterId) : [];
+            $assignedTableIds = $waiterId ? $this->getWaiterAssignedTableIds($waiterId) : [];
+            $hasAssignments = !empty($assignedTableIds) || !empty($assignedFloorIds);
 
-            $query =DeliveryTask::withoutGlobalScope(TenantScope::class)
+            $query = DeliveryTask::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['assigned', 'waiting_assignment']);
             
             // CRITICAL: Apply hotel_id filter for tenant isolation
@@ -620,15 +641,36 @@ class WaiterDashboardService
                 $query->where('delivery_tasks.hotel_id', $hotelId);
             }
             
-            if (!$isAdminOrManager && $waiterId) {
-                $assignedFloorIds = $this->getWaiterAssignedFloorIds($waiterId);
-                $query->where(function($q) use ($waiterId, $assignedFloorIds) {
+            if ($waiterId && (!$isAdminOrManager || $hasAssignments)) {
+                $query->where(function($q) use ($waiterId, $assignedFloorIds, $assignedTableIds, $hasAssignments) {
                     $q->where('delivery_tasks.waiter_id', $waiterId);
+
                     if (!empty($assignedFloorIds)) {
-                        $q->orWhere(function ($sub) use ($assignedFloorIds) {
-                            $sub->whereNull('delivery_tasks.waiter_id')
-                                ->whereIn('delivery_tasks.floor_id', $assignedFloorIds);
+                        $q->orWhere(function ($sub) use ($assignedFloorIds, $waiterId) {
+                            $sub->where(function ($w) use ($waiterId) {
+                                $w->whereNull('delivery_tasks.waiter_id')
+                                  ->orWhere('delivery_tasks.waiter_id', $waiterId);
+                            })->where(function ($f) use ($assignedFloorIds) {
+                                $f->whereIn('delivery_tasks.floor_id', $assignedFloorIds)
+                                  ->orWhereHas('order.room', fn($r) => $r->whereIn('floor_id', $assignedFloorIds));
+                            });
                         });
+                    }
+
+                    if (!empty($assignedTableIds)) {
+                        $q->orWhere(function ($sub) use ($assignedTableIds, $waiterId) {
+                            $sub->where(function ($w) use ($waiterId) {
+                                $w->whereNull('delivery_tasks.waiter_id')
+                                  ->orWhere('delivery_tasks.waiter_id', $waiterId);
+                            })->where(function ($t) use ($assignedTableIds) {
+                                $t->whereIn('delivery_tasks.table_id', $assignedTableIds)
+                                  ->orWhereHas('order', fn($o) => $o->whereIn('table_id', $assignedTableIds));
+                            });
+                        });
+                    }
+
+                    if (!$hasAssignments) {
+                        $q->orWhereNull('delivery_tasks.waiter_id');
                     }
                 });
             }
@@ -668,6 +710,9 @@ class WaiterDashboardService
         try {
             $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
+            $assignedFloorIds = $waiterId ? $this->getWaiterAssignedFloorIds($waiterId) : [];
+            $assignedTableIds = $waiterId ? $this->getWaiterAssignedTableIds($waiterId) : [];
+            $hasAssignments = !empty($assignedTableIds) || !empty($assignedFloorIds);
 
             $query = Order::withoutGlobalScope(TenantScope::class)
                 ->where('status', 'ready');
@@ -675,10 +720,8 @@ class WaiterDashboardService
                 $query->where('hotel_id', $hotelId);
             }
 
-            if (!$isAdminOrManager && $waiterId) {
-                $assignedFloorIds = $this->getWaiterAssignedFloorIds($waiterId);
-                $assignedTableIds = $this->getWaiterAssignedTableIds($waiterId);
-                $query->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds) {
+            if ($waiterId && (!$isAdminOrManager || $hasAssignments)) {
+                $query->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds, $hasAssignments) {
                     $q->whereHas('deliveryTasks', fn($dt) => $dt->where('waiter_id', $waiterId));
                     if (!empty($assignedFloorIds)) {
                         $q->orWhereHas('room', fn($rq) => $rq->whereIn('floor_id', $assignedFloorIds));
@@ -686,10 +729,9 @@ class WaiterDashboardService
                     if (!empty($assignedTableIds)) {
                         $q->orWhereIn('table_id', $assignedTableIds);
                     }
-                    $q->orWhere(function ($sub) {
-                        $sub->whereNotNull('table_id')
-                            ->whereDoesntHave('deliveryTasks', fn($dt) => $dt->whereNotNull('waiter_id'));
-                    });
+                    if (!$hasAssignments) {
+                        $q->orWhereDoesntHave('deliveryTasks', fn($dt) => $dt->whereNotNull('waiter_id'));
+                    }
                 });
             }
 
@@ -746,8 +788,9 @@ class WaiterDashboardService
         try {
             $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
-            $assignedFloorIds = (!$isAdminOrManager && $waiterId) ? $this->getWaiterAssignedFloorIds($waiterId) : [];
-            $assignedTableIds = (!$isAdminOrManager && $waiterId) ? $this->getWaiterAssignedTableIds($waiterId) : [];
+            $assignedFloorIds = $waiterId ? $this->getWaiterAssignedFloorIds($waiterId) : [];
+            $assignedTableIds = $waiterId ? $this->getWaiterAssignedTableIds($waiterId) : [];
+            $hasAssignments = !empty($assignedTableIds) || !empty($assignedFloorIds);
 
             $tasksQuery = DeliveryTask::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['assigned', 'waiting_assignment', 'accepted']);
@@ -759,28 +802,41 @@ class WaiterDashboardService
                 });
             }
 
-            if (!$isAdminOrManager && $waiterId) {
-                $tasksQuery->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds) {
+            if ($waiterId && (!$isAdminOrManager || $hasAssignments)) {
+                $tasksQuery->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds, $hasAssignments) {
+                    // 1. Explicitly assigned to this waiter
                     $q->where('delivery_tasks.waiter_id', $waiterId);
-                    if (!empty($assignedFloorIds)) {
-                        $q->orWhere(function ($sub) use ($assignedFloorIds) {
-                            $sub->whereNull('delivery_tasks.waiter_id')
-                                ->whereIn('delivery_tasks.floor_id', $assignedFloorIds);
-                        });
-                    }
+
+                    // 2. Unassigned or waiter-assigned tasks matching assigned tables
                     if (!empty($assignedTableIds)) {
-                        $q->orWhere(function ($sub) use ($assignedTableIds) {
-                            $sub->whereNull('delivery_tasks.waiter_id')
-                                ->whereIn('delivery_tasks.table_id', $assignedTableIds);
+                        $q->orWhere(function ($sub) use ($assignedTableIds, $waiterId) {
+                            $sub->where(function ($w) use ($waiterId) {
+                                $w->whereNull('delivery_tasks.waiter_id')
+                                  ->orWhere('delivery_tasks.waiter_id', $waiterId);
+                            })->where(function ($t) use ($assignedTableIds) {
+                                $t->whereIn('delivery_tasks.table_id', $assignedTableIds)
+                                  ->orWhereHas('order', fn($o) => $o->whereIn('table_id', $assignedTableIds));
+                            });
                         });
                     }
-                    $q->orWhere(function ($sub) {
-                        $sub->whereNull('delivery_tasks.waiter_id')
-                            ->where(function ($tableSub) {
-                                $tableSub->whereNotNull('delivery_tasks.table_id')
-                                    ->orWhereHas('order', fn($oSub) => $oSub->whereNotNull('table_id'));
+
+                    // 3. Unassigned or waiter-assigned tasks matching assigned floors
+                    if (!empty($assignedFloorIds)) {
+                        $q->orWhere(function ($sub) use ($assignedFloorIds, $waiterId) {
+                            $sub->where(function ($w) use ($waiterId) {
+                                $w->whereNull('delivery_tasks.waiter_id')
+                                  ->orWhere('delivery_tasks.waiter_id', $waiterId);
+                            })->where(function ($f) use ($assignedFloorIds) {
+                                $f->whereIn('delivery_tasks.floor_id', $assignedFloorIds)
+                                  ->orWhereHas('order.room', fn($r) => $r->whereIn('floor_id', $assignedFloorIds));
                             });
-                    });
+                        });
+                    }
+
+                    // 4. Pool fallback ONLY if waiter has NO assigned tables and NO assigned floors
+                    if (!$hasAssignments) {
+                        $q->orWhereNull('delivery_tasks.waiter_id');
+                    }
                 });
             }
 
@@ -867,8 +923,9 @@ class WaiterDashboardService
         try {
             $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
-            $assignedFloorIds = (!$isAdminOrManager && $waiterId) ? $this->getWaiterAssignedFloorIds($waiterId) : [];
-            $assignedTableIds = (!$isAdminOrManager && $waiterId) ? $this->getWaiterAssignedTableIds($waiterId) : [];
+            $assignedFloorIds = $waiterId ? $this->getWaiterAssignedFloorIds($waiterId) : [];
+            $assignedTableIds = $waiterId ? $this->getWaiterAssignedTableIds($waiterId) : [];
+            $hasAssignments = !empty($assignedTableIds) || !empty($assignedFloorIds);
 
             $query = DeliveryTask::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['assigned', 'waiting_assignment']);
@@ -880,28 +937,37 @@ class WaiterDashboardService
                 });
             }
 
-            if (!$isAdminOrManager && $waiterId) {
-                $query->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds) {
+            if ($waiterId && (!$isAdminOrManager || $hasAssignments)) {
+                $query->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds, $hasAssignments) {
                     $q->where('delivery_tasks.waiter_id', $waiterId);
+
                     if (!empty($assignedFloorIds)) {
-                        $q->orWhere(function ($sub) use ($assignedFloorIds) {
-                            $sub->whereNull('delivery_tasks.waiter_id')
-                                ->whereIn('delivery_tasks.floor_id', $assignedFloorIds);
-                        });
-                    }
-                    if (!empty($assignedTableIds)) {
-                        $q->orWhere(function ($sub) use ($assignedTableIds) {
-                            $sub->whereNull('delivery_tasks.waiter_id')
-                                ->whereIn('delivery_tasks.table_id', $assignedTableIds);
-                        });
-                    }
-                    $q->orWhere(function ($sub) {
-                        $sub->whereNull('delivery_tasks.waiter_id')
-                            ->where(function ($tableSub) {
-                                $tableSub->whereNotNull('delivery_tasks.table_id')
-                                    ->orWhereHas('order', fn($oSub) => $oSub->whereNotNull('table_id'));
+                        $q->orWhere(function ($sub) use ($assignedFloorIds, $waiterId) {
+                            $sub->where(function ($w) use ($waiterId) {
+                                $w->whereNull('delivery_tasks.waiter_id')
+                                  ->orWhere('delivery_tasks.waiter_id', $waiterId);
+                            })->where(function ($f) use ($assignedFloorIds) {
+                                $f->whereIn('delivery_tasks.floor_id', $assignedFloorIds)
+                                  ->orWhereHas('order.room', fn($r) => $r->whereIn('floor_id', $assignedFloorIds));
                             });
-                    });
+                        });
+                    }
+
+                    if (!empty($assignedTableIds)) {
+                        $q->orWhere(function ($sub) use ($assignedTableIds, $waiterId) {
+                            $sub->where(function ($w) use ($waiterId) {
+                                $w->whereNull('delivery_tasks.waiter_id')
+                                  ->orWhere('delivery_tasks.waiter_id', $waiterId);
+                            })->where(function ($t) use ($assignedTableIds) {
+                                $t->whereIn('delivery_tasks.table_id', $assignedTableIds)
+                                  ->orWhereHas('order', fn($o) => $o->whereIn('table_id', $assignedTableIds));
+                            });
+                        });
+                    }
+
+                    if (!$hasAssignments) {
+                        $q->orWhereNull('delivery_tasks.waiter_id');
+                    }
                 });
             }
 
