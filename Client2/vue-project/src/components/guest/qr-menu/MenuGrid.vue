@@ -59,6 +59,7 @@
         :order-id="orderId"
         @add-to-cart="(qty) => handleAddToCart(item, qty)"
         @write-review="handleWriteReview(item)"
+        @view-reviews="handleViewReviews(item)"
       />
     </div>
 
@@ -137,6 +138,8 @@ interface MenuItem {
   image_url?: string
   category: string
   rating?: number
+  average_rating?: number | null
+  review_count?: number
   badge?: string
   dietary?: string[]
   calories?: number
@@ -170,6 +173,7 @@ const emit = defineEmits<{
   'toggle-favorite': [itemId: string | number, isFavorite: boolean]
   'clear-filters': []
   'write-review': [item: MenuItem]
+  'view-reviews': [item: MenuItem]
 }>()
 
 // State
@@ -236,6 +240,10 @@ const handleAddToCart = (item: MenuItem, quantity: number) => {
 
 const handleWriteReview = (item: MenuItem) => {
   emit('write-review', item)
+}
+
+const handleViewReviews = (item: MenuItem) => {
+  emit('view-reviews', item)
 }
 
 const handleToggleFavorite = (itemId: string | number, isFavorite: boolean) => {

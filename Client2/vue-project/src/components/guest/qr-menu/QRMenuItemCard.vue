@@ -113,8 +113,31 @@ const decrementQuantity = () => {
         </p>
       </div>
 
-      <!-- REMOVED: Rating/Review display to improve performance -->
-      <!-- Reviews can be viewed after ordering via the Write Review button -->
+      <!-- Rating & Review Display -->
+      <div class="flex items-center justify-between text-xs py-0.5">
+        <button
+          v-if="item.review_count && item.review_count > 0"
+          type="button"
+          @click.stop="$emit('view-reviews')"
+          class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-amber-50/90 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 hover:bg-amber-100 transition cursor-pointer"
+          :title="`${item.review_count} reviews. Click to view reviews`"
+        >
+          <Star :size="13" class="fill-amber-400 text-amber-400 shrink-0" />
+          <span class="font-bold text-xs">{{ Number(item.average_rating || item.rating || 0).toFixed(1) }}</span>
+          <span class="text-[11px] text-amber-600/90 dark:text-amber-400/80 underline font-medium">({{ item.review_count }} {{ item.review_count === 1 ? 'review' : 'reviews' }})</span>
+        </button>
+        <button
+          v-else
+          type="button"
+          @click.stop="$emit('write-review')"
+          class="inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-amber-600 transition cursor-pointer"
+          title="No reviews yet. Be the first to rate!"
+        >
+          <Star :size="12" class="text-slate-300 dark:text-slate-600" />
+          <span>{{ languageStore.t('no_reviews_yet', 'No reviews yet') }}</span>
+          <span class="text-amber-600 dark:text-amber-400 font-semibold">• {{ languageStore.t('rate_now', 'Rate now') }}</span>
+        </button>
+      </div>
 
       <!-- Price & Actions footer -->
       <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2.5">
@@ -171,15 +194,31 @@ const decrementQuantity = () => {
           </button>
         </div>
 
-        <!-- Write Review Button -->
-        <button
-          @click.stop="$emit('write-review')"
-          :title="languageStore.t('write_review', 'Write Review')"
-          class="w-full h-8 sm:h-9 flex items-center justify-center gap-1.5 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
-        >
-          <MessageSquare :size="13" class="shrink-0" />
-          <span>{{ languageStore.t('write_review', 'Write Review') }}</span>
-        </button>
+        <!-- Review Action Row -->
+        <div class="flex items-center gap-2">
+          <button
+            v-if="item.review_count && item.review_count > 0"
+            @click.stop="$emit('view-reviews')"
+            class="flex-1 h-8 sm:h-9 flex items-center justify-center gap-1 text-xs font-semibold rounded-xl border border-amber-300 dark:border-amber-700/60 bg-amber-50/50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300 hover:bg-amber-100 transition-all cursor-pointer"
+            :title="languageStore.t('view_reviews', 'View Reviews')"
+          >
+            <Star :size="12" class="fill-amber-400 text-amber-400 shrink-0" />
+            <span>{{ languageStore.t('reviews', 'Reviews') }} ({{ item.review_count }})</span>
+          </button>
+
+          <!-- Write Review Button -->
+          <button
+            @click.stop="$emit('write-review')"
+            :title="languageStore.t('write_review', 'Write Review')"
+            :class="[
+              item.review_count && item.review_count > 0 ? 'flex-1' : 'w-full',
+              'h-8 sm:h-9 flex items-center justify-center gap-1.5 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700/80 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer'
+            ]"
+          >
+            <MessageSquare :size="13" class="shrink-0" />
+            <span>{{ languageStore.t('write_review', 'Write Review') }}</span>
+          </button>
+        </div>
 
         <!-- Unavailable Notice -->
         <div
