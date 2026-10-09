@@ -488,12 +488,22 @@ watch(() => hotelStore.hotelId, () => {
               </div>
               <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
                 <span>{{ order.guest_name || languageStore.t('guest', 'Guest') }}</span>
-                <button
-                  @click="viewDetails(order)"
-                  class="px-2 py-1 text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 rounded-lg"
-                >
-                  {{ languageStore.t('details', 'Details') }}
-                </button>
+                <div class="flex items-center gap-2">
+                  <span v-if="order.table_number || order.table?.table_number" class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <UtensilsCrossed class="w-3 h-3" />
+                    Table {{ order.table_number || order.table?.table_number }}
+                  </span>
+                  <span v-else-if="order.room_number && order.room_number !== 'Room Service'" class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                    <BedDouble class="w-3 h-3" />
+                    Room {{ order.room_number }}
+                  </span>
+                  <button
+                    @click="viewDetails(order)"
+                    class="px-2 py-1 text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 rounded-lg ml-1"
+                  >
+                    {{ languageStore.t('details', 'Details') }}
+                  </button>
+                </div>
               </div>
             </div>
             <div v-if="paginatedAssignments.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">
