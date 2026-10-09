@@ -1,8 +1,6 @@
 <template>
   <div
     class="relative h-52 sm:h-60 md:h-64 lg:h-72 rounded-2xl overflow-hidden shadow-md bg-slate-950 border border-slate-800/80 font-sans group select-none"
-    @mouseenter="pauseAutoplay"
-    @mouseleave="resumeAutoplay"
     @touchstart="handleTouchStart"
     @touchend="handleTouchEnd"
   >
@@ -10,13 +8,13 @@
     <div
       v-for="(slide, index) in slides"
       :key="slide.id"
-      class="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+      class="absolute inset-0 transition-opacity duration-500 ease-in-out"
       :class="index === currentSlide ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'"
     >
       <img
         :src="slide.imageUrl"
         :alt="slide.titleLine1 + ' ' + slide.titleLine2"
-        class="w-full h-full object-cover object-right opacity-100 brightness-105 contrast-105 transition-transform duration-7000 ease-out"
+        class="w-full h-full object-cover object-right opacity-100 brightness-105 contrast-105 transition-transform duration-1000 ease-out"
         :class="index === currentSlide ? 'scale-105' : 'scale-100'"
         loading="eager"
       />
@@ -115,7 +113,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  intervalMs: 3500 // Smooth autoplay interval every 3.5 seconds
+  // Navigates every second (1000ms) as requested
+  intervalMs: 1000
 })
 
 const emit = defineEmits<{
@@ -130,7 +129,7 @@ let timer: ReturnType<typeof setInterval> | null = null
 let touchStartX = 0
 let touchEndX = 0
 
-// 5 Curated Gourmet Hero Visuals
+// 5+ Curated Distinct Gourmet Food Images from unsplash.com
 const slides = computed<HeroSlide[]>(() => [
   {
     id: 1,
@@ -140,7 +139,7 @@ const slides = computed<HeroSlide[]>(() => [
     subtitle: languageStore.t('fresh_ingredients_desc', 'Fresh ingredients, expertly prepared. Delivered directly to your room.'),
     ctaText: languageStore.t('view_specials', 'View Specials'),
     category: 'Specials',
-    imageUrl: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=1600&h=900&fit=crop'
+    imageUrl: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=1600&auto=format&fit=crop&q=80'
   },
   {
     id: 2,
@@ -150,37 +149,47 @@ const slides = computed<HeroSlide[]>(() => [
     subtitle: 'Tender aged steaks grilled to perfection with signature herb butter and rich jus.',
     ctaText: 'Explore Steaks',
     category: 'Main Courses',
-    imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=1600&h=900&fit=crop'
+    imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=1600&auto=format&fit=crop&q=80'
   },
   {
     id: 3,
+    badge: 'Wood-Fired',
+    titleLine1: 'Authentic Crust,',
+    titleLine2: 'Italian Pizza',
+    subtitle: 'Crispy stone-baked dough, San Marzano sauce, and melted fresh mozzarella.',
+    ctaText: 'Taste Pizza',
+    category: 'Pizza',
+    imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1600&auto=format&fit=crop&q=80'
+  },
+  {
+    id: 4,
     badge: 'Guest Favorite',
     titleLine1: 'Handcrafted,',
     titleLine2: 'Gourmet Burgers',
     subtitle: 'Toasted brioche, melted cheddar, and savory flame-grilled patties.',
     ctaText: 'Discover Burgers',
     category: 'Burgers',
-    imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1600&h=900&fit=crop'
+    imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1600&auto=format&fit=crop&q=80'
   },
   {
-    id: 4,
+    id: 5,
     badge: 'Ocean Fresh',
     titleLine1: 'Hand-Rolled,',
     titleLine2: 'Sushi & Sashimi',
     subtitle: 'Fresh Pacific salmon, premium tuna rolls, and handcrafted coastal delicacies.',
     ctaText: 'Taste Seafood',
     category: 'Seafood',
-    imageUrl: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=1600&h=900&fit=crop'
+    imageUrl: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=1600&auto=format&fit=crop&q=80'
   },
   {
-    id: 5,
+    id: 6,
     badge: 'Sweet Finale',
-    titleLine1: 'Velvety Tarts,',
+    titleLine1: 'Warm Molten,',
     titleLine2: 'Decadent Desserts',
-    subtitle: 'Indulgent molten lava cakes, artisan pastries, and delicate berry garnishes.',
+    subtitle: 'Rich chocolate lava cakes, artisan pastries, and delicate berry garnishes.',
     ctaText: 'Browse Sweets',
     category: 'Desserts',
-    imageUrl: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=1600&h=900&fit=crop'
+    imageUrl: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=1600&auto=format&fit=crop&q=80'
   }
 ])
 
@@ -212,13 +221,9 @@ const stopAutoplay = () => {
   }
 }
 
-const pauseAutoplay = () => stopAutoplay()
-const resumeAutoplay = () => startAutoplay()
-
 // Touch swipe support
 const handleTouchStart = (e: TouchEvent) => {
   touchStartX = e.changedTouches[0].screenX
-  pauseAutoplay()
 }
 
 const handleTouchEnd = (e: TouchEvent) => {
@@ -228,7 +233,6 @@ const handleTouchEnd = (e: TouchEvent) => {
   } else if (touchEndX - touchStartX > 50) {
     prevSlide()
   }
-  resumeAutoplay()
 }
 
 const handleSpecials = (category?: string) => {
@@ -236,6 +240,11 @@ const handleSpecials = (category?: string) => {
 }
 
 onMounted(() => {
+  // Preload all unsplash images into browser cache so navigation every second is instant & smooth
+  slides.value.forEach(slide => {
+    const img = new Image()
+    img.src = slide.imageUrl
+  })
   startAutoplay()
 })
 
@@ -247,16 +256,16 @@ onUnmounted(() => {
 <style scoped>
 .slide-fade-enter-active,
 .slide-fade-leave-active {
-  transition: all 0.4s ease;
+  transition: all 0.3s ease;
 }
 
 .slide-fade-enter-from {
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateY(4px);
 }
 
 .slide-fade-leave-to {
   opacity: 0;
-  transform: translateY(-6px);
+  transform: translateY(-4px);
 }
 </style>
