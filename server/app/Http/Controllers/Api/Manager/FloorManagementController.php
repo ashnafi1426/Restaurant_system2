@@ -60,7 +60,12 @@ class FloorManagementController extends Controller
      */
     public function show(Floor $floor): JsonResponse
     {
-        $floor->load('rooms', 'waiters');
+        $floor->load([
+            'rooms.roomType',
+            'waiterAssignments.waiter.user',
+            'waiterAssignments.shift',
+            'waiters.user',
+        ]);
 
         return response()->json([
             'success' => true,

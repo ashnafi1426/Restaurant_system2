@@ -307,6 +307,14 @@ const router = createRouter({
       },
     },
     {
+      path: '/users/:id',
+      component: ViewUser,
+      meta: {
+        requiresAuth: true,
+        permission: 'users.view',
+      },
+    },
+    {
       path: '/users/:id/edit',
       component: EditUser,
       meta: {

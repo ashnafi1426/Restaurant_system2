@@ -183,7 +183,7 @@ const operationalMenuItems: MenuItem[] = [
   { name: 'Waiter Management', path: '/manager/waiters', icon: 'Waiters', permission: 'waiters.view', roleSlug: ['admin', 'manager'], section: 'Operations' },
   { name: 'Restaurant Tables', path: '/manager/restaurant-tables', icon: 'Restaurant', permission: 'tables.view', roleSlug: ['admin', 'manager'], section: 'Operations' },
   { name: 'Table Assignments', path: '/manager/table-assignments', icon: 'MapPin', permission: 'tables.assign', roleSlug: ['admin', 'manager'], section: 'Operations' },
-  { name: 'Assign Floors', path: '/manager/floor-assignment', icon: 'Manager', permission: 'floors.view', roleSlug: ['admin', 'manager'], section: 'Operations' },
+  { name: 'Floor Management', path: '/manager/floor-assignment', icon: 'Manager', permission: 'floors.view', roleSlug: ['admin', 'manager'], section: 'Operations' },
   { name: 'Daily Operations', path: '/manager/operations', icon: 'Operations', permission: 'reports.occupancy', roleSlug: ['admin', 'manager'], section: 'Operations' },
   { name: 'Room Service Management', path: '/manager/delivery-management', icon: 'Truck', permission: 'delivery.reassign', roleSlug: ['admin', 'manager'], section: 'Deliveries' },
   { name: 'Assigned Orders', path: '/waiter/assigned-orders', icon: 'Room Service', permission: 'delivery.accept', roleSlug: ['admin', 'waiter'], section: 'Deliveries' },

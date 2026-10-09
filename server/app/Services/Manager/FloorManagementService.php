@@ -30,7 +30,9 @@ class FloorManagementService
             $this->ensureFloorsExistForHotel($hotelId);
         }
 
-        $query = Floor::query()->withCount('rooms');
+        $query = Floor::query()
+            ->withCount('rooms')
+            ->with(['activeWaiterAssignments.waiter.user', 'activeWaiterAssignments.shift']);
 
         if ($hotelId) {
             $query->where('hotel_id', $hotelId);

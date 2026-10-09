@@ -1,5 +1,36 @@
 import api from '@/api/auth'
 
+export interface FloorRoom {
+  id: string
+  room_number: string
+  room_type: string
+  status: 'available' | 'occupied' | 'maintenance' | 'cleaning' | string
+  is_active: boolean
+  price_per_night: number
+  capacity?: number
+}
+
+export interface FloorWaiterAssignment {
+  id: string
+  waiter_id: string | number
+  waiter_name: string
+  first_name?: string
+  last_name?: string
+  email?: string
+  phone?: string
+  section?: string
+  shift?: {
+    id: string
+    name: string
+    start_time: string
+    end_time: string
+  } | null
+  priority: 'primary' | 'secondary' | 'backup'
+  status: string
+  assignment_date?: string
+  is_active?: boolean
+}
+
 export interface Floor {
   id: string
   hotel_id?: string
@@ -9,6 +40,8 @@ export interface Floor {
   is_active: boolean
   total_rooms?: number
   room_count?: number
+  rooms?: FloorRoom[]
+  waiter_assignments?: FloorWaiterAssignment[]
   created_at?: string
   updated_at?: string
 }

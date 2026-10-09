@@ -49,8 +49,42 @@ const extractUserData = (raw: any): User | null => {
   return raw.first_name ? raw : raw.data?.first_name ? raw.data : raw.data?.data || raw.data || raw
 }
 
+const findLocalUser = (): User | null => {
+  if (userStore.users && Array.isArray(userStore.users)) {
+    const match = userStore.users.find((u) => String(u.id) === userId)
+    if (match) return match
+  }
+  if (userStore.user && String(userStore.user.id) === userId) {
+    return userStore.user
+  }
+  try {
+    const allKeys = Object.keys(localStorage).filter((k) => k.startsWith('users_cache_'))
+    for (const k of allKeys) {
+      const raw = localStorage.getItem(k)
+      if (raw) {
+        const list = JSON.parse(raw)
+        if (Array.isArray(list)) {
+          const match = list.find((u: any) => String(u.id) === userId)
+          if (match) return match
+        }
+      }
+    }
+    const current = JSON.parse(localStorage.getItem('user') || 'null')
+    if (current && String(current.id) === userId) return current
+  } catch {}
+  return null
+}
+
 const loadUser = async () => {
-  loading.value = true
+  // Pre-populate immediately so profile appears with zero delay
+  const local = findLocalUser()
+  if (local) {
+    user.value = local
+    loading.value = false
+  } else {
+    loading.value = true
+  }
+
   try {
     const res = await userStore.fetchUser(userId)
     const extracted = extractUserData(res) || extractUserData(userStore.user)
@@ -58,7 +92,13 @@ const loadUser = async () => {
       user.value = extracted
     }
   } catch (error) {
-    console.error('[ViewUser] Failed to load user:', error)
+    console.warn('[ViewUser] Network fetch failed, relying on cached user details:', error)
+    if (!user.value) {
+      const fallback = findLocalUser()
+      if (fallback) {
+        user.value = fallback
+      }
+    }
   } finally {
     loading.value = false
   }

@@ -83,11 +83,12 @@ const managerRoutes: RouteRecordRaw[] = [
   {
     path: '/manager/floor-assignment',
     name: 'FloorAssignment',
+    alias: ['/manager/floors', '/floors', '/admin/floors'],
     component: FloorAssignment,
     meta: {
       requiresAuth: true,
       permission: 'floors.view',
-      title: 'Floor Assignment',
+      title: 'Floor Management',
     },
   },
   {

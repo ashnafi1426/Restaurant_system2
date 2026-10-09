@@ -37,7 +37,28 @@ export const useUserStore = defineStore('user', () => {
       user.value = response.data.data
       return response.data
     } catch (error) {
-      console.error('[UserStore] Error fetching user:', error)
+      console.warn('[UserStore] Error fetching user from API, attempting local fallback:', error)
+      const cached = users.value.find((u) => String(u.id) === String(id))
+      if (cached) {
+        user.value = cached
+        return { success: true, data: cached }
+      }
+      try {
+        const allKeys = Object.keys(localStorage).filter(k => k.startsWith('users_cache_'))
+        for (const k of allKeys) {
+          const raw = localStorage.getItem(k)
+          if (raw) {
+            const list = JSON.parse(raw)
+            if (Array.isArray(list)) {
+              const found = list.find((u: any) => String(u.id) === String(id))
+              if (found) {
+                user.value = found
+                return { success: true, data: found }
+              }
+            }
+          }
+        }
+      } catch {}
       throw error
     } finally {
       loading.value = false
