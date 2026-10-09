@@ -955,12 +955,12 @@ const handleViewSpecials = (categoryName?: string) => {
            c.name.toLowerCase().includes(categoryName.toLowerCase())
     )
     if (matchedCategory) {
-      handleCategorySelect(matchedCategory.name)
+      selectCategory(matchedCategory)
     } else {
-      handleCategorySelect(null)
+      selectCategory(null)
     }
   } else {
-    handleCategorySelect(null)
+    selectCategory(null)
   }
   handleExplore()
 }
