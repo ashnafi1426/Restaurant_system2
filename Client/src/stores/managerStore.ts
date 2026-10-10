@@ -57,6 +57,7 @@ export const useManagerStore = defineStore('manager', () => {
 
   const dashboardStats = ref(createEmptyDashboardStats())
   const dashboardActivities = ref<any[]>([])
+  const schedules = ref<any[]>([])
 
   const loading = ref(false)
   const loadingRevenue = ref(false)
@@ -405,6 +406,7 @@ export const useManagerStore = defineStore('manager', () => {
 
     dashboardStats,
     dashboardActivities,
+    schedules,
 
     loading,
     loadingRevenue,
