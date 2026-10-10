@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import managerService from '@/services/managerService'
-import type { Waiter } from '@/types/manager'
+import type { Waiter, WaiterStatus } from '@/types/manager'
 
 export const useManagerWaiterStore = defineStore('managerWaiter', () => {
   const waiters = ref<Waiter[]>([])
