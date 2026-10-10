@@ -4,7 +4,7 @@ import { ref, computed } from 'vue'
 interface MenuItem {
   id: string | number
   name: string
-  description: string
+  description?: string
   price: number
   image?: string | null
   image_url?: string
@@ -12,6 +12,11 @@ interface MenuItem {
   is_available?: boolean
   dietary_tags?: string[]
   status?: string
+  total_price?: number
+  tax_rate?: any
+  tax_included?: boolean
+  tax_amount?: number
+  [key: string]: any
 }
 
 const props = defineProps<{

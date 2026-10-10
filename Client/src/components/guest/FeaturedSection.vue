@@ -15,7 +15,7 @@ interface Props {
   items?: MenuItem[]
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   items: () => [],
 })
 
