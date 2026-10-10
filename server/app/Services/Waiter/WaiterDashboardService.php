@@ -195,62 +195,28 @@ class WaiterDashboardService
             $allStats = $taskQuery->selectRaw('
                 -- Today historical
                 SUM(CASE WHEN DATE(COALESCE(delivered_at, assigned_at, created_at)) = CURDATE() THEN 1 ELSE 0 END) as total_assignments,
-                SUM(CASE WHEN status = "delivered" AND DATE(delivered_at) = CURDATE() THEN 1 ELSE 0 END) as completed_deliveries,
+                SUM(CASE WHEN status = "delivered" AND DATE(COALESCE(delivered_at, updated_at)) = CURDATE() THEN 1 ELSE 0 END) as completed_deliveries,
                 SUM(CASE WHEN status = "cancelled" AND DATE(COALESCE(cancelled_at, created_at)) = CURDATE() THEN 1 ELSE 0 END) as failed_deliveries,
                 -- Current active stats
-                SUM(CASE WHEN status IN ("assigned", "waiting_assignment", "accepted") THEN 1 ELSE 0 END) as pending_assignments,
-                SUM(CASE WHEN status IN ("assigned", "waiting_assignment", "accepted", "picked_up", "on_delivery") THEN 1 ELSE 0 END) as active_assignments,
+                SUM(CASE WHEN status IN ("assigned", "waiting_assignment", "accepted") AND DATE(COALESCE(assigned_at, created_at)) = CURDATE() THEN 1 ELSE 0 END) as pending_assignments,
+                SUM(CASE WHEN status IN ("assigned", "waiting_assignment", "accepted", "picked_up", "on_delivery") AND DATE(COALESCE(assigned_at, created_at)) = CURDATE() THEN 1 ELSE 0 END) as active_assignments,
                 SUM(CASE WHEN status IN ("picked_up", "on_delivery") THEN 1 ELSE 0 END) as on_delivery_count,
                 -- Average delivery time
                 ROUND(AVG(CASE 
-                    WHEN status = "delivered" AND DATE(delivered_at) = CURDATE() 
+                    WHEN status = "delivered" AND DATE(COALESCE(delivered_at, updated_at)) = CURDATE() 
                     THEN TIMESTAMPDIFF(MINUTE, assigned_at, delivered_at) 
                     ELSE NULL 
                 END), 2) as average_delivery_time
             ')->first();
 
-            // Get picked up order IDs with hotel_id filter
-            $pickedUpQuery = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
-                ->whereIn('status', ['picked_up', 'on_delivery', 'delivered', 'cancelled']);
-            
-            if ($hotelId) {
-                $pickedUpQuery->where('delivery_tasks.hotel_id', $hotelId);
-            }
-            
-            $pickedUpOrderIds = $pickedUpQuery->pluck('order_id')
-                ->filter()
-                ->toArray();
-
-            $orderReadyQuery = Order::withoutGlobalScope(TenantScope::class)
-                ->whereIn('status', ['ready', 'pending', 'preparing']);
-            if (!empty($pickedUpOrderIds)) {
-                $orderReadyQuery->whereNotIn('orders.id', $pickedUpOrderIds);
-            }
-            if ($hotelId) {
-                $orderReadyQuery->where('orders.hotel_id', $hotelId);
-            }
-            if ($waiterId && (!$isAdminOrManager || $hasAssignments)) {
-                $orderReadyQuery->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds, $hasAssignments) {
-                    $q->whereHas('deliveryTasks', fn($dt) => $dt->where('waiter_id', $waiterId));
-                    if (!empty($assignedFloorIds)) {
-                        $q->orWhereHas('room', fn($rq) => $rq->whereIn('floor_id', $assignedFloorIds));
-                    }
-                    if (!empty($assignedTableIds)) {
-                        $q->orWhereIn('table_id', $assignedTableIds);
-                    }
-                    if (!$hasAssignments) {
-                        $q->orWhereDoesntHave('deliveryTasks', fn($dt) => $dt->whereNotNull('waiter_id'));
-                    }
-                });
-            }
-            $kitchenReadyCount = $orderReadyQuery->count();
+            // Accurately determine orders awaiting waiter pickup
+            $readyOrders = $this->getReadyForPickup($waiterId, 100);
+            $pendingPickup = count($readyOrders);
 
             $completedCount = (int)($allStats->completed_deliveries ?? 0);
-            $pendingCount = (int)($allStats->pending_assignments ?? 0);
-            $pendingPickup = max($pendingCount, $kitchenReadyCount);
             $onDelivery = (int)($allStats->on_delivery_count ?? 0);
-            $activeCount = (int)($allStats->active_assignments ?? $onDelivery);
-            $totalCount = (int)($allStats->total_assignments ?? ($completedCount + $pendingPickup + $onDelivery));
+            $activeCount = $pendingPickup + $onDelivery;
+            $totalCount = max($completedCount + $activeCount, (int)($allStats->total_assignments ?? 0));
 
             $avgTime = (float)($allStats->average_delivery_time ?? 0);
 

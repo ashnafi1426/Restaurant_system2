@@ -62,7 +62,6 @@ class WaiterAssignmentController extends Controller
             'sort_by' => $request->query('sort_by', 'assigned_at'),
             'sort_order' => $request->query('sort_order', 'desc'),
         ];
-
         $perPage = (int) $request->query('per_page', 15);
         $assignments = $this->assignmentService->getWaiterAssignments($waiterId, $filters, $perPage);
 
