@@ -5,13 +5,14 @@ export type OrderStatus =
   | 'accepted'
   | 'preparing'
   | 'ready'
+  | 'served'
   | 'delivered'
   | 'completed'
   | 'cancelled'
 
 export type RoomStatus = 'available' | 'occupied' | 'reserved' | 'cleaning' | 'maintenance'
 
-export type StaffStatus = 'active' | 'inactive' | 'off_duty' | 'leave' | 'on_break'
+export type StaffStatus = 'active' | 'inactive' | 'off_duty' | 'leave' | 'on_leave' | 'on_break'
 
 export type WaiterStatus =
   | 'active'

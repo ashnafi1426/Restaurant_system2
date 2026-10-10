@@ -16,47 +16,47 @@ import { useManagerStore } from '@/stores/managerStore'
 const manager = useManagerStore()
 
 const stats = computed(() => {
-  const stats = manager.safeStatistics || {}
+  const managerStats = (manager.safeStatistics || {}) as Record<string, any>
 
   return [
     {
       title: 'Total Reservations',
-      value: stats.totalReservations ?? 0,
+      value: managerStats.totalReservations ?? 0,
       icon: Calendar,
       color: 'blue',
       description: 'All reservations',
     },
     {
       title: "Today's Check-ins",
-      value: stats.todayCheckIns ?? 0,
+      value: managerStats.todayCheckIns ?? 0,
       icon: LogIn,
       color: 'emerald',
       description: 'Guests checked in',
     },
     {
       title: "Today's Check-outs",
-      value: stats.todayCheckOuts ?? 0,
+      value: managerStats.todayCheckOuts ?? 0,
       icon: LogOut,
       color: 'amber',
       description: 'Guests checked out',
     },
     {
       title: 'Available Rooms',
-      value: stats.availableRooms ?? 0,
+      value: managerStats.availableRooms ?? 0,
       icon: DoorOpen,
       color: 'purple',
       description: 'Ready for booking',
     },
     {
       title: 'Occupied Rooms',
-      value: stats.occupiedRooms ?? 0,
+      value: managerStats.occupiedRooms ?? 0,
       icon: Users,
       color: 'indigo',
       description: 'Currently occupied',
     },
     {
       title: "Today's Revenue",
-      value: formatMoney(stats.todayRevenue ?? 0),
+      value: formatMoney(managerStats.todayRevenue ?? 0),
       icon: CircleDollarSign,
       color: 'rose',
       description: "Today's income",
