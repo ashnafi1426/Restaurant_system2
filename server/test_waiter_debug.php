@@ -11,10 +11,12 @@ use App\Models\Waiter;
 use App\Models\WaiterFloorAssignment;
 use App\Models\DeliveryTask;
 
-echo "--- RECENT ORDERS ---\n";
-$orders = Order::latest()->take(5)->get();
-foreach ($orders as $o) {
-    echo "Order #{$o->id} ({$o->order_number}) Room: {$o->room_id} Table: {$o->table_id} Hotel: {$o->hotel_id} Status: {$o->status}\n";
+echo "--- FAILED JOBS ---\n";
+$f = \Illuminate\Support\Facades\DB::table('failed_jobs')->find(10);
+if ($f) {
+    $payload = json_decode($f->payload, true);
+    echo "DisplayName: " . ($payload['displayName'] ?? 'N/A') . "\n";
+    echo "Exception first line: " . strtok($f->exception, "\n") . "\n";
 }
 
 echo "\n--- ROOMS SAMPLE ---\n";
@@ -34,6 +36,7 @@ $waiters = Waiter::with('user')->get();
 foreach ($waiters as $w) {
     echo "Waiter #{$w->id} User: {$w->user_id} ({$w->name}) Hotel: {$w->hotel_id} Status: {$w->status} Avail: {$w->availability} Max: {$w->maximum_orders} Curr: {$w->current_orders}\n";
 }
+
 
 echo "\n--- WAITER FLOOR ASSIGNMENTS ---\n";
 $wfa = WaiterFloorAssignment::all();

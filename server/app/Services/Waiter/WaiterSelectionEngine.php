@@ -27,7 +27,7 @@ class WaiterSelectionEngine
         $hotelId = $floor->hotel_id ?? app(TenantContext::class)->getHotelId();
 
         try {
-            // 1. Find eligible assigned waiters for this specific floor
+            // 1. Build base query for floor-assigned active waiters
             $query = Waiter::query()
                 ->select('waiters.*')
                 ->join('waiter_floor_assignments', 'waiter_floor_assignments.waiter_id', '=', 'waiters.id')
@@ -37,20 +37,35 @@ class WaiterSelectionEngine
                       ->orWhere('waiter_floor_assignments.status', 'active');
                 })
                 ->where('waiters.status', 'active')
-                ->where(function ($q) {
-                    $q->whereNull('waiter_floor_assignments.assignment_date')
-                      ->orWhereDate('waiter_floor_assignments.assignment_date', today());
-                })
                 ->when($hotelId, fn($q) => $q->where('waiters.hotel_id', $hotelId));
 
-            if ($shift && !empty($shift->id)) {
-                $query->where(function ($q) use ($shift) {
-                    $q->where('waiter_floor_assignments.shift_id', $shift->id)
-                      ->orWhereNull('waiter_floor_assignments.shift_id');
+            // Check if there is an explicit assignment for today on this floor
+            $hasTodayAssignment = (clone $query)
+                ->whereDate('waiter_floor_assignments.assignment_date', today())
+                ->exists();
+
+            if ($hasTodayAssignment) {
+                $query->whereDate('waiter_floor_assignments.assignment_date', today());
+            } else {
+                // Standing active assignment fallback (assignment_date null or previous date)
+                $query->where(function ($q) {
+                    $q->whereNull('waiter_floor_assignments.assignment_date')
+                      ->orWhere('waiter_floor_assignments.is_active', true)
+                      ->orWhere('waiter_floor_assignments.status', 'active');
                 });
             }
 
-            // Workload constraint & selection: lowest orders first, then oldest assignment
+            if ($shift && !empty($shift->id)) {
+                $hasShiftMatch = (clone $query)->where('waiter_floor_assignments.shift_id', $shift->id)->exists();
+                if ($hasShiftMatch) {
+                    $query->where(function ($q) use ($shift) {
+                        $q->where('waiter_floor_assignments.shift_id', $shift->id)
+                          ->orWhereNull('waiter_floor_assignments.shift_id');
+                    });
+                }
+            }
+
+            // Ideal candidate on this floor: Available and under capacity
             $waiter = (clone $query)
                 ->where(function ($q) {
                     $q->where('waiters.availability', '!=', 'offline')
@@ -75,7 +90,7 @@ class WaiterSelectionEngine
                 return $waiter;
             }
 
-            // 2. Fallback: Any active assigned waiter on THIS specific floor
+            // 2. Fallback on same floor: any active assigned waiter, even if at capacity or offline default
             $fallbackFloorWaiter = (clone $query)
                 ->with('user')
                 ->orderBy('waiters.current_orders', 'asc')
@@ -92,10 +107,28 @@ class WaiterSelectionEngine
                 return $fallbackFloorWaiter;
             }
 
-            // Never assign an order to a waiter from a different floor!
-            Log::warning('[WaiterSelection] No waiter assigned to this floor', [
+            // 3. Last-resort hotel fallback: Any active waiter in this hotel to prevent stranded food
+            $hotelFallbackWaiter = Waiter::query()
+                ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
+                ->where('status', 'active')
+                ->with('user')
+                ->orderBy('current_orders', 'asc')
+                ->orderByRaw("COALESCE(last_assigned_at, '1970-01-01 00:00:00') ASC")
+                ->orderBy('id', 'asc')
+                ->first();
+
+            if ($hotelFallbackWaiter) {
+                Log::warning('[WaiterSelection] Floor has no waiter, assigned to available hotel waiter', [
+                    'floor_id' => $floor->id,
+                    'floor_name' => $floor->name ?? 'Floor ' . ($floor->floor_number ?? ''),
+                    'waiter_id' => $hotelFallbackWaiter->id,
+                ]);
+                return $hotelFallbackWaiter;
+            }
+
+            Log::warning('[WaiterSelection] No waiter available anywhere in hotel', [
                 'floor_id' => $floor->id,
-                'floor_name' => $floor->name ?? 'Unknown',
+                'hotel_id' => $hotelId,
             ]);
             return null;
 
@@ -123,25 +156,19 @@ class WaiterSelectionEngine
                 ->join('waiter_table_assignments', 'waiter_table_assignments.waiter_id', '=', 'waiters.id')
                 ->where('waiter_table_assignments.table_id', $table->id)
                 ->where('waiter_table_assignments.status', 'active')
-                ->where(function ($q) {
-                    $q->whereDate('waiter_table_assignments.assignment_date', today())
-                      ->orWhereNull('waiter_table_assignments.assignment_date');
-                })
                 ->where('waiters.status', 'active')
-                ->where(function ($q) {
-                    $q->where('waiters.availability', '!=', 'offline')
-                      ->orWhereNull('waiters.availability');
-                })
-                ->where(function ($q) {
-                    $q->whereNull('waiters.maximum_orders')
-                      ->orWhereRaw('waiters.current_orders < waiters.maximum_orders');
-                })
                 ->when($hotelId, fn($q) => $q->where('waiters.hotel_id', $hotelId));
 
-            if ($shift && !empty($shift->id)) {
-                $tableAssignmentQuery->where(function ($q) use ($shift) {
-                    $q->where('waiter_table_assignments.shift_id', $shift->id)
-                      ->orWhereNull('waiter_table_assignments.shift_id');
+            $hasTodayTableAssignment = (clone $tableAssignmentQuery)
+                ->whereDate('waiter_table_assignments.assignment_date', today())
+                ->exists();
+
+            if ($hasTodayTableAssignment) {
+                $tableAssignmentQuery->whereDate('waiter_table_assignments.assignment_date', today());
+            } else {
+                $tableAssignmentQuery->where(function ($q) {
+                    $q->whereNull('waiter_table_assignments.assignment_date')
+                      ->orWhere('waiter_table_assignments.status', 'active');
                 });
             }
 

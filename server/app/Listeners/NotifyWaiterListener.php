@@ -38,13 +38,19 @@ class NotifyWaiterListener implements ShouldQueue
                 'assignment_type' => $event->assignmentType,
             ]);
 
+            $waiter = $event->waiter ?? \App\Models\Waiter::with('user')->find($event->waiterId);
+            $userId = $waiter?->user_id ?? $order->user_id ?? null;
+            $hotelId = $order->hotel_id ?? $waiter?->hotel_id;
+
             $notification = WaiterNotification::create([
+                'hotel_id' => $hotelId,
+                'user_id' => $userId,
                 'waiter_id' => $event->waiterId,
                 'delivery_task_id' => $event->deliveryId,
                 'type' => 'delivery_assigned',
                 'title' => "New Delivery: Order #{$order->order_number}",
                 'message' => "Room {$roomNumber} — {$guestName}\nItems: {$itemsList}\n\nReady for pickup!",
-                'data' => json_encode([
+                'data' => [
                     'delivery_id' => $event->deliveryId,
                     'order_id' => $event->orderId,
                     'order_number' => $order->order_number,
@@ -54,8 +60,9 @@ class NotifyWaiterListener implements ShouldQueue
                     'items' => $itemsList,
                     'assignment_type' => $event->assignmentType,
                     'timestamp' => $event->timestamp,
-                ]),
+                ],
                 'read' => false,
+                'is_read' => false,
                 'created_at' => now(),
             ]);
 
@@ -86,9 +93,15 @@ class NotifyWaiterListener implements ShouldQueue
                 'delivery_id' => $event->deliveryId,
             ]);
 
+            $newWaiter = \App\Models\Waiter::find($event->newWaiterId);
+            $newUserId = $newWaiter?->user_id;
+            $hotelId = $newWaiter?->hotel_id;
+
             $newNotification = WaiterNotification::create([
+                'hotel_id' => $hotelId,
+                'user_id' => $newUserId,
                 'waiter_id' => $event->newWaiterId,
-                'delivery_id' => $event->deliveryId,
+                'delivery_task_id' => $event->deliveryId,
                 'type' => 'delivery_assigned',
                 'title' => 'New Delivery Assigned',
                 'message' => "Order for room {$event->roomNumber} has been assigned to you (reassigned from {$event->previousWaiterName})",
@@ -99,13 +112,20 @@ class NotifyWaiterListener implements ShouldQueue
                     'reason' => $event->reason,
                     'timestamp' => $event->timestamp,
                 ],
+                'read' => false,
+                'is_read' => false,
                 'read_at' => null,
             ]);
 
             if ($event->previousWaiterId) {
+                $prevWaiter = \App\Models\Waiter::find($event->previousWaiterId);
+                $prevUserId = $prevWaiter?->user_id;
+
                 $previousNotification = WaiterNotification::create([
+                    'hotel_id' => $hotelId ?? $prevWaiter?->hotel_id,
+                    'user_id' => $prevUserId,
                     'waiter_id' => $event->previousWaiterId,
-                    'delivery_id' => $event->deliveryId,
+                    'delivery_task_id' => $event->deliveryId,
                     'type' => 'delivery_removed',
                     'title' => 'Delivery Reassigned',
                     'message' => "Your delivery for room {$event->roomNumber} has been reassigned to {$event->newWaiterName}. Reason: {$event->reason}",
@@ -115,6 +135,8 @@ class NotifyWaiterListener implements ShouldQueue
                         'reason' => $event->reason,
                         'timestamp' => $event->timestamp,
                     ],
+                    'read' => false,
+                    'is_read' => false,
                     'read_at' => null,
                 ]);
             }
