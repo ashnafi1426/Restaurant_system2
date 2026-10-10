@@ -210,13 +210,21 @@ class OrderStatusService
 
         // Complete delivery task if active
         try {
-            DeliveryTask::withoutGlobalScopes()
+            $activeTasks = DeliveryTask::withoutGlobalScopes()
                 ->where('order_id', $order->id)
                 ->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery', 'waiting_assignment', 'pending'])
-                ->update([
+                ->get();
+
+            foreach ($activeTasks as $task) {
+                $task->update([
                     'status' => 'delivered',
                     'delivered_at' => now(),
                 ]);
+                if ($task->waiter_id) {
+                    $taskWaiter = Waiter::find($task->waiter_id);
+                    $taskWaiter?->decrementOrders();
+                }
+            }
         } catch (\Throwable $e) {
             Log::warning("Failed to update DeliveryTask status for order #{$order->id}: {$e->getMessage()}");
         }
@@ -251,14 +259,22 @@ class OrderStatusService
 
         // Cancel pending/active delivery tasks
         try {
-            DeliveryTask::withoutGlobalScopes()
+            $activeTasks = DeliveryTask::withoutGlobalScopes()
                 ->where('order_id', $order->id)
                 ->where('status', '!=', 'delivered')
-                ->update([
+                ->get();
+
+            foreach ($activeTasks as $task) {
+                $task->update([
                     'status' => 'cancelled',
                     'cancelled_at' => now(),
                     'cancellation_reason' => $reason ?? 'Order cancelled',
                 ]);
+                if ($task->waiter_id) {
+                    $taskWaiter = Waiter::find($task->waiter_id);
+                    $taskWaiter?->decrementOrders();
+                }
+            }
         } catch (\Throwable $e) {
             Log::warning("Failed to cancel DeliveryTask for order #{$order->id}: {$e->getMessage()}");
         }
@@ -289,6 +305,7 @@ class OrderStatusService
                     // Create structured WaiterNotification record
                     WaiterNotification::create([
                         'hotel_id' => $order->hotel_id,
+                        'user_id' => $waiter->user_id ?? $waiterUser?->id,
                         'waiter_id' => $waiter->id,
                         'delivery_task_id' => $deliveryTask->id,
                         'order_id' => $order->id,

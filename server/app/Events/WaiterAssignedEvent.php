@@ -19,7 +19,7 @@ use Illuminate\Queue\SerializesModels;
  * Can be automatic (from OrderReadyEvent) or manual (from manager)
  * Triggers notifications and workload updates
  */
-class WaiterAssignedEvent
+class WaiterAssignedEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 

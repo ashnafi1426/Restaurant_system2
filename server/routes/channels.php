@@ -275,3 +275,81 @@ Broadcast::channel('payments.{hotelId}', function ($user, string $hotelId) {
         return false;
     }
 });
+
+/**
+ * Waiter Notification Channel
+ *
+ * Channel: waiter.{waiterId}
+ */
+Broadcast::channel('waiter.{waiterId}', function ($user, $waiterId) {
+    if (!$user) {
+        return false;
+    }
+    try {
+        if (method_exists($user, 'isPlatformAdmin') && $user->isPlatformAdmin()) {
+            return true;
+        }
+
+        $waiter = \App\Models\Waiter::find($waiterId);
+        if (!$waiter) {
+            return false;
+        }
+
+        // Check if user is the assigned waiter
+        if ((string) $waiter->user_id === (string) $user->id) {
+            return true;
+        }
+
+        // Allow manager/admin of the same hotel
+        return \App\Models\HotelUser::where('user_id', $user->id)
+            ->where('hotel_id', $waiter->hotel_id)
+            ->where('is_active', true)
+            ->exists();
+    } catch (\Exception $e) {
+        Log::error("[WebSocket Auth] Waiter channel error: " . $e->getMessage());
+        return false;
+    }
+});
+
+/**
+ * Delivery Task Channel
+ *
+ * Channel: delivery.{deliveryId}
+ */
+Broadcast::channel('delivery.{deliveryId}', function ($user, $deliveryId) {
+    if (!$user) {
+        return false;
+    }
+    try {
+        if (method_exists($user, 'isPlatformAdmin') && $user->isPlatformAdmin()) {
+            return true;
+        }
+
+        $task = \App\Models\DeliveryTask::withoutGlobalScopes()->find($deliveryId);
+        if (!$task) {
+            return false;
+        }
+
+        return \App\Models\HotelUser::where('user_id', $user->id)
+            ->where('hotel_id', $task->hotel_id)
+            ->where('is_active', true)
+            ->exists();
+    } catch (\Exception $e) {
+        Log::error("[WebSocket Auth] Delivery channel error: " . $e->getMessage());
+        return false;
+    }
+});
+
+/**
+ * Manager Notification Channel
+ *
+ * Channel: manager
+ */
+Broadcast::channel('manager', function ($user) {
+    if (!$user) {
+        return false;
+    }
+    return in_array($user->role ?? '', ['admin', 'manager', 'administrator'])
+        || (method_exists($user, 'isPlatformAdmin') && $user->isPlatformAdmin());
+});
+

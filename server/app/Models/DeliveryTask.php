@@ -187,13 +187,15 @@ class DeliveryTask extends Model
             throw new \Exception("Cannot cancel delivery that is already '{$this->status}'.");
         }
 
+        $previousStatus = $this->status;
+
         $this->update([
             'status' => 'cancelled',
             'cancelled_at' => now(),
             'cancellation_reason' => $reason,
         ]);
 
-        if ($this->waiter && in_array($this->status, ['assigned', 'accepted', 'picked_up', 'on_delivery'])) {
+        if ($this->waiter && in_array($previousStatus, ['assigned', 'accepted', 'picked_up', 'on_delivery'])) {
             $this->waiter->decrementOrders();
         }
     }

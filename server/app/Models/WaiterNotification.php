@@ -15,6 +15,7 @@ class WaiterNotification extends Model
 
     protected $fillable = [
         'hotel_id',
+        'user_id',
         'waiter_id',
         'delivery_task_id',
         'order_id',
@@ -26,6 +27,21 @@ class WaiterNotification extends Model
         'is_read',
         'read_at',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($notification) {
+            if (empty($notification->user_id) && !empty($notification->waiter_id)) {
+                $waiter = \App\Models\Waiter::find($notification->waiter_id);
+                if ($waiter) {
+                    $notification->user_id = $waiter->user_id;
+                    if (empty($notification->hotel_id)) {
+                        $notification->hotel_id = $waiter->hotel_id;
+                    }
+                }
+            }
+        });
+    }
 
     protected $casts = [
         'data' => 'json',
