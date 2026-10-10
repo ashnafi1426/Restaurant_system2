@@ -3,11 +3,14 @@ import { computed } from 'vue'
 import { useLanguageStore } from '@/stores/language'
 
 interface Props {
-  guestName: string
-  roomNumber: string
+  guestName?: string
+  roomNumber?: string
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  guestName: 'Guest',
+  roomNumber: '',
+})
 const languageStore = useLanguageStore()
 
 const greeting = computed(() => {

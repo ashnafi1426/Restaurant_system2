@@ -88,11 +88,15 @@ function removeFromCart(id: string) {
   cartItems.value = cartItems.value.filter((item) => item.id !== id)
 }
 
-function updateQuantity(item: any, quantity: number) {
-  const product = cartItems.value.find((i) => i.id === item.id)
+function updateQuantity(itemOrPayload: any, quantity?: number) {
+  const id = typeof itemOrPayload === 'object' ? itemOrPayload.id : itemOrPayload
+  const qty = typeof itemOrPayload === 'object' && itemOrPayload.quantity !== undefined
+    ? itemOrPayload.quantity
+    : (quantity ?? 1)
+  const product = cartItems.value.find((i) => i.id === id)
 
   if (product) {
-    product.quantity = Math.max(1, quantity)
+    product.quantity = Math.max(1, qty)
   }
 }
 

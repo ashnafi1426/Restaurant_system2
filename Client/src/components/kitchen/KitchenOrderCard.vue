@@ -48,8 +48,8 @@
           <p class="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
             {{ item.name }}
           </p>
-          <p v-if="item.note" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
-            {{ item.note }}
+          <p v-if="item.note || item.notes" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+            {{ item.note || item.notes }}
           </p>
         </div>
       </div>

@@ -154,7 +154,7 @@ const handleUpdate = async () => {
     const payload = {
       waiter_id: Number(selectedWaiter.value),
       table_id: selectedTable.value,
-      status: isActive.value ? 'active' : 'inactive',
+      status: (isActive.value ? 'active' : 'inactive') as 'active' | 'inactive',
       is_active: isActive.value,
     }
 

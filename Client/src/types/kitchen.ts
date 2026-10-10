@@ -44,6 +44,7 @@ export interface KitchenMenuItem {
   line_total: number
 
   notes?: string | null
+  note?: string | null
 
   image?: string | null
 }

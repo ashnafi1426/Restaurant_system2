@@ -125,7 +125,7 @@
                   formatTime(order.updated_at || order.order_time)
                 }}</span>
                 <span class="text-xs font-bold text-slate-900 dark:text-white"
-                  >${{ parseFloat(order.total).toFixed(2) }}</span
+                  >${{ Number(order.total).toFixed(2) }}</span
                 >
               </div>
             </div>

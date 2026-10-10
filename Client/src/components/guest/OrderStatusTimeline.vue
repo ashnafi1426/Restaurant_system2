@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered'
+export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | string
 
 interface Props {
-  orderNumber: string
+  orderNumber?: string
   status: OrderStatus
   estimatedMinutes?: number
   createdAt?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  orderNumber: '',
   estimatedMinutes: 20,
   createdAt: '',
 })

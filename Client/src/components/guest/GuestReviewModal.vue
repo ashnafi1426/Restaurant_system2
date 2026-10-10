@@ -98,14 +98,14 @@ const handleSubmit = async () => {
       reviewPayload.order_id = props.orderId
     }
 
-    const response = await reviewService.createReview(reviewPayload)
+    const response: any = await reviewService.createReview(reviewPayload)
 
-    if (response.success || response.data || response) {
+    if (response?.success || response?.data || response?.id || response) {
       emit('success', 'Review submitted and published successfully! Thank you for your feedback.')
       resetForm()
       emit('close')
     } else {
-      emit('error', response.message || 'Failed to submit review')
+      emit('error', response?.message || 'Failed to submit review')
     }
   } catch (error: any) {
     console.error('[GuestReviewModal] Error submitting review:', error)
