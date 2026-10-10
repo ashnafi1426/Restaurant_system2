@@ -363,6 +363,7 @@ import PublicReviewsList from '@/components/reviews/PublicReviewsList.vue'
 import MenuGrid from './MenuGrid.vue'
 import MenuHero from './MenuHero.vue'
 import { useLanguageStore } from '@/stores/language'
+import { useGuestHotelStore } from '@/stores/guestHotelStore'
 import api from '@/api/auth'
 
 interface Category {
@@ -403,6 +404,8 @@ interface Props {
   guestAvatar?: string
   roomNumber?: string | number
   qrToken?: string
+  hotelId?: string
+  hotelName?: string
   heroImage?: string
   heroHeading?: string
   heroSubheading?: string
@@ -417,6 +420,9 @@ const props = withDefaults(defineProps<Props>(), {
   guestEmail: 'guest@royalhorizon.com',
   guestAvatar: '/images/avatar.png',
   roomNumber: '101',
+  qrToken: '',
+  hotelId: '',
+  hotelName: '',
   heroImage: '/images/gallery/fine-dining.jpg',
   heroHeading: 'Good Food, Great Moments',
   heroSubheading: 'LUXURY DINING',
@@ -427,6 +433,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const languageStore = useLanguageStore()
+const guestHotelStore = useGuestHotelStore()
 
 const emit = defineEmits<{
   'room-selected': [room: string | number]
@@ -482,8 +489,8 @@ function deriveCategoriesFromMenuItems() {
   ]
 }
 
-const getMenuCacheKey = () => `qr_menu_items_cache_${props.qrToken || 'all'}`
-const getCatCacheKey = () => `qr_categories_cache_${props.qrToken || 'all'}`
+const getMenuCacheKey = () => `qr_menu_items_cache_${props.hotelId || guestHotelStore.hotelId || ''}_${props.qrToken || 'all'}`
+const getCatCacheKey = () => `qr_categories_cache_${props.hotelId || guestHotelStore.hotelId || ''}_${props.qrToken || 'all'}`
 
 const loadFromClientCache = (): boolean => {
   try {
@@ -533,26 +540,34 @@ const saveToClientCache = () => {
 const loadCategories = async (forceRefresh = false) => {
   loadingCategories.value = true
   try {
+    const resolvedHotelId = props.hotelId || guestHotelStore.hotelId
     const params: Record<string, any> = {}
     if (props.qrToken) {
       params.qr_token = props.qrToken
+    }
+    if (resolvedHotelId) {
+      params.hotel_id = resolvedHotelId
     }
     if (forceRefresh) {
       params.refresh = 1
     }
 
+    const reqHeaders: Record<string, string> = {}
+    if (forceRefresh) reqHeaders['X-Refresh'] = 'true'
+    if (resolvedHotelId) reqHeaders['X-Hotel-ID'] = resolvedHotelId
+
     let rawCategories: any[] = []
     try {
       const response = await api.get('/guest/categories', {
         params,
-        headers: forceRefresh ? { 'X-Refresh': 'true' } : undefined,
+        headers: Object.keys(reqHeaders).length > 0 ? reqHeaders : undefined,
       })
       rawCategories = response.data?.data || response.data || []
     } catch (guestErr) {
       console.warn('[QRMenuLayout] /guest/categories endpoint unavailable, trying /categories:', guestErr)
       const response = await api.get('/categories', {
         params,
-        headers: forceRefresh ? { 'X-Refresh': 'true' } : undefined,
+        headers: Object.keys(reqHeaders).length > 0 ? reqHeaders : undefined,
       })
       rawCategories = response.data?.data || response.data || []
     }
@@ -609,24 +624,34 @@ const loadMenuItems = async (forceRefresh = false) => {
   }
   errorMessage.value = ''
   try {
+    const resolvedHotelId = props.hotelId || guestHotelStore.hotelId
     let url = '/guest/menu/items'
 
     if (props.qrToken) {
       url = `/guest/menu/${props.qrToken}/items`
     }
 
+    const params: Record<string, any> = {}
+    if (forceRefresh) params.refresh = 1
+    if (resolvedHotelId) params.hotel_id = resolvedHotelId
+    if (props.qrToken) params.qr_token = props.qrToken
+
+    const reqHeaders: Record<string, string> = {}
+    if (forceRefresh) reqHeaders['X-Refresh'] = 'true'
+    if (resolvedHotelId) reqHeaders['X-Hotel-ID'] = resolvedHotelId
+
     const response = await api.get(url, {
-      params: forceRefresh ? { refresh: 1 } : undefined,
-      headers: forceRefresh ? { 'X-Refresh': 'true' } : undefined,
+      params,
+      headers: Object.keys(reqHeaders).length > 0 ? reqHeaders : undefined,
     })
 
-    if (response.data?.data) {
-      const data = response.data.data
-
-      if (Array.isArray(data) && data.length > 0 && data[0].category && data[0].items) {
-        allMenuItems.value = data.flatMap((categoryGroup: any) => {
-          const categoryName = categoryGroup.category
-          return categoryGroup.items.map((item: any) => {
+    const rawData = response.data?.data ?? response.data
+    if (rawData) {
+      const isGrouped = Array.isArray(rawData) && rawData.length > 0 && Array.isArray((rawData[0] as any)?.items)
+      if (isGrouped) {
+        allMenuItems.value = rawData.flatMap((categoryGroup: any) => {
+          const categoryName = categoryGroup.category || 'Other'
+          return (categoryGroup.items || []).map((item: any) => {
             const rawPrice = parseFloat(item.price)
             const totalPrice = item.total_price != null ? parseFloat(item.total_price) : (isNaN(rawPrice) ? 0 : rawPrice)
             return {
@@ -648,8 +673,8 @@ const loadMenuItems = async (forceRefresh = false) => {
             }
           })
         })
-      } else if (Array.isArray(data)) {
-        allMenuItems.value = data.map((item: any) => {
+      } else if (Array.isArray(rawData)) {
+        allMenuItems.value = rawData.map((item: any) => {
           const rawPrice = parseFloat(item.price)
           const totalPrice = item.total_price != null ? parseFloat(item.total_price) : (isNaN(rawPrice) ? 0 : rawPrice)
           return {
@@ -671,28 +696,6 @@ const loadMenuItems = async (forceRefresh = false) => {
           }
         })
       }
-    } else if (response.data && Array.isArray(response.data)) {
-      allMenuItems.value = response.data.map((item: any) => {
-        const rawPrice = parseFloat(item.price)
-        const totalPrice = item.total_price != null ? parseFloat(item.total_price) : (isNaN(rawPrice) ? 0 : rawPrice)
-        return {
-          id: item.id,
-          name: item.name || 'Unnamed Item',
-          description: item.description || '',
-          price: totalPrice,
-          base_price: item.base_price != null ? parseFloat(item.base_price) : rawPrice,
-          tax_amount: item.tax_amount != null ? parseFloat(item.tax_amount) : 0,
-          total_price: totalPrice,
-          tax_rate: item.tax_rate,
-          tax_included: item.tax_included,
-          image: item.image || '/images/placeholder.png',
-          category: parseCategoryName(item),
-          rating: item.average_rating != null ? Number(item.average_rating) : (item.rating != null ? Number(item.rating) : null),
-          average_rating: item.average_rating != null ? Number(item.average_rating) : (item.rating != null ? Number(item.rating) : null),
-          review_count: item.review_count != null ? Number(item.review_count) : 0,
-          is_available: item.is_available !== false,
-        }
-      })
     }
     if (categories.value.length <= 1) {
       deriveCategoriesFromMenuItems()
@@ -978,6 +981,17 @@ watch(allMenuItems, () => {
 
 watch(
   () => props.qrToken,
+  (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+      loadFromClientCache()
+      loadCategories(true)
+      loadMenuItems(true)
+    }
+  },
+)
+
+watch(
+  () => props.hotelId,
   (newVal, oldVal) => {
     if (newVal && newVal !== oldVal) {
       loadFromClientCache()
