@@ -145,7 +145,7 @@ const updatePassword = async () => {
 }
 
 const onLanguageChange = () => {
-  if (settings.value.language) {
+  if (settings.value.language === 'en' || settings.value.language === 'am') {
     languageStore.setLanguage(settings.value.language)
   }
 }
