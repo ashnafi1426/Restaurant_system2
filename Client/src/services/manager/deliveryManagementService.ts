@@ -3,34 +3,49 @@ import api from '@/api/auth'
 export interface DeliveryTask {
   id: string
   order_id: string
-  reservation_id: string
-  room_id: string
-  floor_id: string
-  waiter: {
-    id: string
-    user: { name: string; email: string }
-    current_orders: number
-    maximum_orders: number
-  }
-  floor: {
-    id: string
-    name: string
-    floor_number: number
-  }
-  assigned_by: {
-    id: string
-    name: string
-  }
-  assignment_type: 'automatic' | 'manual'
+  reservation_id?: string
+  room_id?: string
+  floor_id?: string
+  waiter?: {
+    id?: string
+    name?: string
+    full_name?: string
+    user?: { name: string; email: string }
+    current_orders?: number
+    maximum_orders?: number
+  } | null
+  floor?:
+    | {
+        id?: string
+        name?: string
+        floor_number?: number
+      }
+    | string
+    | number
+    | null
+  room?: {
+    id?: string
+    room_number?: string
+    floor?: string | number
+  } | null
+  order?: {
+    id?: string
+    order_number?: string
+  } | null
+  assigned_by?: {
+    id?: string
+    name?: string
+  } | null
+  assignment_type?: 'automatic' | 'manual'
   status: 'assigned' | 'accepted' | 'picked_up' | 'on_delivery' | 'delivered' | 'cancelled'
-  assigned_at: string
-  accepted_at: string | null
-  picked_up_at: string | null
-  delivered_at: string | null
-  completed_at: string | null
-  rejection_reason: string | null
-  delivery_notes: string | null
-  created_at: string
+  assigned_at?: string
+  accepted_at?: string | null
+  picked_up_at?: string | null
+  delivered_at?: string | null
+  completed_at?: string | null
+  rejection_reason?: string | null
+  delivery_notes?: string | null
+  created_at?: string
 }
 
 export interface DeliverySummary {

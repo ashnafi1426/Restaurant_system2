@@ -36,8 +36,12 @@ const loadStats = async () => {
 
     let floorsCount = 0
     try {
-      const floorsResponse = await floorManagementService.getFloors({ is_active: true })
-      const floorsData = Array.isArray(floorsResponse.data) ? floorsResponse.data : floorsResponse
+      const floorsResponse: any = await floorManagementService.getFloors({ is_active: true })
+      const floorsData = Array.isArray(floorsResponse?.data)
+        ? floorsResponse.data
+        : Array.isArray(floorsResponse)
+          ? floorsResponse
+          : []
       floorsCount = floorsData.length || 0
     } catch (err) {
       console.warn('Could not fetch floors:', err)
@@ -132,7 +136,7 @@ onMounted(() => {
                 <div class="flex-1">
                   <input
                     :value="formData.floor_number"
-                    @input="(e) => handleFieldChange('floor_number', e.target.value)"
+                    @input="(e: any) => handleFieldChange('floor_number', e.target.value)"
                     @blur="validateFloorNumber"
                     type="text"
                     placeholder="e.g. 05"
@@ -161,7 +165,7 @@ onMounted(() => {
               <label class="block text-sm font-bold text-slate-700 mb-2">Zone Name</label>
               <input
                 :value="formData.name"
-                @input="(e) => handleFieldChange('name', e.target.value)"
+                @input="(e: any) => handleFieldChange('name', e.target.value)"
                 type="text"
                 placeholder="e.g. Executive Balcony"
                 :class="[
@@ -181,7 +185,7 @@ onMounted(() => {
               >
               <textarea
                 :value="formData.description"
-                @input="(e) => handleFieldChange('description', e.target.value)"
+                @input="(e: any) => handleFieldChange('description', e.target.value)"
                 placeholder="Additional notes about the zone's layout or special requirements..."
                 rows="4"
                 :class="[
