@@ -128,7 +128,9 @@ watch(
           <div class="relative h-64 overflow-hidden bg-slate-900">
             <img
               :src="
-                room.images?.[0] ||
+                (typeof room.images?.[0] === 'object'
+                  ? room.images?.[0]?.url
+                  : room.images?.[0]) ||
                 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop'
               "
               :alt="getRoomName(room)"
@@ -174,11 +176,11 @@ watch(
               class="pt-4 border-t border-slate-200/60 dark:border-slate-800 flex flex-wrap gap-2"
             >
               <span
-                v-for="amenity in room.amenities || ['King Bed', 'City View', 'Free Wi-Fi']"
-                :key="amenity"
+                v-for="(amenity, idx) in room.amenities || ['King Bed', 'City View', 'Free Wi-Fi']"
+                :key="typeof amenity === 'object' ? amenity.id || amenity.name : (amenity || idx)"
                 class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-200/60 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-300/60 dark:border-slate-800"
               >
-                {{ amenity }}
+                {{ typeof amenity === 'object' ? amenity.name : amenity }}
               </span>
             </div>
 
