@@ -1,11 +1,9 @@
 <template>
   <div class="menu-grid-wrapper">
-    <!-- Loading State - Luxury Skeleton Cards -->
     <div v-if="isLoading" class="menu-grid">
       <div v-for="n in itemsPerPage" :key="`skeleton-${n}`" class="skeleton-card">
-        <!-- Image Skeleton -->
         <div class="skeleton-image"></div>
-        <!-- Content Skeleton -->
+
         <div class="skeleton-content">
           <div class="skeleton-line skeleton-title"></div>
           <div class="skeleton-line skeleton-desc-1"></div>
@@ -15,7 +13,6 @@
       </div>
     </div>
 
-    <!-- Empty State -->
     <div v-else-if="displayedItems.length === 0" class="empty-state">
       <div class="empty-illustration">
         <svg
@@ -53,7 +50,6 @@
       </button>
     </div>
 
-    <!-- Menu Grid -->
     <div v-else class="menu-grid">
       <QRMenuItemCard
         v-for="item in displayedItems"
@@ -68,9 +64,7 @@
       />
     </div>
 
-    <!-- Pagination -->
     <div v-if="!isLoading && totalPages > 1" class="pagination-wrapper">
-      <!-- Previous Button -->
       <button
         @click="previousPage"
         :disabled="currentPage === 1"
@@ -86,7 +80,6 @@
         </svg>
       </button>
 
-      <!-- Page Numbers -->
       <div class="pagination-numbers">
         <button
           v-for="page in pageNumbers"
@@ -103,7 +96,6 @@
         </button>
       </div>
 
-      <!-- Next Button -->
       <button
         @click="nextPage"
         :disabled="currentPage === totalPages"
@@ -120,7 +112,6 @@
       </button>
     </div>
 
-    <!-- Results Info -->
     <div v-if="!isLoading && items.length > 0" class="results-info">
       {{
         languageStore.currentLanguage === 'am'
@@ -185,10 +176,8 @@ const emit = defineEmits<{
   'view-reviews': [item: MenuItem]
 }>()
 
-// State
 const currentPage = ref(1)
 
-// Computed
 const totalPages = computed(() => {
   return Math.ceil(props.items.length / props.itemsPerPage)
 })
@@ -242,7 +231,6 @@ const pageNumbers = computed(() => {
   return pages
 })
 
-// Methods
 const handleAddToCart = (item: MenuItem, quantity: number) => {
   emit('add-to-cart', item, quantity)
 }
@@ -292,7 +280,6 @@ const clearFilters = () => {
 </script>
 
 <style scoped>
-/* Grid Wrapper */
 .menu-grid-wrapper {
   width: 100%;
   display: flex;
@@ -300,7 +287,6 @@ const clearFilters = () => {
   gap: 32px;
 }
 
-/* Main Grid */
 .menu-grid {
   display: grid;
   gap: 16px;
@@ -308,7 +294,6 @@ const clearFilters = () => {
   width: 100%;
 }
 
-/* Responsive Grid Layout */
 @media (max-width: 1280px) {
   .menu-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -337,7 +322,6 @@ const clearFilters = () => {
   }
 }
 
-/* Skeleton Loading State */
 .skeleton-card {
   background: white;
   border-radius: 24px;
@@ -413,7 +397,6 @@ const clearFilters = () => {
   }
 }
 
-/* Empty State */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -484,7 +467,6 @@ const clearFilters = () => {
   stroke: currentColor;
 }
 
-/* Pagination */
 .pagination-wrapper {
   display: flex;
   align-items: center;
@@ -567,7 +549,6 @@ const clearFilters = () => {
   color: #9ca3af;
 }
 
-/* Results Info */
 .results-info {
   text-align: center;
   font-size: 14px;
@@ -575,7 +556,6 @@ const clearFilters = () => {
   padding: 12px 0;
 }
 
-/* Mobile Pagination */
 @media (max-width: 640px) {
   .pagination-wrapper {
     gap: 8px;

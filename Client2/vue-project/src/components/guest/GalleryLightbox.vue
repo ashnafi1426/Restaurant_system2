@@ -54,8 +54,6 @@ onUnmounted(() => {
         class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-6"
         @click.self="close"
       >
-        <!-- Close Button -->
-
         <button
           @click="close"
           class="absolute right-8 top-8 flex h-12 w-12 items-center justify-center rounded-full bg-white text-2xl font-bold text-slate-900 shadow-xl transition hover:rotate-90 hover:bg-red-500 hover:text-white cursor-pointer"
@@ -63,7 +61,6 @@ onUnmounted(() => {
           ×
         </button>
 
-        <!-- Image Container -->
         <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
           <div class="bg-slate-100 dark:bg-slate-800 rounded-2xl sm:rounded-3xl overflow-hidden">
             <img
@@ -78,8 +75,6 @@ onUnmounted(() => {
               "
             />
           </div>
-
-          <!-- Information -->
 
           <div
             class="mt-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 shadow-2xl"

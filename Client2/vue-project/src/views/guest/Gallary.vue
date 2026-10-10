@@ -17,9 +17,7 @@ const galleryItems = ref<any[]>([])
 const loading = ref(true)
 const error = ref('')
 
-// Default gallery items with rich resort imagery
 const defaultGalleryItems = [
-  // === ROOMS CATEGORY ===
   {
     id: 1,
     title: 'Luxury Suite Room',
@@ -38,7 +36,7 @@ const defaultGalleryItems = [
     category: 'Rooms',
     src: '/images/gallery/executive-suite.jpg',
   },
-  // === FACILITIES CATEGORY ===
+
   {
     id: 4,
     title: 'Olympic Swimming Pool',
@@ -69,7 +67,7 @@ const defaultGalleryItems = [
     category: 'Facilities',
     src: '/images/gallery/fitness-center.jpg',
   },
-  // === RESTAURANT CATEGORY ===
+
   {
     id: 9,
     title: 'Fine Dining Restaurant',
@@ -82,7 +80,7 @@ const defaultGalleryItems = [
     category: 'Restaurant',
     src: '/images/gallery/restaurant-interior.jpg',
   },
-  // === OUTDOOR CATEGORY ===
+
   {
     id: 11,
     title: 'Beautiful Landscape Garden',
@@ -101,7 +99,6 @@ async function loadGallery() {
   loading.value = true
   error.value = ''
   try {
-    // Fetch hotel rooms to display actual hotel rooms in gallery
     await roomStore.fetchRooms()
     const hotelRoomImages: any[] = []
     if (roomStore.rooms && roomStore.rooms.length > 0) {

@@ -1,7 +1,6 @@
 <template>
   <div class="guest-dashboard min-h-screen bg-gray-50 py-8">
     <div class="max-w-6xl mx-auto px-4">
-      <!-- Header -->
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">
           {{ languageStore.t('welcome', 'Welcome') }}, {{ currentUser?.first_name }}
@@ -16,9 +15,7 @@
         </p>
       </div>
 
-      <!-- Stats Cards -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <!-- My Reviews -->
         <div class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center justify-between">
             <div>
@@ -35,7 +32,6 @@
           </button>
         </div>
 
-        <!-- Pending Reviews -->
         <div class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center justify-between">
             <div>
@@ -48,7 +44,6 @@
           </div>
         </div>
 
-        <!-- Review Notifications -->
         <div class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center justify-between">
             <div>
@@ -69,7 +64,6 @@
           </button>
         </div>
 
-        <!-- Average Rating -->
         <div class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center justify-between">
             <div>
@@ -86,11 +80,8 @@
         </div>
       </div>
 
-      <!-- Main Content Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Left: Review Notifications and Recent Activity -->
         <div class="lg:col-span-2 space-y-6">
-          <!-- Recent Notifications -->
           <div v-if="showNotifications" class="bg-white rounded-lg shadow">
             <div class="border-b border-gray-200 p-6">
               <h2 class="text-xl font-bold text-gray-900">
@@ -117,14 +108,12 @@
                 class="p-6 hover:bg-gray-50 transition-colors"
               >
                 <div class="flex items-start gap-4">
-                  <!-- Icon -->
                   <div class="text-2xl flex-shrink-0">
                     <span v-if="notification.notification_type === 'new_review'">📝</span>
                     <span v-else-if="notification.notification_type === 'review_approved'"></span>
                     <span v-else>⚠️</span>
                   </div>
 
-                  <!-- Content -->
                   <div class="flex-1 min-w-0">
                     <h3 class="font-semibold text-gray-900">
                       <span v-if="notification.notification_type === 'new_review'">{{
@@ -143,7 +132,6 @@
                     </p>
                   </div>
 
-                  <!-- Unread Badge -->
                   <div v-if="!notification.is_read" class="flex-shrink-0">
                     <div class="w-3 h-3 bg-blue-600 rounded-full"></div>
                   </div>
@@ -151,7 +139,6 @@
               </div>
             </div>
 
-            <!-- View All Link -->
             <div v-if="notifications.length > 5" class="p-4 border-t border-gray-200 text-center">
               <button
                 @click="$router.push('/notifications')"
@@ -162,7 +149,6 @@
             </div>
           </div>
 
-          <!-- Eligible Items for Review -->
           <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-xl font-bold text-gray-900">
@@ -201,7 +187,6 @@
                 </button>
               </div>
 
-              <!-- View All Items Link -->
               <div v-if="eligibleItems.length > 3" class="pt-2">
                 <button
                   @click="$router.push('/reviews')"
@@ -216,9 +201,7 @@
           </div>
         </div>
 
-        <!-- Right: Quick Actions -->
         <div class="space-y-6">
-          <!-- Quick Actions Card -->
           <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-bold text-gray-900 mb-4">
               {{ languageStore.t('quick_actions', 'Quick Actions') }}
@@ -258,7 +241,6 @@
             </div>
           </div>
 
-          <!-- Reviews Info Card -->
           <div
             class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg shadow p-6 border border-purple-200"
           >

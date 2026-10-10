@@ -29,29 +29,25 @@ function exploreRooms() {
   <section
     class="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-slate-950 font-sans pt-16"
   >
-    <!-- Hero Background Image (Vibrant & Fully Visible) -->
     <div class="absolute inset-0 z-0">
       <img
         src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&h=1080&fit=crop"
         :alt="guestHotelStore.hotelName"
         class="h-full w-full object-cover scale-105 transition-all duration-700 opacity-90 dark:opacity-85 brightness-95 dark:brightness-80"
       />
-      <!-- Soft Vignette Gradient Overlay for Crisp Text Readability -->
+
       <div
         class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/55 to-slate-950/30"
       ></div>
     </div>
 
-    <!-- Hero Content -->
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center space-y-6">
-      <!-- Badge Pill -->
       <div
         class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-950/70 text-amber-400 border border-amber-500/40 text-xs font-black uppercase tracking-widest backdrop-blur-md shadow-md"
       >
         <span>{{ guestHotelStore.hotelName }} • {{ guestHotelStore.hotelCity }}</span>
       </div>
 
-      <!-- Main Title -->
       <h1
         class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight max-w-4xl mx-auto drop-shadow-md"
       >
@@ -61,7 +57,6 @@ function exploreRooms() {
         }}</span>
       </h1>
 
-      <!-- Description -->
       <p
         class="text-sm sm:text-base lg:text-lg text-slate-200 font-medium max-w-2xl mx-auto leading-relaxed drop-shadow-xs"
       >
@@ -76,7 +71,6 @@ function exploreRooms() {
         }}
       </p>
 
-      <!-- CTA Action Buttons -->
       <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-3">
         <button
           @click="bookNow"
@@ -95,7 +89,6 @@ function exploreRooms() {
         </button>
       </div>
 
-      <!-- Quick Highlights Bar -->
       <div class="pt-10 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
         <div
           class="p-4 rounded-2xl bg-slate-950/75 border border-slate-800/80 shadow-md backdrop-blur-md space-y-1"

@@ -22,13 +22,12 @@ const loading = ref(true)
 const errorMessage = ref('')
 const successMessage = ref('')
 
-// Modal state
 const showCreateModal = ref(false)
 const form = ref({
   user_id: '',
   role_id: 0,
   starts_at: new Date().toISOString().slice(0, 16),
-  expires_at: new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 16), // default 7 days
+  expires_at: new Date(Date.now() + 86400000 * 7).toISOString().slice(0, 16),
   reason: '',
 })
 
@@ -66,7 +65,6 @@ onMounted(() => {
   fetchData()
 })
 
-// Re-fetch when selected hotel in Navbar changes
 watch(
   () => hotelStore.hotelId,
   () => {
@@ -164,7 +162,6 @@ const handleRevoke = async (assignment: TemporaryRoleAssignment) => {
     </template>
 
     <div class="py-6 space-y-6">
-      <!-- Banners -->
       <div
         v-if="successMessage"
         class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2"
@@ -181,7 +178,6 @@ const handleRevoke = async (assignment: TemporaryRoleAssignment) => {
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Temporary Delegations Table -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm"
       >
@@ -199,7 +195,6 @@ const handleRevoke = async (assignment: TemporaryRoleAssignment) => {
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-            <!-- Loading Spinner State -->
             <tr v-if="loading">
               <td colspan="6" class="px-6 py-16 text-center">
                 <div class="flex flex-col items-center justify-center gap-3">
@@ -211,7 +206,6 @@ const handleRevoke = async (assignment: TemporaryRoleAssignment) => {
               </td>
             </tr>
 
-            <!-- Data Rows -->
             <template v-else>
               <tr
                 v-for="ta in tempAssignments"
@@ -263,7 +257,6 @@ const handleRevoke = async (assignment: TemporaryRoleAssignment) => {
         </table>
       </div>
 
-      <!-- Create Modal -->
       <div
         v-if="showCreateModal"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"

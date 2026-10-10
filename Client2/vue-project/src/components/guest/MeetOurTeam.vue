@@ -67,7 +67,6 @@ const teamMembers = computed<TeamMember[]>(() => [
     class="bg-white dark:bg-slate-900 py-12 sm:py-16 md:py-20 lg:py-24 border-t border-slate-200 dark:border-slate-800 transition-colors duration-300"
   >
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10 space-y-12">
-      <!-- Header -->
       <div class="mx-auto max-w-3xl text-center space-y-3">
         <span
           class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
@@ -91,14 +90,12 @@ const teamMembers = computed<TeamMember[]>(() => [
         </p>
       </div>
 
-      <!-- Team Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div
           v-for="member in teamMembers"
           :key="member.id"
           class="group bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs hover:border-amber-500/40 transition duration-300 text-center"
         >
-          <!-- Member Photo -->
           <div class="relative h-72 overflow-hidden bg-slate-900">
             <img
               :src="member.image"
@@ -112,7 +109,6 @@ const teamMembers = computed<TeamMember[]>(() => [
             </div>
           </div>
 
-          <!-- Info -->
           <div class="p-5 space-y-1">
             <h3 class="text-base font-black text-slate-900 dark:text-white">
               {{ member.name }}

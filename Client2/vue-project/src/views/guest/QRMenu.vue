@@ -29,7 +29,6 @@
           @click.self="closeCartModal"
         >
           <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
-            <!-- Cart Header -->
             <div
               class="flex-shrink-0 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-4 flex items-center justify-between border-b border-amber-600 rounded-t-xl"
             >
@@ -59,7 +58,6 @@
               </button>
             </div>
             <div class="flex-1 overflow-y-auto bg-white">
-              <!-- Empty Cart -->
               <div v-if="cartItems.length === 0" class="px-6 py-12 text-center">
                 <svg
                   class="w-16 h-16 text-gray-300 mx-auto mb-4"
@@ -90,23 +88,19 @@
                 </button>
               </div>
 
-              <!-- Cart Items List -->
               <div v-if="cartItems.length > 0" class="divide-y divide-gray-200">
                 <div
                   v-for="(item, index) in cartItems"
                   :key="`cart-item-${item.id}-${index}`"
                   class="px-4 py-4 flex gap-3 bg-white hover:bg-gray-50 transition-colors"
                 >
-                  <!-- Item Image -->
                   <img
                     :src="item.image || '/images/placeholder.png'"
                     :alt="item.name"
                     class="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                   />
 
-                  <!-- Item Details -->
                   <div class="flex-1 min-w-0">
-                    <!-- Item Name & Price -->
                     <div class="flex items-start justify-between mb-2">
                       <div class="flex-1">
                         <h3 class="font-bold text-gray-900 text-base">{{ item.name }}</h3>
@@ -116,7 +110,6 @@
                         </p>
                       </div>
 
-                      <!-- Remove/Delete Button -->
                       <button
                         @click="removeFromCart(item.id)"
                         class="text-red-500 hover:text-red-700 transition-colors p-1 cursor-pointer"
@@ -133,9 +126,7 @@
                       </button>
                     </div>
 
-                    <!-- Quantity Controls + Total Price (Inline like second screenshot) -->
                     <div class="flex items-center justify-between mt-2">
-                      <!-- -  1  + Controls -->
                       <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-2 py-1">
                         <button
                           @click="decrementQuantity(item.id)"
@@ -158,7 +149,7 @@
                           +
                         </button>
                       </div>
-                      <!-- Item Total Price -->
+
                       <span class="text-base font-bold text-gray-900"
                         >ETB ${{ (item.price * item.quantity).toFixed(2) }}</span
                       >
@@ -168,15 +159,12 @@
               </div>
             </div>
 
-            <!-- Cart Summary/Totals Section -->
             <div class="flex-shrink-0 bg-white border-t border-gray-200 px-4 py-4 space-y-2">
-              <!-- Subtotal -->
               <div class="flex items-center justify-between text-gray-700 text-sm">
                 <span>{{ languageStore.t('subtotal', 'Subtotal') }}</span>
                 <span class="font-semibold">{{ formatPrice(subtotal) }}</span>
               </div>
 
-              <!-- Total -->
               <div
                 class="flex items-center justify-between text-gray-900 text-lg font-bold pt-2 border-t border-gray-200"
               >
@@ -184,9 +172,7 @@
                 <span class="text-red-600">{{ formatPrice(cartTotal) }}</span>
               </div>
 
-              <!-- Payment Buttons -->
               <div class="flex flex-col gap-2 pt-3">
-                <!-- Order Now (Pay After Meal) Button -->
                 <button
                   @click="placeOrderWithRoomCharge"
                   :disabled="isPlacingOrder || cartItems.length === 0"
@@ -223,7 +209,6 @@
                   🍽️ {{ languageStore.t('order_now_pay_after', 'Order Now (Pay After Meal)') }}
                 </button>
 
-                <!-- Pay with Chapa Button -->
                 <button
                   @click="openPaymentDialog"
                   :disabled="isPlacingOrder || cartItems.length === 0"
@@ -693,7 +678,7 @@ const decrementQuantity = (itemId: string | number) => {
 }
 
 const formatPrice = (price: number): string => {
-  return `$${price.toFixed(2)}`
+  return `${price.toFixed(2)}`
 }
 
 // New method for "Order Now (Pay After Meal)" - places order with room charge

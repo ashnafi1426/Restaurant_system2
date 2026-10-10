@@ -113,7 +113,6 @@ function closeImage() {
     class="bg-slate-50 dark:bg-slate-950 py-12 sm:py-16 md:py-20 lg:py-24 transition-colors duration-300"
   >
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10 space-y-8">
-      <!-- Header -->
       <div class="mx-auto max-w-3xl text-center space-y-3">
         <span
           class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
@@ -137,7 +136,6 @@ function closeImage() {
         </p>
       </div>
 
-      <!-- Filter Buttons -->
       <div class="flex flex-wrap items-center justify-center gap-2">
         <button
           v-for="cat in categories"
@@ -154,7 +152,6 @@ function closeImage() {
         </button>
       </div>
 
-      <!-- Gallery Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div
           v-for="img in filteredImages"
@@ -182,7 +179,6 @@ function closeImage() {
       </div>
     </div>
 
-    <!-- Modal Dialog -->
     <div
       v-if="selectedImage"
       class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4"

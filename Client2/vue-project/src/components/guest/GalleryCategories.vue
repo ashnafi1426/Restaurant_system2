@@ -52,7 +52,6 @@ const categories = computed(() => [
     class="relative py-20 bg-white dark:bg-slate-900 overflow-hidden transition-colors duration-300"
   >
     <div class="mx-auto max-w-7xl px-6">
-      <!-- Heading -->
       <div class="text-center mb-16">
         <h2 class="text-4xl font-bold text-slate-900 dark:text-white">
           {{ languageStore.t('browse_by_category', 'Browse by Category') }}
@@ -64,7 +63,6 @@ const categories = computed(() => [
         </p>
       </div>
 
-      <!-- Categories Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
         <button
           v-for="category in categories"
@@ -77,9 +75,7 @@ const categories = computed(() => [
               : 'shadow-lg hover:shadow-xl hover:border-amber-300'
           "
         >
-          <!-- Content -->
           <div class="absolute inset-0 flex flex-col items-center justify-center p-4 space-y-4">
-            <!-- Icon from lucide-vue-next -->
             <div
               class="transition-all duration-300"
               :class="
@@ -91,7 +87,6 @@ const categories = computed(() => [
               <component :is="category.icon" class="w-full h-full" stroke-width="1.5" />
             </div>
 
-            <!-- Category Name -->
             <h3
               class="text-lg font-bold transition-colors duration-300"
               :class="
@@ -103,7 +98,6 @@ const categories = computed(() => [
               {{ category.name }}
             </h3>
 
-            <!-- Description -->
             <p
               class="text-xs transition-colors duration-300"
               :class="
@@ -115,7 +109,6 @@ const categories = computed(() => [
               {{ category.description }}
             </p>
 
-            <!-- Active Checkmark -->
             <div
               v-if="modelValue === category.key"
               class="mt-2 flex items-center justify-center w-6 h-6 rounded-full bg-amber-500 text-white text-xs font-bold animate-pulse"

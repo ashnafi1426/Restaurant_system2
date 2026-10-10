@@ -84,7 +84,6 @@ onMounted(() => {
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Logs Table -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm"
       >
@@ -101,7 +100,6 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-            <!-- Loading Spinner State -->
             <tr v-if="loading">
               <td colspan="5" class="px-6 py-16 text-center">
                 <div class="flex flex-col items-center justify-center gap-3">
@@ -113,7 +111,6 @@ onMounted(() => {
               </td>
             </tr>
 
-            <!-- Data Rows -->
             <template v-else>
               <tr
                 v-for="log in logs"
@@ -154,7 +151,6 @@ onMounted(() => {
           </tbody>
         </table>
 
-        <!-- Pagination Footer -->
         <div
           class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/60"
         >

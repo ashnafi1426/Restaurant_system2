@@ -46,7 +46,6 @@ onMounted(loadDashboard)
 <template>
   <DashboardLayout>
     <div class="space-y-6 w-full">
-      <!-- Header Banner -->
       <div
         class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs w-full"
       >
@@ -73,7 +72,6 @@ onMounted(loadDashboard)
           </p>
         </div>
 
-        <!-- Action Buttons -->
         <div class="flex items-center gap-2.5 flex-wrap">
           <button
             @click="loadDashboard"
@@ -103,7 +101,6 @@ onMounted(loadDashboard)
         </div>
       </div>
 
-      <!-- Loading State -->
       <div
         v-if="loading && !dashboard"
         class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4"
@@ -115,7 +112,6 @@ onMounted(loadDashboard)
         />
       </div>
 
-      <!-- Error State -->
       <div
         v-else-if="errorOccurred"
         class="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/50"
@@ -135,9 +131,7 @@ onMounted(loadDashboard)
         </button>
       </div>
 
-      <!-- Main Dashboard View -->
       <div v-else-if="dashboard" class="space-y-6 w-full">
-        <!-- Stat Cards Grid (6 Columns) -->
         <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 w-full">
           <ReceptionStatCard
             title="Check-Ins"
@@ -183,18 +177,15 @@ onMounted(loadDashboard)
           />
         </div>
 
-        <!-- Middle Section: Today's Arrivals & Departures (2 Columns) -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
           <TodaysArrivals :arrivals="dashboard.today_arrivals" />
           <TodaysDepartures :departures="dashboard.today_departures" />
         </div>
 
-        <!-- Room Status Matrix (Full Width / Section) -->
         <div class="w-full">
           <RoomStatusMatrix :rooms="dashboard.room_matrix" />
         </div>
 
-        <!-- Recent Reservations Table (Full Width Across Bottom) -->
         <div class="w-full">
           <RecentReservations :reservations="dashboard.recent_reservations" />
         </div>

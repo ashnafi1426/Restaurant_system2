@@ -1,5 +1,4 @@
 <template>
-  <!-- Main Horizontally Responsive Grid Layout matching your visual mockup design -->
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
     <div
       v-for="card in dynamicStatCards"
@@ -12,7 +11,6 @@
           : 'border-slate-200/80 dark:border-slate-800'
       "
     >
-      <!-- Meta Card Label & Character Icon Container -->
       <div class="flex items-center justify-between">
         <span
           class="text-[10px] font-black tracking-wider text-slate-400 dark:text-slate-500 uppercase"
@@ -25,7 +23,6 @@
         </div>
       </div>
 
-      <!-- Real Live Numeric Tracking Count Block -->
       <div class="mt-4">
         <span class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
           {{ card.count }}
@@ -65,7 +62,6 @@ const props = defineProps<{
 
 defineEmits(['select'])
 
-// Visual anchors configuration metadata mapping
 const baseStaticMetadata = [
   { title: 'Breakfast', key: 'breakfast', iconComponent: Sun, field: 'breakfast_items' as const },
   { title: 'Lunch', key: 'lunch', iconComponent: Utensils, field: 'lunch_items' as const },
@@ -81,12 +77,9 @@ const dynamicStatCards = computed(() => {
   return baseStaticMetadata.map((meta) => {
     let finalCount = 0
 
-    // 1. Direct validation check against actual backend payload response numbers
     if (props.statistics && typeof props.statistics[meta.field] === 'number') {
       finalCount = props.statistics[meta.field] as number
-    }
-    // 2. Real-time array filter calculation safety fallback if statistics state is loading/empty
-    else if (props.menuItems && props.menuItems.length > 0) {
+    } else if (props.menuItems && props.menuItems.length > 0) {
       finalCount = props.menuItems.filter(
         (item) => item.category?.toLowerCase() === meta.key,
       ).length

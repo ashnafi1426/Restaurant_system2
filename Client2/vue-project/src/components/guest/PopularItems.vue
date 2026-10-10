@@ -28,8 +28,6 @@ const placeholder = 'https://images.unsplash.com/photo-1544025162-d76694265947?w
 
 <template>
   <section class="mt-12">
-    <!-- Header -->
-
     <div class="flex items-center justify-between mb-6">
       <div>
         <h2 class="text-3xl font-bold text-slate-900">🔥 Most Popular</h2>
@@ -38,23 +36,17 @@ const placeholder = 'https://images.unsplash.com/photo-1544025162-d76694265947?w
       </div>
     </div>
 
-    <!-- Grid -->
-
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <article
         v-for="item in items"
         :key="item.id"
         class="group rounded-3xl overflow-hidden bg-white border border-slate-200 shadow-sm hover:shadow-xl transition duration-300"
       >
-        <!-- Image -->
-
         <div class="relative h-56 overflow-hidden">
           <img
             :src="item.image || placeholder"
             class="w-full h-full object-cover group-hover:scale-110 transition duration-500"
           />
-
-          <!-- Badges -->
 
           <div class="absolute top-3 left-3 flex flex-col gap-2">
             <span
@@ -86,16 +78,12 @@ const placeholder = 'https://images.unsplash.com/photo-1544025162-d76694265947?w
             </span>
           </div>
 
-          <!-- Favorite -->
-
           <button
             class="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center hover:bg-red-500 hover:text-white transition"
           >
             ♡
           </button>
         </div>
-
-        <!-- Content -->
 
         <div class="p-5">
           <h3 class="font-bold text-lg text-slate-900">

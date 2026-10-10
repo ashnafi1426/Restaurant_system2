@@ -33,7 +33,7 @@ const formattedOrder = computed(() => {
 })
 
 const formattedPrice = computed(() => {
-  return `$${(props.totalAmount || 0).toFixed(2)}`
+  return `${(props.totalAmount || 0).toFixed(2)}`
 })
 </script>
 <template>
@@ -53,7 +53,6 @@ const formattedPrice = computed(() => {
         <div
           class="relative w-full max-w-sm max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-[0_25px_70px_rgba(0,0,0,.45)]"
         >
-          <!-- Header -->
           <div
             class="relative overflow-hidden bg-gradient-to-r from-amber-700 via-amber-600 to-yellow-500 px-6 py-5"
           >
@@ -87,9 +86,7 @@ const formattedPrice = computed(() => {
             </div>
           </div>
 
-          <!-- Body -->
           <div class="space-y-3 p-4">
-            <!-- Info Cards -->
             <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div class="rounded-xl border border-amber-100 bg-amber-50 py-3 text-center">
                 <p class="text-[10px] uppercase text-gray-500 font-semibold">Room</p>
@@ -120,7 +117,6 @@ const formattedPrice = computed(() => {
               </div>
             </div>
 
-            <!-- Kitchen Status -->
             <div class="rounded-2xl border bg-gray-50 p-4">
               <div class="flex items-start gap-3">
                 <div
@@ -138,7 +134,6 @@ const formattedPrice = computed(() => {
                 </div>
               </div>
 
-              <!-- Progress -->
               <div class="mt-4">
                 <div class="flex items-center">
                   <div class="h-2.5 w-2.5 rounded-full bg-green-500"></div>
@@ -160,14 +155,12 @@ const formattedPrice = computed(() => {
               </div>
             </div>
 
-            <!-- Message -->
             <div class="rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 p-3 text-center">
               <p class="text-xs leading-5 text-gray-600">
                 Your meal will be delivered directly to your room shortly.
               </p>
             </div>
 
-            <!-- Total Amount Display -->
             <div
               class="rounded-xl border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 p-4 text-center"
             >
@@ -181,7 +174,6 @@ const formattedPrice = computed(() => {
             </div>
           </div>
 
-          <!-- Footer -->
           <div class="border-t bg-gray-50 p-3">
             <div class="flex gap-3">
               <button

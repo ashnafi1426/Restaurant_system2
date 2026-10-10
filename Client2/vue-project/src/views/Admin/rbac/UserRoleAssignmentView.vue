@@ -56,17 +56,14 @@ const resetFilters = () => {
   roleFilter.value = 'all'
 }
 
-// Pagination state
 const currentPage = ref(1)
 const perPage = ref(10)
 
-// Assign Roles Modal State
 const showAssignModal = ref(false)
 const selectedUserForRoles = ref<RbacUserSummary | null>(null)
 const selectedRoleIds = ref<number[]>([])
 const primaryRoleId = ref<number | null>(null)
 
-// Manage Access (Direct Permissions) Modal State
 const showAccessModal = ref(false)
 const accessLoading = ref(false)
 const selectedUserForAccess = ref<RbacUserSummary | null>(null)
@@ -108,7 +105,6 @@ onMounted(() => {
   fetchData()
 })
 
-// Re-fetch users whenever the selected hotel in the Navbar changes
 watch(
   () => hotelStore.hotelId,
   () => {
@@ -194,7 +190,6 @@ const nextPage = () => {
   }
 }
 
-// Role Assignment Modal logic
 const openAssignModal = (user: RbacUserSummary) => {
   selectedUserForRoles.value = user
   selectedRoleIds.value = user.roles.map((r) => r.id)
@@ -473,7 +468,6 @@ const saveAccessPermissions = async () => {
     </template>
 
     <div class="py-6 space-y-6">
-      <!-- Banners -->
       <div
         v-if="successMessage"
         class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2"
@@ -490,13 +484,10 @@ const saveAccessPermissions = async () => {
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -509,7 +500,6 @@ const saveAccessPermissions = async () => {
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -525,9 +515,7 @@ const saveAccessPermissions = async () => {
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="fetchData"
@@ -538,7 +526,6 @@ const saveAccessPermissions = async () => {
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
           </button>
 
-          <!-- Fullscreen Toggle -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -550,7 +537,6 @@ const saveAccessPermissions = async () => {
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -564,7 +550,6 @@ const saveAccessPermissions = async () => {
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
-            <!-- Role Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 Staff Role
@@ -580,7 +565,6 @@ const saveAccessPermissions = async () => {
               </select>
             </div>
 
-            <!-- Reset Filters -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -595,7 +579,6 @@ const saveAccessPermissions = async () => {
         </div>
       </Transition>
 
-      <!-- Staff Table -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs"
       >
@@ -613,7 +596,6 @@ const saveAccessPermissions = async () => {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-              <!-- Loading Spinner State -->
               <tr v-if="loading">
                 <td colspan="5" class="px-6 py-20 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
@@ -632,14 +614,12 @@ const saveAccessPermissions = async () => {
                 </td>
               </tr>
 
-              <!-- Data Rows -->
               <template v-else>
                 <tr
                   v-for="user in paginatedUsers"
                   :key="user.id"
                   class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition"
                 >
-                  <!-- Staff Member -->
                   <td class="px-3 py-2.5 whitespace-nowrap">
                     <div class="flex items-center gap-2 max-w-[180px]">
                       <div
@@ -658,7 +638,6 @@ const saveAccessPermissions = async () => {
                     </div>
                   </td>
 
-                  <!-- Primary Role Badge -->
                   <td class="px-3 py-2.5 whitespace-nowrap">
                     <span
                       class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 uppercase tracking-wider"
@@ -668,7 +647,6 @@ const saveAccessPermissions = async () => {
                     </span>
                   </td>
 
-                  <!-- Direct Permissions Badge -->
                   <td class="px-3 py-2.5 whitespace-nowrap">
                     <div
                       v-if="user.direct_permissions_count && user.direct_permissions_count > 0"
@@ -680,7 +658,6 @@ const saveAccessPermissions = async () => {
                     <span v-else class="text-[10px] text-slate-400 font-medium">Standard role</span>
                   </td>
 
-                  <!-- Effective Permissions Count -->
                   <td
                     class="px-3 py-2.5 text-center whitespace-nowrap font-bold text-emerald-600 dark:text-emerald-400"
                   >
@@ -691,7 +668,6 @@ const saveAccessPermissions = async () => {
                     </span>
                   </td>
 
-                  <!-- Actions -->
                   <td class="px-3 py-2.5 text-right whitespace-nowrap pr-4">
                     <div class="flex items-center justify-end gap-1.5">
                       <button
@@ -715,7 +691,6 @@ const saveAccessPermissions = async () => {
                   </td>
                 </tr>
 
-                <!-- Empty State -->
                 <tr v-if="filteredUsers.length === 0">
                   <td
                     colspan="5"
@@ -729,12 +704,10 @@ const saveAccessPermissions = async () => {
           </table>
         </div>
 
-        <!-- Pagination Bar with 5, 10, 20, 50 Options -->
         <div
           v-if="filteredUsers.length > 0"
           class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-4 text-xs font-sans"
         >
-          <!-- Left Side: Per Page Selector & Showing Count -->
           <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400">
             <div class="flex items-center gap-2">
               <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
@@ -760,7 +733,6 @@ const saveAccessPermissions = async () => {
             </div>
           </div>
 
-          <!-- Right Side: Page Controls -->
           <div class="flex items-center gap-1.5">
             <button
               @click="prevPage"
@@ -801,9 +773,6 @@ const saveAccessPermissions = async () => {
         </div>
       </div>
 
-      <!-- ========================================================================= -->
-      <!-- MANAGE ACCESS (DIRECT PERMISSIONS) MODAL -->
-      <!-- ========================================================================= -->
       <div
         v-if="showAccessModal"
         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs"
@@ -811,7 +780,6 @@ const saveAccessPermissions = async () => {
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden"
         >
-          <!-- Modal Header -->
           <div
             class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50"
           >
@@ -845,15 +813,12 @@ const saveAccessPermissions = async () => {
             </button>
           </div>
 
-          <!-- Loading Indicator -->
           <div v-if="accessLoading" class="p-12 text-center text-slate-400 space-y-3">
             <RefreshCw class="w-8 h-8 animate-spin mx-auto text-blue-500" />
             <p class="text-xs font-bold">Loading permission structure...</p>
           </div>
 
-          <!-- Modal Body -->
           <div v-else class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
-            <!-- Information Banner -->
             <div
               class="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-800 dark:text-blue-300 text-xs space-y-1"
             >
@@ -871,7 +836,6 @@ const saveAccessPermissions = async () => {
               </p>
             </div>
 
-            <!-- Toolbar: Search & Presets -->
             <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div class="relative w-full sm:w-72">
                 <Search class="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
@@ -883,7 +847,6 @@ const saveAccessPermissions = async () => {
                 />
               </div>
 
-              <!-- Package Presets -->
               <div class="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
                 <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider"
                   >Quick Presets:</span
@@ -909,14 +872,12 @@ const saveAccessPermissions = async () => {
               </div>
             </div>
 
-            <!-- Grouped System Permissions List -->
             <div class="space-y-6">
               <div
                 v-for="group in filteredGroupedPermissions"
                 :key="group.module_key"
                 class="bg-slate-50/60 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 space-y-3 shadow-2xs"
               >
-                <!-- Group Header -->
                 <div
                   class="flex items-center justify-between pb-2.5 border-b border-slate-200 dark:border-slate-800"
                 >
@@ -953,7 +914,6 @@ const saveAccessPermissions = async () => {
                   </div>
                 </div>
 
-                <!-- Group Permissions Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                   <div
                     v-for="perm in group.permissions"
@@ -969,7 +929,6 @@ const saveAccessPermissions = async () => {
                     ]"
                   >
                     <div class="flex items-start gap-2">
-                      <!-- Checkbox / Inherited Icon -->
                       <div class="mt-0.5 flex-shrink-0">
                         <CheckCircle2
                           v-if="isPermissionInherited(perm.slug)"
@@ -1006,7 +965,6 @@ const saveAccessPermissions = async () => {
             </div>
           </div>
 
-          <!-- Modal Footer -->
           <div
             class="flex items-center justify-between p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50"
           >
@@ -1037,9 +995,6 @@ const saveAccessPermissions = async () => {
         </div>
       </div>
 
-      <!-- ========================================================================= -->
-      <!-- ASSIGN ROLES MODAL -->
-      <!-- ========================================================================= -->
       <div
         v-if="showAssignModal"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
@@ -1090,7 +1045,6 @@ const saveAccessPermissions = async () => {
                 </div>
               </div>
 
-              <!-- Primary radio selection -->
               <div
                 v-if="selectedRoleIds.includes(role.id)"
                 @click.stop="primaryRoleId = role.id"

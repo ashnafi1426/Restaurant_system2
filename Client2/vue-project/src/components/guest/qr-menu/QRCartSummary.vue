@@ -1,12 +1,10 @@
 <template>
   <div class="flex-shrink-0 bg-white border-t border-gray-200 px-4 py-4 space-y-2">
-    <!-- Subtotal -->
     <div class="flex items-center justify-between text-gray-700 text-sm">
       <span>{{ languageStore.t('subtotal', 'Subtotal') }}</span>
       <span class="font-semibold">{{ formatPrice(subtotal) }}</span>
     </div>
 
-    <!-- Total -->
     <div
       class="flex items-center justify-between text-gray-900 text-lg font-bold pt-2 border-t border-gray-200"
     >
@@ -14,9 +12,7 @@
       <span class="text-red-600">{{ formatPrice(total) }}</span>
     </div>
 
-    <!-- Payment Buttons -->
     <div class="flex flex-col gap-2 pt-3">
-      <!-- Order Now (Pay After Meal) Button -->
       <button
         @click="$emit('place-order-room-charge')"
         :disabled="isPlacingOrder || cartItemsCount === 0"
@@ -53,7 +49,6 @@
         🍽️ {{ languageStore.t('order_now_pay_after', 'Order Now (Pay After Meal)') }}
       </button>
 
-      <!-- Pay with Chapa Button -->
       <button
         @click="$emit('open-payment-dialog')"
         :disabled="isPlacingOrder || cartItemsCount === 0"

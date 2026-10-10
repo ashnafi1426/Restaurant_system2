@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
     <div
       class="bg-white border-b border-gray-200 px-4 py-4 flex items-center gap-3 sticky top-0 z-10 shadow-sm"
     >
@@ -33,7 +32,7 @@
           }}
         </p>
       </div>
-      <!-- Live connection dot -->
+
       <div class="flex items-center gap-1.5">
         <div
           class="w-2 h-2 rounded-full"
@@ -45,13 +44,11 @@
       </div>
     </div>
 
-    <!-- Loading -->
     <div v-if="isLoading" class="flex flex-col items-center justify-center py-24 gap-3">
       <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-500"></div>
       <p class="text-gray-500 text-sm">Loading your order...</p>
     </div>
 
-    <!-- Error State -->
     <div v-else-if="error" class="p-4">
       <div class="rounded-xl p-6 text-center bg-red-50 border border-red-200">
         <h2 class="font-bold mb-1 text-red-800">Unable to Load Order</h2>
@@ -67,9 +64,7 @@
       </div>
     </div>
 
-    <!-- Content -->
     <div v-else-if="orderData" class="p-4 space-y-4 pb-8">
-      <!-- Status Card -->
       <div
         class="rounded-xl p-4 flex items-start gap-3 shadow-xs transition-all"
         :class="{
@@ -106,9 +101,7 @@
         </div>
       </div>
 
-      <!-- Order Info + Items Card -->
       <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-        <!-- Order header row -->
         <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
           <span class="font-semibold text-gray-800 text-sm"
             >Order #{{ orderData.order_number || 'N/A' }}</span
@@ -118,7 +111,6 @@
           }}</span>
         </div>
 
-        <!-- Items -->
         <div class="divide-y divide-gray-50">
           <div
             v-for="(item, index) in orderData?.items || []"
@@ -157,7 +149,6 @@
           </div>
         </div>
 
-        <!-- Total -->
         <div
           class="flex items-center justify-between px-4 py-3 border-t-2 border-gray-200 bg-gray-50"
         >
@@ -168,7 +159,6 @@
         </div>
       </div>
 
-      <!-- Payment Info -->
       <div class="bg-white rounded-xl shadow-sm px-4 py-3 space-y-2">
         <h3 class="font-semibold text-gray-800 text-sm mb-1">Payment</h3>
         <div class="flex items-center justify-between text-sm">
@@ -193,7 +183,6 @@
         </div>
       </div>
 
-      <!-- Pay Now Button - Chapa Integration -->
       <button
         v-if="isPaymentPending"
         @click="handlePayNow"
@@ -208,7 +197,6 @@
         </template>
       </button>
 
-      <!-- Payment Completed -->
       <div
         v-else-if="isPaymentPaid || isServed"
         class="w-full py-3.5 rounded-xl font-bold text-white text-base text-center flex items-center justify-center gap-2 shadow-sm bg-gradient-to-r from-emerald-600 to-teal-600"
@@ -217,7 +205,6 @@
         <span>Payment Completed & Cleared</span>
       </div>
 
-      <!-- Room charge note -->
       <div
         v-if="orderData.payment_type === 'room_charge'"
         class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-700"
@@ -226,7 +213,6 @@
         checkout.
       </div>
 
-      <!-- Refresh -->
       <div class="text-center">
         <button
           @click="refresh"
@@ -274,7 +260,6 @@ const hotelId = ref(
   ).toString(),
 )
 
-// Persist qr_token from URL or storage
 const qrToken = (route.query.qr_token as string) || localStorage.getItem('guest_qr_token') || ''
 if (route.query.qr_token) {
   localStorage.setItem('guest_qr_token', route.query.qr_token as string)
@@ -302,7 +287,6 @@ const {
 
 const isProcessingPayment = ref(false)
 
-// Auto-verify if returning from Chapa or if a pending tx_ref is saved for this order
 onMounted(async () => {
   const pendingTxRef =
     (route.query.tx_ref as string) ||

@@ -36,17 +36,14 @@ const emit = defineEmits<{
   (e: 'create'): void
 }>()
 
-// UI state
 const activeMenu = ref<string | null>(null)
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
 
-// Filters
 const search = ref('')
 const roleFilter = ref('')
 const statusFilter = ref('')
 
-// Pagination
 const currentPage = ref(1)
 const perPage = ref(10)
 
@@ -179,7 +176,6 @@ onBeforeUnmount(() => {
     class="space-y-3 font-sans w-full"
     :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
   >
-    <!-- Top Bar Toolbar -->
     <div
       class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
     >
@@ -251,7 +247,6 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <!-- Filter Panel -->
     <Transition
       enter-active-class="transition duration-200 ease-out"
       enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -317,7 +312,6 @@ onBeforeUnmount(() => {
       </div>
     </Transition>
 
-    <!-- Table Container -->
     <div
       class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full min-h-[220px]"
     >
@@ -341,7 +335,6 @@ onBeforeUnmount(() => {
       </div>
 
       <template v-else>
-        <!-- Desktop Table -->
         <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
             <thead
@@ -500,7 +493,6 @@ onBeforeUnmount(() => {
           </table>
         </div>
 
-        <!-- Mobile Card List -->
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
           <div
             v-if="paginatedUsers.length === 0"
@@ -558,7 +550,6 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <!-- Pagination Controls -->
         <div
           v-if="total > 0"
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"

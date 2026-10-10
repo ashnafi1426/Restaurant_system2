@@ -38,7 +38,6 @@ const autoRefresh = ref(true)
 const refreshing = ref(false)
 let refreshTimer: number | undefined
 
-// Combine all orders for recent activity feed
 const allOrders = computed(() => [
   ...(pendingOrders.value || []),
   ...(preparingOrders.value || []),
@@ -133,7 +132,6 @@ onBeforeUnmount(() => {
     <div
       class="min-h-screen bg-slate-50 dark:bg-slate-950 py-4 md:py-6 transition-colors duration-300"
     >
-      <!-- Header Banner -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6"
       >
@@ -169,7 +167,6 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <!-- Right Actions -->
         <div class="flex items-center gap-3">
           <div
             class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/60 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50"
@@ -192,7 +189,6 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <!-- Error Alert -->
       <div
         v-if="error"
         class="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 flex items-center justify-between"
@@ -209,14 +205,11 @@ onBeforeUnmount(() => {
         </button>
       </div>
 
-      <!-- Statistics -->
       <div class="mb-6">
         <KitchenStats :statistics="statistics" :loading="loading" />
       </div>
 
-      <!-- Main Content -->
       <div class="grid grid-cols-1 gap-6 py-2 md:py-4 lg:grid-cols-12">
-        <!-- Kitchen Queue -->
         <div class="lg:col-span-7 xl:col-span-8">
           <KitchenQueue
             :pending-orders="pendingOrders"
@@ -232,7 +225,6 @@ onBeforeUnmount(() => {
           />
         </div>
 
-        <!-- Right Sidebar -->
         <div class="space-y-6 lg:col-span-5 xl:col-span-4">
           <RecentOrdersActivity :orders="allOrders" />
           <PopularMenu />
@@ -240,12 +232,10 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <!-- Footer -->
       <div class="mt-6">
         <KitchenFooterBar :statistics="statistics" />
       </div>
 
-      <!-- Order Details Dialog -->
       <KitchenOrderDetailsDialog ref="detailsDialogRef" />
     </div>
   </DashboardLayout>

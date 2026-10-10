@@ -51,11 +51,9 @@ const loadData = async () => {
   error.value = null
 
   try {
-    // 1. Fetch Room Types
     await roomTypeStore.fetchRoomTypes()
     roomTypes.value = roomTypeStore.roomTypes || []
 
-    // 2. Fetch Floors
     try {
       let res: any
       const activeHotelId = hotelStore.hotelId
@@ -76,7 +74,6 @@ const loadData = async () => {
       floors.value = []
     }
 
-    // 3. Fetch Room Details
     const response = await roomService.getRoom(roomId)
     const roomData = response.data?.data || response.data
 
@@ -88,7 +85,6 @@ const loadData = async () => {
       form.floor =
         roomData.floor !== undefined && roomData.floor !== null ? Number(roomData.floor) : null
 
-      // Auto-match floor_id by floor_number if missing
       if (!form.floor_id && form.floor !== null && floors.value.length > 0) {
         const matched = floors.value.find((f) => Number(f.floor_number) === Number(form.floor))
         if (matched) form.floor_id = String(matched.id)
@@ -164,7 +160,6 @@ watch(
 <template>
   <DashboardLayout>
     <div class="max-w-4xl mx-auto px-4 py-8">
-      <!-- Top Navigation Header -->
       <div class="mb-6 flex items-center justify-between">
         <button
           type="button"
@@ -176,7 +171,6 @@ watch(
         </button>
       </div>
 
-      <!-- Page Title -->
       <div class="mb-8">
         <div class="flex items-center gap-2">
           <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Edit Room</h1>
@@ -193,7 +187,6 @@ watch(
         </p>
       </div>
 
-      <!-- Loading Page State -->
       <div
         v-if="loading.page"
         class="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center"
@@ -202,9 +195,7 @@ watch(
         <p class="text-slate-600 font-medium text-sm">Loading room details...</p>
       </div>
 
-      <!-- Main Form Container -->
       <div v-else class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-        <!-- Header Banner -->
         <div
           class="bg-slate-900 px-6 py-4 border-b border-slate-800 flex items-center justify-between"
         >
@@ -219,7 +210,6 @@ watch(
         </div>
 
         <form @submit.prevent="updateRoom" class="p-6 md:p-8 space-y-6">
-          <!-- Success Alert -->
           <transition name="fade">
             <div
               v-if="successMessage"
@@ -230,7 +220,6 @@ watch(
             </div>
           </transition>
 
-          <!-- Error Alert -->
           <div
             v-if="error"
             class="p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3"
@@ -250,9 +239,7 @@ watch(
             </div>
           </div>
 
-          <!-- Input Fields Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Room Number -->
             <div>
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Room Number <span class="text-red-500">*</span>
@@ -266,7 +253,6 @@ watch(
               />
             </div>
 
-            <!-- Floor -->
             <div>
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Floor <span class="text-red-500">*</span>
@@ -319,7 +305,6 @@ watch(
               </SearchableSelect>
             </div>
 
-            <!-- Room Type Selection -->
             <div>
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Room Type <span class="text-red-500">*</span>
@@ -368,7 +353,6 @@ watch(
               </SearchableSelect>
             </div>
 
-            <!-- Status Selection -->
             <div>
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Status <span class="text-red-500">*</span>
@@ -387,7 +371,6 @@ watch(
             </div>
           </div>
 
-          <!-- Description -->
           <div>
             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
               Description <span class="text-slate-400 font-normal lowercase">(optional)</span>
@@ -400,7 +383,6 @@ watch(
             ></textarea>
           </div>
 
-          <!-- Active Checkbox -->
           <div class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl">
             <input
               type="checkbox"
@@ -416,7 +398,6 @@ watch(
             </label>
           </div>
 
-          <!-- Actions -->
           <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"

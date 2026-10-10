@@ -83,8 +83,6 @@ const statusColor = computed(() => {
 
 <template>
   <div class="rounded-3xl bg-white shadow-lg border border-slate-200 overflow-hidden">
-    <!-- Header -->
-
     <div class="px-6 py-5 border-b border-slate-200 bg-slate-50">
       <div class="flex items-center justify-between">
         <div>
@@ -98,8 +96,6 @@ const statusColor = computed(() => {
         </span>
       </div>
     </div>
-
-    <!-- Order Information -->
 
     <div class="px-6 py-5 border-b border-slate-200 bg-white">
       <div class="grid grid-cols-2 gap-4">
@@ -117,8 +113,6 @@ const statusColor = computed(() => {
       </div>
     </div>
 
-    <!-- Progress -->
-
     <div class="p-6">
       <div class="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
         <div
@@ -127,19 +121,13 @@ const statusColor = computed(() => {
         />
       </div>
 
-      <!-- Timeline -->
-
       <div class="mt-8 space-y-8">
         <div v-for="(step, index) in steps" :key="step.key" class="relative flex gap-5">
-          <!-- Timeline Line -->
-
           <div
             v-if="index < steps.length - 1"
             class="absolute left-6 top-14 w-1 h-16 rounded-full"
             :class="index < currentStep ? 'bg-teal-600' : 'bg-slate-200'"
           />
-
-          <!-- Status Icon -->
 
           <div
             class="relative z-10 flex h-12 w-12 items-center justify-center rounded-full text-xl transition-all duration-300"
@@ -157,8 +145,6 @@ const statusColor = computed(() => {
               {{ step.icon }}
             </span>
           </div>
-
-          <!-- Content -->
 
           <div class="flex-1 pb-8">
             <div class="flex items-center justify-between">
@@ -202,8 +188,6 @@ const statusColor = computed(() => {
       </div>
     </div>
 
-    <!-- Estimated Delivery Card -->
-
     <div class="border-t border-slate-200 bg-teal-50 px-6 py-5">
       <div class="flex items-center gap-4">
         <div
@@ -222,8 +206,6 @@ const statusColor = computed(() => {
         </div>
       </div>
     </div>
-
-    <!-- Hotel Assistance -->
 
     <div class="border-t border-slate-200 bg-amber-50 px-6 py-5">
       <div class="flex items-start gap-4">

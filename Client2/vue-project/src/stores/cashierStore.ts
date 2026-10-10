@@ -83,7 +83,6 @@ const DEFAULT_PAGINATION: Pagination = {
 }
 
 export const useCashierStore = defineStore('cashier', () => {
-  // State
   const dashboardStats = ref<DashboardStats | null>(null)
   const recentPayments = ref<Payment[]>([])
   const pendingPayments = ref<Payment[]>([])
@@ -127,14 +126,12 @@ export const useCashierStore = defineStore('cashier', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  // Getters
   const isLoading = computed(() => loading.value)
   const hasError = computed(() => error.value !== null)
   const todayRevenue = computed(() => dashboardStats.value?.today_revenue ?? 0)
   const weeklyRevenue = computed(() => dashboardStats.value?.weekly_revenue ?? 0)
   const monthlyRevenue = computed(() => dashboardStats.value?.monthly_revenue ?? 0)
 
-  // Helper for running reports
   async function fetchReport(
     fetcher: (filters?: ReportFilters) => Promise<{ success: boolean; data?: any }>,
     filters?: ReportFilters,

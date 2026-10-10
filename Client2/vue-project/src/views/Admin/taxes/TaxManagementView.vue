@@ -163,7 +163,6 @@ function getAppliesBadgeClass(type: string) {
 <template>
   <DashboardLayout>
     <div class="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <!-- Header Section -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div class="flex items-center gap-3">
@@ -199,7 +198,6 @@ function getAppliesBadgeClass(type: string) {
         </div>
       </div>
 
-      <!-- Stats Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div
           class="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center gap-4"
@@ -240,7 +238,6 @@ function getAppliesBadgeClass(type: string) {
         </div>
       </div>
 
-      <!-- Filter / Search Toolbar -->
       <div
         class="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between"
       >
@@ -271,7 +268,6 @@ function getAppliesBadgeClass(type: string) {
         </div>
       </div>
 
-      <!-- Table Section -->
       <div
         class="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm"
       >
@@ -404,7 +400,6 @@ function getAppliesBadgeClass(type: string) {
         </div>
       </div>
 
-      <!-- Add / Edit Modal -->
       <div
         v-if="isModalOpen"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"

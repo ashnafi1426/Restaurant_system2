@@ -41,7 +41,6 @@ const emit = defineEmits<Emits>()
 const tableAssignmentStore = useTableAssignmentStore()
 const hotelStore = useHotelStore()
 
-// State
 const tables = ref<any[]>([])
 const waiters = ref<any[]>([])
 const selectedTable = ref<string>(props.initialTableId || '')
@@ -54,12 +53,10 @@ const isSubmitting = ref<boolean>(false)
 const error = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
 
-// Computed
 const selectedTableData = computed(() => {
   return tables.value.find((t) => String(t.id) === String(selectedTable.value)) || null
 })
 
-// Waiters from current hotel
 const activeWaiters = computed(() => {
   return waiters.value
 })
@@ -270,7 +267,6 @@ watch(
       <div
         class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col transition-all"
       >
-        <!-- Modal Header -->
         <div
           class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex-shrink-0"
         >
@@ -300,16 +296,13 @@ watch(
           </button>
         </div>
 
-        <!-- Modal Body -->
         <div class="p-6 overflow-y-auto space-y-5 flex-1">
-          <!-- Loading State -->
           <div v-if="isLoading" class="py-12 text-center space-y-3">
             <Loader2 class="w-8 h-8 text-blue-600 animate-spin mx-auto" />
             <p class="text-xs font-bold text-slate-500">Loading tables & staff roster...</p>
           </div>
 
           <template v-else>
-            <!-- Error Banner -->
             <div
               v-if="error"
               class="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-2xl text-xs font-bold flex items-center gap-2.5"
@@ -318,7 +311,6 @@ watch(
               <span>{{ error }}</span>
             </div>
 
-            <!-- Success Banner -->
             <div
               v-if="successMessage"
               class="p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl text-xs font-bold flex items-center gap-2.5"
@@ -327,7 +319,6 @@ watch(
               <span>{{ successMessage }}</span>
             </div>
 
-            <!-- Field 1: Restaurant Table (Required) -->
             <div>
               <div class="flex items-center justify-between mb-2">
                 <label
@@ -351,14 +342,11 @@ watch(
                 <option v-for="table in tables" :key="table.id" :value="table.id">
                   Table {{ table.table_number }}
                   {{ table.table_name ? `(${table.table_name})` : '' }} —
-                  {{ table.section || table.location || 'Main Section' }} ({{
-                    table.capacity
-                  }}
+                  {{ table.section || table.location || 'Main Section' }} ({{ table.capacity }}
                   Seats)
                 </option>
               </select>
 
-              <!-- Selected Table Section & Info Preview Card -->
               <div
                 v-if="selectedTableData"
                 class="mt-2.5 p-3 rounded-2xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/60 dark:bg-blue-950/20 flex items-center justify-between gap-3 text-xs"
@@ -380,7 +368,7 @@ watch(
                         >({{ selectedTableData.table_name }})</span
                       >
                     </div>
-                    <!-- Table Section Information -->
+
                     <div
                       class="flex items-center gap-1 text-[11px] text-blue-700 dark:text-blue-300 font-semibold mt-0.5"
                     >
@@ -417,7 +405,6 @@ watch(
               </div>
             </div>
 
-            <!-- Field 2: Assigned Waiter(s) (Required, Multi-Select) -->
             <div>
               <div class="flex items-center justify-between mb-2">
                 <label
@@ -451,7 +438,6 @@ watch(
                 </div>
               </div>
 
-              <!-- Selected Waiters Chips -->
               <div
                 v-if="selectedWaitersList.length > 0"
                 class="flex flex-wrap gap-1.5 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 mb-2.5 max-h-24 overflow-y-auto"
@@ -474,7 +460,6 @@ watch(
                 </span>
               </div>
 
-              <!-- Waiter Search Box -->
               <div class="relative mb-2">
                 <Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
@@ -485,7 +470,6 @@ watch(
                 />
               </div>
 
-              <!-- Multi-Select Waiters List -->
               <div
                 class="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-950/50"
               >
@@ -506,7 +490,6 @@ watch(
                   }"
                 >
                   <div class="flex items-center gap-2.5 min-w-0">
-                    <!-- Checkbox indicator -->
                     <div
                       class="w-5 h-5 rounded-lg flex items-center justify-center border transition flex-shrink-0"
                       :class="
@@ -521,14 +504,12 @@ watch(
                       />
                     </div>
 
-                    <!-- Waiter Avatar -->
                     <div
                       class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center text-xs flex-shrink-0"
                     >
                       {{ getWaiterDisplayName(waiter).charAt(0).toUpperCase() }}
                     </div>
 
-                    <!-- Waiter Name & Details -->
                     <div class="min-w-0">
                       <div class="text-xs font-bold text-slate-900 dark:text-white truncate">
                         {{ getWaiterDisplayName(waiter) }}
@@ -543,7 +524,6 @@ watch(
                     </div>
                   </div>
 
-                  <!-- Right side: Workload & Active Status Badges -->
                   <div class="flex items-center gap-1.5 flex-shrink-0">
                     <span
                       v-if="typeof waiter.current_orders === 'number'"
@@ -563,7 +543,6 @@ watch(
               </div>
             </div>
 
-            <!-- Field 3: Active Assignment (Required Toggle) -->
             <div
               class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex items-center justify-between gap-4"
             >
@@ -595,7 +574,6 @@ watch(
           </template>
         </div>
 
-        <!-- Modal Footer -->
         <div
           class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex-shrink-0"
         >

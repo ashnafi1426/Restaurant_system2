@@ -30,12 +30,12 @@ const filters = ref<GuestFilter>({
 
 const totalGuests = computed(() => {
   const total = guestStore.pagination?.total ?? 0
-  // Ensure it's a number, not an array
+
   return typeof total === 'number' ? total : Array.isArray(total) ? total[0] : 0
 })
 const currentPage = computed(() => {
   const page = guestStore.pagination?.current_page ?? 1
-  // Ensure it's a number, not an array
+
   return typeof page === 'number' ? page : Array.isArray(page) ? page[0] : 1
 })
 const lastPage = computed(() => guestStore.pagination?.last_page ?? 1)
@@ -141,7 +141,6 @@ watch(
 <template>
   <DashboardLayout>
     <div class="space-y-6 bg-white dark:bg-slate-900 min-h-screen p-6">
-      <!-- Success/Error Toast -->
       <transition
         enter-active-class="transition ease-out duration-300"
         enter-from-class="opacity-0 translate-y-2"
@@ -159,7 +158,6 @@ watch(
         </div>
       </transition>
 
-      <!-- Breadcrumb -->
       <nav class="flex items-center text-sm text-slate-500">
         <a href="/dashboard" class="hover:text-slate-700 transition">{{
           languageStore.t('Dashboard', 'Dashboard')
@@ -170,7 +168,6 @@ watch(
         }}</span>
       </nav>
 
-      <!-- Header -->
       <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-xl p-8 text-white">
         <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -202,9 +199,7 @@ watch(
         </div>
       </div>
 
-      <!-- Statistics Cards -->
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <!-- Total Guests -->
         <div
           class="relative overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-blue-50 to-white p-6 shadow-sm hover:shadow-md transition"
         >
@@ -223,7 +218,6 @@ watch(
           </div>
         </div>
 
-        <!-- Current Page -->
         <div
           class="relative overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-purple-50 to-white p-6 shadow-sm hover:shadow-md transition"
         >
@@ -242,7 +236,6 @@ watch(
           </div>
         </div>
 
-        <!-- Per Page -->
         <div
           class="relative overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-green-50 to-white p-6 shadow-sm hover:shadow-md transition"
         >
@@ -261,7 +254,6 @@ watch(
           </div>
         </div>
 
-        <!-- On This Page -->
         <div
           class="relative overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-amber-50 to-white p-6 shadow-sm hover:shadow-md transition"
         >
@@ -281,7 +273,6 @@ watch(
         </div>
       </div>
 
-      <!-- Filters -->
       <GuestFilters
         :filters="filters"
         @update:filters="filters = $event"
@@ -290,7 +281,6 @@ watch(
         @create="createGuest"
       />
 
-      <!-- Table -->
       <GuestTable
         :guests="guestStore.guests"
         :loading="loading"
@@ -299,7 +289,6 @@ watch(
         @delete="confirmDelete"
       />
 
-      <!-- Empty State -->
       <div
         v-if="!loading && !hasGuests"
         class="rounded-2xl border-2 border-dashed border-slate-300 bg-white p-16 text-center"
@@ -329,7 +318,6 @@ watch(
         </button>
       </div>
 
-      <!-- Pagination -->
       <div
         v-if="hasGuests"
         class="flex flex-col gap-4 rounded-xl border bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between"
@@ -369,7 +357,6 @@ watch(
         </div>
       </div>
 
-      <!-- Delete Dialog -->
       <DeleteGuestDialog
         :open="deleteDialog"
         :guest="selectedGuest"

@@ -2,12 +2,9 @@
   <div
     class="pending-container min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 py-12 flex items-center justify-center"
   >
-    <!-- Main Pending Card -->
     <div class="max-w-2xl w-full mx-auto px-4">
       <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
-        <!-- Pending Header -->
         <div class="bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-12 text-center">
-          <!-- Pending Icon -->
           <div class="flex justify-center mb-6">
             <div
               class="w-20 h-20 bg-white rounded-full flex items-center justify-center animate-bounce"
@@ -32,9 +29,7 @@
           <p class="text-amber-50 text-lg">Your payment is being processed</p>
         </div>
 
-        <!-- Content -->
         <div class="p-8">
-          <!-- Status Message -->
           <div class="mb-8 text-center">
             <div class="inline-block mb-6">
               <div
@@ -47,7 +42,6 @@
             </p>
           </div>
 
-          <!-- Info Alert -->
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
             <div class="flex items-start gap-3">
               <svg
@@ -71,13 +65,10 @@
             </div>
           </div>
 
-          <!-- Payment Details -->
           <div v-if="paymentStore.currentPayment" class="space-y-6">
-            <!-- Status Info Grid -->
             <div class="border-b pb-6">
               <h3 class="font-semibold text-slate-900 mb-4">Payment Details</h3>
               <div class="grid grid-cols-2 gap-4">
-                <!-- Transaction ID -->
                 <div class="bg-slate-50 rounded-lg p-4">
                   <p class="text-slate-600 text-sm font-medium mb-2">Transaction ID</p>
                   <p class="text-slate-900 font-mono text-sm break-all">
@@ -85,7 +76,6 @@
                   </p>
                 </div>
 
-                <!-- Status -->
                 <div class="bg-slate-50 rounded-lg p-4">
                   <p class="text-slate-600 text-sm font-medium mb-2">Status</p>
                   <span
@@ -95,7 +85,6 @@
                   </span>
                 </div>
 
-                <!-- Amount -->
                 <div class="bg-slate-50 rounded-lg p-4">
                   <p class="text-slate-600 text-sm font-medium mb-2">Amount</p>
                   <p class="text-2xl font-bold text-slate-900">
@@ -103,7 +92,6 @@
                   </p>
                 </div>
 
-                <!-- Started -->
                 <div class="bg-slate-50 rounded-lg p-4">
                   <p class="text-slate-600 text-sm font-medium mb-2">Started</p>
                   <p class="text-slate-900">
@@ -113,7 +101,6 @@
               </div>
             </div>
 
-            <!-- Customer Info -->
             <div class="border-b pb-6">
               <h3 class="font-semibold text-slate-900 mb-4">Customer Information</h3>
               <div class="grid grid-cols-2 gap-4">
@@ -133,7 +120,6 @@
             </div>
           </div>
 
-          <!-- Progress Steps -->
           <div class="mb-8">
             <h3 class="font-semibold text-slate-900 mb-4">Processing Steps</h3>
             <div class="space-y-3">
@@ -187,7 +173,6 @@
             </div>
           </div>
 
-          <!-- Helpful Info -->
           <div class="bg-slate-50 rounded-lg p-4 border border-slate-200">
             <h4 class="font-semibold text-slate-900 mb-3">Important Information</h4>
             <ul class="text-slate-600 text-sm space-y-2">
@@ -210,7 +195,6 @@
             </ul>
           </div>
 
-          <!-- Cancel Action -->
           <div class="mt-8">
             <button
               @click="cancelPayment"
@@ -225,7 +209,6 @@
         </div>
       </div>
 
-      <!-- Auto-refresh Info -->
       <div class="mt-6 text-center text-slate-600 text-sm">
         <p>Page will auto-refresh to check payment status...</p>
       </div>
@@ -238,25 +221,13 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { usePaymentStore } from '@/stores/paymentStore'
 
-// ============================================================================
-// Setup
-// ============================================================================
-
 const router = useRouter()
 const route = useRoute()
 const paymentStore = usePaymentStore()
 
-// ============================================================================
-// State
-// ============================================================================
-
 let pollInterval: NodeJS.Timeout | null = null
-const maxChecks = ref(60) // 60 checks = 2 minutes
+const maxChecks = ref(60)
 const checksPerformed = ref(0)
-
-// ============================================================================
-// Lifecycle
-// ============================================================================
 
 onMounted(async () => {
   const txRef = route.query.tx_ref as string
@@ -267,10 +238,8 @@ onMounted(async () => {
   }
 
   try {
-    // Initial fetch
     await paymentStore.verifyPayment(txRef)
 
-    // Start polling
     startPolling(txRef)
   } catch (error) {
     console.error('Failed to fetch payment:', error)
@@ -283,10 +252,6 @@ onUnmounted(() => {
   }
 })
 
-// ============================================================================
-// Methods
-// ============================================================================
-
 /**
  * Start polling payment status
  */
@@ -295,16 +260,13 @@ function startPolling(txRef: string): void {
     try {
       checksPerformed.value++
 
-      // Check payment status
       await paymentStore.verifyPayment(txRef)
 
-      // Payment verified or failed
       if (paymentStore.currentPayment?.is_verified || paymentStore.currentPayment?.is_failed) {
         if (pollInterval) {
           clearInterval(pollInterval)
         }
 
-        // Redirect to appropriate page
         if (paymentStore.currentPayment.is_verified) {
           router.push(`/payment/success?tx_ref=${txRef}`)
         } else {
@@ -350,7 +312,6 @@ function cancelPayment(): void {
 </script>
 
 <style scoped>
-/* Bounce animation for icon */
 @keyframes bounce {
   0%,
   100% {
@@ -365,7 +326,6 @@ function cancelPayment(): void {
   animation: bounce 2s infinite;
 }
 
-/* Spin animation */
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -376,7 +336,6 @@ function cancelPayment(): void {
   animation: spin 1s linear infinite;
 }
 
-/* Pulse animation */
 @keyframes pulse {
   0%,
   100% {

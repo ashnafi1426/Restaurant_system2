@@ -34,7 +34,6 @@ const emit = defineEmits<{
         leave-to-class="opacity-0 scale-95"
       >
         <div v-if="open" class="w-full max-w-md rounded-xl bg-white shadow-2xl">
-          <!-- Header -->
           <div class="border-b px-6 py-4">
             <div class="flex items-center gap-3">
               <div class="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
@@ -49,7 +48,6 @@ const emit = defineEmits<{
             </div>
           </div>
 
-          <!-- Body -->
           <div class="px-6 py-5">
             <p class="text-gray-700">
               Are you sure you want to delete
@@ -67,7 +65,6 @@ const emit = defineEmits<{
             </div>
           </div>
 
-          <!-- Footer -->
           <div class="flex justify-end gap-3 border-t bg-gray-50 px-6 py-4">
             <button
               @click="emit('close')"

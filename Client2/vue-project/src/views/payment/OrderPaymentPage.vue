@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-    <!-- Header -->
     <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80">
       <div class="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
         <button
@@ -39,7 +38,6 @@
     </header>
 
     <div class="max-w-md mx-auto px-4 py-6 space-y-4">
-      <!-- Your Order Card -->
       <div class="bg-slate-800 rounded-2xl p-5 shadow-xl border border-slate-700">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3">
@@ -66,7 +64,6 @@
           </div>
         </div>
 
-        <!-- Order Items -->
         <div class="space-y-3 border-t border-slate-700 pt-4">
           <div
             v-for="item in items"
@@ -84,7 +81,6 @@
         </div>
       </div>
 
-      <!-- Add Tip Card -->
       <div class="bg-slate-800 rounded-2xl p-5 shadow-xl border border-slate-700">
         <div class="flex items-center gap-2 mb-4">
           <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -95,7 +91,6 @@
           <h2 class="text-white font-bold text-base">Add Tip?</h2>
         </div>
 
-        <!-- Tip Buttons with Real SVG Icons -->
         <div class="grid grid-cols-4 gap-2 mb-3">
           <button
             v-for="tipOption in tipOptions"
@@ -108,7 +103,6 @@
                 : 'bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500',
             ]"
           >
-            <!-- 10% Thumbs Up -->
             <svg
               v-if="tipOption.icon === 'thumbs-up'"
               class="w-6 h-6 mb-1 text-yellow-400"
@@ -124,7 +118,6 @@
               />
             </svg>
 
-            <!-- 15% Smile Face -->
             <svg
               v-else-if="tipOption.icon === 'smile'"
               class="w-6 h-6 mb-1 text-yellow-400"
@@ -141,7 +134,6 @@
               />
             </svg>
 
-            <!-- 20% Sparkles -->
             <svg
               v-else-if="tipOption.icon === 'sparkles'"
               class="w-6 h-6 mb-1 text-yellow-400"
@@ -157,7 +149,6 @@
               />
             </svg>
 
-            <!-- 25% Heart -->
             <svg
               v-else-if="tipOption.icon === 'heart'"
               class="w-6 h-6 mb-1 text-rose-500"
@@ -176,7 +167,6 @@
           </button>
         </div>
 
-        <!-- Custom & No Tip Buttons with Real SVG Icons -->
         <div class="grid grid-cols-2 gap-2">
           <button
             @click="openCustomTip"
@@ -224,7 +214,6 @@
         </div>
       </div>
 
-      <!-- Total Card -->
       <div
         class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 shadow-xl border-2 border-slate-700"
       >
@@ -251,7 +240,6 @@
           <p class="text-slate-400 text-xs mt-1">Secure with Chapa</p>
         </div>
 
-        <!-- Pay Now Button -->
         <button
           @click="proceedToPayment"
           :disabled="isProcessing"
@@ -295,7 +283,6 @@
       </div>
     </div>
 
-    <!-- Custom Tip Modal -->
     <Teleport to="body">
       <Transition name="fade">
         <div
@@ -341,7 +328,6 @@ import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
 const route = useRoute()
 
-// Data from route/localStorage
 const items = ref<any[]>([])
 const tableNumber = ref<string>('')
 const qrToken = ref<string>('')

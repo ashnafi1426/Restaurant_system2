@@ -1,10 +1,8 @@
 <template>
   <div class="min-h-screen bg-[#f5f0e8] p-4">
     <div class="max-w-md mx-auto py-6">
-      <!-- Verifying Payment Loading State -->
       <div v-if="isVerifying" class="min-h-[60vh] flex flex-col items-center justify-center">
         <div class="bg-white rounded-3xl shadow-lg p-8 text-center max-w-sm w-full">
-          <!-- Animated Checkmark Circle -->
           <div class="mb-6 flex justify-center">
             <div class="relative">
               <div
@@ -48,9 +46,7 @@
         </div>
       </div>
 
-      <!-- Success State (shown after verification completes) -->
       <div v-else-if="orderData">
-        <!-- Success Notification Toast -->
         <div class="bg-[#3d4f3d] rounded-2xl p-4 mb-6 shadow-lg flex items-center gap-3">
           <div
             class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0"
@@ -67,9 +63,7 @@
           <span class="text-white font-semibold text-lg">Payment successful!</span>
         </div>
 
-        <!-- Main Success Card -->
         <div class="bg-white rounded-3xl shadow-lg overflow-hidden">
-          <!-- Header -->
           <div class="p-6 text-center border-b border-gray-200">
             <h1 class="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
             <p class="text-sm text-gray-600">
@@ -77,9 +71,7 @@
             </p>
           </div>
 
-          <!-- Payment Receipt Section -->
           <div class="p-6 space-y-6">
-            <!-- Receipt Header -->
             <div class="flex items-center gap-2 text-gray-700 mb-4">
               <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
@@ -92,7 +84,6 @@
               <h2 class="text-lg font-bold">Payment Receipt</h2>
             </div>
 
-            <!-- Receipt Details -->
             <div class="space-y-3 text-sm">
               <div class="flex justify-between items-center py-2 border-b border-gray-100">
                 <span class="text-gray-500">Transaction ID</span>
@@ -130,7 +121,6 @@
               </div>
             </div>
 
-            <!-- Track My Order Button - PRIMARY CTA -->
             <button
               @click="trackOrder"
               v-if="orderData?.is_walk_in !== false"
@@ -147,7 +137,6 @@
               </svg>
             </button>
 
-            <!-- Debug: Manual Complete Button (only shows if tx_ref exists but order not completed) -->
             <button
               v-if="txRef && !orderData?.id"
               @click="manualComplete"
@@ -156,7 +145,6 @@
               🔧 Manual Complete Order (Debug)
             </button>
 
-            <!-- Back to Menu Button -->
             <button
               @click="backToMenu"
               class="w-full py-3.5 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-300 rounded-2xl font-semibold text-base shadow-sm transition-all"
@@ -166,14 +154,12 @@
           </div>
         </div>
 
-        <!-- Footer Message -->
         <div class="text-center mt-6 px-4">
           <p class="text-sm text-gray-600">
             Thank you for ordering with us! Need assistance? Our team is always ready to serve you.
           </p>
         </div>
       </div>
-      <!-- End of v-else-if (success state) -->
 
       <div
         v-else
@@ -215,13 +201,12 @@ const txRef = ref<string>('')
 const orderData = ref<any>(null)
 const roomNumber = ref<string>('')
 const isLoading = ref(false)
-const isVerifying = ref(true) // Add this - for loading state
+const isVerifying = ref(true)
 
 onMounted(async () => {
   console.log('[OrderPaymentSuccess] Mounted')
   console.log('[OrderPaymentSuccess] Query params:', route.query)
 
-  // Try to get tx_ref from multiple sources
   txRef.value =
     (route.query.tx_ref as string) ||
     (route.query.trx_ref as string) ||
@@ -232,7 +217,6 @@ onMounted(async () => {
 
   console.log('[OrderPaymentSuccess] tx_ref resolved:', txRef.value)
 
-  // Check BOTH localStorage AND sessionStorage (localStorage persists through redirects)
   const walkInData =
     localStorage.getItem('walk_in_payment_data') || sessionStorage.getItem('walk_in_payment_data')
   console.log(
@@ -255,7 +239,6 @@ onMounted(async () => {
         room_number: null,
       }
 
-      // Sync QR token and hotel ID to storage for subsequent status and websocket calls
       if (data.qr_token) {
         localStorage.setItem('guest_qr_token', data.qr_token)
         sessionStorage.setItem('guest_qr_token', data.qr_token)
@@ -264,13 +247,11 @@ onMounted(async () => {
         localStorage.setItem('hotel_id', data.hotel_id)
       }
 
-      // Get tx_ref from sessionStorage if not in URL
       if (!txRef.value && data.tx_ref) {
         txRef.value = data.tx_ref
         console.log('[OrderPaymentSuccess] Using tx_ref from sessionStorage:', txRef.value)
       }
 
-      // Store order ID if present in walk-in data
       if (data.order_id) {
         localStorage.setItem('last_order_id', data.order_id)
         console.log('[OrderPaymentSuccess] Stored order ID from walk-in data:', data.order_id)
@@ -299,7 +280,6 @@ onMounted(async () => {
         }
         roomNumber.value = data.room_number || 'N/A'
 
-        // Sync QR token and hotel ID to storage
         if (data.qr_token) {
           localStorage.setItem('guest_qr_token', data.qr_token)
           sessionStorage.setItem('guest_qr_token', data.qr_token)
@@ -308,7 +288,6 @@ onMounted(async () => {
           localStorage.setItem('hotel_id', data.hotel_id)
         }
 
-        // Get tx_ref from sessionStorage if not in URL
         if (!txRef.value && data.tx_ref) {
           txRef.value = data.tx_ref
           console.log(
@@ -317,7 +296,6 @@ onMounted(async () => {
           )
         }
 
-        // Store order ID if present in room service data
         if (data.order_id) {
           localStorage.setItem('last_order_id', data.order_id)
           console.log(
@@ -331,13 +309,11 @@ onMounted(async () => {
     }
   }
 
-  // Also sync QR token from query parameter if present
   if (route.query.qr_token) {
     localStorage.setItem('guest_qr_token', route.query.qr_token as string)
     sessionStorage.setItem('guest_qr_token', route.query.qr_token as string)
   }
 
-  // If no stored order, check if we have direct order ID to fetch
   if (!orderData.value) {
     const directOrderId = (route.query.order_id as string) || localStorage.getItem('last_order_id')
     if (directOrderId) {

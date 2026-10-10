@@ -102,7 +102,6 @@ watch(
 <template>
   <DashboardLayout>
     <div class="max-w-3xl mx-auto space-y-6 bg-white dark:bg-slate-900 p-6 rounded-lg">
-      <!-- Header -->
       <div>
         <h1 class="text-2xl font-bold text-slate-800 dark:text-white">
           {{ languageStore.t('edit_reservation', 'Edit Reservation') }}
@@ -117,7 +116,6 @@ watch(
         </p>
       </div>
 
-      <!-- Loading State -->
       <div
         v-if="loadingData"
         class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg p-4"
@@ -127,7 +125,6 @@ watch(
         </p>
       </div>
 
-      <!-- Form -->
       <ReservationForm
         v-else-if="form"
         v-model="form"
@@ -137,7 +134,6 @@ watch(
         @submit="submit"
       />
 
-      <!-- Error State -->
       <div
         v-else
         class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50 rounded-lg p-4"

@@ -49,17 +49,14 @@
           </div>
         </div>
 
-        <!-- Skeleton Loader - Shows immediately only if no cached data exists -->
         <div
           v-if="loading && !recentAssignments.length && !activeDelivery && !stats.todayDeliveries"
           class="space-y-6"
         >
-          <!-- Stats Cards Skeleton -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <SkeletonLoaders v-for="i in 4" :key="i" type="stat-card" />
           </div>
 
-          <!-- Recent Assignments Skeleton -->
           <div
             class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs"
           >
@@ -86,7 +83,6 @@
 
         <div v-else class="space-y-6">
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Completed Deliveries -->
             <div class="stat-card" v-memo="[stats.todayDeliveries]">
               <div class="stat-header">
                 <span class="stat-label">{{ languageStore.t('completed', 'Completed') }}</span>
@@ -98,7 +94,6 @@
               </p>
             </div>
 
-            <!-- Ready for Pickup -->
             <div class="stat-card" v-memo="[stats.pendingDeliveries]">
               <div class="stat-header">
                 <span class="stat-label">{{
@@ -112,7 +107,6 @@
               </p>
             </div>
 
-            <!-- On Delivery -->
             <div class="stat-card" v-memo="[stats.onDelivery]">
               <div class="stat-header">
                 <span class="stat-label">{{ languageStore.t('on_delivery', 'On Delivery') }}</span>
@@ -124,7 +118,6 @@
               </p>
             </div>
 
-            <!-- Avg Delivery Time -->
             <div class="stat-card" v-memo="[stats.avgDeliveryTime]">
               <div class="stat-header">
                 <span class="stat-label">{{
@@ -321,7 +314,6 @@
       </div>
     </div>
 
-    <!-- Quick Order Details Modal -->
     <div
       v-if="showDetailModal && selectedOrder"
       class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
@@ -463,7 +455,6 @@ const selectedOrder = ref<any | null>(null)
 
 let autoRefreshTimer: ReturnType<typeof setInterval> | null = null
 
-// Format Helpers
 const getItemCount = (items: any): number => {
   if (typeof items === 'number') return items
   if (Array.isArray(items)) return items.length

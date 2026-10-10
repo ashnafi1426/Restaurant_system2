@@ -56,7 +56,6 @@ const closeMenu = () => {
   activeMenuId.value = null
 }
 
-// Pagination State
 const currentPage = ref(1)
 const perPage = ref(10)
 
@@ -314,7 +313,6 @@ const handleAssignSuccess = async () => {
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
-      <!-- Toast Notification -->
       <div
         v-if="toastMessage"
         class="fixed bottom-6 right-6 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-800 text-xs font-bold"
@@ -323,7 +321,6 @@ const handleAssignSuccess = async () => {
         <span>{{ toastMessage }}</span>
       </div>
 
-      <!-- Header Section -->
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
       >
@@ -349,9 +346,7 @@ const handleAssignSuccess = async () => {
         </div>
       </div>
 
-      <!-- Statistics Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <!-- Total Assignments -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -370,7 +365,6 @@ const handleAssignSuccess = async () => {
           </div>
         </div>
 
-        <!-- Tables Covered -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -389,7 +383,6 @@ const handleAssignSuccess = async () => {
           </div>
         </div>
 
-        <!-- Waiters Assigned -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -408,7 +401,6 @@ const handleAssignSuccess = async () => {
           </div>
         </div>
 
-        <!-- Active Assignments -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -431,13 +423,10 @@ const handleAssignSuccess = async () => {
         </div>
       </div>
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -455,7 +444,6 @@ const handleAssignSuccess = async () => {
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -475,9 +463,7 @@ const handleAssignSuccess = async () => {
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="handleRefresh"
@@ -488,7 +474,6 @@ const handleAssignSuccess = async () => {
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': tableAssignmentStore.loading }" />
           </button>
 
-          <!-- Fullscreen Toggle -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -498,7 +483,6 @@ const handleAssignSuccess = async () => {
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
           </button>
 
-          <!-- Assign Primary Button -->
           <button
             type="button"
             @click="showAssignModal = true"
@@ -510,7 +494,6 @@ const handleAssignSuccess = async () => {
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -524,7 +507,6 @@ const handleAssignSuccess = async () => {
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
-            <!-- Date Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('assignment_date', 'Assignment Date') }}
@@ -536,7 +518,6 @@ const handleAssignSuccess = async () => {
               />
             </div>
 
-            <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('status', 'Status') }}
@@ -551,7 +532,6 @@ const handleAssignSuccess = async () => {
               </select>
             </div>
 
-            <!-- Reset Filters -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -566,11 +546,9 @@ const handleAssignSuccess = async () => {
         </div>
       </Transition>
 
-      <!-- Assignments Table Container -->
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
             <thead
@@ -595,7 +573,6 @@ const handleAssignSuccess = async () => {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <!-- Loading Spinner State -->
               <tr v-if="tableAssignmentStore.loading">
                 <td colspan="5" class="px-6 py-20 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
@@ -607,14 +584,12 @@ const handleAssignSuccess = async () => {
                 </td>
               </tr>
 
-              <!-- Data Rows -->
               <template v-else>
                 <tr
                   v-for="(assignment, index) in paginatedAssignments"
                   :key="assignment.id"
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
-                  <!-- Table -->
                   <td class="py-3 px-4 pl-5 whitespace-nowrap">
                     <div class="flex items-center gap-2">
                       <span
@@ -631,7 +606,6 @@ const handleAssignSuccess = async () => {
                     </div>
                   </td>
 
-                  <!-- Section / Location -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <span
                       class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
@@ -641,7 +615,6 @@ const handleAssignSuccess = async () => {
                     </span>
                   </td>
 
-                  <!-- Assigned Waiter -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <div class="flex items-center gap-2.5">
                       <div
@@ -655,7 +628,6 @@ const handleAssignSuccess = async () => {
                     </div>
                   </td>
 
-                  <!-- Status -->
                   <td class="py-3 px-4 text-center whitespace-nowrap">
                     <span
                       class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
@@ -678,7 +650,6 @@ const handleAssignSuccess = async () => {
                     </span>
                   </td>
 
-                  <!-- Actions -->
                   <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
                     <div class="relative inline-block text-left">
                       <button
@@ -694,7 +665,6 @@ const handleAssignSuccess = async () => {
                         <MoreVertical class="w-4 h-4 stroke-[2.2]" />
                       </button>
 
-                      <!-- Dropdown Menu -->
                       <Transition
                         enter-active-class="transition duration-100 ease-out"
                         enter-from-class="transform scale-95 opacity-0"
@@ -745,7 +715,6 @@ const handleAssignSuccess = async () => {
                   </td>
                 </tr>
 
-                <!-- Empty State -->
                 <tr v-if="paginatedAssignments.length === 0">
                   <td
                     colspan="6"
@@ -764,7 +733,6 @@ const handleAssignSuccess = async () => {
           </table>
         </div>
 
-        <!-- Mobile View -->
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
           <div
             v-if="tableAssignmentStore.loading"
@@ -854,7 +822,6 @@ const handleAssignSuccess = async () => {
           </template>
         </div>
 
-        <!-- Pagination Footer -->
         <div
           v-if="totalRecords > 0"
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
@@ -920,7 +887,6 @@ const handleAssignSuccess = async () => {
         </div>
       </div>
 
-      <!-- Modals -->
       <AssignWaiterToTableModal
         v-if="showAssignModal"
         @close="showAssignModal = false"
@@ -934,7 +900,6 @@ const handleAssignSuccess = async () => {
         @success="handleEditSuccess"
       />
 
-      <!-- Delete Confirmation Modal -->
       <Teleport to="body">
         <div
           v-if="showDeleteConfirm"

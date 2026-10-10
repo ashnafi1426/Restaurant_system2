@@ -1,6 +1,5 @@
 <template>
   <div class="w-full">
-    <!-- Loading State Spinner -->
     <div
       v-if="loading"
       class="py-20 px-4 text-center flex flex-col items-center justify-center space-y-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs"
@@ -16,9 +15,7 @@
       </div>
     </div>
 
-    <!-- Loaded Content -->
     <template v-else>
-      <!-- Desktop Table View (md and above) -->
       <div
         class="hidden md:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden"
       >
@@ -43,7 +40,6 @@
                 :key="item.id"
                 class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
               >
-                <!-- Item Name & Thumbnail -->
                 <td class="py-3 px-4 pl-5 flex items-center gap-3">
                   <div class="relative flex-shrink-0">
                     <img
@@ -66,7 +62,7 @@
                     </div>
                   </div>
                 </td>
-                <!-- Category Badge -->
+
                 <td class="py-3 px-4 align-middle whitespace-nowrap">
                   <span
                     :class="getCategoryBadgeClass(item.category)"
@@ -75,7 +71,7 @@
                     {{ getCategoryName(item.category) }}
                   </span>
                 </td>
-                <!-- Price with Tax -->
+
                 <td class="py-3 px-4 align-middle font-mono">
                   <div
                     class="font-black text-slate-900 dark:text-white text-xs sm:text-sm tracking-wide"
@@ -103,7 +99,7 @@
                   </div>
                   <div v-else class="text-[10px] font-sans text-slate-400">No Tax</div>
                 </td>
-                <!-- Status -->
+
                 <td class="py-3 px-4 align-middle text-center whitespace-nowrap">
                   <span
                     @click="$emit('toggle', item)"
@@ -126,7 +122,7 @@
                     </span>
                   </span>
                 </td>
-                <!-- Actions Menu -->
+
                 <td
                   class="py-3 px-4 text-right pr-5 align-middle relative whitespace-nowrap"
                   data-menu-container
@@ -143,7 +139,7 @@
                       </svg>
                     </button>
                   </div>
-                  <!-- Desktop Dropdown Menu -->
+
                   <div
                     v-if="activeMenuId === item.id"
                     class="absolute right-8 top-14 bg-white shadow-xl border border-slate-200/80 rounded-xl py-1 z-40 w-44 text-left animate-in fade-in zoom-in-95 duration-100"
@@ -234,7 +230,6 @@
         </div>
       </div>
 
-      <!-- Tablet View (sm to md) -->
       <div
         class="hidden sm:block md:hidden bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden"
       >
@@ -256,7 +251,6 @@
                 :key="item.id"
                 class="hover:bg-slate-50/50 transition-colors duration-150 group"
               >
-                <!-- Item Name & Thumbnail -->
                 <td class="py-4 px-4 flex items-center gap-3">
                   <div class="relative flex-shrink-0">
                     <img
@@ -295,7 +289,7 @@
                     </div>
                   </div>
                 </td>
-                <!-- Category Badge -->
+
                 <td class="py-4 px-3 align-middle whitespace-nowrap">
                   <span
                     :class="getCategoryBadgeClass(item.category)"
@@ -304,7 +298,7 @@
                     {{ getCategoryName(item.category) }}
                   </span>
                 </td>
-                <!-- Status -->
+
                 <td class="py-4 px-3 align-middle whitespace-nowrap">
                   <span
                     @click="$emit('toggle', item)"
@@ -327,7 +321,7 @@
                     </span>
                   </span>
                 </td>
-                <!-- Actions Menu -->
+
                 <td
                   class="py-4 px-4 text-right align-middle relative whitespace-nowrap"
                   data-menu-container
@@ -344,7 +338,7 @@
                       </svg>
                     </button>
                   </div>
-                  <!-- Tablet Dropdown Menu -->
+
                   <div
                     v-if="activeMenuId === item.id"
                     class="absolute right-4 top-10 bg-white shadow-xl border border-slate-200/80 rounded-lg py-1 z-40 w-40 text-left animate-in fade-in zoom-in-95 duration-100"
@@ -435,17 +429,14 @@
         </div>
       </div>
 
-      <!-- Mobile View (below sm) -->
       <div class="sm:hidden space-y-3">
         <div
           v-for="item in items"
           :key="item.id"
           class="bg-white rounded-lg border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-150"
         >
-          <!-- Card Header with Image and Basic Info -->
           <div class="p-4 border-b border-slate-100" data-menu-container>
             <div class="flex items-start gap-3 mb-3">
-              <!-- Image -->
               <div class="relative flex-shrink-0">
                 <img
                   :src="item.image_url || '/images/placeholder.png'"
@@ -454,7 +445,7 @@
                   onerror="this.src = '/images/placeholder.png'"
                 />
               </div>
-              <!-- Title, Price, Category -->
+
               <div class="min-w-0 flex-1">
                 <h3 class="font-bold text-slate-900 text-sm leading-tight mb-1 truncate">
                   {{ item.name }}
@@ -491,7 +482,7 @@
                   </div>
                 </div>
               </div>
-              <!-- Three-Dot Menu Button -->
+
               <div class="flex-shrink-0">
                 <button
                   @click.stop="toggleRowMenu(item.id)"
@@ -506,7 +497,6 @@
               </div>
             </div>
 
-            <!-- Status Badge -->
             <div class="flex items-center gap-2">
               <span
                 @click="$emit('toggle', item)"
@@ -531,7 +521,6 @@
             </div>
           </div>
 
-          <!-- Mobile Dropdown Menu -->
           <div
             v-if="activeMenuId === item.id"
             class="bg-slate-50/50 border-t border-slate-100"
@@ -673,10 +662,8 @@ const globalClickOverlayDismiss = (e: MouseEvent) => {
   const target = e.target as HTMLElement
   const isMenuOpen = activeMenuId.value !== null
 
-  // Check if click is inside any menu button or dropdown
   const isInsideMenu = target.closest('[data-menu-container]')
 
-  // Close menu only if click is outside of it
   if (isMenuOpen && !isInsideMenu) {
     activeMenuId.value = null
   }

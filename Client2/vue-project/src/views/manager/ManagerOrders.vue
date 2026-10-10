@@ -24,7 +24,6 @@ onMounted(async () => {
     <div
       class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 py-4 md:py-6 transition-colors duration-300"
     >
-      <!-- PAGE HEADER -->
       <div
         class="mb-6 md:mb-8 border-b border-slate-200/60 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-lg p-4 md:p-6 transition-colors duration-300"
       >
@@ -50,7 +49,6 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Loading State -->
       <div
         v-if="operationsStore.loading || manager.loading"
         class="flex justify-center items-center py-32"
@@ -89,7 +87,6 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Error State -->
       <div
         v-if="
           (operationsStore.error || manager.error) && !operationsStore.loading && !manager.loading
@@ -99,12 +96,9 @@ onMounted(async () => {
         {{ operationsStore.error || manager.error }}
       </div>
 
-      <!-- Content -->
       <div v-if="!operationsStore.loading && !manager.loading" class="space-y-6">
-        <!-- Restaurant Monitor Component -->
         <RestaurantMonitor />
 
-        <!-- Order Statistics -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div
             class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-shadow"
@@ -169,7 +163,6 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- Orders List -->
         <div
           class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700 shadow-sm p-6"
         >

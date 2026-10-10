@@ -105,7 +105,6 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
       isLoading.value = true
       error.value = null
 
-      // First, check if we have pending order data from just placing an order
       const pendingOrderData = localStorage.getItem('pending_order_data')
       console.log('[useOrderStatus] Checking for pending order data, orderId:', orderId)
       console.log('[useOrderStatus] Pending data from localStorage:', pendingOrderData)
@@ -123,13 +122,11 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
           )
 
           if (parsedData.id === orderId || parsedData.order_id === orderId) {
-            // Use the stored order data
             orderData.value = parsedData
             status.value = parsedData.status || 'pending'
             paymentStatus.value = parsedData.payment_status || 'pending'
             lastUpdate.value = parsedData.updated_at || parsedData.created_at
 
-            // Clear the pending data after using it
             localStorage.removeItem('pending_order_data')
 
             console.log('[useOrderStatus]  Using stored order data from order creation')
@@ -146,8 +143,6 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
         console.log('[useOrderStatus] No pending order data found in localStorage')
       }
 
-      // Get qr_token for guest authentication
-      // Priority: initialQrToken / currentQrToken -> localStorage -> walk_in_payment_data -> order_payment_data
       if (!qrToken) {
         qrToken = currentQrToken.value || localStorage.getItem('guest_qr_token') || ''
       }
@@ -181,8 +176,6 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
         localStorage.setItem('guest_qr_token', qrToken)
       }
 
-      // Use the realtime-status endpoint which returns complete order data with items
-      // This endpoint is in the guest routes section and does not require authentication
       const url = `${apiBaseUrl}/api/guest/orders/${orderId}/realtime-status?qr_token=${qrToken}`
 
       console.log('[useOrderStatus] Fetching from realtime-status endpoint:', url)

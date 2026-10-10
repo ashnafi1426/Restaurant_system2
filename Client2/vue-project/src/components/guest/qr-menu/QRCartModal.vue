@@ -7,7 +7,6 @@
         @click.self="$emit('close')"
       >
         <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
-          <!-- Cart Header -->
           <div
             class="flex-shrink-0 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 py-4 flex items-center justify-between border-b border-amber-600 rounded-t-xl"
           >
@@ -37,9 +36,7 @@
             </button>
           </div>
 
-          <!-- Cart Items Container - Scrollable -->
           <div class="flex-1 overflow-y-auto bg-white">
-            <!-- Empty Cart -->
             <div v-if="cartItems.length === 0" class="px-6 py-12 text-center">
               <svg
                 class="w-16 h-16 text-gray-300 mx-auto mb-4"
@@ -70,7 +67,6 @@
               </button>
             </div>
 
-            <!-- Cart Items List -->
             <div v-if="cartItems.length > 0" class="divide-y divide-gray-200">
               <QRCartItem
                 v-for="(item, index) in cartItems"
@@ -84,7 +80,6 @@
             </div>
           </div>
 
-          <!-- Cart Summary/Totals Section -->
           <QRCartSummary
             :subtotal="subtotal"
             :tax="tax"

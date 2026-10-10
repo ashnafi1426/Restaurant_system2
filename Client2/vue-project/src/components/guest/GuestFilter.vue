@@ -58,7 +58,6 @@ const resetFilters = () => {
 
 <template>
   <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-    <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
         <h3 class="text-lg font-semibold text-slate-800">
@@ -71,9 +70,7 @@ const resetFilters = () => {
       <span class="material-symbols-rounded text-slate-400">filter_list</span>
     </div>
 
-    <!-- Filters -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-      <!-- Search -->
       <div class="lg:col-span-5">
         <label class="block text-sm font-medium text-slate-700 mb-2">
           <span class="flex items-center gap-1">
@@ -90,7 +87,6 @@ const resetFilters = () => {
         />
       </div>
 
-      <!-- Nationality -->
       <div class="lg:col-span-3">
         <label class="block text-sm font-medium text-slate-700 mb-2">
           <span class="flex items-center gap-1">
@@ -106,7 +102,6 @@ const resetFilters = () => {
         />
       </div>
 
-      <!-- Per Page -->
       <div class="lg:col-span-2">
         <label class="block text-sm font-medium text-slate-700 mb-2">
           <span class="flex items-center gap-1">
@@ -126,7 +121,6 @@ const resetFilters = () => {
         </select>
       </div>
 
-      <!-- Action Buttons -->
       <div class="lg:col-span-2 flex items-end gap-2">
         <button
           @click="emit('search')"
@@ -147,7 +141,6 @@ const resetFilters = () => {
       </div>
     </div>
 
-    <!-- Active Filters Info -->
     <div
       v-if="localFilters.search || localFilters.nationality"
       class="mt-4 pt-4 border-t border-slate-200"

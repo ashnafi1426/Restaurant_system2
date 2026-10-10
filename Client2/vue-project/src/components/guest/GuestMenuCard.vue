@@ -86,14 +86,8 @@ const onImageError = () => {
   <div
     class="group overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-sm hover:shadow-2xl transition-all duration-500"
   >
-    <!-- Image -->
-
     <div class="relative h-64 overflow-hidden">
-      <!-- Loading Skeleton -->
-
       <div v-if="!imageLoaded" class="absolute inset-0 bg-slate-200 animate-pulse" />
-
-      <!-- Image -->
 
       <img
         :src="displayImage"
@@ -107,11 +101,7 @@ const onImageError = () => {
         }"
       />
 
-      <!-- Gradient -->
-
       <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-
-      <!-- Badges -->
 
       <div class="absolute top-4 left-4 flex flex-col gap-2">
         <span
@@ -150,8 +140,6 @@ const onImageError = () => {
         </span>
       </div>
 
-      <!-- Favorite -->
-
       <button
         @click.stop="toggleFavorite"
         class="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/90 backdrop-blur flex items-center justify-center transition hover:bg-red-500"
@@ -174,8 +162,6 @@ const onImageError = () => {
         </svg>
       </button>
 
-      <!-- Bottom Overlay -->
-
       <div class="absolute bottom-0 left-0 right-0 p-5 text-white">
         <h3 class="text-2xl font-bold">
           {{ item.name }}
@@ -189,17 +175,10 @@ const onImageError = () => {
       </div>
     </div>
 
-    <!-- Continue in Part 7.2 -->
-    <!-- Card Body -->
-
     <div class="p-6">
-      <!-- Description -->
-
       <p class="text-slate-600 text-sm leading-6 line-clamp-2 min-h-[48px]">
         {{ item.description }}
       </p>
-
-      <!-- Information -->
 
       <div class="mt-5 flex flex-wrap items-center gap-3">
         <span
@@ -214,8 +193,6 @@ const onImageError = () => {
           Freshly Prepared
         </span>
       </div>
-
-      <!-- Price -->
 
       <div class="mt-6 flex items-end justify-between">
         <div>
@@ -251,8 +228,6 @@ const onImageError = () => {
         </div>
       </div>
 
-      <!-- Quantity -->
-
       <div class="mt-6 flex items-center justify-between">
         <span class="font-semibold text-slate-700 dark:text-slate-300"> Quantity </span>
 
@@ -279,11 +254,7 @@ const onImageError = () => {
         </div>
       </div>
 
-      <!-- Divider -->
-
       <div class="my-6 border-t border-slate-200 dark:border-slate-700" />
-
-      <!-- Footer -->
 
       <div class="flex items-center justify-between gap-4">
         <div>

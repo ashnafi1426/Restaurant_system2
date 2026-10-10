@@ -50,17 +50,14 @@ const isSaving = ref(false)
 const hasChanges = ref(false)
 const allFloors = ref<Floor[]>([])
 
-// View modes: 'grid' or 'table'
 const viewMode = ref<'grid' | 'table'>('grid')
 
-// Filter state
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
 const searchQuery = ref('')
 const selectedStatus = ref<'all' | 'active' | 'inactive'>('all')
 const selectedStaffing = ref<'all' | 'staffed' | 'unstaffed'>('all')
 
-// Modals State
 const showAddStaffModal = ref(false)
 const selectedFloorForModal = ref<{ id: string; name: string; hotel_id?: string } | null>(null)
 
@@ -70,7 +67,6 @@ const inspectingFloor = ref<Floor | null>(null)
 const showAddEditFloorModal = ref(false)
 const editingFloor = ref<Floor | null>(null)
 
-// Action feedback
 const actionMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null)
 
 const showFeedback = (text: string, type: 'success' | 'error' = 'success') => {
@@ -80,7 +76,6 @@ const showFeedback = (text: string, type: 'success' | 'error' = 'success') => {
   }, 4000)
 }
 
-// Pagination State
 const currentPage = ref(1)
 const perPage = ref(12)
 
@@ -186,7 +181,6 @@ const toggleFullscreen = () => {
   isFullscreen.value = !isFullscreen.value
 }
 
-// Summary statistics
 const overallStats = computed(() => {
   const total = allFloors.value.length
   const activeCount = allFloors.value.filter((f) => f.is_active).length
@@ -197,7 +191,6 @@ const overallStats = computed(() => {
     0,
   )
 
-  // Coverage percentage
   const staffedFloors = allFloors.value.filter((f) => getWaitersForFloor(f.id).length > 0).length
   const coverageRate = total > 0 ? Math.round((staffedFloors / total) * 100) : 0
 
@@ -212,14 +205,12 @@ const overallStats = computed(() => {
   }
 })
 
-// Next suggested floor number
 const nextFloorNumber = computed(() => {
   if (allFloors.value.length === 0) return 1
   const numbers = allFloors.value.map((f) => Number(f.floor_number) || 0)
   return Math.max(...numbers, 0) + 1
 })
 
-// Load Floors & Assignments
 const loadData = async () => {
   isLoading.value = true
   try {
@@ -239,13 +230,11 @@ const loadData = async () => {
   }
 }
 
-// Deep Inspection Modal handlers
 const openDeepInspection = (floor: Floor) => {
   inspectingFloor.value = floor
   showDeepDetailsModal.value = true
 }
 
-// Staff Modal handlers
 const openAddStaff = (floor: Floor) => {
   selectedFloorForModal.value = {
     id: floor.id,
@@ -361,7 +350,6 @@ watch(() => hotelStore.hotelId, loadData)
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
-      <!-- Feedback Notification Toast -->
       <Transition
         enter-active-class="transition duration-300 ease-out"
         enter-from-class="transform -translate-y-4 opacity-0"
@@ -385,7 +373,6 @@ watch(() => hotelStore.hotelId, loadData)
         </div>
       </Transition>
 
-      <!-- Header Banner -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
@@ -421,9 +408,7 @@ watch(() => hotelStore.hotelId, loadData)
           </div>
         </div>
 
-        <!-- Header Actions -->
         <div class="flex flex-wrap items-center gap-2.5">
-          <!-- + Add Floor Button -->
           <button
             @click="openCreateFloor"
             class="px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-black shadow-md shadow-blue-600/25 transition flex items-center gap-2 cursor-pointer hover:shadow-lg active:scale-98"
@@ -432,7 +417,6 @@ watch(() => hotelStore.hotelId, loadData)
             <span>{{ languageStore.t('add_floor', 'Add Floor') }}</span>
           </button>
 
-          <!-- Save Assignments (if dirty) -->
           <button
             v-if="hasChanges"
             @click="saveAssignments"
@@ -449,9 +433,7 @@ watch(() => hotelStore.hotelId, loadData)
         </div>
       </div>
 
-      <!-- Live Stats Counters -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Total Floors -->
         <div
           class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -475,7 +457,6 @@ watch(() => hotelStore.hotelId, loadData)
           </div>
         </div>
 
-        <!-- Rooms Managed -->
         <div
           class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -499,7 +480,6 @@ watch(() => hotelStore.hotelId, loadData)
           </div>
         </div>
 
-        <!-- Staff Assigned -->
         <div
           class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -524,7 +504,6 @@ watch(() => hotelStore.hotelId, loadData)
           </div>
         </div>
 
-        <!-- Coverage Health -->
         <div
           class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -549,11 +528,9 @@ watch(() => hotelStore.hotelId, loadData)
         </div>
       </div>
 
-      <!-- Toolbar: Search, Filters, View Modes -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 sm:p-4 shadow-xs"
       >
-        <!-- Search & Filter Trigger -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
           <div class="relative flex-1">
             <Search
@@ -591,9 +568,7 @@ watch(() => hotelStore.hotelId, loadData)
           </button>
         </div>
 
-        <!-- View Switcher & Controls -->
         <div class="flex items-center gap-2">
-          <!-- View Mode Toggle: Grid vs Table -->
           <div
             class="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
           >
@@ -623,7 +598,6 @@ watch(() => hotelStore.hotelId, loadData)
             </button>
           </div>
 
-          <!-- Refresh -->
           <button
             type="button"
             @click="refreshData"
@@ -634,7 +608,6 @@ watch(() => hotelStore.hotelId, loadData)
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
           </button>
 
-          <!-- Fullscreen -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -646,7 +619,6 @@ watch(() => hotelStore.hotelId, loadData)
         </div>
       </div>
 
-      <!-- Expandable Filters Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0"
@@ -660,7 +632,6 @@ watch(() => hotelStore.hotelId, loadData)
           class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <!-- Floor Status -->
             <div>
               <label class="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
                 {{ languageStore.t('floor_status', 'Floor Status') }}
@@ -679,7 +650,6 @@ watch(() => hotelStore.hotelId, loadData)
               </select>
             </div>
 
-            <!-- Staff Coverage -->
             <div>
               <label class="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
                 {{ languageStore.t('staff_coverage', 'Staff Coverage') }}
@@ -700,7 +670,6 @@ watch(() => hotelStore.hotelId, loadData)
               </select>
             </div>
 
-            <!-- Reset -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -715,7 +684,6 @@ watch(() => hotelStore.hotelId, loadData)
         </div>
       </Transition>
 
-      <!-- Loading State -->
       <div
         v-if="isLoading"
         class="p-16 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800"
@@ -726,7 +694,6 @@ watch(() => hotelStore.hotelId, loadData)
         </h4>
       </div>
 
-      <!-- Empty State -->
       <div
         v-else-if="paginatedFloors.length === 0"
         class="p-16 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800"
@@ -752,7 +719,6 @@ watch(() => hotelStore.hotelId, loadData)
         </button>
       </div>
 
-      <!-- VIEW 1: Grid Cards View -->
       <div
         v-else-if="viewMode === 'grid'"
         class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"
@@ -762,7 +728,6 @@ watch(() => hotelStore.hotelId, loadData)
           :key="floor.id"
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden"
         >
-          <!-- Top Floor Info -->
           <div>
             <div class="flex items-start justify-between gap-3 mb-3.5">
               <div class="flex items-center gap-3">
@@ -793,7 +758,6 @@ watch(() => hotelStore.hotelId, loadData)
                 </div>
               </div>
 
-              <!-- Status Pill -->
               <button
                 @click="toggleFloorActive(floor)"
                 :title="languageStore.t('toggle_status', 'Click to toggle active status')"
@@ -812,7 +776,6 @@ watch(() => hotelStore.hotelId, loadData)
               </button>
             </div>
 
-            <!-- Description -->
             <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 min-h-[32px] mb-4">
               {{
                 floor.description ||
@@ -823,7 +786,6 @@ watch(() => hotelStore.hotelId, loadData)
               }}
             </p>
 
-            <!-- Assigned Waiters Section (The User's Core Requirement) -->
             <div
               class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 mb-4"
             >
@@ -849,7 +811,6 @@ watch(() => hotelStore.hotelId, loadData)
                 </button>
               </div>
 
-              <!-- Waiter Avatars / Chips -->
               <div v-if="getWaitersForFloor(floor.id).length > 0" class="flex flex-wrap gap-1.5">
                 <div
                   v-for="(w, idx) in getWaitersForFloor(floor.id).slice(0, 4)"
@@ -884,7 +845,6 @@ watch(() => hotelStore.hotelId, loadData)
                 </span>
               </div>
 
-              <!-- No Waiters Assigned Notice -->
               <div
                 v-else
                 class="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5 font-medium py-0.5"
@@ -897,11 +857,9 @@ watch(() => hotelStore.hotelId, loadData)
             </div>
           </div>
 
-          <!-- Bottom Card Actions: Deep View, Edit, Delete -->
           <div
             class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2"
           >
-            <!-- Deep Details Inspection Button -->
             <button
               @click="openDeepInspection(floor)"
               class="flex-1 py-2 px-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer border border-blue-200 dark:border-blue-800/60"
@@ -910,7 +868,6 @@ watch(() => hotelStore.hotelId, loadData)
               <span>{{ languageStore.t('inspect_floor', 'Deep Inspection') }}</span>
             </button>
 
-            <!-- Edit Button -->
             <button
               @click="openEditFloor(floor)"
               class="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
@@ -919,7 +876,6 @@ watch(() => hotelStore.hotelId, loadData)
               <Edit2 class="w-4 h-4" />
             </button>
 
-            <!-- Delete Button -->
             <button
               @click="handleDeleteFloor(floor)"
               class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
@@ -931,7 +887,6 @@ watch(() => hotelStore.hotelId, loadData)
         </div>
       </div>
 
-      <!-- VIEW 2: Table List View -->
       <div
         v-else
         class="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden w-full"
@@ -966,7 +921,6 @@ watch(() => hotelStore.hotelId, loadData)
                 :key="floor.id"
                 class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group"
               >
-                <!-- Floor Level & Name -->
                 <td class="py-3.5 px-4 pl-6 whitespace-nowrap">
                   <div class="flex items-center gap-3">
                     <div
@@ -985,7 +939,6 @@ watch(() => hotelStore.hotelId, loadData)
                   </div>
                 </td>
 
-                <!-- Rooms Count -->
                 <td class="py-3.5 px-4 whitespace-nowrap">
                   <div
                     class="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300"
@@ -998,7 +951,6 @@ watch(() => hotelStore.hotelId, loadData)
                   </div>
                 </td>
 
-                <!-- Status -->
                 <td class="py-3.5 px-4 text-center whitespace-nowrap">
                   <button
                     @click="toggleFloorActive(floor)"
@@ -1017,7 +969,6 @@ watch(() => hotelStore.hotelId, loadData)
                   </button>
                 </td>
 
-                <!-- Assigned Waiters (The User's Requirement) -->
                 <td class="py-3.5 px-4">
                   <div
                     v-if="getWaitersForFloor(floor.id).length > 0"
@@ -1069,7 +1020,6 @@ watch(() => hotelStore.hotelId, loadData)
                   </button>
                 </td>
 
-                <!-- Actions -->
                 <td class="py-3.5 px-4 text-right pr-6 whitespace-nowrap">
                   <div class="flex items-center justify-end gap-1.5">
                     <button
@@ -1104,7 +1054,6 @@ watch(() => hotelStore.hotelId, loadData)
         </div>
       </div>
 
-      <!-- Pagination Footer -->
       <div
         v-if="totalFloorsCount > 0"
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400"
@@ -1152,7 +1101,6 @@ watch(() => hotelStore.hotelId, loadData)
       </div>
     </div>
 
-    <!-- 1. Deep Floor Inspection Modal ("see deeplly each parts possible to see one by one") -->
     <FloorDeepDetailsModal
       :is-open="showDeepDetailsModal"
       :floor="inspectingFloor"
@@ -1163,7 +1111,6 @@ watch(() => hotelStore.hotelId, loadData)
       @refresh="loadData"
     />
 
-    <!-- 2. Add / Edit Floor Modal ("possible to add floor") -->
     <AddEditFloorModal
       :is-open="showAddEditFloorModal"
       :floor="editingFloor"
@@ -1172,7 +1119,6 @@ watch(() => hotelStore.hotelId, loadData)
       @saved="handleFloorSaved"
     />
 
-    <!-- 3. Assign Staff Modal ("to the assigned waiter occured in that floor") -->
     <AddStaffToFloorModal
       v-if="showAddStaffModal && selectedFloorForModal"
       :is-open="showAddStaffModal"

@@ -10,12 +10,10 @@
       <span class="text-xs font-bold text-slate-400 hidden sm:inline">Last 30 Days</span>
     </div>
 
-    <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center py-8 sm:py-12">
       <v-progress-circular indeterminate color="slate-400" size="28" sm:size="32" width="3" />
     </div>
 
-    <!-- Empty State -->
     <div
       v-else-if="topSellers.length === 0"
       class="flex flex-col items-center justify-center py-8 sm:py-12 text-center"
@@ -24,14 +22,12 @@
       <p class="text-xs text-slate-500 mt-2">No sales data yet</p>
     </div>
 
-    <!-- Top Sellers List -->
     <div v-else class="space-y-2 sm:space-y-4">
       <div
         v-for="(dish, index) in topSellers"
         :key="dish.id"
         class="flex items-center gap-2 sm:gap-3"
       >
-        <!-- Rank Badge -->
         <div class="relative flex-shrink-0">
           <img
             :src="dish.image || 'https://via.placeholder.com/44'"
@@ -46,7 +42,6 @@
           </div>
         </div>
 
-        <!-- Dish Info -->
         <div class="flex-1 min-w-0">
           <div class="text-xs sm:text-sm font-bold text-slate-800 truncate">{{ dish.name }}</div>
           <div class="text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-1">
@@ -54,7 +49,7 @@
             <span class="hidden sm:inline">{{ dish.total_orders }} Orders</span
             ><span class="sm:hidden">{{ dish.total_orders }}</span>
           </div>
-          <!-- Progress Bar -->
+
           <div class="w-full bg-slate-100 h-1 sm:h-1.5 rounded-full mt-1 overflow-hidden">
             <div
               class="h-full rounded-full transition-all duration-500"
@@ -64,7 +59,6 @@
           </div>
         </div>
 
-        <!-- Order Count Badge -->
         <div class="text-right flex-shrink-0">
           <div class="text-xs sm:text-sm font-bold text-slate-900">{{ dish.total_orders }}</div>
           <div class="text-xs text-slate-500 hidden sm:block">orders</div>
@@ -103,11 +97,11 @@ const maxOrders = computed(() => {
 function getRankClass(index: number): string {
   switch (index) {
     case 0:
-      return 'bg-amber-500 text-white' // Gold
+      return 'bg-amber-500 text-white'
     case 1:
-      return 'bg-slate-400 text-white' // Silver
+      return 'bg-slate-400 text-white'
     case 2:
-      return 'bg-orange-600 text-white' // Bronze
+      return 'bg-orange-600 text-white'
     default:
       return 'bg-slate-600 text-white'
   }

@@ -60,8 +60,6 @@ const updatePreferences = (value: string) => {
 
 <template>
   <form class="space-y-8" @submit.prevent="emit('submit')">
-    <!-- Personal Information -->
-
     <div
       class="bg-white dark:bg-slate-800 rounded-xl shadow p-6 border border-slate-200 dark:border-slate-700"
     >
@@ -123,7 +121,6 @@ const updatePreferences = (value: string) => {
         </div>
       </div>
     </div>
-    <!-- Address -->
 
     <div
       class="bg-white dark:bg-slate-800 rounded-xl shadow p-6 border border-slate-200 dark:border-slate-700"
@@ -139,8 +136,6 @@ const updatePreferences = (value: string) => {
         :placeholder="languageStore.t('enter_guest_address', 'Enter guest address')"
       ></textarea>
     </div>
-
-    <!-- Preferences -->
 
     <div
       class="bg-white dark:bg-slate-800 rounded-xl shadow p-6 border border-slate-200 dark:border-slate-700"
@@ -160,8 +155,6 @@ const updatePreferences = (value: string) => {
         {{ languageStore.t('separate_preferences', 'Separate preferences using commas.') }}
       </p>
     </div>
-
-    <!-- Buttons -->
 
     <div class="flex justify-end gap-4">
       <button

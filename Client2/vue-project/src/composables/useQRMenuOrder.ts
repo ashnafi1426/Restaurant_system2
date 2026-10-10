@@ -50,7 +50,6 @@ export function useQRMenuOrder() {
         orderNumber.value = orderResponse.data.order_number
         estimatedTime.value = 30
 
-        // Build complete order data object with items for OrderStatusPage
         const completeOrderData = {
           ...orderResponse.data,
           id: createdOrderId,
@@ -75,7 +74,6 @@ export function useQRMenuOrder() {
           updated_at: new Date().toISOString(),
         }
 
-        // Store order data for OrderStatusPage
         if (orderResponse.data.hotel_id) {
           localStorage.setItem('hotel_id', orderResponse.data.hotel_id)
         }
@@ -83,19 +81,16 @@ export function useQRMenuOrder() {
           localStorage.setItem('guest_qr_token', qrToken)
         }
 
-        // Store the complete order data for immediate display
         console.log('[useQRMenuOrder] Storing complete order data:', completeOrderData)
         console.log('[useQRMenuOrder] Created order ID:', createdOrderId)
         localStorage.setItem('pending_order_data', JSON.stringify(completeOrderData))
 
-        // Verify it was stored
         const verifyStored = localStorage.getItem('pending_order_data')
         console.log(
           '[useQRMenuOrder] Verified stored data:',
           verifyStored ? 'Success ' : 'Failed ❌',
         )
 
-        // Redirect to real-time Order Status page with all necessary params
         console.log('[useQRMenuOrder] Redirecting to order status with ID:', createdOrderId)
         router.push({
           name: 'order-status',
@@ -150,7 +145,6 @@ export function useQRMenuOrder() {
       })
 
       if (paymentResponse.success && paymentResponse.checkout_url) {
-        // Build payment data object with all necessary fields
         const paymentData = {
           payment_id: paymentResponse.payment_id,
           tx_ref: paymentResponse.tx_ref,
@@ -166,7 +160,6 @@ export function useQRMenuOrder() {
           calculation: paymentResponse.calculation,
         }
 
-        // Store to BOTH localStorage AND sessionStorage for persistence through Chapa redirect
         localStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
         sessionStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
         if (qrToken) {

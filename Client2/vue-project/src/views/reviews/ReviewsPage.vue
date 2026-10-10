@@ -54,7 +54,6 @@
         </div>
       </div>
 
-      <!-- Additional Info Section -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
         <div
           class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-6"

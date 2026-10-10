@@ -30,22 +30,18 @@ function getPageNumbers() {
   const pages: (number | string)[] = []
   const { current_page, last_page } = props.meta
 
-  // First page
   pages.push(1)
 
-  // Previous pages
   if (current_page > 3) {
     pages.push('...')
   }
 
-  // Current and adjacent pages
   for (let i = Math.max(2, current_page - 1); i <= Math.min(last_page - 1, current_page + 1); i++) {
     if (!pages.includes(i)) {
       pages.push(i)
     }
   }
 
-  // Last page
   if (last_page > 1) {
     pages.push(last_page)
   }
@@ -59,7 +55,6 @@ function getPageNumbers() {
     v-if="props.meta.last_page > 1"
     class="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6"
   >
-    <!-- Info Text -->
     <div class="text-sm text-slate-600 order-2 sm:order-1">
       {{ languageStore.t('showing', 'Showing') }}
       <span class="font-semibold">{{ props.meta.from }}</span> {{ languageStore.t('to', 'to') }}
@@ -68,9 +63,7 @@ function getPageNumbers() {
       {{ languageStore.t('rooms', 'rooms') }}
     </div>
 
-    <!-- Pagination Controls -->
     <div class="flex items-center gap-2 order-1 sm:order-2 flex-wrap justify-center sm:justify-end">
-      <!-- Previous Button -->
       <button
         @click="goToPage(props.meta.current_page - 1)"
         :disabled="props.meta.current_page === 1"
@@ -79,7 +72,6 @@ function getPageNumbers() {
         ← {{ languageStore.t('previous', 'Prev') }}
       </button>
 
-      <!-- Page Numbers -->
       <div class="flex items-center gap-1 sm:gap-2">
         <button
           v-for="(page, idx) in getPageNumbers()"
@@ -99,7 +91,6 @@ function getPageNumbers() {
         </button>
       </div>
 
-      <!-- Next Button -->
       <button
         @click="goToPage(props.meta.current_page + 1)"
         :disabled="props.meta.current_page === props.meta.last_page"
@@ -111,6 +102,4 @@ function getPageNumbers() {
   </div>
 </template>
 
-<style scoped>
-/* Responsive pagination */
-</style>
+<style scoped></style>

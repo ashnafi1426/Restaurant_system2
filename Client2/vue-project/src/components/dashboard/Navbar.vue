@@ -7,7 +7,7 @@ import { useThemeStore } from '../../stores/theme'
 import { useSidebarStore } from '../../stores/sidebarStore'
 import { useLanguageStore } from '@/stores/language'
 import LanguageSelector from '@/components/common/LanguageSelector.vue'
-// import NotificationCenter from '@/components/reception/NotificationCenter.vue'
+
 import {
   Sun,
   Moon,
@@ -144,7 +144,6 @@ const toggleSidebar = () => {
   <header
     class="sticky top-0 z-40 h-16 w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-3 transition-colors"
   >
-    <!-- Left Section: Toggle, Title, Hotel Switcher -->
     <div class="flex items-center gap-2 sm:gap-3.5 min-w-0 shrink">
       <button
         @click="toggleSidebar"
@@ -216,9 +215,7 @@ const toggleSidebar = () => {
       </div>
     </div>
 
-    <!-- Right Section: Search, Notifications, Language, Controls, Profile -->
     <div class="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto">
-      <!-- Responsive Search Input -->
       <div class="relative hidden md:block">
         <Search
           class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 dark:text-slate-500 pointer-events-none"
@@ -231,12 +228,8 @@ const toggleSidebar = () => {
         />
       </div>
 
-      <!-- <NotificationCenter /> -->
-
-      <!-- Language Selector -->
       <LanguageSelector variant="compact" />
 
-      <!-- Fullscreen Button -->
       <button
         @click="toggleFullscreen"
         class="hidden sm:flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer shadow-xs bg-white dark:bg-slate-900"
@@ -249,7 +242,6 @@ const toggleSidebar = () => {
         <Minimize v-else class="w-4.5 h-4.5 text-amber-500 transition-transform duration-300" />
       </button>
 
-      <!-- Theme Toggle Button -->
       <button
         @click="handleThemeToggle"
         class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer shadow-xs bg-white dark:bg-slate-900"
@@ -262,7 +254,6 @@ const toggleSidebar = () => {
         <Moon v-else class="w-4.5 h-4.5 text-yellow-400 transition-transform duration-300" />
       </button>
 
-      <!-- User Profile Button (Guaranteed Visible with shrink-0) -->
       <div class="relative shrink-0">
         <button
           @click="toggleProfile"

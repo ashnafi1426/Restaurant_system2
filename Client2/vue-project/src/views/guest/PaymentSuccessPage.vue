@@ -1,7 +1,6 @@
 <template>
   <div class="min-h-screen bg-[#f5f0e8] p-4">
     <div class="max-w-md mx-auto py-6">
-      <!-- Success Notification Toast -->
       <div class="bg-[#3d4f3d] rounded-2xl p-4 mb-6 shadow-lg flex items-center gap-3">
         <div
           class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0"
@@ -18,9 +17,7 @@
         <span class="text-white font-semibold text-lg">Payment successful!</span>
       </div>
 
-      <!-- Main Success Card -->
       <div class="bg-white rounded-3xl shadow-lg overflow-hidden">
-        <!-- Header -->
         <div class="p-6 text-center border-b border-gray-200">
           <h1 class="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
           <p class="text-sm text-gray-600">
@@ -28,9 +25,7 @@
           </p>
         </div>
 
-        <!-- Payment Receipt Section -->
         <div class="p-6 space-y-6">
-          <!-- Receipt Header -->
           <div class="flex items-center gap-2 text-gray-700 mb-4">
             <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
@@ -43,7 +38,6 @@
             <h2 class="text-lg font-bold">Payment Receipt</h2>
           </div>
 
-          <!-- Receipt Details -->
           <div class="space-y-3 text-sm">
             <div class="flex justify-between items-center py-2 border-b border-gray-100">
               <span class="text-gray-500">Transaction ID</span>
@@ -77,7 +71,6 @@
             </div>
           </div>
 
-          <!-- Track My Order Button - PRIMARY CTA -->
           <button
             @click="trackOrder"
             class="w-full py-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-2xl font-bold text-lg shadow-lg transition-all flex items-center justify-center gap-2"
@@ -93,7 +86,6 @@
             </svg>
           </button>
 
-          <!-- Back to Menu Button -->
           <button
             @click="backToMenu"
             class="w-full py-3.5 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-300 rounded-2xl font-semibold text-base shadow-sm transition-all"
@@ -103,7 +95,6 @@
         </div>
       </div>
 
-      <!-- Footer Message -->
       <div class="text-center mt-6 px-4">
         <p class="text-sm text-gray-600">
           Thank you for ordering with us! Need assistance? Our team is always ready to serve you.
@@ -127,11 +118,9 @@ const tableNumber = ref('')
 const roomNumber = ref('')
 
 const trackOrder = () => {
-  // Get order ID from multiple sources
   const storedOrder = localStorage.getItem('pending_order_data')
   let orderId = (route.query.order_id as string) || localStorage.getItem('last_order_id')
 
-  // Try to get from stored order data
   if (storedOrder && !orderId) {
     try {
       const orderData = JSON.parse(storedOrder)
@@ -188,19 +177,16 @@ const backToMenu = () => {
 onMounted(() => {
   console.log('[PaymentSuccess] Page mounted')
 
-  // Get data from route query parameters (from Chapa redirect)
   transactionId.value = (route.query.tx_ref as string) || ''
   orderNumber.value = (route.query.order_number as string) || ''
   amount.value = parseFloat((route.query.amount as string) || '0')
 
-  // Get order ID from query
   const queryOrderId = route.query.order_id as string
   if (queryOrderId) {
     localStorage.setItem('last_order_id', queryOrderId)
     console.log('[PaymentSuccess] Stored order ID from query:', queryOrderId)
   }
 
-  // Get data from localStorage (from order creation)
   const storedOrder = localStorage.getItem('pending_order_data')
   if (storedOrder) {
     try {
@@ -210,7 +196,6 @@ onMounted(() => {
       roomNumber.value = orderData.room_number || ''
       tableNumber.value = orderData.table_number || ''
 
-      // Store order ID for tracking
       if (orderData.id || orderData.order_id) {
         const orderId = orderData.id || orderData.order_id
         localStorage.setItem('last_order_id', orderId)

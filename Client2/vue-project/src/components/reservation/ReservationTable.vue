@@ -262,9 +262,7 @@ onBeforeUnmount(() => {
                   {{ formatDate(reservation.check_out_date) }}
                 </div>
                 <div class="text-[10px] font-bold text-slate-400 dark:text-slate-500">
-                  {{
-                    calculateNights(reservation.check_in_date, reservation.check_out_date)
-                  }}
+                  {{ calculateNights(reservation.check_in_date, reservation.check_out_date) }}
                   night(s)
                 </div>
               </div>

@@ -27,7 +27,6 @@ watch(() => hotelStore.hotelId, loadData)
     <div
       class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 py-4 md:py-6 transition-colors duration-300"
     >
-      <!-- PAGE HEADER -->
       <div
         class="mb-6 md:mb-8 border-b border-slate-200/60 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-lg p-4 md:p-6 transition-colors duration-300"
       >
@@ -62,7 +61,6 @@ watch(() => hotelStore.hotelId, loadData)
         </div>
       </div>
 
-      <!-- Loading State -->
       <div
         v-if="manager.loading || menuStore.loading"
         class="flex justify-center items-center py-32"
@@ -101,7 +99,6 @@ watch(() => hotelStore.hotelId, loadData)
         </div>
       </div>
 
-      <!-- Error State -->
       <div
         v-if="manager.error && !manager.loading"
         class="bg-red-50/80 dark:bg-red-900/20 backdrop-blur-sm border border-red-200/60 dark:border-red-800 text-red-700 dark:text-red-400 p-6 rounded-xl mb-6"
@@ -109,9 +106,7 @@ watch(() => hotelStore.hotelId, loadData)
         {{ manager.error }}
       </div>
 
-      <!-- Content -->
       <div v-if="!manager.loading && !menuStore.loading" class="space-y-6">
-        <!-- Top Overview Cards (Real data from database) -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div
             class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6"
@@ -161,7 +156,6 @@ watch(() => hotelStore.hotelId, loadData)
           </div>
         </div>
 
-        <!-- Inventory by Category (Real Database Categories) -->
         <div
           class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6"
         >
@@ -169,7 +163,6 @@ watch(() => hotelStore.hotelId, loadData)
             {{ languageStore.t('inventory_by_category', 'Inventory by Department') }}
           </h2>
           <div class="space-y-4">
-            <!-- Room Inventory -->
             <div
               class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl"
             >
@@ -190,7 +183,6 @@ watch(() => hotelStore.hotelId, loadData)
               >
             </div>
 
-            <!-- Restaurant Menu Items -->
             <div
               class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl"
             >
@@ -212,7 +204,6 @@ watch(() => hotelStore.hotelId, loadData)
               >
             </div>
 
-            <!-- Maintenance Status -->
             <div
               class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl"
             >
@@ -232,7 +223,6 @@ watch(() => hotelStore.hotelId, loadData)
               >
             </div>
 
-            <!-- Housekeeping Queue -->
             <div
               class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl"
             >
@@ -252,7 +242,6 @@ watch(() => hotelStore.hotelId, loadData)
               >
             </div>
 
-            <!-- Laundry in Processing -->
             <div
               class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl"
             >

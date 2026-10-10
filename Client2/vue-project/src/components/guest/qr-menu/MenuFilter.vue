@@ -1,12 +1,9 @@
 <template>
   <div class="luxury-filter-container">
-    <!-- Main Toolbar -->
     <div
       class="luxury-filter-toolbar bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 px-6 md:px-8 py-5 md:py-6 sticky top-32 z-40"
     >
-      <!-- Content Container - Horizontal Layout -->
       <div class="flex items-center gap-4 md:gap-6">
-        <!-- Sort Dropdown -->
         <div class="relative group">
           <button
             @click="showSortDropdown = !showSortDropdown"
@@ -43,7 +40,6 @@
             </svg>
           </button>
 
-          <!-- Sort Dropdown Menu -->
           <Transition name="dropdown">
             <div
               v-if="showSortDropdown"
@@ -66,12 +62,10 @@
           </Transition>
         </div>
 
-        <!-- Divider -->
         <div
           class="hidden sm:block w-px h-8 bg-gradient-to-b from-transparent via-gray-300 to-transparent"
         ></div>
 
-        <!-- View Mode Toggle - Grid/List -->
         <div class="flex items-center gap-2 bg-gray-100/50 rounded-2xl p-1.5 backdrop-blur-sm">
           <button
             @click="viewMode = 'grid'"
@@ -105,12 +99,10 @@
           </button>
         </div>
 
-        <!-- Divider -->
         <div
           class="hidden sm:block w-px h-8 bg-gradient-to-b from-transparent via-gray-300 to-transparent"
         ></div>
 
-        <!-- Active Filter Chips -->
         <div v-if="activeFilters.length > 0" class="flex items-center gap-2 overflow-x-auto pb-1">
           <div
             v-for="filter in activeFilters"
@@ -130,10 +122,8 @@
           </div>
         </div>
 
-        <!-- Flex Spacer -->
         <div class="flex-1"></div>
 
-        <!-- Advanced Filters Button -->
         <button
           @click="showAdvancedFilters = !showAdvancedFilters"
           :class="[
@@ -175,14 +165,12 @@
       </div>
     </div>
 
-    <!-- Advanced Filters Panel - Smooth Slide Down -->
     <Transition name="slide-down">
       <div
         v-if="showAdvancedFilters"
         class="mt-4 bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 md:p-8 sticky top-48 z-39"
       >
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <!-- Rating Filter -->
           <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-5 border border-white/30">
             <label class="text-sm font-bold text-gray-900 block mb-4 flex items-center gap-2">
               <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
@@ -209,7 +197,6 @@
             </div>
           </div>
 
-          <!-- Calories Filter -->
           <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-5 border border-white/30">
             <label class="text-sm font-bold text-gray-900 block mb-4 flex items-center gap-2">
               <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
@@ -230,7 +217,6 @@
             </p>
           </div>
 
-          <!-- Prep Time Filter -->
           <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-5 border border-white/30">
             <label class="text-sm font-bold text-gray-900 block mb-4 flex items-center gap-2">
               <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
@@ -252,7 +238,6 @@
             </select>
           </div>
 
-          <!-- Price Range Filter -->
           <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-5 border border-white/30">
             <label class="text-sm font-bold text-gray-900 block mb-4 flex items-center gap-2">
               <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
@@ -281,7 +266,6 @@
           </div>
         </div>
 
-        <!-- Apply Button -->
         <button
           @click="applyAdvancedFilters"
           class="w-full mt-6 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white py-4 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 group"
@@ -336,7 +320,6 @@ const emit = defineEmits<{
   'filters-applied': [filters: any]
 }>()
 
-// State
 const showSortDropdown = ref(false)
 const showAdvancedFilters = ref(false)
 const viewMode = ref(props.initialViewMode)
@@ -347,7 +330,6 @@ const maxCalories = ref(500)
 const maxPrepTime = ref('')
 const priceRange = ref({ min: 0, max: 1000 })
 
-// Methods
 const selectSort = (option: SortOption) => {
   currentSort.value = option
   showSortDropdown.value = false
@@ -400,14 +382,12 @@ const applyAdvancedFilters = () => {
   z-index: 40;
 }
 
-/* Glass Morphism Effect */
 .luxury-filter-toolbar {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(250, 250, 249, 0.8) 100%);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
 }
 
-/* Dropdown Animation */
 .dropdown-enter-active,
 .dropdown-leave-active {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -423,7 +403,6 @@ const applyAdvancedFilters = () => {
   transform: translateY(-12px);
 }
 
-/* Slide Down Animation for Advanced Filters */
 .slide-down-enter-active,
 .slide-down-leave-active {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -443,7 +422,6 @@ const applyAdvancedFilters = () => {
   max-height: 0;
 }
 
-/* Scrollbar styling for filter chips */
 div::-webkit-scrollbar {
   height: 4px;
 }
@@ -461,7 +439,6 @@ div::-webkit-scrollbar-thumb:hover {
   background: #f59e0b;
 }
 
-/* Range input styling */
 input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
@@ -501,7 +478,6 @@ input[type='range']::-moz-range-thumb:hover {
   transform: scale(1.2);
 }
 
-/* Focus visible states */
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
@@ -509,18 +485,15 @@ select:focus-visible {
   outline-offset: 2px;
 }
 
-/* Smooth button transitions */
 button {
   position: relative;
   overflow: hidden;
 }
 
-/* Advanced filters panel glass effect */
 .bg-white\/80 {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(250, 250, 249, 0.8) 100%);
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .luxury-filter-toolbar {
     overflow-x: auto;

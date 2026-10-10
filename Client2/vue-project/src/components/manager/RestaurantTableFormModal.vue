@@ -8,7 +8,6 @@
         <div
           class="bg-white dark:bg-[#0b1527] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto text-slate-900 dark:text-white"
         >
-          <!-- Header -->
           <div
             class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between"
           >
@@ -34,7 +33,6 @@
           </div>
 
           <form @submit.prevent="handleSubmit" class="p-6 space-y-4">
-            <!-- Table Number -->
             <div>
               <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Table Number <span class="text-rose-500">*</span>
@@ -52,7 +50,6 @@
               </p>
             </div>
 
-            <!-- Table Display Name -->
             <div>
               <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Display Name (Optional)
@@ -65,7 +62,6 @@
               />
             </div>
 
-            <!-- Section (Requirement 1, 3, 11, 12) -->
             <div>
               <div class="flex items-center justify-between mb-1">
                 <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -96,7 +92,6 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Capacity -->
               <div>
                 <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Seating Capacity <span class="text-rose-500">*</span>
@@ -116,7 +111,6 @@
                 </p>
               </div>
 
-              <!-- Status -->
               <div>
                 <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Initial Status
@@ -134,7 +128,6 @@
               </div>
             </div>
 
-            <!-- Active Checkbox -->
             <div class="flex items-center pt-1">
               <label
                 class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300"
@@ -149,7 +142,6 @@
               </label>
             </div>
 
-            <!-- Error Banner -->
             <div
               v-if="submitError"
               class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs"
@@ -157,7 +149,6 @@
               {{ submitError }}
             </div>
 
-            <!-- Success Banner -->
             <div
               v-if="submitSuccess"
               class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs"
@@ -165,7 +156,6 @@
               {{ submitSuccess }}
             </div>
 
-            <!-- Actions -->
             <div class="flex gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
               <button
                 type="button"
@@ -314,7 +304,6 @@ onMounted(async () => {
   await sectionStore.fetchSections()
 
   if (props.table) {
-    // Attempt matching section by section_id or name
     let secId = props.table.section_id || ''
     if (!secId && props.table.section) {
       const match = sectionStore.sections.find(
@@ -334,7 +323,6 @@ onMounted(async () => {
       is_active: props.table.is_active,
     }
   } else if (sectionStore.sections.length > 0) {
-    // Default to the first available section if creating new
     const firstSec = sectionStore.sections[0]
     formData.value.section_id = firstSec.id
     formData.value.section = firstSec.name

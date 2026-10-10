@@ -2,7 +2,6 @@
   <div
     class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4"
   >
-    <!-- Category Card -->
     <div
       v-for="cat in categories"
       :key="cat.id"
@@ -17,7 +16,6 @@
       role="button"
       tabindex="0"
     >
-      <!-- Header: Icon & Label -->
       <div class="flex items-center justify-between gap-2">
         <span
           class="text-xs font-bold text-slate-500 tracking-wider uppercase truncate flex-1 line-clamp-2"
@@ -34,14 +32,12 @@
         </div>
       </div>
 
-      <!-- Item Count -->
       <div class="mt-3 sm:mt-4">
         <span class="text-xl sm:text-2xl font-extrabold text-slate-800">{{ cat.count }}</span>
         <span class="text-xs text-slate-500 ml-1">Items</span>
       </div>
     </div>
 
-    <!-- Add New Category Card (Optional) -->
     <div
       class="bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border-2 border-dashed border-slate-300 hover:border-purple-300 transition cursor-pointer flex flex-col justify-between hover:bg-purple-50 group"
       role="button"

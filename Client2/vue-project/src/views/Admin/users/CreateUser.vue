@@ -29,7 +29,6 @@ const createUser = async (data: User) => {
 <template>
   <DashboardLayout>
     <div class="w-full px-4 sm:px-0">
-      <!-- Header -->
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-0"
       >
@@ -46,10 +45,8 @@ const createUser = async (data: User) => {
         </button>
       </div>
 
-      <!-- Card -->
       <div class="bg-white rounded-xl shadow overflow-hidden">
         <div class="p-4 sm:p-6 lg:p-8">
-          <!-- Success Message -->
           <div
             v-if="successMessage"
             class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg"
@@ -57,7 +54,6 @@ const createUser = async (data: User) => {
             <p class="text-green-800 font-semibold text-sm sm:text-base">✓ {{ successMessage }}</p>
           </div>
 
-          <!-- Error Summary -->
           <div v-if="hasErrors" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <h3 class="text-red-800 font-semibold mb-2 text-sm sm:text-base">
               Please fix the following errors:

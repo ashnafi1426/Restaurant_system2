@@ -226,7 +226,6 @@ watch(
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
-      <!-- Header -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
@@ -270,13 +269,10 @@ watch(
         </div>
       </div>
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -294,7 +290,6 @@ watch(
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -314,9 +309,7 @@ watch(
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="loadAssignments"
@@ -327,7 +320,6 @@ watch(
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
           </button>
 
-          <!-- Fullscreen Toggle -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -339,7 +331,6 @@ watch(
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -353,7 +344,6 @@ watch(
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
-            <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('order_status', 'Order Status') }}
@@ -372,7 +362,6 @@ watch(
               </select>
             </div>
 
-            <!-- Type Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('service_type', 'Service Type') }}
@@ -389,7 +378,6 @@ watch(
               </select>
             </div>
 
-            <!-- Reset Filters -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -404,11 +392,9 @@ watch(
         </div>
       </Transition>
 
-      <!-- Table Container -->
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
             <thead
@@ -435,7 +421,6 @@ watch(
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <!-- Loading Spinner State -->
               <tr v-if="loading">
                 <td colspan="7" class="px-6 py-16 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
@@ -447,21 +432,18 @@ watch(
                 </td>
               </tr>
 
-              <!-- Data Rows -->
               <template v-else>
                 <tr
                   v-for="order in paginatedAssignments"
                   :key="order.id"
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
-                  <!-- Order Ref -->
                   <td
                     class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs"
                   >
                     #{{ order.order_number || order.order_id || String(order.id).substring(0, 8) }}
                   </td>
 
-                  <!-- Room / Service / Table -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <span
                       v-if="order.table_number || order.table?.table_number"
@@ -491,7 +473,6 @@ watch(
                     </span>
                   </td>
 
-                  <!-- Guest -->
                   <td
                     class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white"
                   >
@@ -502,7 +483,6 @@ watch(
                     }}
                   </td>
 
-                  <!-- Items -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <span class="font-bold text-slate-700 dark:text-slate-300">
                       {{
@@ -516,7 +496,6 @@ watch(
                     </span>
                   </td>
 
-                  <!-- Status -->
                   <td class="py-3 px-4 text-center whitespace-nowrap">
                     <span
                       class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
@@ -531,12 +510,10 @@ watch(
                     </span>
                   </td>
 
-                  <!-- Assigned Time -->
                   <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400">
                     {{ formatDateTime(order.assigned_at || order.created_at) }}
                   </td>
 
-                  <!-- Actions -->
                   <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
                     <button
                       @click="viewDetails(order)"
@@ -548,7 +525,6 @@ watch(
                   </td>
                 </tr>
 
-                <!-- Empty State -->
                 <tr v-if="paginatedAssignments.length === 0">
                   <td
                     colspan="7"
@@ -567,7 +543,6 @@ watch(
           </table>
         </div>
 
-        <!-- Mobile Card View -->
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
           <div
             v-if="loading"
@@ -637,7 +612,6 @@ watch(
           </template>
         </div>
 
-        <!-- Pagination Footer -->
         <div
           v-if="total > 0"
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
@@ -702,7 +676,6 @@ watch(
         </div>
       </div>
 
-      <!-- Order Detail Modal -->
       <div
         v-if="showDetailModal"
         class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"

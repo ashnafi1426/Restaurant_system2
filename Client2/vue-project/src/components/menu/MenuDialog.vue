@@ -318,7 +318,6 @@ function closeDialog() {
             </div>
           </div>
 
-          <!-- Tax Configuration Section -->
           <div
             class="p-3 sm:p-4 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 space-y-3"
           >

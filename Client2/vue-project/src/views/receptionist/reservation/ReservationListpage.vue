@@ -62,7 +62,6 @@ const toastMessage = ref<string | null>(null)
 const roomTypes = ref<any[]>([])
 const rooms = ref<any[]>([])
 
-// Dropdown and Details Modal state
 const openDropdownId = ref<string | null>(null)
 const detailsModalOpen = ref(false)
 const detailsReservation = ref<Reservation | null>(null)
@@ -129,18 +128,15 @@ const loadReservations = async () => {
 
 const loadRoomTypesAndRooms = async () => {
   try {
-    // 1. Fetch from room types endpoint
     const typeRes = await roomTypeService.getRoomTypes({ per_page: 100 })
     const typeData = typeRes.data?.data || (Array.isArray(typeRes.data) ? typeRes.data : [])
 
-    // 2. Fetch from rooms endpoint
     const roomRes = await roomService.getAllRooms()
     const rawRooms = roomRes.data?.data || (Array.isArray(roomRes.data) ? roomRes.data : [])
     rooms.value = Array.isArray(rawRooms) ? rawRooms : []
 
     const typesMap = new Map<string, any>()
 
-    // Add from room types service
     if (Array.isArray(typeData)) {
       typeData.forEach((t: any) => {
         if (t && t.name) {
@@ -153,7 +149,6 @@ const loadRoomTypesAndRooms = async () => {
       })
     }
 
-    // Add any types embedded in rooms
     rooms.value.forEach((r: any) => {
       const rt = r.room_type || r.roomType
       if (rt && rt.name) {
@@ -172,7 +167,6 @@ const loadRoomTypesAndRooms = async () => {
       }
     })
 
-    // Fallback if none found
     if (typesMap.size === 0) {
       ;['Standard', 'Deluxe', 'Suite', 'Executive Suite'].forEach((name) => {
         typesMap.set(name.toLowerCase(), { id: name, name })
@@ -191,7 +185,6 @@ const loadRoomTypesAndRooms = async () => {
   }
 }
 
-// Reservations directly from store (backend handles query filtering & pagination)
 const paginatedReservations = computed(() => {
   return store.reservations || []
 })
@@ -218,7 +211,6 @@ const paginationPages = computed(() => {
   return pages
 })
 
-// Debounced search watcher
 watch(searchQuery, () => {
   if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout)
   searchDebounceTimeout = setTimeout(() => {
@@ -227,7 +219,6 @@ watch(searchQuery, () => {
   }, 300)
 })
 
-// Immediate filter watchers
 watch([filterStatus, filterRoomTypeId, filterCheckInDate, filterCheckOutDate], () => {
   currentPage.value = 1
   loadReservations()
@@ -530,7 +521,6 @@ watch(
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
-      <!-- Toast Notification -->
       <div
         v-if="toastMessage"
         class="fixed bottom-6 right-6 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-800 text-xs font-bold"
@@ -539,7 +529,6 @@ watch(
         <span>{{ toastMessage }}</span>
       </div>
 
-      <!-- Header Section -->
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
       >
@@ -574,9 +563,7 @@ watch(
         </div>
       </div>
 
-      <!-- Statistics Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <!-- Total -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -595,7 +582,6 @@ watch(
           </div>
         </div>
 
-        <!-- Pending -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -614,7 +600,6 @@ watch(
           </div>
         </div>
 
-        <!-- Confirmed -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -633,7 +618,6 @@ watch(
           </div>
         </div>
 
-        <!-- Checked In -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -653,13 +637,10 @@ watch(
         </div>
       </div>
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -677,7 +658,6 @@ watch(
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -697,9 +677,7 @@ watch(
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="handleRefresh"
@@ -710,7 +688,6 @@ watch(
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.loading }" />
           </button>
 
-          <!-- Fullscreen Toggle -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -722,7 +699,6 @@ watch(
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -736,7 +712,6 @@ watch(
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-4 gap-3.5 sm:gap-4">
-            <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('Reservation Status', 'Reservation Status') }}
@@ -758,7 +733,6 @@ watch(
               </select>
             </div>
 
-            <!-- Room Type Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('Room Type', 'Room Type') }}
@@ -774,7 +748,6 @@ watch(
               </select>
             </div>
 
-            <!-- Check-in Date -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('Check-in Date', 'Check-in Date') }}
@@ -786,7 +759,6 @@ watch(
               />
             </div>
 
-            <!-- Check-out Date / Reset -->
             <div class="flex items-end gap-2">
               <div class="flex-1">
                 <label
@@ -815,11 +787,9 @@ watch(
         </div>
       </Transition>
 
-      <!-- Reservations Table Container -->
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs font-sans w-full"
       >
-        <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto w-full min-h-[380px]">
           <table class="w-full text-left border-collapse">
             <thead
@@ -845,7 +815,6 @@ watch(
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <!-- Loading Spinner State -->
               <tr v-if="store.loading">
                 <td colspan="6" class="px-6 py-20 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
@@ -857,7 +826,6 @@ watch(
                 </td>
               </tr>
 
-              <!-- Data Rows -->
               <template v-else>
                 <tr
                   v-for="(reservation, index) in paginatedReservations"
@@ -868,7 +836,6 @@ watch(
                       openDropdownId === reservation.id,
                   }"
                 >
-                  <!-- Guest & Booking # -->
                   <td class="py-3 px-4 pl-5 whitespace-nowrap">
                     <div class="flex items-center gap-2.5">
                       <div
@@ -899,7 +866,6 @@ watch(
                     </div>
                   </td>
 
-                  <!-- Room -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <div class="flex items-center gap-2">
                       <span
@@ -916,7 +882,6 @@ watch(
                     </div>
                   </td>
 
-                  <!-- Stay Dates -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <div class="font-semibold text-slate-800 dark:text-slate-200">
                       {{ formatDate(reservation.check_in_date) }} →
@@ -928,7 +893,6 @@ watch(
                     </div>
                   </td>
 
-                  <!-- Total / Guests -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <div class="font-bold text-slate-900 dark:text-white">
                       {{
@@ -945,7 +909,6 @@ watch(
                     </div>
                   </td>
 
-                  <!-- Status -->
                   <td class="py-3 px-4 text-center whitespace-nowrap">
                     <span
                       class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
@@ -955,13 +918,11 @@ watch(
                     </span>
                   </td>
 
-                  <!-- Actions: Direct View Button + Three-dot dropdown menu -->
                   <td
                     class="py-3 px-4 text-right pr-5 whitespace-nowrap"
                     :class="{ 'relative z-50': openDropdownId === reservation.id }"
                   >
                     <div class="flex items-center justify-end gap-1.5">
-                      <!-- Direct Quick View Button -->
                       <button
                         type="button"
                         @click.stop="openDetailsModal(reservation)"
@@ -972,7 +933,6 @@ watch(
                         <span class="hidden sm:inline">{{ languageStore.t('View', 'View') }}</span>
                       </button>
 
-                      <!-- Three-dot secondary actions menu container -->
                       <div class="relative inline-block text-left action-dropdown-container">
                         <button
                           type="button"
@@ -987,7 +947,6 @@ watch(
                           <MoreVertical class="w-4 h-4 stroke-[2.5]" />
                         </button>
 
-                        <!-- Dropdown Menu -->
                         <Transition
                           enter-active-class="transition duration-100 ease-out"
                           enter-from-class="transform scale-95 opacity-0"
@@ -1006,7 +965,6 @@ watch(
                                 : 'top-full mt-1.5',
                             ]"
                           >
-                            <!-- View Details (Modal) -->
                             <button
                               type="button"
                               @click="openDetailsModal(reservation)"
@@ -1016,7 +974,6 @@ watch(
                               <span>{{ languageStore.t('view_details', 'View Details') }}</span>
                             </button>
 
-                            <!-- Full Page View -->
                             <button
                               type="button"
                               @click="handleAction(() => navigateToViewPage(reservation.id))"
@@ -1028,7 +985,6 @@ watch(
 
                             <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
 
-                            <!-- Confirm (Pending) -->
                             <button
                               v-if="reservation.status === 'pending'"
                               type="button"
@@ -1041,7 +997,6 @@ watch(
                               }}</span>
                             </button>
 
-                            <!-- Check-in (Confirmed) -->
                             <button
                               v-if="reservation.status === 'confirmed'"
                               type="button"
@@ -1052,7 +1007,6 @@ watch(
                               <span>{{ languageStore.t('check_in_guest', 'Check In Guest') }}</span>
                             </button>
 
-                            <!-- Check-out (Checked In) -->
                             <button
                               v-if="reservation.status === 'checked_in'"
                               type="button"
@@ -1065,7 +1019,6 @@ watch(
                               }}</span>
                             </button>
 
-                            <!-- Edit -->
                             <button
                               type="button"
                               @click="handleAction(() => editReservation(reservation))"
@@ -1077,7 +1030,6 @@ watch(
 
                             <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
 
-                            <!-- Delete -->
                             <button
                               type="button"
                               @click="handleAction(() => confirmDelete(reservation))"
@@ -1093,7 +1045,6 @@ watch(
                   </td>
                 </tr>
 
-                <!-- Empty State -->
                 <tr v-if="paginatedReservations.length === 0">
                   <td
                     colspan="6"
@@ -1112,7 +1063,6 @@ watch(
           </table>
         </div>
 
-        <!-- Mobile View -->
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
           <div
             v-if="store.loading"
@@ -1178,7 +1128,6 @@ watch(
           </template>
         </div>
 
-        <!-- Pagination Footer -->
         <div
           v-if="totalReservations > 0"
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
@@ -1245,7 +1194,6 @@ watch(
         </div>
       </div>
 
-      <!-- Reservation Details Modal -->
       <Teleport to="body">
         <Transition
           enter-active-class="transition duration-200 ease-out"
@@ -1263,7 +1211,6 @@ watch(
             <div
               class="w-full max-w-2xl bg-white dark:bg-[#0c182c] border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden font-sans my-8 transition-all"
             >
-              <!-- Modal Header -->
               <div
                 class="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#0f1d32]/60"
               >
@@ -1304,9 +1251,7 @@ watch(
                 </button>
               </div>
 
-              <!-- Modal Body -->
               <div class="p-6 space-y-5 max-h-[72vh] overflow-y-auto">
-                <!-- Loading indicator when fetching fresh data -->
                 <div
                   v-if="detailsLoading"
                   class="flex items-center justify-center gap-2 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 rounded-xl p-2.5"
@@ -1317,7 +1262,6 @@ watch(
                   }}</span>
                 </div>
 
-                <!-- Guest Profile Highlight -->
                 <div
                   class="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-[#13233c]/60 border border-slate-100 dark:border-slate-800 gap-3"
                 >
@@ -1361,9 +1305,7 @@ watch(
                   </div>
                 </div>
 
-                <!-- Details Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <!-- Room & Stay -->
                   <div
                     class="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 bg-white dark:bg-[#0f1d32]/40"
                   >
@@ -1416,7 +1358,6 @@ watch(
                     </div>
                   </div>
 
-                  <!-- Guests & Billing -->
                   <div
                     class="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3 bg-white dark:bg-[#0f1d32]/40"
                   >
@@ -1468,7 +1409,6 @@ watch(
                   </div>
                 </div>
 
-                <!-- Special Requests -->
                 <div
                   class="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0f1d32]/40 space-y-2"
                 >
@@ -1488,11 +1428,9 @@ watch(
                 </div>
               </div>
 
-              <!-- Modal Footer Actions -->
               <div
                 class="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#0f1d32]/60"
               >
-                <!-- Left: Open Full Page -->
                 <button
                   type="button"
                   @click="navigateToViewPage(detailsReservation.id)"
@@ -1502,9 +1440,7 @@ watch(
                   <span>{{ languageStore.t('Full Page View', 'Full Page View') }}</span>
                 </button>
 
-                <!-- Right Action Buttons -->
                 <div class="flex flex-wrap items-center gap-2">
-                  <!-- Confirm (if pending) -->
                   <button
                     v-if="detailsReservation.status === 'pending'"
                     type="button"
@@ -1516,7 +1452,6 @@ watch(
                     <span>{{ languageStore.t('Confirm', 'Confirm') }}</span>
                   </button>
 
-                  <!-- Check-in (if confirmed) -->
                   <button
                     v-if="detailsReservation.status === 'confirmed'"
                     type="button"
@@ -1528,7 +1463,6 @@ watch(
                     <span>{{ languageStore.t('Check In', 'Check In') }}</span>
                   </button>
 
-                  <!-- Check-out (if checked_in) -->
                   <button
                     v-if="detailsReservation.status === 'checked_in'"
                     type="button"
@@ -1540,7 +1474,6 @@ watch(
                     <span>{{ languageStore.t('Check Out', 'Check Out') }}</span>
                   </button>
 
-                  <!-- Edit -->
                   <button
                     type="button"
                     @click="editFromModal"
@@ -1550,7 +1483,6 @@ watch(
                     <span>{{ languageStore.t('Edit', 'Edit') }}</span>
                   </button>
 
-                  <!-- Delete -->
                   <button
                     type="button"
                     @click="deleteFromModal"
@@ -1560,7 +1492,6 @@ watch(
                     <span>{{ languageStore.t('Delete', 'Delete') }}</span>
                   </button>
 
-                  <!-- Close -->
                   <button
                     type="button"
                     @click="detailsModalOpen = false"
@@ -1575,7 +1506,6 @@ watch(
         </Transition>
       </Teleport>
 
-      <!-- Delete Dialog -->
       <DeleteReservationDialog
         v-model="deleteDialog"
         :reservation="selectedReservation"

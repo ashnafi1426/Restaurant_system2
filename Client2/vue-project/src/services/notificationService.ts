@@ -24,12 +24,10 @@ export interface NotificationData {
   created_at?: string
 }
 
-// Request deduplication and debouncing
 const pendingRequests = new Map<string, Promise<any>>()
 let lastUnreadCountFetch = 0
-const UNREAD_COUNT_DEBOUNCE_MS = 2000 // Don't fetch more than once every 2 seconds
+const UNREAD_COUNT_DEBOUNCE_MS = 2000
 
-// Singleton polling instance tracker
 let globalPollIntervalId: number | null = null
 let lastKnownUnreadCount = 0
 

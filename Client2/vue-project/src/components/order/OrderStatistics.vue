@@ -1,22 +1,10 @@
 <script setup lang="ts">
 import type { OrderStatistics } from '@/types/order'
 
-/*
-|--------------------------------------------------------------------------
-| Props
-|--------------------------------------------------------------------------
-*/
-
 defineProps<{
   statistics: OrderStatistics
   loading?: boolean
 }>()
-
-/*
-|--------------------------------------------------------------------------
-| Helpers
-|--------------------------------------------------------------------------
-*/
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -30,9 +18,6 @@ function formatCurrency(value: number): string {
   <div
     class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4"
   >
-    <!-- ======================================================= -->
-    <!-- Total Orders -->
-    <!-- ======================================================= -->
     <div
       class="group relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-gradient-to-br from-white via-slate-50/50 to-indigo-50/30 dark:from-slate-900 dark:to-indigo-950/20 p-4 sm:p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800"
     >
@@ -73,9 +58,6 @@ function formatCurrency(value: number): string {
       </div>
     </div>
 
-    <!-- ======================================================= -->
-    <!-- Pending -->
-    <!-- ======================================================= -->
     <div
       class="group relative overflow-hidden rounded-2xl border border-amber-200/80 dark:border-amber-900/40 bg-gradient-to-br from-amber-50/50 via-white to-amber-100/30 dark:from-slate-900 dark:to-amber-950/20 p-4 sm:p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-amber-300"
     >
@@ -122,9 +104,6 @@ function formatCurrency(value: number): string {
       </div>
     </div>
 
-    <!-- ======================================================= -->
-    <!-- Preparing -->
-    <!-- ======================================================= -->
     <div
       class="group relative overflow-hidden rounded-2xl border border-sky-200/80 dark:border-sky-900/40 bg-gradient-to-br from-sky-50/50 via-white to-sky-100/30 dark:from-slate-900 dark:to-sky-950/20 p-4 sm:p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-sky-300"
     >
@@ -164,9 +143,6 @@ function formatCurrency(value: number): string {
       </div>
     </div>
 
-    <!-- ======================================================= -->
-    <!-- Ready -->
-    <!-- ======================================================= -->
     <div
       class="group relative overflow-hidden rounded-2xl border border-emerald-200/80 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/50 via-white to-emerald-100/30 dark:from-slate-900 dark:to-emerald-950/20 p-4 sm:p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-emerald-300"
     >
@@ -207,9 +183,6 @@ function formatCurrency(value: number): string {
       </div>
     </div>
 
-    <!-- ======================================================= -->
-    <!-- Served -->
-    <!-- ======================================================= -->
     <div
       class="group relative overflow-hidden rounded-2xl border border-purple-200/80 dark:border-purple-900/40 bg-gradient-to-br from-purple-50/50 via-white to-purple-100/30 dark:from-slate-900 dark:to-purple-950/20 p-4 sm:p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-purple-300"
     >
@@ -250,9 +223,6 @@ function formatCurrency(value: number): string {
       </div>
     </div>
 
-    <!-- ======================================================= -->
-    <!-- Revenue -->
-    <!-- ======================================================= -->
     <div
       class="group relative overflow-hidden rounded-2xl border border-teal-200/80 dark:border-teal-900/40 bg-gradient-to-br from-teal-50/50 via-white to-teal-100/30 dark:from-slate-900 dark:to-teal-950/20 p-4 sm:p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-teal-300"
     >

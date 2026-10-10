@@ -79,7 +79,6 @@ const refresh = () => loadUsers(true)
     <div
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
     >
-      <!-- Header -->
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
       >
@@ -107,9 +106,7 @@ const refresh = () => loadUsers(true)
         </div>
       </div>
 
-      <!-- Stats Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-        <!-- Total Users -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center justify-between"
         >
@@ -126,7 +123,6 @@ const refresh = () => loadUsers(true)
           </div>
         </div>
 
-        <!-- Active Users -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center justify-between"
         >
@@ -143,7 +139,6 @@ const refresh = () => loadUsers(true)
           </div>
         </div>
 
-        <!-- Inactive Users -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center justify-between"
         >
@@ -161,7 +156,6 @@ const refresh = () => loadUsers(true)
         </div>
       </div>
 
-      <!-- Table Component With Integrated Toolbar & Filter -->
       <UserTable
         :users="usersList"
         :loading="userStore.loading"

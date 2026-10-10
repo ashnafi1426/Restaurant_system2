@@ -3,7 +3,6 @@
     class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4"
   >
     <div class="w-full max-w-md">
-      <!-- Loading State -->
       <div
         v-if="validatingToken"
         class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 text-center"
@@ -19,9 +18,7 @@
         </p>
       </div>
 
-      <!-- Error States -->
       <div v-else-if="errorType" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
-        <!-- Invalid Token -->
         <div v-if="errorType === 'invalid_token'" class="text-center">
           <div class="mb-6">
             <div
@@ -58,7 +55,6 @@
           </button>
         </div>
 
-        <!-- Expired Token -->
         <div v-else-if="errorType === 'expired'" class="text-center">
           <div class="mb-6">
             <div
@@ -96,7 +92,6 @@
             </button>
           </div>
 
-          <!-- Resend Form -->
           <div v-else>
             <input
               v-model="resendEmail"
@@ -121,7 +116,6 @@
           </div>
         </div>
 
-        <!-- Already Activated -->
         <div v-else-if="errorType === 'already_activated'" class="text-center">
           <div class="mb-6">
             <div
@@ -159,9 +153,7 @@
         </div>
       </div>
 
-      <!-- Activation Form -->
       <div v-else-if="user" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
-        <!-- Success State -->
         <div v-if="activationSuccess" class="text-center">
           <div class="mb-6">
             <div
@@ -198,7 +190,6 @@
           </button>
         </div>
 
-        <!-- Password Creation Form -->
         <form v-else @submit.prevent="activateAccount">
           <div class="mb-6 text-center">
             <div
@@ -226,7 +217,6 @@
             </p>
           </div>
 
-          <!-- User Info Card -->
           <div
             class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-4 mb-6"
           >
@@ -246,7 +236,6 @@
             </div>
           </div>
 
-          <!-- Password Field -->
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Password
@@ -299,7 +288,6 @@
             </p>
           </div>
 
-          <!-- Confirm Password Field -->
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Confirm Password
@@ -355,7 +343,6 @@
             </p>
           </div>
 
-          <!-- Password Strength Meter -->
           <div v-if="form.password" class="mb-6">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -403,7 +390,6 @@
             </ul>
           </div>
 
-          <!-- Requirements List -->
           <div
             class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-6"
           >
@@ -464,7 +450,6 @@
             </ul>
           </div>
 
-          <!-- Error Message -->
           <div
             v-if="activationError"
             class="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl"
@@ -472,7 +457,6 @@
             {{ activationError }}
           </div>
 
-          <!-- Submit Button -->
           <button
             type="submit"
             :disabled="activating"
@@ -517,7 +501,6 @@ const route = useRoute()
 const router = useRouter()
 const activationStore = useActivationStore()
 
-// State
 const form = ref({
   password: '',
   passwordConfirmation: '',
@@ -535,7 +518,6 @@ const activationError = ref('')
 const showResendForm = ref(false)
 const resendEmail = ref('')
 
-// Computed
 const validatingToken = computed(() => activationStore.validatingToken)
 const activating = computed(() => activationStore.activating)
 const resending = computed(() => activationStore.resending)
@@ -546,7 +528,6 @@ const passwordStrength = computed(() => {
   return activationStore.checkPasswordStrength(form.value.password)
 })
 
-// Methods
 const validateForm = (): boolean => {
   errors.value = {
     password: '',
@@ -618,7 +599,6 @@ const resendActivation = async () => {
 
 const handleResendActivation = resendActivation
 
-// Lifecycle
 onMounted(async () => {
   const token = route.params.token as string
   if (token) {

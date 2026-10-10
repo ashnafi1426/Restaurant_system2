@@ -61,7 +61,6 @@ const detailedFloor = ref<Floor | null>(null)
 const floorStats = ref<FloorStats | null>(null)
 const isUnassigning = ref<string | null>(null)
 
-// Current index in floors list for stepper navigation
 const currentIndex = computed(() => {
   if (!props.floorsList || props.floorsList.length === 0 || !props.floor) return -1
   return props.floorsList.findIndex((f) => String(f.id) === String(props.floor?.id))
@@ -74,7 +73,6 @@ const hasNext = computed(
 
 const currentDisplayFloor = computed(() => detailedFloor.value || props.floor)
 
-// Fetch deep floor details (rooms, waiter assignments, stats)
 const loadDeepFloorDetails = async (floorId: string) => {
   if (!floorId) return
   isLoadingDetails.value = true
@@ -133,7 +131,6 @@ const roomsList = computed<FloorRoom[]>(() => {
   return f.rooms || []
 })
 
-// Metrics
 const totalRoomsCount = computed(() => {
   if (roomsList.value.length > 0) return roomsList.value.length
   return (
@@ -230,7 +227,6 @@ const getRoomStatusClass = (status?: string) => {
       class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
       @click.stop
     >
-      <!-- Modal Header -->
       <div
         class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/40 flex items-center justify-between gap-4"
       >
@@ -272,9 +268,7 @@ const getRoomStatusClass = (status?: string) => {
           </div>
         </div>
 
-        <!-- Stepper & Close Actions -->
         <div class="flex items-center gap-2">
-          <!-- Previous / Next Stepper -->
           <div
             v-if="props.floorsList && props.floorsList.length > 1"
             class="flex items-center border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800 shadow-xs"
@@ -300,7 +294,6 @@ const getRoomStatusClass = (status?: string) => {
             </button>
           </div>
 
-          <!-- Close -->
           <button
             @click="emit('close')"
             class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
@@ -310,7 +303,6 @@ const getRoomStatusClass = (status?: string) => {
         </div>
       </div>
 
-      <!-- Quick Metrics Strip -->
       <div
         class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 sm:px-6 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800/80"
       >
@@ -377,7 +369,6 @@ const getRoomStatusClass = (status?: string) => {
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
       <div
         class="flex items-center gap-2 px-6 pt-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900"
       >
@@ -429,9 +420,7 @@ const getRoomStatusClass = (status?: string) => {
         </button>
       </div>
 
-      <!-- Tab Content Area (Scrollable) -->
       <div class="p-6 overflow-y-auto flex-1 space-y-6">
-        <!-- TAB 1: Assigned Waiters One by One -->
         <div v-if="activeTab === 'waiters'" class="space-y-4">
           <div class="flex items-center justify-between gap-3">
             <div>
@@ -458,7 +447,6 @@ const getRoomStatusClass = (status?: string) => {
             </button>
           </div>
 
-          <!-- Empty State -->
           <div
             v-if="assignedWaiters.length === 0"
             class="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl"
@@ -483,7 +471,6 @@ const getRoomStatusClass = (status?: string) => {
             </button>
           </div>
 
-          <!-- Waiter Cards List -->
           <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div
               v-for="wa in assignedWaiters"
@@ -510,7 +497,6 @@ const getRoomStatusClass = (status?: string) => {
                   </div>
                 </div>
 
-                <!-- Unassign button -->
                 <button
                   @click="unassignWaiter(wa.id)"
                   :disabled="isUnassigning === wa.id"
@@ -521,7 +507,6 @@ const getRoomStatusClass = (status?: string) => {
                 </button>
               </div>
 
-              <!-- Details Grid -->
               <div
                 class="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800/80"
               >
@@ -550,7 +535,6 @@ const getRoomStatusClass = (status?: string) => {
           </div>
         </div>
 
-        <!-- TAB 2: Rooms on this Floor -->
         <div v-if="activeTab === 'rooms'" class="space-y-4">
           <div class="flex items-center justify-between gap-3">
             <div>
@@ -575,7 +559,6 @@ const getRoomStatusClass = (status?: string) => {
             </router-link>
           </div>
 
-          <!-- Empty State -->
           <div
             v-if="roomsList.length === 0"
             class="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl"
@@ -602,7 +585,6 @@ const getRoomStatusClass = (status?: string) => {
             </router-link>
           </div>
 
-          <!-- Rooms Grid -->
           <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             <div
               v-for="room in roomsList"
@@ -635,7 +617,6 @@ const getRoomStatusClass = (status?: string) => {
           </div>
         </div>
 
-        <!-- TAB 3: Floor Stats & Health -->
         <div v-if="activeTab === 'stats'" class="space-y-4">
           <div
             class="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4"
@@ -681,7 +662,6 @@ const getRoomStatusClass = (status?: string) => {
             </div>
           </div>
 
-          <!-- Actions -->
           <div
             class="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"
           >
@@ -717,7 +697,6 @@ const getRoomStatusClass = (status?: string) => {
         </div>
       </div>
 
-      <!-- Modal Footer -->
       <div
         class="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 flex items-center justify-between gap-3"
       >

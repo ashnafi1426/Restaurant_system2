@@ -4,7 +4,7 @@ import { useThemeStore } from './stores/theme'
 import { useLanguageStore } from './stores/language'
 import './assets/main.css'
 import './styles/dark-mode.css'
-import './plugins/echo' // Initialize Laravel Echo WebSocket connection
+import './plugins/echo'
 import App from './App.vue'
 import router from './router'
 
@@ -13,7 +13,6 @@ const initialLoader = document.getElementById('initial-loader')
 const app = createApp(App)
 const pinia = createPinia()
 
-// Activate Pinia for usage outside Vue components (main.ts, router guards)
 setActivePinia(pinia)
 app.use(pinia)
 app.use(router)

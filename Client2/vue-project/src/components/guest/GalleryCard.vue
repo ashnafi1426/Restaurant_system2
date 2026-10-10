@@ -26,9 +26,7 @@ const imageLoaded = ref(false)
     @click="$emit('click')"
     class="group cursor-pointer overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl"
   >
-    <!-- Image Container -->
     <div class="relative overflow-hidden bg-slate-100 dark:bg-slate-800 h-64 sm:h-72">
-      <!-- Image -->
       <img
         :src="item.src"
         :alt="languageStore.t(item.title, item.title)"
@@ -36,13 +34,11 @@ const imageLoaded = ref(false)
         @load="imageLoaded = true"
       />
 
-      <!-- Overlay -->
       <div
         class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition duration-500 group-hover:opacity-100"
       />
     </div>
 
-    <!-- Content -->
     <div class="p-6">
       <h3
         class="text-xl font-bold text-slate-900 dark:text-white transition group-hover:text-amber-600 dark:group-hover:text-amber-400 line-clamp-1"

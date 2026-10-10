@@ -115,7 +115,6 @@ const handleSubmit = async () => {
       class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col"
       @click.stop
     >
-      <!-- Header -->
       <div
         class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/40 flex items-center justify-between"
       >
@@ -152,9 +151,7 @@ const handleSubmit = async () => {
         </button>
       </div>
 
-      <!-- Form Body -->
       <form @submit.prevent="handleSubmit" class="p-6 space-y-4">
-        <!-- Error Alert -->
         <div
           v-if="errorMessage"
           class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5"
@@ -163,7 +160,6 @@ const handleSubmit = async () => {
           <span>{{ errorMessage }}</span>
         </div>
 
-        <!-- Floor Number & Name -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           <div>
             <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
@@ -196,7 +192,6 @@ const handleSubmit = async () => {
           </div>
         </div>
 
-        <!-- Description -->
         <div>
           <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
             {{ languageStore.t('description', 'Description') }}
@@ -214,7 +209,6 @@ const handleSubmit = async () => {
           ></textarea>
         </div>
 
-        <!-- Total Rooms Capacity & Status -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-center">
           <div>
             <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
@@ -248,7 +242,6 @@ const handleSubmit = async () => {
           </div>
         </div>
 
-        <!-- Submit Footer -->
         <div
           class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5"
         >

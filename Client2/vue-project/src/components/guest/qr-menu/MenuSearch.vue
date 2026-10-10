@@ -1,16 +1,13 @@
 <template>
   <div class="luxury-search-container font-sans">
-    <!-- Search Bar -->
     <div class="relative">
       <div
         class="relative bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800 hover:border-[#c29353] focus-within:border-[#c29353] transition-all duration-300 overflow-hidden"
       >
-        <!-- Gold Search Icon -->
         <Search
           class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#c29353] pointer-events-none"
         />
 
-        <!-- Search Input -->
         <input
           v-model="searchQuery"
           @input="handleSearch"
@@ -29,7 +26,6 @@
           class="w-full pl-11 pr-10 py-2.5 bg-transparent outline-none text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium"
         />
 
-        <!-- Clear Button -->
         <button
           v-if="searchQuery"
           @click="clearSearch"
@@ -40,13 +36,11 @@
         </button>
       </div>
 
-      <!-- Dropdown Suggestions -->
       <Transition name="scale-fade">
         <div
           v-if="showSuggestions && (computedSuggestions.length > 0 || recentSearches.length > 0)"
           class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 z-50 overflow-hidden backdrop-blur-md"
         >
-          <!-- Suggestions List -->
           <div
             v-if="computedSuggestions.length > 0"
             class="py-2 divide-y divide-slate-100 dark:divide-slate-800"
@@ -76,7 +70,6 @@
             </button>
           </div>
 
-          <!-- Recent Searches -->
           <div v-else-if="recentSearches.length > 0 && !searchQuery" class="py-3 px-5">
             <p
               class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5"

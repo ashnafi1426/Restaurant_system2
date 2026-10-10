@@ -1,6 +1,3 @@
-// Global type extensions to handle dynamic properties from the API
-// This file makes TypeScript more lenient with property access
-
 declare module '@/types/guest' {
   interface Guest {
     name?: string
@@ -42,14 +39,12 @@ declare module '@/types/reservation' {
   }
 }
 
-// Allow flexible property access on chart options
 declare module 'chart.js' {
   interface ChartOptions {
     [key: string]: any
   }
 }
 
-// Global type for flexible objects
 declare global {
   interface Window {
     [key: string]: any

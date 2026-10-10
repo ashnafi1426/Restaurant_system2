@@ -186,7 +186,6 @@ const printDetails = () => {
 <template>
   <DashboardLayout>
     <div class="max-w-5xl mx-auto pb-16">
-      <!-- Toast message -->
       <div
         v-if="toastMessage"
         class="fixed top-20 right-6 z-50 bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-fadeIn"
@@ -195,7 +194,6 @@ const printDetails = () => {
         <span>{{ toastMessage }}</span>
       </div>
 
-      <!-- Top Back Header -->
       <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-center gap-3">
           <button
@@ -224,9 +222,7 @@ const printDetails = () => {
           </div>
         </div>
 
-        <!-- Action Buttons -->
         <div v-if="reservation" class="flex flex-wrap items-center gap-2">
-          <!-- Confirm Button -->
           <button
             v-if="reservation.status === 'pending'"
             @click="confirmReservation"
@@ -237,7 +233,6 @@ const printDetails = () => {
             <span>Confirm Booking</span>
           </button>
 
-          <!-- Check In Button -->
           <button
             v-if="reservation.status === 'confirmed'"
             @click="checkIn"
@@ -248,7 +243,6 @@ const printDetails = () => {
             <span>Check In Guest</span>
           </button>
 
-          <!-- Check Out Button -->
           <button
             v-if="reservation.status === 'checked_in'"
             @click="checkOut"
@@ -259,7 +253,6 @@ const printDetails = () => {
             <span>Check Out</span>
           </button>
 
-          <!-- Edit Button -->
           <button
             @click="router.push(`/reservations/${reservation.id}/edit`)"
             class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
@@ -268,7 +261,6 @@ const printDetails = () => {
             <span>Edit</span>
           </button>
 
-          <!-- Print Button -->
           <button
             @click="printDetails"
             class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
@@ -277,7 +269,6 @@ const printDetails = () => {
             <Printer class="w-3.5 h-3.5" />
           </button>
 
-          <!-- Delete Button -->
           <button
             @click="deleteDialog = true"
             class="px-3 py-2 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/30 hover:bg-red-100 text-red-600 dark:text-red-400 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
@@ -288,7 +279,6 @@ const printDetails = () => {
         </div>
       </div>
 
-      <!-- Loading State -->
       <div v-if="loading" class="py-24 text-center flex flex-col items-center justify-center gap-3">
         <Loader2 class="w-10 h-10 text-blue-600 dark:text-blue-400 animate-spin" />
         <span class="text-sm font-bold text-slate-600 dark:text-slate-400"
@@ -296,7 +286,6 @@ const printDetails = () => {
         >
       </div>
 
-      <!-- Error State -->
       <div
         v-else-if="error || !reservation"
         class="p-6 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-2xl text-center space-y-3"
@@ -313,9 +302,7 @@ const printDetails = () => {
         </button>
       </div>
 
-      <!-- Detail Cards Grid -->
       <div v-else class="space-y-6">
-        <!-- Status & Highlight Banner -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs"
         >
@@ -359,7 +346,6 @@ const printDetails = () => {
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Guest Information Card -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4"
           >
@@ -413,7 +399,6 @@ const printDetails = () => {
             </div>
           </div>
 
-          <!-- Room & Stay Details Card -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4"
           >
@@ -469,7 +454,6 @@ const printDetails = () => {
           </div>
         </div>
 
-        <!-- Special Requests Card -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-3"
         >
@@ -486,7 +470,6 @@ const printDetails = () => {
           </p>
         </div>
 
-        <!-- Metadata Card -->
         <div
           class="bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-[11px] text-slate-400"
         >
@@ -511,7 +494,6 @@ const printDetails = () => {
       </div>
     </div>
 
-    <!-- Confirm Delete Modal -->
     <DeleteReservationDialog
       v-model="deleteDialog"
       :reservation="reservation"

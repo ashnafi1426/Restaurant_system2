@@ -27,9 +27,6 @@ const emit = defineEmits<{
 
 const quantity = ref(1)
 
-// REMOVED: All review loading logic to improve performance
-// Reviews are not critical for menu browsing and were causing 12+ second load times
-
 const handleAddToCart = () => {
   if (quantity.value > 0) {
     emit('add-to-cart', quantity.value)
@@ -52,7 +49,6 @@ const decrementQuantity = () => {
   <div
     class="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
   >
-    <!-- Image Header -->
     <div class="relative h-44 sm:h-48 w-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
       <img
         v-if="item.image_url || item.image"
@@ -75,12 +71,10 @@ const decrementQuantity = () => {
         </svg>
       </div>
 
-      <!-- Subtle bottom gradient -->
       <div
         class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 pointer-events-none"
       ></div>
 
-      <!-- Category badge -->
       <div v-if="item.category" class="absolute top-2.5 left-2.5 z-10">
         <span
           class="inline-block px-2.5 py-1 bg-slate-950/75 backdrop-blur-md text-[#c29353] dark:text-amber-400 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider rounded-lg border border-amber-500/20 shadow-sm"
@@ -89,7 +83,6 @@ const decrementQuantity = () => {
         </span>
       </div>
 
-      <!-- Availability status -->
       <div class="absolute top-2.5 right-2.5 z-10">
         <div
           :class="[
@@ -110,9 +103,7 @@ const decrementQuantity = () => {
       </div>
     </div>
 
-    <!-- Content & Details -->
     <div class="p-3.5 sm:p-4 flex-1 flex flex-col justify-between gap-3">
-      <!-- Title & Description -->
       <div class="space-y-1">
         <h3
           class="text-base sm:text-lg font-bold text-slate-900 dark:text-white line-clamp-1 group-hover:text-[#c29353] transition-colors"
@@ -125,7 +116,6 @@ const decrementQuantity = () => {
         </p>
       </div>
 
-      <!-- 5-Star Visual Rating (like first screenshot) -->
       <div
         class="flex items-center gap-2 py-0.5 cursor-pointer group/rating select-none"
         @click.stop="
@@ -164,9 +154,7 @@ const decrementQuantity = () => {
         </span>
       </div>
 
-      <!-- Price & Actions footer -->
       <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2.5">
-        <!-- Price Row -->
         <div class="flex items-baseline justify-between">
           <span
             class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500"
@@ -201,9 +189,7 @@ const decrementQuantity = () => {
           </div>
         </div>
 
-        <!-- Order Controls -->
         <div v-if="item.is_available" class="flex items-center gap-2">
-          <!-- Stepper -->
           <div
             class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1 shrink-0 border border-slate-200/60 dark:border-slate-700/60"
           >
@@ -228,7 +214,6 @@ const decrementQuantity = () => {
             </button>
           </div>
 
-          <!-- Add to Cart Button -->
           <button
             @click.stop="handleAddToCart"
             class="flex-1 min-w-0 h-9 sm:h-10 flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#c29353] to-[#a8793b] hover:from-[#b08244] hover:to-[#966b32] text-white font-bold py-2 px-3 rounded-xl shadow-xs hover:shadow-md transition-all active:scale-[0.98] text-xs sm:text-sm whitespace-nowrap"
@@ -238,7 +223,6 @@ const decrementQuantity = () => {
           </button>
         </div>
 
-        <!-- Write Review Button -->
         <button
           @click.stop="$emit('write-review')"
           :title="languageStore.t('write_review', 'Write Review')"
@@ -248,7 +232,6 @@ const decrementQuantity = () => {
           <span>{{ languageStore.t('write_review', 'Write Review') }}</span>
         </button>
 
-        <!-- Unavailable Notice -->
         <div
           v-if="!item.is_available"
           class="text-center py-2 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 rounded-xl"

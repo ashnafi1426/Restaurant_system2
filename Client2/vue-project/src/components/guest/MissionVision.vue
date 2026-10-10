@@ -33,31 +33,26 @@ const coreValues = [
 <template>
   <section class="bg-white py-12 sm:py-16 md:py-20 lg:py-24">
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10">
-      <!-- Main Cards -->
       <div class="grid gap-6 sm:gap-8 md:gap-10 lg:grid-cols-3 mb-12 sm:mb-16 md:mb-20">
         <div
           v-for="item in missions"
           :key="item.title"
           class="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-50 to-slate-100 p-6 sm:p-8 md:p-10 shadow-md md:shadow-lg hover:shadow-xl transition"
         >
-          <!-- Icon -->
           <div class="text-4xl sm:text-5xl mb-4 sm:mb-6">
             {{ item.icon }}
           </div>
 
-          <!-- Title -->
           <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mb-3 sm:mb-4">
             {{ item.title }}
           </h3>
 
-          <!-- Description -->
           <p class="text-sm sm:text-base text-slate-600 leading-6 sm:leading-7">
             {{ item.description }}
           </p>
         </div>
       </div>
 
-      <!-- Core Values Section -->
       <div
         class="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-amber-50 to-orange-50 p-6 sm:p-8 md:p-12"
       >

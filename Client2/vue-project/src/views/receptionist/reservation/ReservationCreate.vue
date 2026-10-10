@@ -80,7 +80,6 @@ watch(
 <template>
   <DashboardLayout>
     <div class="max-w-3xl mx-auto space-y-6 bg-white dark:bg-slate-900 p-6 rounded-lg">
-      <!-- Header -->
       <div>
         <h1 class="text-2xl font-bold text-slate-800 dark:text-white">
           {{ languageStore.t('create_reservation', 'Create Reservation') }}
@@ -92,7 +91,6 @@ watch(
         </p>
       </div>
 
-      <!-- Loading State -->
       <div
         v-if="guests.length === 0 || rooms.length === 0 || guestStore.loading || roomStore.loading"
         class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 rounded-lg p-4"
@@ -128,7 +126,6 @@ watch(
         </p>
       </div>
 
-      <!-- Form -->
       <ReservationForm
         v-model="form"
         :guests="guests"

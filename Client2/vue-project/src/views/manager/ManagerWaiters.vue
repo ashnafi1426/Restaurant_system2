@@ -337,7 +337,6 @@ onUnmounted(() => {
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
-      <!-- Toast Notification -->
       <div
         v-if="showSuccessAlert"
         class="p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-2xl flex items-center gap-3 shadow-xs"
@@ -346,7 +345,6 @@ onUnmounted(() => {
         <p class="text-xs font-bold">{{ successMessage }}</p>
       </div>
 
-      <!-- Header -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
@@ -367,7 +365,6 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- KPI Stats Cards Grid -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
@@ -440,13 +437,10 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -459,7 +453,6 @@ onUnmounted(() => {
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -475,9 +468,7 @@ onUnmounted(() => {
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Export CSV -->
           <button
             type="button"
             @click="exportToCSV"
@@ -487,7 +478,6 @@ onUnmounted(() => {
             <span>Export CSV</span>
           </button>
 
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="refreshData"
@@ -498,7 +488,6 @@ onUnmounted(() => {
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': waiterStore.loading }" />
           </button>
 
-          <!-- Fullscreen Toggle -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -508,7 +497,6 @@ onUnmounted(() => {
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
           </button>
 
-          <!-- Add Waiter Button -->
           <button
             type="button"
             @click="openAddModal"
@@ -520,7 +508,6 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -534,7 +521,6 @@ onUnmounted(() => {
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-4 gap-3.5 sm:gap-4">
-            <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 Staff Status
@@ -550,7 +536,6 @@ onUnmounted(() => {
               </select>
             </div>
 
-            <!-- Shift Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 Work Shift
@@ -567,7 +552,6 @@ onUnmounted(() => {
               </select>
             </div>
 
-            <!-- Section Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 Assigned Section
@@ -585,7 +569,6 @@ onUnmounted(() => {
               </select>
             </div>
 
-            <!-- Reset Filters -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -600,11 +583,9 @@ onUnmounted(() => {
         </div>
       </Transition>
 
-      <!-- Waiters Table Container -->
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto w-full min-h-[220px]">
           <table class="w-full text-left border-collapse">
             <thead
@@ -620,7 +601,6 @@ onUnmounted(() => {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <!-- Loading Spinner State -->
               <tr v-if="waiterStore.loading">
                 <td colspan="6" class="px-6 py-20 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
@@ -632,14 +612,12 @@ onUnmounted(() => {
                 </td>
               </tr>
 
-              <!-- Data Rows -->
               <template v-else>
                 <tr
                   v-for="(waiter, index) in paginatedWaiters"
                   :key="waiter.id"
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
-                  <!-- Staff Avatar & Name -->
                   <td class="py-3 px-4 pl-5 whitespace-nowrap">
                     <div class="flex items-center gap-3">
                       <div
@@ -663,7 +641,6 @@ onUnmounted(() => {
                     </div>
                   </td>
 
-                  <!-- Status -->
                   <td class="py-3 px-4 text-center whitespace-nowrap">
                     <span
                       class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
@@ -679,28 +656,24 @@ onUnmounted(() => {
                     </span>
                   </td>
 
-                  <!-- Section -->
                   <td
                     class="py-3 px-4 whitespace-nowrap font-medium text-slate-700 dark:text-slate-300"
                   >
                     {{ waiter.section || 'General Floor' }}
                   </td>
 
-                  <!-- Shift -->
                   <td
                     class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-semibold capitalize"
                   >
                     {{ waiter.shift || 'Morning' }}
                   </td>
 
-                  <!-- Experience -->
                   <td
                     class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 capitalize"
                   >
                     {{ waiter.experience_level || 'Intermediate' }}
                   </td>
 
-                  <!-- Actions -->
                   <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
                     <div class="relative inline-block text-left">
                       <button
@@ -716,7 +689,6 @@ onUnmounted(() => {
                         <MoreVertical class="w-4 h-4 stroke-[2.2]" />
                       </button>
 
-                      <!-- Dropdown Menu -->
                       <Transition
                         enter-active-class="transition duration-100 ease-out"
                         enter-from-class="transform scale-95 opacity-0"
@@ -734,7 +706,6 @@ onUnmounted(() => {
                               : 'top-full mt-1.5',
                           ]"
                         >
-                          <!-- Edit Staff -->
                           <button
                             type="button"
                             @click="
@@ -747,7 +718,6 @@ onUnmounted(() => {
                             <span>Edit Staff</span>
                           </button>
 
-                          <!-- Change Status (Quick Action) -->
                           <button
                             v-if="waiter.status !== 'active'"
                             type="button"
@@ -776,7 +746,6 @@ onUnmounted(() => {
 
                           <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
 
-                          <!-- Delete Staff -->
                           <button
                             type="button"
                             @click="
@@ -794,7 +763,6 @@ onUnmounted(() => {
                   </td>
                 </tr>
 
-                <!-- Empty State -->
                 <tr v-if="paginatedWaiters.length === 0">
                   <td
                     colspan="6"
@@ -808,7 +776,6 @@ onUnmounted(() => {
           </table>
         </div>
 
-        <!-- Mobile Card View -->
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
           <div
             v-if="waiterStore.loading"
@@ -922,7 +889,6 @@ onUnmounted(() => {
           </template>
         </div>
 
-        <!-- Pagination Footer -->
         <div
           v-if="total > 0"
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
@@ -983,7 +949,6 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Waiter Registration/Edit Modal -->
       <WaiterFormModal
         v-if="showModal"
         :is-open="showModal"

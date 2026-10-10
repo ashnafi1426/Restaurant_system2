@@ -3,7 +3,6 @@
     <div
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
     >
-      <!-- Loading State -->
       <div v-if="loading" class="flex items-center justify-center py-20">
         <div class="flex flex-col items-center gap-3">
           <div
@@ -16,7 +15,6 @@
       </div>
 
       <template v-else>
-        <!-- Temp Password Banner -->
         <div
           v-if="mustChangePassword"
           class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-start gap-3"
@@ -42,12 +40,10 @@
           </div>
         </div>
 
-        <!-- Profile Header Banner -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-6"
         >
           <div class="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
-            <!-- Profile Avatar with photo upload -->
             <div class="relative flex-shrink-0 group">
               <div
                 class="w-24 h-24 rounded-full overflow-hidden border-4 border-teal-500/30 shadow-md cursor-pointer relative"
@@ -65,14 +61,14 @@
                 >
                   {{ (user?.first_name || 'R')?.[0]?.toUpperCase() }}
                 </div>
-                <!-- Hover Overlay -->
+
                 <div
                   class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full"
                 >
                   <Camera class="w-6 h-6 text-white" />
                 </div>
               </div>
-              <!-- Upload spinner -->
+
               <div
                 v-if="uploadingPhoto"
                 class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full"
@@ -81,7 +77,7 @@
                   class="w-6 h-6 border-2 border-white/40 border-t-white rounded-full animate-spin"
                 ></div>
               </div>
-              <!-- Hidden file input -->
+
               <input
                 ref="photoInput"
                 type="file"
@@ -91,7 +87,6 @@
               />
             </div>
 
-            <!-- User Header Details -->
             <div>
               <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
                 <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -121,7 +116,6 @@
           </div>
         </div>
 
-        <!-- Global toast message -->
         <Transition name="fade">
           <div
             v-if="globalMessage.text"
@@ -139,7 +133,6 @@
         </Transition>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <!-- Sidebar Quick Info -->
           <div class="lg:col-span-1 space-y-6">
             <div
               class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4"
@@ -207,9 +200,7 @@
             </div>
           </div>
 
-          <!-- Main Form Content -->
           <div class="lg:col-span-3 space-y-6">
-            <!-- Personal Information Card -->
             <div
               class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6"
             >
@@ -286,7 +277,6 @@
                   />
                 </div>
 
-                <!-- Profile error -->
                 <div
                   v-if="profileError"
                   class="text-xs text-red-500 font-semibold flex items-center gap-1.5"
@@ -314,7 +304,6 @@
               </form>
             </div>
 
-            <!-- Change Password Card -->
             <div
               :class="[
                 'bg-white dark:bg-slate-900 border rounded-3xl p-6 shadow-sm space-y-6 transition-all',
@@ -360,7 +349,6 @@
               </div>
 
               <form @submit.prevent="changePassword" class="space-y-4 text-xs font-sans">
-                <!-- Current / Temporary Password -->
                 <div>
                   <label
                     class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
@@ -401,7 +389,6 @@
                   </div>
                 </div>
 
-                <!-- New Password -->
                 <div>
                   <label
                     class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
@@ -425,7 +412,7 @@
                       <EyeOff v-else class="w-4 h-4" />
                     </button>
                   </div>
-                  <!-- Password strength indicator -->
+
                   <div v-if="passwordForm.new_password" class="mt-2 space-y-1">
                     <div class="flex gap-1">
                       <div
@@ -441,7 +428,6 @@
                   </div>
                 </div>
 
-                <!-- Confirm New Password -->
                 <div>
                   <label
                     class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
@@ -486,7 +472,6 @@
                   </p>
                 </div>
 
-                <!-- Password change error -->
                 <div
                   v-if="passwordError"
                   class="text-xs text-red-500 font-semibold flex items-center gap-1.5 bg-red-50 dark:bg-red-900/20 p-3 rounded-xl border border-red-200 dark:border-red-800"
@@ -559,7 +544,6 @@ import { useLanguageStore } from '@/stores/language'
 const authStore = useAuthStore()
 const languageStore = useLanguageStore()
 
-// ─── State ───────────────────────────────────────
 const loading = ref(true)
 const saving = ref(false)
 const changingPassword = ref(false)
@@ -586,7 +570,6 @@ const globalMessage = ref<{ text: string; type: 'success' | 'error' }>({
   type: 'success',
 })
 
-// ─── Password strength ───────────────────────────
 const passwordStrength = computed(() => {
   const pw = passwordForm.value.new_password
   if (!pw) return 0
@@ -619,7 +602,6 @@ const strengthLabel = computed(() => {
   return languageStore.t('strong_password', 'Strong password')
 })
 
-// ─── Helpers ─────────────────────────────────────
 function showGlobalMessage(text: string, type: 'success' | 'error') {
   globalMessage.value = { text, type }
   setTimeout(() => {

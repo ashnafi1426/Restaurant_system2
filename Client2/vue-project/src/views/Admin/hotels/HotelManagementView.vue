@@ -42,7 +42,6 @@ const router = useRouter()
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
 
-// State
 const hotels = ref<Hotel[]>([])
 const loading = ref(true)
 const saving = ref(false)
@@ -79,12 +78,10 @@ const resetFilters = () => {
   selectedCity.value = 'all'
 }
 
-// Pagination
 const currentPage = ref(1)
 const lastPage = ref(1)
 const totalHotels = ref(0)
 
-// Fullscreen Controls
 const isFullscreen = ref(false)
 
 const toggleFullscreen = () => {
@@ -109,7 +106,6 @@ const onFullscreenChange = () => {
   isFullscreen.value = Boolean(document.fullscreenElement)
 }
 
-// Currency Formatter
 const formatCurrency = (val: number | string | null | undefined, currency?: string) => {
   const num = Number(val) || 0
   const curr = currency || 'ETB'
@@ -462,7 +458,6 @@ const handleConfirmPermanentDelete = confirmDelete
     <div
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
     >
-      <!-- Header Banner Section -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4"
       >
@@ -497,7 +492,6 @@ const handleConfirmPermanentDelete = confirmDelete
         </div>
       </div>
 
-      <!-- Feedback Alerts -->
       <div
         v-if="successMessage"
         class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2"
@@ -514,13 +508,10 @@ const handleConfirmPermanentDelete = confirmDelete
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -538,7 +529,6 @@ const handleConfirmPermanentDelete = confirmDelete
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -558,9 +548,7 @@ const handleConfirmPermanentDelete = confirmDelete
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="loadHotels"
@@ -571,7 +559,6 @@ const handleConfirmPermanentDelete = confirmDelete
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
           </button>
 
-          <!-- Fullscreen Toggle -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -581,7 +568,6 @@ const handleConfirmPermanentDelete = confirmDelete
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
           </button>
 
-          <!-- Add Hotel Primary Button -->
           <button
             type="button"
             @click="openCreateModal"
@@ -593,7 +579,6 @@ const handleConfirmPermanentDelete = confirmDelete
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -607,7 +592,6 @@ const handleConfirmPermanentDelete = confirmDelete
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
-            <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('hotel_status', 'Hotel Status') }}
@@ -624,7 +608,6 @@ const handleConfirmPermanentDelete = confirmDelete
               </select>
             </div>
 
-            <!-- City Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('location_city', 'Location City') }}
@@ -640,7 +623,6 @@ const handleConfirmPermanentDelete = confirmDelete
               </select>
             </div>
 
-            <!-- Reset Filters -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -655,7 +637,6 @@ const handleConfirmPermanentDelete = confirmDelete
         </div>
       </Transition>
 
-      <!-- HOTELS TABLE -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden"
       >
@@ -676,7 +657,6 @@ const handleConfirmPermanentDelete = confirmDelete
             <tbody
               class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium"
             >
-              <!-- Loading Skeleton -->
               <tr v-if="loading">
                 <td colspan="6" class="p-12 text-center text-xs text-slate-400">
                   <RefreshCw class="w-6 h-6 text-indigo-500 animate-spin mx-auto mb-2" />
@@ -684,7 +664,6 @@ const handleConfirmPermanentDelete = confirmDelete
                 </td>
               </tr>
 
-              <!-- Empty -->
               <tr v-else-if="hotels.length === 0">
                 <td colspan="6" class="p-12 text-center text-xs text-slate-400">
                   <Building2 class="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
@@ -702,14 +681,12 @@ const handleConfirmPermanentDelete = confirmDelete
                 </td>
               </tr>
 
-              <!-- Hotel Rows -->
               <tr
                 v-else
                 v-for="hotel in hotels"
                 :key="hotel.id"
                 class="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition"
               >
-                <!-- Hotel Name & Slug -->
                 <td class="py-4 px-5">
                   <div class="flex items-center gap-3">
                     <div
@@ -728,7 +705,6 @@ const handleConfirmPermanentDelete = confirmDelete
                   </div>
                 </td>
 
-                <!-- Location -->
                 <td class="py-4 px-4">
                   <div
                     class="flex items-center gap-1.5 text-xs text-slate-800 dark:text-slate-200 font-semibold"
@@ -741,7 +717,6 @@ const handleConfirmPermanentDelete = confirmDelete
                   </span>
                 </td>
 
-                <!-- Hotel Admin -->
                 <td class="py-4 px-4">
                   <div
                     class="flex items-center gap-1.5 text-xs text-slate-800 dark:text-slate-200 font-semibold"
@@ -759,7 +734,6 @@ const handleConfirmPermanentDelete = confirmDelete
                   </span>
                 </td>
 
-                <!-- Rooms -->
                 <td class="py-4 px-4">
                   <span
                     class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs"
@@ -768,7 +742,6 @@ const handleConfirmPermanentDelete = confirmDelete
                   </span>
                 </td>
 
-                <!-- Status Badge -->
                 <td class="py-4 px-4">
                   <span
                     v-if="hotel.status === 'active'"
@@ -796,7 +769,6 @@ const handleConfirmPermanentDelete = confirmDelete
                   </span>
                 </td>
 
-                <!-- Actions Dropdown -->
                 <td class="py-4 px-5 text-right relative">
                   <button
                     @click.stop="toggleDropdown(hotel.id)"
@@ -805,7 +777,6 @@ const handleConfirmPermanentDelete = confirmDelete
                     <MoreVertical class="w-4 h-4" />
                   </button>
 
-                  <!-- Popover Menu -->
                   <div
                     v-if="activeDropdownId === hotel.id"
                     class="absolute right-5 mt-1 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-20 py-1.5 text-xs text-left animate-in fade-in zoom-in-95 duration-100"
@@ -838,7 +809,6 @@ const handleConfirmPermanentDelete = confirmDelete
 
                     <div class="h-px bg-slate-100 dark:bg-slate-800 my-1"></div>
 
-                    <!-- Activate if not active -->
                     <button
                       v-if="hotel.status !== 'active'"
                       @click="handleActivateHotel(hotel)"
@@ -848,7 +818,6 @@ const handleConfirmPermanentDelete = confirmDelete
                       <span>{{ languageStore.t('activate_hotel', 'Activate Hotel') }}</span>
                     </button>
 
-                    <!-- Deactivate if active -->
                     <button
                       v-if="hotel.status === 'active'"
                       @click="handleDeactivateHotel(hotel)"
@@ -858,7 +827,6 @@ const handleConfirmPermanentDelete = confirmDelete
                       <span>{{ languageStore.t('deactivate_hotel', 'Deactivate Hotel') }}</span>
                     </button>
 
-                    <!-- Suspend -->
                     <button
                       v-if="hotel.status !== 'suspended'"
                       @click="triggerSuspendModal(hotel)"
@@ -868,7 +836,6 @@ const handleConfirmPermanentDelete = confirmDelete
                       <span>{{ languageStore.t('suspend_hotel', 'Suspend Hotel') }}</span>
                     </button>
 
-                    <!-- Archive -->
                     <button
                       v-if="hotel.status !== 'archived'"
                       @click="triggerArchiveModal(hotel)"
@@ -880,7 +847,6 @@ const handleConfirmPermanentDelete = confirmDelete
 
                     <div class="h-px bg-slate-100 dark:bg-slate-800 my-1"></div>
 
-                    <!-- Permanent Delete -->
                     <button
                       @click="triggerDeleteModal(hotel)"
                       class="w-full px-3.5 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center gap-2.5 font-bold transition cursor-pointer"
@@ -895,7 +861,6 @@ const handleConfirmPermanentDelete = confirmDelete
           </table>
         </div>
 
-        <!-- Pagination Bar -->
         <div
           v-if="lastPage > 1"
           class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between"
@@ -930,9 +895,6 @@ const handleConfirmPermanentDelete = confirmDelete
         </div>
       </div>
 
-      <!-- ========================================================================= -->
-      <!-- 1. ADD NEW HOTEL MODAL -->
-      <!-- ========================================================================= -->
       <Teleport to="body">
         <div
           v-if="showCreateModal"
@@ -945,7 +907,6 @@ const handleConfirmPermanentDelete = confirmDelete
           <div
             class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150"
           >
-            <!-- Header -->
             <div
               class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800"
             >
@@ -975,7 +936,6 @@ const handleConfirmPermanentDelete = confirmDelete
               </button>
             </div>
 
-            <!-- Body -->
             <div class="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
@@ -1106,7 +1066,6 @@ const handleConfirmPermanentDelete = confirmDelete
                 </div>
               </div>
 
-              <!-- Initial Hotel Admin Section -->
               <div class="pt-4 border-t border-slate-200 dark:border-slate-800">
                 <label class="flex items-center gap-2 cursor-pointer mb-3">
                   <input
@@ -1173,7 +1132,6 @@ const handleConfirmPermanentDelete = confirmDelete
               </div>
             </div>
 
-            <!-- Footer -->
             <div
               class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5"
             >
@@ -1202,9 +1160,6 @@ const handleConfirmPermanentDelete = confirmDelete
         </div>
       </Teleport>
 
-      <!-- ========================================================================= -->
-      <!-- 2. HOTEL DETAILS MODAL (With Statistics) -->
-      <!-- ========================================================================= -->
       <Teleport to="body">
         <div
           v-if="showDetailsModal && selectedHotel"
@@ -1217,7 +1172,6 @@ const handleConfirmPermanentDelete = confirmDelete
           <div
             class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150"
           >
-            <!-- Header -->
             <div
               class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40"
             >
@@ -1244,9 +1198,7 @@ const handleConfirmPermanentDelete = confirmDelete
               </button>
             </div>
 
-            <!-- Body -->
             <div class="flex-1 overflow-y-auto p-6 space-y-6 text-xs">
-              <!-- Statistics Cards Grid -->
               <div>
                 <h3
                   class="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-3"
@@ -1323,7 +1275,6 @@ const handleConfirmPermanentDelete = confirmDelete
                 </div>
               </div>
 
-              <!-- Information Grid -->
               <div
                 class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-3"
               >
@@ -1402,7 +1353,6 @@ const handleConfirmPermanentDelete = confirmDelete
                 </div>
               </div>
 
-              <!-- Admins List -->
               <div>
                 <h3
                   class="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-2"
@@ -1440,7 +1390,6 @@ const handleConfirmPermanentDelete = confirmDelete
               </div>
             </div>
 
-            <!-- Footer -->
             <div
               class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between"
             >
@@ -1461,9 +1410,6 @@ const handleConfirmPermanentDelete = confirmDelete
         </div>
       </Teleport>
 
-      <!-- ========================================================================= -->
-      <!-- 3. EDIT HOTEL MODAL -->
-      <!-- ========================================================================= -->
       <Teleport to="body">
         <div
           v-if="showEditModal && selectedHotel"
@@ -1616,9 +1562,6 @@ const handleConfirmPermanentDelete = confirmDelete
         </div>
       </Teleport>
 
-      <!-- ========================================================================= -->
-      <!-- 4. SUSPEND HOTEL MODAL -->
-      <!-- ========================================================================= -->
       <Teleport to="body">
         <div
           v-if="showSuspendModal && selectedHotel"
@@ -1681,9 +1624,6 @@ const handleConfirmPermanentDelete = confirmDelete
         </div>
       </Teleport>
 
-      <!-- ========================================================================= -->
-      <!-- 5. ARCHIVE HOTEL MODAL -->
-      <!-- ========================================================================= -->
       <Teleport to="body">
         <div
           v-if="showArchiveModal && selectedHotel"
@@ -1744,9 +1684,6 @@ const handleConfirmPermanentDelete = confirmDelete
         </div>
       </Teleport>
 
-      <!-- ========================================================================= -->
-      <!-- 6. PERMANENT DELETE MODAL -->
-      <!-- ========================================================================= -->
       <Teleport to="body">
         <div
           v-if="showDeleteModal && selectedHotel"

@@ -28,12 +28,6 @@ function formatCurrency(value: number) {
   }).format(value)
 }
 
-/*
-|--------------------------------------------------------------------------
-| Quantity Update
-|--------------------------------------------------------------------------
-*/
-
 function increase(index: number) {
   const updated = localItems.value.map((item, i) => {
     if (i === index) {
@@ -86,10 +80,6 @@ function itemPrice(item: any) {
 </script>
 <template>
   <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-    <!-- ===================================================== -->
-    <!-- Header -->
-    <!-- ===================================================== -->
-
     <div
       class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6"
     >
@@ -110,14 +100,8 @@ function itemPrice(item: any) {
       </div>
     </div>
 
-    <!-- ===================================================== -->
-    <!-- Loading -->
-    <!-- ===================================================== -->
-
     <div v-if="loading" class="flex items-center justify-center py-12 sm:py-14 md:py-16 lg:py-20">
-      <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-10 h-10) -->
       <div class="relative w-10 h-10 sm:w-12 sm:h-12">
-        <!-- Static background - BRIGHT CYAN -->
         <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
           <circle
             cx="50"
@@ -130,7 +114,6 @@ function itemPrice(item: any) {
           />
         </svg>
 
-        <!-- Animated spinner - BRIGHT YELLOW -->
         <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite">
           <svg viewBox="0 0 100 100" class="w-full h-full">
             <circle
@@ -152,10 +135,6 @@ function itemPrice(item: any) {
       >
     </div>
 
-    <!-- ===================================================== -->
-    <!-- Empty -->
-    <!-- ===================================================== -->
-
     <div v-else-if="items.length === 0" class="py-12 sm:py-14 md:py-16 lg:py-20 text-center px-4">
       <div class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl"></div>
 
@@ -170,16 +149,8 @@ function itemPrice(item: any) {
       </p>
     </div>
 
-    <!-- ===================================================== -->
-    <!-- Table -->
-    <!-- ===================================================== -->
-
     <div v-else class="overflow-x-auto -mx-4 sm:mx-0">
       <table class="min-w-full divide-y divide-gray-200">
-        <!-- =============================================== -->
-        <!-- Header -->
-        <!-- =============================================== -->
-
         <thead class="bg-gray-50">
           <tr>
             <th
@@ -220,8 +191,6 @@ function itemPrice(item: any) {
             :key="item.id ?? index"
             class="hover:bg-gray-50 transition"
           >
-            <!-- Menu Item -->
-
             <td class="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4">
               <div class="font-semibold text-xs sm:text-sm md:text-base text-gray-900 truncate">
                 {{ item.menu_item?.name }}
@@ -231,8 +200,6 @@ function itemPrice(item: any) {
                 {{ item.notes || 'No notes' }}
               </div>
             </td>
-
-            <!-- Quantity -->
 
             <td class="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 text-center">
               <div
@@ -265,15 +232,11 @@ function itemPrice(item: any) {
               </span>
             </td>
 
-            <!-- Price -->
-
             <td
               class="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 text-right font-medium text-xs sm:text-sm md:text-base"
             >
               {{ formatCurrency(item.item_price_at_order) }}
             </td>
-
-            <!-- Line Total -->
 
             <td
               class="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 text-right font-bold text-xs sm:text-sm md:text-base text-indigo-700"

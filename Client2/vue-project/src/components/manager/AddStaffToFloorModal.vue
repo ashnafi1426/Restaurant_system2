@@ -40,7 +40,6 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 const hotelStore = useHotelStore()
 
-// State
 const availableFloors = ref<any[]>([])
 const selectedFloorId = ref<string>(props.floorId || '')
 const waiters = ref<any[]>([])
@@ -263,7 +262,6 @@ onMounted(async () => {
     <div
       class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col border border-slate-200 dark:border-slate-800 overflow-hidden font-sans"
     >
-      <!-- Modal Header -->
       <div
         class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0 bg-white dark:bg-slate-900"
       >
@@ -292,9 +290,7 @@ onMounted(async () => {
         </button>
       </div>
 
-      <!-- Modal Body -->
       <div class="p-5 sm:p-6 space-y-5 overflow-y-auto flex-1">
-        <!-- Success Alert -->
         <div
           v-if="successMessage"
           class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded-2xl flex items-center gap-3 text-xs font-bold"
@@ -303,7 +299,6 @@ onMounted(async () => {
           <p>{{ successMessage }}</p>
         </div>
 
-        <!-- Error Alert -->
         <div
           v-if="error"
           class="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 rounded-2xl flex items-start gap-2.5 text-xs font-bold"
@@ -312,7 +307,6 @@ onMounted(async () => {
           <p class="whitespace-pre-line">{{ error }}</p>
         </div>
 
-        <!-- Loading Spinner -->
         <div v-if="isLoading" class="flex flex-col items-center justify-center py-12 gap-3">
           <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
           <p class="text-xs font-bold text-slate-500 dark:text-slate-400">
@@ -321,7 +315,6 @@ onMounted(async () => {
         </div>
 
         <div v-else class="space-y-5">
-          <!-- 1. FLOOR REQUIRED -->
           <div>
             <label
               class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5"
@@ -351,7 +344,6 @@ onMounted(async () => {
             </p>
           </div>
 
-          <!-- 2. WAITERS REQUIRED -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <label
@@ -378,7 +370,6 @@ onMounted(async () => {
               </div>
             </div>
 
-            <!-- Selected Waiter Chips (e.g. [ Dawit × ] [ Hana × ]) -->
             <div
               v-if="selectedWaitersList.length > 0"
               class="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 mb-2.5 min-h-[42px]"
@@ -400,7 +391,6 @@ onMounted(async () => {
               </span>
             </div>
 
-            <!-- Waiter Search & Selection Box -->
             <div
               class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-950"
             >
@@ -418,7 +408,6 @@ onMounted(async () => {
                 />
               </div>
 
-              <!-- Scrollable Waiter Checkbox List -->
               <div
                 class="max-h-48 overflow-y-auto p-1.5 divide-y divide-slate-100 dark:divide-slate-850"
               >
@@ -439,7 +428,6 @@ onMounted(async () => {
                   }"
                 >
                   <div class="flex items-center gap-2.5 min-w-0">
-                    <!-- Checkbox -->
                     <div
                       class="w-4 h-4 rounded-md border flex items-center justify-center transition flex-shrink-0"
                       :class="[
@@ -454,7 +442,6 @@ onMounted(async () => {
                       />
                     </div>
 
-                    <!-- Waiter Avatar & Details -->
                     <div
                       class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-600 font-bold text-[10px] flex items-center justify-center flex-shrink-0"
                     >
@@ -498,7 +485,6 @@ onMounted(async () => {
             </p>
           </div>
 
-          <!-- 3. ACTIVE REQUIRED -->
           <div
             class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between"
           >
@@ -523,7 +509,6 @@ onMounted(async () => {
               </p>
             </div>
 
-            <!-- Toggle switch -->
             <button
               type="button"
               @click="isActive = !isActive"
@@ -539,7 +524,6 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Modal Footer -->
       <div
         class="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 flex-shrink-0 flex items-center justify-end gap-3"
       >

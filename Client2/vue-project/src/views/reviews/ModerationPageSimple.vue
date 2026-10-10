@@ -18,7 +18,6 @@
     </template>
 
     <div class="max-w-6xl">
-      <!-- Loading State -->
       <div v-if="loading" class="space-y-4">
         <div
           v-for="i in 3"
@@ -31,14 +30,12 @@
         </div>
       </div>
 
-      <!-- Reviews List -->
       <div v-else-if="pendingReviews.length > 0" class="space-y-4">
         <div
           v-for="review in pendingReviews"
           :key="review.id"
           class="bg-white rounded-lg border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow"
         >
-          <!-- Header -->
           <div class="flex items-start justify-between mb-4">
             <div class="flex-1">
               <h3 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
@@ -66,7 +63,6 @@
             </span>
           </div>
 
-          <!-- Rating -->
           <div
             class="flex items-center gap-3 mb-4 p-3 bg-amber-50 rounded-lg border border-amber-100"
           >
@@ -83,7 +79,6 @@
             >
           </div>
 
-          <!-- Review Text -->
           <div
             v-if="review.review_text"
             class="mb-4 p-4 bg-slate-50 rounded-lg border border-slate-200"
@@ -94,7 +89,6 @@
             </div>
           </div>
 
-          <!-- Actions -->
           <div class="flex flex-wrap gap-3 pt-4 border-t border-slate-200">
             <button
               @click="handleApproveReview(review.id)"
@@ -126,7 +120,6 @@
         </div>
       </div>
 
-      <!-- Empty State -->
       <div v-else class="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
         <div class="text-center py-16">
           <CheckCircle :size="64" class="mx-auto text-green-500 mb-4 opacity-50" />
@@ -194,7 +187,6 @@ const formatDate = (dateString: string) => {
 const fetchPendingReviews = async () => {
   loading.value = true
   try {
-    // Fetch moderator reviews (pending status)
     await reviewStore.fetchModeratorReviews('pending', 1)
     pendingReviews.value = reviewStore.pendingReviews
   } catch (error) {
@@ -209,7 +201,7 @@ const handleApproveReview = async (reviewId: string) => {
     approving.value = reviewId
     try {
       await reviewStore.approveReview(reviewId)
-      // Remove from pending list
+
       pendingReviews.value = pendingReviews.value.filter((r) => r.id !== reviewId)
     } catch (error) {
       console.error('Failed to approve review:', error)
@@ -225,7 +217,7 @@ const handleRejectReview = async (reviewId: string) => {
     rejecting.value = reviewId
     try {
       await reviewStore.rejectReview(reviewId)
-      // Remove from pending list
+
       pendingReviews.value = pendingReviews.value.filter((r) => r.id !== reviewId)
     } catch (error) {
       console.error('Failed to reject review:', error)

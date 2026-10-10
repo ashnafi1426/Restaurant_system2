@@ -112,7 +112,7 @@ const formatRoomDisplay = (room: Room): string => {
     room.room_type && typeof room.room_type === 'object' ? room.room_type.capacity : 0
   const price =
     room.room_type && typeof room.room_type === 'object' ? room.room_type.base_price_per_night : 0
-  return `Room ${roomNumber} - ${roomType} (${capacity} guests, $${price}/night)`
+  return `Room ${roomNumber} - ${roomType} (${capacity} guests, ${price}/night)`
 }
 
 const selectRoom = (room: Room) => {
@@ -798,7 +798,6 @@ async function registerGuest() {
         {{ languageStore.t('cancel', 'Cancel') }}
       </button>
 
-      <!-- Direct Book & Confirm (Pay at Desk) -->
       <button
         type="button"
         @click="bookDirectly"
@@ -818,7 +817,6 @@ async function registerGuest() {
         <span>✓ {{ languageStore.t('book_and_confirm', 'Confirm & Book (Pay at Desk)') }}</span>
       </button>
 
-      <!-- Pay Online via Chapa -->
       <button
         type="button"
         @click="openPaymentDialog"

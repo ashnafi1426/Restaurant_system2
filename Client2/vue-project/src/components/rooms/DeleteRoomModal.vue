@@ -40,7 +40,6 @@ const emit = defineEmits(['close', 'delete', 'force-delete', 'deactivate'])
         }}
       </p>
 
-      <!-- Server Warning / Error Alert -->
       <div
         v-if="errorMessage"
         class="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl text-xs space-y-2 text-amber-900 dark:text-amber-200"

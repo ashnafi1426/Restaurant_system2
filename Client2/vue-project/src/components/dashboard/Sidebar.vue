@@ -70,17 +70,14 @@ const handleNavigate = () => {
 
 const handleLogout = async () => {
   try {
-    // Call logout to clear auth state
     await auth.logout()
 
-    // Navigate immediately to login page
     await router.replace('/login')
 
-    // Optionally reload to clear any cached state
     window.location.href = '/login'
   } catch (error) {
     console.error('[Sidebar] Logout error:', error)
-    // Even if logout fails, redirect to login
+
     window.location.href = '/login'
   }
 }
@@ -720,7 +717,6 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <!-- Desktop Collapse Button (Circular style matching reference) -->
         <button
           @click="sidebarStore.toggleCollapse()"
           class="hidden lg:flex items-center justify-center w-8.5 h-8.5 rounded-full border border-slate-200/70 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer flex-shrink-0 shadow-xs"
@@ -732,7 +728,6 @@ onUnmounted(() => {
           />
         </button>
 
-        <!-- Mobile Close Button -->
         <button
           @click="sidebarStore.closeMobile()"
           class="flex lg:hidden items-center justify-center w-8 h-8 rounded-full border border-slate-200/70 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer flex-shrink-0"

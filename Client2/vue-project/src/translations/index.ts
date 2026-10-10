@@ -4,7 +4,6 @@ export interface TranslationDictionary {
 
 export const translations = {
   en: {
-    // Front Navigation & Hotel
     home: 'Home',
     rooms: 'Rooms',
     gallery: 'Gallery',
@@ -23,7 +22,6 @@ export const translations = {
     select_language: 'Select Language',
     change_language: 'Change Language',
 
-    // Hero Section
     hero_badge: 'Grand Horizon Hotel & Resort',
     hero_title_part1: 'Timeless Luxury &',
     hero_title_part2: 'Unmatched Comfort',
@@ -42,7 +40,6 @@ export const translations = {
     welcome: 'Welcome',
     welcome_guest: 'Welcome, Esteemed Guest',
 
-    // QR Menu Specifics
     culinary_excellence: 'Experience Culinary Excellence',
     culinary_desc: 'Delicious meals delivered straight to your room',
     search_placeholder: 'Search delicious meals, drinks, and desserts...',
@@ -85,7 +82,6 @@ export const translations = {
     always_here: 'Always here to serve',
     view_cart: 'View Cart',
 
-    // Back / Dashboard & Sidebar Sections
     dashboard: 'Dashboard',
     Dashboard: 'Dashboard',
     hotel_management_system: 'Hotel Management System',
@@ -140,7 +136,6 @@ export const translations = {
     Analytics: 'Analytics',
     Administration: 'Administration',
 
-    // Sidebar Exact Matches from Screenshot & Code
     'Users & Staff': 'Users & Staff',
     'All Users & Staff': 'All Users & Staff',
     Hotels: 'Hotels',
@@ -175,7 +170,6 @@ export const translations = {
     'User Role Assignments': 'User Role Assignments',
     'Rooms Management': 'Rooms Management',
 
-    // Admin Dashboard Specific Translations
     administrator_dashboard: 'Administrator Dashboard',
     'Administrator Dashboard': 'Administrator Dashboard',
     super_admin: 'Super Admin',
@@ -314,7 +308,6 @@ export const translations = {
     total_rooms_enrolled: 'Total Rooms Enrolled',
     'Total Rooms Enrolled': 'Total Rooms Enrolled',
 
-    // Charts & Widgets
     revenue_analytics: 'Revenue Analytics',
     'Revenue Analytics': 'Revenue Analytics',
     'Financial performance & revenue trends': 'Financial performance & revenue trends',
@@ -328,7 +321,6 @@ export const translations = {
     Reserved: 'Reserved',
     Maintenance: 'Maintenance',
 
-    // Layout & Footer
     all_systems_operational: 'All systems operational',
     'All systems operational': 'All systems operational',
     privacy: 'Privacy',
@@ -339,7 +331,6 @@ export const translations = {
     Support: 'Support',
     'Exit Hotel View': 'Exit Hotel View',
 
-    // Hero & Guest Portal
     good_morning: 'Good Morning ',
     good_afternoon: 'Good Afternoon ',
     good_evening: 'Good Evening ',
@@ -347,7 +338,6 @@ export const translations = {
     room: 'Room',
     rooms_and_suites: 'Luxury Rooms & Suites',
 
-    // QR Menu & Specials
     good_food: 'Good Food, ',
     great_moments: 'Great Moments',
     view_specials: 'View Specials',
@@ -358,7 +348,6 @@ export const translations = {
     reviews: 'reviews',
     recent_searches: 'Recent Searches',
 
-    // Cart & Checkout Drawer
     your_order: 'Your Order',
     selected: 'selected',
     your_cart: 'Your Cart',
@@ -415,7 +404,6 @@ export const translations = {
     Pasta: 'Pasta',
     Snacks: 'Snacks',
 
-    // Featured Rooms & Facilities
     featured_accommodation: 'Featured Accommodation',
     explore_fine_rooms: 'Explore Our Fine Rooms',
     designed_for_luxury: 'Designed for luxury, comfort, and peaceful relaxation during your stay.',
@@ -429,7 +417,6 @@ export const translations = {
     facilities_desc:
       'Every facility has been thoughtfully designed to provide comfort, relaxation, and unforgettable luxury experiences.',
 
-    // Dining Section
     signature_dining: 'Signature Dining',
     culinary_experience: 'A Culinary Experience',
     culinary_experience_desc:
@@ -438,13 +425,11 @@ export const translations = {
     reserve_table: 'Reserve a Table',
     order_food_online: 'Order Food Online',
 
-    // Testimonials
     guest_reviews: 'Guest Reviews',
     what_guests_say: 'What Our Guests Say',
     what_guests_say_desc:
       'Read real reviews from international travelers who experienced the luxury of Grand Horizon Hotel.',
 
-    // Room Hero & Amenities
     discover_luxury_rooms: 'Discover Our Luxurious Rooms',
     discover_rooms_desc:
       'Experience unparalleled comfort and elegance in our exquisitely designed rooms. Each accommodation is crafted with premium amenities, modern furnishings, and stunning views.',
@@ -453,13 +438,11 @@ export const translations = {
     smart_tv: 'Smart HD TV',
     free_wifi: 'Free High-Speed Wi-Fi',
 
-    // Dashboard Search & Tooltip
     search_menu: 'Search menu or type /',
     collapse_sidebar: 'Collapse',
     expand_sidebar: 'Expand',
     sign_out: 'Sign Out',
 
-    // Auth & Profile
     sign_in: 'Sign In',
     welcome_back: 'Welcome Back',
     sign_in_subtitle: 'Enter your credentials to access the management portal',
@@ -482,7 +465,6 @@ export const translations = {
     profile_settings: 'Profile Settings',
     account_info: 'Account Information',
 
-    // Common Table & UI
     Search: 'Search',
     Filter: 'Filter',
     Filters: 'Filters',
@@ -516,7 +498,6 @@ export const translations = {
     yes: 'Yes',
     no: 'No',
 
-    // User & Staff Management
     user_staff_management: 'User & Staff Management',
     'User & Staff Management': 'User & Staff Management',
     user_staff_desc: 'Manage system accounts, staff roles, and department access.',
@@ -548,7 +529,6 @@ export const translations = {
     'Select Role': 'Select Role',
     no_users_match: 'No staff members match your criteria',
 
-    // RBAC & Roles
     role_management: 'Role Management',
     'Role Management': 'Role Management',
     permission_catalog: 'Permission Catalog',
@@ -559,7 +539,6 @@ export const translations = {
     temporary_roles: 'Temporary Role Assignments',
     'Temporary Role Assignments': 'Temporary Role Assignments',
 
-    // Tables & Restaurant Management
     restaurant_tables: 'Restaurant Tables',
     table_assignments: 'Table Assignments',
     assign_floors: 'Assign Floors',
@@ -578,7 +557,6 @@ export const translations = {
     unassigned: 'Unassigned',
     Unassigned: 'Unassigned',
 
-    // Front Desk & Reception
     check_in_guest: 'Check In Guest',
     'Check In Guest': 'Check In Guest',
     check_out_guest: 'Check Out Guest',
@@ -608,7 +586,6 @@ export const translations = {
     payment_received: 'Payment Received',
     confirm_check_out: 'Confirm Check-Out',
 
-    // Cashier & Finance
     payments_billing: 'Payments & Billing',
     invoices_history: 'Invoices & Receipts',
     'Invoices & Receipts': 'Invoices & Receipts',
@@ -753,7 +730,6 @@ export const translations = {
     last_updated: 'Last Updated',
     'Last Updated': 'Last Updated',
 
-    // Waiter & Kitchen
     assigned_orders: 'Assigned Orders',
     ready_for_pickup: 'Ready for Pickup',
     on_delivery: 'On Delivery',
@@ -815,7 +791,6 @@ export const translations = {
     order_ready: 'Order Ready',
     'Order Ready': 'Order Ready',
 
-    // Manager & Analytics
     analytics_reports: 'Analytics & Reports',
     'Analytics & Reports': 'Analytics & Reports',
     daily_operations: 'Daily Operations',
@@ -833,7 +808,6 @@ export const translations = {
     orders_completed: 'Orders Completed',
     'Orders Completed': 'Orders Completed',
 
-    // Reviews & Feedback
     reviews_feedback: 'Reviews & Feedback',
     'Reviews & Feedback': 'Reviews & Feedback',
     verified_guest: 'Verified Guest',
@@ -852,7 +826,6 @@ export const translations = {
     rating_breakdown: 'Rating Breakdown',
     be_the_first_review: 'Be the first to share your experience!',
 
-    // Comprehensive UI Keys
     guest_checkin_mgmt: 'Guest Check-In Management',
     guest_checkout_mgmt: 'Guest Check-Out Management',
     track_guest_arrivals: 'Track guest arrivals, manage check-ins, and monitor room occupancy.',
@@ -925,7 +898,6 @@ export const translations = {
     Kids: 'Kids',
     'In House': 'In House',
 
-    // Cashier, Waiter, Kitchen, Manager, Admin Extra Keys
     'Payment History': 'Payment History',
     'Payments List': 'Payments List',
     'Total Revenue': 'Total Revenue',
@@ -971,12 +943,10 @@ export const translations = {
     Capacity: 'Capacity',
     Amenities: 'Amenities',
 
-    // Waiter & History
     search_history_placeholder: 'Search history by order # or room...',
     room_destination: 'Room / Destination',
     loading_delivery_history: 'Loading delivery history...',
 
-    // Kitchen Views
     all_food_orders: 'All Food Orders',
     all_food_orders_desc: 'Complete kitchen order logs, status tracking, and history.',
     search_food_orders_placeholder: 'Search by order #, room, guest, or food items...',
@@ -1008,7 +978,6 @@ export const translations = {
     no_served_orders: 'No served orders found matching your criteria.',
     takeout_walk_in: 'Takeout / Walk-in',
 
-    // Manager Views
     table_assignments_desc:
       'Assign waiters to dining tables, designate shifts, and monitor priority coverage.',
     total_assignments: 'Total Assignments',
@@ -1091,7 +1060,6 @@ export const translations = {
     no_tasks_found: 'No operations tasks match your criteria.',
     floors: 'floors',
 
-    // Admin Views
     room_types: 'Room Types',
     room_types_desc: 'Manage room tiers, guest capacities, and pricing models.',
     add_room_type: 'Add Room Type',
@@ -1148,7 +1116,6 @@ export const translations = {
     configure: 'Configure',
     hotel_management_desc: 'Oversee hotel branches, operational details, and configurations.',
 
-    // Hotels & Properties
     hotels_management: 'Hotels Management',
     hotels_count: 'Hotels',
     hotels_governance_desc:
@@ -1203,7 +1170,6 @@ export const translations = {
     deleting: 'Deleting...',
     type_to_confirm: 'to confirm:',
 
-    // Rooms & Room Management
     room_management: 'Room Management',
     room_management_desc: 'Manage, filter, and track all hotel rooms and live occupancy.',
     search_rooms_placeholder: 'Search rooms by number, room type, floor...',
@@ -1222,7 +1188,6 @@ export const translations = {
     cleaning: 'Cleaning',
     maintenance: 'Maintenance',
 
-    // Reviews & Moderation
     submit_your_review: 'Submit Your Review',
     share_experience_desc: 'Share your experience with other guests',
     rating: 'Rating',
@@ -1287,7 +1252,6 @@ export const translations = {
     recent_reviews: 'Recent Reviews',
     guest_reviews_appear_here: 'Guest reviews will appear here as they are submitted.',
 
-    // Guest Rooms, Search & Booking
     search_rooms_guest_placeholder: 'Search by room number, type or floor…',
     clear_search: 'Clear search',
     no_rooms_found: 'No rooms found',
@@ -1327,7 +1291,6 @@ export const translations = {
     pay_with_chapa: 'Pay with Chapa (Cards / International)',
     pay_at_hotel: 'Pay at Hotel (Front Desk)',
 
-    // Menu Management & Filters
     export_menu: 'Export Menu',
     manage_categories: 'Manage Categories',
     add_new_item: 'Add New Item',
@@ -1340,7 +1303,6 @@ export const translations = {
     drinks: 'Drinks',
     dessert: 'Dessert',
 
-    // Auth, Errors & Dashboard
     email_sent: 'Email Sent!',
     account_not_activated: 'Account Not Activated',
     sending: 'Sending...',
@@ -1386,7 +1348,6 @@ export const translations = {
     receive_responses_mgmt: 'Receive responses from management',
     reviews_moderated_quality: 'Reviews are moderated for quality',
 
-    // Guest Booking Modal
     secure_your_stay: 'Secure your stay at',
     night_singular: 'Night',
     nights_plural: 'Nights',
@@ -1417,7 +1378,6 @@ export const translations = {
     secure_chapa_notice: 'Secure payment processed via Chapa payment gateway.',
     pay_amount: 'Pay',
 
-    // Additional Kitchen Keys
     search_ready_orders_placeholder: 'Search ready orders by #, room, or guest...',
     kitchen_efficiency: 'Kitchen Efficiency',
     avg_prep_time: 'Avg. Prep Time',
@@ -1457,7 +1417,6 @@ export const translations = {
     more_items: 'more items',
     more: 'more',
 
-    // Additional Waiter Keys
     completed_orders_desc: 'View your delivered order history, room numbers, and customer details.',
     loading_completed_orders: 'Loading completed orders...',
     no_completed_orders_yet: 'No completed orders yet',
@@ -1515,7 +1474,6 @@ export const translations = {
     other_reason: 'Other reason',
     submit_rejection: 'Submit Rejection',
 
-    // Additional Manager Keys
     manager_orders: 'Restaurant Orders',
     manager_orders_desc: 'Real-time monitoring of all restaurant and room orders.',
     awaiting_kitchen: 'Awaiting kitchen',
@@ -1542,7 +1500,6 @@ export const translations = {
     average_order_value: 'Average Order Value',
     pending_delivery: 'Pending Delivery',
 
-    // Additional Receptionist Keys
     guest_details: 'Guest Details',
     create_guest: 'Create Guest',
     edit_guest: 'Edit Guest',
@@ -1735,7 +1692,6 @@ export const translations = {
     your_items: 'Your Items',
     secure_payment_notice: 'Secure payment via Chapa gateway',
 
-    // Gallery Page
     photo_gallery: 'Photo Gallery',
     'Hotel Gallery': 'Hotel Gallery',
     hotel_gallery: 'Hotel Gallery',
@@ -1785,7 +1741,6 @@ export const translations = {
     'Infinity Swimming Pool': 'Infinity Swimming Pool',
     'Luxury Spa & Wellness': 'Luxury Spa & Wellness',
 
-    // Contact Page
     get_in_touch: 'Get In Touch',
     connect_with_us: 'Connect With Us',
     contact_desc:
@@ -1826,7 +1781,6 @@ export const translations = {
     faq_a3:
       'Room service food ordering is available 24/7 directly through your room QR code menu or by calling front desk reception.',
 
-    // About Page
     our_philosophy: 'Our Philosophy',
     mission_vision_values: 'Mission, Vision & Values',
     about_hero_desc:
@@ -1851,7 +1805,6 @@ export const translations = {
     'Innovation & Smart Technology': 'Innovation & Smart Technology',
     'Safe & Secure Environment': 'Safe & Secure Environment',
 
-    // Hotel History & Milestones
     our_journey: 'Our Journey',
     hotel_history_milestones: 'Hotel History & Milestones',
     hotel_history_desc:
@@ -1869,13 +1822,11 @@ export const translations = {
     modern_era_desc:
       'Completely renovated with smart room technology while preserving classic architectural elegance.',
 
-    // Hotel Statistics
     luxury_suites_rooms: 'Luxury Suites & Rooms',
     guest_satisfaction_rate: 'Guest Satisfaction Rate',
     years_of_excellence: 'Years of Excellence',
     professional_staff: 'Professional Staff',
 
-    // Meet Our Team
     our_team: 'Our Team',
     meet_our_team: 'Meet Our Executive Leadership',
     meet_our_team_desc:
@@ -1893,7 +1844,6 @@ export const translations = {
     gr_director_bio:
       'Ensures every guest stay is memorable, tailored to perfection, and exceeds international luxury standards.',
 
-    // Awards Section
     recognition_excellence: 'Recognition & Excellence',
     awards_accolades: 'Awards & Accolades',
     awards_desc:
@@ -1913,7 +1863,6 @@ export const translations = {
     'Guest Choice Award': 'Guest Choice Award',
     award_guest_choice_desc: 'Voted #1 luxury hotel in Ethiopia by our valued guests.',
 
-    // Why Choose Us
     why_choose_us: 'Why Choose Us',
     what_sets_us_apart: 'What Sets Us Apart',
     why_choose_us_desc:
@@ -1938,7 +1887,6 @@ export const translations = {
       'Competitive rates and exclusive booking perks without compromising on luxury service.',
   },
   am: {
-    // Front Navigation & Hotel
     home: 'መነሻ',
     rooms: 'ክፍሎች',
     Rooms: 'ክፍሎች',
@@ -1958,7 +1906,6 @@ export const translations = {
     select_language: 'ቋንቋ ይምረጡ',
     change_language: 'ቋንቋ ቀይር',
 
-    // Hero Section
     hero_badge: 'ግራንድ ሆራይዘን ሆቴል እና ሪዞርት',
     hero_title_part1: 'ዘመን የማይሽረው ቅንጦት እና',
     hero_title_part2: 'ተወዳዳሪ የሌለው ምቾት',
@@ -1976,7 +1923,6 @@ export const translations = {
     welcome: 'እንኳን ደህና መጡ',
     welcome_guest: 'እንኳን ደህና መጡ፣ ክቡር እንግዳ',
 
-    // QR Menu Specifics
     culinary_excellence: 'ምርጥ የምግብ ጥበብን ያጣጥሙ',
     culinary_desc: 'ጣፋጭ ምግቦች በቀጥታ ወደ ክፍልዎ ይቀርባሉ',
     search_placeholder: 'ጣፋጭ ምግቦችን፣ መጠጦችን እና ጣፋጮችን ይፈልጉ...',
@@ -2018,7 +1964,6 @@ export const translations = {
     always_here: 'ሁልጊዜ ለማገልገል ዝግጁ',
     view_cart: 'ቅርጫቱን ይመልከቱ',
 
-    // Back / Dashboard & Sidebar Sections
     dashboard: 'ዳሽቦርድ',
     Dashboard: 'ዳሽቦርድ',
     hotel_management_system: 'የሆቴል አስተዳደር ስርዓት',
@@ -2073,7 +2018,6 @@ export const translations = {
     Analytics: 'ትንታኔ',
     Administration: 'አስተዳደራዊ',
 
-    // Sidebar Exact Matches from Screenshot & Code
     'Users & Staff': 'ተጠቃሚዎች እና ሰራተኞች',
     'All Users & Staff': 'ሁሉም ተጠቃሚዎች እና ሰራተኞች',
     Hotels: 'ሆቴሎች',
@@ -2108,7 +2052,6 @@ export const translations = {
     'User Role Assignments': 'የተጠቃሚ ሚና ምደባዎች',
     'Rooms Management': 'የክፍሎች አስተዳደር',
 
-    // Admin Dashboard Specific Translations
     administrator_dashboard: 'የአስተዳዳሪ ዳሽቦርድ',
     'Administrator Dashboard': 'የአስተዳዳሪ ዳሽቦርድ',
     super_admin: 'ዋና አስተዳዳሪ',
@@ -2243,7 +2186,6 @@ export const translations = {
     total_rooms_enrolled: 'በስርዓቱ የተመዘገቡ ክፍሎች',
     'Total Rooms Enrolled': 'በስርዓቱ የተመዘገቡ ክፍሎች',
 
-    // Charts & Widgets
     revenue_analytics: 'የገቢ ትንታኔ',
     'Revenue Analytics': 'የገቢ ትንታኔ',
     'Financial performance & revenue trends': 'የገንዘብ አፈጻጸም እና የገቢ አዝማሚያዎች',
@@ -2257,7 +2199,6 @@ export const translations = {
     Reserved: 'ቀድሞ የተያዘ',
     Maintenance: 'በጥገና ላይ',
 
-    // Layout & Footer
     all_systems_operational: 'ሁሉም ስርዓቶች በትክክል እየሰሩ ነው',
     'All systems operational': 'ሁሉም ስርዓቶች በትክክል እየሰሩ ነው',
     privacy: 'የግላዊነት ፖሊሲ',
@@ -2268,7 +2209,6 @@ export const translations = {
     Support: 'እርዳታና ድጋፍ',
     'Exit Hotel View': 'ከሆቴል ዕይታ ውጣ',
 
-    // Hero & Guest Portal
     good_morning: 'እንደምን አደሩ ',
     good_afternoon: 'እንደምን ዋሉ ',
     good_evening: 'መልካም ምሽት ',
@@ -2276,7 +2216,6 @@ export const translations = {
     room: 'ክፍል',
     rooms_and_suites: 'ምርጥ ክፍሎች እና ስዊቶች',
 
-    // QR Menu & Specials
     good_food: 'ጣፋጭ ምግብ፣ ',
     great_moments: 'ድንቅ ጊዜያት',
     view_specials: 'ልዩ ምግቦችን እይ',
@@ -2287,7 +2226,6 @@ export const translations = {
     reviews: 'አስተያየቶች',
     recent_searches: 'የቅርብ ጊዜ ፍለጋዎች',
 
-    // Cart & Checkout Drawer
     your_order: 'የእርስዎ ትዕዛዝ',
     selected: 'የተመረጡ',
     your_cart: 'የእርስዎ ጋሪ',
@@ -2322,7 +2260,6 @@ export const translations = {
     track_order: 'ትዕዛዝዎን ይከታተሉ',
     walk_in_order_for: 'ቀጥታ ትዕዛዝ ለ',
 
-    // Categories
     All: 'ሁሉም',
     all: 'ሁሉም',
     Breakfast: 'ቁርስ',
@@ -2344,7 +2281,6 @@ export const translations = {
     Pasta: 'ፓስታ',
     Snacks: 'መክሰስ',
 
-    // Featured Rooms & Facilities
     featured_accommodation: 'ተመራጭ ክፍሎች',
     explore_fine_rooms: 'ምርጥ ክፍሎቻችንን ያስሱ',
     designed_for_luxury: 'ለቅንጦት፣ ለምቾት እና ለእረፍት ተብለው የተዘጋጁ።',
@@ -2357,7 +2293,6 @@ export const translations = {
     world_class_facilities: 'አለም አቀፍ ደረጃ ያላቸው አገልግሎቶች',
     facilities_desc: 'እያንዳንዱ አገልግሎት የተሟላ ምቾትና ድንቅ የቆይታ ጊዜ እንዲያሳልፉ ታስቦ የተዘጋጀ ነው።',
 
-    // Dining Section
     signature_dining: 'ልዩ መስተንግዶ',
     culinary_experience: 'የምግብ ጥበብ ተሞክሮ',
     culinary_experience_desc: 'በተዋጣላቸው ሼፎች የተዘጋጁ ባህላዊ የኢትዮጵያና አለም አቀፍ ምርጥ ምግቦችን ያጣጥሙ።',
@@ -2365,12 +2300,10 @@ export const translations = {
     reserve_table: 'ጠረጴዛ ያስይዙ',
     order_food_online: 'በኦንላይን እዘዝ',
 
-    // Testimonials
     guest_reviews: 'የእንግዶች አስተያየት',
     what_guests_say: 'እንግዶቻችን ምን ይላሉ?',
     what_guests_say_desc: 'በግራንድ ሆራይዘን ሆቴል ያረፉ እንግዶች የሰጡትን እውነተኛ አስተያየቶች ያንብቡ።',
 
-    // Room Hero & Amenities
     discover_luxury_rooms: 'የቅንጦት ክፍሎቻችንን ያግኙ',
     discover_rooms_desc: 'በውብ ክፍሎቻችን ውስጥ የማይረሳ ምቾትን ያጣጥሙ። ሁሉም ክፍሎች ዘመናዊ መገልገያዎች እና ድንቅ እይታዎች አሏቸው።',
     luxury_beds: 'ምርጥ አልጋዎች',
@@ -2378,13 +2311,11 @@ export const translations = {
     smart_tv: 'ስማርት ቲቪ',
     free_wifi: 'ፈጣን ዋይ-ፋይ',
 
-    // Dashboard Search & Tooltip
     search_menu: 'ሜኑ ፈልግ ወይም / ንካ',
     collapse_sidebar: 'አሳንስ',
     expand_sidebar: 'አስፋ',
     sign_out: 'ውጣ',
 
-    // Auth & Profile
     sign_in: 'ግባ',
     welcome_back: 'እንኳን ደህና መጡ',
     sign_in_subtitle: 'ወደ ማኔጅመንት ሲስተሙ ለመግባት መረጃዎትን ያስገቡ',
@@ -2407,7 +2338,6 @@ export const translations = {
     profile_settings: 'የመገለጫ ቅንብሮች',
     account_info: 'የመለያ መረጃ',
 
-    // Common Table & UI
     Search: 'ፈልግ',
     Filter: 'አጣራ',
     Filters: 'ማጣሪያዎች',
@@ -2441,7 +2371,6 @@ export const translations = {
     yes: 'አዎ',
     no: 'አይደለም',
 
-    // User & Staff Management
     user_staff_management: 'የተጠቃሚዎች እና ሰራተኞች አስተዳደር',
     'User & Staff Management': 'የተጠቃሚዎች እና ሰራተኞች አስተዳደር',
     user_staff_desc: 'የስርዓት ተጠቃሚዎችን፣ የሰራተኞች ሚናዎችን እና የመምሪያ ፈቃዶችን ያስተዳድሩ።',
@@ -2473,7 +2402,6 @@ export const translations = {
     'Select Role': 'ሚና ይምረጡ',
     no_users_match: 'የፍለጋ መስፈርቱን የሚያሟላ ሰራተኛ አልተገኘም',
 
-    // RBAC & Roles
     role_management: 'የሚናዎች አስተዳደር',
     'Role Management': 'የሚናዎች አስተዳደር',
     permission_catalog: 'የፈቃዶች ዝርዝር',
@@ -2484,7 +2412,6 @@ export const translations = {
     temporary_roles: 'ጊዜያዊ የሚና ምደባዎች',
     'Temporary Role Assignments': 'ጊዜያዊ የሚና ምደባዎች',
 
-    // Tables & Restaurant Management
     restaurant_tables: 'የሬስቶራንት ጠረጴዛዎች',
     table_assignments: 'የጠረጴዛ ምደባዎች',
     assign_floors: 'የፎቆች ምደባ',
@@ -2503,7 +2430,6 @@ export const translations = {
     unassigned: 'ያልተመደበ',
     Unassigned: 'ያልተመደበ',
 
-    // Front Desk & Reception
     check_in_guest: 'እንግዳ አስገባ (ቼክ-ኢን)',
     'Check In Guest': 'እንግዳ አስገባ (ቼክ-ኢን)',
     check_out_guest: 'እንግዳ አሰናብት (ቼክ-አውት)',
@@ -2533,7 +2459,6 @@ export const translations = {
     payment_received: 'ክፍያ ተቀብሏል',
     confirm_check_out: 'መውጣቱን አረጋግጥ',
 
-    // Cashier & Finance
     payments_billing: 'ክፍያዎችና ደረሰኞች',
     invoices_history: 'ደረሰኞች እና ታሪክ',
     'Invoices & Receipts': 'ደረሰኞች እና ታሪክ',
@@ -2676,7 +2601,6 @@ export const translations = {
     last_updated: 'መጨረሻ የተሻሻለው',
     'Last Updated': 'መጨረሻ የተሻሻለው',
 
-    // Waiter & Kitchen
     assigned_orders: 'የተመደቡ ትዕዛዞች',
     ready_for_pickup: 'ለመወሰድ ዝግጁ የሆኑ',
     on_delivery: 'በማድረስ ላይ ያሉ',
@@ -2738,7 +2662,6 @@ export const translations = {
     order_ready: 'ትዕዛዝ ዝግጁ ነው',
     'Order Ready': 'ትዕዛዝ ዝግጁ ነው',
 
-    // Manager & Analytics
     analytics_reports: 'ትንታኔ እና ሪፖርቶች',
     'Analytics & Reports': 'ትንታኔ እና ሪፖርቶች',
     daily_operations: 'ዕለታዊ ተግባራት',
@@ -2756,7 +2679,6 @@ export const translations = {
     orders_completed: 'የተጠናቀቁ ትዕዛዞች',
     'Orders Completed': 'የተጠናቀቁ ትዕዛዞች',
 
-    // Reviews & Feedback
     reviews_feedback: 'አስተያየቶችና ግምገማዎች',
     'Reviews & Feedback': 'አስተያየቶችና ግምገማዎች',
     verified_guest: 'የተረጋገጠ እንግዳ',
@@ -2775,7 +2697,6 @@ export const translations = {
     rating_breakdown: 'የደረጃዎች ዝርዝር',
     be_the_first_review: 'የመጀመሪያው አስተያየት ሰጪ ይሁኑ!',
 
-    // Comprehensive UI Keys
     guest_checkin_mgmt: 'የእንግዶች መግቢያ (ቼክ-ኢን) አስተዳደር',
     guest_checkout_mgmt: 'የእንግዶች መውጫ (ቼክ-አውት) አስተዳደር',
     track_guest_arrivals: 'የእንግዶችን መምጣት ይከታተሉ፣ መግቢያዎችን ያስተዳድሩ እና የክፍል አጠቃቀምን ይቆጣጠሩ።',
@@ -2847,7 +2768,6 @@ export const translations = {
     Kids: 'ልጆች',
     'In House': 'በሆቴሉ ያለ',
 
-    // Cashier, Waiter, Kitchen, Manager, Admin Extra Keys
     'Payment History': 'የክፍያ ታሪክ',
     'Payments List': 'የክፍያዎች ዝርዝር',
     'Total Revenue': 'ጠቅላላ ገቢ',
@@ -2893,12 +2813,10 @@ export const translations = {
     Capacity: 'አቅም',
     Amenities: 'መገልገያዎች',
 
-    // Waiter & History
     search_history_placeholder: 'ታሪክ በትዕዛዝ ቁጥር ወይም ክፍል ፈልግ...',
     room_destination: 'ክፍል / መድረሻ',
     loading_delivery_history: 'የማድረስ ታሪክ በመጫን ላይ...',
 
-    // Kitchen Views
     all_food_orders: 'ሁሉም የምግብ ትዕዛዞች',
     all_food_orders_desc: 'ሙሉ የማብሰያ ቤት ትዕዛዝ መዝገቦች፣ የሁኔታ ክትትል እና ታሪክ።',
     search_food_orders_placeholder: 'በትዕዛዝ #፣ ክፍል፣ እንግዳ ወይም ምግብ ይፈልጉ...',
@@ -2930,7 +2848,6 @@ export const translations = {
     no_served_orders: 'ምንም የቀረቡ ትዕዛዞች አልተገኙም።',
     takeout_walk_in: 'ይዞ መሄድ / ያለቦታ የተያዘ',
 
-    // Manager Views
     table_assignments_desc: 'አስተናጋጆችን ለምግብ ጠረጴዛዎች ይመድቡ፣ ፈረቃዎችን ይወስኑ እና ቅድሚያ የሚሰጣቸውን ይከታተሉ።',
     total_assignments: 'ጠቅላላ ምደባዎች',
     tables_covered: 'የተሸፈኑ ጠረጴዛዎች',
@@ -3011,7 +2928,6 @@ export const translations = {
     no_tasks_found: 'ከመስፈርቱ ጋር የሚዛመድ ምንም የተግባር መዝገብ የለም።',
     floors: 'ፎቆች',
 
-    // Admin Views
     room_types: 'የክፍል አይነቶች',
     room_types_desc: 'የክፍል ደረጃዎችን፣ የእንግዳ አቅምን እና የዋጋ አወጣጥን ያስተዳድሩ።',
     add_room_type: 'የክፍል አይነት አክል',
@@ -3067,7 +2983,6 @@ export const translations = {
     configure: 'አዋቅር',
     hotel_management_desc: 'የሆቴል ቅርንጫፎችን፣ የስራ ዝርዝሮችን እና ቅንብሮችን ይቆጣጠሩ።',
 
-    // Hotels & Properties
     hotels_management: 'የሆቴሎች አስተዳደር',
     hotels_count: 'ሆቴሎች',
     hotels_governance_desc: 'የሆቴል ቅርንጫፎችን ለመመዝገብ፣ ለማዋቀር፣ ለማገድ እና ለመቆጣጠር የሚያስችል ማዕከላዊ አስተዳደር።',
@@ -3121,7 +3036,6 @@ export const translations = {
     deleting: 'በመሰረዝ ላይ...',
     type_to_confirm: 'ለማረጋገጥ ይተይቡ:',
 
-    // Rooms & Room Management
     room_management: 'የክፍሎች አስተዳደር',
     room_management_desc: 'ሁሉንም የሆቴል ክፍሎች እና የቀጥታ የክፍል ይዞታን ያስተዳድሩ፣ ያጣሩ እና ይቆጣጠሩ።',
     search_rooms_placeholder: 'ክፍሎችን በቁጥር፣ በክፍል አይነት፣ ወይም በፎቅ ይፈልጉ...',
@@ -3140,7 +3054,6 @@ export const translations = {
     cleaning: 'በፅዳት ላይ',
     maintenance: 'በጥገና ላይ',
 
-    // Reviews & Moderation
     submit_your_review: 'አስተያየትዎን ያስገቡ',
     share_experience_desc: 'ልምድዎን ለሌሎች እንግዶች ያካፍሉ',
     rating: 'ደረጃ',
@@ -3202,7 +3115,6 @@ export const translations = {
     recent_reviews: 'የቅርብ ጊዜ አስተያየቶች',
     guest_reviews_appear_here: 'የእንግዶች አስተያየት ሲቀርብ እዚህ ይታያል።',
 
-    // Guest Rooms, Search & Booking
     search_rooms_guest_placeholder: 'በክፍል ቁጥር፣ ዓይነት ወይም ፎቅ ይፈልጉ…',
     clear_search: 'ፍለጋ አጽዳ',
     no_rooms_found: 'ምንም ክፍል አልተገኘም',
@@ -3241,7 +3153,6 @@ export const translations = {
     pay_with_chapa: 'በቻፓ (ካርድ / ዓለም አቀፍ) ይክፈሉ',
     pay_at_hotel: 'በሆቴሉ ሪሴፕሽን ይክፈሉ',
 
-    // Menu Management & Filters
     export_menu: 'ሜኑ አውርድ',
     manage_categories: 'ምድቦችን አስተዳድር',
     add_new_item: 'አዲስ ንጥል አክል',
@@ -3254,7 +3165,6 @@ export const translations = {
     drinks: 'መጠጦች',
     dessert: 'ጣፋጭ ምግቦች',
 
-    // Auth, Errors & Dashboard
     email_sent: 'ኢሜይል ተልኳል!',
     account_not_activated: 'አካውንቱ ገና አልነቃም',
     sending: 'በመላክ ላይ...',
@@ -3299,7 +3209,6 @@ export const translations = {
     receive_responses_mgmt: 'ከአስተዳደሩ ምላሾችን ያግኙ',
     reviews_moderated_quality: 'አስተያየቶች ለጥራት ቁጥጥር ይደረግባቸዋል',
 
-    // Guest Booking Modal
     secure_your_stay: 'ቆይታዎን ያረጋግጡ በ',
     night_singular: 'ሌሊት',
     nights_plural: 'ሌሊቶች',
@@ -3329,7 +3238,6 @@ export const translations = {
     secure_chapa_notice: 'አስተማማኝ ክፍያ በቻፓ የክፍያ መግቢያ በር በኩል ይከናወናል።',
     pay_amount: 'ይክፈሉ',
 
-    // Additional Kitchen Keys
     search_ready_orders_placeholder: 'የተዘጋጁ ትዕዛዞችን በቁጥር፣ በክፍል ወይም በእንግዳ ስም ይፈልጉ...',
     kitchen_efficiency: 'የወጥ ቤት ቅልጥፍና',
     avg_prep_time: 'አማካይ የዝግጅት ጊዜ',
@@ -3369,7 +3277,6 @@ export const translations = {
     more_items: 'ተጨማሪ ምግቦች',
     more: 'ተጨማሪ',
 
-    // Additional Waiter Keys
     completed_orders_desc: 'የተጠናቀቁ ትዕዛዞች ታሪክ፣ የክፍል ቁጥሮች እና የእንግዳ ዝርዝሮችን ይመልከቱ።',
     loading_completed_orders: 'የተጠናቀቁ ትዕዛዞች በመጫን ላይ...',
     no_completed_orders_yet: 'እስካሁን የተጠናቀቁ ትዕዛዞች የሉም',
@@ -3427,7 +3334,6 @@ export const translations = {
     other_reason: 'ሌላ ምክንያት',
     submit_rejection: 'ውድቅ አድርግ',
 
-    // Additional Manager Keys
     manager_orders: 'የሬስቶራንት ትዕዛዞች',
     manager_orders_desc: 'የሁሉም ሬስቶራንት እና የክፍል ትዕዛዞች የቀጥታ ክትትል።',
     awaiting_kitchen: 'ወጥ ቤት በመጠባበቅ ላይ',
@@ -3454,7 +3360,6 @@ export const translations = {
     average_order_value: 'አማካይ የትዕዛዝ ዋጋ',
     pending_delivery: 'ማድረስ የሚጠብቅ',
 
-    // Additional Receptionist Keys
     guest_details: 'የእንግዳ ዝርዝሮች',
     create_guest: 'አዲስ እንግዳ መዝግብ',
     edit_guest: 'የእንግዳ መረጃ አርትዕ',
@@ -3646,7 +3551,6 @@ export const translations = {
     your_items: 'ያዘዟቸው ዕቃዎች',
     secure_payment_notice: 'በቻፓ በኩል ደህንነቱ የተጠበቀ ክፍያ',
 
-    // Gallery Page
     photo_gallery: 'የፎቶ ጋለሪ',
     'Hotel Gallery': 'የሆቴል ጋለሪ',
     hotel_gallery: 'የሆቴል ጋለሪ',
@@ -3695,7 +3599,6 @@ export const translations = {
     'Infinity Swimming Pool': 'ኢንፊኒቲ የመዋኛ ገንዳ',
     'Luxury Spa & Wellness': 'የቅንጦት ስፓ እና የጤና ማዕከል',
 
-    // Contact Page
     get_in_touch: 'ያግኙን',
     connect_with_us: 'ከእኛ ጋር ይገናኙ',
     contact_desc:
@@ -3732,7 +3635,6 @@ export const translations = {
     faq_q3: 'የምግብ እና የክፍል አገልግሎት 24 ሰዓት ነው?',
     faq_a3: 'የክፍል ምግብ ትዕዛዝ በክፍልዎ QR ኮድ ሜኑ ወይም ወደ ፊት ጠረጴዛ በመደወል 24/7 ይገኛል።',
 
-    // About Page
     our_philosophy: 'የእኛ ፍልስፍና',
     mission_vision_values: 'ተልዕኮ፣ ራዕይ እና እሴቶች',
     about_hero_desc:
@@ -3754,7 +3656,6 @@ export const translations = {
     'Innovation & Smart Technology': 'ፈጠራ እና ዘመናዊ ቴክኖሎጂ',
     'Safe & Secure Environment': 'አስተማማኝ እና ደህንነቱ የተጠበቀ አካባቢ',
 
-    // Hotel History & Milestones
     our_journey: 'የእኛ ጉዞ',
     hotel_history_milestones: 'የሆቴሉ ታሪክ እና ዋና ዋና ምዕራፎች',
     hotel_history_desc:
@@ -3768,13 +3669,11 @@ export const translations = {
     'The Modern Era': 'ዘመናዊው ዘመን',
     modern_era_desc: 'ክላሲክ የስነ-ህንፃ ውበቱን ጠብቆ በዘመናዊ የስማርት ክፍል ቴክኖሎጂ ሙሉ በሙሉ ታደሰ።',
 
-    // Hotel Statistics
     luxury_suites_rooms: 'የቅንጦት ሱዊቶች እና ክፍሎች',
     guest_satisfaction_rate: 'የእንግዶች እርካታ ምጣኔ',
     years_of_excellence: 'የልህቀት ዓመታት',
     professional_staff: 'ሙያተኛ ሰራተኞች',
 
-    // Meet Our Team
     our_team: 'የእኛ ቡድን',
     meet_our_team: 'የስራ አመራር ቡድናችንን ይወቁ',
     meet_our_team_desc: 'ቁርጠኛ የእንግዳ ተቀባይነት ባለሙያዎቻችን ልዩ አገልግሎት ለመስጠት እና የማይረሱ ቆይታዎችን ለመፍጠር የተጉ ናቸው።',
@@ -3787,7 +3686,6 @@ export const translations = {
     'Guest Relations Director': 'የእንግዶች ግንኙነት ዳይሬክተር',
     gr_director_bio: 'የእያንዳንዱ እንግዳ ቆይታ የማይረሳ፣ ፍጹም የተስተካከለ እና ዓለም አቀፍ ደረጃውን የጠበቀ እንዲሆን ያረጋግጣል።',
 
-    // Awards Section
     recognition_excellence: 'እውቅና እና ልህቀት',
     awards_accolades: 'ሽልማቶች እና እውቅናዎች',
     awards_desc: 'ለልህቀት ያለን ቁርጠኝነት በታዋቂ ዓለም አቀፍ የእንግዳ ተቀባይነት ድርጅቶች እውቅና አግኝቷል።',
@@ -3804,7 +3702,6 @@ export const translations = {
     'Guest Choice Award': 'የእንግዶች ምርጫ ሽልማት',
     award_guest_choice_desc: 'በውድ እንግዶቻችን በኢትዮጵያ ውስጥ #1 የቅንጦት ሆቴል ተብሎ የተመረጠ።',
 
-    // Why Choose Us
     why_choose_us: 'ለምን እኛን ይመርጣሉ',
     what_sets_us_apart: 'ልዩ የሚያደርገን ምንድን ነው',
     why_choose_us_desc: 'በሺዎች የሚቆጠሩ እንግዶች ለምን በየዓመቱ ግራንድ ሆራይዘንን እንደሚመርጡ ይወቁ።',

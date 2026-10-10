@@ -4,7 +4,6 @@
     @touchstart="handleTouchStart"
     @touchend="handleTouchEnd"
   >
-    <!-- Slides Background & Image Container -->
     <div
       v-for="(slide, index) in slides"
       :key="slide.id"
@@ -23,17 +22,14 @@
         loading="eager"
       />
 
-      <!-- Soft Gradient Overlay - keeps typography readable while maintaining rich food colors -->
       <div
         class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/75 to-transparent"
       ></div>
     </div>
 
-    <!-- Active Slide Content Overlay -->
     <div class="relative z-20 h-full flex items-center px-6 sm:px-8 md:px-10">
       <Transition name="slide-fade" mode="out-in">
         <div :key="currentSlide" class="max-w-md space-y-2 sm:space-y-2.5 text-white">
-          <!-- Tag / Badge -->
           <div
             v-if="activeSlide.badge"
             class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-bold uppercase tracking-wider text-amber-300"
@@ -42,7 +38,6 @@
             <span>{{ activeSlide.badge }}</span>
           </div>
 
-          <!-- Main Heading with Gold Accent matching screenshot -->
           <h1
             class="text-2xl sm:text-3xl md:text-4xl font-serif font-bold tracking-tight leading-tight"
           >
@@ -50,14 +45,12 @@
             <span class="block text-[#c29353] drop-shadow-md">{{ activeSlide.titleLine2 }}</span>
           </h1>
 
-          <!-- Subtitle Text -->
           <p
             class="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed max-w-sm line-clamp-2"
           >
             {{ activeSlide.subtitle }}
           </p>
 
-          <!-- CTA Button -->
           <div class="pt-1.5 sm:pt-2">
             <button
               @click="handleSpecials(activeSlide.category)"
@@ -73,7 +66,6 @@
       </Transition>
     </div>
 
-    <!-- Arrow Navigation (Visible on hover and on touch devices) -->
     <button
       @click="prevSlide"
       class="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900/60 hover:bg-slate-900/90 text-white/80 hover:text-white backdrop-blur-md border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer shadow-md"
@@ -92,7 +84,6 @@
       <ChevronRight class="w-5 h-5" />
     </button>
 
-    <!-- Bottom Indicator Pagination Dots -->
     <div class="absolute bottom-3.5 right-6 sm:right-8 z-30 flex items-center gap-1.5">
       <button
         v-for="(slide, index) in slides"
@@ -128,7 +119,6 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  // Navigates every second (1000ms) as requested
   intervalMs: 1000,
 })
 
@@ -140,11 +130,9 @@ const languageStore = useLanguageStore()
 const currentSlide = ref(0)
 let timer: ReturnType<typeof setInterval> | null = null
 
-// Touch coordinates for mobile swiping
 let touchStartX = 0
 let touchEndX = 0
 
-// 5+ Curated Distinct Gourmet Food Images from unsplash.com
 const slides = computed<HeroSlide[]>(() => [
   {
     id: 1,
@@ -245,7 +233,6 @@ const stopAutoplay = () => {
   }
 }
 
-// Touch swipe support
 const handleTouchStart = (e: TouchEvent) => {
   touchStartX = e.changedTouches[0].screenX
 }
@@ -264,7 +251,6 @@ const handleSpecials = (category?: string) => {
 }
 
 onMounted(() => {
-  // Preload all unsplash images into browser cache so navigation every second is instant & smooth
   slides.value.forEach((slide) => {
     const img = new Image()
     img.src = slide.imageUrl

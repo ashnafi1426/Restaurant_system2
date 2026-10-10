@@ -30,7 +30,6 @@ const emit = defineEmits<{
   ): void
 }>()
 
-// Form State
 const roleForm = ref({
   name: '',
   description: '',
@@ -41,7 +40,6 @@ const roleForm = ref({
 const permissionSearch = ref('')
 const selectedActionFilter = ref<string>('all')
 
-// Fast O(1) permission lookup
 const selectedPermSet = computed(() => new Set(roleForm.value.selectedPermissions))
 const isPermissionSelected = (id: number): boolean => selectedPermSet.value.has(id)
 
@@ -54,7 +52,6 @@ const extractInitialPermissionIds = (): number[] => {
   return perms.map((p: any) => (typeof p === 'number' ? p : p.id))
 }
 
-// Reset form whenever modal opens or active role changes
 watch(
   () => [props.show, props.editingRole, props.initialPermissionIds],
   ([show]) => {

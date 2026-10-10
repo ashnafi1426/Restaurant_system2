@@ -4,7 +4,6 @@
   >
     <div class="w-full max-w-md">
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
-        <!-- Header -->
         <div class="text-center mb-8">
           <div
             class="mx-auto w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mb-4"
@@ -36,7 +35,6 @@
           </p>
         </div>
 
-        <!-- Success Message -->
         <div
           v-if="successMessage"
           class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl"
@@ -72,7 +70,6 @@
           </div>
         </div>
 
-        <!-- Error Message -->
         <div
           v-if="errorMessage && !needsActivation"
           class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl"
@@ -97,7 +94,6 @@
           </div>
         </div>
 
-        <!-- Needs Activation Message -->
         <div
           v-if="needsActivation"
           class="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl"
@@ -125,9 +121,7 @@
           </div>
         </div>
 
-        <!-- Form -->
         <form v-if="!successMessage" @submit.prevent="handleSubmit" class="space-y-6">
-          <!-- Email Input -->
           <div>
             <label
               for="email"
@@ -146,7 +140,6 @@
             />
           </div>
 
-          <!-- Submit Button -->
           <button
             type="submit"
             :disabled="sending || !email"
@@ -178,7 +171,6 @@
           </button>
         </form>
 
-        <!-- Back to Login -->
         <div class="mt-6 text-center">
           <router-link
             to="/login"
@@ -196,7 +188,6 @@
           </router-link>
         </div>
 
-        <!-- Help Text -->
         <div class="mt-8 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
           <p class="text-xs text-gray-600 dark:text-gray-400 text-center">
             <strong>{{ languageStore.t('need_help', 'Need help?') }}</strong> Contact support at
@@ -241,7 +232,7 @@ const handleSubmit = async () => {
 
   if (result.success) {
     successMessage.value = result.message
-    email.value = '' // Clear email on success
+    email.value = ''
   } else {
     errorMessage.value = result.message
     needsActivation.value = result.needsActivation || false

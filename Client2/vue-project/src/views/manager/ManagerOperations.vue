@@ -64,7 +64,6 @@ watch(
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
-      <!-- Header -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
@@ -108,9 +107,7 @@ watch(
         </div>
       </div>
 
-      <!-- Summary Stats Metrics -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <!-- Pending Orders -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
         >
@@ -129,7 +126,6 @@ watch(
           </div>
         </div>
 
-        <!-- Preparing Orders -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
         >
@@ -148,7 +144,6 @@ watch(
           </div>
         </div>
 
-        <!-- Active Deliveries -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
         >
@@ -167,7 +162,6 @@ watch(
           </div>
         </div>
 
-        <!-- Pending Laundry -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
         >
@@ -187,13 +181,10 @@ watch(
         </div>
       </div>
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -211,7 +202,6 @@ watch(
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -231,9 +221,7 @@ watch(
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="refreshData"
@@ -244,7 +232,6 @@ watch(
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': operationsStore.loading }" />
           </button>
 
-          <!-- Fullscreen Toggle -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -256,7 +243,6 @@ watch(
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -270,7 +256,6 @@ watch(
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
-            <!-- Department Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('department_focus', 'Department Focus') }}
@@ -294,7 +279,6 @@ watch(
               </select>
             </div>
 
-            <!-- Reset Filters -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -309,7 +293,6 @@ watch(
         </div>
       </Transition>
 
-      <!-- Loading State -->
       <div
         v-if="operationsStore.loading"
         class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-16 text-center space-y-3"
@@ -320,7 +303,6 @@ watch(
         </p>
       </div>
 
-      <!-- Error State -->
       <div
         v-else-if="operationsStore.error"
         class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center gap-2.5"
@@ -329,9 +311,7 @@ watch(
         <span>{{ operationsStore.error }}</span>
       </div>
 
-      <!-- Content Grid -->
       <div v-else class="space-y-6">
-        <!-- Restaurant & Room Service Dual Monitor -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <RestaurantMonitor
             v-if="selectedDepartment === 'all' || selectedDepartment === 'dining'"

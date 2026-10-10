@@ -114,7 +114,6 @@ const submit = () => {
 
 <template>
   <form @submit.prevent="submit" class="space-y-4 sm:space-y-5 md:space-y-6">
-    <!-- Room Type Name Field -->
     <div>
       <label
         class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
@@ -135,7 +134,7 @@ const submit = () => {
         ]"
         required
       />
-      <!-- Name Live Feedback -->
+
       <div v-if="serverErrors?.name" class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
         <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
         <span>{{ serverErrors.name[0] }}</span>
@@ -158,7 +157,6 @@ const submit = () => {
       </div>
     </div>
 
-    <!-- Description Field -->
     <div>
       <label
         class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
@@ -173,7 +171,6 @@ const submit = () => {
       />
     </div>
 
-    <!-- Price and Capacity Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
       <div>
         <label
@@ -233,7 +230,6 @@ const submit = () => {
       </div>
     </div>
 
-    <!-- Amenities Field -->
     <div>
       <label
         class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
@@ -277,7 +273,6 @@ const submit = () => {
       <p class="text-xs text-slate-400 mt-1">Press Enter or click + to add each amenity</p>
     </div>
 
-    <!-- Active Room Type Checkbox -->
     <div
       class="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl"
     >
@@ -300,7 +295,6 @@ const submit = () => {
       </div>
     </div>
 
-    <!-- Submit and Cancel Buttons -->
     <div class="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
       <button
         type="button"

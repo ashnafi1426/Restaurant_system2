@@ -179,7 +179,6 @@ const refresh = async () => {
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
-      <!-- Header -->
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
       >
@@ -218,13 +217,10 @@ const refresh = async () => {
         </div>
       </div>
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -242,7 +238,6 @@ const refresh = async () => {
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -262,9 +257,7 @@ const refresh = async () => {
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="refresh"
@@ -275,7 +268,6 @@ const refresh = async () => {
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
           </button>
 
-          <!-- Fullscreen Toggle -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -287,7 +279,6 @@ const refresh = async () => {
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -301,7 +292,6 @@ const refresh = async () => {
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
-            <!-- Order Type Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('order_type', 'Order Type') }}
@@ -320,7 +310,6 @@ const refresh = async () => {
               </select>
             </div>
 
-            <!-- Reset Filters -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -335,11 +324,9 @@ const refresh = async () => {
         </div>
       </Transition>
 
-      <!-- Table Container -->
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
             <thead
@@ -368,7 +355,6 @@ const refresh = async () => {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <!-- Loading Spinner State -->
               <tr v-if="loading">
                 <td colspan="7" class="px-6 py-20 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
@@ -380,21 +366,18 @@ const refresh = async () => {
                 </td>
               </tr>
 
-              <!-- Data Rows -->
               <template v-else>
                 <tr
                   v-for="order in paginatedOrders"
                   :key="order.id"
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
-                  <!-- Order Ref -->
                   <td
                     class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs"
                   >
                     {{ order.order_number || `ORD-${String(order.id).padStart(6, '0')}` }}
                   </td>
 
-                  <!-- Room / Service -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <span
                       v-if="order.table?.table_number || order.order_type === 'walk_in'"
@@ -422,7 +405,6 @@ const refresh = async () => {
                     </span>
                   </td>
 
-                  <!-- Guest -->
                   <td
                     class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white"
                   >
@@ -431,7 +413,6 @@ const refresh = async () => {
                     }}
                   </td>
 
-                  <!-- Dishes -->
                   <td class="py-3 px-4">
                     <div class="space-y-0.5 max-w-xs">
                       <div
@@ -453,21 +434,18 @@ const refresh = async () => {
                     </div>
                   </td>
 
-                  <!-- Time -->
                   <td
                     class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-medium"
                   >
                     {{ formatTime(order.order_time) }}
                   </td>
 
-                  <!-- Total -->
                   <td
                     class="py-3 px-4 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white font-mono text-xs sm:text-sm"
                   >
                     ${{ parseFloat(String(order.total || 0)).toFixed(2) }}
                   </td>
 
-                  <!-- Status -->
                   <td class="py-3 px-4 text-center pr-5 whitespace-nowrap">
                     <span
                       class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider"
@@ -478,7 +456,6 @@ const refresh = async () => {
                   </td>
                 </tr>
 
-                <!-- Empty State -->
                 <tr v-if="paginatedOrders.length === 0">
                   <td
                     colspan="7"
@@ -497,7 +474,6 @@ const refresh = async () => {
           </table>
         </div>
 
-        <!-- Mobile Card View -->
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
           <div
             v-if="loading"
@@ -570,7 +546,6 @@ const refresh = async () => {
           </template>
         </div>
 
-        <!-- Pagination Footer -->
         <div
           v-if="total > 0"
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"

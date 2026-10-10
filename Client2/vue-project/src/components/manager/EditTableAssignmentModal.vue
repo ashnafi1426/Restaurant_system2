@@ -49,11 +49,10 @@ const selectedTableData = computed(() => {
   return tables.value.find((t) => String(t.id) === String(selectedTable.value)) || null
 })
 
-// Only active waiters from the current hotel can be assigned
 const activeWaiters = computed(() => {
   return waiters.value.filter((w: any) => {
     const status = (w.status || 'active').toLowerCase()
-    // Always include currently assigned waiter even if inactive for display, but preferred active
+
     return status === 'active' || String(w.id) === String(selectedWaiter.value)
   })
 })
@@ -193,7 +192,6 @@ const handleClose = () => {
       <div
         class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col transition-all"
       >
-        <!-- Modal Header -->
         <div
           class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex-shrink-0"
         >
@@ -223,7 +221,6 @@ const handleClose = () => {
           </button>
         </div>
 
-        <!-- Modal Body -->
         <div class="p-6 overflow-y-auto space-y-5 flex-1">
           <div v-if="isLoading" class="py-12 text-center space-y-3">
             <Loader2 class="w-8 h-8 text-blue-600 animate-spin mx-auto" />
@@ -231,7 +228,6 @@ const handleClose = () => {
           </div>
 
           <template v-else>
-            <!-- Error Banner -->
             <div
               v-if="error"
               class="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-2xl text-xs font-bold flex items-center gap-2.5"
@@ -240,7 +236,6 @@ const handleClose = () => {
               <span>{{ error }}</span>
             </div>
 
-            <!-- Success Banner -->
             <div
               v-if="successMessage"
               class="p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl text-xs font-bold flex items-center gap-2.5"
@@ -249,7 +244,6 @@ const handleClose = () => {
               <span>{{ successMessage }}</span>
             </div>
 
-            <!-- Field 1: Restaurant Table -->
             <div>
               <label
                 class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2"
@@ -264,14 +258,11 @@ const handleClose = () => {
                 <option v-for="table in tables" :key="table.id" :value="table.id">
                   Table {{ table.table_number }}
                   {{ table.table_name ? `(${table.table_name})` : '' }} —
-                  {{ table.section || table.location || 'Main Section' }} ({{
-                    table.capacity
-                  }}
+                  {{ table.section || table.location || 'Main Section' }} ({{ table.capacity }}
                   Seats)
                 </option>
               </select>
 
-              <!-- Table Section Preview -->
               <div
                 v-if="selectedTableData"
                 class="mt-2.5 p-3 rounded-2xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/60 dark:bg-blue-950/20 flex items-center justify-between gap-3 text-xs"
@@ -291,7 +282,6 @@ const handleClose = () => {
               </div>
             </div>
 
-            <!-- Field 2: Assigned Waiter -->
             <div>
               <label
                 class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2"
@@ -310,7 +300,6 @@ const handleClose = () => {
               </select>
             </div>
 
-            <!-- Field 3: Active Assignment Toggle -->
             <div
               class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex items-center justify-between gap-4"
             >
@@ -342,7 +331,6 @@ const handleClose = () => {
           </template>
         </div>
 
-        <!-- Modal Footer -->
         <div
           class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex-shrink-0"
         >

@@ -81,7 +81,6 @@ const categories = computed(() => {
 
 <template>
   <div>
-    <!-- Header Row Matching Layout -->
     <div class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 px-1 sm:px-0">
       <h3 class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
         Filter by Category
@@ -95,9 +94,7 @@ const categories = computed(() => {
       </button>
     </div>
 
-    <!-- Scrollable/Wrap Flex Pill Row Container -->
     <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-2.5">
-      <!-- All Items Tab Pill -->
       <button
         @click="emit('select', null)"
         :class="[
@@ -111,7 +108,6 @@ const categories = computed(() => {
         <span class="hidden sm:inline">All Items</span><span class="sm:hidden">All</span>
       </button>
 
-      <!-- Dynamic Category Tab Pills -->
       <button
         v-for="category in categories"
         :key="category.value"
@@ -128,7 +124,6 @@ const categories = computed(() => {
         <span class="sm:hidden capitalize">{{ category.label }}</span>
       </button>
 
-      <!-- Action Create Category Pill Button -->
       <button
         @click="emit('manage-categories')"
         class="px-3.5 sm:px-5 py-2 sm:py-2.5 min-h-10 rounded-xl font-extrabold text-xs tracking-wide bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 border-dashed text-slate-500 dark:text-slate-400 hover:border-amber-500 hover:text-amber-600 transition flex items-center gap-2 whitespace-nowrap cursor-pointer"

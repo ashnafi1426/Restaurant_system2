@@ -44,7 +44,6 @@ const loadPaymentDetails = async () => {
 
 const payment = computed(() => cashierStore.selectedPayment)
 
-// Format helpers
 const formatCurrency = (amount: number | string) => {
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
   const curr = payment.value?.currency || hotelStore.currentHotel?.currency || 'ETB'
@@ -117,7 +116,6 @@ const handleRefund = async () => {
 <template>
   <DashboardLayout>
     <div class="space-y-6">
-      <!-- Header -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
           <button
@@ -145,7 +143,6 @@ const handleRefund = async () => {
         </button>
       </div>
 
-      <!-- Loading State -->
       <div v-if="cashierStore.isLoading && !payment" class="space-y-6">
         <div
           class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6 animate-pulse"
@@ -155,7 +152,6 @@ const handleRefund = async () => {
         </div>
       </div>
 
-      <!-- Payment Not Found -->
       <div
         v-else-if="!payment && !cashierStore.isLoading"
         class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-12 text-center"
@@ -180,9 +176,7 @@ const handleRefund = async () => {
         </button>
       </div>
 
-      <!-- Payment Details -->
       <template v-else-if="payment">
-        <!-- Status Card -->
         <div
           class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6"
         >
@@ -209,9 +203,7 @@ const handleRefund = async () => {
           </div>
         </div>
 
-        <!-- Transaction Information -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- Payment Info -->
           <div
             class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6"
           >
@@ -284,7 +276,6 @@ const handleRefund = async () => {
             </div>
           </div>
 
-          <!-- Customer Info -->
           <div
             class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6"
           >
@@ -343,12 +334,10 @@ const handleRefund = async () => {
           </div>
         </div>
 
-        <!-- Booking/Order Details -->
         <div
           v-if="payment.reservation || payment.order"
           class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6"
         >
-          <!-- Reservation Details -->
           <div v-if="payment.reservation">
             <h3
               class="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2"
@@ -400,7 +389,6 @@ const handleRefund = async () => {
             </div>
           </div>
 
-          <!-- Order Details -->
           <div v-if="payment.order">
             <h3
               class="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2"
@@ -435,7 +423,6 @@ const handleRefund = async () => {
           </div>
         </div>
 
-        <!-- Timeline -->
         <div
           class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6"
         >
@@ -502,7 +489,6 @@ const handleRefund = async () => {
         </div>
       </template>
 
-      <!-- Refund Modal -->
       <div
         v-if="showRefundModal"
         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"

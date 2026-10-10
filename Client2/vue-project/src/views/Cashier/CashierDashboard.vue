@@ -49,12 +49,10 @@ const languageStore = useLanguageStore()
 
 const currency = computed(() => hotelStore.currentHotel?.currency || 'ETB')
 
-// WebSocket Live State
 const isWsConnected = ref(false)
 const wsOrdersChannel = ref<any>(null)
 const wsPaymentsChannel = ref<any>(null)
 
-// Order filters, pagination & UI states
 const orderFilter = ref<'all' | 'paid' | 'unpaid' | 'cleared'>('all')
 const orderSearch = ref('')
 const perPageOptions = [5, 10, 20, 30, 50]
@@ -63,7 +61,6 @@ const currentPage = ref(1)
 const isClearingId = ref<string | null>(null)
 const expandedOrders = ref<Record<string, boolean>>({})
 
-// Advanced Filter & Fullscreen states
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
 
@@ -74,7 +71,6 @@ const filters = ref({
   payment_method: 'all',
 })
 
-// Number of active advanced filters
 const activeFilterCount = computed(() => {
   let count = 0
   if (filters.value.payment_status && filters.value.payment_status !== 'all') count++
@@ -133,7 +129,6 @@ function toggleFullscreen() {
   isFullscreen.value = !isFullscreen.value
 }
 
-// Visible page numbers for pagination
 const visiblePages = computed(() => {
   const current = cashierStore.orderPagination?.current_page || 1
   const last = cashierStore.orderPagination?.last_page || 1
@@ -165,7 +160,6 @@ function handlePerPageChange(limit: number) {
   triggerFetchOrders()
 }
 
-// Modals
 const showSettleModal = ref(false)
 const settleOrder = ref<any | null>(null)
 const settleMethod = ref<'cash' | 'card' | 'bank_transfer'>('cash')
@@ -174,7 +168,6 @@ const isSubmittingSettle = ref(false)
 const showReceiptModal = ref(false)
 const receiptOrder = ref<any | null>(null)
 
-// Toast notification
 const toast = ref<{ show: boolean; message: string; type: 'success' | 'error' }>({
   show: false,
   message: '',
@@ -190,7 +183,6 @@ function showToast(message: string, type: 'success' | 'error' = 'success') {
   }, 4500)
 }
 
-// WebSocket Setup
 function setupWebSocket() {
   if (typeof window === 'undefined' || !window.Echo || !hotelStore.hotelId) {
     return
@@ -541,7 +533,6 @@ const refreshDashboard = () => {
     <div
       class="space-y-3.5 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-4.5 max-w-full overflow-hidden font-sans"
     >
-      <!-- Toast Alert Notification -->
       <transition
         enter-active-class="transform ease-out duration-300 transition"
         enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
@@ -574,7 +565,6 @@ const refreshDashboard = () => {
         </div>
       </transition>
 
-      <!-- Cashier Operational KPI Cards (Compact Modern Real-World POS Bar) -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
         <div
           v-for="stat in stats"
@@ -617,16 +607,10 @@ const refreshDashboard = () => {
         </div>
       </div>
 
-      <!-- ========================================================================= -->
-      <!-- CUSTOMER ORDERS & TABLE SETTLEMENT SECTION (Compact Real-World POS Table) -->
-      <!-- ========================================================================= -->
-      <!-- CUSTOMER ORDERS & TABLE SETTLEMENT SECTION (Compact Real-World POS Table) -->
-      <!-- ========================================================================= -->
       <div
         class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/90 dark:border-slate-800/90 shadow-xs overflow-hidden transition-all"
         :class="{ 'fixed inset-0 z-50 p-4 sm:p-6 overflow-y-auto rounded-none': isFullscreen }"
       >
-        <!-- Section Header Bar -->
         <div
           class="p-3 sm:p-3.5 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-transparent"
         >
@@ -649,9 +633,7 @@ const refreshDashboard = () => {
               </span>
             </div>
 
-            <!-- Controls: Live WebSocket Status -->
             <div class="flex items-center gap-2 flex-shrink-0">
-              <!-- Live WebSocket Status Pill -->
               <span
                 v-if="isWsConnected"
                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60"
@@ -676,9 +658,7 @@ const refreshDashboard = () => {
             </div>
           </div>
 
-          <!-- Toolbar (Matching User's Screenshot: Search + Filter + Actions) -->
           <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2.5">
-            <!-- Left: Search Input & Filter Button -->
             <div class="flex flex-1 items-center gap-2 min-w-[260px] max-w-xl">
               <div class="relative flex-1">
                 <Search
@@ -699,7 +679,6 @@ const refreshDashboard = () => {
                 </button>
               </div>
 
-              <!-- Filter Toggle Button (Matching Screenshot) -->
               <button
                 type="button"
                 @click="toggleFilter"
@@ -721,9 +700,7 @@ const refreshDashboard = () => {
               </button>
             </div>
 
-            <!-- Right: Quick Status Pills & Action Buttons (Refresh + Fullscreen) -->
             <div class="flex items-center gap-2">
-              <!-- Quick Status Tabs -->
               <div
                 class="flex items-center p-0.5 bg-slate-100 dark:bg-slate-800/80 rounded-lg overflow-x-auto"
               >
@@ -811,7 +788,6 @@ const refreshDashboard = () => {
                 </button>
               </div>
 
-              <!-- Refresh Button (Matching Screenshot) -->
               <button
                 type="button"
                 @click="refreshDashboard"
@@ -825,7 +801,6 @@ const refreshDashboard = () => {
                 />
               </button>
 
-              <!-- Fullscreen Button (Matching Screenshot) -->
               <button
                 type="button"
                 @click="toggleFullscreen"
@@ -837,7 +812,6 @@ const refreshDashboard = () => {
             </div>
           </div>
 
-          <!-- Expandable Filter Panel (Multi-Criteria Filtering by Status and More) -->
           <Transition
             enter-active-class="transition duration-200 ease-out"
             enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -874,7 +848,6 @@ const refreshDashboard = () => {
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <!-- 1. Payment Status Filter -->
                 <div>
                   <label
                     class="mb-1 block text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide"
@@ -893,7 +866,6 @@ const refreshDashboard = () => {
                   </select>
                 </div>
 
-                <!-- 2. Kitchen / Order Status Filter -->
                 <div>
                   <label
                     class="mb-1 block text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide"
@@ -914,7 +886,6 @@ const refreshDashboard = () => {
                   </select>
                 </div>
 
-                <!-- 3. Dining Area / Order Type Filter -->
                 <div>
                   <label
                     class="mb-1 block text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide"
@@ -934,7 +905,6 @@ const refreshDashboard = () => {
                   </select>
                 </div>
 
-                <!-- 4. Payment Method Filter -->
                 <div>
                   <label
                     class="mb-1 block text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide"
@@ -959,7 +929,6 @@ const refreshDashboard = () => {
           </Transition>
         </div>
 
-        <!-- Orders Table -->
         <div v-if="filteredOrders.length === 0" class="p-8 text-center">
           <div
             class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400 mb-2"
@@ -998,7 +967,6 @@ const refreshDashboard = () => {
                     'bg-emerald-500/5': order.payment_status === 'paid' && !order.is_cleared,
                   }"
                 >
-                  <!-- Order Number & Type -->
                   <td class="py-2 px-3">
                     <div class="font-mono font-bold text-xs text-slate-900 dark:text-white">
                       #{{ order.order_number }}
@@ -1013,7 +981,6 @@ const refreshDashboard = () => {
                     </div>
                   </td>
 
-                  <!-- Table / Room -->
                   <td class="py-2 px-3">
                     <div v-if="order.table_number" class="flex flex-col">
                       <span
@@ -1042,7 +1009,6 @@ const refreshDashboard = () => {
                     <span v-else class="text-xs text-slate-400 font-medium">Walk-in</span>
                   </td>
 
-                  <!-- Customer Name -->
                   <td class="py-2 px-3">
                     <div
                       class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[120px]"
@@ -1054,7 +1020,6 @@ const refreshDashboard = () => {
                     </div>
                   </td>
 
-                  <!-- Items Preview -->
                   <td class="py-2 px-3">
                     <button
                       @click="toggleExpand(order.id)"
@@ -1069,14 +1034,12 @@ const refreshDashboard = () => {
                     </div>
                   </td>
 
-                  <!-- Total Amount -->
                   <td class="py-2 px-3">
                     <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
                       {{ formatCurrency(order.total) }}
                     </div>
                   </td>
 
-                  <!-- Order Status -->
                   <td class="py-2 px-3">
                     <span
                       class="px-2 py-0.5 rounded-md text-[10px] font-bold capitalize inline-block"
@@ -1086,7 +1049,6 @@ const refreshDashboard = () => {
                     </span>
                   </td>
 
-                  <!-- Payment Status -->
                   <td class="py-2 px-3">
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <span
@@ -1112,10 +1074,8 @@ const refreshDashboard = () => {
                     </div>
                   </td>
 
-                  <!-- Cashier Actions -->
                   <td class="py-2 px-3 text-right">
                     <div class="flex items-center justify-end gap-1.5">
-                      <!-- IF PAID: Primary Action is CLEAR ORDER -->
                       <button
                         v-if="order.payment_status === 'paid' && !order.is_cleared"
                         @click="handleClearPaidOrder(order)"
@@ -1128,7 +1088,6 @@ const refreshDashboard = () => {
                         <span>{{ languageStore.t('clear_order', 'Clear Order') }}</span>
                       </button>
 
-                      <!-- IF UNPAID: SETTLE & CLEAR (collect payment and clear) -->
                       <button
                         v-else-if="!order.is_cleared"
                         @click="openSettleModal(order)"
@@ -1139,7 +1098,6 @@ const refreshDashboard = () => {
                         <span>{{ languageStore.t('settle_clear', 'Settle & Clear') }}</span>
                       </button>
 
-                      <!-- ALREADY CLEARED BADGE -->
                       <span
                         v-else
                         class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700"
@@ -1148,7 +1106,6 @@ const refreshDashboard = () => {
                         <span>Cleared</span>
                       </span>
 
-                      <!-- View Receipt Button -->
                       <button
                         @click.stop="openReceipt(order)"
                         type="button"
@@ -1161,7 +1118,6 @@ const refreshDashboard = () => {
                   </td>
                 </tr>
 
-                <!-- Expandable Order Line Items Row -->
                 <tr v-if="expandedOrders[order.id]" class="bg-slate-50/80 dark:bg-slate-900/60">
                   <td
                     colspan="8"
@@ -1218,13 +1174,9 @@ const refreshDashboard = () => {
           </table>
         </div>
 
-        <!-- ========================================================================= -->
-        <!-- ORDERS PAGINATION BAR (5, 10, 20, 30, 50 rows per page - Compact Bar) -->
-        <!-- ========================================================================= -->
         <div
           class="px-3.5 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs"
         >
-          <!-- Left: Rows per page & counter -->
           <div class="flex items-center gap-2.5 text-slate-600 dark:text-slate-400">
             <div class="flex items-center gap-1.5">
               <span class="font-medium text-[11px]">Rows:</span>
@@ -1251,9 +1203,7 @@ const refreshDashboard = () => {
             <span v-else class="text-[11px]">0 orders</span>
           </div>
 
-          <!-- Right: Page Navigation Buttons -->
           <div class="flex items-center gap-1" v-if="cashierStore.orderPagination?.last_page > 1">
-            <!-- Previous Button -->
             <button
               type="button"
               :disabled="cashierStore.orderPagination.current_page <= 1"
@@ -1269,7 +1219,6 @@ const refreshDashboard = () => {
               <span>Prev</span>
             </button>
 
-            <!-- Page Number Buttons -->
             <template v-for="page in visiblePages" :key="page">
               <span v-if="page === -1" class="px-1 text-slate-400 text-xs select-none">...</span>
               <button
@@ -1287,7 +1236,6 @@ const refreshDashboard = () => {
               </button>
             </template>
 
-            <!-- Next Button -->
             <button
               type="button"
               :disabled="
@@ -1308,7 +1256,6 @@ const refreshDashboard = () => {
         </div>
       </div>
 
-      <!-- Quick Actions -->
       <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
         <h2 class="text-xl font-semibold text-slate-800 dark:text-white mb-4">
           {{ languageStore.t('quick_actions', 'Quick Actions') }}
@@ -1349,7 +1296,6 @@ const refreshDashboard = () => {
         </div>
       </div>
 
-      <!-- Revenue Overview -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div
           class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6"
@@ -1383,9 +1329,6 @@ const refreshDashboard = () => {
       </div>
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- SETTLE & CLEAR CONFIRMATION MODAL -->
-    <!-- ========================================================================= -->
     <Teleport to="body">
       <div
         v-if="showSettleModal && settleOrder"
@@ -1417,7 +1360,6 @@ const refreshDashboard = () => {
           </div>
 
           <div class="py-4 space-y-4 text-xs">
-            <!-- Order summary box -->
             <div
               class="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700/60 flex items-center justify-between"
             >
@@ -1438,7 +1380,6 @@ const refreshDashboard = () => {
               </div>
             </div>
 
-            <!-- Select Payment Method -->
             <div>
               <label class="block font-bold text-slate-700 dark:text-slate-300 mb-2"
                 >Payment Collection Method</label
@@ -1486,7 +1427,6 @@ const refreshDashboard = () => {
               </div>
             </div>
 
-            <!-- Release Table Note -->
             <div
               class="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/40 rounded-xl flex items-start gap-2.5 text-blue-800 dark:text-blue-300"
             >
@@ -1524,9 +1464,6 @@ const refreshDashboard = () => {
       </div>
     </Teleport>
 
-    <!-- ========================================================================= -->
-    <!-- PRINTABLE RECEIPT MODAL -->
-    <!-- ========================================================================= -->
     <Teleport to="body">
       <div
         v-if="showReceiptModal && receiptOrder"
@@ -1537,7 +1474,6 @@ const refreshDashboard = () => {
           class="relative bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 overflow-hidden my-8"
           @click.stop
         >
-          <!-- Header -->
           <div class="flex items-center justify-between pb-3 border-b dark:border-slate-800">
             <div class="flex items-center gap-2">
               <div
@@ -1556,7 +1492,6 @@ const refreshDashboard = () => {
             </button>
           </div>
 
-          <!-- Receipt Card (Print Target) -->
           <div
             id="printable-receipt"
             class="my-4 p-5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 font-mono text-xs text-slate-800 dark:text-slate-200 space-y-3"
@@ -1589,7 +1524,6 @@ const refreshDashboard = () => {
               >
             </div>
 
-            <!-- Items Table -->
             <div class="border-t border-b py-2 dark:border-slate-700 space-y-1.5">
               <div v-if="receiptOrder.items && receiptOrder.items.length > 0">
                 <div
@@ -1606,7 +1540,6 @@ const refreshDashboard = () => {
               </div>
             </div>
 
-            <!-- Financial Breakdown -->
             <div class="space-y-1 text-[11px] pt-1">
               <div class="flex justify-between text-slate-500">
                 <span>Subtotal:</span>
@@ -1657,7 +1590,6 @@ const refreshDashboard = () => {
             </div>
           </div>
 
-          <!-- Modal Actions -->
           <div class="flex items-center justify-end gap-3 pt-3 border-t dark:border-slate-800">
             <button
               @click="showReceiptModal = false"

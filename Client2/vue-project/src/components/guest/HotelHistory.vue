@@ -51,7 +51,6 @@ const milestones = computed(() => [
     class="bg-white dark:bg-slate-900 py-12 sm:py-16 md:py-20 lg:py-24 border-y border-slate-200 dark:border-slate-800 transition-colors duration-300"
   >
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10">
-      <!-- Header -->
       <div class="mx-auto mb-12 max-w-3xl text-center space-y-3">
         <span
           class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
@@ -75,7 +74,6 @@ const milestones = computed(() => [
         </p>
       </div>
 
-      <!-- Timeline -->
       <div class="relative">
         <div
           class="absolute left-4 sm:left-1/2 top-0 h-full w-0.5 -translate-x-0.5 sm:-translate-x-1/2 bg-amber-500/40"
@@ -83,12 +81,10 @@ const milestones = computed(() => [
 
         <div class="space-y-8">
           <div v-for="(milestone, index) in milestones" :key="index" class="relative">
-            <!-- Timeline Dot -->
             <div
               class="absolute left-0 sm:left-1/2 top-6 h-4 w-4 -translate-x-1.5 sm:-translate-x-1/2 rounded-full border-2 border-white dark:border-slate-900 bg-amber-500 shadow-md"
             ></div>
 
-            <!-- Content Card -->
             <div
               :class="[
                 'pl-10 sm:pl-0',

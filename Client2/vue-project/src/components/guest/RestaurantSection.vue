@@ -78,7 +78,6 @@ watch(
     class="bg-slate-50 dark:bg-slate-950 py-12 sm:py-16 lg:py-24 transition-colors duration-300 font-sans border-b border-slate-200 dark:border-slate-800"
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-      <!-- Section Header -->
       <div class="mx-auto max-w-3xl text-center space-y-3">
         <span
           class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
@@ -100,7 +99,6 @@ watch(
         </p>
       </div>
 
-      <!-- Action Buttons -->
       <div class="flex items-center justify-center gap-3">
         <button
           @click="viewRestaurantMenu"
@@ -119,14 +117,12 @@ watch(
         </button>
       </div>
 
-      <!-- Menu Grid -->
       <div v-if="featuredMenu.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div
           v-for="item in featuredMenu"
           :key="item.id"
           class="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs hover:border-amber-500/40 transition duration-300 flex flex-col justify-between"
         >
-          <!-- Dish Image -->
           <div class="relative h-60 overflow-hidden bg-slate-900">
             <img
               :src="item.image"
@@ -140,7 +136,6 @@ watch(
             </div>
           </div>
 
-          <!-- Dish Info -->
           <div class="p-6 space-y-3 flex-1 flex flex-col justify-between">
             <div class="space-y-2">
               <h3

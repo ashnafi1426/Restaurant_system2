@@ -10,7 +10,6 @@
 import Echo from 'laravel-echo'
 import Pusher from 'pusher-js'
 
-// Make Pusher available globally for Echo
 declare global {
   interface Window {
     Pusher: typeof Pusher
@@ -44,7 +43,6 @@ const echo = new Echo({
         const hotelId = localStorage.getItem('hotel_id') || localStorage.getItem('active_hotel_id')
         let qrToken = localStorage.getItem('guest_qr_token')
 
-        // Defensive check: if guest_qr_token is not yet in storage, check walk_in_payment_data or order_payment_data
         if (!qrToken) {
           try {
             const walkInData =
@@ -79,19 +77,16 @@ const echo = new Echo({
         console.log('[Echo] Hotel ID:', hotelId || 'MISSING')
         console.log('[Echo] QR Token:', qrToken ? qrToken.substring(0, 4) + '****' : 'MISSING')
 
-        // Build request body - include QR token for guest order channels
         const requestBody: any = {
           socket_id: socketId,
           channel_name: channel.name,
         }
 
-        // Include QR token in body for guest authentication
         if (qrToken && channel.name.includes('orders.')) {
           requestBody.qr_token = qrToken
           console.log('[Echo] Including QR token in request body for guest order channel')
         }
 
-        // Call Laravel broadcasting auth endpoint
         fetch(`${import.meta.env.VITE_API_BASE_URL}/api/broadcasting/auth`, {
           method: 'POST',
           headers: {

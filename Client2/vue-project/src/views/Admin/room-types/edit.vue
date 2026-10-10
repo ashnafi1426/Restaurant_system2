@@ -109,7 +109,6 @@ const submit = async () => {
         </span>
       </div>
 
-      <!-- Success Banner -->
       <div
         v-if="successMessage"
         class="mb-4 p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center gap-2.5 text-emerald-800 dark:text-emerald-300 text-sm shadow-sm animate-fadeIn"
@@ -118,7 +117,6 @@ const submit = async () => {
         <span>{{ successMessage }}</span>
       </div>
 
-      <!-- Error Banner -->
       <div
         v-if="error"
         class="mb-4 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl flex items-start justify-between gap-3 text-red-800 dark:text-red-300 text-sm shadow-sm animate-fadeIn"

@@ -16,7 +16,6 @@ const floorStats = ref({
   available_waiters: 0,
 })
 
-// Computed properties from store
 const formData = computed(() => addFloorStore.formData)
 const isSubmitting = computed(() => addFloorStore.submitting)
 const error = computed(() => addFloorStore.error)
@@ -24,11 +23,9 @@ const success = computed(() => addFloorStore.success)
 const validationErrors = computed(() => addFloorStore.validationErrors)
 const canSubmit = computed(() => addFloorStore.canSubmit)
 
-// Load initial stats
 const loadStats = async () => {
   isLoadingStats.value = true
   try {
-    // Try to get available waiters
     let waitersCount = 0
     try {
       const waiters = await floorManagementService.getAvailableWaiters()
@@ -37,7 +34,6 @@ const loadStats = async () => {
       console.warn('Could not fetch waiters:', err)
     }
 
-    // Try to get active floors count
     let floorsCount = 0
     try {
       const floorsResponse = await floorManagementService.getFloors({ is_active: true })
@@ -54,7 +50,7 @@ const loadStats = async () => {
     }
   } catch (err) {
     console.warn('Failed to load stats:', err)
-    // Use reasonable defaults on error
+
     floorStats.value = {
       active_floors: 5,
       total_staff: 42,
@@ -69,7 +65,6 @@ const submitForm = async () => {
   const newFloor = await addFloorStore.createFloor()
 
   if (newFloor) {
-    // Redirect after success
     setTimeout(() => {
       router.push('/manager/floor-assignment')
     }, 2000)
@@ -92,7 +87,6 @@ const handleFieldChange = (field: string, value: any) => {
 }
 
 onMounted(() => {
-  // Initialize form on mount
   addFloorStore.resetForm()
   loadStats()
 })
@@ -101,7 +95,6 @@ onMounted(() => {
 <template>
   <DashboardLayout>
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 px-6 py-6">
-      <!-- HEADER WITH BACK BUTTON -->
       <div class="flex items-center gap-4 mb-8">
         <button
           @click="goBack"
@@ -112,7 +105,6 @@ onMounted(() => {
         </button>
       </div>
 
-      <!-- PAGE TITLE -->
       <div class="mb-8">
         <h1 class="text-4xl font-bold text-slate-900">Add New Floor</h1>
         <p class="text-slate-600 mt-2">
@@ -121,11 +113,8 @@ onMounted(() => {
         </p>
       </div>
 
-      <!-- MAIN CONTENT -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- LEFT: FORM -->
         <div class="lg:col-span-2 space-y-6">
-          <!-- FLOOR SPECIFICATIONS -->
           <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
             <div class="flex items-center gap-3 mb-6">
               <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -137,7 +126,6 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Floor Number -->
             <div class="mb-4">
               <label class="block text-sm font-bold text-slate-700 mb-2">Floor Number</label>
               <div class="flex gap-2">
@@ -153,11 +141,11 @@ onMounted(() => {
                       validationErrors.floor_number ? 'border-red-500' : 'border-slate-300',
                     ]"
                   />
-                  <!-- Validation Error -->
+
                   <p v-if="validationErrors.floor_number" class="text-xs text-red-600 mt-1">
                     {{ validationErrors.floor_number }}
                   </p>
-                  <!-- Uniqueness Check Status -->
+
                   <p
                     v-else-if="formData.floor_number && !validationErrors.floor_number"
                     class="text-xs text-emerald-600 mt-1"
@@ -169,7 +157,6 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Zone Name -->
             <div class="mb-4">
               <label class="block text-sm font-bold text-slate-700 mb-2">Zone Name</label>
               <input
@@ -182,13 +169,12 @@ onMounted(() => {
                   validationErrors.name ? 'border-red-500' : 'border-slate-300',
                 ]"
               />
-              <!-- Validation Error -->
+
               <p v-if="validationErrors.name" class="text-xs text-red-600 mt-1">
                 {{ validationErrors.name }}
               </p>
             </div>
 
-            <!-- Description -->
             <div>
               <label class="block text-sm font-bold text-slate-700 mb-2"
                 >Description (Optional)</label
@@ -203,14 +189,13 @@ onMounted(() => {
                   validationErrors.description ? 'border-red-500' : 'border-slate-300',
                 ]"
               ></textarea>
-              <!-- Validation Error -->
+
               <p v-if="validationErrors.description" class="text-xs text-red-600 mt-1">
                 {{ validationErrors.description }}
               </p>
             </div>
           </div>
 
-          <!-- STAFFING NOTE -->
           <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
             <div class="flex items-start gap-4">
               <div class="text-3xl"></div>
@@ -224,7 +209,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- ERROR ALERT -->
           <div
             v-if="error"
             class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3"
@@ -238,7 +222,6 @@ onMounted(() => {
             </button>
           </div>
 
-          <!-- SUCCESS ALERT -->
           <div
             v-if="success"
             class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3"
@@ -249,7 +232,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- ACTION BUTTONS -->
           <div class="flex gap-4 pt-4">
             <button
               @click="goBack"
@@ -268,9 +250,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- RIGHT: SUMMARY & STATS -->
         <div class="space-y-6">
-          <!-- FLOOR MAP PREVIEW -->
           <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
             <h3 class="text-sm font-bold text-slate-600 mb-4 uppercase">
               Auto-generating Floor Map Preview...
@@ -285,9 +265,7 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- STATS -->
           <div class="space-y-3">
-            <!-- Active Floors -->
             <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-4">
               <p class="text-xs text-slate-600 font-semibold uppercase mb-1">ACTIVE FLOORS</p>
               <p class="text-3xl font-bold text-slate-900">
@@ -295,20 +273,17 @@ onMounted(() => {
               </p>
             </div>
 
-            <!-- Wait Staff Pool -->
             <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-4">
               <p class="text-xs text-slate-600 font-semibold uppercase mb-1">WAIT STAFF POOL</p>
               <p class="text-3xl font-bold text-slate-900">{{ floorStats.total_staff }}</p>
             </div>
 
-            <!-- Available Waiters -->
             <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-4">
               <p class="text-xs text-slate-600 font-semibold uppercase mb-1">AVAILABLE WAITERS</p>
               <p class="text-3xl font-bold text-emerald-600">{{ floorStats.available_waiters }}</p>
             </div>
           </div>
 
-          <!-- INFO BOX -->
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p class="text-xs font-bold text-blue-900 mb-2">💡 PRO TIP</p>
             <p class="text-sm text-blue-800">

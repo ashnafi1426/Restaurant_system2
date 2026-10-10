@@ -39,7 +39,7 @@ const isOpen = computed({
 })
 
 const formattedPrice = computed(() => {
-  return `$${props.room.price.toFixed(2)}`
+  return `${props.room.price.toFixed(2)}`
 })
 
 const availabilityText = computed(() => {
@@ -79,9 +79,7 @@ function reserveRoom() {
     >
       <div v-if="isOpen" class="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm">
         <div class="flex min-h-screen items-center justify-center p-6">
-          <!-- Dialog -->
           <div class="relative w-full max-w-6xl overflow-hidden rounded-3xl bg-white shadow-2xl">
-            <!-- Close -->
             <button
               @click="closeDialog"
               class="absolute right-5 top-5 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-lg transition hover:bg-red-500 hover:text-white"
@@ -89,16 +87,13 @@ function reserveRoom() {
               ✕
             </button>
 
-            <!-- Hero Image -->
             <div class="relative">
               <img :src="room.image" :alt="room.name" class="h-[420px] w-full object-cover" />
 
-              <!-- Overlay -->
               <div
                 class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"
               />
 
-              <!-- Availability -->
               <div
                 class="absolute left-8 top-8 rounded-full px-5 py-2 text-sm font-semibold"
                 :class="availabilityClass"
@@ -106,19 +101,15 @@ function reserveRoom() {
                 {{ availabilityText }}
               </div>
 
-              <!-- Bottom Content -->
               <div class="absolute bottom-10 left-10 right-10 text-white">
-                <!-- Room Type -->
                 <p class="text-sm font-semibold uppercase tracking-[0.3em] text-amber-400">
                   {{ room.room_type }}
                 </p>
 
-                <!-- Room Name -->
                 <h2 class="mt-3 text-5xl font-bold">
                   {{ room.name }}
                 </h2>
 
-                <!-- Rating -->
                 <div class="mt-5 flex flex-wrap items-center gap-4">
                   <div class="flex items-center gap-2">
                     <span class="text-yellow-400 text-xl"> ★★★★★ </span>
@@ -141,11 +132,8 @@ function reserveRoom() {
               </div>
             </div>
 
-            <!-- Body -->
             <div class="p-10">
-              <!-- Quick Information -->
               <div class="grid gap-6 md:grid-cols-4">
-                <!-- Guests -->
                 <div class="rounded-2xl border border-slate-200 p-6 text-center">
                   <div class="text-4xl">👥</div>
 
@@ -154,7 +142,6 @@ function reserveRoom() {
                   <p class="mt-2 text-slate-500">{{ room.capacity }} Guests</p>
                 </div>
 
-                <!-- Room Size -->
                 <div class="rounded-2xl border border-slate-200 p-6 text-center">
                   <div class="text-4xl">📐</div>
 
@@ -163,7 +150,6 @@ function reserveRoom() {
                   <p class="mt-2 text-slate-500">{{ room.size }} m²</p>
                 </div>
 
-                <!-- Bed -->
                 <div class="rounded-2xl border border-slate-200 p-6 text-center">
                   <div class="text-4xl">🛏️</div>
 
@@ -174,7 +160,6 @@ function reserveRoom() {
                   </p>
                 </div>
 
-                <!-- Price -->
                 <div class="rounded-2xl border border-slate-200 p-6 text-center">
                   <div class="text-4xl">💰</div>
 
@@ -185,11 +170,9 @@ function reserveRoom() {
                   </p>
                 </div>
               </div>
-              <!-- Description + Amenities -->
+
               <div class="mt-12 grid gap-10 lg:grid-cols-3">
-                <!-- Left Content -->
                 <div class="lg:col-span-2">
-                  <!-- Description -->
                   <section>
                     <h3 class="text-3xl font-bold text-slate-900">Room Description</h3>
 
@@ -201,7 +184,6 @@ function reserveRoom() {
                     </p>
                   </section>
 
-                  <!-- Amenities -->
                   <section class="mt-12">
                     <h3 class="text-3xl font-bold text-slate-900">Room Amenities</h3>
 
@@ -224,7 +206,6 @@ function reserveRoom() {
                     </div>
                   </section>
 
-                  <!-- Hotel Services -->
                   <section class="mt-12">
                     <h3 class="text-3xl font-bold text-slate-900">Included Services</h3>
 
@@ -244,9 +225,7 @@ function reserveRoom() {
                   </section>
                 </div>
 
-                <!-- Right Sidebar -->
                 <aside>
-                  <!-- Policies -->
                   <div class="rounded-2xl border border-slate-200 p-8 shadow-sm">
                     <h3 class="text-2xl font-bold text-slate-900">Hotel Policies</h3>
 
@@ -285,7 +264,6 @@ function reserveRoom() {
                     </div>
                   </div>
 
-                  <!-- Reservation Summary -->
                   <div class="mt-8 rounded-2xl bg-amber-50 p-8">
                     <h3 class="text-2xl font-bold text-slate-900">Reservation Summary</h3>
 
@@ -325,11 +303,9 @@ function reserveRoom() {
                   </div>
                 </aside>
               </div>
-              <!-- Description + Amenities -->
+
               <div class="mt-12 grid gap-10 lg:grid-cols-3">
-                <!-- Left Content -->
                 <div class="lg:col-span-2">
-                  <!-- Description -->
                   <section>
                     <h3 class="text-3xl font-bold text-slate-900">Room Description</h3>
 
@@ -341,7 +317,6 @@ function reserveRoom() {
                     </p>
                   </section>
 
-                  <!-- Amenities -->
                   <section class="mt-12">
                     <h3 class="text-3xl font-bold text-slate-900">Room Amenities</h3>
 
@@ -364,7 +339,6 @@ function reserveRoom() {
                     </div>
                   </section>
 
-                  <!-- Hotel Services -->
                   <section class="mt-12">
                     <h3 class="text-3xl font-bold text-slate-900">Included Services</h3>
 
@@ -384,9 +358,7 @@ function reserveRoom() {
                   </section>
                 </div>
 
-                <!-- Right Sidebar -->
                 <aside>
-                  <!-- Policies -->
                   <div class="rounded-2xl border border-slate-200 p-8 shadow-sm">
                     <h3 class="text-2xl font-bold text-slate-900">Hotel Policies</h3>
 
@@ -425,7 +397,6 @@ function reserveRoom() {
                     </div>
                   </div>
 
-                  <!-- Reservation Summary -->
                   <div class="mt-8 rounded-2xl bg-amber-50 p-8">
                     <h3 class="text-2xl font-bold text-slate-900">Reservation Summary</h3>
 
@@ -465,10 +436,9 @@ function reserveRoom() {
                   </div>
                 </aside>
               </div>
-              <!-- Bottom Action Area -->
+
               <div class="mt-14 border-t border-slate-200 pt-10">
                 <div class="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-                  <!-- Availability -->
                   <div>
                     <h3 class="text-2xl font-bold text-slate-900">Current Availability</h3>
 
@@ -485,7 +455,6 @@ function reserveRoom() {
                     </p>
                   </div>
 
-                  <!-- Price & Buttons -->
                   <div class="flex flex-col items-end">
                     <p class="text-slate-500">Starting From</p>
 
@@ -496,7 +465,6 @@ function reserveRoom() {
                     <p class="mt-2 text-slate-500">Per Night</p>
 
                     <div class="mt-8 flex flex-wrap gap-4">
-                      <!-- Close -->
                       <button
                         @click="closeDialog"
                         class="rounded-xl border border-slate-300 px-8 py-4 font-semibold text-slate-700 transition hover:bg-slate-100"
@@ -504,7 +472,6 @@ function reserveRoom() {
                         Close
                       </button>
 
-                      <!-- Contact -->
                       <RouterLink
                         to="/contact"
                         class="rounded-xl border border-amber-500 px-8 py-4 font-semibold text-amber-600 transition hover:bg-amber-500 hover:text-white"
@@ -512,7 +479,6 @@ function reserveRoom() {
                         Contact Hotel
                       </RouterLink>
 
-                      <!-- Reserve -->
                       <button
                         @click="reserveRoom"
                         :disabled="!room.available"
@@ -525,9 +491,7 @@ function reserveRoom() {
                 </div>
               </div>
             </div>
-            <!-- End Body -->
           </div>
-          <!-- End Dialog -->
         </div>
       </div>
     </Transition>

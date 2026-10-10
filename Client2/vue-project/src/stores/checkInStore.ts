@@ -25,7 +25,6 @@ const DEFAULT_STATISTICS: CheckInStatistics = {
 }
 
 export const useCheckInStore = defineStore('checkIn', () => {
-  // State
   const checkIns = ref<CheckIn[]>([])
   const selectedCheckIn = ref<CheckIn | null>(null)
   const statistics = ref<CheckInStatistics>({ ...DEFAULT_STATISTICS })
@@ -33,7 +32,6 @@ export const useCheckInStore = defineStore('checkIn', () => {
   const error = ref<string | null>(null)
   const pagination = ref<CheckInPagination>({ ...DEFAULT_PAGINATION })
 
-  // Actions
   async function fetchCheckIns(params = {}) {
     loading.value = true
     error.value = null

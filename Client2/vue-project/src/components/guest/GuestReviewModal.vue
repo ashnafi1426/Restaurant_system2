@@ -239,7 +239,6 @@ const renderStars = (count: number): string => {
               </div>
             </div>
 
-            <!-- Optional Name & Email -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1"

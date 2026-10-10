@@ -103,9 +103,7 @@ const loadFloors = async (activeHotelId?: string) => {
     const rawFloors = res.data?.data?.data || res.data?.data || res.data || []
     floors.value = Array.isArray(rawFloors) ? rawFloors : []
 
-    // Auto-match or auto-select floor
     if (form.floor_id) {
-      // Already selected
     } else if (form.floor !== null && floors.value.length > 0) {
       const matched = floors.value.find((f: any) => Number(f.floor_number) === Number(form.floor))
       if (matched) form.floor_id = String(matched.id)
@@ -142,7 +140,6 @@ const loadExistingRoomNumbers = async (activeHotelId?: string) => {
 const loadHotelData = () => {
   const activeHotelId = hotelStore.hotelId
 
-  // Fire parallel requests so each dropdown unlocks as soon as its data is ready
   Promise.allSettled([
     loadRoomTypes(activeHotelId),
     loadFloors(activeHotelId),
@@ -275,7 +272,6 @@ const save = () => {
 
 <template>
   <form @submit.prevent="save" class="space-y-4 sm:space-y-5 md:space-y-6">
-    <!-- Notice for No Floors in Active Hotel -->
     <div
       v-if="floors.length === 0 && !loadingFloors"
       class="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-800 dark:text-amber-300 text-xs sm:text-sm"
@@ -306,7 +302,6 @@ const save = () => {
       </div>
     </div>
 
-    <!-- Notice for No Room Types in Active Hotel -->
     <div
       v-if="roomTypes.length === 0 && !loadingRoomTypes"
       class="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-800 dark:text-amber-300 text-xs sm:text-sm"
@@ -329,7 +324,6 @@ const save = () => {
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
-      <!-- Room Number Field -->
       <div>
         <label
           class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
@@ -362,7 +356,6 @@ const save = () => {
           </button>
         </div>
 
-        <!-- Room Number Live Status & Errors -->
         <div
           v-if="serverErrors?.room_number"
           class="text-red-500 text-xs mt-1.5 flex items-center gap-1"
@@ -390,7 +383,6 @@ const save = () => {
         </p>
       </div>
 
-      <!-- Floor Field -->
       <div>
         <div class="flex items-center justify-between mb-1.5 sm:mb-2">
           <label class="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -407,7 +399,6 @@ const save = () => {
           </button>
         </div>
 
-        <!-- Inline quick add floor -->
         <div
           v-if="showAddFloorInline"
           class="mb-3 p-3 bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl space-y-2"
@@ -521,7 +512,6 @@ const save = () => {
         </p>
       </div>
 
-      <!-- Room Type Field -->
       <div>
         <label
           class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
@@ -591,7 +581,6 @@ const save = () => {
         </p>
       </div>
 
-      <!-- Status Field -->
       <div>
         <label
           class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
@@ -614,7 +603,6 @@ const save = () => {
       </div>
     </div>
 
-    <!-- Description Field -->
     <div>
       <label
         class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
@@ -635,7 +623,6 @@ const save = () => {
       />
     </div>
 
-    <!-- Active Room Checkbox -->
     <div
       class="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-lg"
     >
@@ -660,7 +647,6 @@ const save = () => {
       </div>
     </div>
 
-    <!-- Action Buttons -->
     <div class="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
       <button
         type="button"
@@ -690,7 +676,6 @@ const save = () => {
       </button>
     </div>
 
-    <!-- Loading State Indicator -->
     <div v-if="loadingRooms" class="text-center text-slate-500 text-xs sm:text-sm py-2">
       <span class="inline-flex items-center gap-2">
         <Loader2 class="w-4 h-4 animate-spin text-blue-600" />
@@ -698,7 +683,6 @@ const save = () => {
       </span>
     </div>
 
-    <!-- Existing Rooms Badge List -->
     <div
       v-if="existingRoomNumbers.length > 0"
       class="p-3 sm:p-4 bg-blue-50/70 dark:bg-blue-950/20 rounded-xl border border-blue-200/80 dark:border-blue-900/40"

@@ -3,7 +3,6 @@
     <div
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
     >
-      <!-- Loading State -->
       <div v-if="loading" class="flex items-center justify-center py-24">
         <div class="flex flex-col items-center gap-3">
           <div
@@ -16,7 +15,6 @@
       </div>
 
       <template v-else>
-        <!-- Alert Banner -->
         <transition name="fade-slide">
           <div
             v-if="alert.show"
@@ -41,12 +39,10 @@
           </div>
         </transition>
 
-        <!-- Profile Header Banner -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row items-center gap-6"
         >
           <div class="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
-            <!-- Avatar with upload -->
             <div
               class="relative flex-shrink-0 group cursor-pointer"
               @click="triggerPhotoUpload"
@@ -65,13 +61,13 @@
                   {{ (profileData.first_name || 'C')?.[0]?.toUpperCase() }}
                 </span>
               </div>
-              <!-- Hover overlay -->
+
               <div
                 class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <Camera class="w-6 h-6 text-white" />
               </div>
-              <!-- Upload spinner -->
+
               <div
                 v-if="uploadingPhoto"
                 class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center"
@@ -82,7 +78,6 @@
               </div>
             </div>
 
-            <!-- Hidden file input -->
             <input
               ref="photoInput"
               type="file"
@@ -91,7 +86,6 @@
               @change="onPhotoSelected"
             />
 
-            <!-- User Header Details -->
             <div>
               <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
                 <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -127,9 +121,7 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <!-- Sidebar -->
           <div class="lg:col-span-1 space-y-6">
-            <!-- Quick Info Card -->
             <div
               class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4"
             >
@@ -200,7 +192,6 @@
             </div>
           </div>
           <div class="lg:col-span-3 space-y-6">
-            <!-- Personal Information Card -->
             <div
               class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6"
             >
@@ -343,7 +334,6 @@
               </form>
             </div>
 
-            <!-- Change Password Card -->
             <div
               class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6"
             >
@@ -367,7 +357,6 @@
               </div>
 
               <form @submit.prevent="changePassword" class="space-y-4 text-xs font-sans">
-                <!-- Current / Temporary Password -->
                 <div>
                   <label
                     class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
@@ -395,7 +384,6 @@
                   </div>
                 </div>
 
-                <!-- New Password -->
                 <div>
                   <label
                     class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
@@ -419,7 +407,7 @@
                       <EyeOff v-else class="w-4 h-4" />
                     </button>
                   </div>
-                  <!-- Password strength -->
+
                   <div v-if="pwForm.new_password" class="mt-2 space-y-1">
                     <div class="flex gap-1">
                       <div
@@ -437,7 +425,6 @@
                   </div>
                 </div>
 
-                <!-- Confirm Password -->
                 <div>
                   <label
                     class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
@@ -536,7 +523,6 @@ import { useLanguageStore } from '@/stores/language'
 
 const languageStore = useLanguageStore()
 
-// ── State ─────────────────────────────────────────────────────────────────────
 const loading = ref(true)
 const saving = ref(false)
 const changingPw = ref(false)
@@ -576,7 +562,6 @@ const showConfirmPw = ref(false)
 
 const alert = ref({ show: false, type: 'success' as 'success' | 'error', message: '' })
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 const showAlert = (type: 'success' | 'error', message: string) => {
   alert.value = { show: true, type, message }
   setTimeout(() => {

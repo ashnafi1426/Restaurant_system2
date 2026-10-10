@@ -1,6 +1,5 @@
 <template>
   <div class="manager-reviews-section">
-    <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
         <h2 class="text-2xl font-bold text-gray-900">Review Management</h2>
@@ -14,30 +13,25 @@
       </router-link>
     </div>
 
-    <!-- Stats Row -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <!-- Pending Reviews -->
       <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-400">
         <p class="text-gray-600 text-sm mb-1">Pending Reviews</p>
         <p class="text-3xl font-bold text-yellow-600">{{ pendingCount }}</p>
         <p class="text-xs text-gray-500 mt-2">Awaiting approval</p>
       </div>
 
-      <!-- Approved Reviews -->
       <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-400">
         <p class="text-gray-600 text-sm mb-1">Approved Reviews</p>
         <p class="text-3xl font-bold text-green-600">{{ approvedCount }}</p>
         <p class="text-xs text-gray-500 mt-2">Published</p>
       </div>
 
-      <!-- Rejected Reviews -->
       <div class="bg-white rounded-lg shadow p-4 border-l-4 border-red-400">
         <p class="text-gray-600 text-sm mb-1">Rejected Reviews</p>
         <p class="text-3xl font-bold text-red-600">{{ rejectedCount }}</p>
         <p class="text-xs text-gray-500 mt-2">Archived</p>
       </div>
 
-      <!-- Avg Rating -->
       <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-400">
         <p class="text-gray-600 text-sm mb-1">Average Rating</p>
         <div class="flex items-center gap-2">
@@ -48,7 +42,6 @@
       </div>
     </div>
 
-    <!-- Pending Reviews Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <div class="border-b border-gray-200 p-6">
         <h3 class="text-lg font-bold text-gray-900">Pending Reviews</h3>
@@ -70,7 +63,6 @@
           :key="review.id"
           class="p-4 hover:bg-gray-50 transition-colors"
         >
-          <!-- Review Header -->
           <div class="flex items-start justify-between mb-2">
             <div>
               <h4 class="font-semibold text-gray-900">
@@ -90,12 +82,10 @@
             </div>
           </div>
 
-          <!-- Review Text -->
           <p v-if="review.review_text" class="text-sm text-gray-700 mb-3">
             {{ review.review_text }}
           </p>
 
-          <!-- Actions -->
           <div class="flex gap-2">
             <button
               @click="approveReview(review.id)"
@@ -119,7 +109,6 @@
             </button>
           </div>
 
-          <!-- Response Form -->
           <div v-if="responseFormId === review.id" class="mt-3 pt-3 border-t border-gray-200">
             <textarea
               v-model="responseText"
@@ -146,7 +135,6 @@
         </div>
       </div>
 
-      <!-- View All Link -->
       <div v-if="pendingReviews.length > 5" class="p-4 border-t border-gray-200 text-center">
         <router-link
           to="/reviews/moderation"
@@ -177,21 +165,17 @@ const responseText = ref('')
 const loadData = async () => {
   loading.value = true
   try {
-    // Load pending reviews
     const data = await reviewService.listReviewsForModeration('pending', 1, 5)
     pendingReviews.value = (data.data as Review[]) || []
 
-    // Load pending count
     pendingCount.value = await reviewService.getPendingReviewCount()
 
-    // Load stats for approved/rejected counts
     const approved = await reviewService.listReviewsForModeration('approved', 1, 1)
     const rejected = await reviewService.listReviewsForModeration('rejected', 1, 1)
 
     approvedCount.value = approved.total || 0
     rejectedCount.value = rejected.total || 0
 
-    // Calculate average rating from pending reviews
     if (pendingReviews.value.length > 0) {
       const total = pendingReviews.value.reduce((sum, r) => sum + r.rating, 0)
       avgRating.value = (total / pendingReviews.value.length).toFixed(1)
@@ -243,7 +227,6 @@ const submitResponse = async (reviewId: string) => {
     await reviewService.createResponse(reviewId, { response_text: responseText.value })
     responseFormId.value = null
     responseText.value = ''
-    // Optionally reload data
   } catch (error) {
     console.error('Failed to submit response:', error)
   }
@@ -256,6 +239,5 @@ onMounted(() => {
 
 <style scoped>
 .manager-reviews-section {
-  /* Component styles */
 }
 </style>

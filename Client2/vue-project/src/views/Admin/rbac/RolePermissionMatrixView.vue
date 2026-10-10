@@ -26,7 +26,6 @@ const selectedModule = ref('all')
 const successMessage = ref('')
 const errorMessage = ref('')
 
-// Matrix state: roleId -> Set of permissionIds
 const matrix = ref<Record<number, Set<number>>>({})
 const initialMatrix = ref<Record<number, Set<number>>>({})
 
@@ -75,7 +74,6 @@ watch(
   },
 )
 
-// Available modules
 const modules = computed(() => {
   const s = new Set<string>()
   permissions.value.forEach((p) => {
@@ -84,7 +82,6 @@ const modules = computed(() => {
   return Array.from(s).sort()
 })
 
-// Filtered permissions
 const filteredPermissions = computed(() => {
   let list = permissions.value
 
@@ -105,12 +102,10 @@ const filteredPermissions = computed(() => {
   return list
 })
 
-// Check if a cell is checked
 const hasPermission = (roleId: number, permissionId: number): boolean => {
   return matrix.value[roleId]?.has(permissionId) ?? false
 }
 
-// Toggle permission for a role
 const togglePermission = (roleId: number, permissionId: number) => {
   if (!matrix.value[roleId]) {
     matrix.value[roleId] = new Set()
@@ -123,7 +118,6 @@ const togglePermission = (roleId: number, permissionId: number) => {
   }
 }
 
-// Toggle all filtered permissions for a role
 const toggleAllForRole = (roleId: number) => {
   if (!matrix.value[roleId]) {
     matrix.value[roleId] = new Set()
@@ -139,7 +133,6 @@ const toggleAllForRole = (roleId: number) => {
   }
 }
 
-// Check if matrix has unsaved changes
 const hasChanges = computed(() => {
   for (const r of roles.value) {
     const currentSet = matrix.value[r.id] || new Set()
@@ -153,7 +146,6 @@ const hasChanges = computed(() => {
   return false
 })
 
-// Save & Sync Matrix
 const saveMatrix = async () => {
   saving.value = true
   errorMessage.value = ''
@@ -170,7 +162,6 @@ const saveMatrix = async () => {
       'All role permissions updated and synced successfully across the platform!'
     await loadData()
 
-    // Sync auth store immediately so current user's sidebar updates without manual refresh
     try {
       const { useAuthStore } = await import('@/stores/auth')
       const authStore = useAuthStore()
@@ -191,7 +182,6 @@ const saveMatrix = async () => {
   }
 }
 
-// Reset changes
 const resetMatrix = () => {
   const m: Record<number, Set<number>> = {}
   roles.value.forEach((r) => {
@@ -206,7 +196,6 @@ const resetMatrix = () => {
     <div
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
     >
-      <!-- Header Banner Section -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
       >
@@ -256,7 +245,6 @@ const resetMatrix = () => {
         </div>
       </div>
 
-      <!-- Feedback Alerts -->
       <div
         v-if="successMessage"
         class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2"
@@ -273,7 +261,6 @@ const resetMatrix = () => {
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Search & Filters Toolbar -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3"
       >
@@ -301,7 +288,6 @@ const resetMatrix = () => {
         </div>
       </div>
 
-      <!-- Loading State -->
       <div
         v-if="loading"
         class="p-16 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800"
@@ -310,7 +296,6 @@ const resetMatrix = () => {
         <p class="text-xs font-bold text-slate-400">Loading security matrix...</p>
       </div>
 
-      <!-- MATRIX TABLE -->
       <div
         v-else
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden"
@@ -352,7 +337,6 @@ const resetMatrix = () => {
                 :key="perm.id"
                 class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
               >
-                <!-- Permission Info -->
                 <td class="py-3 px-4">
                   <div class="font-bold text-slate-900 dark:text-white">
                     {{ perm.name }}
@@ -371,7 +355,6 @@ const resetMatrix = () => {
                   </div>
                 </td>
 
-                <!-- Checkbox for each role -->
                 <td v-for="role in roles" :key="role.id" class="py-3 px-3 text-center">
                   <label
                     class="inline-flex items-center justify-center cursor-pointer p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"

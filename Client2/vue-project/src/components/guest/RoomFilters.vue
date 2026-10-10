@@ -1,7 +1,6 @@
 <template>
   <div class="bg-white rounded-lg shadow p-4">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- Room Type Filter -->
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-2">Room Type</label>
         <select
@@ -17,7 +16,6 @@
         </select>
       </div>
 
-      <!-- Capacity Filter -->
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-2">Capacity</label>
         <select

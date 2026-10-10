@@ -164,7 +164,6 @@ const getRoleBadgeClass = (role: string) => {
     <div
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
     >
-      <!-- Header -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4"
       >
@@ -209,7 +208,6 @@ const getRoleBadgeClass = (role: string) => {
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Filters Toolbar -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-xs flex flex-col md:flex-row items-center justify-between gap-3"
       >
@@ -224,7 +222,6 @@ const getRoleBadgeClass = (role: string) => {
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
-          <!-- Role Filter -->
           <div class="flex items-center gap-1.5">
             <span class="text-xs font-bold text-slate-400">Role:</span>
             <select
@@ -237,7 +234,6 @@ const getRoleBadgeClass = (role: string) => {
             </select>
           </div>
 
-          <!-- Hotel Filter -->
           <div class="flex items-center gap-1.5">
             <span class="text-xs font-bold text-slate-400">Hotel:</span>
             <div class="w-56">
@@ -256,7 +252,6 @@ const getRoleBadgeClass = (role: string) => {
         </div>
       </div>
 
-      <!-- Table -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden"
       >
@@ -294,7 +289,6 @@ const getRoleBadgeClass = (role: string) => {
                 :key="u.id"
                 class="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition"
               >
-                <!-- User -->
                 <td class="py-4 px-5">
                   <div class="flex items-center gap-3">
                     <div
@@ -313,7 +307,6 @@ const getRoleBadgeClass = (role: string) => {
                   </div>
                 </td>
 
-                <!-- Hotel Property -->
                 <td class="py-4 px-4">
                   <div v-if="u.hotels && u.hotels.length > 0" class="flex flex-wrap gap-1">
                     <span
@@ -328,7 +321,6 @@ const getRoleBadgeClass = (role: string) => {
                   <span v-else class="text-slate-400 italic">Platform Level / Global</span>
                 </td>
 
-                <!-- Role -->
                 <td class="py-4 px-4">
                   <span
                     :class="[
@@ -340,7 +332,6 @@ const getRoleBadgeClass = (role: string) => {
                   </span>
                 </td>
 
-                <!-- Status -->
                 <td class="py-4 px-4">
                   <span
                     class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border"
@@ -354,7 +345,6 @@ const getRoleBadgeClass = (role: string) => {
                   </span>
                 </td>
 
-                <!-- Joined -->
                 <td class="py-4 px-4 text-slate-400 text-[11px]">
                   {{ formatDate(u.created_at) }}
                 </td>
@@ -363,17 +353,14 @@ const getRoleBadgeClass = (role: string) => {
           </table>
         </div>
 
-        <!-- Enhanced Pagination -->
         <div
           v-if="lastPage > 1 || totalUsers > perPageOptions[0]"
           class="p-4 border-t border-slate-200 dark:border-slate-800"
         >
-          <!-- Pagination Info and Per Page Selector -->
           <div
             class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4"
           >
             <div class="flex items-center gap-4">
-              <!-- Per Page Selector -->
               <div class="flex items-center gap-2">
                 <label class="text-xs font-bold text-slate-600 dark:text-slate-400"
                   >Per page:</label
@@ -388,14 +375,12 @@ const getRoleBadgeClass = (role: string) => {
                 </select>
               </div>
 
-              <!-- Results Info -->
               <div class="text-xs text-slate-500 dark:text-slate-400">
                 Showing {{ paginationInfo.start }}-{{ paginationInfo.end }} of
                 {{ totalUsers }} users
               </div>
             </div>
 
-            <!-- Quick Page Jump -->
             <div v-if="lastPage > 1" class="flex items-center gap-2">
               <label class="text-xs font-bold text-slate-600 dark:text-slate-400"
                 >Go to page:</label
@@ -412,9 +397,7 @@ const getRoleBadgeClass = (role: string) => {
             </div>
           </div>
 
-          <!-- Pagination Controls -->
           <div v-if="lastPage > 1" class="flex items-center justify-center gap-1">
-            <!-- First Page -->
             <button
               :disabled="currentPage <= 1"
               @click="goToPage(1)"
@@ -424,7 +407,6 @@ const getRoleBadgeClass = (role: string) => {
               <ChevronsLeft class="w-4 h-4" />
             </button>
 
-            <!-- Previous Page -->
             <button
               :disabled="currentPage <= 1"
               @click="goToPage(currentPage - 1)"
@@ -434,7 +416,6 @@ const getRoleBadgeClass = (role: string) => {
               <ChevronLeft class="w-4 h-4" />
             </button>
 
-            <!-- Page Numbers -->
             <div class="flex items-center gap-1 mx-2">
               <template v-for="(page, index) in visiblePages" :key="index">
                 <button
@@ -453,7 +434,6 @@ const getRoleBadgeClass = (role: string) => {
               </template>
             </div>
 
-            <!-- Next Page -->
             <button
               :disabled="currentPage >= lastPage"
               @click="goToPage(currentPage + 1)"
@@ -463,7 +443,6 @@ const getRoleBadgeClass = (role: string) => {
               <ChevronRight class="w-4 h-4" />
             </button>
 
-            <!-- Last Page -->
             <button
               :disabled="currentPage >= lastPage"
               @click="goToPage(lastPage)"

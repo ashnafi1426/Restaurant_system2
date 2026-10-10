@@ -34,12 +34,10 @@ const isLoading = ref(false)
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
 
-// Filter states
 const searchQuery = ref('')
 const selectedStatus = ref('')
 const selectedFloor = ref('')
 
-// Modal state
 const showDetailsModal = ref(false)
 const selectedDelivery = ref<any>(null)
 
@@ -232,7 +230,6 @@ const getStatusBadgeClass = (status: string) => {
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
-      <!-- Header -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
@@ -267,9 +264,7 @@ const getStatusBadgeClass = (status: string) => {
         </button>
       </div>
 
-      <!-- Statistics Summary Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <!-- Total Deliveries -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
         >
@@ -288,7 +283,6 @@ const getStatusBadgeClass = (status: string) => {
           </div>
         </div>
 
-        <!-- Completed -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
         >
@@ -307,7 +301,6 @@ const getStatusBadgeClass = (status: string) => {
           </div>
         </div>
 
-        <!-- In Progress -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
         >
@@ -326,7 +319,6 @@ const getStatusBadgeClass = (status: string) => {
           </div>
         </div>
 
-        <!-- Failed / Cancelled -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
         >
@@ -346,13 +338,10 @@ const getStatusBadgeClass = (status: string) => {
         </div>
       </div>
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -370,7 +359,6 @@ const getStatusBadgeClass = (status: string) => {
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -390,9 +378,7 @@ const getStatusBadgeClass = (status: string) => {
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="refresh"
@@ -403,7 +389,6 @@ const getStatusBadgeClass = (status: string) => {
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
           </button>
 
-          <!-- Fullscreen Toggle -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -415,7 +400,6 @@ const getStatusBadgeClass = (status: string) => {
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -429,7 +413,6 @@ const getStatusBadgeClass = (status: string) => {
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
-            <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('delivery_status', 'Delivery Status') }}
@@ -452,7 +435,6 @@ const getStatusBadgeClass = (status: string) => {
               </select>
             </div>
 
-            <!-- Floor Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('floor', 'Floor') }}
@@ -470,7 +452,6 @@ const getStatusBadgeClass = (status: string) => {
               </select>
             </div>
 
-            <!-- Reset Filters -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -485,11 +466,9 @@ const getStatusBadgeClass = (status: string) => {
         </div>
       </Transition>
 
-      <!-- Deliveries Data Table Container -->
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
             <thead
@@ -522,21 +501,18 @@ const getStatusBadgeClass = (status: string) => {
                 :key="delivery.id"
                 class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
               >
-                <!-- Room -->
                 <td class="py-3 px-4 pl-5 whitespace-nowrap">
                   <div class="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm">
                     {{ getRoomNumber(delivery) }}
                   </div>
                 </td>
 
-                <!-- Order ID -->
                 <td
                   class="py-3 px-4 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs"
                 >
                   #{{ delivery.order_id || delivery.order?.order_number || delivery.id }}
                 </td>
 
-                <!-- Waiter -->
                 <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white">
                   {{
                     delivery.waiter?.name ||
@@ -545,7 +521,6 @@ const getStatusBadgeClass = (status: string) => {
                   }}
                 </td>
 
-                <!-- Floor -->
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span class="font-semibold text-slate-600 dark:text-slate-400">
                     {{ languageStore.t('floor', 'Floor') }}
@@ -553,7 +528,6 @@ const getStatusBadgeClass = (status: string) => {
                   </span>
                 </td>
 
-                <!-- Status -->
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span
                     class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] border uppercase tracking-wider"
@@ -563,7 +537,6 @@ const getStatusBadgeClass = (status: string) => {
                   </span>
                 </td>
 
-                <!-- Actions -->
                 <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
                   <button
                     @click="openDetailsModal(delivery)"
@@ -575,7 +548,6 @@ const getStatusBadgeClass = (status: string) => {
                 </td>
               </tr>
 
-              <!-- Empty State -->
               <tr v-if="paginatedDeliveries.length === 0">
                 <td
                   colspan="6"
@@ -593,7 +565,6 @@ const getStatusBadgeClass = (status: string) => {
           </table>
         </div>
 
-        <!-- Mobile View -->
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
           <div
             v-for="delivery in paginatedDeliveries"
@@ -628,7 +599,6 @@ const getStatusBadgeClass = (status: string) => {
           </div>
         </div>
 
-        <!-- Pagination Footer -->
         <div
           v-if="total > 0"
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
@@ -694,7 +664,6 @@ const getStatusBadgeClass = (status: string) => {
         </div>
       </div>
 
-      <!-- Details Modal -->
       <div
         v-if="showDetailsModal"
         class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"

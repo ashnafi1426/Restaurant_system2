@@ -8,7 +8,6 @@
         <div
           class="bg-white dark:bg-[#0b1527] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden text-slate-900 dark:text-white"
         >
-          <!-- Header -->
           <div
             class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50"
           >
@@ -30,9 +29,7 @@
             </button>
           </div>
 
-          <!-- Body -->
           <div class="p-6 overflow-y-auto space-y-6 flex-1">
-            <!-- Add / Edit Form -->
             <div
               class="p-4 rounded-xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/30 dark:bg-blue-950/20 space-y-3"
             >
@@ -109,7 +106,6 @@
               </div>
             </div>
 
-            <!-- Existing Sections List -->
             <div>
               <div class="flex items-center justify-between mb-2.5">
                 <h3
@@ -196,7 +192,6 @@
             </div>
           </div>
 
-          <!-- Footer -->
           <div
             class="px-6 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-end"
           >

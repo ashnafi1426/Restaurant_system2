@@ -115,7 +115,6 @@ const facilities = computed<Facility[]>(() => [
     class="bg-white dark:bg-slate-900 py-12 sm:py-16 md:py-20 lg:py-24 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 font-sans"
   >
     <div class="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10 space-y-12">
-      <!-- Section Header -->
       <div class="mx-auto max-w-3xl text-center space-y-3">
         <span
           class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
@@ -142,7 +141,6 @@ const facilities = computed<Facility[]>(() => [
         </p>
       </div>
 
-      <!-- Facilities Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div
           v-for="facility in facilities"

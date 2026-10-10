@@ -56,7 +56,6 @@ const confirmDelete = async () => {
 <template>
   <DashboardLayout>
     <div class="space-y-6">
-      <!-- HEADER -->
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-2">
           <h1 class="text-3xl font-bold">Room Types</h1>
@@ -78,13 +77,10 @@ const confirmDelete = async () => {
         </button>
       </div>
 
-      <!-- SEARCH COMPONENT -->
       <RoomTypeSearch v-model="search" />
 
-      <!-- TABLE COMPONENT -->
       <RoomTypeTable :roomTypes="filtered" @view="view" @edit="edit" @delete="askDelete" />
 
-      <!-- DELETE MODAL -->
       <ConfirmDeleteModal
         :open="deleteModalOpen"
         @close="deleteModalOpen = false"

@@ -119,7 +119,6 @@ const handleImageError = (event: Event) => {
   imageError.value = true
   errorMessage.value = 'Failed to load QR code image. Attempting to reload...'
 
-  // Auto-retry once after 1 second
   setTimeout(() => {
     if (props.room.id) {
       loadQRCode()

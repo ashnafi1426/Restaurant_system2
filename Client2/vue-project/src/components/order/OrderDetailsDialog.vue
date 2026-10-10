@@ -2,34 +2,16 @@
 import { computed } from 'vue'
 import type { Order } from '@/types/order'
 
-/*
-|--------------------------------------------------------------------------
-| Props
-|--------------------------------------------------------------------------
-*/
-
 const props = defineProps<{
   modelValue: boolean
   order: Order | null
 }>()
-
-/*
-|--------------------------------------------------------------------------
-| Emits
-|--------------------------------------------------------------------------
-*/
 
 const emit = defineEmits<{
   (event: 'update:modelValue', value: boolean): void
 
   (event: 'close'): void
 }>()
-
-/*
-|--------------------------------------------------------------------------
-| Computed
-|--------------------------------------------------------------------------
-*/
 
 const statusClass = computed(() => {
   switch (props.order?.status) {
@@ -50,12 +32,6 @@ const statusClass = computed(() => {
   }
 })
 
-/*
-|--------------------------------------------------------------------------
-| Close
-|--------------------------------------------------------------------------
-*/
-
 function closeDialog() {
   emit('update:modelValue', false)
 
@@ -72,8 +48,6 @@ function closeDialog() {
       <div
         class="flex max-h-[90vh] w-full max-w-2xl sm:max-w-3xl md:max-w-4xl lg:max-w-5xl flex-col overflow-hidden rounded-lg sm:rounded-xl md:rounded-2xl bg-white shadow-lg sm:shadow-xl"
       >
-        <!-- Header -->
-
         <div
           class="flex items-center justify-between border-b border-gray-200 px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6"
         >
@@ -95,14 +69,10 @@ function closeDialog() {
           </button>
         </div>
 
-        <!-- Body -->
-
         <div
           class="overflow-y-auto px-4 sm:px-5 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6 lg:py-8"
           v-if="order"
         >
-          <!-- Status -->
-
           <div
             class="mb-4 sm:mb-5 md:mb-6 lg:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 md:gap-6 rounded-lg bg-gray-50 p-3 sm:p-4 md:p-5 lg:p-6"
           >
@@ -125,8 +95,6 @@ function closeDialog() {
               </p>
             </div>
           </div>
-
-          <!-- Guest Information -->
 
           <section class="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
             <h3
@@ -168,8 +136,6 @@ function closeDialog() {
             </div>
           </section>
 
-          <!-- Reservation + Room -->
-
           <section class="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
             <h3
               class="mb-3 sm:mb-4 text-xs sm:text-sm md:text-base font-semibold uppercase text-gray-600"
@@ -205,8 +171,6 @@ function closeDialog() {
               </div>
             </div>
           </section>
-
-          <!-- Items -->
 
           <section class="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
             <h3
@@ -276,8 +240,6 @@ function closeDialog() {
             </div>
           </section>
 
-          <!-- Summary -->
-
           <section class="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
             <h3
               class="mb-3 sm:mb-4 text-xs sm:text-sm md:text-base font-semibold uppercase text-gray-600"
@@ -322,8 +284,6 @@ function closeDialog() {
             </div>
           </section>
 
-          <!-- Notes -->
-
           <section v-if="order.notes" class="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
             <h3
               class="mb-2 sm:mb-3 text-xs sm:text-sm md:text-base font-semibold uppercase text-gray-600"
@@ -338,8 +298,6 @@ function closeDialog() {
             </div>
           </section>
         </div>
-
-        <!-- Footer -->
 
         <div
           class="flex justify-end gap-2 sm:gap-3 border-t border-gray-200 bg-gray-50 px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6"

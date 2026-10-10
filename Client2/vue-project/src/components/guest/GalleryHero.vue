@@ -28,22 +28,18 @@ function goToReservation() {
   <section
     class="relative min-h-[500px] overflow-hidden sm:h-[450px] md:h-[550px] lg:h-[600px] bg-slate-950 font-sans pt-16"
   >
-    <!-- Background Image -->
     <img
       src="/images/gallery/luxury-suite.jpg"
       :alt="guestHotelStore.hotelName + ' Gallery'"
       class="absolute inset-0 h-full w-full object-cover brightness-75"
     />
 
-    <!-- Dark Overlay -->
     <div
       class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-slate-950/40"
     />
 
-    <!-- Decorative Gradient -->
     <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
 
-    <!-- Hero Content -->
     <div
       class="relative z-10 mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 py-12 sm:py-0"
     >
@@ -54,7 +50,6 @@ function goToReservation() {
           {{ guestHotelStore.hotelName }} • {{ languageStore.t('gallery', 'Visual Showcase') }}
         </span>
 
-        <!-- Heading -->
         <h1
           class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-white tracking-tight"
         >
@@ -64,7 +59,6 @@ function goToReservation() {
           {{ languageStore.t('of_our_hotel', 'of Our Hotel') }}
         </h1>
 
-        <!-- Description -->
         <p
           class="max-w-2xl text-xs sm:text-sm md:text-base leading-relaxed text-slate-200 font-medium"
         >
@@ -78,7 +72,6 @@ function goToReservation() {
           }}
         </p>
 
-        <!-- Buttons -->
         <div class="pt-2 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
           <button
             @click="goToReservation"
@@ -95,7 +88,6 @@ function goToReservation() {
           </button>
         </div>
 
-        <!-- Statistics -->
         <div class="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6">
           <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800">
             <h3 class="text-xl sm:text-2xl font-black text-amber-400">{{ roomCount }}</h3>

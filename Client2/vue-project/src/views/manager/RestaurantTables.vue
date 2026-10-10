@@ -237,7 +237,6 @@ onMounted(() => {
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
-      <!-- Page Header -->
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
       >
@@ -263,9 +262,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Statistics Cards Grid -->
       <div v-if="statistics" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-        <!-- Total -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between"
         >
@@ -286,7 +283,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Available -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between"
         >
@@ -305,7 +301,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Occupied -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between"
         >
@@ -324,7 +319,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Reserved -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between"
         >
@@ -343,7 +337,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Cleaning -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between"
         >
@@ -362,7 +355,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Out of Service -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between"
         >
@@ -382,13 +374,10 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -407,7 +396,6 @@ onMounted(() => {
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -427,9 +415,7 @@ onMounted(() => {
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="refreshData"
@@ -440,7 +426,6 @@ onMounted(() => {
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
           </button>
 
-          <!-- Fullscreen Toggle -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -450,7 +435,6 @@ onMounted(() => {
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
           </button>
 
-          <!-- Manage Sections Button -->
           <button
             type="button"
             @click="showSectionModal = true"
@@ -460,7 +444,6 @@ onMounted(() => {
             <span>Manage Sections</span>
           </button>
 
-          <!-- Create Table Primary Button -->
           <button
             type="button"
             @click="openCreateModal"
@@ -472,7 +455,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -486,7 +468,6 @@ onMounted(() => {
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-4 gap-3.5 sm:gap-4">
-            <!-- Section Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 Restaurant Section
@@ -503,7 +484,6 @@ onMounted(() => {
               </select>
             </div>
 
-            <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('Status', 'Table Status') }}
@@ -524,7 +504,6 @@ onMounted(() => {
               </select>
             </div>
 
-            <!-- Active Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('activation', 'Activation State') }}
@@ -540,7 +519,6 @@ onMounted(() => {
               </select>
             </div>
 
-            <!-- Reset Filters -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -555,11 +533,9 @@ onMounted(() => {
         </div>
       </Transition>
 
-      <!-- Tables Table Container -->
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
             <thead
@@ -589,7 +565,6 @@ onMounted(() => {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <!-- Loading Spinner State -->
               <tr v-if="loading">
                 <td colspan="8" class="px-6 py-20 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
@@ -601,25 +576,21 @@ onMounted(() => {
                 </td>
               </tr>
 
-              <!-- Data Rows -->
               <tr
                 v-for="table in loading ? [] : tables"
                 :key="table.id"
                 class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
               >
-                <!-- Table Number -->
                 <td
                   class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-black text-slate-900 dark:text-white text-xs sm:text-sm"
                 >
                   {{ table.table_number }}
                 </td>
 
-                <!-- Table Name -->
                 <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white">
                   {{ table.table_name || `Table ${table.table_number}` }}
                 </td>
 
-                <!-- Capacity -->
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span
                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-bold text-xs text-slate-700 dark:text-slate-300"
@@ -629,7 +600,6 @@ onMounted(() => {
                   </span>
                 </td>
 
-                <!-- Section -->
                 <td
                   class="py-3 px-4 whitespace-nowrap text-slate-700 dark:text-slate-300 font-medium"
                 >
@@ -641,7 +611,6 @@ onMounted(() => {
                   </span>
                 </td>
 
-                <!-- Status -->
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span
                     class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
@@ -656,7 +625,6 @@ onMounted(() => {
                   </span>
                 </td>
 
-                <!-- Active -->
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold"
@@ -674,7 +642,6 @@ onMounted(() => {
                   </span>
                 </td>
 
-                <!-- QR Code -->
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <button
                     @click="viewQRCode(table)"
@@ -685,7 +652,6 @@ onMounted(() => {
                   </button>
                 </td>
 
-                <!-- Actions -->
                 <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
                   <div class="flex items-center justify-end gap-1">
                     <button
@@ -706,7 +672,6 @@ onMounted(() => {
                 </td>
               </tr>
 
-              <!-- Empty State -->
               <tr v-if="!loading && tables.length === 0">
                 <td
                   colspan="8"
@@ -719,7 +684,6 @@ onMounted(() => {
           </table>
         </div>
 
-        <!-- Mobile Card View -->
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
           <div
             v-if="loading"
@@ -776,7 +740,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Pagination Footer -->
         <div
           v-if="pagination && pagination.total > 0"
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
@@ -844,7 +807,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Create/Edit Table Modal -->
       <RestaurantTableFormModal
         v-if="showFormModal"
         :table="selectedTable"
@@ -852,14 +814,12 @@ onMounted(() => {
         @success="handleFormSuccess"
       />
 
-      <!-- Section Management Modal -->
       <RestaurantSectionModal
         v-if="showSectionModal"
         @close="showSectionModal = false"
         @updated="handleSectionUpdated"
       />
 
-      <!-- QR Code Modal -->
       <Teleport to="body">
         <Transition name="fade">
           <div
@@ -932,7 +892,6 @@ onMounted(() => {
         </Transition>
       </Teleport>
 
-      <!-- Delete Confirmation Modal -->
       <Teleport to="body">
         <Transition name="fade">
           <div

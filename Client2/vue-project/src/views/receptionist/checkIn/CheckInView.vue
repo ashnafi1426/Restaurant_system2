@@ -309,14 +309,12 @@ watch(
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
-      <!-- Check-In Dialog -->
       <CheckInDialog
         v-model="showCheckInDialog"
         :reservations="availableReservations"
         @success="handleCheckInSuccess"
       />
 
-      <!-- Toast Notification -->
       <div
         v-if="toastMessage"
         class="fixed bottom-6 right-6 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-800 text-xs font-bold"
@@ -325,7 +323,6 @@ watch(
         <span>{{ toastMessage }}</span>
       </div>
 
-      <!-- Header Section -->
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
       >
@@ -365,9 +362,7 @@ watch(
         </div>
       </div>
 
-      <!-- Statistics Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <!-- Total Check-Ins -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -386,7 +381,6 @@ watch(
           </div>
         </div>
 
-        <!-- Active In-House Guests -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -405,7 +399,6 @@ watch(
           </div>
         </div>
 
-        <!-- Checked Out -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -425,13 +418,10 @@ watch(
         </div>
       </div>
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -449,7 +439,6 @@ watch(
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -469,9 +458,7 @@ watch(
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="handleRefresh"
@@ -482,7 +469,6 @@ watch(
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.loading }" />
           </button>
 
-          <!-- Fullscreen Toggle -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -492,7 +478,6 @@ watch(
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
           </button>
 
-          <!-- New Check-In Button -->
           <button
             type="button"
             @click="openNewCheckInDialog"
@@ -504,7 +489,6 @@ watch(
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -518,7 +502,6 @@ watch(
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
-            <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('occupancy_status', 'Occupancy Status') }}
@@ -537,7 +520,6 @@ watch(
               </select>
             </div>
 
-            <!-- Room Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('filter_by_room', 'Filter by Room #') }}
@@ -550,7 +532,6 @@ watch(
               />
             </div>
 
-            <!-- Reset Button -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -565,11 +546,9 @@ watch(
         </div>
       </Transition>
 
-      <!-- Check-In Records Table Container -->
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
             <thead
@@ -600,7 +579,6 @@ watch(
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <!-- Loading Spinner State -->
               <tr v-if="store.loading">
                 <td colspan="7" class="px-6 py-20 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
@@ -612,14 +590,12 @@ watch(
                 </td>
               </tr>
 
-              <!-- Data Rows -->
               <template v-else>
                 <tr
                   v-for="checkIn in paginatedCheckIns"
                   :key="checkIn.id"
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
-                  <!-- Guest -->
                   <td class="py-3 px-4 pl-5 whitespace-nowrap">
                     <div class="flex items-center gap-2.5">
                       <div
@@ -638,7 +614,6 @@ watch(
                     </div>
                   </td>
 
-                  <!-- Room & Type -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <div class="flex items-center gap-2">
                       <span
@@ -655,7 +630,6 @@ watch(
                     </div>
                   </td>
 
-                  <!-- Reservation # -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <span
                       class="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300"
@@ -664,21 +638,18 @@ watch(
                     </span>
                   </td>
 
-                  <!-- Checked In -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <div class="font-medium text-slate-800 dark:text-slate-200">
                       {{ formatDate(checkIn.checked_in_at) }}
                     </div>
                   </td>
 
-                  <!-- Expected Check Out -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <div class="font-medium text-slate-800 dark:text-slate-200">
                       {{ formatDate(checkIn.expected_check_out_at) }}
                     </div>
                   </td>
 
-                  <!-- Status -->
                   <td class="py-3 px-4 text-center whitespace-nowrap">
                     <span
                       class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
@@ -696,10 +667,8 @@ watch(
                     </span>
                   </td>
 
-                  <!-- Actions -->
                   <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
                     <div class="flex items-center justify-end gap-1">
-                      <!-- Check-out button -->
                       <button
                         v-if="!checkIn.checked_out_at"
                         @click="handleCheckout(checkIn)"
@@ -709,7 +678,6 @@ watch(
                         <LogOut class="w-3.5 h-3.5" />
                       </button>
 
-                      <!-- Delete button -->
                       <button
                         @click="handleDelete(checkIn)"
                         class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
@@ -721,7 +689,6 @@ watch(
                   </td>
                 </tr>
 
-                <!-- Empty State -->
                 <tr v-if="paginatedCheckIns.length === 0">
                   <td
                     colspan="7"
@@ -740,7 +707,6 @@ watch(
           </table>
         </div>
 
-        <!-- Mobile View -->
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
           <div
             v-if="store.loading"
@@ -800,7 +766,6 @@ watch(
           </template>
         </div>
 
-        <!-- Pagination Footer -->
         <div
           v-if="filteredCheckIns.length > 0"
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"

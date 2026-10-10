@@ -34,7 +34,6 @@ const showPassword = ref(false)
 const loading = ref(false)
 const rememberMe = ref(false)
 
-// Toast notification state
 const showToast = ref(false)
 const toastType = ref<'success' | 'error'>('success')
 const toastMessage = ref('')
@@ -48,10 +47,8 @@ const errors = ref({
 onMounted(() => {
   themeStore.initTheme()
 
-  // Clear any leftover auth state when navigating to login
   const token = localStorage.getItem('token')
   if (!token && auth.token) {
-    // If no token in storage but auth still has token, clear it
     auth.setToken(null)
     auth.setUser(null)
     auth.setCurrentHotel(null)
@@ -92,13 +89,11 @@ const login = async (): Promise<void> => {
   try {
     const result = await auth.login(email.value, password.value)
 
-    // Sync hotelStore state in memory immediately
     const hotelStore = useHotelStore()
     if (result?.current_hotel) {
       hotelStore.setHotels(result?.hotels || [], result.current_hotel)
     }
 
-    // Resolve dynamic role directly from backend response (hotel-scoped role or user role)
     const effectiveRole = (
       result?.current_hotel?.role ||
       result?.user?.role ||
@@ -159,7 +154,6 @@ const login = async (): Promise<void> => {
   <div
     class="h-screen max-h-screen w-full flex flex-col justify-between items-center bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans relative overflow-hidden p-3 sm:p-5 transition-colors duration-300"
   >
-    <!-- Ambient Background Glows (Dark Mode Only) -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
       <div
         class="absolute -top-40 -left-40 w-96 h-96 bg-amber-500/0 dark:bg-amber-500/15 rounded-full blur-[120px]"
@@ -169,7 +163,6 @@ const login = async (): Promise<void> => {
       ></div>
     </div>
 
-    <!-- Toast Notification Component -->
     <Transition name="toast-slide">
       <div v-if="showToast" class="fixed top-4 right-4 z-[9999] max-w-md w-full px-4">
         <div
@@ -211,7 +204,6 @@ const login = async (): Promise<void> => {
       </div>
     </Transition>
 
-    <!-- Top Navigation & Brand Header -->
     <header class="w-full max-w-lg flex items-center justify-between z-10 py-1 sm:py-2">
       <button
         type="button"
@@ -224,7 +216,6 @@ const login = async (): Promise<void> => {
         }}</span>
       </button>
 
-      <!-- Center Brand Badge -->
       <div
         class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs"
       >
@@ -247,7 +238,6 @@ const login = async (): Promise<void> => {
         </span>
       </div>
 
-      <!-- Controls: Language Selector & Dark / Light Theme Toggle -->
       <div class="flex items-center gap-1.5">
         <LanguageSelector variant="compact" />
 
@@ -264,12 +254,10 @@ const login = async (): Promise<void> => {
       </div>
     </header>
 
-    <!-- Center Clean Fixed Login Card Form -->
     <main class="my-auto w-full max-w-md z-10 py-2 sm:py-4">
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl dark:shadow-2xl dark:shadow-slate-950/80 space-y-4 sm:space-y-5 transition-colors duration-300"
       >
-        <!-- Form Header with Branded Emblem -->
         <div class="space-y-2 text-center">
           <div
             class="mx-auto w-16 h-16 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200/90 dark:border-slate-800 p-2 shadow-sm flex items-center justify-center mb-1 overflow-hidden ring-1 ring-amber-500/20"
@@ -288,7 +276,6 @@ const login = async (): Promise<void> => {
           </p>
         </div>
 
-        <!-- General Server Error Banner -->
         <div
           v-if="errors.general"
           class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 p-3 rounded-2xl text-xs flex items-start gap-2 animate-shake"
@@ -297,9 +284,7 @@ const login = async (): Promise<void> => {
           <span class="leading-relaxed font-medium">{{ errors.general }}</span>
         </div>
 
-        <!-- Login Form Inputs (With Chrome & Browser Autocomplete Support) -->
         <form @submit.prevent="login" method="POST" autocomplete="on" class="space-y-4">
-          <!-- Email Input -->
           <div class="space-y-1">
             <label for="email" class="block text-xs font-bold text-slate-900 dark:text-slate-200">
               {{ languageStore.t('email_address', 'Work Email Address') }}
@@ -333,7 +318,6 @@ const login = async (): Promise<void> => {
             </p>
           </div>
 
-          <!-- Password Input -->
           <div class="space-y-1">
             <div class="flex items-center justify-between">
               <label
@@ -386,7 +370,6 @@ const login = async (): Promise<void> => {
             </p>
           </div>
 
-          <!-- Remember Me -->
           <div class="flex items-center justify-between pt-0.5">
             <label class="flex items-center gap-2 cursor-pointer group">
               <input
@@ -402,7 +385,6 @@ const login = async (): Promise<void> => {
             </label>
           </div>
 
-          <!-- Submit Button -->
           <button
             type="submit"
             :disabled="loading"
@@ -423,7 +405,6 @@ const login = async (): Promise<void> => {
       </div>
     </main>
 
-    <!-- Minimalist Security & Copyright Footer -->
     <footer
       class="w-full max-w-lg text-center text-xs text-slate-600 dark:text-slate-400 space-y-0.5 font-medium z-10 py-1 sm:py-2"
     >
@@ -470,7 +451,6 @@ const login = async (): Promise<void> => {
   animation: spinSlow 12s linear infinite;
 }
 
-/* Toast Slide Transition */
 .toast-slide-enter-active {
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }

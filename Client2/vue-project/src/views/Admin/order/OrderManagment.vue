@@ -20,12 +20,6 @@ const router = useRouter()
 
 const orderStore = useOrderStore()
 
-/*
-|--------------------------------------------------------------------------
-| Dialog State
-|--------------------------------------------------------------------------
-*/
-
 const showDetailsDialog = ref(false)
 const showStatusDialog = ref(false)
 const showDeleteDialog = ref(false)
@@ -87,19 +81,11 @@ function changePerPage(value: number) {
   loadOrders()
 }
 
-/*
-|--------------------------------------------------------------------------
-| Navigation to Add Order Page
-|--------------------------------------------------------------------------
-*/
-
 function openCreate() {
-  // Navigate to create order page
   router.push('/orders/create')
 }
 
 function openEdit(order: Order) {
-  // Navigate to edit order page
   router.push(`/orders/${order.id}/edit`)
 }
 
@@ -175,13 +161,10 @@ function toggleFullscreen() {
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
-      <!-- Header -->
       <OrderHeader @create="openCreate" />
 
-      <!-- Statistics -->
       <OrderStatistics :statistics="orderStore.statistics" :loading="orderStore.loading" />
 
-      <!-- Filters & Toolbar -->
       <OrderFilters
         :filters="filters"
         :loading="orderStore.loading"
@@ -194,7 +177,6 @@ function toggleFullscreen() {
         @toggle-fullscreen="toggleFullscreen"
       />
 
-      <!-- Table -->
       <OrderTable
         :orders="orders"
         :loading="orderStore.loading"
@@ -210,17 +192,14 @@ function toggleFullscreen() {
         @per-page-change="changePerPage"
       />
 
-      <!-- Details Dialog (View only) -->
       <OrderDetailsDialog v-model="showDetailsDialog" :order="selectedOrder" />
 
-      <!-- Status Dialog -->
       <ChangeStatusDialog
         v-model="showStatusDialog"
         :order="selectedOrder"
         @update="updateStatus"
       />
 
-      <!-- Delete Dialog -->
       <DeleteOrderDialog v-model="showDeleteDialog" :order="selectedOrder" @confirm="deleteOrder" />
     </div>
   </DashboardLayout>

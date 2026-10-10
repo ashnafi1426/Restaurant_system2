@@ -25,7 +25,6 @@ export const useThemeStore = defineStore('theme', () => {
       document.head.appendChild(metaTag)
     }
 
-    // Determine current canvas background color for browser chrome
     const currentPreset =
       HOTEL_PRESET_THEMES[hotelTheme.value] || HOTEL_PRESET_THEMES['luxury-gold']
     const color = isDark.value

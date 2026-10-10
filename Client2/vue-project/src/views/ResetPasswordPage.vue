@@ -3,7 +3,6 @@
     class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4 font-sans"
   >
     <div class="w-full max-w-md">
-      <!-- Success State -->
       <div
         v-if="resetSuccess"
         class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 text-center"
@@ -47,9 +46,7 @@
         </button>
       </div>
 
-      <!-- Reset Form -->
       <div v-else class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
-        <!-- Header -->
         <div class="text-center mb-8">
           <div
             class="mx-auto w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mb-4"
@@ -78,7 +75,6 @@
           </p>
         </div>
 
-        <!-- Error Message -->
         <div
           v-if="error"
           class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl"
@@ -103,9 +99,7 @@
           </div>
         </div>
 
-        <!-- Form -->
         <form @submit.prevent="handleReset" class="space-y-6">
-          <!-- Password Field -->
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {{ languageStore.t('new_password', 'New Password') }}
@@ -158,7 +152,6 @@
             </p>
           </div>
 
-          <!-- Confirm Password Field -->
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {{ languageStore.t('confirm_new_password', 'Confirm New Password') }}
@@ -214,7 +207,6 @@
             </p>
           </div>
 
-          <!-- Password Strength Meter -->
           <div v-if="form.password" class="mb-6">
             <div class="flex items-center justify-between mb-2">
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -246,7 +238,6 @@
             </div>
           </div>
 
-          <!-- Submit Button -->
           <button
             type="submit"
             :disabled="resetting"
@@ -278,7 +269,6 @@
           </button>
         </form>
 
-        <!-- Back to Login -->
         <div class="mt-6 text-center">
           <router-link
             to="/login"
@@ -404,7 +394,6 @@ const handleReset = async () => {
   } else {
     error.value = result.message
 
-    // If token expired or invalid, redirect to forgot password after delay
     if (result.errorType === 'expired' || result.errorType === 'invalid_token') {
       setTimeout(() => {
         router.push('/forgot-password')
@@ -413,7 +402,6 @@ const handleReset = async () => {
   }
 }
 
-// Verify token on mount
 onMounted(async () => {
   if (!email.value || !token.value) {
     error.value = 'Invalid reset link. Missing required parameters.'

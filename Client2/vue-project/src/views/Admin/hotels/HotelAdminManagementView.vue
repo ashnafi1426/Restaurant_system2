@@ -86,7 +86,6 @@ const resetFilters = () => {
   selectedStatus.value = 'all'
 }
 
-// Pagination
 const currentPage = ref(1)
 const totalPages = ref(1)
 const totalItems = ref(0)
@@ -94,7 +93,6 @@ const itemsPerPage = ref(10)
 const jumpPage = ref('')
 const itemsPerPageOptions = [5, 10, 20, 50]
 
-// Computed properties for pagination
 const paginationInfo = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value + 1
   const end = Math.min(currentPage.value * itemsPerPage.value, totalItems.value)
@@ -121,7 +119,6 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// Modals
 const showCreateModal = ref(false)
 const showResetModal = ref(false)
 const createSuccessInfo = ref<{
@@ -164,7 +161,6 @@ const loadAdmins = async () => {
   }
 }
 
-// Pagination functions
 const goToPage = (page: number) => {
   if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
     currentPage.value = page
@@ -337,7 +333,6 @@ const copyToClipboard = (text: string) => {
     <div
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
     >
-      <!-- Header Banner -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4"
       >
@@ -366,7 +361,6 @@ const copyToClipboard = (text: string) => {
         </div>
       </div>
 
-      <!-- Alerts -->
       <div
         v-if="successMessage"
         class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2"
@@ -383,13 +377,10 @@ const copyToClipboard = (text: string) => {
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -402,7 +393,6 @@ const copyToClipboard = (text: string) => {
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -418,9 +408,7 @@ const copyToClipboard = (text: string) => {
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="loadAdmins"
@@ -431,7 +419,6 @@ const copyToClipboard = (text: string) => {
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
           </button>
 
-          <!-- Fullscreen Toggle -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -441,7 +428,6 @@ const copyToClipboard = (text: string) => {
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
           </button>
 
-          <!-- Add Hotel Admin Primary Button -->
           <button
             type="button"
             @click="openCreateModal"
@@ -453,7 +439,6 @@ const copyToClipboard = (text: string) => {
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -467,7 +452,6 @@ const copyToClipboard = (text: string) => {
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
-            <!-- Hotel Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 Assigned Hotel
@@ -489,7 +473,6 @@ const copyToClipboard = (text: string) => {
               />
             </div>
 
-            <!-- Status Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 Account Status
@@ -504,7 +487,6 @@ const copyToClipboard = (text: string) => {
               </select>
             </div>
 
-            <!-- Reset Filters -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -519,7 +501,6 @@ const copyToClipboard = (text: string) => {
         </div>
       </Transition>
 
-      <!-- Table -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden"
       >
@@ -559,7 +540,6 @@ const copyToClipboard = (text: string) => {
                 :key="adm.id"
                 class="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition"
               >
-                <!-- Name -->
                 <td class="py-4 px-5">
                   <div class="flex items-center gap-3">
                     <div
@@ -582,12 +562,10 @@ const copyToClipboard = (text: string) => {
                   </div>
                 </td>
 
-                <!-- Email -->
                 <td class="py-4 px-4 font-mono text-slate-600 dark:text-slate-300">
                   {{ adm.user?.email || 'N/A' }}
                 </td>
 
-                <!-- Hotel -->
                 <td class="py-4 px-4">
                   <div
                     class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200"
@@ -600,7 +578,6 @@ const copyToClipboard = (text: string) => {
                   </span>
                 </td>
 
-                <!-- Role -->
                 <td class="py-4 px-4">
                   <span
                     class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-black text-[11px]"
@@ -609,7 +586,6 @@ const copyToClipboard = (text: string) => {
                   </span>
                 </td>
 
-                <!-- Status -->
                 <td class="py-4 px-4">
                   <button
                     @click="handleToggleStatus(adm)"
@@ -626,12 +602,10 @@ const copyToClipboard = (text: string) => {
                   </button>
                 </td>
 
-                <!-- Created Date -->
                 <td class="py-4 px-4 text-slate-400 text-[11px]">
                   {{ new Date(adm.created_at).toLocaleDateString() }}
                 </td>
 
-                <!-- Actions -->
                 <td class="py-4 px-5 text-right whitespace-nowrap pr-5 relative" @click.stop>
                   <div class="relative inline-block text-left">
                     <button
@@ -726,10 +700,8 @@ const copyToClipboard = (text: string) => {
           </table>
         </div>
 
-        <!-- Enhanced Pagination -->
         <div v-if="totalItems > 0" class="p-4 border-t border-slate-200 dark:border-slate-800">
           <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <!-- Left: Pagination Info & Per Page Selector -->
             <div class="flex flex-col sm:flex-row sm:items-center gap-3">
               <div class="text-xs text-slate-500 dark:text-slate-400">
                 Showing {{ paginationInfo.start }}-{{ paginationInfo.end }} of
@@ -752,14 +724,12 @@ const copyToClipboard = (text: string) => {
               </div>
             </div>
 
-            <!-- Center: Page Navigation -->
             <div v-if="totalPages > 1" class="flex items-center justify-center">
               <nav
                 class="flex items-center gap-1"
                 role="navigation"
                 aria-label="Pagination Navigation"
               >
-                <!-- First Page -->
                 <button
                   type="button"
                   @click="goToFirstPage"
@@ -770,7 +740,6 @@ const copyToClipboard = (text: string) => {
                   <ChevronsLeft class="w-4 h-4" />
                 </button>
 
-                <!-- Previous Page -->
                 <button
                   type="button"
                   @click="prevPage"
@@ -781,7 +750,6 @@ const copyToClipboard = (text: string) => {
                   <ChevronLeft class="w-4 h-4" />
                 </button>
 
-                <!-- Page Numbers -->
                 <div class="flex items-center gap-1 mx-2">
                   <button
                     v-for="page in visiblePages"
@@ -799,7 +767,6 @@ const copyToClipboard = (text: string) => {
                   </button>
                 </div>
 
-                <!-- Next Page -->
                 <button
                   type="button"
                   @click="nextPage"
@@ -810,7 +777,6 @@ const copyToClipboard = (text: string) => {
                   <ChevronRight class="w-4 h-4" />
                 </button>
 
-                <!-- Last Page -->
                 <button
                   type="button"
                   @click="goToLastPage"
@@ -823,7 +789,6 @@ const copyToClipboard = (text: string) => {
               </nav>
             </div>
 
-            <!-- Right: Jump to Page -->
             <div v-if="totalPages > 1" class="flex items-center gap-2">
               <label
                 class="text-xs font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap"
@@ -854,7 +819,6 @@ const copyToClipboard = (text: string) => {
         </div>
       </div>
 
-      <!-- CREATE HOTEL ADMIN MODAL (Security-First Activation Flow) -->
       <Teleport to="body">
         <div
           v-if="showCreateModal"
@@ -891,7 +855,6 @@ const copyToClipboard = (text: string) => {
               </button>
             </div>
 
-            <!-- If Hotel Admin successfully created -->
             <div
               v-if="createSuccessInfo"
               class="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-4"
@@ -903,7 +866,6 @@ const copyToClipboard = (text: string) => {
                 <span>Hotel Admin Account Ready!</span>
               </div>
 
-              <!-- Information Card -->
               <div
                 class="p-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2.5 shadow-xs text-xs"
               >
@@ -969,7 +931,6 @@ const copyToClipboard = (text: string) => {
               </div>
             </div>
 
-            <!-- Form -->
             <div v-else class="space-y-3">
               <div class="grid grid-cols-2 gap-3">
                 <div>
@@ -1066,7 +1027,6 @@ const copyToClipboard = (text: string) => {
         </div>
       </Teleport>
 
-      <!-- RESET / RESEND PASSWORD CONFIRMATION MODAL -->
       <Teleport to="body">
         <div
           v-if="showResetModal"

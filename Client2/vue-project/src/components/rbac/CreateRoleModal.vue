@@ -41,18 +41,15 @@ const emit = defineEmits<{
 
 const languageStore = useLanguageStore()
 
-// Form State
 const name = ref('')
 const slug = ref('')
 const description = ref('')
 const isActive = ref(true)
 const selectedPermissionIds = ref<number[]>([])
 
-// Filter State
 const searchQuery = ref('')
 const selectedModuleFilter = ref<string>('all')
 
-// Generate slug automatically as name is typed, unless user modifies it
 const autoSlug = computed(() => {
   return name.value
     .toLowerCase()
@@ -61,11 +58,9 @@ const autoSlug = computed(() => {
     .replace(/^-+|-+$/g, '')
 })
 
-// Set for O(1) permission lookup
 const selectedSet = computed(() => new Set(selectedPermissionIds.value))
 const isSelected = (id: number) => selectedSet.value.has(id)
 
-// Reset form when modal opens
 watch(
   () => props.show,
   (isOpen) => {
@@ -84,7 +79,6 @@ watch(
   { immediate: true },
 )
 
-// List of all distinct modules from permissions
 const moduleList = computed(() => {
   const set = new Set<string>()
   ;(props.permissions || []).forEach((p) => {
@@ -93,7 +87,6 @@ const moduleList = computed(() => {
   return Array.from(set).sort()
 })
 
-// Filter permissions based on search query and selected module
 const filteredPermissions = computed(() => {
   let list = props.permissions || []
 
@@ -115,7 +108,6 @@ const filteredPermissions = computed(() => {
   return list
 })
 
-// Group filtered permissions by module
 const groupedPermissions = computed(() => {
   const groups: Record<string, Permission[]> = {}
   filteredPermissions.value.forEach((p) => {
@@ -136,7 +128,6 @@ const groupedPermissions = computed(() => {
   })
 })
 
-// Toggle individual permission
 const togglePermission = (id: number) => {
   const idx = selectedPermissionIds.value.indexOf(id)
   if (idx === -1) {
@@ -146,7 +137,6 @@ const togglePermission = (id: number) => {
   }
 }
 
-// Toggle all permissions within a specific module
 const toggleModule = (groupPerms: Permission[], isAllSelected: boolean) => {
   const ids = groupPerms.map((p) => p.id)
   if (isAllSelected) {
@@ -159,14 +149,12 @@ const toggleModule = (groupPerms: Permission[], isAllSelected: boolean) => {
   }
 }
 
-// Select all currently filtered permissions
 const selectAllFiltered = () => {
   const filteredIds = filteredPermissions.value.map((p) => p.id)
   const merged = new Set([...selectedPermissionIds.value, ...filteredIds])
   selectedPermissionIds.value = Array.from(merged)
 }
 
-// Deselect all currently filtered permissions
 const deselectAllFiltered = () => {
   if (searchQuery.value.trim() || selectedModuleFilter.value !== 'all') {
     const toRemove = new Set(filteredPermissions.value.map((p) => p.id))
@@ -176,7 +164,6 @@ const deselectAllFiltered = () => {
   }
 }
 
-// Submit handler
 const handleSubmit = () => {
   if (!name.value.trim() || props.loading) return
   emit('save', {
@@ -195,17 +182,14 @@ const handleSubmit = () => {
       v-if="show"
       class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 overflow-hidden"
     >
-      <!-- Backdrop -->
       <div
         class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
         @click="emit('close')"
       ></div>
 
-      <!-- Modal Card -->
       <div
         class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto"
       >
-        <!-- Header -->
         <div
           class="flex items-center justify-between px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs flex-shrink-0"
         >
@@ -242,14 +226,11 @@ const handleSubmit = () => {
           </button>
         </div>
 
-        <!-- Scrollable Body -->
         <div class="flex-1 overflow-y-auto px-5 sm:px-6 py-5 space-y-5">
-          <!-- Role Details Card -->
           <div
             class="bg-slate-50/70 dark:bg-slate-950/40 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 space-y-4"
           >
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Role Name -->
               <div class="space-y-1.5">
                 <label
                   class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
@@ -271,7 +252,6 @@ const handleSubmit = () => {
                 />
               </div>
 
-              <!-- Role Key / Slug -->
               <div class="space-y-1.5">
                 <div class="flex items-center justify-between">
                   <label
@@ -291,7 +271,6 @@ const handleSubmit = () => {
                 />
               </div>
 
-              <!-- Description -->
               <div class="space-y-1.5 sm:col-span-2">
                 <label
                   class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
@@ -311,7 +290,6 @@ const handleSubmit = () => {
                 ></textarea>
               </div>
 
-              <!-- Active Status Toggle -->
               <div class="sm:col-span-2 pt-1 flex items-center justify-between">
                 <label class="flex items-center gap-3 cursor-pointer select-none">
                   <input
@@ -337,9 +315,7 @@ const handleSubmit = () => {
             </div>
           </div>
 
-          <!-- Permissions Catalog Section -->
           <div class="space-y-3">
-            <!-- Catalog Header with Quick Actions -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
               <div class="flex items-center gap-2">
                 <Key class="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -375,9 +351,7 @@ const handleSubmit = () => {
               </div>
             </div>
 
-            <!-- Search and Module Filter Pills -->
             <div class="flex flex-col sm:flex-row items-center gap-2.5">
-              <!-- Search bar -->
               <div class="relative flex-1 w-full">
                 <Search
                   class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -395,7 +369,6 @@ const handleSubmit = () => {
                 />
               </div>
 
-              <!-- Module Filter Dropdown/Pills -->
               <div class="w-full sm:w-auto">
                 <select
                   v-model="selectedModuleFilter"
@@ -411,7 +384,6 @@ const handleSubmit = () => {
               </div>
             </div>
 
-            <!-- Loading State -->
             <div
               v-if="loadingPermissions"
               class="py-12 text-center bg-slate-50/60 dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-slate-800"
@@ -422,7 +394,6 @@ const handleSubmit = () => {
               </p>
             </div>
 
-            <!-- Empty State -->
             <div
               v-else-if="groupedPermissions.length === 0"
               class="py-12 text-center bg-slate-50/60 dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-slate-800"
@@ -433,14 +404,12 @@ const handleSubmit = () => {
               </p>
             </div>
 
-            <!-- Grouped Permissions List -->
             <div v-else class="space-y-3 max-h-[320px] overflow-y-auto pr-1">
               <div
                 v-for="group in groupedPermissions"
                 :key="group.module"
                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 space-y-2.5 shadow-xs"
               >
-                <!-- Group Header -->
                 <div
                   class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800"
                 >
@@ -478,7 +447,6 @@ const handleSubmit = () => {
                   </button>
                 </div>
 
-                <!-- Permission Checkbox Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div
                     v-for="perm in group.permissions"
@@ -525,7 +493,6 @@ const handleSubmit = () => {
           </div>
         </div>
 
-        <!-- Footer -->
         <div
           class="flex items-center justify-between px-5 sm:px-6 py-3.5 sm:py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-xs flex-shrink-0"
         >

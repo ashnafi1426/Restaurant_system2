@@ -56,7 +56,6 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-    <!-- Header -->
     <div
       class="flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white px-6 py-4"
     >
@@ -78,11 +77,8 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <!-- Loading -->
     <div v-if="loading" class="flex flex-col items-center justify-center p-16 text-slate-500">
-      <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-12 h-12) -->
       <div class="relative w-12 h-12 mb-4">
-        <!-- Static background - BRIGHT CYAN -->
         <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
           <circle
             cx="50"
@@ -95,7 +91,6 @@ onBeforeUnmount(() => {
           />
         </svg>
 
-        <!-- Animated spinner - BRIGHT YELLOW -->
         <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite">
           <svg viewBox="0 0 100 100" class="w-full h-full">
             <circle
@@ -114,7 +109,6 @@ onBeforeUnmount(() => {
       <p class="font-medium">{{ languageStore.t('loading_guests', 'Loading guests...') }}</p>
     </div>
 
-    <!-- Empty -->
     <div v-else-if="guests.length === 0" class="p-16 text-center">
       <div
         class="mx-auto w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-4"
@@ -131,7 +125,6 @@ onBeforeUnmount(() => {
       </p>
     </div>
 
-    <!-- Table -->
     <div v-else class="overflow-x-auto">
       <table class="min-w-full divide-y divide-slate-200">
         <thead class="bg-slate-50">
@@ -171,7 +164,6 @@ onBeforeUnmount(() => {
 
         <tbody class="bg-white divide-y divide-slate-200">
           <tr v-for="guest in guests" :key="guest.id" class="hover:bg-slate-50 transition-colors">
-            <!-- Guest Information -->
             <td class="px-6 py-4">
               <div class="flex items-center gap-3">
                 <div
@@ -190,7 +182,6 @@ onBeforeUnmount(() => {
               </div>
             </td>
 
-            <!-- Contact -->
             <td class="px-6 py-4">
               <div class="flex items-center gap-2 text-sm text-slate-700">
                 <span class="material-symbols-rounded text-sm text-slate-400">phone</span>
@@ -198,7 +189,6 @@ onBeforeUnmount(() => {
               </div>
             </td>
 
-            <!-- Nationality -->
             <td class="px-6 py-4">
               <div
                 v-if="guest.nationality"
@@ -210,7 +200,6 @@ onBeforeUnmount(() => {
               <span v-else class="text-slate-400 text-sm">-</span>
             </td>
 
-            <!-- Passport -->
             <td class="px-6 py-4">
               <div v-if="guest.passport_number" class="flex items-center gap-2 text-sm">
                 <span class="material-symbols-rounded text-sm text-slate-400">badge</span>
@@ -219,7 +208,6 @@ onBeforeUnmount(() => {
               <span v-else class="text-slate-400 text-sm">-</span>
             </td>
 
-            <!-- Registered Date -->
             <td class="px-6 py-4">
               <div class="flex items-center gap-2 text-sm text-slate-600">
                 <span class="material-symbols-rounded text-sm text-slate-400">calendar_today</span>
@@ -227,7 +215,6 @@ onBeforeUnmount(() => {
               </div>
             </td>
 
-            <!-- Actions -->
             <td class="relative px-6 py-4 text-center">
               <div class="action-menu inline-block relative">
                 <button
@@ -250,7 +237,6 @@ onBeforeUnmount(() => {
                     v-if="openMenu === guest.id"
                     class="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
                   >
-                    <!-- View -->
                     <button
                       @click="
                         () => {
@@ -266,7 +252,6 @@ onBeforeUnmount(() => {
                       }}</span>
                     </button>
 
-                    <!-- Edit -->
                     <button
                       @click="
                         () => {
@@ -284,7 +269,6 @@ onBeforeUnmount(() => {
 
                     <div class="border-t border-slate-200"></div>
 
-                    <!-- Delete -->
                     <button
                       @click="
                         () => {

@@ -82,20 +82,14 @@ onUnmounted(() => {
   <header
     class="fixed inset-x-0 top-0 z-50 transition-colors duration-200 bg-white/95 dark:bg-[#0B1B35]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-xs"
   >
-    <!-- Container -->
     <div
       class="mx-auto flex h-20 w-full max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-10"
     >
-      <!-- ============================================================== -->
-      <!-- LEFT SECTION: Brand Identity + Clean Nav Links                 -->
-      <!-- ============================================================== -->
       <div class="flex items-center gap-8 lg:gap-10 min-w-0">
-        <!-- Brand Link -->
         <RouterLink
           to="/"
           class="flex items-center gap-3 shrink-0 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A] rounded-lg group"
         >
-          <!-- Logo (White rounded badge so it stays crisp in both Light & Dark mode) -->
           <div
             class="relative w-11 h-11 flex items-center justify-center rounded-xl bg-white p-1 shadow-xs border border-slate-200/60 dark:border-slate-700/60 shrink-0 transition-transform duration-300 group-hover:scale-105"
           >
@@ -106,7 +100,6 @@ onUnmounted(() => {
             />
           </div>
 
-          <!-- Brand Typography -->
           <div class="flex flex-col min-w-0">
             <span
               class="text-[16px] sm:text-[17px] font-bold tracking-tight text-[#0B1B35] dark:text-white leading-tight uppercase truncate"
@@ -125,7 +118,6 @@ onUnmounted(() => {
           </div>
         </RouterLink>
 
-        <!-- Clean Navigation Links with Thin Elegant Underline Indicator -->
         <nav class="hidden lg:flex items-center gap-6 xl:gap-8" aria-label="Main Navigation">
           <RouterLink
             v-for="menu in menus"
@@ -140,7 +132,6 @@ onUnmounted(() => {
           >
             <span>{{ menu.title }}</span>
 
-            <!-- Subtle Gold Active Underline -->
             <span
               v-if="isItemActive(menu.route)"
               class="absolute -bottom-1 inset-x-0 h-[2px] bg-[#E9A11A] rounded-full transition-all"
@@ -153,14 +144,9 @@ onUnmounted(() => {
         </nav>
       </div>
 
-      <!-- ============================================================== -->
-      <!-- RIGHT ACTIONS: [Language] -> [Theme] -> [Switch] -> [Book Now] -->
-      <!-- ============================================================== -->
       <div class="hidden lg:flex items-center gap-2.5 xl:gap-3 shrink-0">
-        <!-- 1. Language Selector -->
         <LanguageSelector variant="header" />
 
-        <!-- 2. Theme Toggle (Pill / Circular border) -->
         <button
           @click="handleThemeToggle"
           type="button"
@@ -176,7 +162,6 @@ onUnmounted(() => {
           <Moon v-else class="w-4.5 h-4.5 text-slate-700 dark:text-slate-300" />
         </button>
 
-        <!-- 3. Switch Hotel (Secondary ghost pill) -->
         <button
           @click.stop="openHotelModal"
           type="button"
@@ -194,7 +179,6 @@ onUnmounted(() => {
           />
         </button>
 
-        <!-- 4. Primary CTA: Book Now -->
         <RouterLink
           to="/rooms"
           class="h-10 px-6 flex items-center justify-center rounded-full bg-[#E9A11A] hover:bg-[#d69213] text-white font-medium text-[13px] tracking-wide shadow-md shadow-amber-500/25 hover:shadow-lg hover:shadow-amber-500/35 transition-all duration-200 whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A]"
@@ -203,9 +187,6 @@ onUnmounted(() => {
         </RouterLink>
       </div>
 
-      <!-- ============================================================== -->
-      <!-- MOBILE TRIGGER CONTROLS                                        -->
-      <!-- ============================================================== -->
       <div class="flex items-center gap-2 lg:hidden">
         <LanguageSelector variant="header" />
 
@@ -242,9 +223,6 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- ============================================================== -->
-    <!-- MOBILE DRAWER                                                  -->
-    <!-- ============================================================== -->
     <Transition
       enter-active-class="transition duration-150 ease-out"
       enter-from-class="opacity-0 -translate-y-2"
@@ -257,7 +235,6 @@ onUnmounted(() => {
         v-if="mobileMenu"
         class="lg:hidden bg-white dark:bg-[#0B1B35] border-b border-slate-200 dark:border-slate-800 px-4 py-4 space-y-3 shadow-lg"
       >
-        <!-- Switch Hotel Card -->
         <button
           @click.stop="
             openHotelModal()
@@ -273,7 +250,6 @@ onUnmounted(() => {
           <span class="text-[11px] font-semibold text-[#E9A11A]">Switch</span>
         </button>
 
-        <!-- Navigation Links -->
         <div class="flex flex-col space-y-1">
           <RouterLink
             v-for="menu in menus"
@@ -291,7 +267,6 @@ onUnmounted(() => {
           </RouterLink>
         </div>
 
-        <!-- Book Now Mobile CTA -->
         <RouterLink
           to="/rooms"
           @click="closeMenu"

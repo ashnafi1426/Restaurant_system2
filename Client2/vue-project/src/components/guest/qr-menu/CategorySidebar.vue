@@ -2,7 +2,6 @@
   <aside
     class="category-sidebar bg-white dark:bg-slate-900 flex flex-col h-full font-sans transition-colors p-2 space-y-3"
   >
-    <!-- Categories List (100% Dynamic Real Data From Backend) -->
     <nav class="flex-1 space-y-1.5 overflow-y-auto pr-1 max-h-full">
       <button
         v-for="category in displayCategories"
@@ -15,7 +14,6 @@
             : 'bg-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800',
         ]"
       >
-        <!-- Left: Icon & Category Name -->
         <div class="flex items-center gap-2.5 min-w-0 flex-1">
           <div
             class="flex items-center justify-center flex-shrink-0 text-slate-500 dark:text-slate-400 group-hover:text-slate-700"
@@ -28,7 +26,6 @@
           }}</span>
         </div>
 
-        <!-- Right: Count Badge -->
         <span
           v-if="category.count !== undefined"
           :class="[
@@ -148,18 +145,15 @@ const getCategoryIcon = (category: any) => {
     .toLowerCase()
     .trim()
 
-  // "All Categories" is always the Grid icon
   if (category.id === null || name === 'all categories' || slug === 'all' || name === 'all') {
     return Grid
   }
 
-  // If icon is directly provided and is not generic grid/menu
   if (icon && icon !== 'grid' && icon !== 'menu') {
     const matched = getIconComponent(icon)
     if (matched !== Grid) return matched
   }
 
-  // Check name, slug, and id keywords
   const text = `${slug} ${name} ${id} ${icon}`
 
   if (

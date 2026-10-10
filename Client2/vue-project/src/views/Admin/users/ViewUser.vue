@@ -76,7 +76,6 @@ const findLocalUser = (): User | null => {
 }
 
 const loadUser = async () => {
-  // Pre-populate immediately so profile appears with zero delay
   const local = findLocalUser()
   if (local) {
     user.value = local
@@ -224,7 +223,6 @@ const formatDate = (dateStr?: string | null): string => {
     <div
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans transition-colors"
     >
-      <!-- Top Action Bar -->
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xs"
       >
@@ -263,7 +261,6 @@ const formatDate = (dateStr?: string | null): string => {
           </div>
         </div>
 
-        <!-- Header Actions -->
         <div v-if="user" class="flex items-center gap-2 flex-wrap">
           <button
             @click="toggleStatus"
@@ -300,7 +297,6 @@ const formatDate = (dateStr?: string | null): string => {
         </div>
       </div>
 
-      <!-- Loading State -->
       <div
         v-if="loading"
         class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center"
@@ -314,7 +310,6 @@ const formatDate = (dateStr?: string | null): string => {
         <p class="text-xs text-slate-400 mt-1">Please wait while staff details are retrieved.</p>
       </div>
 
-      <!-- User Not Found State -->
       <div
         v-else-if="!user"
         class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center"
@@ -337,9 +332,7 @@ const formatDate = (dateStr?: string | null): string => {
         </button>
       </div>
 
-      <!-- User Content -->
       <div v-else class="space-y-6">
-        <!-- Hero Identity Banner Card -->
         <div
           class="relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-6"
         >
@@ -348,20 +341,18 @@ const formatDate = (dateStr?: string | null): string => {
           ></div>
 
           <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5 relative z-10">
-            <!-- Avatar -->
             <div
               class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white text-3xl sm:text-4xl font-black shadow-md flex-shrink-0"
             >
               {{ userInitial }}
             </div>
 
-            <!-- Profile Info -->
             <div class="space-y-2 flex-1 min-w-0">
               <div class="flex flex-wrap items-center gap-2.5">
                 <h2 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                   {{ fullName }}
                 </h2>
-                <!-- Status Pill -->
+
                 <span
                   class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider"
                   :class="
@@ -376,7 +367,7 @@ const formatDate = (dateStr?: string | null): string => {
                   ></span>
                   {{ user.is_active ? 'Active' : 'Inactive' }}
                 </span>
-                <!-- Hotel Tag -->
+
                 <span
                   v-if="hotelStore.hotelName"
                   class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
@@ -386,7 +377,6 @@ const formatDate = (dateStr?: string | null): string => {
                 </span>
               </div>
 
-              <!-- Quick Contact Row -->
               <div
                 class="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400 pt-1"
               >
@@ -440,9 +430,7 @@ const formatDate = (dateStr?: string | null): string => {
           </div>
         </div>
 
-        <!-- 3-Column Detailed Information Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Card 1: Account Information -->
           <div
             class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4"
           >
@@ -519,7 +507,6 @@ const formatDate = (dateStr?: string | null): string => {
             </div>
           </div>
 
-          <!-- Card 2: Role & System Privileges -->
           <div
             class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4"
           >
@@ -588,7 +575,6 @@ const formatDate = (dateStr?: string | null): string => {
             </div>
           </div>
 
-          <!-- Card 3: Activity & Security -->
           <div
             class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4"
           >

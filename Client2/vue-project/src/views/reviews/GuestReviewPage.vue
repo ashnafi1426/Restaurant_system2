@@ -1,7 +1,6 @@
 <template>
   <div class="guest-review-page">
     <div class="max-w-6xl mx-auto">
-      <!-- Header -->
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">
           {{ languageStore.t('my_reviews', 'My Reviews') }}
@@ -16,7 +15,6 @@
         </p>
       </div>
 
-      <!-- Tabs -->
       <div class="flex gap-2 mb-6 border-b border-gray-200">
         <button
           @click="activeTab = 'write'"
@@ -42,7 +40,6 @@
         </button>
       </div>
 
-      <!-- Write Review Tab -->
       <div v-show="activeTab === 'write'" class="bg-white rounded-lg border border-gray-200 p-6">
         <div v-if="!selectedItem">
           <EligibleItemsList :guest-id="currentUser?.id || ''" @select="selectedItem = $event" />
@@ -65,7 +62,6 @@
         </div>
       </div>
 
-      <!-- My Reviews Tab -->
       <div v-show="activeTab === 'my-reviews'" class="space-y-4">
         <div v-if="guestReviewsLoading" class="space-y-4">
           <div v-for="i in 3" :key="i" class="animate-pulse h-32 bg-gray-200 rounded"></div>
@@ -84,7 +80,6 @@
             :key="review.id"
             class="bg-white rounded-lg border border-gray-200 p-6"
           >
-            <!-- Header -->
             <div class="flex items-start justify-between mb-4">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900">{{ review.menu_item?.name }}</h3>
@@ -104,7 +99,6 @@
               </span>
             </div>
 
-            <!-- Rating -->
             <div class="flex gap-1 mb-3">
               <span
                 v-for="i in 5"
@@ -115,10 +109,8 @@
               >
             </div>
 
-            <!-- Review Text -->
             <p v-if="review.review_text" class="text-gray-700 mb-4">{{ review.review_text }}</p>
 
-            <!-- Management Response -->
             <div v-if="review.response" class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
               <p class="text-sm font-semibold text-blue-900 mb-2">
                 {{ languageStore.t('reply_from_management', 'Response from Management') }}
@@ -126,7 +118,6 @@
               <p class="text-sm text-gray-700">{{ review.response.response_text }}</p>
             </div>
 
-            <!-- Actions -->
             <div class="flex gap-2">
               <button
                 @click="editingReviewId = review.id"
@@ -147,7 +138,6 @@
       </div>
     </div>
 
-    <!-- Success Toast -->
     <Transition name="fade">
       <div
         v-if="showSuccess"
@@ -221,9 +211,7 @@ const deleteReview = async (reviewId: string) => {
 }
 
 onMounted(() => {
-  // Load guest reviews if needed
   if (guestReviews.value.length === 0 && currentUser?.id) {
-    // Reviews would be loaded through store in production
   }
 })
 </script>

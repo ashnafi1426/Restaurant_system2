@@ -190,7 +190,6 @@ function handleClickOutside() {
     class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs font-sans w-full"
     @click="handleClickOutside"
   >
-    <!-- Loading State -->
     <div
       v-if="loading"
       class="p-10 text-center flex flex-col items-center justify-center space-y-2"
@@ -199,7 +198,6 @@ function handleClickOutside() {
       <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Loading order records...</p>
     </div>
 
-    <!-- Empty State -->
     <div v-else-if="orders.length === 0" class="p-10 text-center space-y-2">
       <div
         class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto"
@@ -213,7 +211,6 @@ function handleClickOutside() {
     </div>
 
     <template v-else>
-      <!-- Mobile Cards View -->
       <div class="block sm:hidden divide-y divide-slate-100 dark:divide-slate-800">
         <div
           v-for="order in orders"
@@ -270,7 +267,6 @@ function handleClickOutside() {
         </div>
       </div>
 
-      <!-- Desktop Table View -->
       <div class="hidden sm:block overflow-x-auto w-full">
         <table class="w-full text-left border-collapse">
           <thead
@@ -294,13 +290,12 @@ function handleClickOutside() {
               :key="order.id"
               class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
             >
-              <!-- Order Ref -->
               <td class="px-3 py-3 whitespace-nowrap pl-4">
                 <span class="font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
                   {{ order.order_number || `ORD-${String(order.id).padStart(6, '0')}` }}
                 </span>
               </td>
-              <!-- Guest -->
+
               <td class="px-3 py-3">
                 <div class="flex items-center gap-2 max-w-[160px]">
                   <div
@@ -319,7 +314,6 @@ function handleClickOutside() {
                 </div>
               </td>
 
-              <!-- Room / Table -->
               <td class="px-2.5 py-2.5 whitespace-nowrap">
                 <span
                   v-if="order.room?.room_number"
@@ -336,7 +330,7 @@ function handleClickOutside() {
                 </span>
                 <span v-else class="text-slate-400 text-xs italic">N/A</span>
               </td>
-              <!-- Payment -->
+
               <td class="px-2.5 py-2.5 whitespace-nowrap">
                 <span
                   class="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-extrabold border"
@@ -345,7 +339,7 @@ function handleClickOutside() {
                   {{ paymentLabel(order.payment_type) }}
                 </span>
               </td>
-              <!-- Status -->
+
               <td class="px-2.5 py-2.5 text-center whitespace-nowrap">
                 <span
                   class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-extrabold border"
@@ -359,21 +353,18 @@ function handleClickOutside() {
                 </span>
               </td>
 
-              <!-- Total -->
               <td
                 class="px-2.5 py-2.5 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white text-xs"
               >
                 {{ formatCurrency(order.total) }}
               </td>
 
-              <!-- Date -->
               <td
                 class="px-2.5 py-2.5 whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium"
               >
                 {{ formatDate(order.order_time) }}
               </td>
 
-              <!-- Actions Dropdown Popup -->
               <td class="px-2.5 py-2.5 text-right whitespace-nowrap pr-3 relative">
                 <div class="relative inline-block">
                   <button
@@ -388,7 +379,6 @@ function handleClickOutside() {
                     <MoreVertical class="w-3.5 h-3.5" />
                   </button>
 
-                  <!-- Popup Menu Card -->
                   <div
                     v-if="openDropdown === String(order.id)"
                     class="absolute right-0 top-7 z-50 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl p-1 space-y-0.5 text-left"
@@ -432,7 +422,6 @@ function handleClickOutside() {
         </table>
       </div>
 
-      <!-- Compact Pagination Bar -->
       <div
         class="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-3 text-xs font-sans"
       >

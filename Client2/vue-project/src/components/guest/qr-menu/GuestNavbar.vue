@@ -74,7 +74,6 @@
               <Minimize v-else class="w-4 h-4 text-amber-500" />
             </button>
 
-            <!-- Language Selector -->
             <LanguageSelector variant="compact" />
 
             <button
@@ -185,7 +184,6 @@
     </nav>
 
     <Teleport to="body">
-      <!-- Backdrop Dimmer -->
       <Transition name="fade">
         <div
           v-if="showMobileMenu"
@@ -194,13 +192,11 @@
         ></div>
       </Transition>
 
-      <!-- Minimized Mobile Drawer (Slides from Right, compact width ~72-80 / max 82vw) -->
       <Transition name="slide-right">
         <div
           v-if="showMobileMenu"
           class="fixed top-0 right-0 bottom-0 w-72 sm:w-80 max-w-[85vw] bg-white dark:bg-slate-900 md:hidden z-[100] shadow-2xl flex flex-col border-l border-slate-200/80 dark:border-slate-800 transition-colors font-sans"
         >
-          <!-- Compact Drawer Header -->
           <div
             class="px-4 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0"
           >
@@ -225,9 +221,7 @@
             </div>
           </div>
 
-          <!-- Drawer Body with Scroll -->
           <div class="p-3 space-y-2.5 flex-1 overflow-y-auto">
-            <!-- Mobile Search Input (Compact) -->
             <div class="relative">
               <input
                 v-model="mobileSearchQuery"
@@ -239,7 +233,6 @@
               <Search class="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-[#c29353]" />
             </div>
 
-            <!-- Loading Categories -->
             <div
               v-if="loadingCategories && mobileCategories.length === 0"
               class="flex items-center justify-center py-6 text-slate-400 dark:text-slate-500 text-xs"
@@ -250,7 +243,6 @@
               Loading...
             </div>
 
-            <!-- Categories List (Compact) -->
             <div class="space-y-1">
               <button
                 v-for="category in mobileCategories"
@@ -420,12 +412,12 @@ const hotelLogoUrl = computed(() => {
       return `http://127.0.0.1:8000${trimmed}`
     }
     if (trimmed.startsWith('storage/') || trimmed.startsWith('hotels/')) {
-      return `http://127.0.0.1:8000/storage/${trimmed.replace(/^storage\//, '')}`
+      return `http:
     }
     if (trimmed.startsWith('images/')) {
       return `/${trimmed}`
     }
-    return `http://127.0.0.1:8000/storage/${trimmed}`
+    return `http:
   }
 
   const name = (guestHotelStore.hotelName || '').toLowerCase()

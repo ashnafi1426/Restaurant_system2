@@ -1,6 +1,5 @@
 <template>
   <div class="min-h-screen bg-gray-900 text-white">
-    <!-- Header -->
     <div class="bg-gray-800 px-4 py-4 flex items-center gap-3 sticky top-0 z-10">
       <button @click="goBack" class="text-white hover:text-gray-300 p-1">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,14 +30,11 @@
       </div>
     </div>
 
-    <!-- Loading -->
     <div v-if="isLoading" class="flex justify-center items-center py-20">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
     </div>
 
-    <!-- Content -->
     <div v-else-if="orderData" class="p-4 space-y-4 pb-8">
-      <!-- Your Order Summary Card -->
       <div class="bg-gradient-to-r from-red-700 to-red-600 rounded-2xl p-5 shadow-xl">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
@@ -60,7 +56,6 @@
         </div>
       </div>
 
-      <!-- Order Items -->
       <div class="bg-gray-800 rounded-2xl overflow-hidden shadow-lg">
         <div
           v-for="(item, index) in orderData.items"
@@ -81,13 +76,11 @@
         </div>
       </div>
 
-      <!-- Tip Section -->
       <div class="bg-gray-800 rounded-2xl p-6 shadow-lg">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-white">🎁 Add Tip?</h3>
         </div>
 
-        <!-- Tip Options -->
         <div class="grid grid-cols-4 gap-2 mb-3">
           <button
             v-for="tipOption in [10, 15, 20]"
@@ -122,7 +115,6 @@
           </button>
         </div>
 
-        <!-- Custom Tip -->
         <button
           @click="showCustomTip = !showCustomTip"
           class="w-full py-2 border-2 border-gray-600 rounded-xl text-gray-300 hover:border-red-500 transition-colors"
@@ -141,7 +133,6 @@
         </div>
       </div>
 
-      <!-- Order Total -->
       <div class="bg-gray-800 rounded-2xl p-6 shadow-lg space-y-3">
         <div class="flex justify-between text-gray-300">
           <span>Order Total</span>
@@ -162,7 +153,6 @@
         </div>
       </div>
 
-      <!-- Pay Now Button -->
       <button
         @click="proceedToPayment"
         :disabled="isProcessing"
@@ -180,7 +170,6 @@
         <span v-else>Pay Now</span>
       </button>
 
-      <!-- Security Badge -->
       <div class="flex items-center justify-center gap-2 text-sm text-gray-400">
         <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
           <path
@@ -214,7 +203,6 @@ const hotelId = ref(
   localStorage.getItem('hotel_id') || localStorage.getItem('active_hotel_id') || '',
 )
 
-// Computed
 const tipAmount = computed(() => {
   if (selectedTip.value === -1) {
     return customTipAmount.value
@@ -226,7 +214,6 @@ const finalTotal = computed(() => {
   return (orderData.value?.total || 0) + tipAmount.value
 })
 
-// Methods
 const goBack = () => router.back()
 
 const selectTip = (percentage: number) => {

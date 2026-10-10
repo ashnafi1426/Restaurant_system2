@@ -21,7 +21,6 @@ export function getErrorMessage(
       return err.response.data.error
     }
 
-    // 3. Flatten Laravel validation errors if present
     if (err.response?.data?.errors && typeof err.response.data.errors === 'object') {
       const validationErrors = err.response.data.errors as Record<string, unknown>
       const firstField = Object.keys(validationErrors)[0]
@@ -36,7 +35,6 @@ export function getErrorMessage(
       }
     }
 
-    // 4. HTTP status specific default messages
     const status = err.response?.status
     if (status === 401) {
       return 'You must be logged in to perform this action.'
@@ -54,7 +52,6 @@ export function getErrorMessage(
       return 'The server encountered an error. Please try again later.'
     }
 
-    // 5. Network / client errors
     if (typeof err.message === 'string' && err.message.length > 0) {
       if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
         return 'Unable to connect to the server. Please check your internet connection.'

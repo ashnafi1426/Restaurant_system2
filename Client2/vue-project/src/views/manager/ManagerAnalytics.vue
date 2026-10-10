@@ -48,7 +48,6 @@ watch(() => hotelStore.hotelId, loadData)
 <template>
   <DashboardLayout>
     <div class="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 space-y-6">
-      <!-- PAGE HEADER -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs"
       >
@@ -85,7 +84,6 @@ watch(() => hotelStore.hotelId, loadData)
         </div>
       </div>
 
-      <!-- Loading State -->
       <div v-if="isLoading" class="flex justify-center items-center py-32">
         <div class="text-center">
           <div class="relative w-12 h-12">
@@ -121,9 +119,7 @@ watch(() => hotelStore.hotelId, loadData)
         </div>
       </div>
 
-      <!-- Content -->
       <div v-if="!isLoading" class="space-y-6">
-        <!-- Key Metrics -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div
             class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-sm p-6 hover:shadow-md transition-shadow"
@@ -179,7 +175,6 @@ watch(() => hotelStore.hotelId, loadData)
           </div>
         </div>
 
-        <!-- Performance Overview -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-sm p-6"
         >
@@ -232,7 +227,6 @@ watch(() => hotelStore.hotelId, loadData)
           </div>
         </div>
 
-        <!-- Recent Activity -->
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-sm p-6"
         >

@@ -28,7 +28,6 @@ const isOpen = computed(() => {
   return guestHotelStore.isSelectorOpen
 })
 
-// Filter hotels based on search
 const filteredHotels = computed(() => {
   const query = searchQuery.value.toLowerCase().trim()
   if (!query) return guestHotelStore.availableHotels
@@ -58,12 +57,12 @@ function getHotelLogoUrl(hotel: PublicHotel) {
       return `http://127.0.0.1:8000${trimmed}`
     }
     if (trimmed.startsWith('storage/') || trimmed.startsWith('hotels/')) {
-      return `http://127.0.0.1:8000/storage/${trimmed.replace(/^storage\//, '')}`
+      return `http:
     }
     if (trimmed.startsWith('images/')) {
       return `/${trimmed}`
     }
-    return `http://127.0.0.1:8000/storage/${trimmed}`
+    return `http:
   }
 
   const name = (hotel.name || '').toLowerCase()
@@ -90,7 +89,7 @@ onMounted(() => {
   if (guestHotelStore.availableHotels.length === 0) {
     guestHotelStore.fetchAvailableHotels()
   }
-  // If no hotel is selected, auto-open the selector
+
   if (!guestHotelStore.hasSelectedHotel) {
     guestHotelStore.openHotelSelector()
     emit('update:open', true)
@@ -108,7 +107,6 @@ onMounted(() => {
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-2xl max-w-2xl w-full p-6 md:p-8 relative flex flex-col max-h-[90vh] overflow-hidden transform transition-all duration-300 animate-in fade-in zoom-in-95"
       >
-        <!-- Header -->
         <div
           class="flex items-start justify-between pb-5 border-b border-slate-100 dark:border-slate-800"
         >
@@ -129,7 +127,6 @@ onMounted(() => {
             </p>
           </div>
 
-          <!-- Close button (only if a hotel is already selected) -->
           <button
             v-if="guestHotelStore.hasSelectedHotel"
             @click="handleClose"
@@ -140,7 +137,6 @@ onMounted(() => {
           </button>
         </div>
 
-        <!-- Search Bar -->
         <div class="py-4">
           <div class="relative">
             <Search class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
@@ -153,9 +149,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Hotels List / States -->
         <div class="overflow-y-auto flex-1 pr-1 space-y-3 py-2">
-          <!-- Loading state -->
           <div
             v-if="guestHotelStore.isLoading"
             class="flex flex-col items-center justify-center py-16"
@@ -168,7 +162,6 @@ onMounted(() => {
             </p>
           </div>
 
-          <!-- Empty search result -->
           <div v-else-if="filteredHotels.length === 0 && searchQuery" class="text-center py-12">
             <Building2 class="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
             <p class="text-sm font-bold text-slate-700 dark:text-slate-300">
@@ -179,7 +172,6 @@ onMounted(() => {
             </p>
           </div>
 
-          <!-- No hotels available at all -->
           <div v-else-if="guestHotelStore.availableHotels.length === 0" class="text-center py-12">
             <Building2 class="w-12 h-12 text-rose-400 mx-auto mb-3" />
             <p class="text-sm font-bold text-rose-600 dark:text-rose-400">
@@ -193,7 +185,6 @@ onMounted(() => {
             </button>
           </div>
 
-          <!-- Hotel Cards Grid -->
           <div v-else class="grid grid-cols-1 gap-3">
             <button
               v-for="hotel in filteredHotels"
@@ -207,7 +198,6 @@ onMounted(() => {
               ]"
             >
               <div class="flex items-center gap-4 min-w-0">
-                <!-- Avatar / Logo -->
                 <div
                   class="w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center font-black text-xl shadow-xs overflow-hidden transition-transform group-hover:scale-105"
                   :class="[
@@ -234,7 +224,6 @@ onMounted(() => {
                   }}</span>
                 </div>
 
-                <!-- Info -->
                 <div class="min-w-0">
                   <div class="flex items-center gap-2">
                     <h3
@@ -271,7 +260,6 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- Action Indicator -->
               <div class="flex-shrink-0">
                 <span
                   v-if="guestHotelStore.hotelId === hotel.id"
@@ -290,7 +278,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Footer Notice -->
         <div
           class="pt-4 mt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400"
         >

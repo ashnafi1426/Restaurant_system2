@@ -39,7 +39,6 @@ const refundReport = ref<any>(null)
 const loading = ref(false)
 const showFilters = ref(false)
 
-// Revenue Daily Breakdown Pagination State
 const currentPage = ref(1)
 const perPage = ref(10)
 
@@ -108,7 +107,6 @@ const goToPage = (p: number) => {
   }
 }
 
-// Refund List Pagination State
 const refundCurrentPage = ref(1)
 const refundPerPage = ref(10)
 
@@ -279,7 +277,6 @@ const downloadExcel = () => {
     <div
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
     >
-      <!-- Header Banner -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
@@ -326,7 +323,6 @@ const downloadExcel = () => {
         </div>
       </div>
 
-      <!-- Quick Date Filter Pills -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 shadow-xs space-y-3"
       >
@@ -350,7 +346,6 @@ const downloadExcel = () => {
         </div>
       </div>
 
-      <!-- Advanced Filter Options -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs"
       >
@@ -427,7 +422,6 @@ const downloadExcel = () => {
         </div>
       </div>
 
-      <!-- Report Tabs Bar -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-1.5 shadow-xs"
       >
@@ -473,7 +467,6 @@ const downloadExcel = () => {
         </div>
       </div>
 
-      <!-- Loading State -->
       <div
         v-if="loading && !revenueReport"
         class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-16 text-center space-y-3"
@@ -484,9 +477,7 @@ const downloadExcel = () => {
         </p>
       </div>
 
-      <!-- Revenue Report View -->
       <div v-else-if="activeTab === 'revenue' && revenueReport" class="space-y-6">
-        <!-- Export Actions Bar -->
         <div class="flex justify-end gap-2">
           <button
             @click="printPage"
@@ -504,9 +495,7 @@ const downloadExcel = () => {
           </button>
         </div>
 
-        <!-- Key Revenue Metrics Cards -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Total Revenue -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs"
           >
@@ -533,7 +522,6 @@ const downloadExcel = () => {
             </p>
           </div>
 
-          <!-- Total Transactions -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs"
           >
@@ -560,7 +548,6 @@ const downloadExcel = () => {
             </p>
           </div>
 
-          <!-- Average Transaction -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs"
           >
@@ -587,7 +574,6 @@ const downloadExcel = () => {
             </p>
           </div>
 
-          <!-- Report Period -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs"
           >
@@ -612,9 +598,7 @@ const downloadExcel = () => {
           </div>
         </div>
 
-        <!-- Revenue Breakdown Cards -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- Revenue by Type -->
           <div
             class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4"
           >
@@ -626,7 +610,6 @@ const downloadExcel = () => {
             </h3>
 
             <div class="space-y-4">
-              <!-- Reservations -->
               <div>
                 <div class="flex justify-between items-center mb-1 text-xs">
                   <span class="font-bold text-slate-700 dark:text-slate-300">{{
@@ -655,7 +638,6 @@ const downloadExcel = () => {
                 </div>
               </div>
 
-              <!-- Orders -->
               <div>
                 <div class="flex justify-between items-center mb-1 text-xs">
                   <span class="font-bold text-slate-700 dark:text-slate-300">{{
@@ -684,7 +666,6 @@ const downloadExcel = () => {
             </div>
           </div>
 
-          <!-- Revenue by Payment Method -->
           <div
             class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-3"
           >
@@ -733,7 +714,6 @@ const downloadExcel = () => {
           </div>
         </div>
 
-        <!-- Daily Revenue Breakdown Table -->
         <div
           v-if="revenueReport.daily_breakdown && revenueReport.daily_breakdown.length > 0"
           class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs"
@@ -807,12 +787,10 @@ const downloadExcel = () => {
             </table>
           </div>
 
-          <!-- Pagination Bar for Revenue Breakdown Table -->
           <div
             v-if="revenueReport.daily_breakdown.length > 0"
             class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-4 text-xs font-sans"
           >
-            <!-- Left Side: Per Page Selector & Showing Count -->
             <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400">
               <div class="flex items-center gap-2">
                 <span class="font-bold text-slate-700 dark:text-slate-300">{{
@@ -843,7 +821,6 @@ const downloadExcel = () => {
               </div>
             </div>
 
-            <!-- Right Side: Page Controls -->
             <div class="flex items-center gap-1.5">
               <button
                 @click="previousPage"
@@ -885,9 +862,7 @@ const downloadExcel = () => {
         </div>
       </div>
 
-      <!-- Payment Report View -->
       <div v-else-if="activeTab === 'payment' && paymentReport" class="space-y-6">
-        <!-- Status Breakdown Grid -->
         <div
           class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4"
         >
@@ -928,9 +903,7 @@ const downloadExcel = () => {
         </div>
       </div>
 
-      <!-- Refund Report View -->
       <div v-else-if="activeTab === 'refund' && refundReport" class="space-y-6">
-        <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs"
@@ -978,7 +951,6 @@ const downloadExcel = () => {
           </div>
         </div>
 
-        <!-- Refunds List Table -->
         <div
           v-if="refundReport.refunds_list && refundReport.refunds_list.length > 0"
           class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs"
@@ -1057,7 +1029,6 @@ const downloadExcel = () => {
             </table>
           </div>
 
-          <!-- Pagination Bar for Refund List -->
           <div
             v-if="refundReport.refunds_list.length > 0"
             class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-4 text-xs font-sans"

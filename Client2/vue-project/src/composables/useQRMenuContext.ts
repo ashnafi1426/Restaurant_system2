@@ -37,7 +37,6 @@ export function useQRMenuContext() {
         eligibilityMessage.value = eligMsg
         reservationStatusVal.value = resStatus
 
-        // CRITICAL: Store hotel_id from QR resolution to ensure correct tenant isolation
         if (result.data.hotel_id) {
           localStorage.setItem('hotel_id', result.data.hotel_id)
           localStorage.setItem('active_hotel_id', result.data.hotel_id)

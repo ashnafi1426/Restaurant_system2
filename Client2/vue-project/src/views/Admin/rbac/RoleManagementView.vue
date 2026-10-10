@@ -48,53 +48,43 @@ const authStore = useAuthStore()
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
 
-// Main Data State
 const roles = ref<Role[]>([])
 const permissions = ref<Permission[]>([])
 const userSummaries = ref<RbacUserSummary[]>([])
 
-// Loading States
 const loading = ref(true)
 const isRefreshing = ref(false)
 const saving = ref(false)
 const loadingPermissions = ref(false)
 const loadingUsers = ref(false)
 
-// Feedback Messages
 const errorMessage = ref('')
 const successMessage = ref('')
 let messageTimeout: ReturnType<typeof setTimeout> | null = null
 
-// View & Filter States
 const viewMode = ref<'table' | 'cards'>('table')
 const isFilterOpen = ref(false)
 const searchQuery = ref('')
 const filterCategory = ref<'all' | 'system' | 'custom' | 'active' | 'inactive'>('all')
 const sortBy = ref<'name' | 'users' | 'permissions'>('name')
 
-// Selection & Dropdown States
 const selectedRoleIds = ref<(string | number)[]>([])
 const activeDropdownRoleId = ref<string | number | null>(null)
 
-// Create Role Modal
 const showCreateModal = ref(false)
 const createInitialPermissionIds = ref<number[]>([])
 
-// Configure / Edit Role Modal
 const showModal = ref(false)
 const editingRole = ref<Role | null>(null)
 const initialPermissionIds = ref<number[]>([])
 
-// View Users Modal
 const showUsersModal = ref(false)
 const selectedRoleForUsers = ref<Role | null>(null)
 
-// Delete Confirm Modal
 const showDeleteModal = ref(false)
 const roleToDelete = ref<Role | null>(null)
 const deleting = ref(false)
 
-// Helper Functions
 const isRoleActive = (role: Role): boolean => role.is_active ?? true
 
 const getPermissionCount = (role: Role): number => {
@@ -127,7 +117,6 @@ const notify = (type: 'success' | 'error', text: string) => {
   }, 3500)
 }
 
-// Local Storage Cache
 const getClientCacheKey = () => `rbac_roles_cache_${hotelStore.hotelId || 'default'}`
 
 const loadFromClientCache = (): boolean => {
@@ -499,7 +488,6 @@ const navigateToUserAssignments = () => {
     <div
       class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white p-4 sm:p-6 space-y-6 font-sans transition-colors duration-200"
     >
-      <!-- TOP BREADCRUMB -->
       <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
         <Monitor class="w-4 h-4 text-slate-400 dark:text-slate-500" />
         <ChevronRight class="w-3.5 h-3.5 text-slate-400 dark:text-slate-600" />
@@ -508,9 +496,7 @@ const navigateToUserAssignments = () => {
         }}</span>
       </div>
 
-      <!-- 4 STAT CARDS -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Card 1: All Roles -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xs transition hover:shadow-md"
         >
@@ -531,7 +517,6 @@ const navigateToUserAssignments = () => {
           </div>
         </div>
 
-        <!-- Card 2: Active Roles -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xs transition hover:shadow-md"
         >
@@ -552,7 +537,6 @@ const navigateToUserAssignments = () => {
           </div>
         </div>
 
-        <!-- Card 3: Assigned Users -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xs transition hover:shadow-md"
         >
@@ -573,7 +557,6 @@ const navigateToUserAssignments = () => {
           </div>
         </div>
 
-        <!-- Card 4: Unassigned Roles -->
         <div
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xs transition hover:shadow-md"
         >
@@ -595,7 +578,6 @@ const navigateToUserAssignments = () => {
         </div>
       </div>
 
-      <!-- TITLE HEADER -->
       <div class="space-y-1">
         <h2 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
           {{ languageStore.t('manage_roles', 'Manage Roles') }}
@@ -610,7 +592,6 @@ const navigateToUserAssignments = () => {
         </p>
       </div>
 
-      <!-- NOTIFICATION BANNERS -->
       <transition
         enter-active-class="transition duration-200"
         enter-from-class="opacity-0 -translate-y-2"
@@ -655,13 +636,10 @@ const navigateToUserAssignments = () => {
         </div>
       </transition>
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -679,7 +657,6 @@ const navigateToUserAssignments = () => {
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -699,9 +676,7 @@ const navigateToUserAssignments = () => {
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="fetchRolesAndPermissions(false, true)"
@@ -712,7 +687,6 @@ const navigateToUserAssignments = () => {
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading || isRefreshing }" />
           </button>
 
-          <!-- Columns view toggle -->
           <button
             type="button"
             @click="viewMode = viewMode === 'table' ? 'cards' : 'table'"
@@ -726,7 +700,6 @@ const navigateToUserAssignments = () => {
             <Columns class="w-4 h-4" />
           </button>
 
-          <!-- Permission Matrix quick link -->
           <button
             type="button"
             @click="router.push('/admin/permission-matrix')"
@@ -736,7 +709,6 @@ const navigateToUserAssignments = () => {
             <Grid class="w-4 h-4" />
           </button>
 
-          <!-- Create Role Primary Button -->
           <button
             type="button"
             @click="openCreateModal"
@@ -748,7 +720,6 @@ const navigateToUserAssignments = () => {
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -762,7 +733,6 @@ const navigateToUserAssignments = () => {
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
-            <!-- Category Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('role_classification', 'Role Classification') }}
@@ -787,7 +757,6 @@ const navigateToUserAssignments = () => {
               </select>
             </div>
 
-            <!-- Sort By -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 {{ languageStore.t('sort_order', 'Sort Order') }}
@@ -808,7 +777,6 @@ const navigateToUserAssignments = () => {
               </select>
             </div>
 
-            <!-- Reset Filters -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -823,7 +791,6 @@ const navigateToUserAssignments = () => {
         </div>
       </Transition>
 
-      <!-- LOADING SKELETON STATE -->
       <div
         v-if="loading && roles.length === 0"
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center shadow-xs"
@@ -836,7 +803,6 @@ const navigateToUserAssignments = () => {
         </p>
       </div>
 
-      <!-- EMPTY SEARCH STATE -->
       <div
         v-else-if="filteredRoles.length === 0"
         class="py-16 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2 shadow-xs"
@@ -855,7 +821,6 @@ const navigateToUserAssignments = () => {
         </p>
       </div>
 
-      <!-- MAIN DATA TABLE -->
       <div
         v-else-if="viewMode === 'table'"
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden"
@@ -866,7 +831,6 @@ const navigateToUserAssignments = () => {
               <tr
                 class="bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
               >
-                <!-- Checkbox -->
                 <th class="py-3.5 px-4 w-10">
                   <input
                     type="checkbox"
@@ -905,7 +869,6 @@ const navigateToUserAssignments = () => {
                 :key="role.id"
                 class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors group"
               >
-                <!-- Checkbox -->
                 <td class="py-4 px-4 w-10">
                   <input
                     type="checkbox"
@@ -915,7 +878,6 @@ const navigateToUserAssignments = () => {
                   />
                 </td>
 
-                <!-- Role Name (Crisp & High Contrast with Icon) -->
                 <td class="py-4 px-4 whitespace-nowrap">
                   <div class="flex items-center gap-3">
                     <div
@@ -941,14 +903,12 @@ const navigateToUserAssignments = () => {
                   </div>
                 </td>
 
-                <!-- Description -->
                 <td
                   class="py-4 px-4 text-slate-600 dark:text-slate-400 max-w-xs truncate font-medium"
                 >
                   {{ role.description || 'Standard operational role privileges' }}
                 </td>
 
-                <!-- Entity type -->
                 <td class="py-4 px-4 whitespace-nowrap">
                   <span
                     :class="[
@@ -968,14 +928,12 @@ const navigateToUserAssignments = () => {
                   </span>
                 </td>
 
-                <!-- Entity -->
                 <td
                   class="py-4 px-4 text-slate-700 dark:text-slate-300 whitespace-nowrap font-medium text-xs"
                 >
                   {{ hotelStore.hotelName || 'Active Property' }}
                 </td>
 
-                <!-- Permission (Pill Button with Arrow ->) -->
                 <td class="py-4 px-4 whitespace-nowrap">
                   <button
                     @click="openEditModal(role)"
@@ -990,7 +948,6 @@ const navigateToUserAssignments = () => {
                   </button>
                 </td>
 
-                <!-- Assigned Users (Icon + Count Badge) -->
                 <td class="py-4 px-4 text-center whitespace-nowrap">
                   <button
                     @click="openUsersModal(role)"
@@ -1002,7 +959,6 @@ const navigateToUserAssignments = () => {
                   </button>
                 </td>
 
-                <!-- State (Active / Inactive Badge) -->
                 <td class="py-4 px-4 text-center whitespace-nowrap">
                   <span
                     :class="[
@@ -1020,7 +976,6 @@ const navigateToUserAssignments = () => {
                   </span>
                 </td>
 
-                <!-- Action (Three-Dot Menu) -->
                 <td class="py-4 px-4 text-right pr-6 whitespace-nowrap relative" data-role-dropdown>
                   <button
                     @click.stop="toggleDropdown(role.id, $event)"
@@ -1030,7 +985,6 @@ const navigateToUserAssignments = () => {
                     <MoreVertical class="w-4 h-4" />
                   </button>
 
-                  <!-- Floating Three-Dot Dropdown -->
                   <div
                     v-if="activeDropdownRoleId === role.id"
                     class="absolute right-6 top-11 z-50 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 text-left text-xs text-slate-700 dark:text-slate-300"
@@ -1108,7 +1062,6 @@ const navigateToUserAssignments = () => {
           </table>
         </div>
 
-        <!-- Table Footer -->
         <div
           class="py-3 px-4 bg-slate-50/80 dark:bg-slate-950/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400"
         >
@@ -1121,7 +1074,6 @@ const navigateToUserAssignments = () => {
         </div>
       </div>
 
-      <!-- VIEW MODE: CARDS GRID (ALTERNATIVE) -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         <div
           v-for="role in filteredRoles"
@@ -1207,8 +1159,6 @@ const navigateToUserAssignments = () => {
         </div>
       </div>
 
-      <!-- MODALS INTEGRATION -->
-      <!-- Create Role Modal -->
       <CreateRoleModal
         :show="showCreateModal"
         :permissions="permissions"
@@ -1219,7 +1169,6 @@ const navigateToUserAssignments = () => {
         @save="handleCreateRole"
       />
 
-      <!-- Configure / Edit Role Modal -->
       <ConfigureRoleModal
         :show="showModal"
         :editing-role="editingRole"

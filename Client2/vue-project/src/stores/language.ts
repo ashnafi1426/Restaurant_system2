@@ -21,13 +21,11 @@ export const useLanguageStore = defineStore('language', () => {
   const initialLang = (localStorage.getItem('app_language') as LanguageCode) || 'en'
   const currentLanguage = ref<LanguageCode>(initialLang === 'am' ? 'am' : 'en')
 
-  // Configure axios default locale headers for backend requests
   if (axios.defaults?.headers?.common) {
     axios.defaults.headers.common['X-App-Locale'] = currentLanguage.value
     axios.defaults.headers.common['Accept-Language'] = currentLanguage.value
   }
 
-  // Dynamic server-loaded translations cache
   const serverTranslations = ref<Record<string, Record<string, string>>>({})
 
   const isAmharic = computed(() => currentLanguage.value === 'am')

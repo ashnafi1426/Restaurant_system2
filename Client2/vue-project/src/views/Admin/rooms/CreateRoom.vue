@@ -62,7 +62,6 @@ const cancel = () => {
 <template>
   <DashboardLayout>
     <div class="max-w-5xl mx-auto pb-12">
-      <!-- Page Header -->
       <div class="mb-6">
         <div class="flex items-center gap-2.5">
           <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
@@ -85,7 +84,6 @@ const cancel = () => {
         </p>
       </div>
 
-      <!-- Success Notification Banner -->
       <div
         v-if="successMessage"
         class="mb-6 p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center justify-between gap-3 text-emerald-800 dark:text-emerald-300 text-sm shadow-sm transition-all animate-fadeIn"
@@ -96,7 +94,6 @@ const cancel = () => {
         </div>
       </div>
 
-      <!-- Error Notification Banner -->
       <div
         v-if="errorMessage"
         class="mb-6 p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl flex items-start justify-between gap-3 text-red-800 dark:text-red-300 text-sm shadow-sm transition-all animate-fadeIn"
@@ -124,7 +121,6 @@ const cancel = () => {
         </button>
       </div>
 
-      <!-- Room Form Card -->
       <div
         class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden"
       >

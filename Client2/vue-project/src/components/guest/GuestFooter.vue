@@ -3,9 +3,7 @@
 <template>
   <footer class="bg-gray-900 text-white mt-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <!-- Grid -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-        <!-- About -->
         <div>
           <h3 class="text-lg font-bold mb-4">🏨 Luxury Hotel</h3>
           <p class="text-gray-400 text-sm">
@@ -13,7 +11,6 @@
           </p>
         </div>
 
-        <!-- Quick Links -->
         <div>
           <h3 class="text-lg font-bold mb-4">Quick Links</h3>
           <ul class="space-y-2 text-sm">
@@ -24,7 +21,6 @@
           </ul>
         </div>
 
-        <!-- Services -->
         <div>
           <h3 class="text-lg font-bold mb-4">Services</h3>
           <ul class="space-y-2 text-sm">
@@ -39,7 +35,6 @@
           </ul>
         </div>
 
-        <!-- Contact -->
         <div>
           <h3 class="text-lg font-bold mb-4">Contact</h3>
           <ul class="space-y-2 text-sm">
@@ -55,16 +50,13 @@
         </div>
       </div>
 
-      <!-- Divider -->
       <div class="border-t border-gray-700 pt-8">
-        <!-- Bottom Info -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div class="text-sm text-gray-400">Safe & Secure Ordering</div>
           <div class="text-sm text-gray-400 text-center">🚚 Fast Delivery to Your Room</div>
           <div class="text-sm text-gray-400 text-right">⭐ Premium Quality Guaranteed</div>
         </div>
 
-        <!-- Copyright -->
         <div class="text-center text-sm text-gray-500 border-t border-gray-700 pt-6">
           <p>&copy; 2026 Luxury Hotel. All rights reserved.</p>
           <p class="mt-2">Made with ❤️ for exceptional hospitality</p>

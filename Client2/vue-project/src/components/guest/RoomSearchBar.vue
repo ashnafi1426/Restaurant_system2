@@ -1,8 +1,6 @@
 <template>
   <div class="room-search-wrap">
-    <!-- Glassmorphism search card -->
     <div class="search-glass">
-      <!-- Search Icon + Input -->
       <div class="search-input-group">
         <Search class="search-icon" :size="19" :stroke-width="2" />
         <input
@@ -55,7 +53,6 @@ defineEmits<{
   gap: 14px;
 }
 
-/* Glass card */
 .search-glass {
   display: flex;
   align-items: center;
@@ -72,7 +69,6 @@ defineEmits<{
   padding: 12px 20px;
 }
 
-/* Search input group */
 .search-input-group {
   display: flex;
   align-items: center;

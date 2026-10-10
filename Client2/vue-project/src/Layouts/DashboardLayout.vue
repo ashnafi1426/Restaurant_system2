@@ -42,7 +42,6 @@ const closeMobileSidebar = () => {
   <div
     class="h-screen flex bg-white dark:bg-slate-950 overflow-hidden transition-colors duration-300"
   >
-    <!-- Mobile Backdrop -->
     <Transition
       enter-active-class="transition-opacity duration-300 ease-out"
       enter-from-class="opacity-0"
@@ -59,7 +58,6 @@ const closeMobileSidebar = () => {
       ></div>
     </Transition>
 
-    <!-- Sidebar Wrapper -->
     <div
       :class="[
         'h-screen flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out',

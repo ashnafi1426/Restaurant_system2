@@ -39,8 +39,6 @@ const addItem = (item: MenuItem) => {
 
 <template>
   <section>
-    <!-- Loading -->
-
     <div v-if="loading" class="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
       <div
         v-for="i in 6"
@@ -77,8 +75,6 @@ const addItem = (item: MenuItem) => {
         </p>
       </div>
     </div>
-
-    <!-- Grid -->
 
     <div v-else class="grid gap-7 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
       <MenuCard v-for="item in items" :key="item.id" :item="item" @add-to-cart="addItem" />

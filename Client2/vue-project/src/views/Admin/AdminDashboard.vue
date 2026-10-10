@@ -38,7 +38,6 @@ const router = useRouter()
 const auth = useAuthStore()
 const hotelStore = useHotelStore()
 
-// State
 const dashboard = ref<DashboardData | null>(null)
 const loading = ref<boolean>(true)
 const refreshing = ref<boolean>(false)
@@ -135,7 +134,6 @@ watch(() => hotelStore.hotelId, initializeDashboard)
     <div
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans transition-colors"
     >
-      <!-- HEADER CARD -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
       >
@@ -191,7 +189,6 @@ watch(() => hotelStore.hotelId, initializeDashboard)
         </div>
       </div>
 
-      <!-- LOADING SKELETON -->
       <div
         v-if="loading && !dashboard"
         class="py-24 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs"
@@ -204,11 +201,8 @@ watch(() => hotelStore.hotelId, initializeDashboard)
         </p>
       </div>
 
-      <!-- MAIN DASHBOARD CONTENT -->
       <div v-else class="space-y-6">
-        <!-- 4 OVERVIEW STAT CARDS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Total Rooms -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between"
           >
@@ -230,7 +224,6 @@ watch(() => hotelStore.hotelId, initializeDashboard)
             </div>
           </div>
 
-          <!-- Occupancy Rate -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between"
           >
@@ -254,7 +247,6 @@ watch(() => hotelStore.hotelId, initializeDashboard)
             </div>
           </div>
 
-          <!-- Active Staff -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between"
           >
@@ -278,7 +270,6 @@ watch(() => hotelStore.hotelId, initializeDashboard)
             </div>
           </div>
 
-          <!-- Today's Revenue -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between"
           >
@@ -301,7 +292,6 @@ watch(() => hotelStore.hotelId, initializeDashboard)
           </div>
         </div>
 
-        <!-- CHARTS SECTION: MONTHLY REVENUE & ROOM STATUS -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div
             class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs"
@@ -322,7 +312,6 @@ watch(() => hotelStore.hotelId, initializeDashboard)
             <MonthlyRevenueChart :revenue-data="dashboard?.monthlyRevenue" />
           </div>
 
-          <!-- Room Status Chart (1 col) -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs"
           >
@@ -339,9 +328,7 @@ watch(() => hotelStore.hotelId, initializeDashboard)
           </div>
         </div>
 
-        <!-- RECENT RESERVATIONS & OPERATIONAL ACTIVITY -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Recent Reservations Table (2 cols) -->
           <div
             class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs"
           >
@@ -363,9 +350,7 @@ watch(() => hotelStore.hotelId, initializeDashboard)
             <RecentReservationsTable :reservations="dashboard?.recentReservations || []" />
           </div>
 
-          <!-- Staff Activity & Maintenance Alerts (1 col) -->
           <div class="space-y-6">
-            <!-- Staff Activity Widget -->
             <div
               class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs"
             >
@@ -378,7 +363,6 @@ watch(() => hotelStore.hotelId, initializeDashboard)
               <StaffActivityWidget :activities="dashboard?.staffActivity || []" />
             </div>
 
-            <!-- Maintenance Alerts Widget -->
             <div
               class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs"
             >
@@ -395,7 +379,6 @@ watch(() => hotelStore.hotelId, initializeDashboard)
           </div>
         </div>
 
-        <!-- PLATFORM SUPER ADMIN SECTION (SHOWN ONLY TO SUPER ADMIN) -->
         <div
           v-if="auth.isPlatformAdmin"
           class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4"

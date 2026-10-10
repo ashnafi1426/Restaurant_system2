@@ -43,7 +43,6 @@ onUnmounted(() => {
 
 <template>
   <div ref="dropdownRef" class="relative inline-block text-left shrink-0">
-    <!-- Trigger Button -->
     <button
       @click.stop="toggleDropdown"
       type="button"
@@ -71,7 +70,6 @@ onUnmounted(() => {
       />
     </button>
 
-    <!-- Dropdown Menu -->
     <Transition
       enter-active-class="transition duration-150 ease-out"
       enter-from-class="transform scale-95 opacity-0 -translate-y-1"

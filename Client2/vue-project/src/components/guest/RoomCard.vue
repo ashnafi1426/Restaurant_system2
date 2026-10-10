@@ -30,7 +30,7 @@ const emit = defineEmits<{
 const router = useRouter()
 const languageStore = useLanguageStore()
 
-const formattedPrice = computed(() => `$${props.room.price.toFixed(2)}`)
+const formattedPrice = computed(() => `${props.room.price.toFixed(2)}`)
 
 const availabilityClass = computed(() =>
   props.room.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700',
@@ -60,7 +60,6 @@ function reserveRoom() {
   <div
     class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-500 hover:-translate-y-0.5 hover:shadow-md border border-slate-100 h-[360px] md:h-[380px] flex flex-col"
   >
-    <!-- Image Container with Overlay - Fixed Height -->
     <div class="relative overflow-hidden h-[160px] md:h-[180px] flex-shrink-0">
       <img
         :src="room.image"
@@ -68,12 +67,10 @@ function reserveRoom() {
         class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
       />
 
-      <!-- Gradient Overlay -->
       <div
         class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"
       ></div>
 
-      <!-- Price Tag - Bottom Left - Minimized -->
       <div class="absolute bottom-2 left-2 flex items-baseline gap-0.5">
         <span class="text-xl md:text-2xl font-semibold text-white drop-shadow-lg">
           {{ formattedPrice }}
@@ -84,9 +81,7 @@ function reserveRoom() {
       </div>
     </div>
 
-    <!-- Card Body - Ultra Compact with Flex Grow -->
     <div class="p-3 flex flex-col flex-grow">
-      <!-- Title & Rating - Minimized -->
       <div class="mb-2">
         <h3 class="text-sm font-medium text-slate-900 mb-1 leading-tight">
           {{ room.name }}
@@ -107,7 +102,6 @@ function reserveRoom() {
         </div>
       </div>
 
-      <!-- Room Info Grid - Minimized -->
       <div class="grid grid-cols-3 gap-1.5 mb-2 pb-2 border-b border-slate-100">
         <div class="text-center">
           <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">
@@ -133,7 +127,6 @@ function reserveRoom() {
         </div>
       </div>
 
-      <!-- Amenities - Ultra Compact -->
       <div class="mb-2">
         <p class="text-[9px] font-light text-slate-700 mb-1">
           {{ languageStore.t('amenities', 'Amenities') }}
@@ -155,7 +148,6 @@ function reserveRoom() {
         </div>
       </div>
 
-      <!-- Action Buttons - Minimized, At Bottom with mt-auto -->
       <div class="grid grid-cols-2 gap-1.5 mt-auto">
         <button
           @click="viewDetails"

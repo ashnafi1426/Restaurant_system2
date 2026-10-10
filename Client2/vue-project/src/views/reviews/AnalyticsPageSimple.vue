@@ -21,7 +21,6 @@
     </template>
 
     <div class="max-w-6xl">
-      <!-- Key Metrics -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div
           class="bg-white rounded-lg border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow"
@@ -77,9 +76,7 @@
         </div>
       </div>
 
-      <!-- Status Breakdown -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Status Chart -->
         <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
           <div class="flex items-center gap-2 mb-4">
             <BarChart3 class="w-5 h-5 text-blue-600" />
@@ -125,7 +122,6 @@
           </div>
         </div>
 
-        <!-- Rating Distribution -->
         <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-6">
           <div class="flex items-center gap-2 mb-4">
             <TrendingUp class="w-5 h-5 text-blue-600" />
@@ -157,7 +153,6 @@
         </div>
       </div>
 
-      <!-- Recent Reviews -->
       <div class="mt-6 bg-white rounded-lg border border-slate-200 shadow-sm p-6">
         <div class="flex items-center gap-2 mb-4">
           <MessageSquare class="w-5 h-5 text-blue-600" />
@@ -315,7 +310,6 @@ const formatDate = (dateString: string) => {
 }
 
 onMounted(() => {
-  // Fetch all reviews for analytics
   reviewStore.fetchModeratorReviews(undefined, 1)
 })
 

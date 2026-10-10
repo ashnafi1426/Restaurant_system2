@@ -3,21 +3,15 @@
     class="min-h-screen w-full bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950 flex flex-col justify-center py-2 sm:py-4 lg:py-6 px-3 sm:px-6 transition-colors duration-300"
   >
     <div class="max-w-4xl w-full mx-auto">
-      <!-- Main single-page ticket card -->
       <div
         class="relative bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-[0_15px_50px_-15px_rgba(16,185,129,0.25)] border border-slate-200/80 dark:border-slate-800 overflow-hidden transition-all duration-500 ease-out"
         :class="showHeader ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]'"
       >
-        <!-- Top decorative micro accent bar -->
         <div class="h-1.5 w-full bg-gradient-to-r from-emerald-400 via-teal-500 to-green-500"></div>
 
-        <!-- ====================================================== -->
-        <!-- COMPACT SUCCESS HEADER BAR                             -->
-        <!-- ====================================================== -->
         <div
           class="relative bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 px-4 sm:px-6 py-3.5 sm:py-4 text-white overflow-hidden"
         >
-          <!-- Subtle background decorative glow -->
           <div
             class="absolute -right-10 -top-10 w-44 h-44 rounded-full bg-white/10 blur-xl pointer-events-none"
           ></div>
@@ -61,7 +55,6 @@
               </div>
             </div>
 
-            <!-- Total Paid Hero badge on right -->
             <div
               class="flex items-center sm:items-end justify-between sm:justify-center sm:flex-col bg-white/15 backdrop-blur-md rounded-xl px-3 py-1.5 border border-white/20 self-start sm:self-auto w-full sm:w-auto"
             >
@@ -78,13 +71,8 @@
           </div>
         </div>
 
-        <!-- ====================================================== -->
-        <!-- COMPACT 2-COLUMN BODY (FIT-TO-PAGE)                    -->
-        <!-- ====================================================== -->
         <div class="p-3.5 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-          <!-- LEFT COLUMN: Booking & Payment Information (7 cols) -->
           <div class="lg:col-span-7 space-y-2.5 sm:space-y-3">
-            <!-- Booking Overview Card -->
             <div
               class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 border border-slate-200/80 dark:border-slate-700/60"
             >
@@ -121,7 +109,6 @@
                 </div>
               </div>
 
-              <!-- Itinerary bar (Check-in & Check-out) -->
               <div
                 class="grid grid-cols-2 gap-2 bg-white dark:bg-slate-900 rounded-lg p-2 border border-slate-200/70 dark:border-slate-800 mb-2"
               >
@@ -143,7 +130,6 @@
                 </div>
               </div>
 
-              <!-- Room & Guest Specs -->
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
                 <div
                   class="bg-white dark:bg-slate-900 p-1.5 rounded-lg border border-slate-200/60 dark:border-slate-800"
@@ -190,7 +176,6 @@
               </div>
             </div>
 
-            <!-- Guest & Contact Info Card -->
             <div
               class="bg-blue-50/50 dark:bg-blue-950/20 rounded-xl p-3 border border-blue-100 dark:border-blue-900/40"
             >
@@ -251,7 +236,6 @@
               </div>
             </div>
 
-            <!-- Transaction Reference snippet -->
             <div
               class="bg-amber-50/60 dark:bg-amber-950/20 rounded-xl px-3 py-1.5 border border-amber-200/70 dark:border-amber-900/40 flex items-center justify-between text-xs"
             >
@@ -273,9 +257,7 @@
             </div>
           </div>
 
-          <!-- RIGHT COLUMN: Next Steps, Key Notes & Action Buttons (5 cols) -->
           <div class="lg:col-span-5 flex flex-col justify-between space-y-2.5 sm:space-y-3">
-            <!-- What's Next 3-step checklist -->
             <div
               class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 border border-slate-200/80 dark:border-slate-700/60"
             >
@@ -332,7 +314,6 @@
               </div>
             </div>
 
-            <!-- Important Information Micro Callout -->
             <div
               class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl p-2.5 border border-blue-200 dark:border-blue-800/50 text-[11px] text-blue-900 dark:text-blue-200 leading-snug"
             >
@@ -347,9 +328,7 @@
               </p>
             </div>
 
-            <!-- Primary and Secondary Actions -->
             <div class="space-y-2 pt-0.5">
-              <!-- Track My Order Button (for food orders) -->
               <button
                 v-if="isOrderPayment"
                 @click="trackOrder"
@@ -409,7 +388,6 @@
         </div>
       </div>
 
-      <!-- Compact Single-Line Footer -->
       <div class="mt-2.5 text-center text-[11px] text-slate-500 dark:text-slate-400">
         Thank you for choosing our hotel! Need assistance? Our 24/7 support team is here to help.
       </div>
@@ -442,7 +420,6 @@ const showButtons = ref(false)
 onMounted(async () => {
   txRef.value = route.query.tx_ref as string
 
-  // Check if this is an order payment (from food ordering system)
   const orderIdFromQuery = route.query.order_id as string
   const orderIdFromStorage = localStorage.getItem('last_order_id')
   const pendingOrderData = localStorage.getItem('pending_order_data')
@@ -467,7 +444,6 @@ onMounted(async () => {
     isOrderPayment.value = true
     console.log('[PaymentSuccess] Detected as ORDER payment (food ordering system)')
 
-    // Store order ID for tracking
     if (orderIdFromQuery) {
       localStorage.setItem('last_order_id', orderIdFromQuery)
       sessionStorage.setItem('payment_order_id', orderIdFromQuery)
@@ -680,7 +656,6 @@ async function downloadReceipt(): Promise<void> {
 </script>
 
 <style scoped>
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }

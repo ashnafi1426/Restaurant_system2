@@ -152,7 +152,6 @@
               </div>
             </div>
 
-            <!-- Dedicated Tax & Pricing Configuration Card -->
             <div
               class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4"
             >
@@ -229,7 +228,6 @@
                 </div>
               </div>
 
-              <!-- Live Price Breakdown Preview Card -->
               <div
                 v-if="formData.price && parseFloat(formData.price) > 0"
                 class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2"

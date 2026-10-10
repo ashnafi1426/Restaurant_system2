@@ -38,7 +38,6 @@ function closeImage() {
 <template>
   <section class="bg-slate-50 dark:bg-slate-950 py-20 transition-colors duration-300">
     <div class="mx-auto max-w-7xl px-6">
-      <!-- Empty State -->
       <div v-if="filteredItems.length === 0" class="py-24 text-center">
         <div class="text-7xl">📷</div>
         <h3 class="mt-6 text-3xl font-bold text-slate-900 dark:text-white">
@@ -54,7 +53,6 @@ function closeImage() {
         </p>
       </div>
 
-      <!-- Gallery Grid -->
       <div v-else class="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         <GalleryCard
           v-for="item in filteredItems"
@@ -65,7 +63,6 @@ function closeImage() {
       </div>
     </div>
 
-    <!-- Lightbox -->
     <GalleryLightbox v-if="selectedImage" :image="selectedImage" @close="closeImage" />
   </section>
 </template>

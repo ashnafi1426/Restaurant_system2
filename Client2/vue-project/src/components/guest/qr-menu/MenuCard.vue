@@ -1,10 +1,8 @@
 <template>
   <div class="menu-card h-full font-sans">
-    <!-- Card Container -->
     <div
       class="card-container bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full relative group"
     >
-      <!-- Image Section -->
       <div class="relative w-full h-32 sm:h-40 lg:h-44 overflow-hidden bg-slate-950 flex-shrink-0">
         <img
           :src="
@@ -15,7 +13,6 @@
           class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
-        <!-- Top Right Floating Heart Button -->
         <button
           @click.stop="toggleFavorite"
           class="absolute top-2.5 right-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 dark:bg-slate-900/90 shadow-md flex items-center justify-center text-rose-500 hover:scale-110 transition cursor-pointer z-10"
@@ -29,7 +26,6 @@
         </button>
       </div>
 
-      <!-- Content Section -->
       <div class="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2.5">
         <div class="space-y-1">
           <h3
@@ -44,16 +40,13 @@
           </p>
         </div>
 
-        <!-- Bottom Row matching Screenshot 1 -->
         <div
           class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between"
         >
-          <!-- Price on Left -->
           <span class="text-xs font-black text-[#c29353]">
             {{ formatPrice(item.total_price != null ? item.total_price : item.price) }}
           </span>
 
-          <!-- Add Button on Right -->
           <button
             @click.stop="addToCart"
             :disabled="isAdding"

@@ -42,8 +42,6 @@ const formatCurrency = (value: number) => {
 
 <template>
   <div class="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-    <!-- Header -->
-
     <div class="px-6 py-5 border-b border-slate-200 bg-slate-50">
       <div class="flex items-center gap-3">
         <div
@@ -60,11 +58,7 @@ const formatCurrency = (value: number) => {
       </div>
     </div>
 
-    <!-- Body -->
-
     <div class="p-6 space-y-5">
-      <!-- Subtotal -->
-
       <div class="flex items-center justify-between">
         <span class="text-slate-600"> Subtotal </span>
 
@@ -75,8 +69,6 @@ const formatCurrency = (value: number) => {
         </span>
       </div>
 
-      <!-- VAT -->
-
       <div class="flex items-center justify-between">
         <span class="text-slate-600"> VAT ({{ (taxRate * 100).toFixed(0) }}%) </span>
 
@@ -86,8 +78,6 @@ const formatCurrency = (value: number) => {
           {{ currency }}
         </span>
       </div>
-
-      <!-- Service Charge -->
 
       <div class="flex items-center justify-between">
         <span class="text-slate-600">
@@ -103,9 +93,6 @@ const formatCurrency = (value: number) => {
 
       <div class="border-t border-dashed border-slate-300" />
 
-      <!-- Continue in Part 10.2 -->
-      <!-- Discount -->
-
       <div v-if="discount > 0" class="flex items-center justify-between">
         <span class="text-slate-600"> Discount </span>
 
@@ -115,8 +102,6 @@ const formatCurrency = (value: number) => {
           {{ currency }}
         </span>
       </div>
-
-      <!-- Total Before Discount -->
 
       <div v-if="discount > 0" class="flex items-center justify-between text-sm">
         <span class="text-slate-500"> Total Before Discount </span>
@@ -148,8 +133,6 @@ const formatCurrency = (value: number) => {
         </div>
       </div>
 
-      <!-- Payment Information -->
-
       <div class="rounded-2xl bg-blue-50 border border-blue-200 p-5">
         <div class="flex items-start gap-4">
           <div
@@ -168,8 +151,6 @@ const formatCurrency = (value: number) => {
           </div>
         </div>
       </div>
-
-      <!-- Hotel Notice -->
 
       <div class="rounded-2xl bg-amber-50 border border-amber-200 p-5">
         <div class="flex items-start gap-4">

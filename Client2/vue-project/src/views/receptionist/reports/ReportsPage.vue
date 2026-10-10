@@ -42,11 +42,9 @@ const dateRange = ref({
   end_date: new Date().toISOString().split('T')[0],
 })
 
-// Pagination State
 const currentPage = ref(1)
 const perPage = ref(10)
 
-// Report data
 const reservationData = ref<ReservationReportData | null>(null)
 const occupancyData = ref<OccupancyReportData | null>(null)
 const guestData = ref<GuestReportData | null>(null)
@@ -61,7 +59,6 @@ const reportTabs = computed(() => [
   { id: 'checkinout', label: languageStore.t('check_in_out', 'Check-In/Out'), icon: '🚪' },
 ])
 
-// Computed Active Dataset Count
 const activeDataset = computed<any[]>(() => {
   switch (activeReport.value) {
     case 'reservation':
@@ -271,7 +268,6 @@ watch(
     <div
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
     >
-      <!-- Header Banner -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
       >
@@ -298,7 +294,6 @@ watch(
           </p>
         </div>
 
-        <!-- Date Range Filter & Actions -->
         <div class="flex flex-wrap items-center gap-2.5">
           <div
             class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800"
@@ -349,7 +344,6 @@ watch(
         </div>
       </div>
 
-      <!-- Report Tab Selector Bar -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-1.5 shadow-xs"
       >
@@ -371,7 +365,6 @@ watch(
         </div>
       </div>
 
-      <!-- Loading State -->
       <div
         v-if="loading"
         class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-16 text-center space-y-3"
@@ -382,11 +375,8 @@ watch(
         </p>
       </div>
 
-      <!-- Main Report Content -->
       <div v-else id="report-content" class="space-y-6">
-        <!-- Reservation Report -->
         <div v-if="activeReport === 'reservation' && reservationData" class="space-y-6">
-          <!-- Summary Cards -->
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <div
               class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs"
@@ -460,7 +450,6 @@ watch(
             </div>
           </div>
 
-          <!-- Table Container -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs"
           >
@@ -532,7 +521,6 @@ watch(
           </div>
         </div>
 
-        <!-- Occupancy Report -->
         <div v-if="activeReport === 'occupancy' && occupancyData" class="space-y-6">
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div
@@ -652,7 +640,6 @@ watch(
           </div>
         </div>
 
-        <!-- Guest Report -->
         <div v-if="activeReport === 'guest' && guestData" class="space-y-6">
           <div class="grid grid-cols-2 gap-4">
             <div
@@ -748,7 +735,6 @@ watch(
           </div>
         </div>
 
-        <!-- Revenue Report -->
         <div v-if="activeReport === 'revenue' && revenueData" class="space-y-6">
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div
@@ -860,7 +846,6 @@ watch(
           </div>
         </div>
 
-        <!-- Check-In/Out Report -->
         <div v-if="activeReport === 'checkinout' && checkInOutData" class="space-y-6">
           <div class="grid grid-cols-3 gap-4">
             <div
@@ -967,12 +952,10 @@ watch(
           </div>
         </div>
 
-        <!-- Global Interactive Pagination Bar for Active Report Table -->
         <div
           v-if="totalItems > 0"
           class="flex flex-col sm:flex-row items-center justify-between gap-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 rounded-3xl text-xs font-sans shadow-xs"
         >
-          <!-- Left Side: Per Page Selector & Showing Count -->
           <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400">
             <div class="flex items-center gap-2">
               <span class="font-bold text-slate-700 dark:text-slate-300">{{
@@ -1001,7 +984,6 @@ watch(
             </div>
           </div>
 
-          <!-- Right Side: Page Controls -->
           <div class="flex items-center gap-1.5">
             <button
               @click="prevPage"

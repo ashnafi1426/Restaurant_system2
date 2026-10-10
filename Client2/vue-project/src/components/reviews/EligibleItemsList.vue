@@ -126,7 +126,7 @@ const currentPage = ref(1)
 const totalPages = ref(1)
 
 const formatPrice = (price: number) => {
-  return `$${price.toFixed(2)}`
+  return `${price.toFixed(2)}`
 }
 
 const truncateText = (text: string, length: number) => {

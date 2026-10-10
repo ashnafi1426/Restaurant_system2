@@ -12,41 +12,34 @@ import type {
 } from '@/types/review'
 
 export const useReviewStore = defineStore('review', () => {
-  // Guest reviews
   const guestReviews = ref<Review[]>([])
   const selectedReview = ref<Review | null>(null)
   const guestReviewsLoading = ref(false)
 
-  // Public reviews
   const publicReviews = ref<PublicReview[]>([])
   const publicReviewsLoading = ref(false)
   const currentPublicPage = ref(1)
   const currentPublicSort = ref<'recent' | 'helpful'>('recent')
 
-  // Moderation
   const pendingReviews = ref<Review[]>([])
   const approvedReviews = ref<Review[]>([])
   const rejectedReviews = ref<Review[]>([])
   const moderationLoading = ref(false)
   const pendingCount = ref(0)
 
-  // Notifications
   const notifications = ref<ReviewNotification[]>([])
   const unreadNotificationCount = ref(0)
   const notificationsLoading = ref(false)
 
-  // Eligible items
   const eligibleItems = ref<EligibleMenuItem[]>([])
   const eligibleItemsLoading = ref(false)
 
-  // Analytics
   const reviewStats = ref<Record<string, ReviewStats>>({})
   const topRatedItems = ref<TopRatedItem[]>([])
   const lowestRatedItems = ref<TopRatedItem[]>([])
   const reviewTrends = ref<ReviewTrend[]>([])
   const analyticsLoading = ref(false)
 
-  // Getters
   const overallAverageRating = computed(() => {
     const stats = Object.values(reviewStats.value)
     if (stats.length === 0) return 0
@@ -71,7 +64,6 @@ export const useReviewStore = defineStore('review', () => {
     return total === 0 ? 0 : (review.helpful_count || 0) / total
   })
 
-  // Actions - Guest Reviews
   async function submitReview(
     guestId: string,
     orderId: string,
@@ -136,7 +128,6 @@ export const useReviewStore = defineStore('review', () => {
     }
   }
 
-  // Actions - Public Reviews
   async function fetchPublicReviews(
     menuItemId: string,
     page: number = 1,
@@ -183,7 +174,6 @@ export const useReviewStore = defineStore('review', () => {
     return voteReview(reviewId, reviewService.voteNotHelpful, guestId, ipAddress)
   }
 
-  // Actions - Moderation
   async function fetchModeratorReviews(
     status?: 'pending' | 'approved' | 'rejected',
     page: number = 1,
@@ -242,7 +232,6 @@ export const useReviewStore = defineStore('review', () => {
     }
   }
 
-  // Actions - Notifications
   async function fetchNotifications(page: number = 1) {
     notificationsLoading.value = true
     try {
@@ -267,7 +256,6 @@ export const useReviewStore = defineStore('review', () => {
     }
   }
 
-  // Actions - Eligible Items
   async function fetchEligibleItems(guestId: string) {
     eligibleItemsLoading.value = true
     try {
@@ -277,7 +265,6 @@ export const useReviewStore = defineStore('review', () => {
     }
   }
 
-  // Actions - Analytics
   async function fetchMenuItemStats(menuItemId: string) {
     analyticsLoading.value = true
     try {
@@ -306,7 +293,6 @@ export const useReviewStore = defineStore('review', () => {
     }
   }
 
-  // Reset helpers
   function clearGuestReviews() {
     guestReviews.value = []
     selectedReview.value = null

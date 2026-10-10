@@ -66,7 +66,6 @@ const refresh = () => {
 <template>
   <DashboardLayout>
     <div class="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 space-y-6 font-sans">
-      <!-- Header Area -->
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
       >
@@ -101,7 +100,6 @@ const refresh = () => {
         </div>
       </div>
 
-      <!-- TABLE COMPONENT WITH INTEGRATED TOOLBAR & FILTER -->
       <RoomTypeTable
         :room-types="store.roomTypes || []"
         :loading="store.loading"
@@ -112,7 +110,6 @@ const refresh = () => {
         @refresh="refresh"
       />
 
-      <!-- DELETE MODAL -->
       <ConfirmDeleteModal
         :open="deleteModalOpen"
         @close="deleteModalOpen = false"

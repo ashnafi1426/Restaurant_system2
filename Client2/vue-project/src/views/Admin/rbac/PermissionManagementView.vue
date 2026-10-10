@@ -29,26 +29,20 @@ const saving = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 
-// Selected Group (Left panel)
 const selectedGroupKey = ref<string>('all')
 
-// Search & Filter
 const groupSearchQuery = ref('')
 const permissionSearchQuery = ref('')
 const selectedActionFilter = ref<string>('all')
 
-// Selected Checkboxes
 const selectedPermissionIds = ref<number[]>([])
 
-// Group Sidebar Pagination State
 const groupPage = ref(1)
 const groupPerPage = ref(6)
 
-// Permissions Grid Pagination State
 const permPage = ref(1)
 const permPerPage = ref(6)
 
-// Modal state
 const showCreateModal = ref(false)
 const modalMode = ref<'group' | 'permission'>('permission')
 const isGroupCheckbox = ref(false)
@@ -82,7 +76,6 @@ onMounted(() => {
   fetchPermissions()
 })
 
-// Group permissions by module
 const groupedPermissionsMap = computed(() => {
   const map: Record<string, Permission[]> = {}
   permissions.value.forEach((p) => {
@@ -93,7 +86,6 @@ const groupedPermissionsMap = computed(() => {
   return map
 })
 
-// Left Panel Group List
 const groupList = computed(() => {
   const keys = Object.keys(groupedPermissionsMap.value)
   let list = keys.map((modKey) => ({
@@ -111,7 +103,6 @@ const groupList = computed(() => {
   return list
 })
 
-// Active group header info
 const activeGroupInfo = computed(() => {
   if (selectedGroupKey.value === 'all') {
     return {
@@ -131,7 +122,6 @@ const activeGroupInfo = computed(() => {
   }
 })
 
-// Displayed Permissions on Right Panel Grid
 const displayedPermissions = computed(() => {
   let list = permissions.value
 
@@ -159,7 +149,6 @@ const displayedPermissions = computed(() => {
   return list
 })
 
-// Paginated Group List for Left Panel Sidebar
 const paginatedGroupList = computed(() => {
   const start = (groupPage.value - 1) * groupPerPage.value
   const end = start + groupPerPage.value
@@ -171,7 +160,6 @@ watch(groupSearchQuery, () => {
   groupPage.value = 1
 })
 
-// Paginated Permissions Grid for Right Panel
 const totalPerms = computed(() => displayedPermissions.value.length)
 const permLastPage = computed(() => Math.ceil(totalPerms.value / permPerPage.value) || 1)
 
@@ -229,7 +217,6 @@ const nextPermPage = () => {
   }
 }
 
-// Available Action options
 const availableActions = computed(() => {
   const actions = new Set<string>()
   permissions.value.forEach((p) => {
@@ -238,7 +225,6 @@ const availableActions = computed(() => {
   return Array.from(actions)
 })
 
-// Modal Group Dropdown filter
 const filteredDropdownGroups = computed(() => {
   if (!groupDropdownSearch.value.trim()) return groupList.value
   const q = groupDropdownSearch.value.toLowerCase().trim()
@@ -247,7 +233,6 @@ const filteredDropdownGroups = computed(() => {
   )
 })
 
-// Checkbox select all logic
 const isAllSelected = computed(() => {
   if (displayedPermissions.value.length === 0) return false
   return displayedPermissions.value.every((p) => selectedPermissionIds.value.includes(p.id))
@@ -273,7 +258,6 @@ const togglePermissionSelect = (id: number) => {
   }
 }
 
-// Helpers
 function formatModuleName(mod: string) {
   if (!mod) return 'General'
   const formatted = mod.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
@@ -463,7 +447,6 @@ const deletePermission = async (perm: Permission) => {
     <div
       class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white p-4 sm:p-6 space-y-6 font-sans"
     >
-      <!-- TOP BANNER HEADER -->
       <div
         class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs"
       >
@@ -506,7 +489,6 @@ const deletePermission = async (perm: Permission) => {
         </div>
       </div>
 
-      <!-- NOTIFICATION BANNERS -->
       <Transition
         enter-active-class="transition duration-200"
         enter-from-class="opacity-0 -translate-y-2"
@@ -551,13 +533,10 @@ const deletePermission = async (perm: Permission) => {
         </div>
       </Transition>
 
-      <!-- MAIN SPLIT CONTENT GRID -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- LEFT PANEL: PERMISSION GROUP SIDEBAR -->
         <div
           class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 space-y-4 shadow-xs flex flex-col min-h-[500px]"
         >
-          <!-- Group Header -->
           <div class="flex items-center justify-between pb-1">
             <h2 class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
               Permission Group
@@ -571,7 +550,6 @@ const deletePermission = async (perm: Permission) => {
             </button>
           </div>
 
-          <!-- Group Search -->
           <div class="relative">
             <Search class="w-4 h-4 absolute left-3.5 top-3 text-slate-400 dark:text-slate-500" />
             <input
@@ -582,9 +560,7 @@ const deletePermission = async (perm: Permission) => {
             />
           </div>
 
-          <!-- Group Scrollable List -->
           <div class="space-y-2 overflow-y-auto max-h-[620px] pr-1 flex-1">
-            <!-- 'All Groups' Item -->
             <button
               @click="selectedGroupKey = 'all'"
               :class="[
@@ -609,7 +585,6 @@ const deletePermission = async (perm: Permission) => {
               </span>
             </button>
 
-            <!-- Dynamic Groups List -->
             <div
               v-for="group in paginatedGroupList"
               :key="group.key"
@@ -657,7 +632,6 @@ const deletePermission = async (perm: Permission) => {
             </div>
           </div>
 
-          <!-- Group Sidebar Pagination Bar -->
           <div
             v-if="groupList.length > groupPerPage"
             class="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400"
@@ -684,11 +658,9 @@ const deletePermission = async (perm: Permission) => {
           </div>
         </div>
 
-        <!-- RIGHT PANEL: GROUP PERMISSIONS & CONTROLS -->
         <div
           class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-xs flex flex-col min-h-[500px]"
         >
-          <!-- Group Title Banner Header -->
           <div
             class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800"
           >
@@ -717,11 +689,9 @@ const deletePermission = async (perm: Permission) => {
             </button>
           </div>
 
-          <!-- Controls Toolbar Bar (Select All, Search, Filter) -->
           <div
             class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50 dark:bg-slate-950/70 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800"
           >
-            <!-- Select All Checkbox Toggle -->
             <button
               @click="toggleSelectAll"
               class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition cursor-pointer select-none"
@@ -739,9 +709,7 @@ const deletePermission = async (perm: Permission) => {
               <span>Select All</span>
             </button>
 
-            <!-- Search & Action Filter Inputs -->
             <div class="flex items-center gap-2.5 w-full sm:w-auto">
-              <!-- Search Permissions Input -->
               <div class="relative flex-1 sm:w-64">
                 <Search class="w-4 h-4 absolute left-3.5 top-2.5 text-slate-400" />
                 <input
@@ -752,7 +720,6 @@ const deletePermission = async (perm: Permission) => {
                 />
               </div>
 
-              <!-- Filter Action Dropdown -->
               <div class="relative">
                 <select
                   v-model="selectedActionFilter"
@@ -770,7 +737,6 @@ const deletePermission = async (perm: Permission) => {
             </div>
           </div>
 
-          <!-- Permissions 2-Column Grid -->
           <div v-if="loading && permissions.length === 0" class="py-20 text-center">
             <div
               class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-3"
@@ -807,7 +773,6 @@ const deletePermission = async (perm: Permission) => {
                 ]"
               >
                 <div class="flex items-center gap-3 min-w-0 flex-1">
-                  <!-- Checkbox -->
                   <div
                     :class="[
                       'w-4.5 h-4.5 rounded-md flex items-center justify-center flex-shrink-0 transition border',
@@ -822,7 +787,6 @@ const deletePermission = async (perm: Permission) => {
                     />
                   </div>
 
-                  <!-- Permission Title & Key -->
                   <div class="min-w-0 flex-1">
                     <h4 class="text-xs font-extrabold text-slate-900 dark:text-white truncate">
                       {{ perm.name }}
@@ -835,7 +799,6 @@ const deletePermission = async (perm: Permission) => {
                   </div>
                 </div>
 
-                <!-- Active Status Pill & Actions -->
                 <div class="flex items-center gap-2 flex-shrink-0 ml-2">
                   <span
                     class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
@@ -865,12 +828,10 @@ const deletePermission = async (perm: Permission) => {
               </div>
             </div>
 
-            <!-- Right Panel Permissions Pagination Bar -->
             <div
               v-if="displayedPermissions.length > 0"
               class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800 text-xs font-sans mt-auto"
             >
-              <!-- Items per page & count -->
               <div class="flex flex-wrap items-center gap-3 text-slate-600 dark:text-slate-400">
                 <div class="flex items-center gap-2">
                   <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
@@ -903,7 +864,6 @@ const deletePermission = async (perm: Permission) => {
                 </div>
               </div>
 
-              <!-- Page navigation buttons -->
               <div class="flex items-center gap-1.5">
                 <button
                   @click="prevPermPage"
@@ -946,24 +906,20 @@ const deletePermission = async (perm: Permission) => {
         </div>
       </div>
 
-      <!-- CREATE PERMISSION / GROUP MODAL (MATCHING REFERENCE UI SCREENSHOT) -->
       <Teleport to="body">
         <Transition name="modal">
           <div
             v-if="showCreateModal"
             class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-hidden"
           >
-            <!-- Backdrop -->
             <div
               class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity"
               @click="showCreateModal = false"
             ></div>
 
-            <!-- Modal Window -->
             <div
               class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-6 space-y-6 shadow-2xl overflow-visible my-auto animate-in fade-in zoom-in duration-150"
             >
-              <!-- Header -->
               <div
                 class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800"
               >
@@ -985,11 +941,8 @@ const deletePermission = async (perm: Permission) => {
                 </button>
               </div>
 
-              <!-- Form Body -->
               <div class="space-y-4">
-                <!-- Top Inputs: Name & Permission Group -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <!-- Name Input -->
                   <div class="space-y-1.5">
                     <label
                       class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
@@ -1004,7 +957,6 @@ const deletePermission = async (perm: Permission) => {
                     />
                   </div>
 
-                  <!-- Permission Group Custom Searchable Dropdown -->
                   <div class="space-y-1.5 relative">
                     <label
                       class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
@@ -1028,7 +980,6 @@ const deletePermission = async (perm: Permission) => {
                         <ChevronDown class="w-4 h-4 text-slate-400" />
                       </button>
 
-                      <!-- Dropdown List -->
                       <div
                         v-if="showGroupDropdown"
                         class="absolute left-0 right-0 top-full mt-1 z-50 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2 space-y-2 max-h-60 overflow-y-auto"
@@ -1072,7 +1023,6 @@ const deletePermission = async (perm: Permission) => {
                   </div>
                 </div>
 
-                <!-- Checkbox: Is group -->
                 <div class="flex items-center gap-2 pt-1">
                   <label class="flex items-center gap-2 cursor-pointer select-none">
                     <input
@@ -1087,7 +1037,6 @@ const deletePermission = async (perm: Permission) => {
                   </label>
                 </div>
 
-                <!-- Full Form Expandable Section (Action & Description) -->
                 <div
                   v-if="showFullForm || modalMode === 'permission'"
                   class="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 animate-in fade-in duration-150"
@@ -1136,7 +1085,6 @@ const deletePermission = async (perm: Permission) => {
                 </div>
               </div>
 
-              <!-- Footer Buttons -->
               <div
                 class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800"
               >

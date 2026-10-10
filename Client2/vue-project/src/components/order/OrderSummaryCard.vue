@@ -1,10 +1,4 @@
 <script setup lang="ts">
-/*
-|--------------------------------------------------------------------------
-| Props
-|--------------------------------------------------------------------------
-*/
-
 const props = defineProps<{
   subtotal: number
   tax: number
@@ -22,10 +16,6 @@ function formatCurrency(value: number): string {
 
 <template>
   <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
-    <!-- ===================================================== -->
-    <!-- Header -->
-    <!-- ===================================================== -->
-
     <div class="border-b border-gray-200 px-4 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-4 md:py-5 lg:py-6">
       <h3 class="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900">
         Order Summary
@@ -36,14 +26,8 @@ function formatCurrency(value: number): string {
       </p>
     </div>
 
-    <!-- ===================================================== -->
-    <!-- Loading -->
-    <!-- ===================================================== -->
-
     <div v-if="loading" class="flex items-center justify-center py-8 sm:py-10 md:py-12 lg:py-16">
-      <!-- UNIFIED CYAN + YELLOW SPINNER (size: w-10 h-10) -->
       <div class="relative w-10 h-10 sm:w-12 sm:h-12">
-        <!-- Static background - BRIGHT CYAN -->
         <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
           <circle
             cx="50"
@@ -56,7 +40,6 @@ function formatCurrency(value: number): string {
           />
         </svg>
 
-        <!-- Animated spinner - BRIGHT YELLOW -->
         <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite">
           <svg viewBox="0 0 100 100" class="w-full h-full">
             <circle
@@ -76,13 +59,7 @@ function formatCurrency(value: number): string {
       <span class="ml-3 sm:ml-4 text-xs sm:text-sm md:text-base text-gray-600">Calculating...</span>
     </div>
 
-    <!-- ===================================================== -->
-    <!-- Summary -->
-    <!-- ===================================================== -->
-
     <div v-else class="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6 p-4 sm:p-5 md:p-6 lg:p-8">
-      <!-- Subtotal -->
-
       <div class="flex items-center justify-between text-xs sm:text-sm md:text-base">
         <span class="text-gray-600">Subtotal</span>
 
@@ -90,8 +67,6 @@ function formatCurrency(value: number): string {
           {{ formatCurrency(subtotal) }}
         </span>
       </div>
-
-      <!-- Tax -->
 
       <div class="flex items-center justify-between text-xs sm:text-sm md:text-base">
         <span class="text-gray-600">Tax</span>
@@ -101,8 +76,6 @@ function formatCurrency(value: number): string {
         </span>
       </div>
 
-      <!-- Discount -->
-
       <div class="flex items-center justify-between text-xs sm:text-sm md:text-base">
         <span class="text-gray-600">Discount</span>
 
@@ -110,8 +83,6 @@ function formatCurrency(value: number): string {
       </div>
 
       <hr class="border-gray-200 my-2 sm:my-3 md:my-4 lg:my-5" />
-
-      <!-- Grand Total -->
 
       <div class="flex items-center justify-between">
         <span class="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-gray-900"

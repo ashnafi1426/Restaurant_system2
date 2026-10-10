@@ -28,11 +28,9 @@ const cashierStore = useCashierStore()
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
 
-// WebSocket state
 const isConnected = ref(false)
 const wsChannel = ref<any>(null)
 
-// Filter state
 const filters = ref({
   search: '',
   status: '',
@@ -49,7 +47,6 @@ const filters = ref({
 
 const showFilters = ref(false)
 
-// Load payments
 onMounted(() => {
   loadPayments()
   subscribeToPaymentUpdates()
@@ -59,7 +56,6 @@ onUnmounted(() => {
   cleanupWebSocket()
 })
 
-// Watch for query parameter changes
 watch(
   () => route.query.filter,
   (newFilter) => {
@@ -76,7 +72,7 @@ watch(
   () => {
     filters.value.page = 1
     loadPayments()
-    // Resubscribe to new hotel's payment channel
+
     cleanupWebSocket()
     subscribeToPaymentUpdates()
   },
@@ -86,7 +82,6 @@ const loadPayments = async () => {
   await cashierStore.fetchPayments(filters.value as any)
 }
 
-// WebSocket: Subscribe to payment updates
 const subscribeToPaymentUpdates = () => {
   if (!window.Echo || !hotelStore.hotelId) {
     console.warn('[CashierPayments] Echo not initialized or no hotel ID')
@@ -343,7 +338,6 @@ const viewPayment = (id: string) => {
     <div
       class="space-y-5 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-5 max-w-full font-sans"
     >
-      <!-- Header Banner -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
@@ -368,7 +362,6 @@ const viewPayment = (id: string) => {
         </div>
 
         <div class="flex items-center gap-2">
-          <!-- WebSocket Connection Indicator -->
           <div
             class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold"
             :class="
@@ -398,7 +391,6 @@ const viewPayment = (id: string) => {
         </div>
       </div>
 
-      <!-- Quick Filter Pills -->
       <div class="flex flex-wrap items-center gap-1.5 text-xs">
         <button
           @click="setQuickFilter('')"
@@ -490,7 +482,6 @@ const viewPayment = (id: string) => {
         </button>
       </div>
 
-      <!-- Search and Filter Controls -->
       <div
         class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-3.5 shadow-xs space-y-3"
       >
@@ -526,7 +517,6 @@ const viewPayment = (id: string) => {
           </div>
         </div>
 
-        <!-- Advanced Filter Dropdowns -->
         <div
           v-if="showFilters"
           class="pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-3"
@@ -602,7 +592,6 @@ const viewPayment = (id: string) => {
         </div>
       </div>
 
-      <!-- Payments Data Table Card -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs"
       >
@@ -701,7 +690,6 @@ const viewPayment = (id: string) => {
                 class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition cursor-pointer"
                 @click="viewPayment(payment.id)"
               >
-                <!-- Transaction Ref -->
                 <td
                   class="px-2.5 py-2.5 whitespace-nowrap font-mono text-[10px] font-extrabold text-slate-900 dark:text-white truncate"
                   :title="payment.tx_ref"
@@ -709,7 +697,6 @@ const viewPayment = (id: string) => {
                   {{ formatTxRefShort(payment.tx_ref) }}
                 </td>
 
-                <!-- Customer -->
                 <td class="px-2.5 py-2.5 whitespace-nowrap">
                   <div
                     class="font-extrabold text-slate-900 dark:text-white text-[11px] truncate"
@@ -725,28 +712,24 @@ const viewPayment = (id: string) => {
                   </div>
                 </td>
 
-                <!-- Amount -->
                 <td
                   class="px-2.5 py-2.5 whitespace-nowrap font-black text-slate-900 dark:text-white text-[11px]"
                 >
                   {{ formatCurrency(payment.amount) }}
                 </td>
 
-                <!-- Type -->
                 <td
                   class="px-2.5 py-2.5 whitespace-nowrap text-slate-700 dark:text-slate-300 font-semibold text-[11px] capitalize"
                 >
                   {{ formatTypeShort(payment.type) }}
                 </td>
 
-                <!-- Method -->
                 <td
                   class="px-2.5 py-2.5 whitespace-nowrap text-slate-600 dark:text-slate-400 text-[10px] capitalize font-medium"
                 >
                   {{ payment.payment_method || '-' }}
                 </td>
 
-                <!-- Status Pill -->
                 <td class="px-2.5 py-2.5 text-center whitespace-nowrap">
                   <span
                     :class="[
@@ -759,7 +742,6 @@ const viewPayment = (id: string) => {
                   </span>
                 </td>
 
-                <!-- Order Status (Completed/Pending) -->
                 <td class="px-2.5 py-2.5 text-center whitespace-nowrap">
                   <span
                     v-if="payment.type && payment.type.toLowerCase().includes('order')"
@@ -780,14 +762,12 @@ const viewPayment = (id: string) => {
                   <span v-else class="text-[9px] text-slate-400 font-medium">-</span>
                 </td>
 
-                <!-- Date -->
                 <td
                   class="px-2.5 py-2.5 whitespace-nowrap text-[10px] font-bold text-slate-500 dark:text-slate-400"
                 >
                   {{ formatDateShort(payment.created_at) }}
                 </td>
 
-                <!-- Actions -->
                 <td class="px-2 py-2 text-right whitespace-nowrap pr-3">
                   <button
                     @click.stop="viewPayment(payment.id)"
@@ -802,12 +782,10 @@ const viewPayment = (id: string) => {
           </table>
         </div>
 
-        <!-- Pagination Bar with 5, 10, 20, 50 Options -->
         <div
           v-if="cashierStore.pagination && cashierStore.pagination.total > 0"
           class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-3.5 text-xs font-sans"
         >
-          <!-- Left Side: Per Page Selector & Showing Count -->
           <div class="flex flex-wrap items-center gap-3 text-slate-600 dark:text-slate-400">
             <div class="flex items-center gap-1.5">
               <span class="font-bold text-slate-700 dark:text-slate-300 text-xs">{{
@@ -842,7 +820,6 @@ const viewPayment = (id: string) => {
             </div>
           </div>
 
-          <!-- Right Side: Page Controls -->
           <div class="flex items-center gap-1">
             <button
               @click="previousPage"

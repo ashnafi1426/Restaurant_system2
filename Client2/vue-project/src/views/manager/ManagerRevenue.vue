@@ -31,7 +31,6 @@ function formatCurrency(value: number) {
     <div
       class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 py-4 md:py-6 transition-colors duration-300"
     >
-      <!-- PAGE HEADER -->
       <div
         class="mb-6 md:mb-8 border-b border-slate-200/60 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-lg p-4 md:p-6 transition-colors duration-300"
       >
@@ -66,7 +65,6 @@ function formatCurrency(value: number) {
         </div>
       </div>
 
-      <!-- Loading State -->
       <div v-if="revenueStore.loading" class="flex justify-center items-center py-32">
         <div class="text-center">
           <div class="relative w-12 h-12">
@@ -102,7 +100,6 @@ function formatCurrency(value: number) {
         </div>
       </div>
 
-      <!-- Error State -->
       <div
         v-if="revenueStore.error && !revenueStore.loading"
         class="bg-red-50/80 dark:bg-red-900/20 backdrop-blur-sm border border-red-200/60 dark:border-red-800 text-red-700 dark:text-red-400 p-6 rounded-xl mb-6"
@@ -110,12 +107,9 @@ function formatCurrency(value: number) {
         {{ revenueStore.error }}
       </div>
 
-      <!-- Content -->
       <div v-if="!revenueStore.loading" class="space-y-6">
-        <!-- Revenue Overview Component -->
         <RevenueOverview />
 
-        <!-- Revenue Chart -->
         <div
           class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6"
         >
@@ -133,7 +127,6 @@ function formatCurrency(value: number) {
           </div>
         </div>
 
-        <!-- Revenue Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div
             class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6"

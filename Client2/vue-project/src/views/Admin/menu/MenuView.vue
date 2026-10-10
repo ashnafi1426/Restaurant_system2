@@ -192,7 +192,6 @@ onMounted(async () => {
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
-      <!-- Header -->
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
       >
@@ -221,7 +220,6 @@ onMounted(async () => {
         </button>
       </div>
 
-      <!-- Stats Cards -->
       <MenuStats
         :statistics="store.statistics"
         :selected-category="selectedCategory"
@@ -229,13 +227,10 @@ onMounted(async () => {
         @select="filterByCategory"
       />
 
-      <!-- Top Bar Toolbar -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <!-- Left: Search & Filter Toggle -->
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <!-- Search Input -->
           <div class="relative flex-1">
             <Search
               class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -249,7 +244,6 @@ onMounted(async () => {
             />
           </div>
 
-          <!-- Filter Toggle Button -->
           <button
             type="button"
             @click="toggleFilter"
@@ -265,9 +259,7 @@ onMounted(async () => {
           </button>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2 sm:gap-2.5">
-          <!-- Refresh Button -->
           <button
             type="button"
             @click="refreshPage"
@@ -278,7 +270,6 @@ onMounted(async () => {
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.loading }" />
           </button>
 
-          <!-- Fullscreen Toggle -->
           <button
             type="button"
             @click="toggleFullscreen"
@@ -290,7 +281,6 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Expandable Filter Panel -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -304,7 +294,6 @@ onMounted(async () => {
           class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
-            <!-- Availability Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 Availability
@@ -319,7 +308,6 @@ onMounted(async () => {
               </select>
             </div>
 
-            <!-- Category Filter -->
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 Category
@@ -338,7 +326,6 @@ onMounted(async () => {
               </select>
             </div>
 
-            <!-- Reset Filters -->
             <div class="flex items-end">
               <button
                 type="button"
@@ -353,9 +340,7 @@ onMounted(async () => {
         </div>
       </Transition>
 
-      <!-- Table Area -->
       <div class="space-y-4">
-        <!-- Table Component -->
         <MenuTable
           :items="filteredMenuItems"
           :loading="store.loading"
@@ -364,7 +349,6 @@ onMounted(async () => {
           @toggle="toggleAvailability"
         />
 
-        <!-- Empty State -->
         <div
           v-if="!store.loading && filteredMenuItems.length === 0"
           class="text-center py-12 sm:py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs px-4"
@@ -387,7 +371,6 @@ onMounted(async () => {
           </button>
         </div>
 
-        <!-- Pagination Footer -->
         <div
           v-if="store.pagination && store.pagination.total > 0"
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"

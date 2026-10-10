@@ -3,12 +3,10 @@
     <div
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
     >
-      <!-- Profile Header Banner -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row items-center justify-between gap-6"
       >
         <div class="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
-          <!-- Profile Avatar -->
           <div class="relative flex-shrink-0">
             <img
               :src="profilePhotoUrl"
@@ -31,7 +29,6 @@
             />
           </div>
 
-          <!-- User Header Details -->
           <div>
             <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
               <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -72,9 +69,7 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <!-- Sidebar Navigation & Quick Info -->
         <div class="lg:col-span-1 space-y-6">
-          <!-- Quick Info Card -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4"
           >
@@ -135,7 +130,6 @@
             </div>
           </div>
 
-          <!-- Navigation Tabs Card -->
           <div
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-2 shadow-xs space-y-1"
           >
@@ -156,9 +150,7 @@
           </div>
         </div>
 
-        <!-- Main Form Content Column -->
         <div class="lg:col-span-3">
-          <!-- Personal Info Tab -->
           <div
             v-if="activeTab === 'personal'"
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6"
@@ -291,7 +283,6 @@
             </form>
           </div>
 
-          <!-- Professional Tab -->
           <div
             v-if="activeTab === 'professional'"
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6"
@@ -362,7 +353,6 @@
             </div>
           </div>
 
-          <!-- Statistics Tab -->
           <div
             v-if="activeTab === 'statistics'"
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6"
@@ -423,7 +413,6 @@
             </div>
           </div>
 
-          <!-- Security Tab -->
           <div
             v-if="activeTab === 'security'"
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6"
@@ -442,7 +431,6 @@
               </p>
             </div>
 
-            <!-- Temporary Password Notice -->
             <div
               v-if="authStore.mustChangePassword"
               class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs space-y-1"
@@ -604,7 +592,6 @@ const route = useRoute()
 const authStore = useAuthStore()
 const languageStore = useLanguageStore()
 
-// State
 const profile = ref<AdminProfile | null>(null)
 const stats = ref<AdminStats | null>(null)
 const loading = ref(false)
@@ -614,7 +601,6 @@ const showCurrentPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
 
-// Form Data
 const formData = ref({
   first_name: '',
   last_name: '',
@@ -629,7 +615,6 @@ const passwordData = ref({
   new_password_confirmation: '',
 })
 
-// Tabs Configuration
 const localizedTabs = computed(() => [
   { id: 'personal', label: languageStore.t('personal_info', 'Personal Info'), icon: User },
   { id: 'professional', label: languageStore.t('professional', 'Professional'), icon: Briefcase },
@@ -637,7 +622,6 @@ const localizedTabs = computed(() => [
   { id: 'security', label: languageStore.t('security', 'Security'), icon: Lock },
 ])
 
-// Computed
 const profilePhotoUrl = computed(() => {
   if (profile.value?.administrator?.profile_photo) {
     return `http://127.0.0.1:8000/storage/${profile.value.administrator.profile_photo}`

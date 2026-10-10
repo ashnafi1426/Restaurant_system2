@@ -57,11 +57,10 @@ export const useGuestHotelStore = defineStore('guestHotel', {
         const response = await publicAxios.get('/guest/hotels')
         if (response.data?.success) {
           this.availableHotels = response.data.data
-          // Auto-select first hotel if no hotel is currently selected
+
           if (!this.currentHotel && this.availableHotels.length > 0) {
             this.selectHotel(this.availableHotels[0])
           } else if (this.currentHotel && this.availableHotels.length > 0) {
-            // Update current hotel with fresh details from backend
             const matched = this.availableHotels.find((h) => h.id === this.currentHotel?.id)
             if (matched) {
               this.currentHotel = matched
@@ -98,7 +97,6 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       localStorage.setItem('hotel_id', hotel.id)
       localStorage.setItem('active_hotel_id', hotel.id)
 
-      // Dynamically adapt platform brand theme to the selected hotel property
       try {
         const themeStore = useThemeStore()
         themeStore.syncWithHotel(hotel)

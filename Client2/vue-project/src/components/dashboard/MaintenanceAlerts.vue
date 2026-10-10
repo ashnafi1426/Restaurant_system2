@@ -81,7 +81,6 @@ const formatSeverity = (severity: string) => {
       </button>
     </div>
 
-    <!-- Empty State -->
     <div v-if="activeAlerts.length === 0" class="text-center py-16">
       <div
         class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4"
@@ -103,7 +102,6 @@ const formatSeverity = (severity: string) => {
       </p>
     </div>
 
-    <!-- Alert List -->
     <div v-else class="space-y-3 sm:space-y-4">
       <div
         v-for="alert in activeAlerts"

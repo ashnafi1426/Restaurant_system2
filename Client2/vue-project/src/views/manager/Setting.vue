@@ -5,12 +5,6 @@ import { useLanguageStore } from '@/stores/language'
 
 const languageStore = useLanguageStore()
 
-/*
-|--------------------------------------------------------------------------
-| Hotel Settings
-|--------------------------------------------------------------------------
-*/
-
 const hotelSettings = ref({
   hotelName: 'Royal Horizon Hotel',
   phone: '+251900000000',
@@ -18,24 +12,12 @@ const hotelSettings = ref({
   address: 'Addis Ababa Ethiopia',
 })
 
-/*
-|--------------------------------------------------------------------------
-| Restaurant Settings
-|--------------------------------------------------------------------------
-*/
-
 const restaurantSettings = ref({
   openTime: '06:00',
   closeTime: '23:00',
   roomServiceAvailable: true,
   deliveryTime: 30,
 })
-
-/*
-|--------------------------------------------------------------------------
-| Notification Settings
-|--------------------------------------------------------------------------
-*/
 
 const notificationSettings = ref({
   newReservation: true,
@@ -58,8 +40,6 @@ const saveSettings = () => {
 <template>
   <DashboardLayout>
     <div class="space-y-8">
-      <!-- Header -->
-
       <div>
         <h1 class="text-3xl font-bold text-slate-800">
           {{ languageStore.t('manager_settings', 'Manager Settings') }}
@@ -74,8 +54,6 @@ const saveSettings = () => {
           }}
         </p>
       </div>
-
-      <!-- Hotel Information -->
 
       <div class="bg-white rounded-3xl shadow-sm p-8">
         <h2 class="text-xl font-bold mb-6">
@@ -112,8 +90,6 @@ const saveSettings = () => {
           </div>
         </div>
       </div>
-
-      <!-- Restaurant Settings -->
 
       <div class="bg-white rounded-3xl shadow-sm p-8">
         <h2 class="text-xl font-bold mb-6">
@@ -161,8 +137,6 @@ const saveSettings = () => {
         </div>
       </div>
 
-      <!-- Notification Settings -->
-
       <div class="bg-white rounded-3xl shadow-sm p-8">
         <h2 class="text-xl font-bold mb-6">
           {{ languageStore.t('notifications', 'Notifications') }}
@@ -194,8 +168,6 @@ const saveSettings = () => {
           </label>
         </div>
       </div>
-
-      <!-- Save -->
 
       <button
         @click="saveSettings"

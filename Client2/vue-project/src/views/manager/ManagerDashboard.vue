@@ -63,7 +63,6 @@ const stats = computed(() => {
 
 const activities = computed(() => manager.dashboardActivities || [])
 
-// Live Chart.js Revenue Trend Data from backend
 const weeklyTrends = ref<{ label: string; revenue: number }[]>([])
 const monthlyTrends = ref<{ label: string; revenue: number }[]>([])
 
@@ -211,7 +210,6 @@ onMounted(() => {
       class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-3 sm:p-6 lg:p-8 transition-colors duration-200"
     >
       <div class="max-w-7xl mx-auto space-y-6">
-        <!-- Header & Action Controls -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div class="flex items-center gap-2.5">
@@ -268,7 +266,6 @@ onMounted(() => {
             </p>
           </div>
 
-          <!-- Rooms Occupied -->
           <div
             class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl"
           >
@@ -300,7 +297,6 @@ onMounted(() => {
             </p>
           </div>
 
-          <!-- Active Waiters -->
           <div
             class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl"
           >
@@ -323,7 +319,6 @@ onMounted(() => {
             </p>
           </div>
 
-          <!-- Kitchen Urgent Orders -->
           <div
             class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl"
           >
@@ -346,7 +341,6 @@ onMounted(() => {
             </p>
           </div>
 
-          <!-- Today's Revenue Card -->
           <div
             class="bg-gradient-to-br from-indigo-600 via-blue-600 to-blue-700 text-white rounded-2xl p-5 shadow-lg shadow-blue-500/20 sm:col-span-2 lg:col-span-1"
           >
@@ -368,9 +362,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Charts & Analytics Section -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Revenue Trend Chart (Chart.js Canvas) -->
           <div
             class="lg:col-span-2 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-xl"
           >
@@ -389,7 +381,6 @@ onMounted(() => {
                 </p>
               </div>
 
-              <!-- Filter Tabs -->
               <div class="flex gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                 <button
                   @click="trendTab = 'weekly'"
@@ -416,7 +407,6 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Chart Canvas Container -->
             <div class="h-64 relative w-full">
               <Bar
                 :data="trendTab === 'weekly' ? weeklyRevenueChartData : monthlyRevenueChartData"
@@ -425,7 +415,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Occupancy Doughnut Chart -->
           <div
             class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-xl flex flex-col justify-between"
           >
@@ -471,7 +460,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Recent Operational Activity Log -->
         <div
           class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-xl"
         >

@@ -123,7 +123,6 @@ watch(() => hotelStore.hotelId, loadData)
       class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 transition-colors duration-200 font-sans"
     >
       <div class="max-w-7xl mx-auto space-y-6">
-        <!-- Header -->
         <div
           class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm dark:shadow-2xl"
         >
@@ -158,7 +157,6 @@ watch(() => hotelStore.hotelId, loadData)
           </div>
         </div>
 
-        <!-- Loading State -->
         <div
           v-if="loading"
           class="flex items-center justify-center py-20 bg-white dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-800"
@@ -175,7 +173,6 @@ watch(() => hotelStore.hotelId, loadData)
           </div>
         </div>
 
-        <!-- Empty State -->
         <div
           v-else-if="completed.length === 0"
           class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center"
@@ -194,7 +191,6 @@ watch(() => hotelStore.hotelId, loadData)
           </p>
         </div>
 
-        <!-- Completed Orders Table -->
         <div
           v-else
           class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl"
@@ -276,7 +272,6 @@ watch(() => hotelStore.hotelId, loadData)
             </table>
           </div>
 
-          <!-- Pagination -->
           <div
             class="bg-slate-50 dark:bg-slate-950/60 px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4"
           >
