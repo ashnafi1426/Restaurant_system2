@@ -2,13 +2,15 @@
 import { computed } from 'vue'
 
 interface MenuItem {
-  id: number
+  id: string | number
   name: string
-  description: string
+  description?: string
   price: number
+  total_price?: number
   image?: string | null
-  category: string
+  category?: string
   badge?: string
+  [key: string]: any
 }
 
 interface Props {

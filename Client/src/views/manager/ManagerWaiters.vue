@@ -267,7 +267,7 @@ const handleDeleteWaiter = async (waiterId: string) => {
 const handleToggleStatus = async (waiter: any, newStatus: string) => {
   try {
     if (typeof waiterStore.updateStatus === 'function') {
-      await waiterStore.updateStatus(waiter.id, newStatus)
+      await waiterStore.updateStatus(waiter.id, newStatus as any)
     } else if (typeof waiterStore.update === 'function') {
       await waiterStore.update(waiter.id, { status: newStatus })
     }

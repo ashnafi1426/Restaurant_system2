@@ -204,25 +204,6 @@ class ManagerService {
     return response.data.data
   }
 
-  async getWaiters(): Promise<any[]> {
-    const response = await api.get('/manager/waiters')
-    return response.data.data || []
-  }
-
-  async createWaiter(data: any): Promise<any> {
-    const response = await api.post('/manager/waiters', data)
-    return response.data.data
-  }
-
-  async updateWaiterStatus(waiterId: string, status: any): Promise<any> {
-    const response = await api.patch(`/manager/waiters/${waiterId}/status`, { status })
-    return response.data.data
-  }
-
-  async deleteWaiter(waiterId: string): Promise<void> {
-    await api.delete(`/manager/waiters/${waiterId}`)
-  }
-
   async assignWaiterToDelivery(waiterId: string, deliveryId: string): Promise<void> {
     await api.patch(`/manager/waiters/${waiterId}/assign`, { deliveryId })
   }

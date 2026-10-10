@@ -111,12 +111,12 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
     }
   }
 
-  async function updateStatus(waiterId: string, status: WaiterStatus) {
+  async function updateStatus(waiterId: string, status: WaiterStatus | string) {
     try {
       await managerService.updateWaiterStatus(waiterId, status)
       const waiter = waiters.value.find((w) => w.id === waiterId)
       if (waiter) {
-        waiter.status = status
+        waiter.status = status as WaiterStatus
       }
     } catch (err: any) {
       console.error('[manager/waiterStore] Failed to update waiter status:', err)
