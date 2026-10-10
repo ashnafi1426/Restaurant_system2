@@ -88,14 +88,14 @@
                 <div class="bg-slate-50 rounded-lg p-4">
                   <p class="text-slate-600 text-sm font-medium mb-2">Amount</p>
                   <p class="text-2xl font-bold text-slate-900">
-                    {{ paymentStore.currentPayment.formatted_amount }}
+                    {{ paymentStore.currentPayment?.formatted_amount || '-' }}
                   </p>
                 </div>
 
                 <div class="bg-slate-50 rounded-lg p-4">
                   <p class="text-slate-600 text-sm font-medium mb-2">Started</p>
                   <p class="text-slate-900">
-                    {{ formatDate(paymentStore.currentPayment.created_at) }}
+                    {{ paymentStore.currentPayment?.created_at ? formatDate(paymentStore.currentPayment.created_at) : '-' }}
                   </p>
                 </div>
               </div>
@@ -107,13 +107,13 @@
                 <div>
                   <p class="text-slate-600 text-sm mb-1">Name</p>
                   <p class="text-slate-900 font-medium">
-                    {{ paymentStore.currentPayment.customer.name }}
+                    {{ paymentStore.currentPayment?.customer?.name || '-' }}
                   </p>
                 </div>
                 <div>
                   <p class="text-slate-600 text-sm mb-1">Email</p>
                   <p class="text-slate-900 break-all">
-                    {{ paymentStore.currentPayment.customer.email }}
+                    {{ paymentStore.currentPayment?.customer?.email || '-' }}
                   </p>
                 </div>
               </div>
@@ -225,7 +225,7 @@ const router = useRouter()
 const route = useRoute()
 const paymentStore = usePaymentStore()
 
-let pollInterval: NodeJS.Timeout | null = null
+let pollInterval: ReturnType<typeof setInterval> | null = null
 const maxChecks = ref(60)
 const checksPerformed = ref(0)
 

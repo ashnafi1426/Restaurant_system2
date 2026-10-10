@@ -20,11 +20,11 @@ export interface GuestForm {
   last_name: string
   email: string
   phone: string
-  address: string
-  nationality: string
-  passport_number: string
-  date_of_birth: string
-  preferences: string[]
+  address?: string
+  nationality?: string
+  passport_number?: string
+  date_of_birth?: string
+  preferences?: string[]
 }
 
 export interface GuestListResponse {
