@@ -236,7 +236,7 @@ export const useReviewStore = defineStore('review', () => {
     notificationsLoading.value = true
     try {
       const data = await reviewService.getReviewNotifications(page, 10)
-      notifications.value = (data.data as ReviewNotification[]) || []
+      notifications.value = data.data || []
       unreadNotificationCount.value = await reviewService.getUnreadNotificationCount()
     } finally {
       notificationsLoading.value = false

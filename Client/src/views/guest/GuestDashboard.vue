@@ -334,7 +334,7 @@ const loadNotifications = async () => {
   notificationsLoading.value = true
   try {
     const data = await reviewService.getReviewNotifications(1, 10)
-    notifications.value = (data.data as ReviewNotification[]) || []
+    notifications.value = data.data || []
     unreadNotifications.value = await reviewService.getUnreadNotificationCount()
   } catch (error) {
     console.error('Failed to load notifications:', error)

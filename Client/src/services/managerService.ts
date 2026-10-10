@@ -207,6 +207,40 @@ class ManagerService {
   async assignWaiterToDelivery(waiterId: string, deliveryId: string): Promise<void> {
     await api.patch(`/manager/waiters/${waiterId}/assign`, { deliveryId })
   }
+
+  async getDashboardSettings(): Promise<any[]> {
+    const response = await api.get('/manager/settings/dashboard')
+    return response.data.data
+  }
+
+  async updateDashboardSetting(settingId: string, data: any): Promise<any> {
+    const response = await api.put(`/manager/settings/dashboard/${settingId}`, data)
+    return response.data.data
+  }
+
+  async getAnnouncements(): Promise<any[]> {
+    const response = await api.get('/manager/settings/announcements')
+    return response.data.data
+  }
+
+  async createAnnouncement(data: { title: string; content: string; type: string }): Promise<any> {
+    const response = await api.post('/manager/settings/announcements', data)
+    return response.data.data
+  }
+
+  async updateAnnouncement(announcementId: string, data: any): Promise<any> {
+    const response = await api.put(`/manager/settings/announcements/${announcementId}`, data)
+    return response.data.data
+  }
+
+  async deleteAnnouncement(announcementId: string): Promise<void> {
+    await api.delete(`/manager/settings/announcements/${announcementId}`)
+  }
+
+  async getReports(): Promise<any[]> {
+    const response = await api.get('/manager/settings/reports')
+    return response.data.data
+  }
 }
 
 export default new ManagerService()

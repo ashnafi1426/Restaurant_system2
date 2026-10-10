@@ -78,12 +78,12 @@ export const useOrderStore = defineStore('order', () => {
         }
       }
 
-      const response = await orderService.getOrders(cleanParams)
-      const rawData = response.data || response
-      const orderData = rawData.data || rawData || []
+      const response: any = await orderService.getOrders(cleanParams)
+      const resData = response?.data !== undefined && !Array.isArray(response) ? response.data : response
+      const orderData = Array.isArray(resData) ? resData : resData?.data || []
       orders.value = Array.isArray(orderData) ? orderData : []
 
-      const meta = response.data?.meta || response.meta || rawData.meta
+      const meta = response?.meta || resData?.meta || resData?.pagination
       if (meta) {
         currentPage.value = meta.current_page || 1
         lastPage.value = meta.last_page || 1
@@ -94,7 +94,7 @@ export const useOrderStore = defineStore('order', () => {
         lastPage.value = Math.ceil(total.value / (filters.value.per_page || 15)) || 1
       }
 
-      const serverStats = response.data?.statistics || response.statistics || rawData.statistics
+      const serverStats = response?.statistics || resData?.statistics
       if (serverStats) {
         statistics.value = {
           total_orders: Number(serverStats.total_orders || 0),

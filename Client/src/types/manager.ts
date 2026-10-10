@@ -11,9 +11,17 @@ export type OrderStatus =
 
 export type RoomStatus = 'available' | 'occupied' | 'reserved' | 'cleaning' | 'maintenance'
 
-export type StaffStatus = 'active' | 'off_duty' | 'leave'
+export type StaffStatus = 'active' | 'inactive' | 'off_duty' | 'leave' | 'on_break'
 
-export type WaiterStatus = 'active' | 'break' | 'inactive' | 'available' | 'offline' | 'busy'
+export type WaiterStatus =
+  | 'active'
+  | 'break'
+  | 'on_break'
+  | 'inactive'
+  | 'available'
+  | 'offline'
+  | 'busy'
+  | 'on_duty'
 
 export type DeliveryStatus = 'waiting' | 'assigned' | 'delivering' | 'completed'
 
@@ -170,6 +178,14 @@ export interface Waiter {
   activeOrders?: number
   rating?: number
   createdAt?: string
+  user?: {
+    id?: string
+    name?: string
+    first_name?: string
+    last_name?: string
+    email?: string
+    phone?: string
+  }
 }
 
 export interface ManagerDashboardResponse {

@@ -27,6 +27,11 @@ export interface Payment {
   email: string
   phone?: string
   status: string
+  payment_status?: string
+  order_status?: string
+  order_completed_at?: string
+  order_id?: string | number
+  reservation_id?: string | number
   payment_provider?: string
   payment_method?: string
   type: string
@@ -239,6 +244,10 @@ export const useCashierStore = defineStore('cashier', () => {
     search?: string
     page?: number
     per_page?: number
+    payment_status?: string
+    order_status?: string
+    order_type?: string
+    payment_method?: string
   }) {
     try {
       const params = {

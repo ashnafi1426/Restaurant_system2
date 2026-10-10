@@ -1,6 +1,6 @@
 export interface OrderItem {
-  id?: string
-  menu_item_id: string
+  id?: string | number
+  menu_item_id: string | number
   item_name?: string
   quantity: number
   item_price_at_order?: number
@@ -13,7 +13,7 @@ export interface OrderItem {
   notes?: string
   name?: string
   menu_item?: {
-    id: string
+    id: string | number
     name: string
   }
 }
@@ -30,7 +30,7 @@ export interface CreateOrderRequest {
   service_charge_amount?: number
   notes?: string
   items: Array<{
-    menu_item_id: string
+    menu_item_id: string | number
     quantity: number
     notes?: string
   }>
@@ -50,7 +50,7 @@ export interface UpdateOrderRequest {
   notes?: string
   items?: Array<{
     id?: string
-    menu_item_id: string
+    menu_item_id: string | number
     quantity: number
     notes?: string
   }>
@@ -69,6 +69,7 @@ export interface OrderCollectionResponse {
     per_page: number
     total: number
   }
+  statistics?: OrderStatistics
 }
 
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled'

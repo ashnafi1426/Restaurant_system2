@@ -24,6 +24,8 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Minimize2,
+  Maximize2,
 } from 'lucide-vue-next'
 
 interface AdminItem {
@@ -53,6 +55,12 @@ const hotels = ref<Hotel[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const isFilterOpen = ref(false)
+const isFullscreen = ref(false)
+
+function toggleFullscreen() {
+  isFullscreen.value = !isFullscreen.value
+}
+
 const searchQuery = ref('')
 const selectedHotelId = ref('all')
 const selectedStatus = ref('all')

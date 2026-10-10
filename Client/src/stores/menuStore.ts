@@ -102,11 +102,11 @@ export const useMenuStore = defineStore('menu', () => {
     return withSaving(() => menuService.createMenu(payload), 'Failed to create menu item')
   }
 
-  function updateMenuItem(id: string, payload: any) {
+  function updateMenuItem(id: string | number, payload: any) {
     return withSaving(() => menuService.updateMenu(id, payload), 'Failed to update menu item')
   }
 
-  function deleteMenuItem(id: string) {
+  function deleteMenuItem(id: string | number) {
     return withSaving(async () => {
       const res = await menuService.deleteMenu(id)
       menuItems.value = menuItems.value.filter((m) => m.id !== id)
@@ -114,7 +114,7 @@ export const useMenuStore = defineStore('menu', () => {
     }, 'Failed to delete menu item')
   }
 
-  async function toggleAvailability(id: string) {
+  async function toggleAvailability(id: string | number) {
     const item = menuItems.value.find((m) => m.id === id)
     if (item) {
       item.is_available = !item.is_available

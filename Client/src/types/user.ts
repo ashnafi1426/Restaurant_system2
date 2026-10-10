@@ -10,4 +10,6 @@ export interface User {
   last_login: string | null
   created_at: string
   updated_at: string
+  password?: string
+  password_confirmation?: string
 }

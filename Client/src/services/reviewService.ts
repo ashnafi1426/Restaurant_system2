@@ -12,6 +12,7 @@ import type {
   TopRatedItem,
   ReviewTrend,
   PaginatedReviews,
+  PaginatedNotifications,
 } from '@/types/review'
 
 export const createReview = async (data: CreateReviewRequest): Promise<Review> => {
@@ -137,7 +138,7 @@ export const voteNotHelpful = async (
 export const getReviewNotifications = async (
   page: number = 1,
   perPage: number = 10,
-): Promise<PaginatedReviews> => {
+): Promise<PaginatedNotifications> => {
   const response = await axios.get(`/notifications/reviews`, {
     params: {
       page,

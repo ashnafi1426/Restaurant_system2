@@ -15,7 +15,7 @@ export interface MenuItem {
   tax_amount?: number
   total_price?: number
   formatted_total_price?: string
-  category: string
+  category?: string
   is_available?: boolean
   rating?: number | null
   average_rating?: number | null
@@ -43,11 +43,11 @@ export interface MenuStatistics {
   total_items: number
   available_items: number
   unavailable_items: number
-  breakfast_items: number
-  lunch_items: number
-  dinner_items: number
-  drink_items: number
-  dessert_items: number
+  breakfast_items?: number
+  lunch_items?: number
+  dinner_items?: number
+  drink_items?: number
+  dessert_items?: number
 }
 
 export interface MenuPagination {

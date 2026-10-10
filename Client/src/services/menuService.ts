@@ -46,7 +46,7 @@ export default {
     return api.post('/menu-items', data)
   },
 
-  updateMenu(id: string, data: any) {
+  updateMenu(id: string | number, data: any) {
     if (data instanceof FormData) {
       return api.post(`/menu-items/${id}?_method=PUT`, data, {
         headers: {
@@ -62,12 +62,12 @@ export default {
     return api.put(`/menu-items/${id}`, data)
   },
 
-  deleteMenu(id: string) {
+  deleteMenu(id: string | number) {
     const endpoint = `/menu-items/${id}`
     return api.delete(endpoint)
   },
 
-  toggleStatus(id: string) {
+  toggleStatus(id: string | number) {
     const endpoint = `/menu-items/${id}/toggle-availability`
     return api.patch(endpoint)
   },
