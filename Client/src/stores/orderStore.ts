@@ -79,7 +79,8 @@ export const useOrderStore = defineStore('order', () => {
       }
 
       const response: any = await orderService.getOrders(cleanParams)
-      const resData = response?.data !== undefined && !Array.isArray(response) ? response.data : response
+      const resData =
+        response?.data !== undefined && !Array.isArray(response) ? response.data : response
       const orderData = Array.isArray(resData) ? resData : resData?.data || []
       orders.value = Array.isArray(orderData) ? orderData : []
 

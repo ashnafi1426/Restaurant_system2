@@ -18,6 +18,16 @@ function getGuestHotelHeaders() {
 }
 
 export const roomService = {
+  publicApi: publicAxios,
+
+  getPublicRooms(params: any = {}) {
+    return publicAxios.get('/rooms', { params, headers: getGuestHotelHeaders() })
+  },
+
+  getPublicRoom(id: string) {
+    return publicAxios.get(`/rooms/${String(id)}`, { headers: getGuestHotelHeaders() })
+  },
+
   getRooms(params: any = {}) {
     const token = localStorage.getItem('token')
     if (token) {

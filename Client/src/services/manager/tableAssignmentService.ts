@@ -40,6 +40,7 @@ export interface TableAssignment {
 export interface TableAssignmentStats {
   total_assignments: number
   total_tables: number
+  total_floors?: number
   total_waiters: number
   active_assignments?: number
   primary_assignments?: number
@@ -115,6 +116,7 @@ class TableAssignmentService {
       console.error('[TableAssignmentService] Error fetching assignment stats:', error)
       return {
         total_assignments: 0,
+        total_tables: 0,
         total_floors: 0,
         total_waiters: 0,
         primary_assignments: 0,

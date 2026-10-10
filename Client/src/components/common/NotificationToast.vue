@@ -31,8 +31,16 @@ const getIcon = (type: string) => {
   return icons[type] || Bell
 }
 
-const getColors = (type: string) => {
-  const colors: Record<string, object> = {
+interface ToastColor {
+  bg: string
+  border: string
+  text: string
+  icon: string
+  dot: string
+}
+
+const getColors = (type: string): ToastColor => {
+  const colors: Record<string, ToastColor> = {
     booking: {
       bg: 'bg-blue-50',
       border: 'border-blue-200',

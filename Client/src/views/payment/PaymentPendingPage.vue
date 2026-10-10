@@ -95,7 +95,11 @@
                 <div class="bg-slate-50 rounded-lg p-4">
                   <p class="text-slate-600 text-sm font-medium mb-2">Started</p>
                   <p class="text-slate-900">
-                    {{ paymentStore.currentPayment?.created_at ? formatDate(paymentStore.currentPayment.created_at) : '-' }}
+                    {{
+                      paymentStore.currentPayment?.created_at
+                        ? formatDate(paymentStore.currentPayment.created_at)
+                        : '-'
+                    }}
                   </p>
                 </div>
               </div>

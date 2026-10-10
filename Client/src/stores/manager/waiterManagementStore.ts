@@ -37,7 +37,9 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
         availability: filterAvailability.value,
       })
 
-      const waiterData = Array.isArray(response.data) ? response.data : ((response as any).data?.data || [])
+      const waiterData = Array.isArray(response.data)
+        ? response.data
+        : (response as any).data?.data || []
       waiters.value = waiterData
 
       if (response.pagination) {

@@ -157,7 +157,7 @@ export const markNotificationAsRead = async (notificationId: string): Promise<vo
   await axios.post(`/notifications/${notificationId}/read`)
 }
 
-export const getMenuItemStats = async (menuItemId: string): Promise<ReviewStats> => {
+export const getMenuItemStats = async (menuItemId: string | number): Promise<ReviewStats> => {
   try {
     const response = await axios.get(`/menu-items/${menuItemId}/review-stats`)
     return response.data
@@ -179,6 +179,7 @@ export const getMenuItemStats = async (menuItemId: string): Promise<ReviewStats>
         total_reviews: 0,
         average_rating: 0,
         rating_distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        rating_percentages: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
       }
     }
   }

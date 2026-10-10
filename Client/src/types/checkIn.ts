@@ -20,6 +20,7 @@ export interface Room {
 export interface Reservation {
   id: string
   reservation_number: string
+  booking_reference?: string
   status: string
 }
 

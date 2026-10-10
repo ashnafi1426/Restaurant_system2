@@ -63,7 +63,7 @@ export interface ReviewRating {
 }
 
 export interface ReviewStats {
-  menu_item_id: string
+  menu_item_id: string | number
   total_reviews: number
   average_rating: number | null
   rating_distribution: {
@@ -73,7 +73,7 @@ export interface ReviewStats {
     4: number
     5: number
   }
-  rating_percentages: {
+  rating_percentages?: {
     1: number
     2: number
     3: number
