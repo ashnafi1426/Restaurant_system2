@@ -2,12 +2,16 @@
 import { ref, computed } from 'vue'
 
 export interface MenuItem {
-  id: number
+  id: string | number
   name: string
-  description: string
+  description?: string
   price: number
-  image: string | null
-  category: string
+  image?: string | null
+  category?: string
+  total_price?: number
+  tax_rate?: any
+  tax_included?: boolean
+  tax_amount?: number
 
   rating?: number
   preparation_time?: number
@@ -17,6 +21,7 @@ export interface MenuItem {
   is_new?: boolean
   is_spicy?: boolean
   is_vegetarian?: boolean
+  [key: string]: any
 }
 
 interface Props {
