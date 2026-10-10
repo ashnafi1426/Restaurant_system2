@@ -25,7 +25,7 @@ onMounted(async () => {
 const loadReviewStats = async () => {
   loadingReviews.value = true
   try {
-    reviewStats.value = await reviewService.getMenuItemStats(props.item.id)
+    reviewStats.value = await reviewService.getMenuItemStats(String(props.item.id))
   } catch (error) {
     console.error('[MenuCard] Error loading review stats:', error)
   } finally {

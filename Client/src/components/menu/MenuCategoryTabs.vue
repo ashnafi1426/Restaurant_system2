@@ -63,9 +63,9 @@ const categories = computed(() => {
   const uniqueCategories = new Set(
     store.menuItems
       .map((item) => {
-        const c = item.category
+        const c: any = item.category
         if (!c) return ''
-        return (typeof c === 'object' ? c.name || c.slug : String(c)).toLowerCase()
+        return (typeof c === 'object' ? c.name || c.slug || '' : String(c)).toLowerCase()
       })
       .filter(Boolean),
   )
