@@ -3,8 +3,11 @@ import api from '@/api/auth'
 export interface FloorAssignment {
   id: string
   hotel_id?: string
+  waiter_id?: string | number
+  waiter_name?: string
   waiter?: {
-    id: string | number
+    id?: string | number
+    name?: string
     user?: { name: string; email?: string }
     employment_type?: string
     status?: string

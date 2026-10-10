@@ -14,6 +14,11 @@ export interface FloorWaiterAssignment {
   id: string
   waiter_id: string | number
   waiter_name: string
+  waiter?: {
+    id?: string | number
+    name?: string
+    user?: { name: string; email?: string }
+  }
   first_name?: string
   last_name?: string
   email?: string
