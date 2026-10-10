@@ -1,5 +1,7 @@
 export interface ReceptionStatistics {
   today_check_ins: number
+  today_check_outs?: number
+  checkout_count?: number
   active_guests: number
   available_rooms: number
   pending_reservations: number
