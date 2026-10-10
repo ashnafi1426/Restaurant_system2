@@ -2,12 +2,16 @@
 interface MenuItem {
   id: string | number
   name: string
-  description: string
+  description?: string
   price: number
-  image: string | null
+  image?: string | null
+  total_price?: number
   preparation_time?: number
   is_popular?: boolean
   is_featured?: boolean
+  category?: string
+  is_available?: boolean
+  [key: string]: any
 }
 
 interface Props {

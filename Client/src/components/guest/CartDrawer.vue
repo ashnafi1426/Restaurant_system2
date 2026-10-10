@@ -8,6 +8,7 @@ interface CartItem {
   quantity: number
   name: string
   price: number
+  total_price?: number
   image?: string | null
 }
 

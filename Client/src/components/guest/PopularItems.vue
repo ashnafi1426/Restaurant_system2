@@ -2,15 +2,19 @@
 interface MenuItem {
   id: string | number
   name: string
-  description: string
+  description?: string
   price: number
-  image: string | null
+  image?: string | null
+  total_price?: number
+  category?: string
+  is_available?: boolean
   preparation_time?: number
   rating?: number
   is_popular?: boolean
   is_new?: boolean
   is_spicy?: boolean
   is_vegetarian?: boolean
+  [key: string]: any
 }
 
 interface Props {
