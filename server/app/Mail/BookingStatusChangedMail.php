@@ -90,3 +90,4 @@ class BookingStatusChangedMail extends Mailable
         };
     }
 }
+

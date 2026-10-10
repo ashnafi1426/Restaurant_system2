@@ -161,7 +161,6 @@ class Room extends Model
             return null;
         }
 
-
         return url("storage/{$this->qr_image_path}");
     }
 
@@ -172,3 +171,4 @@ class Room extends Model
             ->first();
     }
 }
+

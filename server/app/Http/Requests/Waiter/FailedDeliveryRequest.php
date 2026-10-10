@@ -41,3 +41,4 @@ class FailedDeliveryRequest extends FormRequest
         ];
     }
 }
+

@@ -46,3 +46,4 @@ class CheckInConfirmed extends Mailable
         return [];
     }
 }
+

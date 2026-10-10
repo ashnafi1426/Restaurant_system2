@@ -14,15 +14,15 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * DeliveryReassignedEvent
- * 
+ *
  * Fired when a delivery is reassigned from one waiter to another.
- * 
+ *
  * STEP 16: Manager Override - Reassignment
- * 
+ *
  * Can be triggered by:
  * 1. Manager manually reassigning a delivery
  * 2. System auto-reassigning after waiter rejection
- * 
+ *
  * Triggers:
  * - Notify old waiter (delivery reassigned)
  * - Notify new waiter (new delivery assigned)
@@ -55,3 +55,4 @@ class DeliveryReassignedEvent
         ];
     }
 }
+

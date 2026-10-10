@@ -78,3 +78,4 @@ class Message
         return response()->json($payload, $status);
     }
 }
+

@@ -7,7 +7,7 @@ class Amharic
     public static function get(): array
     {
         return [
-            // Hotel Guest Navigation
+
             'home' => 'መነሻ',
             'rooms' => 'ክፍሎች',
             'gallery' => 'ጋለሪ',
@@ -26,7 +26,6 @@ class Amharic
             'select_language' => 'ቋንቋ ይምረጡ',
             'change_language' => 'ቋንቋ ቀይር',
 
-            // Hero Section
             'hero_badge' => 'ግራንድ ሆራይዘን ሆቴል እና ሪዞርት',
             'hero_title_part1' => 'ዘመን የማይሽረው ቅንጦት እና',
             'hero_title_part2' => 'ተወዳዳሪ የሌለው ምቾት',
@@ -50,7 +49,6 @@ class Amharic
             'room' => 'ክፍል',
             'rooms_and_suites' => 'ምርጥ ክፍሎች እና ስዊቶች',
 
-            // QR Menu Specifics
             'culinary_excellence' => 'ምርጥ የምግብ ጥበብን ያጣጥሙ',
             'culinary_desc' => 'ጣፋጭ ምግቦች በቀጥታ ወደ ክፍልዎ ይቀርባሉ',
             'search_placeholder' => 'ጣፋጭ ምግቦችን፣ መጠጦችን እና ጣፋጮችን ይፈልጉ...',
@@ -98,7 +96,6 @@ class Amharic
             'reviews' => 'አስተያየቶች',
             'recent_searches' => 'የቅርብ ጊዜ ፍለጋዎች',
 
-            // Cart & Ordering
             'your_order' => 'የእርስዎ ትዕዛዝ',
             'selected' => 'የተመረጡ',
             'your_cart_is_empty' => 'ቅርጫትዎ ባዶ ነው',
@@ -127,7 +124,6 @@ class Amharic
             'room_service' => 'የክፍል አገልግሎት',
             'takeaway' => 'ይዞ ለመሄድ',
 
-            // Food Categories
             'All' => 'ሁሉም',
             'All Categories' => 'ሁሉም ምድቦች',
             'Breakfast' => 'ቁርስ',
@@ -155,7 +151,6 @@ class Amharic
             'Wine' => 'ወይን',
             'Beer' => 'ቢራ',
 
-            // Featured Rooms & Facilities
             'featured_accommodation' => 'ተመራጭ ክፍሎች',
             'explore_fine_rooms' => 'ምርጥ ክፍሎቻችንን ያስሱ',
             'designed_for_luxury' => 'ለቅንጦት፣ ለምቾት እና ለእረፍት ተብለው የተዘጋጁ።',
@@ -177,7 +172,6 @@ class Amharic
             'airport_shuttle' => 'የአውሮፕላን ማረፊያ ማመላለሻ',
             '24h_room_service' => 'የ24 ሰዓት የክፍል አገልግሎት',
 
-            // Dining Section
             'signature_dining' => 'ልዩ መስተንግዶ',
             'culinary_experience' => 'የምግብ ጥበብ ተሞክሮ',
             'culinary_experience_desc' => 'በተዋጣላቸው ሼፎች የተዘጋጁ ባህላዊ የኢትዮጵያና አለም አቀፍ ምርጥ ምግቦችን ያጣጥሙ።',
@@ -185,12 +179,10 @@ class Amharic
             'reserve_table' => 'ጠረጴዛ ያስይዙ',
             'order_food_online' => 'በኦንላይን እዘዝ',
 
-            // Testimonials
             'guest_reviews' => 'የእንግዶች አስተያየት',
             'what_guests_say' => 'እንግዶቻችን ምን ይላሉ?',
             'what_guests_say_desc' => 'በግራንድ ሆራይዘን ሆቴል ያረፉ እንግዶች የሰጡትን እውነተኛ አስተያየቶች ያንብቡ።',
 
-            // Room Amenities & Details
             'discover_luxury_rooms' => 'የቅንጦት ክፍሎቻችንን ያግኙ',
             'discover_rooms_desc' => 'በውብ ክፍሎቻችን ውስጥ የማይረሳ ምቾትን ያጣጥሙ። ሁሉም ክፍሎች ዘመናዊ መገልገያዎች እና ድንቅ እይታዎች አሏቸው።',
             'luxury_beds' => 'ምርጥ አልጋዎች',
@@ -202,7 +194,6 @@ class Amharic
             'balcony' => 'በረንዳ',
             'check_availability' => 'ክፍል መኖሩን አረጋግጥ',
 
-            // Payment & Orders UI
             'payment_method' => 'የክፍያ ዘዴ',
             'cash' => 'ጥሬ ገንዘብ',
             'card' => 'ካርድ',
@@ -221,3 +212,4 @@ class Amharic
         ];
     }
 }
+

@@ -44,3 +44,4 @@ if (!function_exists('msg_response')) {
         return Message::response($messageKey, $status, $extra, $lang);
     }
 }
+

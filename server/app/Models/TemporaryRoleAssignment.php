@@ -51,3 +51,4 @@ class TemporaryRoleAssignment extends Model
         return $now->greaterThanOrEqualTo($this->starts_at) && $now->lessThanOrEqualTo($this->expires_at);
     }
 }
+

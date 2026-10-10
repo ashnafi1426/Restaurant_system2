@@ -32,3 +32,4 @@ class WaiterPerformanceResource extends JsonResource
         ];
     }
 }
+

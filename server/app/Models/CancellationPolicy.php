@@ -207,3 +207,4 @@ class CancellationPolicy extends Model
         }
     }
 }
+

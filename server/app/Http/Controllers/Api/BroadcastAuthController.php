@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * BroadcastAuthController
- * 
+ *
  * Handles WebSocket channel authorization for Laravel Echo.
  * Supports both authenticated users and public guest order tracking.
  */
@@ -41,7 +41,6 @@ class BroadcastAuthController extends Controller
                 'ip' => $request->ip()
             ]);
 
-            // Handle different channel types
             if (str_starts_with($channelName, 'private-orders.')) {
                 return $this->authorizeOrderChannel($request, $channelName, $socketId);
             }
@@ -54,7 +53,6 @@ class BroadcastAuthController extends Controller
                 return $this->authorizePaymentsChannel($request, $channelName, $socketId);
             }
 
-            // Default: deny unknown channels
             Log::warning('[BroadcastAuth] Unknown channel type', ['channel' => $channelName]);
             return response()->json(['error' => 'Channel not found'], 404);
 
@@ -72,10 +70,8 @@ class BroadcastAuthController extends Controller
      */
     protected function authorizeOrderChannel(Request $request, string $channelName, string $socketId): JsonResponse
     {
-        // Extract hotelId and orderId from channel name
-        // Format: private-orders.{hotelId}.{orderId}
         $parts = explode('.', str_replace('private-', '', $channelName));
-        
+
         if (count($parts) !== 3 || $parts[0] !== 'orders') {
             return response()->json(['error' => 'Invalid channel format'], 400);
         }
@@ -83,8 +79,6 @@ class BroadcastAuthController extends Controller
         $hotelId = $parts[1];
         $orderId = $parts[2];
 
-        // Validate that the order exists and belongs to the specified hotel
-        // Load room and table relationships for QR token validation
         $order = Order::withoutGlobalScopes()
             ->with(['room', 'table'])
             ->where('id', $orderId)
@@ -99,7 +93,6 @@ class BroadcastAuthController extends Controller
             return response()->json(['error' => 'Order not found'], 404);
         }
 
-        // CRITICAL: Validate hotel_id for multi-tenant security
         if ($order->hotel_id !== $hotelId) {
             Log::warning('[BroadcastAuth] Hotel ID mismatch - unauthorized access attempt', [
                 'channel' => $channelName,
@@ -110,13 +103,12 @@ class BroadcastAuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        // Check if this is a guest request with QR token (from Echo authorizer)
         $qrToken = $request->input('qr_token') ?? $request->header('X-QR-Token');
-        
+
         if ($qrToken) {
-            // Validate QR token matches the order's room/table
+
             $isValidToken = false;
-            
+
             if ($order->room && $order->room->qr_token === $qrToken) {
                 $isValidToken = true;
             } elseif ($order->table && $order->table->qr_token === $qrToken) {
@@ -128,9 +120,9 @@ class BroadcastAuthController extends Controller
             } elseif (\App\Models\Payment::withoutGlobalScopes()->where('order_id', $order->id)->where('metadata->qr_token', $qrToken)->exists()) {
                 $isValidToken = true;
             }
-            
+
             if (!$isValidToken) {
-                // Check if there's an authenticated user - staff can view any order
+
                 $user = $request->user();
                 if (!$user) {
                     Log::warning('[BroadcastAuth] Invalid QR token for guest WebSocket subscription', [
@@ -140,8 +132,7 @@ class BroadcastAuthController extends Controller
                     ]);
                     return response()->json(['error' => 'Invalid QR token'], 403);
                 }
-                
-                // Authenticated user with invalid QR token - treat as staff access
+
                 Log::info('[BroadcastAuth] Order channel authorized for authenticated staff user', [
                     'channel' => $channelName,
                     'order_id' => $order->id,
@@ -157,7 +148,7 @@ class BroadcastAuthController extends Controller
                 ]);
             }
         } else {
-            // No QR token - must be authenticated user (staff viewing orders)
+
             $user = $request->user();
             if (!$user) {
                 Log::warning('[BroadcastAuth] No QR token and no authenticated user', [
@@ -167,7 +158,7 @@ class BroadcastAuthController extends Controller
                 ]);
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
-            
+
             Log::info('[BroadcastAuth] Order channel authorized for authenticated user', [
                 'channel' => $channelName,
                 'order_id' => $order->id,
@@ -176,7 +167,6 @@ class BroadcastAuthController extends Controller
             ]);
         }
 
-        // Generate channel authorization signature
         $auth = $this->generateChannelAuth($channelName, $socketId);
 
         return response()->json([
@@ -190,24 +180,20 @@ class BroadcastAuthController extends Controller
      */
     protected function authorizeHotelChannel(Request $request, string $channelName, string $socketId): JsonResponse
     {
-        // Extract hotelId and scope from channel name
-        // Format: private-hotel.{hotelId}.{scope} (kitchen, waiters, orders)
         $parts = explode('.', str_replace('private-', '', $channelName));
-        
+
         if (count($parts) !== 3 || $parts[0] !== 'hotel') {
             return response()->json(['error' => 'Invalid channel format'], 400);
         }
 
         $hotelId = $parts[1];
-        $scope = $parts[2]; // kitchen, waiters, orders
+        $scope = $parts[2];
 
-        // These channels require authentication
         $user = $request->user();
         if (!$user) {
             return response()->json(['error' => 'Authentication required'], 401);
         }
 
-        // Validate user belongs to the hotel
         $hasAccess = false;
         if (method_exists($user, 'isPlatformAdmin') && $user->isPlatformAdmin()) {
             $hasAccess = true;
@@ -302,3 +288,4 @@ class BroadcastAuthController extends Controller
         return $appKey . ':' . $signature;
     }
 }
+

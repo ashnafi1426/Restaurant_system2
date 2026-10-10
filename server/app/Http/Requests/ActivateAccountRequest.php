@@ -55,3 +55,4 @@ class ActivateAccountRequest extends FormRequest
         ];
     }
 }
+

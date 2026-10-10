@@ -7,5 +7,5 @@ namespace App\Models;
  */
 class Section extends RestaurantSection
 {
-    // Inherits all attributes, relationships, scopes and behavior from RestaurantSection
 }
+

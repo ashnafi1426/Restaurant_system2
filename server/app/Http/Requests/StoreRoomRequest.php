@@ -96,3 +96,4 @@ class StoreRoomRequest extends FormRequest
         ];
     }
 }
+

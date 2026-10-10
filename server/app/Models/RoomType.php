@@ -48,3 +48,4 @@ class RoomType extends Model
         );
     }
 }
+

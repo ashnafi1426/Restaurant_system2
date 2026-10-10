@@ -18,22 +18,22 @@ class GmailService
                 'to' => $toEmail,
                 'subject' => $subject,
             ]);
-            
+
             return true;
-            
+
         } catch (\Exception $e) {
             Log::error(' [GMAIL] Failed to send email: ' . $e->getMessage(), [
                 'to' => $toEmail,
                 'subject' => $subject,
             ]);
-            
+
             throw $e;
         }
     }
     public function sendReservationConfirmation($guest, $reservation)
     {
         $htmlBody = $this->getReservationConfirmationHtml($guest, $reservation);
-        
+
         return $this->sendEmail(
             $guest->email,
             $guest->first_name . ' ' . $guest->last_name,
@@ -44,7 +44,7 @@ class GmailService
     public function sendCheckInConfirmation($guest, $reservation)
     {
         $htmlBody = $this->getCheckInHtml($guest, $reservation);
-        
+
         return $this->sendEmail(
             $guest->email,
             $guest->first_name . ' ' . $guest->last_name,
@@ -55,7 +55,7 @@ class GmailService
     public function sendCheckOutNotification($guest, $reservation)
     {
         $htmlBody = $this->getCheckOutHtml($guest, $reservation);
-        
+
         return $this->sendEmail(
             $guest->email,
             $guest->first_name . ' ' . $guest->last_name,
@@ -70,7 +70,7 @@ class GmailService
         $nights = $reservation->check_out_date->diffInDays($reservation->check_in_date);
         $room = $reservation->room;
         $roomType = $room->room_type->name ?? 'Standard';
-        
+
         return view('emails.reservation-confirmed', [
             'guest' => $guest,
             'reservation' => $reservation,
@@ -91,7 +91,7 @@ class GmailService
         $room = $reservation->room;
         $checkOut = $reservation->check_out_date->format('F j, Y');
         $roomType = $room->room_type->name ?? 'Standard';
-        
+
         return view('emails.check-in-confirmed', [
             'guest' => $guest,
             'reservation' => $reservation,
@@ -110,7 +110,7 @@ class GmailService
         $checkIn = $reservation->check_in_date->format('F j, Y');
         $checkOut = $reservation->check_out_date->format('F j, Y');
         $nights = $reservation->check_out_date->diffInDays($reservation->check_in_date);
-        
+
         return view('emails.check-out-notification', [
             'guest' => $guest,
             'reservation' => $reservation,
@@ -125,3 +125,4 @@ class GmailService
         ])->render();
     }
 }
+

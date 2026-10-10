@@ -14,19 +14,19 @@ class PurchaseVerificationService
         $order = Order::where('id', $orderId)
             ->where('guest_id', $guestId)
             ->first();
-        
+
         if (!$order) {
             throw new PurchaseNotVerifiedException('You must order this item before reviewing it');
         }
-        
+
         if (!$order->isCompleted()) {
             throw new PurchaseNotVerifiedException('You can only review items from completed orders');
         }
-        
+
         $hasMenuItem = $order->orderItems()
             ->where('menu_item_id', $menuItemId)
             ->exists();
-        
+
         if (!$hasMenuItem) {
             throw new PurchaseNotVerifiedException('You must order this item before reviewing it');
         }
@@ -38,9 +38,10 @@ class PurchaseVerificationService
             ->where('order_id', $orderId)
             ->where('menu_item_id', $menuItemId)
             ->exists();
-        
+
         if ($reviewExists) {
             throw new DuplicateReviewException('You have already reviewed this item for this order');
         }
     }
 }
+

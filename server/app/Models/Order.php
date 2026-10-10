@@ -200,7 +200,7 @@ class Order extends Model
         if (!$this->isCompleted()) {
             return collect([]);
         }
-        
+
         return $this->orderItems()
             ->with('menuItem')
             ->whereDoesntHave('menuItem.reviews', function ($query) {
@@ -221,3 +221,4 @@ class Order extends Model
         return $this->hasMany(\App\Models\DeliveryTask::class, 'order_id');
     }
 }
+

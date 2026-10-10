@@ -53,3 +53,4 @@ class CheckIn extends Model
         return is_null($this->checked_out_at);
     }
 }
+

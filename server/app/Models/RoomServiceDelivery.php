@@ -41,3 +41,4 @@ class RoomServiceDelivery extends Model
         return $this->belongsTo(User::class, 'delivered_by', 'id');
     }
 }
+

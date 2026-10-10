@@ -159,7 +159,7 @@ class ManagerController extends Controller
 
             $waiter = DB::transaction(function () use ($validated, $hotelId) {
                 if (empty($validated['user_id'])) {
-                    if (empty($validated['first_name']) || empty($validated['last_name']) || 
+                    if (empty($validated['first_name']) || empty($validated['last_name']) ||
                         empty($validated['email']) || empty($validated['password'])) {
                         throw new Exception('User information (first name, last name, email, password) is required when user_id is not provided.');
                     }
@@ -199,7 +199,7 @@ class ManagerController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -345,3 +345,4 @@ class ManagerController extends Controller
         );
     }
 }
+

@@ -20,8 +20,8 @@ class KitchenController extends Controller
 
     private function resolveTenant(Request $request): ?string
     {
-        $hotelId = $request->input('hotel_id') 
-            ?: $request->header('X-Hotel-ID') 
+        $hotelId = $request->input('hotel_id')
+            ?: $request->header('X-Hotel-ID')
             ?: app(TenantContext::class)->getHotelId();
 
         if ($hotelId) {
@@ -40,7 +40,6 @@ class KitchenController extends Controller
             return;
         }
 
-        // If user belongs to a hotel, ensure it matches the order's hotel
         if ($activeHotelId && $order->hotel_id && $order->hotel_id !== $activeHotelId) {
             abort(403, 'Order does not belong to the active hotel kitchen.');
         }
@@ -167,3 +166,4 @@ class KitchenController extends Controller
         }
     }
 }
+

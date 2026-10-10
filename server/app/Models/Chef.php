@@ -64,3 +64,4 @@ class Chef extends Model
         return $query->where('rank', $rank);
     }
 }
+

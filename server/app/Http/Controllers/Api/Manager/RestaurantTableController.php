@@ -215,8 +215,6 @@ class RestaurantTableController extends Controller
         }
     }
 
-
-
     public function statistics(): JsonResponse
     {
         try {
@@ -238,8 +236,6 @@ class RestaurantTableController extends Controller
         }
     }
 
-    
-    
     public function downloadQR(string $id)
     {
         try {
@@ -282,3 +278,4 @@ class RestaurantTableController extends Controller
         }
     }
 }
+

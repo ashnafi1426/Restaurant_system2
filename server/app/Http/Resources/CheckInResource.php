@@ -54,3 +54,4 @@ class CheckInResource extends JsonResource
         ];
     }
 }
+

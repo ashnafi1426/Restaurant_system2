@@ -49,3 +49,4 @@ class UpdateRestaurantTableRequest extends FormRequest
         ];
     }
 }
+

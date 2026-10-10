@@ -50,3 +50,4 @@ class PerformanceMetricResource extends JsonResource
         ];
     }
 }
+

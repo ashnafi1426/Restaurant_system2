@@ -88,3 +88,4 @@ class RestaurantCharge extends Model
         ]);
     }
 }
+

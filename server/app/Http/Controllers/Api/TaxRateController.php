@@ -200,3 +200,4 @@ class TaxRateController extends Controller
         }
     }
 }
+

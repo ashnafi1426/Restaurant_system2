@@ -70,7 +70,7 @@ class MenuItemService
             ?? auth()->user()?->hotelMemberships()->first()?->id;
 
         return DB::transaction(function () use ($data, $imageFile, $hotelId) {
-            // Resolve Category
+
             $categorySlug = $data['category'];
             $category = Category::where('hotel_id', $hotelId)
                 ->where(function ($q) use ($categorySlug, $data) {
@@ -81,11 +81,10 @@ class MenuItemService
                 ->first();
 
             if (!$category) {
-                // Fallback to any active category with this slug
+
                 $category = Category::where('slug', $categorySlug)->first();
             }
 
-            // Handle Image Storage using existing storage approach
             $imagePath = null;
             if ($imageFile) {
                 $imagePath = $imageFile->store('menu-items', 'public');
@@ -118,7 +117,7 @@ class MenuItemService
     public function updateMenuItem(MenuItem $menuItem, array $data, ?UploadedFile $imageFile = null): MenuItem
     {
         return DB::transaction(function () use ($menuItem, $data, $imageFile) {
-            // Resolve Category
+
             $categorySlug = $data['category'] ?? $menuItem->category;
             $category = Category::where('hotel_id', $menuItem->hotel_id)
                 ->where(function ($q) use ($categorySlug, $data) {
@@ -139,7 +138,6 @@ class MenuItemService
                 'is_available' => filter_var($data['is_available'] ?? $menuItem->is_available, FILTER_VALIDATE_BOOLEAN),
             ];
 
-            // Handle image replacement
             if ($imageFile) {
                 $this->deleteStoredImage($menuItem->image);
                 $updateData['image'] = $imageFile->store('menu-items', 'public');
@@ -222,8 +220,8 @@ class MenuItemService
             try {
                 Storage::disk('public')->delete($image);
             } catch (\Throwable $e) {
-                // Ignore failure if file was already removed
             }
         }
     }
 }
+

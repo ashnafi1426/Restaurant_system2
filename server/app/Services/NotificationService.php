@@ -12,10 +12,10 @@ class NotificationService
     {
         $moderators = User::whereIn('role', ['manager', 'admin'])->get();
 
-        $guestName = $review->guest 
+        $guestName = $review->guest
             ? $review->guest->first_name . ' ' . $review->guest->last_name
             : 'Anonymous Guest';
-        
+
         $menuItemName = $review->menuItem->name ?? 'Unknown Item';
 
         $message = sprintf(
@@ -39,9 +39,9 @@ class NotificationService
     public function notifyGuestOfModeration(MenuItemReview $review, string $decision): void
     {
         $menuItemName = $review->menuItem->name ?? 'Unknown Item';
-        
-        $notificationType = $decision === 'approved' 
-            ? ReviewNotification::TYPE_REVIEW_APPROVED 
+
+        $notificationType = $decision === 'approved'
+            ? ReviewNotification::TYPE_REVIEW_APPROVED
             : ReviewNotification::TYPE_REVIEW_REJECTED;
 
         $message = $decision === 'approved'
@@ -72,7 +72,7 @@ class NotificationService
     public function markAsRead(string $notificationId): bool
     {
         $notification = ReviewNotification::find($notificationId);
-        
+
         if (!$notification) {
             return false;
         }
@@ -89,3 +89,4 @@ class NotificationService
             ->paginate($perPage);
     }
 }
+

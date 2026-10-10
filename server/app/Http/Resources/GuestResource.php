@@ -25,3 +25,4 @@ class GuestResource extends JsonResource
         ];
     }
 }
+

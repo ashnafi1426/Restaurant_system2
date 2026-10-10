@@ -50,3 +50,4 @@ class UserPermission extends Model
         });
     }
 }
+

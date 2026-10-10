@@ -13,7 +13,7 @@ class ReviewNotification extends Model
     protected $table = 'review_notifications';
     public $incrementing = false;
     protected $keyType = 'string';
-    
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -63,3 +63,4 @@ class ReviewNotification extends Model
         ]);
     }
 }
+

@@ -97,7 +97,6 @@ class RoomService
      */
     public function checkDeleteBlockers(Room $room): array
     {
-        // 1. Current checked-in guest
         $activeCheckIn = CheckIn::where('room_id', $room->id)
             ->whereNull('checked_out_at')
             ->first();
@@ -110,7 +109,6 @@ class RoomService
             ];
         }
 
-        // 2. Confirmed or checked-in bookings
         $activeReservation = Reservation::where('room_id', $room->id)
             ->whereIn('status', ['confirmed', 'checked_in'])
             ->first();
@@ -123,7 +121,6 @@ class RoomService
             ];
         }
 
-        // 3. Historical associations
         $hasHistorical = Reservation::where('room_id', $room->id)->exists()
             || CheckIn::where('room_id', $room->id)->exists()
             || Order::where('room_id', $room->id)->exists();
@@ -167,7 +164,6 @@ class RoomService
             $resIds = Reservation::where('room_id', $room->id)->pluck('id')->toArray();
             $checkInIds = CheckIn::where('room_id', $room->id)->pluck('id')->toArray();
 
-            // Decouple orders & payments
             Order::where('room_id', $room->id)
                 ->orWhereIn('reservation_id', $resIds)
                 ->update(['room_id' => null, 'reservation_id' => null]);
@@ -271,3 +267,4 @@ class RoomService
         return $data;
     }
 }
+

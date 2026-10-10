@@ -80,3 +80,4 @@ class Hotel extends Model
         return $this->hasMany(Floor::class, 'hotel_id');
     }
 }
+

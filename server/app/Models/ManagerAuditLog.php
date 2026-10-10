@@ -58,3 +58,4 @@ class ManagerAuditLog extends Model
         return $query->where('created_at', '>=', now()->subDays($days));
     }
 }
+

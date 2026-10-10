@@ -24,3 +24,4 @@ class ManagerDashboardSettingResource extends JsonResource
         ];
     }
 }
+

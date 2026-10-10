@@ -38,7 +38,7 @@ class QRTokenValidation extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $qrToken = $this->input('qr_token') 
+        $qrToken = $this->input('qr_token')
             ?? $this->query('qr_token')
             ?? $this->json('qr_token')
             ?? $this->header('X-QR-Token');
@@ -59,3 +59,4 @@ class QRTokenValidation extends FormRequest
         return $this->getQRResolution()['hotel_id'] ?? null;
     }
 }
+

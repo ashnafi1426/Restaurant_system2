@@ -43,3 +43,4 @@ class StoreCategoryRequest extends FormRequest
         ];
     }
 }
+

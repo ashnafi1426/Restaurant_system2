@@ -100,8 +100,8 @@ class User extends Authenticatable
 
     public function hasValidActivationToken(): bool
     {
-        return $this->activation_token 
-            && $this->activation_token_expires_at 
+        return $this->activation_token
+            && $this->activation_token_expires_at
             && $this->activation_token_expires_at->isFuture();
     }
     public function managerNotifications()
@@ -268,3 +268,4 @@ class User extends Authenticatable
         return !empty($this->role) ? strtolower($this->role) : null;
     }
 }
+

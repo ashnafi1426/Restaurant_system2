@@ -28,3 +28,4 @@ class StoreWaiterRequest extends FormRequest
         ];
     }
 }
+

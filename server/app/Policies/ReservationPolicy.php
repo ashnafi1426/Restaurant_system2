@@ -28,43 +28,44 @@ class ReservationPolicy
 
     public function viewAny(User $user): bool
     {
-        return $this->checkTenantAccess($user, null) 
+        return $this->checkTenantAccess($user, null)
             && $this->authService->hasPermission($user, 'reservations.view');
     }
 
     public function view(User $user, Reservation $reservation): bool
     {
-        return $this->checkTenantAccess($user, $reservation->hotel_id) 
+        return $this->checkTenantAccess($user, $reservation->hotel_id)
             && $this->authService->hasPermission($user, 'reservations.view');
     }
 
     public function create(User $user): bool
     {
-        return $this->checkTenantAccess($user, null) 
+        return $this->checkTenantAccess($user, null)
             && $this->authService->hasPermission($user, 'reservations.create');
     }
 
     public function update(User $user, Reservation $reservation): bool
     {
-        return $this->checkTenantAccess($user, $reservation->hotel_id) 
+        return $this->checkTenantAccess($user, $reservation->hotel_id)
             && $this->authService->hasPermission($user, 'reservations.update');
     }
 
     public function cancel(User $user, Reservation $reservation): bool
     {
-        return $this->checkTenantAccess($user, $reservation->hotel_id) 
+        return $this->checkTenantAccess($user, $reservation->hotel_id)
             && $this->authService->hasPermission($user, 'reservations.cancel');
     }
 
     public function checkin(User $user, Reservation $reservation): bool
     {
-        return $this->checkTenantAccess($user, $reservation->hotel_id) 
+        return $this->checkTenantAccess($user, $reservation->hotel_id)
             && $this->authService->hasPermission($user, 'reservations.checkin');
     }
 
     public function checkout(User $user, Reservation $reservation): bool
     {
-        return $this->checkTenantAccess($user, $reservation->hotel_id) 
+        return $this->checkTenantAccess($user, $reservation->hotel_id)
             && $this->authService->hasPermission($user, 'reservations.checkout');
     }
 }
+

@@ -52,3 +52,4 @@ class Role extends Model
         return $this->hasMany(TemporaryRoleAssignment::class, 'role_id');
     }
 }
+

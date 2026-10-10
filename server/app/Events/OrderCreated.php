@@ -13,10 +13,10 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * OrderCreated Event
- * 
+ *
  * Broadcast when a new order is created by a customer.
  * Notifies kitchen staff in real-time so they can start preparing immediately.
- * 
+ *
  * Broadcasts to hotel-level channels (not to customer, as they're redirected to OrderStatusPage).
  */
 class OrderCreated implements ShouldBroadcast, ShouldQueue
@@ -40,9 +40,8 @@ class OrderCreated implements ShouldBroadcast, ShouldQueue
      */
     public function __construct(Order $order)
     {
-        // Load relationships needed for broadcast
         $order->load(['orderItems', 'room', 'table', 'guest']);
-        
+
         $this->orderId = $order->id;
         $this->hotelId = $order->hotel_id;
         $this->orderNumber = $order->order_number;
@@ -64,10 +63,9 @@ class OrderCreated implements ShouldBroadcast, ShouldQueue
     public function broadcastOn(): array
     {
         return [
-            // Kitchen dashboard channel
+
             new PrivateChannel("hotel.{$this->hotelId}.kitchen"),
-            
-            // Hotel-wide orders channel for dashboards
+
             new PrivateChannel("hotel.{$this->hotelId}.orders"),
         ];
     }
@@ -101,3 +99,4 @@ class OrderCreated implements ShouldBroadcast, ShouldQueue
         ];
     }
 }
+

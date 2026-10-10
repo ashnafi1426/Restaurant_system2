@@ -42,3 +42,4 @@ class PublicHotelController extends Controller
         ]);
     }
 }
+

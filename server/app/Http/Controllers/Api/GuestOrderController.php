@@ -87,7 +87,6 @@ class GuestOrderController extends Controller
                 }
             }
 
-            // Direct room lookup fallback
             $room = Room::withoutGlobalScopes()->where('qr_token', $qrToken)->first();
             if (!$room) {
                 return response()->json([
@@ -210,7 +209,6 @@ class GuestOrderController extends Controller
             $forceRefresh = $request->boolean('refresh') || $request->header('X-Refresh') === 'true';
             $hotelId = null;
 
-            // 1. If qr_token is passed in query or header, RESOLVE HOTEL FROM QR TOKEN FIRST!
             $qrToken = $request->query('qr_token') ?? $request->header('X-QR-Token');
             if ($qrToken) {
                 $resolution = QRResolutionService::resolveQRToken($qrToken, $forceRefresh);
@@ -223,19 +221,16 @@ class GuestOrderController extends Controller
                 }
             }
 
-            // 2. Query param hotel_id (explicit guest hotel parameter)
             if (!$hotelId && $request->filled('hotel_id')) {
                 $hotelId = $request->query('hotel_id');
             }
 
-            // 3. Header or tenant context
             if (!$hotelId) {
                 $hotelId = $request->header('X-Hotel-ID')
                     ?: $request->header('x-hotel-id')
                     ?: TenantContext::id();
             }
 
-            // 4. Fallback to active hotel so items are NEVER mixed across hotels
             if (!$hotelId) {
                 $hotelId = Hotel::where('status', 'active')->orderBy('created_at')->value('id');
             }
@@ -283,7 +278,6 @@ class GuestOrderController extends Controller
             $forceRefresh = $request->boolean('refresh') || $request->header('X-Refresh') === 'true';
             $hotelId = null;
 
-            // 1. If qr_token is passed in query or header, RESOLVE HOTEL FROM QR TOKEN FIRST!
             $qrToken = $request->query('qr_token') ?? $request->header('X-QR-Token');
             if ($qrToken) {
                 $resolution = QRResolutionService::resolveQRToken($qrToken, $forceRefresh);
@@ -296,19 +290,16 @@ class GuestOrderController extends Controller
                 }
             }
 
-            // 2. Query param hotel_id
             if (!$hotelId && $request->filled('hotel_id')) {
                 $hotelId = $request->query('hotel_id');
             }
 
-            // 3. Header or tenant context
             if (!$hotelId) {
                 $hotelId = $request->header('X-Hotel-ID')
                     ?: $request->header('x-hotel-id')
                     ?: TenantContext::id();
             }
 
-            // 4. Fallback to active hotel
             if (!$hotelId) {
                 $hotelId = Hotel::where('status', 'active')->orderBy('created_at')->value('id');
             }
@@ -410,3 +401,4 @@ class GuestOrderController extends Controller
         }
     }
 }
+

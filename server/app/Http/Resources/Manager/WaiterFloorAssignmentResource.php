@@ -29,3 +29,4 @@ class WaiterFloorAssignmentResource extends JsonResource
         ];
     }
 }
+

@@ -18,3 +18,4 @@ class UpdateDeliveryStatusRequest extends FormRequest
         ];
     }
 }
+

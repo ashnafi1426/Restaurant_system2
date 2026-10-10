@@ -29,15 +29,15 @@ class AnalyticsService
     {
         return MenuItem::select('menu_items.*')
             ->selectRaw('
-                (SELECT AVG(rating) 
-                 FROM menu_item_reviews 
-                 WHERE menu_item_reviews.menu_item_id = menu_items.id 
+                (SELECT AVG(rating)
+                 FROM menu_item_reviews
+                 WHERE menu_item_reviews.menu_item_id = menu_items.id
                  AND menu_item_reviews.status = ?) as avg_rating
             ', [MenuItemReview::STATUS_APPROVED])
             ->selectRaw('
-                (SELECT COUNT(*) 
-                 FROM menu_item_reviews 
-                 WHERE menu_item_reviews.menu_item_id = menu_items.id 
+                (SELECT COUNT(*)
+                 FROM menu_item_reviews
+                 WHERE menu_item_reviews.menu_item_id = menu_items.id
                  AND menu_item_reviews.status = ?) as review_count
             ', [MenuItemReview::STATUS_APPROVED])
             ->having('review_count', '>=', $minReviews)
@@ -54,15 +54,15 @@ class AnalyticsService
     {
         return MenuItem::select('menu_items.*')
             ->selectRaw('
-                (SELECT AVG(rating) 
-                 FROM menu_item_reviews 
-                 WHERE menu_item_reviews.menu_item_id = menu_items.id 
+                (SELECT AVG(rating)
+                 FROM menu_item_reviews
+                 WHERE menu_item_reviews.menu_item_id = menu_items.id
                  AND menu_item_reviews.status = ?) as avg_rating
             ', [MenuItemReview::STATUS_APPROVED])
             ->selectRaw('
-                (SELECT COUNT(*) 
-                 FROM menu_item_reviews 
-                 WHERE menu_item_reviews.menu_item_id = menu_items.id 
+                (SELECT COUNT(*)
+                 FROM menu_item_reviews
+                 WHERE menu_item_reviews.menu_item_id = menu_items.id
                  AND menu_item_reviews.status = ?) as review_count
             ', [MenuItemReview::STATUS_APPROVED])
             ->having('review_count', '>=', $minReviews)
@@ -120,3 +120,4 @@ class AnalyticsService
         ];
     }
 }
+

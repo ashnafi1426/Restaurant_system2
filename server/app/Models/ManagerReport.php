@@ -148,3 +148,4 @@ class ManagerReport extends Model
         return $query->orderBy('report_date', 'desc')->limit($limit);
     }
 }
+

@@ -39,3 +39,4 @@ class ReviewHelpfulnessVote extends Model
         return $this->belongsTo(Guest::class);
     }
 }
+

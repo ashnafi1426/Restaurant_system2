@@ -71,11 +71,9 @@ class UserController extends Controller
             Cache::forget($cacheKey);
         }
 
-        // Cache user results for 10 minutes (600s)
         $cachedPayload = Cache::remember($cacheKey, 600, function () use ($request, $hotelId, $isAllHotels) {
             $query = User::query();
 
-            // 1. Column pruning: fetch only necessary columns
             $query->select([
                 'id',
                 'first_name',
@@ -89,7 +87,6 @@ class UserController extends Controller
                 'updated_at',
             ]);
 
-            // 2. High performance tenant scoping via indexed subquery instead of correlated whereHas
             if (!$isAllHotels && $hotelId) {
                 $scopedUserIds = DB::table('hotel_users')
                     ->where('hotel_id', $hotelId)
@@ -97,7 +94,6 @@ class UserController extends Controller
                 $query->whereIn('id', $scopedUserIds);
             }
 
-            // 3. Search filter
             if ($request->filled('search')) {
                 $search = trim($request->search);
                 $query->where(function ($q) use ($search) {
@@ -108,12 +104,10 @@ class UserController extends Controller
                 });
             }
 
-            // 4. Role filter
             if ($request->filled('role')) {
                 $query->where('role', $request->role);
             }
 
-            // 5. Active status filter
             if ($request->filled('is_active')) {
                 $query->where('is_active', $request->boolean('is_active'));
             }
@@ -236,7 +230,6 @@ class UserController extends Controller
 
             DB::commit();
 
-            // Invalidate user cache for hotel
             $this->invalidateUserCaches($hotelId);
 
             return response()->json([
@@ -443,3 +436,4 @@ class UserController extends Controller
         return str_shuffle($password);
     }
 }
+

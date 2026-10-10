@@ -35,7 +35,7 @@ class OrderReadyListener implements ShouldQueue
 
         try {
             $order = $event->order->fresh();
-            
+
             if (!$order) {
                 Log::error('Order not found when processing OrderReadyEvent', [
                     'order_id' => $event->order->id,
@@ -108,3 +108,4 @@ class OrderReadyListener implements ShouldQueue
         ]);
     }
 }
+

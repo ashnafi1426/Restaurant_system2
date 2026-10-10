@@ -43,7 +43,6 @@ class CashierReportController extends Controller
                 ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->whereBetween('paid_at', [$dateFrom, $dateTo]);
 
-            // Consolidated metrics in 1 single aggregate query
             $summary = (clone $query)->selectRaw("
                 SUM(amount) as total_revenue,
                 COUNT(*) as total_transactions,
@@ -202,7 +201,6 @@ class CashierReportController extends Controller
 
     private function getDailyBreakdown($dateFrom, $dateTo, ?string $hotelId = null): array
     {
-        // Fetch all days in period in a single SQL query
         $dailyStats = Payment::whereBetween('paid_at', [$dateFrom, $dateTo])
             ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
             ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
@@ -231,3 +229,4 @@ class CashierReportController extends Controller
         return $days;
     }
 }
+

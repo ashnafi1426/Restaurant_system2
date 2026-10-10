@@ -158,3 +158,4 @@ class WaiterTableAssignment extends Model
         return $query->get();
     }
 }
+

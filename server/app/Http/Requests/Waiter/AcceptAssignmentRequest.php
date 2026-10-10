@@ -22,3 +22,4 @@ class AcceptAssignmentRequest extends FormRequest
         return [];
     }
 }
+

@@ -40,3 +40,4 @@ class Administrator extends Model
         return $query->where('status', 'active');
     }
 }
+

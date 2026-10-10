@@ -120,3 +120,4 @@ class ComplaintTicket extends Model
         return $query->whereNotIn('status', ['resolved', 'closed']);
     }
 }
+

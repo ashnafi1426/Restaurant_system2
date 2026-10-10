@@ -122,8 +122,8 @@ class CategoryController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $updated->is_active 
-                    ? 'Category is now active.' 
+                'message' => $updated->is_active
+                    ? 'Category is now active.'
                     : 'Category has been deactivated.',
                 'data' => $updated,
             ]);
@@ -161,3 +161,4 @@ class CategoryController extends Controller
         }
     }
 }
+

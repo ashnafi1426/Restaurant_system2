@@ -92,7 +92,7 @@ class ReservationService
         }
 
         return DB::transaction(function () use ($data, $hotelId, $userId) {
-            // 1. Verify Room exists in this hotel
+
             $room = Room::where('hotel_id', $hotelId)
                 ->with('roomType')
                 ->findOrFail($data['room_id']);
@@ -103,7 +103,6 @@ class ReservationService
                 ]);
             }
 
-            // 2. Validate Room Capacity
             $capacity = $room->roomType?->capacity ?? 2;
             $numberOfGuests = (int) ($data['number_of_guests'] ?? $data['num_guests'] ?? 1);
             if ($numberOfGuests > $capacity) {
@@ -115,14 +114,12 @@ class ReservationService
             $checkIn = $data['check_in_date'];
             $checkOut = $data['check_out_date'];
 
-            // 3. Prevent Overlapping Reservations for the same room
             if ($this->hasOverlapConflict($room->id, $checkIn, $checkOut, $hotelId)) {
                 throw ValidationException::withMessages([
                     'room_id' => ['The selected room is already reserved for these dates.'],
                 ]);
             }
 
-            // 4. Resolve or Create Guest within Hotel Scope
             $guestId = $data['guest_id'] ?? null;
             if ($guestId) {
                 $guest = Guest::where('hotel_id', $hotelId)->findOrFail($guestId);
@@ -141,12 +138,10 @@ class ReservationService
                 $guestId = $guest->id;
             }
 
-            // 5. Calculate Total Amount
             $nights = max(1, (int) (new Carbon($checkIn))->diffInDays(new Carbon($checkOut)));
             $rate = (float) ($room->roomType?->base_price_per_night ?? $room->roomType?->price ?? 0);
             $totalAmount = $data['total_amount'] ?? ($nights * $rate);
 
-            // 6. Create Reservation
             $reservation = Reservation::create([
                 'hotel_id'          => $hotelId,
                 'guest_id'          => $guestId,
@@ -162,7 +157,6 @@ class ReservationService
 
             $reservation->load(['guest', 'room.roomType', 'creator']);
 
-            // Send confirmation email if email exists
             $this->sendConfirmationMail($reservation);
 
             return $reservation;
@@ -242,7 +236,6 @@ class ReservationService
 
             $reservation->update($updateData);
 
-            // If room was blocked or occupied, restore availability
             if ($reservation->room && in_array($reservation->room->status, ['occupied', 'reserved'])) {
                 $reservation->room->update(['status' => 'available']);
             }
@@ -315,7 +308,6 @@ class ReservationService
             ->pluck('room_id')
             ->toArray();
 
-        // Check specific room
         if (!empty($criteria['room_id'])) {
             $room = Room::where('hotel_id', $hotelId)
                 ->where('id', $criteria['room_id'])
@@ -344,7 +336,6 @@ class ReservationService
             ];
         }
 
-        // Search all available rooms
         $query = Room::where('hotel_id', $hotelId)
             ->where('is_active', true)
             ->where('status', '!=', 'maintenance')
@@ -386,3 +377,4 @@ class ReservationService
         }
     }
 }
+

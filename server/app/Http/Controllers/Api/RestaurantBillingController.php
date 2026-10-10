@@ -58,3 +58,4 @@ class RestaurantBillingController extends Controller
         return new RestaurantChargeResource($charge);
     }
 }
+

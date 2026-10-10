@@ -14,7 +14,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * WaiterAssignedEvent
- * 
+ *
  * Fired when a delivery is assigned to a waiter
  * Can be automatic (from OrderReadyEvent) or manual (from manager)
  * Triggers notifications and workload updates
@@ -28,7 +28,7 @@ class WaiterAssignedEvent implements ShouldBroadcast
     public string $deliveryId;
     public string $waiterId;
     public string $waiterName;
-    public string $assignmentType; // 'automatic' or 'manual'
+    public string $assignmentType;
     public string $orderId;
     public string $roomNumber;
     public int $floorNumber;
@@ -52,7 +52,6 @@ class WaiterAssignedEvent implements ShouldBroadcast
         $this->assignmentType = $assignmentType;
         $this->orderId = $delivery->order_id;
 
-        // Resolve the real room/floor from the delivery relations when available.
         $this->roomNumber = $delivery->room?->room_number
             ?? $delivery->order?->room?->room_number
             ?? 'Unknown';
@@ -61,7 +60,7 @@ class WaiterAssignedEvent implements ShouldBroadcast
             ?? $delivery->room?->floor?->floor_number
             ?? $delivery->order?->room?->floor?->floor_number
             ?? 1;
-        
+
         $this->timestamp = now()->toIso8601String();
     }
 
@@ -89,3 +88,4 @@ class WaiterAssignedEvent implements ShouldBroadcast
         return 'waiter.assigned';
     }
 }
+

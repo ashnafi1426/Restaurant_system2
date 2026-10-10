@@ -26,3 +26,4 @@ class ManagerActivityLogResource extends JsonResource
         ];
     }
 }
+

@@ -45,3 +45,4 @@ class WaiterAssignmentResource extends JsonResource
         ];
     }
 }
+

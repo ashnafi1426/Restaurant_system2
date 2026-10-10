@@ -32,3 +32,4 @@ class TaxRateResource extends JsonResource
         ];
     }
 }
+

@@ -11,13 +11,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Register Multi-Tenant Context
         $this->app->singleton(\App\Services\TenantContext::class, function () {
             return new \App\Services\TenantContext();
         });
 
-        // Register Waiter Services
-        $this->app->singleton(\App\Services\Waiter\FloorResolverService::class, 
+        $this->app->singleton(\App\Services\Waiter\FloorResolverService::class,
             fn () => new \App\Services\Waiter\FloorResolverService()
         );
 
@@ -63,7 +61,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Ensure payments table allows nullable guest_id and invoice_id
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('payments')) {
                 \Illuminate\Support\Facades\DB::statement("ALTER TABLE `payments` MODIFY `guest_id` CHAR(36) NULL");
@@ -87,7 +84,6 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
 
-            // Ensure floors table exists
             if (!\Illuminate\Support\Facades\Schema::hasTable('floors')) {
                 \Illuminate\Support\Facades\Schema::create('floors', function (\Illuminate\Database\Schema\Blueprint $table) {
                     $table->uuid('id')->primary();
@@ -118,7 +114,6 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
 
-            // Ensure rooms table has floor_id
             if (\Illuminate\Support\Facades\Schema::hasTable('rooms')) {
                 if (!\Illuminate\Support\Facades\Schema::hasColumn('rooms', 'floor_id')) {
                     \Illuminate\Support\Facades\Schema::table('rooms', function (\Illuminate\Database\Schema\Blueprint $table) {
@@ -139,7 +134,6 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
 
-            // Ensure waiter_floor_assignments columns
             if (!\Illuminate\Support\Facades\Schema::hasTable('waiter_floor_assignments')) {
                 \Illuminate\Support\Facades\Schema::create('waiter_floor_assignments', function (\Illuminate\Database\Schema\Blueprint $table) {
                     $table->uuid('id')->primary();
@@ -196,13 +190,11 @@ class AppServiceProvider extends ServiceProvider
                 } catch (\Throwable $e) {}
             }
         } catch (\Throwable $e) {
-            // Silently ignore if already set
         }
 
-        // Include translation helpers
         require_once app_path('Translations/helpers.php');
 
-        // Register view namespace for email templates
         view()->addNamespace('mail', resource_path('views/emails'));
     }
 }
+

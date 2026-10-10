@@ -12,7 +12,6 @@ class ManagerAnnouncementController extends Controller
      */
     public function index()
     {
-        //
     }
 
     /**
@@ -20,7 +19,6 @@ class ManagerAnnouncementController extends Controller
      */
     public function store(Request $request)
     {
-        //
     }
 
     /**
@@ -28,7 +26,6 @@ class ManagerAnnouncementController extends Controller
      */
     public function show(string $id)
     {
-        //
     }
 
     /**
@@ -36,7 +33,6 @@ class ManagerAnnouncementController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
     }
 
     /**
@@ -44,6 +40,6 @@ class ManagerAnnouncementController extends Controller
      */
     public function destroy(string $id)
     {
-        //
     }
 }
+

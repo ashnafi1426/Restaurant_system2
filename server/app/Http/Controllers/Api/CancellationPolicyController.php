@@ -164,7 +164,6 @@ class CancellationPolicyController extends Controller
                 'is_active' => 'nullable|boolean',
             ]);
 
-            // Filter null values only so boolean false (e.g. is_active: false) is preserved
             $policy->update(array_filter($validated, fn ($val) => $val !== null));
 
             return response()->json([
@@ -310,3 +309,4 @@ class CancellationPolicyController extends Controller
         return $query->firstOrFail();
     }
 }
+

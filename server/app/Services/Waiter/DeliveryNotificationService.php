@@ -29,7 +29,7 @@ class DeliveryNotificationService
                 'room_number' => $order->room->room_number ?? 'N/A',
                 'assignment_type' => $task->assignment_type,
             ]);
-            
+
         } catch (Throwable $e) {
             Log::error(' [NOTIFICATION SERVICE] Event dispatch exception', [
                 'waiter_id'   => $waiter->id,
@@ -67,3 +67,4 @@ class DeliveryNotificationService
         }
     }
 }
+

@@ -169,7 +169,6 @@ class GuestOrderPaymentController extends Controller
         try {
             $payment = Payment::withoutGlobalScopes()->where('tx_ref', $txRef)->firstOrFail();
 
-            // Check if this payment is for an existing order
             $existingOrderId = $payment->order_id ?? ($payment->metadata['order_id'] ?? null);
             if ($existingOrderId) {
                 $order = \App\Models\Order::withoutGlobalScopes()->with(['orderItems.menuItem', 'room', 'table'])->find($existingOrderId);
@@ -406,12 +405,10 @@ class GuestOrderPaymentController extends Controller
                 'tip' => 'nullable|numeric|min:0',
             ]);
 
-            // Load the order with relationships
             $order = \App\Models\Order::withoutGlobalScopes()
                 ->with(['orderItems.menuItem', 'room'])
                 ->findOrFail($validated['order_id']);
 
-            // Check if order already has a paid payment
             if ($order->payment_status === 'paid') {
                 return response()->json([
                     'success' => false,
@@ -422,7 +419,6 @@ class GuestOrderPaymentController extends Controller
             $tipAmount = max(0, (float)($request->input('tip') ?? 0));
             $totalAmount = (float)$order->total + $tipAmount;
 
-            // Create payment record
             $payment = $this->paymentService->createOrderPayment([
                 'hotel_id' => $order->hotel_id,
                 'amount' => $totalAmount,
@@ -444,14 +440,12 @@ class GuestOrderPaymentController extends Controller
                 ],
             ]);
 
-            // Link order_id directly on payment
             $payment->update(['order_id' => $order->id]);
 
             $baseReturnUrl = config('chapa.order_return_url', config('app.frontend_url') . '/order/payment/success');
             $separator = str_contains($baseReturnUrl, '?') ? '&' : '?';
             $returnUrl = $baseReturnUrl . $separator . 'tx_ref=' . urlencode($payment->tx_ref) . '&order_id=' . urlencode($order->id);
 
-            // Initialize Chapa payment
             $chapaResponse = $this->chapaService->initialize([
                 'amount' => $payment->amount,
                 'currency' => 'ETB',
@@ -529,3 +523,4 @@ class GuestOrderPaymentController extends Controller
         }
     }
 }
+

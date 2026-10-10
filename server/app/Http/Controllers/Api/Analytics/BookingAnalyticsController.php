@@ -64,7 +64,6 @@ class BookingAnalyticsController extends Controller
             $daysInPeriod = $toDate->diff($fromDate)->days + 1;
             $totalRoomNights = $totalRooms * $daysInPeriod;
 
-            // Fetch reservations overlapping the range in a single query
             $reservations = Reservation::where('hotel_id', $hotelId)
                 ->whereIn('status', ['confirmed', 'checked_in', 'checked_out'])
                 ->where('check_in_date', '<', $validated['to_date'])
@@ -86,7 +85,6 @@ class BookingAnalyticsController extends Controller
 
             $occupancyRate = $totalRoomNights > 0 ? ($occupiedNights / $totalRoomNights) * 100 : 0;
 
-            // Calculate daily breakdown in-memory without N queries
             $dailyOccupancy = [];
             for ($i = 0; $i < $daysInPeriod; $i++) {
                 $date = (clone $fromDate)->add(new DateInterval('P' . $i . 'D'));
@@ -245,7 +243,6 @@ class BookingAnalyticsController extends Controller
                 ->selectRaw('status, COUNT(*) as count')
                 ->pluck('count', 'status');
 
-            // Single query grouped by date for timeline instead of N queries
             $dailyCounts = Reservation::where('hotel_id', $hotelId)
                 ->whereBetween('created_at', [$fromDateTime, $toDateTime])
                 ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
@@ -333,7 +330,6 @@ class BookingAnalyticsController extends Controller
             $repeatGuests = $guestBookingCounts->filter(fn ($g) => $g->booking_count > 1)->count();
             $newGuests = $guestBookingCounts->filter(fn ($g) => $g->booking_count === 1)->count();
 
-            // Direct DB aggregate rather than loading all models into memory
             $averageGuestCount = Reservation::where('hotel_id', $hotelId)
                 ->whereBetween('created_at', [$fromDateTime, $toDateTime])
                 ->avg('number_of_guests') ?? 0;
@@ -443,3 +439,4 @@ class BookingAnalyticsController extends Controller
         }
     }
 }
+

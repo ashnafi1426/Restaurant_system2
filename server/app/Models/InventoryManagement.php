@@ -131,3 +131,4 @@ class InventoryManagement extends Model
         $this->update(['last_alerted_at' => now()]);
     }
 }
+

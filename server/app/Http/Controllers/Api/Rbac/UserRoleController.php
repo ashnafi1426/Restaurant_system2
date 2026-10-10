@@ -73,7 +73,6 @@ class UserRoleController extends Controller
 
         $users = $query->orderBy('first_name')->get();
 
-        // Batch fetch direct permissions for all users in one query
         $userIds = $users->pluck('id')->filter()->toArray();
         $directPermsGrouped = collect();
         if (!empty($userIds)) {
@@ -326,3 +325,4 @@ class UserRoleController extends Controller
         ]);
     }
 }
+

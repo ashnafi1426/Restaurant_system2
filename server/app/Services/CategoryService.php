@@ -66,7 +66,6 @@ class CategoryService
         return DB::transaction(function () use ($data, $hotelId) {
             $slug = Str::slug($data['name']);
 
-            // Ensure slug uniqueness within current hotel
             $baseSlug = $slug;
             $counter = 1;
             while (Category::where('hotel_id', $hotelId)->where('slug', $slug)->exists()) {
@@ -166,3 +165,4 @@ class CategoryService
         });
     }
 }
+

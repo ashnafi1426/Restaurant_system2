@@ -64,7 +64,7 @@ class RoleController extends Controller
     {
         $user = $request->user();
         if ($user && $user->isPlatformAdmin()) {
-            return null; // Platform super admin has unrestricted master access
+            return null;
         }
 
         $hotelId = $this->resolveHotelId($request);
@@ -103,7 +103,7 @@ class RoleController extends Controller
             Cache::forget($cacheKey);
         }
         $rolesData = Cache::remember($cacheKey, 600, function () use ($effectiveHotelId) {
-            // Ensure default roles exist for this hotel if newly created (only check if provisioning needed)
+
             if ($effectiveHotelId) {
                 $hasRoles = Role::withoutTenant()->where('hotel_id', $effectiveHotelId)->exists();
                 if (!$hasRoles) {
@@ -114,7 +114,6 @@ class RoleController extends Controller
                 }
             }
 
-            // Prune columns and eager load permissions with selected attributes to eliminate N+1 and memory overhead
             $query = Role::withoutTenant()
                 ->select([
                     'id',
@@ -216,9 +215,9 @@ class RoleController extends Controller
             if ($effectiveHotelId) {
                 $query->where('hotel_id', $effectiveHotelId);
             } elseif ($user && $user->isPlatformAdmin()) {
-                // Platform admin can see all active roles
+
             } else {
-                // Fallback for public registration / unauthenticated: return standard system template roles
+
                 $query->where(function ($q) {
                     $q->whereNull('hotel_id')->orWhere('is_system', true);
                 });
@@ -262,7 +261,6 @@ class RoleController extends Controller
             ? Str::slug($validated['slug'])
             : Str::slug($validated['name']);
 
-        // Enforce uniqueness within this hotel
         $existingSlugQuery = Role::withoutTenant()->where('slug', $slug);
         if ($hotelId) {
             $existingSlugQuery->where('hotel_id', $hotelId);
@@ -303,7 +301,6 @@ class RoleController extends Controller
 
             DB::commit();
 
-            // Invalidate cached role listings immediately
             $this->invalidateRoleCaches($hotelId);
 
             return response()->json([
@@ -349,7 +346,6 @@ class RoleController extends Controller
             'is_active' => 'sometimes|required|boolean',
         ]);
 
-        // Prevent deactivating critical system role 'admin'
         if ($role->slug === 'admin' && isset($validated['is_active']) && !$validated['is_active']) {
             return response()->json([
                 'success' => false,
@@ -480,7 +476,6 @@ class RoleController extends Controller
 
     public function syncPermissions(Request $request, Role $role)
     {
-        // 1. Enforce strict hotel ownership check
         if ($denied = $this->verifyRoleAccess($role, $request)) {
             return $denied;
         }
@@ -491,11 +486,9 @@ class RoleController extends Controller
         ]);
 
         $oldPermissionIds = $role->permissions()->pluck('permissions.id')->toArray();
-        
-        // 2. Sync permissions ONLY to this hotel-specific role record
+
         $role->permissions()->sync($validated['permission_ids']);
 
-        // 3. Invalidate role cache strictly for users in this hotel
         $this->authService->invalidateRoleCache($role);
         Cache::forget("rbac_role_perms:{$role->id}");
         $this->invalidateRoleCaches($role->hotel_id);
@@ -518,3 +511,4 @@ class RoleController extends Controller
         ]);
     }
 }
+

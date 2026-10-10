@@ -28,3 +28,4 @@ class OrderCollection extends ResourceCollection
         ];
     }
 }
+

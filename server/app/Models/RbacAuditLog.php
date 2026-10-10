@@ -51,3 +51,4 @@ class RbacAuditLog extends Model
         ]);
     }
 }
+

@@ -80,7 +80,6 @@ class WalkInOrderPaymentController extends Controller
                 ], 400);
             }
 
-            // Add tip to the total amount if provided
             $tipAmount = floatval($validated['tip'] ?? 0);
             $finalTotal = $orderCalculation['total'] + $tipAmount;
             $orderCalculation['tip'] = $tipAmount;
@@ -536,7 +535,6 @@ class WalkInOrderPaymentController extends Controller
                 ->with(['orderItems.menuItem', 'table'])
                 ->findOrFail($validated['order_id']);
 
-            // Check if order already has a paid payment
             $existingPayment = Payment::where('order_id', $order->id)
                 ->where('status', 'verified')
                 ->first();
@@ -548,16 +546,15 @@ class WalkInOrderPaymentController extends Controller
                 ], 400);
             }
 
-            // Check if there's already a pending payment
             $pendingPayment = Payment::where('order_id', $order->id)
                 ->where('status', 'pending')
                 ->first();
 
             if ($pendingPayment) {
-                // Return existing pending payment checkout URL
+
                 $checkoutUrl = $pendingPayment->checkout_url;
                 if (!$checkoutUrl && $pendingPayment->tx_ref) {
-                    // Reinitialize with Chapa
+
                     $chapaResponse = $this->chapaService->initialize([
                         'amount' => $pendingPayment->amount,
                         'currency' => 'ETB',
@@ -588,9 +585,8 @@ class WalkInOrderPaymentController extends Controller
                 ]);
             }
 
-            // Create new payment for existing order
             $hotelId = $order->hotel_id ?? TenantContext::id();
-            
+
             $payment = Payment::create([
                 'id' => (string) Str::uuid(),
                 'hotel_id' => $hotelId,
@@ -626,7 +622,7 @@ class WalkInOrderPaymentController extends Controller
                 'callback_url' => config('chapa.callback_url'),
                 'return_url' => config('chapa.order_return_url', config('app.frontend_url') . '/order/payment/success') . '?tx_ref=' . $payment->tx_ref,
                 'title' => 'Order Payment',
-                'description' => sprintf('Order %s', $order->order_number), // Removed # symbol
+                'description' => sprintf('Order %s', $order->order_number),
             ]);
 
             if (!$chapaResponse['success']) {
@@ -648,14 +644,13 @@ class WalkInOrderPaymentController extends Controller
             }
 
             $checkoutUrl = $this->chapaService->getCheckoutUrl($chapaResponse);
-            
-            // Log for debugging
+
             Log::info('Checkout URL extraction', [
                 'chapaResponse_keys' => array_keys($chapaResponse),
                 'data_keys' => array_keys($chapaResponse['data'] ?? []),
                 'checkout_url_result' => $checkoutUrl,
             ]);
-            
+
             $payment->update([
                 'checkout_url' => $checkoutUrl,
                 'status' => 'initialized',
@@ -700,3 +695,4 @@ class WalkInOrderPaymentController extends Controller
         }
     }
 }
+

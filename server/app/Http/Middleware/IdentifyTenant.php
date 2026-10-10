@@ -20,9 +20,9 @@ class IdentifyTenant
 
     public function handle(Request $request, Closure $next): Response
     {
-        $hotelId = $request->header('X-Hotel-ID') 
+        $hotelId = $request->header('X-Hotel-ID')
             ?: $request->header('x-hotel-id')
-            ?: $request->query('hotel_id') 
+            ?: $request->query('hotel_id')
             ?: $request->input('hotel_id');
         $user = $request->user();
 
@@ -34,7 +34,6 @@ class IdentifyTenant
             }
         }
 
-        // 1. Bypass tenant requirement for public, auth, and global permissions catalog endpoints
         $isPublicRead = $request->isMethod('GET') && $request->is(
             'api/rooms',
             'api/rooms/*',
@@ -59,7 +58,7 @@ class IdentifyTenant
             'api/notifications/*',
             'api/me',
             'api/auth/*',
-            'api/guest/*',  // Guest endpoints bypass authentication
+            'api/guest/*',
             'api/payments/*',
             'api/reservation-payments/*',
             'api/order-payments/*',
@@ -90,7 +89,6 @@ class IdentifyTenant
             return $next($request);
         }
 
-        // 2. Platform Admin has universal platform access across all hotels
         if ($user->isPlatformAdmin()) {
             if ($hotelId) {
                 $hotel = Hotel::find($hotelId);
@@ -102,7 +100,6 @@ class IdentifyTenant
             return $next($request);
         }
 
-        // 3. Explicit Hotel ID provided in request header
         if ($hotelId) {
             $hotel = Hotel::find($hotelId);
 
@@ -123,7 +120,6 @@ class IdentifyTenant
                 ], 403);
             }
 
-            // Verify membership if not platform admin
             if (!$user->isPlatformAdmin()) {
                 $membership = HotelUser::where('hotel_id', $hotelId)
                     ->where('user_id', $user->id)
@@ -134,7 +130,7 @@ class IdentifyTenant
                         $membership->update(['is_active' => true]);
                     }
                 } else {
-                    // Fallback to user's authorized hotel membership if header hotel differs
+
                     $userPrimaryMembership = $user->hotelMemberships()->where('is_active', true)->first()
                         ?: $user->hotelMemberships()->first();
 
@@ -145,7 +141,7 @@ class IdentifyTenant
                         $hotel = $userPrimaryMembership->hotel;
                         $membership = $userPrimaryMembership;
                     } elseif ($user->isAdmin() || strtolower($user->role ?? '') === 'admin') {
-                        // Admin access: ensure membership exists
+
                         $membership = HotelUser::firstOrCreate([
                             'hotel_id' => $hotelId,
                             'user_id' => $user->id,
@@ -164,7 +160,7 @@ class IdentifyTenant
 
                 $this->tenantContext->setHotel($hotel, $membership);
             } else {
-                // Platform admin access
+
                 $membership = HotelUser::where('hotel_id', $hotelId)
                     ->where('user_id', $user->id)
                     ->first();
@@ -175,7 +171,6 @@ class IdentifyTenant
             return $next($request);
         }
 
-        // 2. No header provided: Resolve from user's authorized memberships
         $memberships = $user->hotelMemberships()
             ->where('is_active', true)
             ->with('hotel')
@@ -200,7 +195,6 @@ class IdentifyTenant
             }
         }
 
-        // Multiple memberships: auto-select first active hotel if not explicitly provided
         if ($memberships->count() > 1) {
             $firstActive = $memberships->first(fn ($m) => $m->hotel && $m->hotel->isActive());
             if ($firstActive) {
@@ -209,7 +203,6 @@ class IdentifyTenant
             }
         }
 
-        // Platform admin or admin role: auto-bind to active hotel and proceed
         if ($user->isPlatformAdmin() || $user->isAdmin() || strtolower($user->role ?? '') === 'admin') {
             $anyHotel = Hotel::where('status', 'active')->first();
             if ($anyHotel) {

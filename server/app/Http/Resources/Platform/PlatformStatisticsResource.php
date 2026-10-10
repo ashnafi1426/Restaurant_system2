@@ -33,3 +33,4 @@ class PlatformStatisticsResource extends JsonResource
         ];
     }
 }
+

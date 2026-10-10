@@ -185,3 +185,4 @@ class RestaurantSectionController extends Controller
         }
     }
 }
+

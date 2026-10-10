@@ -49,7 +49,7 @@ class AutomaticWaiterAssignmentService
 
             return DB::transaction(function () use ($order, $existing) {
                 $isTableOrder = in_array($order->order_type, [Order::TYPE_DINE_IN, Order::TYPE_WALK_IN, 'dine_in', 'walk_in']) || !empty($order->table_id);
-                
+
                 if ($isTableOrder && $order->table_id) {
                     return $this->assignWalkInOrder($order, $existing);
                 } else {
@@ -129,7 +129,7 @@ class AutomaticWaiterAssignmentService
     private function assignWalkInOrder(Order $order, ?DeliveryTask $existing = null): array
     {
         $table = $order->table;
-        
+
         if (!$table) {
             $task = $existing ?? $this->workloadService->createWaitingDelivery($order, null, 'Table not found');
             return $this->waitingResponse($task, 'Table not found');
@@ -252,3 +252,4 @@ class AutomaticWaiterAssignmentService
         ];
     }
 }
+

@@ -151,3 +151,4 @@ class QRCodeController extends Controller
         }
     }
 }
+

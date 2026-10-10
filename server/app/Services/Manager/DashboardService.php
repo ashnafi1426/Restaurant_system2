@@ -36,7 +36,6 @@ class DashboardService
         return Cache::remember($cacheKey, 300, function () use ($hotelId) {
             $today = Carbon::today();
 
-            // 1. Single aggregated room query
             $roomStats = Room::withoutGlobalScopes()
                 ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->selectRaw("
@@ -50,7 +49,6 @@ class DashboardService
             $availableRooms = (int) ($roomStats->available_rooms ?? 0);
             $occupancyRate = $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100, 1) : 0;
 
-            // 2. Single aggregated reservation query
             $resStats = Reservation::withoutGlobalScopes()
                 ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->selectRaw("
@@ -68,7 +66,6 @@ class DashboardService
             $checkedInGuests = $occupiedRooms;
             $checkedOutGuests = $todayCheckOuts;
 
-            // 3. Single aggregated revenue query
             $weekStart = Carbon::now()->startOfWeek();
             $weekEnd = Carbon::now()->endOfWeek();
             $monthStart = Carbon::now()->startOfMonth();
@@ -101,7 +98,6 @@ class DashboardService
                 $monthlyRevenue = $dailyRevenue * 25;
             }
 
-            // 4. Single aggregated orders query
             $orderQuery = Order::withoutGlobalScopes()
                 ->when($hotelId && Schema::hasColumn('orders', 'hotel_id'), fn($q) => $q->where('hotel_id', $hotelId));
 
@@ -124,7 +120,6 @@ class DashboardService
             $preparingOrders = (int) ($orderStats->preparing_orders ?? 0);
             $delayedOrders = 0;
 
-            // 5. Staff and Waiter metrics
             $waiterCount = 0;
             $activeWaiters = 0;
             if ($hotelId) {
@@ -209,7 +204,6 @@ class DashboardService
             $startDate = Carbon::now()->subDays($days - 1)->startOfDay();
             $endDate = Carbon::now()->endOfDay();
 
-            // Single query for reservations across the entire date range
             $resCounts = Reservation::withoutGlobalScopes()
                 ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->whereBetween('created_at', [$startDate, $endDate])
@@ -218,7 +212,6 @@ class DashboardService
                 ->pluck('cnt', 'dt')
                 ->toArray();
 
-            // Single query for payments across the entire date range
             $paySums = [];
             try {
                 $paySums = DB::table('payments')
@@ -239,7 +232,6 @@ class DashboardService
                     ->toArray();
             }
 
-            // Build trend series without DB query loop
             $trends = [];
             for ($i = $days - 1; $i >= 0; $i--) {
                 $date = Carbon::now()->subDays($i);
@@ -273,7 +265,7 @@ class DashboardService
         }
 
         return Cache::remember($cacheKey, 300, function () use ($hotelId, $limit) {
-            // Select only necessary columns
+
             $items = MenuItem::withoutGlobalScopes()
                 ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->where('is_available', true)
@@ -303,3 +295,4 @@ class DashboardService
         ];
     }
 }
+

@@ -64,3 +64,4 @@ class BookingCancellationMail extends Mailable
         return [];
     }
 }
+

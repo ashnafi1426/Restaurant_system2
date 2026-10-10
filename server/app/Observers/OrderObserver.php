@@ -9,9 +9,9 @@ class OrderObserver
 {
     /**
      * Handle the Order "deleting" event.
-     * 
+     *
      * Prevents deletion of orders that have approved reviews to maintain review integrity.
-     * As per Requirement 7.3: "WHEN an Order is deleted, THE Review_System SHALL prevent 
+     * As per Requirement 7.3: "WHEN an Order is deleted, THE Review_System SHALL prevent
      * deletion if approved reviews exist and return an error"
      *
      * @param  \App\Models\Order  $order
@@ -20,7 +20,6 @@ class OrderObserver
      */
     public function deleting(Order $order): ?bool
     {
-        // Check if the order has any approved reviews
         $hasApprovedReviews = MenuItemReview::where('order_id', $order->id)
             ->where('status', MenuItemReview::STATUS_APPROVED)
             ->exists();
@@ -31,7 +30,7 @@ class OrderObserver
             );
         }
 
-        // Allow deletion to proceed if no approved reviews exist
         return true;
     }
 }
+

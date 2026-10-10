@@ -19,7 +19,7 @@ class StaffController extends Controller
     {
         try {
             $staff = $this->dashboardService->getStaff();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $staff,
@@ -34,3 +34,4 @@ class StaffController extends Controller
         }
     }
 }
+

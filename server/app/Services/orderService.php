@@ -322,7 +322,7 @@ class OrderService{
             $table = null;
 
             if ($orderType === Order::TYPE_ROOM_SERVICE) {
-                // Room service requires valid room context and an active checked-in reservation
+
                 if (!empty($data['reservation_id'])) {
                     $reservation = $this->validateReservation($data['reservation_id']);
                     if ($reservation->status !== 'checked_in') {
@@ -352,7 +352,7 @@ class OrderService{
 
                 $hotelId = $hotelId ?? $reservation->hotel_id ?? $room?->hotel_id;
             } elseif ($orderType === Order::TYPE_DINE_IN) {
-                // Dine-in orders require restaurant table context. Do not require hotel reservation or check-in.
+
                 if (empty($data['table_id'])) {
                     throw new Exception("Dine-in orders require a restaurant table.");
                 }
@@ -360,7 +360,7 @@ class OrderService{
                 $hotelId = $hotelId ?? $table->hotel_id;
                 $table->update(['status' => \App\Models\RestaurantTable::STATUS_OCCUPIED]);
             } elseif ($orderType === Order::TYPE_WALK_IN) {
-                // Walk-in orders do not require a hotel reservation or check-in. Table is optional.
+
                 if (!empty($data['table_id'])) {
                     $table = \App\Models\RestaurantTable::findOrFail($data['table_id']);
                     $hotelId = $hotelId ?? $table->hotel_id;
@@ -429,8 +429,8 @@ class OrderService{
                 $orderTax += $calc['tax_amount'];
             }
 
-            $serviceChargeAmount = isset($data['service_charge_amount']) 
-                ? max(0, (float) $data['service_charge_amount']) 
+            $serviceChargeAmount = isset($data['service_charge_amount'])
+                ? max(0, (float) $data['service_charge_amount'])
                 : ($serviceChargeRate > 0 ? round($orderSubtotal * ($serviceChargeRate / 100), 2) : 0.0);
 
             $total = round(max(0, ($orderSubtotal + $orderTax + $serviceChargeAmount) - $discount), 2);
@@ -635,3 +635,4 @@ class OrderService{
         $this->orderStatusService->cancel($order, $reason);
     }
 }
+

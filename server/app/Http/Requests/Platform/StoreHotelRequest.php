@@ -12,7 +12,7 @@ class StoreHotelRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization should be handled by middleware/policies
+        return true;
     }
 
     /**
@@ -34,8 +34,7 @@ class StoreHotelRequest extends FormRequest
             'timezone' => 'nullable|string|max:50',
             'currency' => 'nullable|string|max:10',
             'status' => ['nullable', 'string', Rule::in(['active', 'inactive', 'suspended'])],
-            
-            // Admin user fields
+
             'admin_user_id' => 'nullable|uuid|exists:users,id',
             'admin_email' => 'nullable|email|max:255',
             'admin_first_name' => 'required_with:admin_email|nullable|string|max:100',
@@ -67,7 +66,6 @@ class StoreHotelRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        // Set default values
         $this->merge([
             'timezone' => $this->timezone ?? 'Africa/Addis_Ababa',
             'currency' => $this->currency ?? 'ETB',
@@ -75,3 +73,4 @@ class StoreHotelRequest extends FormRequest
         ]);
     }
 }
+

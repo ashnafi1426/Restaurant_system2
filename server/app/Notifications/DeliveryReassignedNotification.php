@@ -11,7 +11,7 @@ use Illuminate\Notifications\Notification;
 
 /**
  * DeliveryReassignedNotification
- * 
+ *
  * Notification sent to waiter when delivery is reassigned away from them
  * Includes reason for reassignment
  */
@@ -82,7 +82,7 @@ class DeliveryReassignedNotification extends Notification implements ShouldQueue
             'new_waiter_name' => $this->newWaiter->user->name ?? 'Unknown',
             'reason' => $this->reason,
             'reassigned_at' => now()->toIso8601String(),
-            'message' => "Delivery for room {$this->delivery->room_number} has been reassigned to {$this->newWaiter->user->name ?? 'Unknown'}",
+            'message' => "Delivery for room {$this->delivery->room_number} has been reassigned to " . ($this->newWaiter->user->name ?? 'Unknown'),
             'action_url' => '/waiter',
         ];
     }
@@ -110,3 +110,4 @@ class DeliveryReassignedNotification extends Notification implements ShouldQueue
         ]);
     }
 }
+

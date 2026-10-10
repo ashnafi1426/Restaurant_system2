@@ -70,7 +70,7 @@ class ChefProfileController extends Controller
         try {
             $this->ensureChefColumns();
             $user = auth()->user();
-            
+
             if (!$user) {
                 return response()->json([
                     'success' => false,
@@ -113,7 +113,7 @@ class ChefProfileController extends Controller
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch profile',
@@ -137,7 +137,7 @@ class ChefProfileController extends Controller
             ]);
 
             $user = auth()->user();
-            
+
             DB::beginTransaction();
 
             $userUpdates = array_intersect_key($validated, array_flip(['first_name', 'last_name', 'phone']));
@@ -381,3 +381,4 @@ class ChefProfileController extends Controller
         }
     }
 }
+

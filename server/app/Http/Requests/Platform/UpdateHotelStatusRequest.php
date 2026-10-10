@@ -12,7 +12,7 @@ class UpdateHotelStatusRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization should be handled by middleware/policies
+        return true;
     }
 
     /**
@@ -24,8 +24,8 @@ class UpdateHotelStatusRequest extends FormRequest
     {
         return [
             'status' => [
-                'required', 
-                'string', 
+                'required',
+                'string',
                 Rule::in(['active', 'inactive', 'suspended', 'archived'])
             ],
         ];
@@ -44,3 +44,4 @@ class UpdateHotelStatusRequest extends FormRequest
         ];
     }
 }
+

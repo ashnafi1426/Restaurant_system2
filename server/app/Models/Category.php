@@ -10,7 +10,7 @@ use App\Models\Traits\BelongsToTenant;
 class Category extends Model
 {
     use HasFactory, HasUuids, BelongsToTenant;
-    
+
     public $incrementing = false;
     protected $keyType = 'string';
 
@@ -64,3 +64,4 @@ class Category extends Model
         return $this->menuItems()->count();
     }
 }
+

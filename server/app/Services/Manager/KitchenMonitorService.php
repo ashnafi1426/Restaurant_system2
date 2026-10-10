@@ -105,7 +105,7 @@ class KitchenMonitorService
             ->whereIn('status', ['preparing', 'ready', 'completed'])
             ->count();
 
-        $completionRate = $totalOrders > 0 
+        $completionRate = $totalOrders > 0
             ? round(($completedOrders / $totalOrders) * 100, 2)
             : 0;
 
@@ -158,7 +158,7 @@ class KitchenMonitorService
             ->whereIn('status', ['preparing', 'ready', 'completed'])
             ->count();
 
-        return $totalOrders > 0 
+        return $totalOrders > 0
             ? round(($delayedOrders / $totalOrders) * 100, 2)
             : 0;
     }
@@ -227,3 +227,4 @@ class KitchenMonitorService
         ];
     }
 }
+

@@ -48,3 +48,4 @@ class TaxRate extends Model
         return $query->whereIn('applies_to', ['food_beverage', 'general']);
     }
 }
+

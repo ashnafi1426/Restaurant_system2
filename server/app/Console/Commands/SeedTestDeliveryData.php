@@ -20,11 +20,9 @@ class SeedTestDeliveryData extends Command
     public function handle()
     {
         $this->info('🚀 Starting delivery task seeding...');
-        
-        // Get target user email
+
         $email = $this->option('email') ?? 'ashenafisileski7@gmail.com';
-        
-        // Find or get first waiter
+
         $user = User::where('email', $email)->first();
         if (!$user) {
             $this->error(' User not found: ' . $email);
@@ -33,7 +31,6 @@ class SeedTestDeliveryData extends Command
 
         $this->info(' Found user: ' . $user->email);
 
-        // Load waiter relationship
         $user->load('waiter');
         $waiter = $user->waiter;
 
@@ -44,14 +41,12 @@ class SeedTestDeliveryData extends Command
 
         $this->info(' Waiter ID: ' . $waiter->id);
 
-        // Option to delete existing
         if ($this->option('fresh')) {
             $this->info('🗑️ Deleting existing delivery tasks for this waiter...');
             DeliveryTask::where('waiter_id', $waiter->id)->delete();
             $this->info(' Deleted');
         }
 
-        // Get manager
         $manager = User::where('role', 'manager')->first();
         if (!$manager) {
             $manager = User::where('role', 'admin')->first();
@@ -62,7 +57,6 @@ class SeedTestDeliveryData extends Command
             return 1;
         }
 
-        // Get or create floor
         $floor = HotelFloor::first();
         if (!$floor) {
             $floor = HotelFloor::create([
@@ -74,7 +68,6 @@ class SeedTestDeliveryData extends Command
             $this->info(' Created floor: ' . $floor->name);
         }
 
-        // Create guest and order
         $guest = Guest::firstOrCreate(
             ['email' => 'test-guest-' . time() . '@test.com'],
             [
@@ -85,7 +78,6 @@ class SeedTestDeliveryData extends Command
             ]
         );
 
-        // Get available room or create one
         $room = Room::where('status', 'available')->first();
         if (!$room) {
             $room = Room::first();
@@ -95,11 +87,10 @@ class SeedTestDeliveryData extends Command
             }
         }
 
-        // Create test orders with delivery tasks
         $statuses = ['assigned', 'accepted', 'picked_up', 'on_delivery', 'delivered'];
 
         $this->info(' Creating delivery tasks...');
-        
+
         foreach ($statuses as $index => $status) {
             $order = Order::create([
                 'id' => Str::uuid(),
@@ -118,9 +109,8 @@ class SeedTestDeliveryData extends Command
             $onDeliveryAt = null;
             $deliveredAt = null;
 
-            // For "Ready for Pickup" page to work, we need status='accepted'
             if ($status === 'assigned') {
-                // Don't set any other times yet
+
             } elseif ($status === 'accepted') {
                 $acceptedAt = $assignedAt->clone()->addMinutes(rand(2, 10));
             } elseif ($status === 'picked_up') {
@@ -157,14 +147,12 @@ class SeedTestDeliveryData extends Command
             $this->info(" Created delivery task: {$task->id} - Status: {$status}");
         }
 
-        // Update waiter's current orders count
         $activeCount = DeliveryTask::where('waiter_id', $waiter->id)
             ->whereIn('status', ['assigned', 'accepted', 'picked_up', 'on_delivery'])
             ->count();
-        
+
         $waiter->update(['current_orders' => $activeCount]);
 
-        // Verify the data was created
         $readyPickupCount = DeliveryTask::where('waiter_id', $waiter->id)
             ->where('status', 'accepted')
             ->whereHas('order', fn($q) => $q->where('status', 'ready'))

@@ -54,3 +54,4 @@ class UpdateManagerDashboardSettingRequest extends FormRequest
         ];
     }
 }
+

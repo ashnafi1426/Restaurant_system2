@@ -56,3 +56,4 @@ class StoreRestaurantTableRequest extends FormRequest
         ];
     }
 }
+

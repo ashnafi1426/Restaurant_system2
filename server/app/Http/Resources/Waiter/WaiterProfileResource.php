@@ -31,3 +31,4 @@ class WaiterProfileResource extends JsonResource
         ];
     }
 }
+

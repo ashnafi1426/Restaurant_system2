@@ -17,3 +17,4 @@ class PurchaseNotVerifiedException extends Exception
         parent::__construct($message);
     }
 }
+

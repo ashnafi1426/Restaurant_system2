@@ -54,7 +54,6 @@ class TranslationController extends Controller
             ]);
         }
 
-        // Full translations response including unified flat bundle for instant client lookup
         return response()->json([
             'success' => true,
             'language' => $lang,
@@ -67,3 +66,4 @@ class TranslationController extends Controller
         ]);
     }
 }
+

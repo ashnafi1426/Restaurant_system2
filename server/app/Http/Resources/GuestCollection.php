@@ -20,3 +20,4 @@ class GuestCollection extends ResourceCollection
         ];
     }
 }
+

@@ -80,3 +80,4 @@ class VotingController extends Controller
         }
     }
 }
+

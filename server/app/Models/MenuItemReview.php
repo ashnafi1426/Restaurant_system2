@@ -146,7 +146,7 @@ class MenuItemReview extends Model
         if (!$this->guest) {
             return 'Anonymous Guest';
         }
-        
+
         $lastName = $this->guest->last_name ? strtoupper(substr($this->guest->last_name, 0, 1)) . '.' : '';
         return trim($this->guest->first_name . ' ' . $lastName);
     }
@@ -176,3 +176,4 @@ class MenuItemReview extends Model
         ];
     }
 }
+

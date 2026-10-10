@@ -110,3 +110,4 @@ class UpdateRoomRequest extends FormRequest
         ];
     }
 }
+

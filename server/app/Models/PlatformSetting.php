@@ -38,3 +38,4 @@ class PlatformSetting extends Model
         );
     }
 }
+

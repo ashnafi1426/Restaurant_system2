@@ -20,10 +20,9 @@ class VotingService
     private function recordVote(string $reviewId, string $voteType, ?string $guestId, ?string $ipAddress): ReviewHelpfulnessVote
     {
         return DB::transaction(function () use ($reviewId, $voteType, $guestId, $ipAddress) {
-            // Check for duplicate vote
+
             $this->checkDuplicateVote($reviewId, $guestId, $ipAddress);
 
-            // Create the vote
             $vote = ReviewHelpfulnessVote::create([
                 'review_id' => $reviewId,
                 'guest_id' => $guestId,
@@ -31,7 +30,6 @@ class VotingService
                 'vote_type' => $voteType,
             ]);
 
-            // Update the review's vote counts
             $this->updateVoteCounts($reviewId);
 
             return $vote;
@@ -86,3 +84,4 @@ class VotingService
         ];
     }
 }
+

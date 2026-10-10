@@ -18,3 +18,4 @@ class UpdateWaiterRequest extends FormRequest
         ];
     }
 }
+

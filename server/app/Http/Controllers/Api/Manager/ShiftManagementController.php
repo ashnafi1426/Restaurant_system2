@@ -304,3 +304,4 @@ class ShiftManagementController extends Controller
         return $endMinutes < $startMinutes || $startMinutes >= 18 * 60;
     }
 }
+

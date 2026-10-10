@@ -12,7 +12,7 @@ class StoreHotelAdminRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization should be handled by middleware/policies
+        return true;
     }
 
     /**
@@ -56,10 +56,10 @@ class StoreHotelAdminRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        // Set default values
         $this->merge([
             'role' => $this->role ?? 'admin',
             'status' => $this->status ?? 'active',
         ]);
     }
 }
+

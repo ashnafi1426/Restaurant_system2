@@ -45,7 +45,7 @@ class ChapaService
                     'description' => $data['description'] ?? 'Hotel Payment',
                 ],
             ];
-            
+
             if (!empty($data['meta'])) {
                 $payload['meta'] = $data['meta'];
             }
@@ -73,7 +73,7 @@ class ChapaService
 
             if ($response->successful()) {
                 $jsonResponse = $response->json();
-                
+
                 if (isset($jsonResponse['status']) && $jsonResponse['status'] === 'success') {
                     Log::info('Chapa Initialize Success', [
                         'has_checkout_url' => isset($jsonResponse['data']['checkout_url']),
@@ -85,7 +85,7 @@ class ChapaService
                         'data'    => $jsonResponse,
                     ];
                 }
-                
+
                 Log::warning('Chapa HTTP 200 but status not success', [
                     'response_status' => $jsonResponse['status'] ?? null,
                     'message' => $jsonResponse['message'] ?? null,
@@ -150,7 +150,6 @@ class ChapaService
                     'data' => $response->json()
 
                 ];
-
             }
 
             return [
@@ -187,21 +186,21 @@ class ChapaService
                 'data_keys' => array_keys($initializeResponse['data'] ?? []),
             ]
         ]);
-        
+
         if (isset($initializeResponse['data']['checkout_url'])) {
             Log::info('Found checkout_url at data.checkout_url');
             return $initializeResponse['data']['checkout_url'];
         }
-        
+
         if (isset($initializeResponse['data']['data']['checkout_url'])) {
             Log::info('Found checkout_url at data.data.checkout_url');
             return $initializeResponse['data']['data']['checkout_url'];
         }
-        
+
         Log::warning('Checkout URL not found in response', [
             'response' => $initializeResponse
         ]);
-        
+
         return null;
     }
 
@@ -274,3 +273,4 @@ class ChapaService
         return $response;
     }
 }
+

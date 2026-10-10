@@ -21,3 +21,4 @@ class RestaurantSectionResource extends JsonResource
         ];
     }
 }
+

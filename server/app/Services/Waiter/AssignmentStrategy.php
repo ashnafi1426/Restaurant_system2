@@ -105,3 +105,4 @@ class AssignmentStrategy
         return null;
     }
 }
+

@@ -26,7 +26,7 @@ class ResponseController extends Controller
                 $responderId,
                 $request->validated()['response_text']
             );
-            
+
             return response()->json([
                 'message' => 'Response created successfully',
                 'data' => $response->load('responder'),
@@ -58,7 +58,7 @@ class ResponseController extends Controller
                 $id,
                 $request->validated()['response_text']
             );
-            
+
             return response()->json([
                 'message' => 'Response updated successfully',
                 'data' => $response,
@@ -87,7 +87,7 @@ class ResponseController extends Controller
     {
         try {
             $this->responseService->deleteResponse($id);
-            
+
             return response()->json([
                 'message' => 'Response deleted successfully',
             ], 200);
@@ -106,3 +106,4 @@ class ResponseController extends Controller
         }
     }
 }
+

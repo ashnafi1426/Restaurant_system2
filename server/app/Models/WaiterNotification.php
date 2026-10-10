@@ -87,3 +87,4 @@ class WaiterNotification extends Model
         ]);
     }
 }
+

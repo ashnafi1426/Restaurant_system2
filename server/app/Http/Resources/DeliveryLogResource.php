@@ -12,3 +12,4 @@ class DeliveryLogResource extends JsonResource
         return parent::toArray($request);
     }
 }
+

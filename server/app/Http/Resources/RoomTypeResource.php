@@ -25,3 +25,4 @@ class RoomTypeResource extends JsonResource
         ];
     }
 }
+

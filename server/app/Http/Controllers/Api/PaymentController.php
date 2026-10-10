@@ -428,7 +428,7 @@ class PaymentController extends Controller
     private function fulfillOrderPayment(Payment $payment, string $txRef): void
     {
         try {
-            // Check if this payment is for an existing order
+
             $existingOrderId = $payment->order_id ?? ($payment->metadata['order_id'] ?? null);
             if ($existingOrderId) {
                 $order = Order::withoutGlobalScopes()->find($existingOrderId);
@@ -509,3 +509,4 @@ class PaymentController extends Controller
         }
     }
 }
+

@@ -79,3 +79,4 @@ class DeliveryLog extends Model
         return $query->where('action', $action);
     }
 }
+

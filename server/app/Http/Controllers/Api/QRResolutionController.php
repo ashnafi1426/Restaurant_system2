@@ -69,3 +69,4 @@ class QRResolutionController extends Controller
         ], 200);
     }
 }
+

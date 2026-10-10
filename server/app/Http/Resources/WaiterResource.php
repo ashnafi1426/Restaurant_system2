@@ -12,3 +12,4 @@ class WaiterResource extends JsonResource
         return parent::toArray($request);
     }
 }
+

@@ -19,8 +19,8 @@ class ReportController extends Controller
 {
     private function resolveTenant(Request $request): ?string
     {
-        $hotelId = $request->input('hotel_id') 
-            ?: $request->header('X-Hotel-ID') 
+        $hotelId = $request->input('hotel_id')
+            ?: $request->header('X-Hotel-ID')
             ?: app(TenantContext::class)->getHotelId();
 
         if ($hotelId) {
@@ -185,7 +185,7 @@ class ReportController extends Controller
                         'section' => $waiter->section,
                         'total_deliveries' => $waiter->total_deliveries ?? 0,
                         'completed_deliveries' => $waiter->completed_deliveries ?? 0,
-                        'completion_rate' => $waiter->total_deliveries > 0 
+                        'completion_rate' => $waiter->total_deliveries > 0
                             ? round(($waiter->completed_deliveries / $waiter->total_deliveries) * 100, 2)
                             : 0,
                     ];
@@ -225,7 +225,7 @@ class ReportController extends Controller
                 ->where('status', 'occupied')
                 ->count();
 
-            $currentOccupancyRate = $totalRooms > 0 
+            $currentOccupancyRate = $totalRooms > 0
                 ? round(($occupiedRooms / $totalRooms) * 100, 2)
                 : 0;
 
@@ -368,3 +368,4 @@ class ReportController extends Controller
         };
     }
 }
+

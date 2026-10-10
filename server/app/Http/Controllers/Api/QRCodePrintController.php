@@ -29,7 +29,6 @@ class QRCodePrintController extends Controller
             ], 404);
         }
 
-        // Always return the QR code data if room has a qr_image_path
         return response()->json([
             'success' => true,
             'data' => [
@@ -284,3 +283,4 @@ class QRCodePrintController extends Controller
         return $this->getQRCodeImage($roomId);
     }
 }
+

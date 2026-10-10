@@ -17,3 +17,4 @@ class ReviewNotModifiableException extends Exception
         parent::__construct($message);
     }
 }
+

@@ -44,3 +44,4 @@ class UpdateManagerNotificationRequest extends FormRequest
         ];
     }
 }
+

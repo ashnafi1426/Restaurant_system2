@@ -94,15 +94,13 @@ class CheckInService
         }
 
         return DB::transaction(function () use ($reservation, $hotelId) {
-            // 1. Update reservation status
+
             $reservation->update(['status' => 'checked_in']);
 
-            // 2. Mark Room as Occupied (enables room-service ordering eligibility)
             if ($reservation->room) {
                 $reservation->room->update(['status' => 'occupied']);
             }
 
-            // 3. Create or Update CheckIn record
             $checkIn = CheckIn::firstOrCreate(
                 ['reservation_id' => $reservation->id],
                 [
@@ -114,7 +112,6 @@ class CheckInService
                 ]
             );
 
-            // 4. Send Confirmation Email to Guest
             $this->sendCheckInEmail($reservation);
 
             return $checkIn->fresh(['guest', 'room.roomType', 'reservation']);
@@ -128,7 +125,6 @@ class CheckInService
     {
         $hotelId = $hotelId ?: TenantContext::id();
 
-        // Resolve CheckIn and Reservation models
         if ($target instanceof CheckIn) {
             $checkIn = $target;
             $reservation = $checkIn->reservation;
@@ -136,7 +132,7 @@ class CheckInService
             $reservation = $target;
             $checkIn = $reservation->checkIn;
         } else {
-            // Try resolving by check_in ID or reservation ID
+
             $checkIn = CheckIn::where('id', $target)
                 ->orWhere('reservation_id', $target)
                 ->with(['reservation', 'room', 'guest'])
@@ -168,15 +164,12 @@ class CheckInService
         return DB::transaction(function () use ($reservation, $checkIn, $hotelId) {
             $now = now();
 
-            // 1. Update Reservation status to checked_out
             $reservation->update(['status' => 'checked_out']);
 
-            // 2. Update Room status to available
             if ($reservation->room) {
                 $reservation->room->update(['status' => 'available']);
             }
 
-            // 3. Update or create CheckIn record
             if ($checkIn) {
                 $checkIn->update(['checked_out_at' => $now]);
             } else {
@@ -191,7 +184,6 @@ class CheckInService
                 ]);
             }
 
-            // 4. Send Checkout Notification Email
             $this->sendCheckOutEmail($reservation);
 
             return $checkIn->fresh(['guest', 'room.roomType', 'reservation']);
@@ -275,3 +267,4 @@ class CheckInService
         }
     }
 }
+

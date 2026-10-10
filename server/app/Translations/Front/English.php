@@ -7,7 +7,7 @@ class English
     public static function get(): array
     {
         return [
-            // Hotel Guest Navigation
+
             'home' => 'Home',
             'rooms' => 'Rooms',
             'gallery' => 'Gallery',
@@ -26,7 +26,6 @@ class English
             'select_language' => 'Select Language',
             'change_language' => 'Change Language',
 
-            // Hero Section
             'hero_badge' => 'Grand Horizon Hotel & Resort',
             'hero_title_part1' => 'Timeless Luxury &',
             'hero_title_part2' => 'Unmatched Comfort',
@@ -50,7 +49,6 @@ class English
             'room' => 'Room',
             'rooms_and_suites' => 'Luxury Rooms & Suites',
 
-            // QR Menu Specifics
             'culinary_excellence' => 'Experience Culinary Excellence',
             'culinary_desc' => 'Delicious meals delivered straight to your room',
             'search_placeholder' => 'Search delicious meals, drinks, and desserts...',
@@ -98,7 +96,6 @@ class English
             'reviews' => 'reviews',
             'recent_searches' => 'Recent Searches',
 
-            // Cart & Ordering
             'your_order' => 'Your Order',
             'selected' => 'selected',
             'your_cart_is_empty' => 'Your cart is empty',
@@ -127,7 +124,6 @@ class English
             'room_service' => 'Room Service',
             'takeaway' => 'Takeaway',
 
-            // Food Categories
             'All' => 'All',
             'All Categories' => 'All Categories',
             'Breakfast' => 'Breakfast',
@@ -155,7 +151,6 @@ class English
             'Wine' => 'Wine',
             'Beer' => 'Beer',
 
-            // Featured Rooms & Facilities
             'featured_accommodation' => 'Featured Accommodation',
             'explore_fine_rooms' => 'Explore Our Fine Rooms',
             'designed_for_luxury' => 'Designed for luxury, comfort, and peaceful relaxation during your stay.',
@@ -177,7 +172,6 @@ class English
             'airport_shuttle' => 'Airport Shuttle',
             '24h_room_service' => '24/7 Room Service',
 
-            // Dining Section
             'signature_dining' => 'Signature Dining',
             'culinary_experience' => 'A Culinary Experience',
             'culinary_experience_desc' => 'Indulge in authentic Ethiopian culinary traditions and international fine dining crafted by award-winning chefs.',
@@ -185,12 +179,10 @@ class English
             'reserve_table' => 'Reserve a Table',
             'order_food_online' => 'Order Food Online',
 
-            // Testimonials
             'guest_reviews' => 'Guest Reviews',
             'what_guests_say' => 'What Our Guests Say',
             'what_guests_say_desc' => 'Read real reviews from international travelers who experienced the luxury of Grand Horizon Hotel.',
 
-            // Room Amenities & Details
             'discover_luxury_rooms' => 'Discover Our Luxurious Rooms',
             'discover_rooms_desc' => 'Experience unparalleled comfort and elegance in our exquisitely designed rooms. Each accommodation is crafted with premium amenities, modern furnishings, and stunning views.',
             'luxury_beds' => 'Luxury Beds',
@@ -202,7 +194,6 @@ class English
             'balcony' => 'Balcony',
             'check_availability' => 'Check Availability',
 
-            // Payment & Orders UI
             'payment_method' => 'Payment Method',
             'cash' => 'Cash',
             'card' => 'Card',
@@ -221,3 +212,4 @@ class English
         ];
     }
 }
+

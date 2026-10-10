@@ -76,3 +76,4 @@ class FloorResource extends JsonResource
         ];
     }
 }
+

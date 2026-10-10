@@ -245,7 +245,6 @@ class ReservationPaymentController extends Controller
                 ], 400);
             }
 
-            // IDEMPOTENCY CHECK: return existing reservation if already completed
             $existingReservation = null;
             if (!empty($payment->reservation_id)) {
                 $existingReservation = Reservation::withoutGlobalScopes()->find($payment->reservation_id);
@@ -494,3 +493,4 @@ class ReservationPaymentController extends Controller
         return '+251' . $digits;
     }
 }
+

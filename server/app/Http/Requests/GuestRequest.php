@@ -92,3 +92,4 @@ class GuestRequest extends FormRequest
         ];
     }
 }
+

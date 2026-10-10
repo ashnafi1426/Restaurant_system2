@@ -28,7 +28,7 @@ class UserResource extends JsonResource
             'email_verified_at' => $this->email_verified_at?->toISOString(),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
-            // Include hotels when loaded - avoid circular references
+
             'hotels' => $this->when(
                 $this->relationLoaded('hotels'),
                 function () {
@@ -46,3 +46,4 @@ class UserResource extends JsonResource
         ];
     }
 }
+

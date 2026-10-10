@@ -35,3 +35,4 @@ class NewUserCreated extends Mailable
                     ]);
     }
 }
+

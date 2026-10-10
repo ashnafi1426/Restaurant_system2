@@ -39,7 +39,6 @@ class WaiterManagementController extends Controller
         try {
             $hotelId = $this->getHotelId();
 
-            // Auto-sync any hotel users with role 'waiter' into the waiters table if missing
             try {
                 $waiterUsersQuery = User::where(function ($q) {
                     $q->where('role', 'waiter')
@@ -139,12 +138,12 @@ class WaiterManagementController extends Controller
                         })->toArray(),
                     ];
                 });
-            
+
             Log::info('Waiters fetched successfully', [
                 'count' => $waiters->count(),
                 'hotel_id' => $hotelId,
             ]);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $waiters,
@@ -274,7 +273,7 @@ class WaiterManagementController extends Controller
                 'keys' => array_keys($request->all())
             ]);
             $isNewUser = empty($request->input('user_id'));
-            
+
             $rules = [
                 'section' => 'required|string|max:100',
                 'shift' => 'required|in:morning,afternoon,evening,night',
@@ -289,7 +288,7 @@ class WaiterManagementController extends Controller
                 'floor_assignments.*.priority' => 'nullable|string|in:primary,secondary,backup',
                 'floor_assignments.*.assignment_date' => 'sometimes|nullable|date',
             ];
-            
+
             if ($isNewUser) {
                 $rules = array_merge($rules, [
                     'first_name' => 'required|string|max:255',
@@ -302,14 +301,14 @@ class WaiterManagementController extends Controller
                     'user_id' => 'required|uuid|exists:users,id',
                 ]);
             }
-            
+
             Log::info('Waiter validation rules', [
                 'is_new_user' => $isNewUser,
                 'rules' => array_keys($rules)
             ]);
-            
+
             $validated = $request->validate($rules);
-            
+
             Log::info('Waiter validation passed', [
                 'validated_keys' => array_keys($validated)
             ]);
@@ -317,7 +316,7 @@ class WaiterManagementController extends Controller
             if ($isNewUser) {
                 try {
                     $existingUser = User::where('email', $validated['email'])->first();
-                    
+
                     if (!empty($validated['employee_number'])) {
                         $existingWaiterWithNumber = Waiter::where('employee_number', $validated['employee_number'])->first();
                         if ($existingWaiterWithNumber) {
@@ -361,11 +360,11 @@ class WaiterManagementController extends Controller
                                 'email' => $existingUser->email,
                             ]);
                         }
-                        
+
                         $user = $existingUser;
                     } else {
                         $temporaryPassword = $this->generateSecurePassword();
-                        
+
                         $user = User::create([
                             'first_name' => $validated['first_name'],
                             'last_name' => $validated['last_name'],
@@ -380,7 +379,7 @@ class WaiterManagementController extends Controller
 
                         try {
                             \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\NewUserCreated($user, $temporaryPassword));
-                            
+
                             Log::info('Waiter user created with auto-generated password', [
                                 'user_id' => $user->id,
                                 'email' => $user->email,
@@ -400,7 +399,7 @@ class WaiterManagementController extends Controller
                         'message' => $dbError->getMessage(),
                         'sql' => $dbError->getSql() ?? 'N/A',
                     ]);
-                    
+
                     return response()->json([
                         'success' => false,
                         'message' => 'Database error: ' . $dbError->getMessage(),
@@ -411,7 +410,7 @@ class WaiterManagementController extends Controller
                         'file' => $userError->getFile(),
                         'line' => $userError->getLine(),
                     ]);
-                    
+
                     return response()->json([
                         'success' => false,
                         'message' => 'Failed to create user: ' . $userError->getMessage(),
@@ -448,7 +447,7 @@ class WaiterManagementController extends Controller
                 }
 
                 $user = User::find($validated['user_id']);
-                
+
                 $waiterData = [
                     'hotel_id' => $hotelId,
                     'user_id' => $validated['user_id'],
@@ -464,7 +463,7 @@ class WaiterManagementController extends Controller
                     'maximum_orders' => $validated['maximum_orders'],
                     'employee_number' => $validated['employee_number'] ?? null,
                 ];
-                
+
                 Log::info('Creating waiter with data', $waiterData);
 
                 $waiter = Waiter::create($waiterData);
@@ -478,7 +477,7 @@ class WaiterManagementController extends Controller
 
                 if (!empty($validated['floor_assignments'])) {
                     $this->syncFloorAssignments($waiter, $validated['floor_assignments']);
-                    
+
                     Log::info('Floor assignments created', [
                         'waiter_id' => $waiter->id,
                         'assignments_count' => count($validated['floor_assignments']),
@@ -493,7 +492,7 @@ class WaiterManagementController extends Controller
                 ]);
 
                 $responseData = $waiter->load('user', 'floorAssignments.floor', 'floorAssignments.shift');
-                
+
                 Log::info('Response being sent to client', [
                     'data' => $responseData
                 ]);
@@ -501,7 +500,7 @@ class WaiterManagementController extends Controller
                 return response()->json([
                     'success' => true,
                     'data' => $responseData,
-                    'message' => $isNewUser 
+                    'message' => $isNewUser
                         ? 'Waiter created successfully. Login credentials sent to ' . $validated['email']
                         : 'Waiter created successfully',
                 ], 201);
@@ -510,7 +509,7 @@ class WaiterManagementController extends Controller
                     'message' => $dbError->getMessage(),
                     'sql' => $dbError->getSql() ?? 'N/A',
                 ]);
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Database error: ' . $dbError->getMessage(),
@@ -521,7 +520,7 @@ class WaiterManagementController extends Controller
                     'file' => $waiterError->getFile(),
                     'line' => $waiterError->getLine(),
                 ]);
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to create waiter: ' . $waiterError->getMessage(),
@@ -532,7 +531,7 @@ class WaiterManagementController extends Controller
                 'errors' => $validationError->errors(),
                 'request_data' => $request->all()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -545,7 +544,7 @@ class WaiterManagementController extends Controller
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -557,7 +556,7 @@ class WaiterManagementController extends Controller
     {
         try {
             $waiterData = $waiter->load('user')->toArray();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $waiterData,
@@ -567,7 +566,7 @@ class WaiterManagementController extends Controller
                 'waiter_id' => $waiter->id,
                 'message' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -623,7 +622,7 @@ class WaiterManagementController extends Controller
 
             if (isset($validated['floor_assignments'])) {
                 $this->syncFloorAssignments($waiter, $validated['floor_assignments']);
-                
+
                 Log::info('Floor assignments updated', [
                     'waiter_id' => $waiter->id,
                     'assignments_count' => count($validated['floor_assignments']),
@@ -646,7 +645,7 @@ class WaiterManagementController extends Controller
                 'waiter_id' => $waiter->id,
                 'message' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -672,7 +671,7 @@ class WaiterManagementController extends Controller
                 'waiter_id' => $waiter->id,
                 'message' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -699,7 +698,7 @@ class WaiterManagementController extends Controller
                 'waiter_id' => $waiter->id,
                 'message' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -726,7 +725,7 @@ class WaiterManagementController extends Controller
                 'waiter_id' => $waiter->id,
                 'message' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -753,7 +752,7 @@ class WaiterManagementController extends Controller
                 'waiter_id' => $waiter->id,
                 'message' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -785,7 +784,7 @@ class WaiterManagementController extends Controller
                 'waiter_id' => $waiter->id,
                 'message' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -816,7 +815,7 @@ class WaiterManagementController extends Controller
                 'waiter_id' => $waiter->id,
                 'message' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -826,9 +825,8 @@ class WaiterManagementController extends Controller
 
     private function syncFloorAssignments(Waiter $waiter, array $assignments): void
     {
-        // Delete existing floor assignments for this waiter
         \App\Models\WaiterFloorAssignment::where('waiter_id', $waiter->id)->delete();
-        
+
         $hotelId = $waiter->hotel_id ?? $this->getHotelId();
 
         foreach ($assignments as $assignment) {
@@ -857,18 +855,19 @@ class WaiterManagementController extends Controller
         $lowercase = 'abcdefghjkmnpqrstuvwxyz';
         $numbers = '23456789';
         $symbols = '!@#$%&*';
-        
-        $password = 
+
+        $password =
             $uppercase[random_int(0, strlen($uppercase) - 1)] .
             $lowercase[random_int(0, strlen($lowercase) - 1)] .
             $numbers[random_int(0, strlen($numbers) - 1)] .
             $symbols[random_int(0, strlen($symbols) - 1)];
-        
+
         $allChars = $uppercase . $lowercase . $numbers . $symbols;
         for ($i = 4; $i < $length; $i++) {
             $password .= $allChars[random_int(0, strlen($allChars) - 1)];
         }
-        
+
         return str_shuffle($password);
     }
 }
+

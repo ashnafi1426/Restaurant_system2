@@ -20,7 +20,7 @@ class DashboardController extends Controller
     {
         try {
             $user = auth()->user();
-            
+
             if (!$user) {
                 return response()->json([
                     'success' => false,
@@ -37,7 +37,7 @@ class DashboardController extends Controller
             ], 200);
         } catch (Throwable $e) {
             Log::error('Manager dashboard action error', ['error' => $e->getMessage()]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => config('app.debug') ? $e->getMessage() : 'Failed to retrieve dashboard data',
@@ -64,7 +64,7 @@ class DashboardController extends Controller
     public function dailyTrends(Request $request): JsonResponse
     {
         $days = (int) $request->query('days', 7);
-        
+
         return $this->handleAction(
             fn() => $this->dashboardService->getDailyStats($days),
         );
@@ -73,7 +73,7 @@ class DashboardController extends Controller
     public function topSellingItems(Request $request): JsonResponse
     {
         $limit = (int) $request->query('limit', 5);
-        
+
         return $this->handleAction(
             fn() => $this->dashboardService->getTopSellingItems($limit),
         );
@@ -86,3 +86,4 @@ class DashboardController extends Controller
         );
     }
 }
+

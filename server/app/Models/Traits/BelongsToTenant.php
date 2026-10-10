@@ -31,3 +31,4 @@ trait BelongsToTenant
         return $query->withoutGlobalScope(TenantScope::class);
     }
 }
+

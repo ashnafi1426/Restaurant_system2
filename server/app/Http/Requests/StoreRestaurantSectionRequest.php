@@ -32,3 +32,4 @@ class StoreRestaurantSectionRequest extends FormRequest
         ];
     }
 }
+

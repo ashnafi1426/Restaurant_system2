@@ -28,37 +28,38 @@ class RoomPolicy
 
     public function viewAny(User $user): bool
     {
-        return $this->checkTenantAccess($user, null) 
+        return $this->checkTenantAccess($user, null)
             && $this->authService->hasPermission($user, 'rooms.view');
     }
 
     public function view(User $user, Room $room): bool
     {
-        return $this->checkTenantAccess($user, $room->hotel_id) 
+        return $this->checkTenantAccess($user, $room->hotel_id)
             && $this->authService->hasPermission($user, 'rooms.view');
     }
 
     public function create(User $user): bool
     {
-        return $this->checkTenantAccess($user, null) 
+        return $this->checkTenantAccess($user, null)
             && $this->authService->hasPermission($user, 'rooms.create');
     }
 
     public function update(User $user, Room $room): bool
     {
-        return $this->checkTenantAccess($user, $room->hotel_id) 
+        return $this->checkTenantAccess($user, $room->hotel_id)
             && $this->authService->hasPermission($user, 'rooms.update');
     }
 
     public function delete(User $user, Room $room): bool
     {
-        return $this->checkTenantAccess($user, $room->hotel_id) 
+        return $this->checkTenantAccess($user, $room->hotel_id)
             && $this->authService->hasPermission($user, 'rooms.delete');
     }
 
     public function assign(User $user, Room $room): bool
     {
-        return $this->checkTenantAccess($user, $room->hotel_id) 
+        return $this->checkTenantAccess($user, $room->hotel_id)
             && $this->authService->hasPermission($user, 'rooms.assign');
     }
 }
+

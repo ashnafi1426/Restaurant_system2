@@ -31,9 +31,9 @@ class WaiterAssignmentController extends Controller
 
     private function resolveTenant(Request $request): ?string
     {
-        $hotelId = $request->input('hotel_id') 
+        $hotelId = $request->input('hotel_id')
             ?: $request->query('hotel_id')
-            ?: $request->header('X-Hotel-ID') 
+            ?: $request->header('X-Hotel-ID')
             ?: app(TenantContext::class)->getHotelId();
 
         if ($hotelId) {
@@ -275,3 +275,4 @@ class WaiterAssignmentController extends Controller
         ]);
     }
 }
+

@@ -278,19 +278,19 @@ class WaiterAssignmentService
         if (!$isAdminOrManager && $waiterId) {
             $query->where('waiter_id', $waiterId);
         }
-            
+
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
-        
+
         if (!empty($filters['date'])) {
             $query->whereDate('assigned_at', $filters['date']);
         }
-        
+
         $sortBy = $filters['sort_by'] ?? 'assigned_at';
         $sortOrder = $filters['sort_order'] ?? 'desc';
         $query->orderBy($sortBy, $sortOrder);
-        
+
         return $query->paginate($perPage);
     }
 
@@ -374,7 +374,7 @@ class WaiterAssignmentService
             'task_id' => $id,
             'waiter_id' => $waiterId,
         ]);
-        
+
         $task = DeliveryTask::where('id', $id)->first() ?? DeliveryTask::where('order_id', $id)->first();
         if (!$task) {
             throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Task {$id} not found");
@@ -403,14 +403,14 @@ class WaiterAssignmentService
             $task->waiter_id = $waiterId;
             $task->save();
         }
-        
+
         $waiter = Waiter::find($waiterId);
         if ($waiter) {
             $task->accept($waiter);
         } else {
             $task->update(['status' => 'accepted', 'accepted_at' => now()]);
         }
-        
+
         return DeliveryTask::with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy'])->find($task->id);
     }
 
@@ -421,7 +421,7 @@ class WaiterAssignmentService
             throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Task {$id} not found");
         }
         $task->cancel($reason ?? 'Rejected by Staff');
-        
+
         return DeliveryTask::with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy'])->find($task->id);
     }
 
@@ -431,10 +431,10 @@ class WaiterAssignmentService
             'task_id' => $id,
             'waiter_id' => $waiterId,
         ]);
-        
+
         $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
 
-        $task = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)->where('id', $id)->first() 
+        $task = DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)->where('id', $id)->first()
             ?? DeliveryTask::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)->where('order_id', $id)->first();
 
         if (!$task) {
@@ -484,7 +484,7 @@ class WaiterAssignmentService
             $task->waiter_id = $waiterId;
             $task->save();
         }
-        
+
         try {
             $task->markPickedUp();
             if ($task->order) {
@@ -507,7 +507,7 @@ class WaiterAssignmentService
             'task_id' => $id,
             'waiter_id' => $waiterId,
         ]);
-        
+
         $task = DeliveryTask::where('id', $id)->first() ?? DeliveryTask::where('order_id', $id)->first();
         if (!$task) {
             throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Task {$id} not found");
@@ -517,12 +517,12 @@ class WaiterAssignmentService
             $task->waiter_id = $waiterId;
             $task->save();
         }
-        
+
         $task->markOnDelivery();
         if ($task->order) {
             $task->order->update(['status' => 'on_delivery']);
         }
-        
+
         return DeliveryTask::with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy'])->find($task->id);
     }
 
@@ -542,7 +542,7 @@ class WaiterAssignmentService
         if ($task->order) {
             $task->order->update(['status' => 'delivered']);
         }
-        
+
         return DeliveryTask::with(['order.guest', 'order.orderItems', 'order.room', 'waiter.user', 'floor', 'assignedBy'])->find($task->id);
     }
 
@@ -626,3 +626,4 @@ class WaiterAssignmentService
         });
     }
 }
+

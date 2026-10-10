@@ -105,7 +105,6 @@ class DeliveryManagementController extends Controller
             $oldWaiterId = $delivery->waiter_id;
             $newWaiterId = $data['waiter_id'];
 
-            // Verify new waiter exists and is active
             $newWaiter =Waiter::find($newWaiterId);
             if (!$newWaiter || $newWaiter->status !== 'active') {
                 return response()->json([
@@ -114,7 +113,6 @@ class DeliveryManagementController extends Controller
                 ], 422);
             }
 
-            // Check new waiter's workload
             if ($newWaiter->current_orders >= $newWaiter->maximum_orders) {
                 return response()->json([
                     'success' => false,
@@ -122,14 +120,12 @@ class DeliveryManagementController extends Controller
                 ], 422);
             }
 
-            // Update delivery
             $delivery->update([
                 'waiter_id' => $newWaiterId,
                 'assignment_type' => 'manual',
                 'status' => 'assigned',
             ]);
 
-            // Update waiter order counts
             $oldWaiter =Waiter::find($oldWaiterId);
             if ($oldWaiter && $oldWaiter->current_orders > 0) {
                 $oldWaiter->decrement('current_orders');
@@ -168,7 +164,7 @@ class DeliveryManagementController extends Controller
 
     /**
      * Cancel delivery
-     * 
+     *
      * DELETE /api/manager/deliveries/{id}
      */
     public function destroy(Request $request, DeliveryTask $delivery): JsonResponse
@@ -221,7 +217,6 @@ class DeliveryManagementController extends Controller
 
             $query = DeliveryTask::whereBetween('assigned_at', [$startDate, $endDate]);
 
-            // Report data
             $report = [
                 'total_deliveries' => $query->count(),
                 'completed_deliveries' => (clone $query)->where('status', 'delivered')->count(),
@@ -376,3 +371,4 @@ class DeliveryManagementController extends Controller
             ->toArray();
     }
 }
+

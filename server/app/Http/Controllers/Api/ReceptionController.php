@@ -91,3 +91,4 @@ class ReceptionController extends Controller
         ]);
     }
 }
+

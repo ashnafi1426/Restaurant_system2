@@ -16,64 +16,62 @@ class QRCodeService
             if (!is_dir($storageDir)) {
                 mkdir($storageDir, 0755, true);
             }
-            
+
             $filename = "room_{$roomNumber}.png";
             $filePath = $storageDir . '/' . $filename;
-            
+
             try {
                 $qrCode = QrCode::format('png')
                     ->size(300)
                     ->errorCorrection('H')
                     ->generate($url);
-                
+
                 file_put_contents($filePath, $qrCode);
-                
-                // Also copy to public storage for web access
+
                 $publicPath = public_path("storage/qr-codes/{$filename}");
                 $publicDir = dirname($publicPath);
                 if (!is_dir($publicDir)) {
                     mkdir($publicDir, 0755, true);
                 }
                 copy($filePath, $publicPath);
-                
+
                 \Log::info('QR Code saved successfully', [
                     'room_id' => $roomId,
                     'path' => $filePath,
                     'public_path' => $publicPath,
                     'size' => filesize($filePath),
                 ]);
-                
+
             } catch (\Exception $generationError) {
                 \Log::warning('Local QR generation failed, trying API', [
                     'error' => $generationError->getMessage(),
                 ]);
-                
+
                 $qrApiUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($url);
                 $qrImage = @file_get_contents($qrApiUrl);
-                
+
                 if ($qrImage === false) {
                     throw new \Exception('Both local and API QR code generation failed');
                 }
-                
+
                 file_put_contents($filePath, $qrImage);
-                
-                // Also copy to public storage for web access
+
                 $publicPath = public_path("storage/qr-codes/{$filename}");
                 $publicDir = dirname($publicPath);
                 if (!is_dir($publicDir)) {
                     mkdir($publicDir, 0755, true);
                 }
                 copy($filePath, $publicPath);
-                
+
                 \Log::info('QR Code saved from API', [
                     'room_id' => $roomId,
                     'path' => $filePath,
                     'public_path' => $publicPath,
                 ]);
             }
-            
+
             return "qr-codes/{$filename}";
-            
+
         } catch (\Exception $e) {
             \Log::error('QR Code Generation Error', [
                 'room_id' => $roomId,
@@ -96,19 +94,19 @@ class QRCodeService
         if ($room->qr_image_path) {
             Storage::delete("public/{$room->qr_image_path}");
         }
-        
+
         $newPath = self::generateAndSaveQRCode(
             $room->id,
             $room->room_number,
             $room->qr_token,
             $baseUrl
         );
-        
+
         $room->update([
             'qr_image_path' => $newPath,
             'qr_generated_at' => now(),
         ]);
-        
+
         return $newPath;
     }
     public static function deleteQRCode($imagePath)
@@ -119,3 +117,4 @@ class QRCodeService
         return true;
     }
 }
+

@@ -72,7 +72,6 @@ class KitchenService
             });
         }
 
-        // Kitchen staff access restriction: chefs see their assigned orders or unassigned orders
         if ($authUser && in_array(strtolower($authUser->role ?? ''), ['chef', 'cook', 'kitchen_staff'])) {
             $query->where(function ($q) use ($authUser) {
                 $q->where('orders.chef_id', $authUser->id)
@@ -90,10 +89,9 @@ class KitchenService
     {
         $previousStatus = $order->status;
         $updatedOrder = $this->orderStatusService->startPreparing($order, $actor);
-        
-        // Broadcast real-time status update via WebSocket
+
         OrderStatusUpdated::dispatch($updatedOrder, $previousStatus);
-        
+
         return $updatedOrder;
     }
 
@@ -104,10 +102,9 @@ class KitchenService
     {
         $previousStatus = $order->status;
         $updatedOrder = $this->orderStatusService->markReady($order);
-        
-        // Broadcast real-time status update via WebSocket
+
         OrderStatusUpdated::dispatch($updatedOrder, $previousStatus);
-        
+
         return $updatedOrder;
     }
 
@@ -118,10 +115,9 @@ class KitchenService
     {
         $previousStatus = $order->status;
         $updatedOrder = $this->orderStatusService->markServed($order);
-        
-        // Broadcast real-time status update via WebSocket
+
         OrderStatusUpdated::dispatch($updatedOrder, $previousStatus);
-        
+
         return $updatedOrder;
     }
 
@@ -148,7 +144,6 @@ class KitchenService
         $ready = $rows->get(Order::STATUS_READY);
         $served = $rows->get(Order::STATUS_SERVED);
 
-        // Real average prep time for orders completed today
         $servedToday = (clone $base)
             ->where('status', Order::STATUS_SERVED)
             ->whereDate('served_at', today())
@@ -180,3 +175,4 @@ class KitchenService
         ];
     }
 }
+

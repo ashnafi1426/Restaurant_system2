@@ -147,3 +147,4 @@ class WaiterAssignment extends Model
         return $query->whereNotIn('status', ['delivered', 'failed', 'rejected', 'cancelled']);
     }
 }
+

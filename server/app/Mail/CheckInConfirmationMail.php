@@ -38,3 +38,4 @@ class CheckInConfirmationMail extends Mailable
                     ]);
     }
 }
+

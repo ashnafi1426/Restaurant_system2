@@ -38,3 +38,4 @@ class CreateComplaintRequest extends FormRequest
         ];
     }
 }
+

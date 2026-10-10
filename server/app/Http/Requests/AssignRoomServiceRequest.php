@@ -18,3 +18,4 @@ class AssignRoomServiceRequest extends FormRequest
         ];
     }
 }
+

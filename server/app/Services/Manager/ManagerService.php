@@ -142,3 +142,4 @@ class ManagerService
         return ManagerActivityLog::create($data);
     }
 }
+

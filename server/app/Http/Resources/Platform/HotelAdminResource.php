@@ -18,7 +18,7 @@ class HotelAdminResource extends JsonResource
             'membership_id' => $this->id,
             'user_id' => $this->user_id,
             'name' => $this->when(
-                $this->relationLoaded('user') && $this->user, 
+                $this->relationLoaded('user') && $this->user,
                 fn() => $this->user->first_name . ' ' . $this->user->last_name,
                 'Unknown'
             ),
@@ -34,8 +34,7 @@ class HotelAdminResource extends JsonResource
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
-            
-            // Include hotel info when available
+
             'hotel' => $this->whenLoaded('hotel', function () {
                 return [
                     'id' => $this->hotel->id,
@@ -46,3 +45,4 @@ class HotelAdminResource extends JsonResource
         ];
     }
 }
+

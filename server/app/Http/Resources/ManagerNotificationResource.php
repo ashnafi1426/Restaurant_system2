@@ -26,3 +26,4 @@ class ManagerNotificationResource extends JsonResource
         ];
     }
 }
+

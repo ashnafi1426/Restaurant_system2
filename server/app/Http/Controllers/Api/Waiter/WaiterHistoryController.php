@@ -275,3 +275,4 @@ class WaiterHistoryController extends Controller
             ->header('Content-Disposition', 'attachment; filename="performance-report.csv"');
     }
 }
+

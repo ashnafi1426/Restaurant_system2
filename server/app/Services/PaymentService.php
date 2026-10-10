@@ -19,15 +19,15 @@ class PaymentService
             $metadata = $data['metadata'] ?? [];
             $metadata['type'] = 'reservation';
             $metadata['created_at'] = now()->toIso8601String();
-            
+
             $amount = (int)($data['amount'] * 100) / 100;
-            
+
             Log::info('Creating Payment Record', [
                 'amount' => $amount,
                 'amount_original' => $data['amount'],
                 'guest_id' => $data['guest_id'] ?? null,
             ]);
-            
+
             $hotelId = $data['hotel_id'] ?? ($metadata['hotel_id'] ?? null);
 
             $txRef = (new ChapaService())->generateTransactionReference();
@@ -70,7 +70,7 @@ class PaymentService
     {
         try {
             $metadata = $data['metadata'] ?? [];
-            
+
             $metadata['type'] = 'order';
             $metadata['room_id'] = $data['room_id'] ?? ($metadata['room_id'] ?? null);
             $metadata['created_at'] = now()->toIso8601String();
@@ -82,7 +82,7 @@ class PaymentService
                 'metadata_keys' => array_keys($metadata),
             ]);
 
-            $hotelId = $data['hotel_id'] 
+            $hotelId = $data['hotel_id']
                 ?? ($metadata['hotel_id'] ?? null)
                 ?? (!empty($data['room_id']) ? \App\Models\Room::withoutGlobalScopes()->where('id', $data['room_id'])->value('hotel_id') : null)
                 ?? app(\App\Services\TenantContext::class)->getHotelId();
@@ -130,7 +130,7 @@ class PaymentService
     public function handleReservationPaymentSuccess(Payment $payment, array $reservationData): array
     {
         try {
-            // Check if reservation already created and linked
+
             if (!empty($payment->reservation_id)) {
                 $existing = Reservation::withoutGlobalScopes()->find($payment->reservation_id);
                 if ($existing) {
@@ -148,7 +148,6 @@ class PaymentService
                 }
             }
 
-            // Also check if matching reservation was created in the last 5 minutes for this hotel, guest, room, and dates
             $hotelId = $payment->hotel_id ?? ($payment->metadata['hotel_id'] ?? null) ?? ($reservationData['hotel_id'] ?? null);
             $duplicateCheck = Reservation::withoutGlobalScopes()
                 ->where('hotel_id', $hotelId)
@@ -242,8 +241,8 @@ class PaymentService
             $order = DB::transaction(function () use ($payment, $orderData, $orderItems) {
                 $roomId = $orderData['room_id'] ?? null;
                 $room = $roomId ? \App\Models\Room::withoutGlobalScopes()->find($roomId) : null;
-                $hotelId = $payment->hotel_id 
-                    ?? ($room ? $room->hotel_id : null) 
+                $hotelId = $payment->hotel_id
+                    ?? ($room ? $room->hotel_id : null)
                     ?? ($payment->metadata['hotel_id'] ?? null)
                     ?? ($orderData['hotel_id'] ?? null)
                     ?? app(\App\Services\TenantContext::class)->getHotelId();
@@ -402,3 +401,4 @@ class PaymentService
         );
     }
 }
+

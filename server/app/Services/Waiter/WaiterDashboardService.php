@@ -13,7 +13,6 @@ use App\Models\Scopes\TenantScope;
 use App\Services\TenantContext;
 use Illuminate\Support\Facades\Cache;
 
-
 class WaiterDashboardService
 {
     public function getWaiterAssignedFloorIds($waiterId): array
@@ -24,16 +23,15 @@ class WaiterDashboardService
 
         $hotelId = app(TenantContext::class)->getHotelId();
         $cacheKey = $hotelId ? "waiter_floor_ids:{$hotelId}:{$waiterId}" : "waiter_floor_ids:{$waiterId}";
-        
+
         return Cache::remember($cacheKey, 60, function () use ($waiterId, $hotelId) {
             try {
                 $query = WaiterFloorAssignment::where('waiter_id', $waiterId);
-                
-                // Apply hotel_id filter for tenant isolation
+
                 if ($hotelId) {
                     $query->where('hotel_id', $hotelId);
                 }
-                
+
                 return $query->where(function ($q) {
                         $q->where('is_active', true)
                           ->orWhere('status', 'active');
@@ -118,7 +116,6 @@ class WaiterDashboardService
             $todayStats = $this->getTodayStats($waiterId);
             $recentAssignments = $this->getRecentAssignments($waiterId, 8);
 
-            // Find active delivery in-memory without extra round-trip query
             $activeDelivery = null;
             foreach ($recentAssignments as $assignment) {
                 if (in_array($assignment['status'] ?? '', ['on_delivery', 'picked_up'])) {
@@ -132,11 +129,9 @@ class WaiterDashboardService
                 $activeDelivery = $onDeliveryList[0] ?? null;
             }
 
-            // Derive counts from todayStats without re-querying the database
             $pendingCount = (int) ($todayStats['pending_assignments'] ?? 0);
             $activeCount = (int) ($todayStats['active_assignments'] ?? 0);
 
-            // Lightweight initial performance summary (avoids 30-day database table scans on dashboard load)
             $performance = [
                 'today' => [
                     'deliveries' => (int) ($todayStats['completed_deliveries'] ?? 0),
@@ -184,7 +179,6 @@ class WaiterDashboardService
 
             $taskQuery = DeliveryTask::withoutGlobalScope(TenantScope::class);
 
-            // CRITICAL: Apply hotel_id filter for tenant isolation
             if ($hotelId) {
                 $taskQuery->where('delivery_tasks.hotel_id', $hotelId);
             }
@@ -196,7 +190,6 @@ class WaiterDashboardService
                 });
             }
 
-            // Single combined query for both historical and current stats
             $allStats = $taskQuery->selectRaw('
                 -- Today historical
                 SUM(CASE WHEN DATE(COALESCE(delivered_at, assigned_at, created_at)) = CURDATE() THEN 1 ELSE 0 END) as total_assignments,
@@ -207,14 +200,13 @@ class WaiterDashboardService
                 SUM(CASE WHEN status IN ("assigned", "waiting_assignment", "accepted", "picked_up", "on_delivery") AND DATE(COALESCE(assigned_at, created_at)) = CURDATE() THEN 1 ELSE 0 END) as active_assignments,
                 SUM(CASE WHEN status IN ("picked_up", "on_delivery") THEN 1 ELSE 0 END) as on_delivery_count,
                 -- Average delivery time
-                ROUND(AVG(CASE 
-                    WHEN status = "delivered" AND DATE(COALESCE(delivered_at, updated_at)) = CURDATE() 
-                    THEN TIMESTAMPDIFF(MINUTE, assigned_at, delivered_at) 
-                    ELSE NULL 
+                ROUND(AVG(CASE
+                    WHEN status = "delivered" AND DATE(COALESCE(delivered_at, updated_at)) = CURDATE()
+                    THEN TIMESTAMPDIFF(MINUTE, assigned_at, delivered_at)
+                    ELSE NULL
                 END), 2) as average_delivery_time
             ')->first();
 
-            // Accurately determine orders awaiting waiter pickup
             $readyOrders = $this->getReadyForPickup($waiterId, 100);
             $pendingPickup = count($readyOrders);
 
@@ -225,8 +217,8 @@ class WaiterDashboardService
 
             $avgTime = (float)($allStats->average_delivery_time ?? 0);
 
-            $completionRate = ($completedCount + $onDelivery) > 0 
-                ? round(($completedCount / max(1, $completedCount + $onDelivery)) * 100, 1) 
+            $completionRate = ($completedCount + $onDelivery) > 0
+                ? round(($completedCount / max(1, $completedCount + $onDelivery)) * 100, 1)
                 : 0.0;
 
             return [
@@ -267,7 +259,7 @@ class WaiterDashboardService
             $now = Carbon::now();
             $today = Carbon::today();
             $hotelId = app(TenantContext::class)->getHotelId();
-            
+
             $userIds = [$waiterId];
             if (auth()->check()) {
                 $userIds[] = auth()->id();
@@ -283,7 +275,6 @@ class WaiterDashboardService
             }
             $userIds = array_values(array_unique(array_filter($userIds)));
 
-            // Apply hotel_id filter for tenant isolation
             $performanceQuery = WaiterPerformance::whereIn('waiter_id', $userIds);
             if ($hotelId) {
                 $performanceQuery->where('hotel_id', $hotelId);
@@ -293,39 +284,37 @@ class WaiterDashboardService
                 ->where('metric_date', $today)
                 ->first();
 
-            // Fetch both week and month performance in one query
             $allPerformance = (clone $performanceQuery)
                 ->where('metric_date', '>=', $now->copy()->subDays(30)->startOfDay())
                 ->get();
-            
+
             $weekPerformance = $allPerformance->filter(fn($p) => $p->metric_date >= $now->copy()->subDays(7)->startOfDay());
             $monthPerformance = $allPerformance;
 
-            // Single aggregated query for all time windows with hotel_id filter
             $taskMetricsQuery = DeliveryTask::whereIn('waiter_id', $userIds);
-            
+
             if ($hotelId) {
                 $taskMetricsQuery->where('delivery_tasks.hotel_id', $hotelId);
             }
-            
+
             $taskMetrics = $taskMetricsQuery->selectRaw('
                     SUM(CASE WHEN status = "delivered" AND DATE(delivered_at) = CURDATE() THEN 1 ELSE 0 END) as today_completed,
                     SUM(CASE WHEN status IN ("failed", "cancelled") AND DATE(COALESCE(cancelled_at, created_at)) = CURDATE() THEN 1 ELSE 0 END) as today_failed,
-                    ROUND(AVG(CASE WHEN status = "delivered" AND DATE(delivered_at) = CURDATE() AND TIMESTAMPDIFF(MINUTE, COALESCE(assigned_at, created_at), delivered_at) > 0 
-                        THEN TIMESTAMPDIFF(MINUTE, COALESCE(assigned_at, created_at), delivered_at) 
-                        ELSE NULL 
+                    ROUND(AVG(CASE WHEN status = "delivered" AND DATE(delivered_at) = CURDATE() AND TIMESTAMPDIFF(MINUTE, COALESCE(assigned_at, created_at), delivered_at) > 0
+                        THEN TIMESTAMPDIFF(MINUTE, COALESCE(assigned_at, created_at), delivered_at)
+                        ELSE NULL
                     END), 1) as today_avg_time,
                     SUM(CASE WHEN status = "delivered" AND delivered_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as week_completed,
                     SUM(CASE WHEN status IN ("failed", "cancelled") AND COALESCE(cancelled_at, created_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as week_failed,
-                    ROUND(AVG(CASE WHEN status = "delivered" AND delivered_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND TIMESTAMPDIFF(MINUTE, COALESCE(assigned_at, created_at), delivered_at) > 0 
-                        THEN TIMESTAMPDIFF(MINUTE, COALESCE(assigned_at, created_at), delivered_at) 
-                        ELSE NULL 
+                    ROUND(AVG(CASE WHEN status = "delivered" AND delivered_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND TIMESTAMPDIFF(MINUTE, COALESCE(assigned_at, created_at), delivered_at) > 0
+                        THEN TIMESTAMPDIFF(MINUTE, COALESCE(assigned_at, created_at), delivered_at)
+                        ELSE NULL
                     END), 1) as week_avg_time,
                     SUM(CASE WHEN status = "delivered" AND delivered_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as month_completed,
                     SUM(CASE WHEN status IN ("failed", "cancelled") AND COALESCE(cancelled_at, created_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as month_failed,
-                    ROUND(AVG(CASE WHEN status = "delivered" AND delivered_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) AND TIMESTAMPDIFF(MINUTE, COALESCE(assigned_at, created_at), delivered_at) > 0 
-                        THEN TIMESTAMPDIFF(MINUTE, COALESCE(assigned_at, created_at), delivered_at) 
-                        ELSE NULL 
+                    ROUND(AVG(CASE WHEN status = "delivered" AND delivered_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) AND TIMESTAMPDIFF(MINUTE, COALESCE(assigned_at, created_at), delivered_at) > 0
+                        THEN TIMESTAMPDIFF(MINUTE, COALESCE(assigned_at, created_at), delivered_at)
+                        ELSE NULL
                     END), 1) as month_avg_time
                 ')
                 ->first();
@@ -411,8 +400,7 @@ class WaiterDashboardService
             $hasAssignments = !empty($assignedTableIds) || !empty($assignedFloorIds);
 
             $baseQuery = DeliveryTask::withoutGlobalScope(TenantScope::class);
-            
-            // CRITICAL: Apply hotel_id filter for tenant isolation
+
             if ($hotelId) {
                 $baseQuery->where('delivery_tasks.hotel_id', $hotelId);
             }
@@ -466,7 +454,7 @@ class WaiterDashboardService
                 ])
                 ->select([
                     'id', 'order_id', 'room_id', 'floor_id', 'table_id', 'status', 'assignment_type',
-                    'assigned_at', 'accepted_at', 'picked_up_at', 'on_delivery_at', 
+                    'assigned_at', 'accepted_at', 'picked_up_at', 'on_delivery_at',
                     'delivered_at', 'remarks', 'created_at'
                 ])
                 ->orderBy('created_at', 'desc')
@@ -475,7 +463,7 @@ class WaiterDashboardService
 
             if ($deliveryTasks->isEmpty()) {
                 return [];
-            } 
+            }
 
             return $deliveryTasks->map(function ($delivery) {
                     $orderNumber = $delivery->order?->order_number
@@ -542,7 +530,7 @@ class WaiterDashboardService
                 'icon' => 'CheckCircle',
                 'timestamp' => $assignment->accepted_at,
                 'completed' => in_array($assignment->status, ['accepted', 'picked_up', 'on_delivery', 'delivered']),
-                'duration' => $assignment->accepted_at && $assignment->assigned_at 
+                'duration' => $assignment->accepted_at && $assignment->assigned_at
                     ? $assignment->assigned_at->diffInMinutes($assignment->accepted_at)
                     : null,
             ],
@@ -552,7 +540,7 @@ class WaiterDashboardService
                 'icon' => 'Package',
                 'timestamp' => $assignment->picked_up_at,
                 'completed' => in_array($assignment->status, ['picked_up', 'on_delivery', 'delivered']),
-                'duration' => $assignment->picked_up_at && $assignment->accepted_at 
+                'duration' => $assignment->picked_up_at && $assignment->accepted_at
                     ? $assignment->accepted_at->diffInMinutes($assignment->picked_up_at)
                     : null,
             ],
@@ -562,8 +550,8 @@ class WaiterDashboardService
                 'icon' => 'Truck',
                 'timestamp' => null,
                 'completed' => in_array($assignment->status, ['on_delivery', 'delivered']),
-                'duration' => $assignment->picked_up_at 
-                    ? ($assignment->status === 'delivered' 
+                'duration' => $assignment->picked_up_at
+                    ? ($assignment->status === 'delivered'
                         ? $assignment->picked_up_at->diffInMinutes($assignment->delivered_at)
                         : now()->diffInMinutes($assignment->picked_up_at))
                     : null,
@@ -586,7 +574,7 @@ class WaiterDashboardService
                 'timestamp' => $assignment->failed_at,
                 'completed' => true,
                 'reason' => $assignment->failure_reason,
-                'duration' => $assignment->failed_at && $assignment->assigned_at 
+                'duration' => $assignment->failed_at && $assignment->assigned_at
                     ? $assignment->assigned_at->diffInMinutes($assignment->failed_at)
                     : null,
             ];
@@ -606,12 +594,11 @@ class WaiterDashboardService
 
             $query = DeliveryTask::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['assigned', 'waiting_assignment']);
-            
-            // CRITICAL: Apply hotel_id filter for tenant isolation
+
             if ($hotelId) {
                 $query->where('delivery_tasks.hotel_id', $hotelId);
             }
-            
+
             if ($waiterId && (!$isAdminOrManager || $hasAssignments)) {
                 $query->where(function($q) use ($waiterId, $assignedFloorIds, $assignedTableIds, $hasAssignments) {
                     $q->where('delivery_tasks.waiter_id', $waiterId);
@@ -660,12 +647,11 @@ class WaiterDashboardService
 
             $query = DeliveryTask::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['accepted', 'picked_up', 'on_delivery']);
-            
-            // CRITICAL: Apply hotel_id filter for tenant isolation
+
             if ($hotelId) {
                 $query->where('delivery_tasks.hotel_id', $hotelId);
             }
-            
+
             if (!$isAdminOrManager && $waiterId) {
                 $query->where('delivery_tasks.waiter_id', $waiterId);
             }
@@ -775,10 +761,9 @@ class WaiterDashboardService
 
             if ($waiterId && (!$isAdminOrManager || $hasAssignments)) {
                 $tasksQuery->where(function ($q) use ($waiterId, $assignedFloorIds, $assignedTableIds, $hasAssignments) {
-                    // 1. Explicitly assigned to this waiter
+
                     $q->where('delivery_tasks.waiter_id', $waiterId);
 
-                    // 2. Unassigned or waiter-assigned tasks matching assigned tables
                     if (!empty($assignedTableIds)) {
                         $q->orWhere(function ($sub) use ($assignedTableIds, $waiterId) {
                             $sub->where(function ($w) use ($waiterId) {
@@ -791,7 +776,6 @@ class WaiterDashboardService
                         });
                     }
 
-                    // 3. Unassigned or waiter-assigned tasks matching assigned floors
                     if (!empty($assignedFloorIds)) {
                         $q->orWhere(function ($sub) use ($assignedFloorIds, $waiterId) {
                             $sub->where(function ($w) use ($waiterId) {
@@ -804,7 +788,6 @@ class WaiterDashboardService
                         });
                     }
 
-                    // 4. Pool fallback ONLY if waiter has NO assigned tables and NO assigned floors
                     if (!$hasAssignments) {
                         $q->orWhereNull('delivery_tasks.waiter_id');
                     }
@@ -838,12 +821,12 @@ class WaiterDashboardService
                 $tableSection = $task->table?->section ?? $order->table?->section ?? null;
                 $isTableOrder = !empty($tableNumber) || !empty($task->table_id) || !empty($order->table_id) || in_array($order->order_type, ['dine_in', 'walk_in']);
 
-                $roomNumber = !$isTableOrder 
+                $roomNumber = !$isTableOrder
                     ? ($task->room?->room_number ?? $order->room?->room_number ?? null)
                     : null;
 
-                $destination = $tableNumber 
-                    ? "Table {$tableNumber}" 
+                $destination = $tableNumber
+                    ? "Table {$tableNumber}"
                     : ($roomNumber ? "Room {$roomNumber}" : ($isTableOrder ? 'Table Order' : 'Room Service'));
 
                 $guestName = $order->guest ? trim($order->guest->first_name . ' ' . $order->guest->last_name) : ($tableNumber ? "Table {$tableNumber} Guest" : 'Guest');
@@ -1002,7 +985,7 @@ class WaiterDashboardService
         try {
             $hotelId = app(TenantContext::class)->getHotelId();
             $isAdminOrManager = auth()->user() && (auth()->user()->isPlatformAdmin() || in_array(auth()->user()->role, ['admin', 'hotel_admin', 'manager']));
-            
+
             $baseQuery = DeliveryTask::withoutGlobalScope(TenantScope::class)
                 ->whereIn('status', ['on_delivery', 'picked_up']);
 
@@ -1034,7 +1017,7 @@ class WaiterDashboardService
                 ->orderBy('created_at', 'asc')
                 ->limit($limit)
                 ->get();
-            
+
             return $tasks->map(function ($assignment) {
                 $tableNumber = $assignment->table?->table_number ?? $assignment->order?->table?->table_number ?? null;
                 $isTableOrder = !empty($tableNumber) || !empty($assignment->table_id) || !empty($assignment->order?->table_id);
@@ -1084,7 +1067,7 @@ class WaiterDashboardService
                     'order.room:id,room_number',
                 ])
                 ->select([
-                    'id', 'order_id', 'room_id', 'status', 'delivered_at', 
+                    'id', 'order_id', 'room_id', 'status', 'delivered_at',
                     'remarks', 'assigned_at', 'picked_up_at', 'created_at', 'updated_at'
                 ])
                 ->orderBy('delivered_at', 'desc')
@@ -1100,8 +1083,8 @@ class WaiterDashboardService
                         ?? ($assignment->room_id ? $assignment->room_id : 'N/A');
 
                     $guest = $assignment->order?->guest;
-                    $guestName = $guest 
-                        ? trim($guest->first_name . ' ' . $guest->last_name) 
+                    $guestName = $guest
+                        ? trim($guest->first_name . ' ' . $guest->last_name)
                         : ($roomNumber !== 'N/A' ? 'Guest Room ' . $roomNumber : 'Guest');
 
                     $remarks = $assignment->remarks ?? $assignment->order?->notes ?? 'None';
@@ -1120,7 +1103,7 @@ class WaiterDashboardService
                     ];
                 })
                 ->toArray();
-            
+
             return $results;
         } catch (\Throwable $e) {
             \Log::error('Completed deliveries error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
@@ -1167,7 +1150,7 @@ class WaiterDashboardService
                     }
                 })
                 ->toArray();
-            
+
             return $results;
         } catch (\Throwable $e) {
             \Log::error('Failed deliveries error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine(), [
@@ -1208,7 +1191,6 @@ class WaiterDashboardService
             $weekStart = Carbon::now()->startOfWeek();
             $weekEnd = $weekStart->copy()->addDays(6);
 
-            // Single query for all 7 days
             $performances = WaiterPerformance::where('waiter_id', $waiterId)
                 ->whereBetween('metric_date', [$weekStart, $weekEnd])
                 ->get()
@@ -1306,7 +1288,7 @@ class WaiterDashboardService
                     'rating' => round($lastWeek->avg('rating'), 2),
                 ],
                 'growth' => [
-                    'deliveries' => $lastWeekDeliveries > 0 
+                    'deliveries' => $lastWeekDeliveries > 0
                         ? round((($thisWeekDeliveries - $lastWeekDeliveries) / $lastWeekDeliveries) * 100, 2)
                         : 0,
                 ],
@@ -1325,7 +1307,7 @@ class WaiterDashboardService
     {
         try {
             $today = Carbon::today();
-            
+
             $stats =DeliveryTask::where('waiter_id', $waiterId)
                 ->whereDate('assigned_at', $today)
                 ->selectRaw('
@@ -1358,3 +1340,4 @@ class WaiterDashboardService
         }
     }
 }
+

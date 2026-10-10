@@ -274,3 +274,4 @@ class CashierPaymentController extends Controller
         }
     }
 }
+

@@ -42,7 +42,7 @@ class DashboardController extends Controller
             }
 
             $payload = Cache::remember($cacheKey, 300, function () use ($hotelId, $user) {
-                // 1. Room statistics in a single aggregated query with column-level efficiency
+
                 $roomStats = Room::withoutGlobalScopes()
                     ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                     ->selectRaw("
@@ -61,12 +61,10 @@ class DashboardController extends Controller
 
                 $occupancyRate = $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100, 1) : 0.0;
 
-                // 2. Room types count
                 $totalRoomTypes = RoomType::withoutGlobalScopes()
                     ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                     ->count();
 
-                // 3. Staff & User metrics
                 if ($hotelId) {
                     $totalUsers = HotelUser::where('hotel_id', $hotelId)->count();
                     $activeStaff = HotelUser::where('hotel_id', $hotelId)->where('is_active', true)->count();
@@ -79,7 +77,6 @@ class DashboardController extends Controller
                     $activeStaff = User::where('is_active', true)->count();
                 }
 
-                // 4. Revenue calculation (Today)
                 $today = Carbon::today();
                 $todayRevenue = 0.0;
                 try {
@@ -100,10 +97,8 @@ class DashboardController extends Controller
                     $todayRevenue = (float) ($resQuery->sum('total_amount') ?: 0);
                 }
 
-                // 5. Monthly Revenue (Last 6 Months)
                 $monthlyRevenue = $this->getMonthlyRevenueSeries($hotelId);
 
-                // 6. Recent Reservations - Column pruning & Eager Loading to eliminate N+1 queries
                 $recentReservations = Reservation::withoutGlobalScopes()
                     ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                     ->select(['id', 'booking_reference', 'guest_id', 'room_id', 'check_in_date', 'status', 'total_amount', 'created_at'])
@@ -135,7 +130,6 @@ class DashboardController extends Controller
                     ->values()
                     ->all();
 
-                // 7. Maintenance alerts - Pruned columns & pure array
                 $maintenanceAlerts = Room::withoutGlobalScopes()
                     ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                     ->where('status', 'maintenance')
@@ -153,7 +147,6 @@ class DashboardController extends Controller
                     ->values()
                     ->all();
 
-                // 8. Staff activity stream - Pure native array
                 $staffActivity = [
                     [
                         'id' => 1,
@@ -164,7 +157,6 @@ class DashboardController extends Controller
                     ],
                 ];
 
-                // 9. Orders summary - Aggregated count & pruned columns
                 $orderStats = [
                     'total' => 0,
                     'total_today' => 0,
@@ -204,7 +196,6 @@ class DashboardController extends Controller
                     ];
                 } catch (Throwable) {}
 
-                // 10. Products summary
                 $productStats = [
                     'total_items' => 0,
                     'total_rooms' => $totalRooms,
@@ -215,7 +206,6 @@ class DashboardController extends Controller
                     $productStats['total_items'] = $itemQuery->count();
                 } catch (Throwable) {}
 
-                // 11. Settings & Tenant metadata
                 $settingsData = [
                     'hotel_id' => $hotelId,
                     'hotel_name' => null,
@@ -259,7 +249,6 @@ class DashboardController extends Controller
                     ],
                     'settings' => $settingsData,
 
-                    // Legacy keys preserved for complete backward compatibility:
                     'overview' => [
                         'totalRooms' => $totalRooms,
                         'totalRoomTypes' => $totalRoomTypes,
@@ -475,3 +464,4 @@ class DashboardController extends Controller
         return $this->getMonthlyRevenueSeries($hotelId);
     }
 }
+

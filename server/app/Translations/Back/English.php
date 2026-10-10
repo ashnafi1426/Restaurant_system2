@@ -7,7 +7,7 @@ class English
     public static function get(): array
     {
         return [
-            // Header & Navigation Shell
+
             'dashboard' => 'Dashboard',
             'hotel_management_system' => 'Hotel Management System',
             'switch_hotel' => 'Switch Hotel',
@@ -29,7 +29,6 @@ class English
             'collapse_sidebar' => 'Collapse',
             'expand_sidebar' => 'Expand',
 
-            // Roles
             'admin' => 'Admin',
             'manager' => 'Manager',
             'receptionist' => 'Receptionist',
@@ -45,7 +44,6 @@ class English
             'users' => 'Users',
             'permissions' => 'Permissions',
 
-            // Sidebar Sections & Modules
             'General' => 'General',
             'Management' => 'Management',
             'Hospitality' => 'Hospitality',
@@ -124,7 +122,6 @@ class English
             'Hotel Settings' => 'Hotel Settings',
             'hotel_settings' => 'Hotel Settings',
 
-            // Common CRUD & Actions
             'actions' => 'Actions',
             'action' => 'Action',
             'create' => 'Create',
@@ -164,7 +161,6 @@ class English
             'submit' => 'Submit',
             'refresh' => 'Refresh',
 
-            // Table Columns & Labels
             'id' => 'ID',
             'name' => 'Name',
             'first_name' => 'First Name',
@@ -198,7 +194,6 @@ class English
             'description' => 'Description',
             'notes' => 'Notes',
 
-            // Status Values
             'available' => 'Available',
             'occupied' => 'Occupied',
             'reserved' => 'Reserved',
@@ -217,7 +212,6 @@ class English
             'unpaid' => 'Unpaid',
             'refunded' => 'Refunded',
 
-            // Dashboard Metrics & KPIs
             'total_revenue' => 'Total Revenue',
             'total_bookings' => 'Total Bookings',
             'total_orders' => 'Total Orders',
@@ -233,7 +227,6 @@ class English
             'room_management' => 'Room Management',
             'staff_management' => 'Staff Management',
 
-            // Sidebar sections & operational items
             'Deliveries' => 'Deliveries',
             'Delivery History' => 'Delivery History',
             'BILLING' => 'Billing',
@@ -263,7 +256,6 @@ class English
             'User Role Assignments' => 'User Role Assignments',
             'Rooms Management' => 'Rooms Management',
 
-            // Admin Dashboard
             'administrator_dashboard' => 'Administrator Dashboard',
             'Administrator Dashboard' => 'Administrator Dashboard',
             'super_admin' => 'Super Admin',
@@ -382,3 +374,4 @@ class English
         ];
     }
 }
+

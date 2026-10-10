@@ -152,3 +152,4 @@ class TenantRoleService
         return $membership;
     }
 }
+

@@ -31,7 +31,6 @@ class AssignChefsToExistingOrders extends Command
     {
         $this->info(' Starting to assign chefs to unassigned orders...');
 
-        // Get all unassigned orders
         $unassignedOrders = Order::whereNull('chef_id')->get();
         $total = $unassignedOrders->count();
 
@@ -42,7 +41,6 @@ class AssignChefsToExistingOrders extends Command
 
         $this->info("Found {$total} unassigned orders");
 
-        // Get all chefs
         $chefs = User::where('role', 'chef')->pluck('id')->toArray();
 
         if (empty($chefs)) {
@@ -57,7 +55,7 @@ class AssignChefsToExistingOrders extends Command
         $bar->start();
 
         foreach ($unassignedOrders as $order) {
-            // Find chef with least workload
+
             $chefWorkload = [];
             foreach ($chefs as $chefId) {
                 $count = Order::where('chef_id', $chefId)
@@ -66,7 +64,6 @@ class AssignChefsToExistingOrders extends Command
                 $chefWorkload[$chefId] = $count;
             }
 
-            // Assign to chef with minimum workload
             $selectedChef = array_key_first($chefWorkload);
             foreach ($chefWorkload as $chefId => $count) {
                 if ($count < $chefWorkload[$selectedChef]) {
@@ -88,3 +85,4 @@ class AssignChefsToExistingOrders extends Command
         return 0;
     }
 }
+

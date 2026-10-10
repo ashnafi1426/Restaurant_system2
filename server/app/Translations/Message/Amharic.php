@@ -7,7 +7,7 @@ class Amharic
     public static function get(): array
     {
         return [
-            // General System Responses
+
             'success' => 'ተግባሩ በተሳካ ሁኔታ ተከናውኗል',
             'error' => 'ያልተጠበቀ ስህተት ተከስቷል',
             'server_error' => 'የሲስተም ስህተት ተከስቷል። እባክዎ ትንሽ ቆይተው እንደገና ይሞክሩ።',
@@ -29,7 +29,6 @@ class Amharic
             'language_changed' => 'ቋንቋ በተሳካ ሁኔታ ተቀይሯል',
             'hotel_switched' => 'ሆቴል በተሳካ ሁኔታ ተቀይሯል',
 
-            // Auth & Account
             'login_success' => 'በተሳካ ሁኔታ ገብተዋል',
             'login_failed' => 'የተሳሳተ ኢሜይል ወይም የይለፍ ቃል',
             'login_required' => 'እባክዎ ለመቀጠል መጀመሪያ ይግቡ',
@@ -47,7 +46,6 @@ class Amharic
             'registration_success' => 'ምዝገባው በተሳካ ሁኔታ ተጠናቋል።',
             'access_denied' => 'መዳረሻ ተከልክሏል። በቂ ፈቃድ የለዎትም።',
 
-            // Orders, Food, Cart & QR
             'added_to_cart' => 'ወደ ቅርጫት በተሳካ ሁኔታ ተጨምሯል',
             'removed_from_cart' => 'እቃው ከቅርጫት ወጥቷል',
             'cart_cleared' => 'ቅርጫቱ ጸድቷል',
@@ -69,7 +67,6 @@ class Amharic
             'qr_expired' => 'ይህ የQR ኮድ ጊዜው አልፎበታል',
             'no_active_reservation' => 'ለዚህ ክፍል ንቁ የሆነ ማስያዣ የለም። እባክዎ መጀመሪያ ቼክ-ኢን ያድርጉ።',
 
-            // Rooms, Bookings & Guests
             'reservation_created' => 'ክፍሉ በተሳካ ሁኔታ ተይዟል',
             'reservation_confirmed' => 'የክፍል ማስያዣው ተረጋግጧል',
             'reservation_cancelled' => 'የክፍል ማስያዣው ተሰርዟል',
@@ -87,7 +84,6 @@ class Amharic
             'guest_registered' => 'የእንግዳ መረጃ በተሳካ ሁኔታ ተመዝግቧል',
             'guest_not_found' => 'እንግዳው አልተገኘም',
 
-            // Payments, Invoices & Billing
             'payment_successful' => 'ክፍያው በተሳካ ሁኔታ ተጠናቋል',
             'payment_failed' => 'ክፍያው አልተሳካም። እባክዎ እንደገና ይሞክሩ ወይም ሌላ የክፍያ መንገድ ይምረጡ።',
             'payment_pending' => 'ክፍያው በማረጋገጥ ላይ ነው',
@@ -101,7 +97,6 @@ class Amharic
             'insufficient_balance' => 'በቂ ሂሳብ የለም',
             'transaction_recorded' => 'የገንዘብ ዝውውሩ በተሳካ ሁኔታ ተመዝግቧል',
 
-            // Menu Management
             'menu_item_created' => 'የምግብ ዝርዝር በተሳካ ሁኔታ ተፈጥሯል',
             'menu_item_updated' => 'የምግብ ዝርዝር በተሳካ ሁኔታ ተሻሽሏል',
             'menu_item_deleted' => 'የምግብ ዝርዝር በተሳካ ሁኔታ ተሰርዟል',
@@ -110,7 +105,6 @@ class Amharic
             'category_deleted' => 'ምድብ በተሳካ ሁኔታ ተሰርዟል',
             'item_stock_updated' => 'የምግቡ አቅርቦት ሁኔታ ተሻሽሏል',
 
-            // Reviews & Ratings
             'review_submitted' => 'እናመሰግናለን! አስተያየትዎ በተሳካ ሁኔታ ተልኳል',
             'review_deleted' => 'አስተያየቱ በተሳካ ሁኔታ ተሰርዟል',
             'review_approved' => 'አስተያየቱ ጸድቋል',
@@ -118,7 +112,6 @@ class Amharic
             'rating_required' => 'እባክዎ ከ1 እስከ 5 ኮከብ ደረጃ ይስጡ',
             'already_reviewed' => 'ለዚህ አገልግሎት ወይም ቆይታ አስቀድመው አስተያየት ሰጥተዋል',
 
-            // Staff & RBAC
             'staff_created' => 'ሰራተኛው በተሳካ ሁኔታ ተመዝግቧል',
             'staff_updated' => 'የሰራተኛው መረጃ ተሻሽሏል',
             'staff_deleted' => 'ሰራተኛው በተሳካ ሁኔታ ተሰርዟል',
@@ -130,3 +123,4 @@ class Amharic
         ];
     }
 }
+

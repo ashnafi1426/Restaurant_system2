@@ -14,10 +14,10 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * CustomerOrderController
- * 
+ *
  * Public API for customers to track their order status in real-time.
  * Used by OrderStatusPage.vue for initial data load before WebSocket subscription.
- * 
+ *
  * Multi-tenant security: Validates hotel_id to prevent cross-tenant access.
  */
 class CustomerOrderController extends Controller
@@ -28,9 +28,9 @@ class CustomerOrderController extends Controller
 
     /**
      * Get order status for customer tracking.
-     * 
+     *
      * Route: GET /api/guest/orders/{orderId}/status
-     * 
+     *
      * @param Request $request
      * @param string $orderId - Order UUID or order_number
      * @return JsonResponse
@@ -45,7 +45,6 @@ class CustomerOrderController extends Controller
                 'ip' => $request->ip()
             ]);
 
-            // Find order by UUID or order_number with all necessary relations eager loaded
             $order = Order::withoutGlobalScopes()
                 ->with([
                     'room' => fn($q) => $q->withoutGlobalScopes(),
@@ -74,14 +73,13 @@ class CustomerOrderController extends Controller
                 ], 404);
             }
 
-            // Check if this is a guest request with QR token
             $qrToken = $request->query('qr_token') ?? $request->header('X-QR-Token');
             $isGuestRequest = !empty($qrToken);
 
             if ($isGuestRequest) {
-                // Validate QR token matches the order's room/table, payment metadata, or table/room in the same hotel
+
                 $isValidToken = false;
-                
+
                 if ($order->room && $order->room->qr_token === $qrToken) {
                     $isValidToken = true;
                 } elseif ($order->table && $order->table->qr_token === $qrToken) {
@@ -93,30 +91,29 @@ class CustomerOrderController extends Controller
                 } elseif (Payment::withoutGlobalScopes()->where('order_id', $order->id)->where('metadata->qr_token', $qrToken)->exists()) {
                     $isValidToken = true;
                 }
-                
+
                 if (!$isValidToken) {
                     \Log::warning('[CustomerOrder] Invalid QR token for guest order', [
                         'order_id' => $orderId,
                         'qr_token' => substr($qrToken, 0, 4) . '****',
                         'ip' => $request->ip()
                     ]);
-                    
+
                     return response()->json([
                         'success' => false,
                         'message' => 'Invalid QR token.',
                         'error' => 'INVALID_TOKEN'
                     ], 403);
                 }
-                
+
                 \Log::info('[CustomerOrder] Guest access validated via QR token', [
                     'order_id' => $orderId,
                     'hotel_id' => $order->hotel_id
                 ]);
             } else {
-                // For authenticated requests, validate hotel_id
+
                 $requestHotelId = $this->extractHotelId($request, $order);
 
-                // CRITICAL: Validate hotel_id matches (multi-tenant security)
                 if ($requestHotelId && $order->hotel_id !== $requestHotelId) {
                     Log::warning('[CustomerOrder] Hotel ID mismatch - potential unauthorized access attempt', [
                         'order_id' => $orderId,
@@ -133,7 +130,6 @@ class CustomerOrderController extends Controller
                 }
             }
 
-            // Cache computed status payload for 5 seconds to reduce load during rapid frontend polling/refreshes
             $cacheKey = "customer_order_status_{$order->id}";
             $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 5, function () use ($order) {
                 return [
@@ -145,16 +141,13 @@ class CustomerOrderController extends Controller
                     'status_label' => $order->status === Order::STATUS_SERVED ? 'Cleared & Completed' : ucfirst($order->status),
                     'order_type' => $order->order_type,
                     'order_time' => $order->order_time?->toISOString() ?? $order->created_at->toISOString(),
-                    
-                    // Location info
+
                     'room_number' => $order->room?->room_number,
                     'table_number' => $order->table?->table_number,
                     'table_id' => $order->table_id,
-                    
-                    // Customer info
+
                     'customer_name' => $this->getCustomerName($order),
-                    
-                    // Order items
+
                     'items' => $order->orderItems->map(function ($item) {
                         return [
                             'id' => $item->id,
@@ -164,27 +157,22 @@ class CustomerOrderController extends Controller
                             'total' => (float) $item->total,
                         ];
                     })->values()->toArray(),
-                    
-                    // Pricing
+
                     'subtotal' => (float) $order->subtotal,
                     'tax' => (float) $order->tax,
                     'service_charge' => (float) $order->service_charge_amount,
                     'total' => (float) $order->total,
-                    
-                    // Payment info
+
                     'payment_type' => ($this->hasVerifiedPayment($order) && $order->payment_type === 'room_charge') ? 'chapa' : $order->payment_type,
                     'payment_status' => $this->getPaymentStatus($order),
-                    
-                    // Chef info
+
                     'chef_id' => $order->chef_id,
                     'chef_name' => $order->chef?->name,
-                    
-                    // Timestamps
+
                     'created_at' => $order->created_at->toISOString(),
                     'updated_at' => $order->updated_at->toISOString(),
                     'served_at' => $order->served_at?->toISOString(),
-                    
-                    // Additional metadata
+
                     'notes' => $order->notes,
                 ];
             });
@@ -210,7 +198,7 @@ class CustomerOrderController extends Controller
 
     /**
      * Extract hotel_id from request context for validation.
-     * 
+     *
      * Priority:
      * 1. Authenticated user's hotel_id
      * 2. QR token's hotel context (from session/header)
@@ -218,27 +206,21 @@ class CustomerOrderController extends Controller
      */
     protected function extractHotelId(Request $request, Order $order): ?string
     {
-        // Check authenticated user
         $user = $request->user();
         if ($user && method_exists($user, 'hotel_id')) {
             return $user->hotel_id;
         }
 
-        // Check tenant context (set by QR token middleware)
         $contextHotelId = $this->tenantContext->getHotelId();
         if ($contextHotelId) {
             return $contextHotelId;
         }
 
-        // Check X-Hotel-ID header (used by QR menu)
         $headerHotelId = $request->header('X-Hotel-ID');
         if ($headerHotelId) {
             return $headerHotelId;
         }
 
-        // For public/guest access via QR menu, we allow access if hotel_id isn't explicitly provided
-        // The QR token validation happens at a different layer
-        // Return order's hotel_id to allow comparison (will match itself, allowing access)
         return $order->hotel_id;
     }
 
@@ -248,7 +230,7 @@ class CustomerOrderController extends Controller
     protected function getCustomerName(Order $order): ?string
     {
         if ($order->guest) {
-            $name = $order->guest->name 
+            $name = $order->guest->name
                 ?? trim(($order->guest->first_name ?? '') . ' ' . ($order->guest->last_name ?? ''));
             if (!empty($name)) {
                 return $name;
@@ -285,32 +267,27 @@ class CustomerOrderController extends Controller
      */
     protected function getPaymentStatus(Order $order): string
     {
-        // 1. Check if there is a verified/paid payment in database
         if ($this->hasVerifiedPayment($order)) {
             return 'paid';
         }
 
-        // 2. Infer from payment_type
         if (in_array(strtolower((string)$order->payment_type), ['chapa', 'card', 'online', 'telebirr', 'cbe_birr', 'paid'])) {
             return 'paid';
         }
 
-        // 3. If order has explicit payment_status attribute, use it
         if (isset($order->payment_status) && !empty($order->payment_status)) {
             return $order->payment_status;
         }
 
-        // 4. Room charges are pending until paid
         if ($order->payment_type === 'room_charge') {
             return 'pending';
         }
 
-        // 5. For served orders, assume paid
         if (in_array($order->status, ['served', 'completed'])) {
             return 'paid';
         }
 
-        // Default
         return 'pending';
     }
 }
+

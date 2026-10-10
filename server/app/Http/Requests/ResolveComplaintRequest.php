@@ -31,3 +31,4 @@ class ResolveComplaintRequest extends FormRequest
         ];
     }
 }
+

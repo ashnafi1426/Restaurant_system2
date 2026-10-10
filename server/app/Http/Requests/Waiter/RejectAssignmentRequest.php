@@ -25,3 +25,4 @@ class RejectAssignmentRequest extends FormRequest
         ];
     }
 }
+

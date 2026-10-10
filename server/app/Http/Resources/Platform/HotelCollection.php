@@ -40,3 +40,4 @@ class HotelCollection extends ResourceCollection
         ];
     }
 }
+

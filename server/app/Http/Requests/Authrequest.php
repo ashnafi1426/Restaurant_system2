@@ -24,3 +24,4 @@ class Authrequest extends FormRequest
         ];
     }
 }
+

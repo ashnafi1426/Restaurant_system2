@@ -13,10 +13,10 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * PaymentStatusUpdated Event
- * 
+ *
  * Broadcast when an order's payment status changes.
  * Triggered by Chapa webhook after successful payment processing.
- * 
+ *
  * Customer receives real-time payment confirmation without page refresh.
  */
 class PaymentStatusUpdated implements ShouldBroadcast, ShouldQueue
@@ -58,9 +58,9 @@ class PaymentStatusUpdated implements ShouldBroadcast, ShouldQueue
     public function broadcastOn(): array
     {
         return [
-            // Customer's order channel
+
             new PrivateChannel("orders.{$this->hotelId}.{$this->orderId}"),
-            // Cashier and hotel channels
+
             new PrivateChannel("hotel.{$this->hotelId}.orders"),
             new PrivateChannel("payments.{$this->hotelId}"),
         ];
@@ -97,21 +97,19 @@ class PaymentStatusUpdated implements ShouldBroadcast, ShouldQueue
      */
     protected function normalizePaymentStatus(Order $order): string
     {
-        // Check if order has payment_status field
         if (isset($order->payment_status)) {
             return $order->payment_status;
         }
-        
-        // Fallback: infer from payment_type
+
         if ($order->payment_type === 'room_charge') {
-            return 'pending'; // Room charges are settled at checkout
+            return 'pending';
         }
-        
-        // Default for completed orders
+
         if ($order->status === 'served' || $order->status === 'completed') {
             return 'paid';
         }
-        
+
         return 'pending';
     }
 }
+

@@ -20,7 +20,7 @@ class ActivationMail extends Mailable
     {
         $this->user = $user;
         $this->token = $token;
-        
+
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
         $this->activationUrl = "{$frontendUrl}/activate/{$token}";
     }
@@ -54,3 +54,4 @@ class ActivationMail extends Mailable
         return [];
     }
 }
+

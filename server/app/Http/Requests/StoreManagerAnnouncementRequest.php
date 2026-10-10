@@ -39,3 +39,4 @@ class StoreManagerAnnouncementRequest extends FormRequest
         ];
     }
 }
+

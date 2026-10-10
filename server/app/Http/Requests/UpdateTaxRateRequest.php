@@ -25,3 +25,4 @@ class UpdateTaxRateRequest extends FormRequest
         ];
     }
 }
+

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Http\Requests;
 
@@ -18,3 +18,4 @@ class VoteRequest extends FormRequest
         ];
     }
 }
+

@@ -120,3 +120,4 @@ class StoreMenuItemRequest extends FormRequest
         ];
     }
 }
+

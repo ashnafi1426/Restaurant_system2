@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\DB;
 class RatingCalculationService
 {
     private const CACHE_PREFIX = 'menu_item_rating:';
-    
+
     private const CACHE_TTL = 3600;
 
     public function calculateRatingStats(string $menuItemId): array
     {
         $cacheKey = self::CACHE_PREFIX . $menuItemId;
-        
+
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($menuItemId) {
             return $this->computeRatingStats($menuItemId);
         });
@@ -26,10 +26,10 @@ class RatingCalculationService
     {
         $cacheKey = self::CACHE_PREFIX . $menuItemId;
         Cache::forget($cacheKey);
-        
+
         $stats = $this->computeRatingStats($menuItemId);
         Cache::put($cacheKey, $stats, self::CACHE_TTL);
-        
+
         return $stats;
     }
 
@@ -40,7 +40,7 @@ class RatingCalculationService
             ->get();
 
         $reviewCount = $approvedReviews->count();
-        
+
         if ($reviewCount === 0) {
             return [
                 'average_rating' => null,
@@ -134,9 +134,10 @@ class RatingCalculationService
     public function clearAllCaches(): void
     {
         $menuItemIds = MenuItem::pluck('id');
-        
+
         foreach ($menuItemIds as $menuItemId) {
             $this->invalidateCache($menuItemId);
         }
     }
 }
+

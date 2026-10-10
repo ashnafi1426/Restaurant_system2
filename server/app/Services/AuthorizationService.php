@@ -150,7 +150,7 @@ class AuthorizationService
 
         return collect();
     }
-    
+
     public function getActiveTemporaryRoles(User $user): Collection
     {
         return collect();
@@ -291,7 +291,7 @@ class AuthorizationService
         } else {
             Cache::forget("user_permissions_global_{$userId}");
             Cache::forget("user_permissions_{$userId}");
-            
+
             $hotels = \App\Models\Hotel::pluck('id');
             foreach ($hotels as $hId) {
                 Cache::forget("user_permissions_{$hId}_{$userId}");
@@ -326,3 +326,4 @@ class AuthorizationService
         }
     }
 }
+

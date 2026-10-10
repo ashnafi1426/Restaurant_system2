@@ -9,8 +9,8 @@ class ReservationResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $guestFullName = $this->guest 
-            ? trim(($this->guest->first_name ?? '') . ' ' . ($this->guest->last_name ?? '')) 
+        $guestFullName = $this->guest
+            ? trim(($this->guest->first_name ?? '') . ' ' . ($this->guest->last_name ?? ''))
             : null;
 
         return [
@@ -64,3 +64,4 @@ class ReservationResource extends JsonResource
         ];
     }
 }
+

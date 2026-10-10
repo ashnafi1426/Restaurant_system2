@@ -78,3 +78,4 @@ class ReservationConfirmed extends Mailable
         return [];
     }
 }
+

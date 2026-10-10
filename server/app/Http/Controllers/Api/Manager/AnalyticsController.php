@@ -24,7 +24,7 @@ class AnalyticsController extends Controller
                 'statistics' => $this->dashboardService->statistics(),
                 'reservations' => $this->dashboardService->reservationSummary(),
             ];
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $analytics,
@@ -39,3 +39,4 @@ class AnalyticsController extends Controller
         }
     }
 }
+

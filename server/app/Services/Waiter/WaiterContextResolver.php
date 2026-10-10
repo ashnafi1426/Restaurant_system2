@@ -13,14 +13,14 @@ class WaiterContextResolver
             \Log::warning(' [RESOLVER] No user provided');
             return null;
         }
-        
+
         \Log::debug(' [RESOLVER] Resolving waiter ID for user', [
             'user_id' => $user->id,
             'user_email' => $user->email,
             'user_role' => $user->role ?? 'N/A',
             'relation_loaded' => $user->relationLoaded('waiter') ? 'yes' : 'no',
         ]);
-        
+
         if ($user->relationLoaded('waiter') && $user->waiter) {
             $waiterId = (int) $user->waiter->id;
             \Log::info(' [RESOLVER] Waiter ID resolved from loaded relation', [
@@ -88,13 +88,14 @@ class WaiterContextResolver
         } catch (\Throwable $e) {
             \Log::error(' [RESOLVER] Error auto-creating waiter profile: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
         }
-        
+
         \Log::error(' [RESOLVER] Could not resolve waiter ID for user', [
             'user_id' => $user->id,
             'user_email' => $user->email,
             'all_waiters_count' => Waiter::count(),
         ]);
-        
+
         return null;
     }
 }
+

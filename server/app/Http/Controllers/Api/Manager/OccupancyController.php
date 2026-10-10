@@ -19,7 +19,7 @@ class OccupancyController extends Controller
     {
         try {
             $occupancySummary = $this->dashboardService->occupancySummary();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $occupancySummary,
@@ -38,7 +38,7 @@ class OccupancyController extends Controller
     {
         try {
             $occupancyChart = $this->dashboardService->occupancyChart();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $occupancyChart,
@@ -57,7 +57,7 @@ class OccupancyController extends Controller
     {
         try {
             $reservationSummary = $this->dashboardService->reservationSummary();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $reservationSummary,
@@ -72,3 +72,4 @@ class OccupancyController extends Controller
         }
     }
 }
+

@@ -104,13 +104,12 @@ class WaiterTableAssignmentController extends Controller
     {
         $hotelId = $this->getHotelId();
 
-        // Normalize payload: support either { table_id, waiter_ids: [], status } OR { assignments: [] }
         $assignments = [];
 
         if ($request->has('table_id') && ($request->has('waiter_ids') || $request->has('waiter_id'))) {
             $tableId = $request->input('table_id');
-            $waiterIds = $request->has('waiter_ids') 
-                ? (array) $request->input('waiter_ids') 
+            $waiterIds = $request->has('waiter_ids')
+                ? (array) $request->input('waiter_ids')
                 : [$request->input('waiter_id')];
 
             $status = $request->input('status');
@@ -159,7 +158,6 @@ class WaiterTableAssignmentController extends Controller
             ], 422);
         }
 
-        // Validate table and each waiter
         $tableIds = array_unique(array_filter(array_column($assignments, 'table_id')));
         $waiterIds = array_unique(array_filter(array_column($assignments, 'waiter_id')));
 
@@ -177,7 +175,6 @@ class WaiterTableAssignmentController extends Controller
             ], 422);
         }
 
-        // Check tables exist and belong to hotel
         $tables = \App\Models\RestaurantTable::withoutTenant()->whereIn('id', $tableIds)->get()->keyBy('id');
         foreach ($tableIds as $tId) {
             $tbl = $tables->get($tId);
@@ -195,7 +192,6 @@ class WaiterTableAssignmentController extends Controller
             }
         }
 
-        // Check waiters exist, are active, and belong to current hotel
         $waiters = \App\Models\Waiter::with('user')->whereIn('id', $waiterIds)->get()->keyBy('id');
         foreach ($waiterIds as $wId) {
             $waiter = $waiters->get($wId);
@@ -228,7 +224,7 @@ class WaiterTableAssignmentController extends Controller
 
             return response()->json([
                 'success' => $result['success'],
-                'message' => $result['total_created'] > 0 
+                'message' => $result['total_created'] > 0
                     ? "Successfully assigned {$result['total_created']} waiter(s) to table(s)"
                     : 'No assignments were created',
                 'data' => $result['created'],
@@ -274,7 +270,6 @@ class WaiterTableAssignmentController extends Controller
             ], 422);
         }
 
-        // If waiter_id is provided, verify waiter is active and belongs to hotel
         if ($request->filled('waiter_id')) {
             $waiter = \App\Models\Waiter::with('user')->find($request->input('waiter_id'));
             if ($waiter) {
@@ -442,3 +437,4 @@ class WaiterTableAssignmentController extends Controller
         }
     }
 }
+

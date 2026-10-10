@@ -78,3 +78,4 @@ class RegisterWaiterRequest extends FormRequest
         ]);
     }
 }
+

@@ -118,3 +118,4 @@ class CheckInController extends Controller
         return response()->json($statistics);
     }
 }
+

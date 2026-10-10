@@ -11,7 +11,7 @@ use Illuminate\Notifications\Notification;
 
 /**
  * ManagerAssignmentNotification
- * 
+ *
  * Notification sent to manager when delivery is assigned
  * For important assignments or when no waiter was available
  */
@@ -21,8 +21,8 @@ class ManagerAssignmentNotification extends Notification implements ShouldQueue
 
     public DeliveryTask $delivery;
     public ?Waiter $waiter;
-    public string $assignmentStatus; // 'assigned' or 'waiting_assignment'
-    public string $assignmentType; // 'automatic' or 'manual' or 'unassigned'
+    public string $assignmentStatus;
+    public string $assignmentType;
 
     /**
      * Create a new notification instance.
@@ -137,9 +137,10 @@ class ManagerAssignmentNotification extends Notification implements ShouldQueue
     private function getMessageText(): string
     {
         if ($this->assignmentStatus === 'assigned') {
-            return "Order for room {$this->delivery->room_number} assigned to {$this->waiter?->user?->name ?? 'Unknown'} ({$this->assignmentType})";
+            return "Order for room {$this->delivery->room_number} assigned to " . ($this->waiter?->user?->name ?? 'Unknown') . " ({$this->assignmentType})";
         }
 
         return "Order for room {$this->delivery->room_number} - No waiter available. Manual assignment required.";
     }
 }
+

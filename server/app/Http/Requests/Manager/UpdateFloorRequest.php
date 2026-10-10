@@ -44,3 +44,4 @@ class UpdateFloorRequest extends FormRequest
         ];
     }
 }
+

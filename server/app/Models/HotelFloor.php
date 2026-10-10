@@ -8,5 +8,5 @@ namespace App\Models;
  */
 class HotelFloor extends Floor
 {
-    // Inherits table, fillable, relationships, scopes, and methods from Floor.
 }
+

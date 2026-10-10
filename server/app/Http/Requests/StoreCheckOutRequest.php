@@ -18,3 +18,4 @@ class StoreCheckOutRequest extends FormRequest
         ];
     }
 }
+

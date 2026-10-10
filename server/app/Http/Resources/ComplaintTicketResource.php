@@ -47,3 +47,4 @@ class ComplaintTicketResource extends JsonResource
         ];
     }
 }
+

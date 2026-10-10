@@ -72,3 +72,4 @@ class DashboardStatsResource extends JsonResource
         ];
     }
 }
+

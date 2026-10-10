@@ -13,7 +13,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * OrderCancelled Event
- * 
+ *
  * Broadcast when an order is cancelled by customer or staff.
  * Notifies both customer and kitchen staff in real-time.
  */
@@ -52,10 +52,9 @@ class OrderCancelled implements ShouldBroadcast, ShouldQueue
     public function broadcastOn(): array
     {
         return [
-            // Customer's order channel
+
             new PrivateChannel("orders.{$this->hotelId}.{$this->orderId}"),
-            
-            // Kitchen dashboard channel
+
             new PrivateChannel("hotel.{$this->hotelId}.kitchen"),
         ];
     }
@@ -83,3 +82,4 @@ class OrderCancelled implements ShouldBroadcast, ShouldQueue
         ];
     }
 }
+

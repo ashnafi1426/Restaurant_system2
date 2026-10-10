@@ -364,3 +364,4 @@ class WaiterProfileController extends Controller
         ]);
     }
 }
+

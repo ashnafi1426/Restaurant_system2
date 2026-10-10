@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Http\Requests;
 
@@ -27,3 +27,4 @@ class CreateResponseRequest extends FormRequest
         }
     }
 }
+

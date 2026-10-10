@@ -67,7 +67,6 @@ class ReviewService
             $orderId = $data['order_id'];
         }
 
-        // Real-world rating system: if review exists from this guest for this item, update it; otherwise create it.
         $review = MenuItemReview::where('guest_id', $guestId)
             ->where('menu_item_id', $data['menu_item_id'])
             ->first();
@@ -93,17 +92,14 @@ class ReviewService
             ]);
         }
 
-        // Instantly recalculate menu item rating stats and invalidate menu caches
         $this->ratingCalculationService->recalculateForMenuItem($data['menu_item_id']);
         MenuService::invalidateMenuCache($hotelId);
 
         $review->load('guest', 'menuItem');
 
-        // Optional notification
         try {
             $this->notificationService->notifyModeratorsOfNewReview($review);
         } catch (\Throwable $e) {
-            // Non-blocking notification failure
         }
 
         return $review;
@@ -207,13 +203,13 @@ class ReviewService
         if ($guestEmail) {
             $guest = Guest::where('email', $guestEmail)->first();
         }
-        
+
         if (!$guest) {
             $nameParts = explode(' ', $guestName, 2);
             $firstName = !empty($nameParts[0]) ? $nameParts[0] : 'Guest';
             $lastName = $nameParts[1] ?? '';
             $email = $guestEmail ?: ('guest_' . substr(uniqid(), -6) . '@guest.local');
-            
+
             $guest = Guest::create([
                 'hotel_id' => $hotelId,
                 'first_name' => $firstName,
@@ -228,7 +224,6 @@ class ReviewService
             $orderId = $data['order_id'];
         }
 
-        // Real-world rating system: if review exists from this guest for this item, update it; otherwise create it.
         $review = MenuItemReview::where('guest_id', $guest->id)
             ->where('menu_item_id', $data['menu_item_id'])
             ->first();
@@ -254,7 +249,6 @@ class ReviewService
             ]);
         }
 
-        // Instantly recalculate menu item rating stats and invalidate menu caches
         $this->ratingCalculationService->recalculateForMenuItem($data['menu_item_id']);
         MenuService::invalidateMenuCache($hotelId);
 
@@ -263,7 +257,6 @@ class ReviewService
         try {
             $this->notificationService->notifyModeratorsOfNewReview($review);
         } catch (\Throwable $e) {
-            // Non-blocking notification failure
         }
 
         return $review;
@@ -291,7 +284,7 @@ class ReviewService
             ->get();
 
         $totalReviews = $reviews->count();
-        
+
         if ($totalReviews === 0) {
             return [
                 'menu_item_id' => $menuItemId,
@@ -338,3 +331,4 @@ class ReviewService
         ];
     }
 }
+

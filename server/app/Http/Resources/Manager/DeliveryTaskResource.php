@@ -48,3 +48,4 @@ class DeliveryTaskResource extends JsonResource
         ];
     }
 }
+

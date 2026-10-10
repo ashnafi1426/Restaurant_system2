@@ -118,3 +118,4 @@ class Floor extends Model
             ->filter(fn($w) => $w && $w->isAvailable());
     }
 }
+

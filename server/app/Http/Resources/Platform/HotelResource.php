@@ -29,8 +29,7 @@ class HotelResource extends JsonResource
             'status' => $this->status,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
-            
-            // Additional computed fields when available
+
             'rooms_count' => $this->when(isset($this->rooms_count), $this->rooms_count),
             'reservations_count' => $this->when(isset($this->reservations_count), $this->reservations_count),
             'guests_count' => $this->when(isset($this->guests_count), $this->guests_count),
@@ -39,8 +38,7 @@ class HotelResource extends JsonResource
             'revenue_total' => $this->when(isset($this->revenue_total), (float) $this->revenue_total),
             'admin_name' => $this->when(isset($this->admin_name), $this->admin_name),
             'admin_email' => $this->when(isset($this->admin_email), $this->admin_email),
-            
-            // Relationships - avoid circular references
+
             'admins' => $this->when(
                 $this->relationLoaded('admins'),
                 function () {
@@ -60,3 +58,4 @@ class HotelResource extends JsonResource
         ];
     }
 }
+

@@ -69,3 +69,4 @@ class OrderItem extends Model
         return $this->belongsTo(TaxRate::class, 'tax_rate_id');
     }
 }
+

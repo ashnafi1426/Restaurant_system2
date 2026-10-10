@@ -48,3 +48,4 @@ class StoreManagerDashboardSettingRequest extends FormRequest
         ];
     }
 }
+

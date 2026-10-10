@@ -102,7 +102,6 @@ class RestaurantTableService
             ]);
         }
 
-        // Validate table_number uniqueness within hotel
         $existing = RestaurantTable::where('hotel_id', $hotelId)
             ->where('table_number', trim($data['table_number']))
             ->whereNull('deleted_at')
@@ -114,7 +113,6 @@ class RestaurantTableService
             ]);
         }
 
-        // Resolve section
         $sectionId = $data['section_id'] ?? null;
         $sectionName = $data['section'] ?? null;
 
@@ -175,7 +173,6 @@ class RestaurantTableService
             }
         }
 
-        // Resolve section
         $sectionId = array_key_exists('section_id', $data) ? $data['section_id'] : $table->section_id;
         $sectionName = array_key_exists('section', $data) ? $data['section'] : $table->section;
 
@@ -268,3 +265,4 @@ class RestaurantTableService
         ];
     }
 }
+

@@ -31,3 +31,4 @@ class ResendActivationRequest extends FormRequest
         ];
     }
 }
+

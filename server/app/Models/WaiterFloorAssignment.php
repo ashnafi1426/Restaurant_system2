@@ -122,3 +122,4 @@ class WaiterFloorAssignment extends Model
             ->count();
     }
 }
+

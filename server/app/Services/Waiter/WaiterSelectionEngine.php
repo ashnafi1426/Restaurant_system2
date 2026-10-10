@@ -27,7 +27,7 @@ class WaiterSelectionEngine
         $hotelId = $floor->hotel_id ?? app(TenantContext::class)->getHotelId();
 
         try {
-            // 1. Build base query for floor-assigned active waiters
+
             $query = Waiter::query()
                 ->select('waiters.*')
                 ->join('waiter_floor_assignments', 'waiter_floor_assignments.waiter_id', '=', 'waiters.id')
@@ -39,7 +39,6 @@ class WaiterSelectionEngine
                 ->where('waiters.status', 'active')
                 ->when($hotelId, fn($q) => $q->where('waiters.hotel_id', $hotelId));
 
-            // Check if there is an explicit assignment for today on this floor
             $hasTodayAssignment = (clone $query)
                 ->whereDate('waiter_floor_assignments.assignment_date', today())
                 ->exists();
@@ -47,7 +46,7 @@ class WaiterSelectionEngine
             if ($hasTodayAssignment) {
                 $query->whereDate('waiter_floor_assignments.assignment_date', today());
             } else {
-                // Standing active assignment fallback (assignment_date null or previous date)
+
                 $query->where(function ($q) {
                     $q->whereNull('waiter_floor_assignments.assignment_date')
                       ->orWhere('waiter_floor_assignments.is_active', true)
@@ -65,7 +64,6 @@ class WaiterSelectionEngine
                 }
             }
 
-            // Ideal candidate on this floor: Available and under capacity
             $waiter = (clone $query)
                 ->where(function ($q) {
                     $q->where('waiters.availability', '!=', 'offline')
@@ -90,7 +88,6 @@ class WaiterSelectionEngine
                 return $waiter;
             }
 
-            // 2. Fallback on same floor: any active assigned waiter, even if at capacity or offline default
             $fallbackFloorWaiter = (clone $query)
                 ->with('user')
                 ->orderBy('waiters.current_orders', 'asc')
@@ -107,7 +104,6 @@ class WaiterSelectionEngine
                 return $fallbackFloorWaiter;
             }
 
-            // 3. Last-resort hotel fallback: Any active waiter in this hotel to prevent stranded food
             $hotelFallbackWaiter = Waiter::query()
                 ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->where('status', 'active')
@@ -150,7 +146,7 @@ class WaiterSelectionEngine
         $hotelId = $table->hotel_id ?? app(TenantContext::class)->getHotelId();
 
         try {
-            // Step 1: Direct Table Assignment
+
             $tableAssignmentQuery = Waiter::query()
                 ->select('waiters.*')
                 ->join('waiter_table_assignments', 'waiter_table_assignments.waiter_id', '=', 'waiters.id')
@@ -186,7 +182,6 @@ class WaiterSelectionEngine
                 return $tableWaiter;
             }
 
-            // Step 2: Table Section -> Eligible Section Waiters -> Workload
             $section = $table->section_name ?: $table->section ?: $table->location;
             if (!empty($section)) {
                 $sectionWaiter = Waiter::query()
@@ -226,7 +221,6 @@ class WaiterSelectionEngine
             ]);
         }
 
-        // Step 3: Hotel-wide restaurant waiter fallback by lowest workload
         $fallbackWaiter = Waiter::query()
             ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
             ->where('status', 'active')
@@ -251,7 +245,6 @@ class WaiterSelectionEngine
             return $fallbackWaiter;
         }
 
-        // Final safety net: any active waiter in the hotel
         return Waiter::query()
             ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
             ->where('status', 'active')
@@ -270,3 +263,4 @@ class WaiterSelectionEngine
             && ($waiter->maximum_orders === null || $waiter->current_orders < $waiter->maximum_orders);
     }
 }
+

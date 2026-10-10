@@ -31,3 +31,4 @@ class CreateReviewRequest extends FormRequest
         }
     }
 }
+

@@ -227,3 +227,4 @@ class UserDirectPermissionController extends Controller
         }
     }
 }
+

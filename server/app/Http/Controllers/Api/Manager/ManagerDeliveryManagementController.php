@@ -200,7 +200,7 @@ class ManagerDeliveryManagementController extends Controller
                     'new_workload' => $oldWaiter->current_orders,
                 ]);
             }
-            
+
             $newWaiter->incrementOrders();
             $newWaiter->update(['last_assigned_at' => now()]);
 
@@ -423,3 +423,4 @@ class ManagerDeliveryManagementController extends Controller
         }
     }
 }
+

@@ -56,12 +56,12 @@ class RestaurantTable extends Model
                     $table->qr_token,
                     config('app.frontend_url', 'http://localhost:5173')
                 );
-                
+
                 $table->update([
                     'qr_image_path' => $qrImagePath,
                     'qr_generated_at' => now(),
                 ]);
-                
+
                 \Log::info('QR Code Generated for Restaurant Table', [
                     'table_id' => $table->id,
                     'table_number' => $table->table_number,
@@ -82,51 +82,51 @@ class RestaurantTable extends Model
         do {
             $token = strtoupper(Str::random(8));
         } while (self::where('qr_token', $token)->exists());
-        
+
         return $token;
     }
 
     protected static function generateTableQRCode($tableId, $tableNumber, $qrToken, $baseUrl): string
     {
         $url = "{$baseUrl}/restaurant-order/{$qrToken}";
-        
+
         $storageDir = storage_path('app/public/qr-codes/tables');
         if (!is_dir($storageDir)) {
             mkdir($storageDir, 0755, true);
         }
-        
+
         $filename = "table_{$tableNumber}.png";
         $filePath = $storageDir . '/' . $filename;
-        
+
         try {
             $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
                 ->size(300)
                 ->errorCorrection('H')
                 ->generate($url);
-            
+
             file_put_contents($filePath, $qrCode);
-            
+
             \Log::info('Table QR Code saved successfully', [
                 'table_id' => $tableId,
                 'path' => $filePath,
                 'size' => filesize($filePath),
             ]);
-            
+
         } catch (\Exception $generationError) {
             \Log::warning('Local QR generation failed for table, trying API', [
                 'error' => $generationError->getMessage(),
             ]);
-            
+
             $qrApiUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($url);
             $qrImage = @file_get_contents($qrApiUrl);
-            
+
             if ($qrImage === false) {
                 throw new \Exception('Both local and API QR code generation failed for table');
             }
-            
+
             file_put_contents($filePath, $qrImage);
         }
-        
+
         return "qr-codes/tables/{$filename}";
     }
 
@@ -257,7 +257,7 @@ class RestaurantTable extends Model
         }
 
         $defaultTables = [
-            // Main Dining Area
+
             ['table_number' => 'T01', 'table_name' => 'Window Table 1', 'capacity' => 2, 'location' => 'Main Dining'],
             ['table_number' => 'T02', 'table_name' => 'Window Table 2', 'capacity' => 2, 'location' => 'Main Dining'],
             ['table_number' => 'T03', 'table_name' => 'Corner Booth', 'capacity' => 4, 'location' => 'Main Dining'],
@@ -267,17 +267,14 @@ class RestaurantTable extends Model
             ['table_number' => 'T07', 'table_name' => 'Main Dining Table 7', 'capacity' => 4, 'location' => 'Main Dining'],
             ['table_number' => 'T08', 'table_name' => 'Main Dining Table 8', 'capacity' => 4, 'location' => 'Main Dining'],
 
-            // Terrace/Outdoor
             ['table_number' => 'T09', 'table_name' => 'Terrace Table 1', 'capacity' => 2, 'location' => 'Terrace'],
             ['table_number' => 'T10', 'table_name' => 'Terrace Table 2', 'capacity' => 2, 'location' => 'Terrace'],
             ['table_number' => 'T11', 'table_name' => 'Terrace Booth', 'capacity' => 4, 'location' => 'Terrace'],
             ['table_number' => 'T12', 'table_name' => 'Terrace Large Table', 'capacity' => 6, 'location' => 'Terrace'],
 
-            // Private Dining / VIP
             ['table_number' => 'V01', 'table_name' => 'VIP Private Room 1', 'capacity' => 8, 'location' => 'Private Dining'],
             ['table_number' => 'V02', 'table_name' => 'VIP Private Room 2', 'capacity' => 10, 'location' => 'Private Dining'],
 
-            // Bar Area
             ['table_number' => 'B01', 'table_name' => 'Bar Table 1', 'capacity' => 2, 'location' => 'Bar'],
             ['table_number' => 'B02', 'table_name' => 'Bar Table 2', 'capacity' => 2, 'location' => 'Bar'],
             ['table_number' => 'B03', 'table_name' => 'Bar High Table', 'capacity' => 4, 'location' => 'Bar'],
@@ -305,3 +302,4 @@ class RestaurantTable extends Model
         }
     }
 }
+

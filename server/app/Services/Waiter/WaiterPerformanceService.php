@@ -65,16 +65,16 @@ class WaiterPerformanceService
             'total_deliveries' => $totalDeliveries,
             'total_failed' => $totalFailed,
             'total_rejected' => $performances->sum('deliveries_rejected'),
-            'completion_rate' => $totalAssignments > 0 
+            'completion_rate' => $totalAssignments > 0
                 ? round(($totalDeliveries / $totalAssignments) * 100, 2)
                 : 0,
-            'failure_rate' => $totalAssignments > 0 
+            'failure_rate' => $totalAssignments > 0
                 ? round(($totalFailed / $totalAssignments) * 100, 2)
                 : 0,
             'average_delivery_time' => round($performances->avg('avg_delivery_time_minutes'), 2),
             'average_guest_rating' => round($performances->avg('guest_rating_avg'), 2),
             'average_overall_rating' => round($performances->avg('rating'), 2),
-            'deliveries_per_day' => $performances->count() > 0 
+            'deliveries_per_day' => $performances->count() > 0
                 ? round($totalDeliveries / $performances->count(), 2)
                 : 0,
         ];
@@ -387,3 +387,4 @@ class WaiterPerformanceService
         ];
     }
 }
+

@@ -74,3 +74,4 @@ class PublicReviewController extends Controller
         }
     }
 }
+

@@ -334,3 +334,4 @@ class AuthController extends Controller
         ])->values()->toArray();
     }
 }
+

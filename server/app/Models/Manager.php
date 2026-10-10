@@ -58,3 +58,4 @@ class Manager extends Model
         return $query->where('status', 'active');
     }
 }
+

@@ -52,7 +52,6 @@ class GuestService
 
         $existingGuest = null;
 
-        // Search scoped to this hotel
         if ($email) {
             $existingGuest = Guest::where('hotel_id', $hotelId)
                 ->where('email', $email)
@@ -127,3 +126,4 @@ class GuestService
         return $query->latest()->paginate($perPage);
     }
 }
+

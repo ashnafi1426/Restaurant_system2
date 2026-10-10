@@ -19,7 +19,7 @@ class RevenueController extends Controller
     {
         try {
             $revenueSummary = $this->dashboardService->revenueSummary();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $revenueSummary,
@@ -39,7 +39,7 @@ class RevenueController extends Controller
         try {
             $period = $request->input('period', 'monthly');
             $revenueChart = $this->dashboardService->revenueChart($period);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $revenueChart,
@@ -55,3 +55,4 @@ class RevenueController extends Controller
         }
     }
 }
+

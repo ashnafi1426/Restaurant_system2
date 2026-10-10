@@ -45,7 +45,7 @@ class ManagerDashboardService
     {
         $hotelId = $this->getHotelId();
         $today = Carbon::today();
-        
+
         $orders = Order::withoutGlobalScopes();
         if ($hotelId && Schema::hasColumn('orders', 'hotel_id')) {
             $orders->where('hotel_id', $hotelId);
@@ -60,7 +60,7 @@ class ManagerDashboardService
         $preparingOrders = (clone $orders)->where('status', Order::STATUS_PREPARING)->count();
         $readyOrders = (clone $orders)->where('status', Order::STATUS_READY)->count();
         $servedOrders = (clone $orders)->where('status', Order::STATUS_SERVED)->count();
-        
+
         $deliveries = DeliveryTask::withoutGlobalScopes();
         if ($hotelId && Schema::hasColumn('delivery_tasks', 'hotel_id')) {
             $deliveries->where('hotel_id', $hotelId);
@@ -145,34 +145,34 @@ class ManagerDashboardService
                     ->sum('amount');
             } catch (\Throwable $e) {}
         }
-        
+
         return [
             'totalRooms' => $totalRooms,
             'occupiedRooms' => $occupiedRooms,
             'availableRooms' => $availableRooms,
             'reservedRooms' => $reservedRooms,
             'maintenanceRooms' => $maintenanceRooms,
-            
+
             'totalGuests' => $totalGuests,
             'checkedInGuests' => $checkedInGuests,
             'guestCheckouts' => $guestCheckouts,
             'todayReservations' => $todayReservations,
-            
+
             'totalOrders' => $totalOrders,
             'pendingOrders' => $pendingOrders,
             'preparingOrders' => $preparingOrders,
             'readyOrders' => $readyOrders,
             'servedOrders' => $servedOrders,
-            
+
             'totalDeliveries' => $totalDeliveries,
             'activeDeliveries' => $activeDeliveries,
             'completedDeliveries' => $completedDeliveries,
-            
+
             'pendingLaundry' => $pendingLaundry,
             'pendingHousekeeping' => $pendingHousekeeping,
-            
+
             'activeStaff' => $activeStaff,
-            
+
             'todayRevenue' => round($todayRevenue, 2),
             'monthlyRevenue' => round($monthlyRevenue, 2),
         ];
@@ -571,3 +571,4 @@ class ManagerDashboardService
             ->toArray();
     }
 }
+

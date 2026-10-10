@@ -22,3 +22,4 @@ class ReservationCollection extends ResourceCollection
         ];
     }
 }
+

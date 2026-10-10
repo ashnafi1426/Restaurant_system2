@@ -33,3 +33,4 @@ class UpdateWaiterProfileRequest extends FormRequest
         ];
     }
 }
+

@@ -21,14 +21,14 @@ class NotifyWaiterListener implements ShouldQueue
         try {
             $delivery = $event->delivery;
             $order = $delivery->order;
-            
+
             $itemsList = $order->orderItems
                 ->map(fn ($item) => "{$item->quantity}x {$item->menuItem->name}")
                 ->implode(', ');
-            
+
             $roomNumber = $order->room->room_number ?? 'Unknown';
             $guestName = ($order->guest->first_name ?? '') . ' ' . ($order->guest->last_name ?? '');
-            
+
             Log::info('📨 [NOTIFY LISTENER] Creating waiter notification', [
                 'waiter_id' => $event->waiterId,
                 'waiter_name' => $event->waiterName,
@@ -170,3 +170,4 @@ class NotifyWaiterListener implements ShouldQueue
         }
     }
 }
+

@@ -7,7 +7,7 @@ class English
     public static function get(): array
     {
         return [
-            // General System Responses
+
             'success' => 'Operation completed successfully',
             'error' => 'An unexpected error occurred',
             'server_error' => 'Internal server error. Please try again later.',
@@ -29,7 +29,6 @@ class English
             'language_changed' => 'Language changed successfully',
             'hotel_switched' => 'Hotel switched successfully',
 
-            // Auth & Account
             'login_success' => 'Logged in successfully',
             'login_failed' => 'Invalid email or password',
             'login_required' => 'Please log in to continue',
@@ -47,7 +46,6 @@ class English
             'registration_success' => 'Registration completed successfully.',
             'access_denied' => 'Access denied. Insufficient permissions.',
 
-            // Orders, Food, Cart & QR
             'added_to_cart' => 'Added to cart successfully',
             'removed_from_cart' => 'Item removed from cart',
             'cart_cleared' => 'Cart cleared successfully',
@@ -69,7 +67,6 @@ class English
             'qr_expired' => 'This QR code has expired',
             'no_active_reservation' => 'No active reservation found for this room. Please check in first.',
 
-            // Rooms, Bookings & Guests
             'reservation_created' => 'Reservation created successfully',
             'reservation_confirmed' => 'Reservation confirmed successfully',
             'reservation_cancelled' => 'Reservation has been cancelled',
@@ -87,7 +84,6 @@ class English
             'guest_registered' => 'Guest information saved successfully',
             'guest_not_found' => 'Guest not found',
 
-            // Payments, Invoices & Billing
             'payment_successful' => 'Payment completed successfully',
             'payment_failed' => 'Payment failed. Please try again or choose another method.',
             'payment_pending' => 'Payment is pending confirmation',
@@ -101,7 +97,6 @@ class English
             'insufficient_balance' => 'Insufficient balance',
             'transaction_recorded' => 'Transaction recorded successfully',
 
-            // Menu Management
             'menu_item_created' => 'Menu item created successfully',
             'menu_item_updated' => 'Menu item updated successfully',
             'menu_item_deleted' => 'Menu item deleted successfully',
@@ -110,7 +105,6 @@ class English
             'category_deleted' => 'Category deleted successfully',
             'item_stock_updated' => 'Item availability updated successfully',
 
-            // Reviews & Ratings
             'review_submitted' => 'Thank you! Your review has been submitted successfully',
             'review_deleted' => 'Review deleted successfully',
             'review_approved' => 'Review approved successfully',
@@ -118,7 +112,6 @@ class English
             'rating_required' => 'Please provide a rating between 1 and 5 stars',
             'already_reviewed' => 'You have already submitted a review for this item or stay',
 
-            // Staff & RBAC
             'staff_created' => 'Staff member created successfully',
             'staff_updated' => 'Staff member details updated',
             'staff_deleted' => 'Staff member removed successfully',
@@ -130,3 +123,4 @@ class English
         ];
     }
 }
+

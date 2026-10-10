@@ -46,3 +46,4 @@ class Cashier extends Model
         return $query->where('status', 'active');
     }
 }
+

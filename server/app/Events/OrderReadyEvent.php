@@ -8,12 +8,12 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * OrderReadyEvent
- * 
+ *
  * Fired when kitchen marks an order as ready for delivery.
  * Triggers automatic waiter assignment workflow.
- * 
+ *
  * Phase 4: AUTOMATIC WAITER ASSIGNMENT TRIGGER
- * 
+ *
  * Flow:
  * 1. Kitchen marks order as READY
  * 2. KitchenService::markReady() dispatches this event
@@ -38,3 +38,4 @@ class OrderReadyEvent
         $this->order = $order;
     }
 }
+

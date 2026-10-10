@@ -31,7 +31,7 @@ class AssignFloorRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     $existsInFloors = \Illuminate\Support\Facades\Schema::hasTable('floors')
                         && \Illuminate\Support\Facades\DB::table('floors')->where('id', $value)->exists();
-                    $existsInHotelFloors = \Illuminate\Support\Facades\Schema::hasTable('hotel_floors') 
+                    $existsInHotelFloors = \Illuminate\Support\Facades\Schema::hasTable('hotel_floors')
                         && \Illuminate\Support\Facades\DB::table('hotel_floors')->where('id', $value)->exists();
                     if (!$existsInFloors && !$existsInHotelFloors) {
                         $fail('Selected floor does not exist.');
@@ -73,7 +73,7 @@ class AssignFloorRequest extends FormRequest
     {
         if ($this->has('assignments')) {
             $assignments = $this->assignments;
-            
+
             foreach ($assignments as &$assignment) {
                 if (empty($assignment['priority'])) {
                     $assignment['priority'] = 'primary';
@@ -94,7 +94,7 @@ class AssignFloorRequest extends FormRequest
                     $assignment['shift_id'] = null;
                 }
             }
-            
+
             $this->merge(['assignments' => $assignments]);
         }
     }
@@ -104,3 +104,4 @@ class AssignFloorRequest extends FormRequest
         return $this->input('assignments', []);
     }
 }
+

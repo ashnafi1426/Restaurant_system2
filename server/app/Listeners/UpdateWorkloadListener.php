@@ -35,7 +35,7 @@ class UpdateWorkloadListener implements ShouldQueue
                 if ($waiter->current_orders >= $waiter->max_orders) {
                     if ($waiter->availability_status !== 'busy') {
                         $waiter->update(['availability_status' => 'busy']);
-                        
+
                         Log::info('Waiter marked as busy', [
                             'waiter_id' => $event->waiterId,
                             'current_orders' => $waiter->current_orders,
@@ -80,7 +80,7 @@ class UpdateWorkloadListener implements ShouldQueue
                 if ($previousWaiter->current_orders < $previousWaiter->max_orders) {
                     if ($previousWaiter->availability_status === 'busy') {
                         $previousWaiter->update(['availability_status' => 'available']);
-                        
+
                         Log::info('Previous waiter marked as available', [
                             'waiter_id' => $event->previousWaiterId,
                             'current_orders' => $previousWaiter->current_orders,
@@ -94,7 +94,7 @@ class UpdateWorkloadListener implements ShouldQueue
                 if ($newWaiter->current_orders >= $newWaiter->max_orders) {
                     if ($newWaiter->availability_status !== 'busy') {
                         $newWaiter->update(['availability_status' => 'busy']);
-                        
+
                         Log::info('New waiter marked as busy', [
                             'waiter_id' => $event->newWaiterId,
                             'current_orders' => $newWaiter->current_orders,
@@ -119,3 +119,4 @@ class UpdateWorkloadListener implements ShouldQueue
         }
     }
 }
+

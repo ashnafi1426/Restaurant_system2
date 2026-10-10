@@ -103,3 +103,4 @@ class ShiftManagementService
         return HotelShift::where('name', 'like', "%{$name}%")->first();
     }
 }
+

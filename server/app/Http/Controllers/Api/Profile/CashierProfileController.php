@@ -15,7 +15,7 @@ class CashierProfileController extends Controller
     {
         try {
             $user = auth()->user();
-            
+
             if (!$user) {
                 return response()->json([
                     'success' => false,
@@ -57,7 +57,7 @@ class CashierProfileController extends Controller
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch profile',
@@ -79,7 +79,7 @@ class CashierProfileController extends Controller
             ]);
 
             $user = auth()->user();
-            
+
             DB::beginTransaction();
 
             $userUpdates = array_intersect_key($validated, array_flip(['first_name', 'last_name', 'phone']));
@@ -261,3 +261,4 @@ class CashierProfileController extends Controller
         }
     }
 }
+

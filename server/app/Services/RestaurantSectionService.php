@@ -155,7 +155,6 @@ class RestaurantSectionService
                 'is_active'   => isset($data['is_active']) ? (bool) $data['is_active'] : $section->is_active,
             ]);
 
-            // Sync tables section name string if section name changed
             if (isset($data['name']) && trim($data['name']) !== $oldName) {
                 RestaurantTable::where('section_id', $section->id)
                     ->update(['section' => trim($data['name'])]);
@@ -171,7 +170,7 @@ class RestaurantSectionService
     public function deleteSection(RestaurantSection $section): void
     {
         DB::transaction(function () use ($section) {
-            // Nullify section_id on tables belonging to this section
+
             RestaurantTable::where('section_id', $section->id)
                 ->update(['section_id' => null]);
 
@@ -205,3 +204,4 @@ class RestaurantSectionService
         }
     }
 }
+

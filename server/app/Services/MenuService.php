@@ -113,7 +113,6 @@ class MenuService
                 $this->ensureHotelHasMenuAndCategories($hotelId);
             }
 
-            // 1. Get counts grouped by category slug/name in 1 single aggregate query
             $itemCountQuery = MenuItem::withoutGlobalScope(TenantScope::class)
                 ->where('is_available', true)
                 ->selectRaw('category, category_id, COUNT(*) as item_count');
@@ -136,7 +135,6 @@ class MenuService
                 }
             }
 
-            // 2. Query categories with pruned columns
             $catQuery = Category::withoutGlobalScope(TenantScope::class)
                 ->select(['id', 'hotel_id', 'name', 'slug', 'icon', 'display_order', 'is_active'])
                 ->where('is_active', true);
@@ -167,7 +165,6 @@ class MenuService
                 ];
             }
 
-            // Fallback for distinct item categories not in categories table
             foreach ($countBySlug as $slug => $cnt) {
                 if (!isset($resultMap[$slug])) {
                     $resultMap[$slug] = [
@@ -308,3 +305,4 @@ class MenuService
         }
     }
 }
+

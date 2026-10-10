@@ -24,3 +24,4 @@ class ManagerAnnouncementResource extends JsonResource
         ];
     }
 }
+

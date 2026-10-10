@@ -22,3 +22,4 @@ class PlatformAdminMiddleware
         return $next($request);
     }
 }
+

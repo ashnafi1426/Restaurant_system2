@@ -10,7 +10,6 @@ use Illuminate\Validation\ValidationException;
 
 class RestaurantChargeService
 {
-
     public function createFromOrder(Order $order): RestaurantCharge
     {
         return DB::transaction(function () use ($order) {
@@ -147,3 +146,4 @@ class RestaurantChargeService
         ];
     }
 }
+

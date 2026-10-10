@@ -48,3 +48,4 @@ class AuthResource extends JsonResource
         ];
     }
 }
+

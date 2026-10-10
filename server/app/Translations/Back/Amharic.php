@@ -7,7 +7,7 @@ class Amharic
     public static function get(): array
     {
         return [
-            // Header & Navigation Shell
+
             'dashboard' => 'ዳሽቦርድ',
             'hotel_management_system' => 'የሆቴል አስተዳደር ስርዓት',
             'switch_hotel' => 'ሆቴል ቀይር',
@@ -29,7 +29,6 @@ class Amharic
             'collapse_sidebar' => 'አሳንስ',
             'expand_sidebar' => 'አስፋ',
 
-            // Roles
             'admin' => 'አስተዳዳሪ',
             'manager' => 'ስራ አስኪያጅ',
             'receptionist' => 'አስተናባሪ',
@@ -45,7 +44,6 @@ class Amharic
             'users' => 'ተጠቃሚዎች',
             'permissions' => 'ፈቃዶች',
 
-            // Sidebar Sections & Modules
             'General' => 'አጠቃላይ',
             'Management' => 'አስተዳደር',
             'Hospitality' => 'መስተንግዶ',
@@ -124,7 +122,6 @@ class Amharic
             'Hotel Settings' => 'የሆቴል ቅንብሮች',
             'hotel_settings' => 'የሆቴል ቅንብሮች',
 
-            // Common CRUD & Actions
             'actions' => 'እርምጃዎች',
             'action' => 'እርምጃ',
             'create' => 'ፍጠር',
@@ -164,7 +161,6 @@ class Amharic
             'submit' => 'አስገባ',
             'refresh' => 'አድስ',
 
-            // Table Columns & Labels
             'id' => 'መለያ (ID)',
             'name' => 'ስም',
             'first_name' => 'የመጀመሪያ ስም',
@@ -198,7 +194,6 @@ class Amharic
             'description' => 'መግለጫ',
             'notes' => 'ማስታወሻዎች',
 
-            // Status Values
             'available' => 'ክፍት / ይገኛል',
             'occupied' => 'የተያዘ (ተጠቃሚ ያለበት)',
             'reserved' => 'ቀድሞ የተያዘ',
@@ -217,7 +212,6 @@ class Amharic
             'unpaid' => 'ያልተከፈለ',
             'refunded' => 'ተመላሽ የተደረገ',
 
-            // Dashboard Metrics & KPIs
             'total_revenue' => 'ጠቅላላ ገቢ',
             'total_bookings' => 'ጠቅላላ የተያዙ ክፍሎች',
             'total_orders' => 'ጠቅላላ ትዕዛዞች',
@@ -233,7 +227,6 @@ class Amharic
             'room_management' => 'የክፍሎች አስተዳደር',
             'staff_management' => 'የሰራተኞች አስተዳደር',
 
-            // Sidebar sections & operational items
             'Deliveries' => 'ማድረሻዎች',
             'Delivery History' => 'የማድረስ ታሪክ',
             'BILLING' => 'ክፍያና ደረሰኝ',
@@ -263,7 +256,6 @@ class Amharic
             'User Role Assignments' => 'የተጠቃሚ ሚና ምደባዎች',
             'Rooms Management' => 'የክፍሎች አስተዳደር',
 
-            // Admin Dashboard
             'administrator_dashboard' => 'የአስተዳዳሪ ዳሽቦርድ',
             'Administrator Dashboard' => 'የአስተዳዳሪ ዳሽቦርድ',
             'super_admin' => 'ዋና አስተዳዳሪ',
@@ -382,3 +374,4 @@ class Amharic
         ];
     }
 }
+

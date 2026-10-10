@@ -113,9 +113,9 @@ class DeliveryTask extends Model
             'status' => 'accepted',
             'accepted_at' => now(),
         ]);
-        
+
         $this->refresh();
-        
+
         $waiter->incrementOrders();
     }
 
@@ -134,7 +134,7 @@ class DeliveryTask extends Model
             'status' => 'picked_up',
             'picked_up_at' => now(),
         ]);
-        
+
         $this->refresh();
     }
 
@@ -153,7 +153,7 @@ class DeliveryTask extends Model
             'status' => 'on_delivery',
             'on_delivery_at' => now(),
         ]);
-        
+
         $this->refresh();
     }
 
@@ -173,7 +173,7 @@ class DeliveryTask extends Model
             'delivered_at' => now(),
             'remarks' => $remarks,
         ]);
-        
+
         $this->refresh();
 
         if ($this->waiter) {
@@ -252,3 +252,4 @@ class DeliveryTask extends Model
         };
     }
 }
+

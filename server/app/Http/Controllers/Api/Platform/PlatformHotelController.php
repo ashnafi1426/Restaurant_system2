@@ -48,10 +48,9 @@ class PlatformHotelController extends Controller
         ];
         $hotels = $this->platformHotelService->getHotels($filters, $request->integer('per_page', 15));
 
-        // Transform the paginator to avoid serialization issues
         $data = [
             'current_page' => $hotels->currentPage(),
-            'data' => $hotels->items(), // Get raw items
+            'data' => $hotels->items(),
             'first_page_url' => $hotels->url(1),
             'from' => $hotels->firstItem(),
             'last_page' => $hotels->lastPage(),
@@ -158,10 +157,9 @@ class PlatformHotelController extends Controller
 
         $admins = $this->platformHotelService->getAllAdmins($filters, $request->integer('per_page', 15));
 
-        // Transform the paginated data properly
         $data = [
             'current_page' => $admins->currentPage(),
-            'data' => $admins->items(), // Get raw items and let the frontend handle them
+            'data' => $admins->items(),
             'first_page_url' => $admins->url(1),
             'from' => $admins->firstItem(),
             'last_page' => $admins->lastPage(),
@@ -193,7 +191,7 @@ class PlatformHotelController extends Controller
                 'name' => $hotel->name,
                 'slug' => $hotel->slug,
             ],
-            'data' => $admins, // Return raw array data
+            'data' => $admins,
         ]);
     }
 
@@ -321,7 +319,6 @@ class PlatformHotelController extends Controller
 
         $users = $this->platformHotelService->getAllUsers($filters, $request->integer('per_page', 20));
 
-        // Transform the paginated data properly
         $data = [
             'current_page' => $users->currentPage(),
             'data' => $users->items(),
@@ -355,7 +352,7 @@ class PlatformHotelController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $logs, // Audit logs already have proper structure from service
+            'data' => $logs,
         ]);
     }
 
@@ -380,3 +377,4 @@ class PlatformHotelController extends Controller
         ]);
     }
 }
+

@@ -116,7 +116,6 @@ class GuestOrderService
             $this->createOrderItems($order->id, $orderItems);
             $this->notifyChefs($order, "Room order #{$order->order_number} (Room {$room->room_number}) has been placed.");
 
-            // Automatic Waiter Assignment: Room -> Floor -> Assigned Waiters -> Workload -> Assigned
             try {
                 app(AutomaticWaiterAssignmentService::class)->assignWaiterToReadyOrder($order);
             } catch (\Throwable $e) {
@@ -186,7 +185,6 @@ class GuestOrderService
 
             $this->notifyChefs($order, "Table order #{$order->order_number} (Table {$table->table_number}) has been placed.");
 
-            // Automatic Waiter Assignment: Table -> Section -> Assigned Waiters -> Workload -> Assigned
             try {
                 app(AutomaticWaiterAssignmentService::class)->assignWaiterToReadyOrder($order);
             } catch (\Throwable $e) {
@@ -338,3 +336,4 @@ class GuestOrderService
         }
     }
 }
+

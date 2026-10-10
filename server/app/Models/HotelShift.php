@@ -40,20 +40,20 @@ class HotelShift extends Model
     {
         return $query->where('status', 'active');
     }
-    
+
     public static function getCurrentShift(): ?self
     {
         $shifts = self::active()->get();
-        
+
         foreach ($shifts as $shift) {
             if ($shift->isCurrentShift()) {
                 return $shift;
             }
         }
-        
+
         return null;
     }
-    
+
     public function waiterAssignments(): HasMany
     {
         return $this->hasMany(WaiterFloorAssignment::class, 'shift_id');
@@ -141,3 +141,4 @@ class HotelShift extends Model
         }
     }
 }
+

@@ -317,3 +317,4 @@ class FloorAssignmentController extends Controller
         ]);
     }
 }
+

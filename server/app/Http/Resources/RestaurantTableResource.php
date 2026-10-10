@@ -37,3 +37,4 @@ class RestaurantTableResource extends JsonResource
         ];
     }
 }
+

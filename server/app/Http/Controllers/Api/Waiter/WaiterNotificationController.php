@@ -12,9 +12,9 @@ class WaiterNotificationController extends Controller
     public function getNotifications(): JsonResponse
     {
         $user = Auth::user();
-        
+
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
-        
+
         if (!$waiter) {
             return response()->json([
                 'success' => false,
@@ -22,7 +22,7 @@ class WaiterNotificationController extends Controller
                 'message' => 'Waiter not found',
             ]);
         }
-        
+
         $notifications = WaiterNotification::where('waiter_id', $waiter->id)
             ->orderBy('created_at', 'desc')
             ->paginate(20);
@@ -36,16 +36,16 @@ class WaiterNotificationController extends Controller
     public function getUnreadCount(): JsonResponse
     {
         $user = Auth::user();
-        
+
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
-        
+
         if (!$waiter) {
             return response()->json([
                 'success' => true,
                 'unread_count' => 0,
             ]);
         }
-        
+
         $unreadCount = WaiterNotification::where('waiter_id', $waiter->id)
             ->where('is_read', false)
             ->count();
@@ -59,16 +59,16 @@ class WaiterNotificationController extends Controller
     public function getUnread(): JsonResponse
     {
         $user = Auth::user();
-        
+
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
-        
+
         if (!$waiter) {
             return response()->json([
                 'success' => true,
                 'data' => [],
             ]);
         }
-        
+
         $notifications = WaiterNotification::where('waiter_id', $waiter->id)
             ->where('is_read', false)
             ->orderBy('created_at', 'desc')
@@ -83,16 +83,16 @@ class WaiterNotificationController extends Controller
     public function markAsRead($id): JsonResponse
     {
         $user = Auth::user();
-        
+
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
-        
+
         if (!$waiter) {
             return response()->json([
                 'success' => false,
                 'message' => 'Waiter not found',
             ], 404);
         }
-        
+
         $notification = WaiterNotification::where('waiter_id', $waiter->id)
             ->where('id', $id)
             ->first();
@@ -116,16 +116,16 @@ class WaiterNotificationController extends Controller
     public function markAllAsRead(): JsonResponse
     {
         $user = Auth::user();
-        
+
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
-        
+
         if (!$waiter) {
             return response()->json([
                 'success' => false,
                 'message' => 'Waiter not found',
             ], 404);
         }
-        
+
         WaiterNotification::where('waiter_id', $waiter->id)
             ->where('is_read', false)
             ->update(['is_read' => true]);
@@ -139,16 +139,16 @@ class WaiterNotificationController extends Controller
     public function deleteNotification($id): JsonResponse
     {
         $user = Auth::user();
-        
+
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
-        
+
         if (!$waiter) {
             return response()->json([
                 'success' => false,
                 'message' => 'Waiter not found',
             ], 404);
         }
-        
+
         $notification = WaiterNotification::where('waiter_id', $waiter->id)
             ->where('id', $id)
             ->first();
@@ -171,16 +171,16 @@ class WaiterNotificationController extends Controller
     public function deleteAll(): JsonResponse
     {
         $user = Auth::user();
-        
+
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
-        
+
         if (!$waiter) {
             return response()->json([
                 'success' => false,
                 'message' => 'Waiter not found',
             ], 404);
         }
-        
+
         WaiterNotification::where('waiter_id', $waiter->id)->delete();
 
         return response()->json([
@@ -192,9 +192,9 @@ class WaiterNotificationController extends Controller
     public function getStats(): JsonResponse
     {
         $user = Auth::user();
-        
+
         $waiter = \App\Models\Waiter::where('user_id', $user->id)->first();
-        
+
         if (!$waiter) {
             return response()->json([
                 'success' => true,
@@ -206,7 +206,7 @@ class WaiterNotificationController extends Controller
                 ],
             ]);
         }
-        
+
         $totalCount = WaiterNotification::where('waiter_id', $waiter->id)->count();
         $unreadCount = WaiterNotification::where('waiter_id', $waiter->id)
             ->where('is_read', false)
@@ -228,3 +228,4 @@ class WaiterNotificationController extends Controller
         ]);
     }
 }
+

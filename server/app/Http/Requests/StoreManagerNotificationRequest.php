@@ -40,3 +40,4 @@ class StoreManagerNotificationRequest extends FormRequest
         ];
     }
 }
+

@@ -19,7 +19,7 @@ class OperationsController extends Controller
     {
         try {
             $orders = $this->dashboardService->getRecentOrders();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $orders,
@@ -38,7 +38,7 @@ class OperationsController extends Controller
     {
         try {
             $deliveries = $this->dashboardService->getDeliveries();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $deliveries,
@@ -57,7 +57,7 @@ class OperationsController extends Controller
     {
         try {
             $housekeeping = $this->dashboardService->getHousekeeping();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $housekeeping,
@@ -76,7 +76,7 @@ class OperationsController extends Controller
     {
         try {
             $laundry = $this->dashboardService->getLaundry();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $laundry,
@@ -91,3 +91,4 @@ class OperationsController extends Controller
         }
     }
 }
+

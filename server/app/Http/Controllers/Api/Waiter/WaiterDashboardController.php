@@ -18,9 +18,9 @@ class WaiterDashboardController extends Controller
     }
     private function resolveTenant(Request $request): ?string
     {
-        $hotelId = $request->input('hotel_id') 
+        $hotelId = $request->input('hotel_id')
             ?: $request->query('hotel_id')
-            ?: $request->header('X-Hotel-ID') 
+            ?: $request->header('X-Hotel-ID')
             ?: app(TenantContext::class)->getHotelId();
 
         if ($hotelId) {
@@ -61,7 +61,7 @@ class WaiterDashboardController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load dashboard data',
@@ -88,7 +88,7 @@ class WaiterDashboardController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load dashboard',
@@ -158,7 +158,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getPendingPickupOrders($userId),
-            
+
         );
     }
 
@@ -166,7 +166,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($waiterId) => $this->dashboardService->getOnDelivery($waiterId, request()->query('limit', 50)),
-            
+
         );
     }
 
@@ -174,7 +174,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getCompletedDeliveries($userId, request()->query('limit', 10)),
-            
+
         );
     }
 
@@ -182,7 +182,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getFailedDeliveries($userId, request()->query('limit', 10)),
-            
+
         );
     }
 
@@ -190,7 +190,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getDeliveryTimeline($userId),
-            
+
         );
     }
 
@@ -198,7 +198,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getWeeklyPerformanceData($userId),
-            
+
         );
     }
 
@@ -206,7 +206,7 @@ class WaiterDashboardController extends Controller
     {
         return $this->handleAction(
             fn($userId) => $this->dashboardService->getMonthlyPerformanceData($userId),
-            
+
         );
     }
 
@@ -230,14 +230,14 @@ class WaiterDashboardController extends Controller
                     'user_id' => $userId,
                     'user_type' => class_basename(auth()->user()),
                 ]);
-                
+
                 $stats = $this->dashboardService->getQuickStats($userId);
-                
+
                 \Log::info(' [CONTROLLER] getQuickStats result', [
                     'user_id' => $userId,
                     'stats' => $stats,
                 ]);
-                
+
                 return $stats;
             },
             [
@@ -249,3 +249,4 @@ class WaiterDashboardController extends Controller
         );
     }
 }
+

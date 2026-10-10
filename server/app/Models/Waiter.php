@@ -62,10 +62,10 @@ class Waiter extends Model
         return $this->hasManyThrough(
             Floor::class,
             WaiterFloorAssignment::class,
-            'waiter_id', // Foreign key on waiter_floor_assignments
-            'id',        // Foreign key on floors
-            'id',        // Local key on waiters
-            'floor_id'   // Local key on waiter_floor_assignments
+            'waiter_id',
+            'id',
+            'id',
+            'floor_id'
         );
     }
 
@@ -159,7 +159,7 @@ class Waiter extends Model
             ->where('id', $this->id)
             ->where('current_orders', '>', 0)
             ->decrement('current_orders');
-            
+
         if ($updated) {
             $this->current_orders--;
             return true;
@@ -274,3 +274,4 @@ class Waiter extends Model
         ]);
     }
 }
+

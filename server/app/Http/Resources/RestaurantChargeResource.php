@@ -42,3 +42,4 @@ class RestaurantChargeResource extends JsonResource
         ];
     }
 }
+

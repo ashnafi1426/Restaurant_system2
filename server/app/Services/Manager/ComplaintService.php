@@ -236,3 +236,4 @@ class ComplaintService
         return round($totalHours / $resolved->count(), 2);
     }
 }
+

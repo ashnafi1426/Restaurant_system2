@@ -13,13 +13,13 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * OrderStatusUpdated Event
- * 
+ *
  * Broadcast when an order's status changes (pending → preparing → ready → served).
- * 
+ *
  * Broadcasts to TWO channels:
  * 1. orders.{hotel_id}.{order_id} - Customer tracking their specific order
  * 2. hotel.{hotel_id}.kitchen - Kitchen dashboard for real-time order management
- * 
+ *
  * Implements ShouldQueue for async broadcasting (doesn't block HTTP response).
  */
 class OrderStatusUpdated implements ShouldBroadcast, ShouldQueue
@@ -62,13 +62,11 @@ class OrderStatusUpdated implements ShouldBroadcast, ShouldQueue
     public function broadcastOn(): array
     {
         return [
-            // Private channel for customer tracking their specific order
+
             new PrivateChannel("orders.{$this->hotelId}.{$this->orderId}"),
-            
-            // Private channel for kitchen dashboard (hotel-wide)
+
             new PrivateChannel("hotel.{$this->hotelId}.kitchen"),
 
-            // Private channel for cashier and hotel management dashboards
             new PrivateChannel("hotel.{$this->hotelId}.orders"),
         ];
     }
@@ -122,20 +120,21 @@ class OrderStatusUpdated implements ShouldBroadcast, ShouldQueue
     protected function estimateCompletionTime(Order $order): ?int
     {
         if ($order->status === 'pending') {
-            // Estimate based on number of items (rough estimate: 5 min per item)
+
             $itemCount = $order->orderItems()->count();
-            return min(max($itemCount * 5, 15), 45); // Between 15-45 minutes
+            return min(max($itemCount * 5, 15), 45);
         }
-        
+
         if ($order->status === 'preparing') {
-            // If already preparing, estimate time remaining
+
             return 20;
         }
-        
+
         if ($order->status === 'ready') {
-            return 0; // Order is ready now
+            return 0;
         }
-        
+
         return null;
     }
 }
+

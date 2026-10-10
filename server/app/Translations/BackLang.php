@@ -63,3 +63,4 @@ class BackLang
         return (string)$text;
     }
 }
+

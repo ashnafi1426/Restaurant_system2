@@ -146,12 +146,11 @@ class PlatformHotelService
         ->latest()
         ->paginate($perPage);
 
-        // Add computed fields to each hotel model without converting to array
         $hotels->getCollection()->each(function ($hotel) {
             $hotel->rooms_count = Room::withoutTenant()->where('hotel_id', $hotel->id)->count();
             $hotel->reservations_count = Reservation::withoutTenant()->where('hotel_id', $hotel->id)->count();
-            $hotel->admin_name = $hotel->users->first() 
-                ? ($hotel->users->first()->first_name . ' ' . $hotel->users->first()->last_name) 
+            $hotel->admin_name = $hotel->users->first()
+                ? ($hotel->users->first()->first_name . ' ' . $hotel->users->first()->last_name)
                 : 'No Admin Assigned';
             $hotel->admin_email = $hotel->users->first()?->email;
         });
@@ -182,27 +181,23 @@ class PlatformHotelService
         $adminUser = null;
         $generatedPassword = null;
 
-        // Handle admin user assignment/creation
         if (!empty($data['admin_user_id'])) {
             $adminUser = User::find($data['admin_user_id']);
         } elseif (!empty($data['admin_email'])) {
             $adminUser = User::where('email', $data['admin_email'])->first();
-            
+
             if (!$adminUser) {
                 $generatedPassword = $data['admin_password'] ?? ('Adm#' . rand(1000, 9999) . '!' . Str::random(3));
                 $adminUser = $this->createAdminUser($data, $generatedPassword);
             }
         }
 
-        // Provision roles for the hotel
         $this->tenantRoleService->provisionRolesForHotel($hotel);
 
-        // Assign admin role if user exists
         if ($adminUser) {
             $this->assignAdminRole($hotel, $adminUser);
         }
 
-        // Log the creation
         AuditLog::record(
             'create_hotel',
             $hotel->id,
@@ -311,7 +306,7 @@ class PlatformHotelService
         $hotel->update($data);
 
         AuditLog::record('update_hotel', $hotel->id, Auth::id(), 'hotels', $hotel->id, $data);
-        
+
         return $hotel;
     }
 
@@ -582,7 +577,7 @@ class PlatformHotelService
     {
         $user = User::findOrFail($userId);
         $newTempPassword = 'Adm#' . rand(1000, 9999) . '!' . Str::random(3);
-        
+
         $user->password_hash = Hash::make($newTempPassword);
         $user->must_change_password = true;
         $user->activation_status = 'activated';
@@ -756,3 +751,4 @@ class PlatformHotelService
         return PlatformSetting::all()->pluck('value', 'key')->toArray();
     }
 }
+

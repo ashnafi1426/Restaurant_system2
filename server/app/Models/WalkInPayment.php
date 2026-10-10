@@ -93,3 +93,4 @@ class WalkInPayment extends Model
         return $query->where('payment_status', 'failed');
     }
 }
+

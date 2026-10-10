@@ -58,16 +58,16 @@ class WaiterPerformance extends Model
 
         $acceptanceRate = $totalAssigned > 0 ? round(($totalAccepted / $totalAssigned) * 100, 2) : 100;
         $completionRate = $totalAccepted > 0 ? round(($totalCompleted / $totalAccepted) * 100, 2) : 0;
-        
+
         $completedAssignments = $assignments->where('status', 'delivered');
         $avgDeliveryTime = null;
         if ($completedAssignments->count() > 0) {
             $totalTime = $completedAssignments->sum(fn ($a) => $a->getDeliveryTimeMinutes() ?? 0);
             $avgDeliveryTime = round($totalTime / $completedAssignments->count(), 2);
         }
-        
+
         $rating = $this->calculateRating();
-        
+
         $this->update([
             'deliveries_assigned' => $totalAssigned,
             'deliveries_accepted' => $totalAccepted,
@@ -100,9 +100,9 @@ class WaiterPerformance extends Model
         $baseRating = $completionRate * 5.0;
 
         $failureDeduction = ($totalFailed * 0.5) + ($totalRejected * 0.25);
-        
+
         $rating = max(0, min(5, $baseRating - $failureDeduction));
-        
+
         return round($rating, 2);
     }
 
@@ -148,3 +148,4 @@ class WaiterPerformance extends Model
         return $query->where('metric_date', '>=', today()->subDays($days));
     }
 }
+

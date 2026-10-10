@@ -11,7 +11,7 @@ use Illuminate\Notifications\Messages\DatabaseMessage;
 
 /**
  * DeliveryAssignedNotification
- * 
+ *
  * Notification sent to waiter when a delivery is assigned to them
  * Includes order details and urgent action required
  */
@@ -20,7 +20,7 @@ class DeliveryAssignedNotification extends Notification implements ShouldQueue
     use Queueable;
 
     public DeliveryTask $delivery;
-    public string $assignmentType; // 'automatic' or 'manual'
+    public string $assignmentType;
 
     /**
      * Create a new notification instance.
@@ -104,3 +104,4 @@ class DeliveryAssignedNotification extends Notification implements ShouldQueue
         ]);
     }
 }
+

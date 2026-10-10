@@ -76,3 +76,4 @@ class UpdateReservationRequest extends FormRequest
         ];
     }
 }
+

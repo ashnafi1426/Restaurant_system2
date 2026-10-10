@@ -352,3 +352,4 @@ class GuestBookingController extends Controller
         }
     }
 }
+

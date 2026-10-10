@@ -56,7 +56,7 @@ class AdminProfileController extends Controller
         try {
             $this->ensureAdminColumns();
             $user = auth()->user();
-            
+
             if (!$user) {
                 return response()->json([
                     'success' => false,
@@ -97,7 +97,7 @@ class AdminProfileController extends Controller
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch profile',
@@ -118,7 +118,7 @@ class AdminProfileController extends Controller
             ]);
 
             $user = auth()->user();
-            
+
             DB::beginTransaction();
 
             $userUpdates = array_intersect_key($validated, array_flip(['first_name', 'last_name', 'phone']));
@@ -284,3 +284,4 @@ class AdminProfileController extends Controller
         }
     }
 }
+

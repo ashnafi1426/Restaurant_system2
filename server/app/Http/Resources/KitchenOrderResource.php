@@ -50,8 +50,8 @@ class KitchenOrderResource extends JsonResource
                 'id' => $item->id,
                 'menu_item_id' => $item->menu_item_id,
                 'name' => $item->menuItem?->name ?? $item->item_name ?? 'Item',
-                'category' => is_string($item->menuItem?->category ?? null) 
-                    ? $item->menuItem->category 
+                'category' => is_string($item->menuItem?->category ?? null)
+                    ? $item->menuItem->category
                     : ($item->menuItem?->categoryRelation?->name ?? 'General'),
                 'image' => $item->menuItem?->image_url,
                 'quantity' => $item->quantity ?? 1,
@@ -69,3 +69,4 @@ class KitchenOrderResource extends JsonResource
         ];
     }
 }
+

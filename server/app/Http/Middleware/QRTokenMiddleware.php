@@ -21,24 +21,22 @@ class QRTokenMiddleware
 
     /**
      * Handle the incoming request by validating QR token and setting tenant context.
-     * 
+     *
      * Extraction sources (in order of priority):
      * 1. Route parameter: {qrToken}
      * 2. Query parameter: ?qr_token=...
      * 3. Request body: JSON body with qr_token field
      * 4. Header: X-QR-Token header
      * 5. Request body: form-data qr_token
-     * 
+     *
      * @param \Illuminate\Http\Request $request
      * @param \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response) $next
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // 1. Extract QR token from multiple sources
         $qrToken = $this->extractQRToken($request);
 
-        // 2. If no token found, return 401
         if (!$qrToken) {
             Log::warning('QR token extraction failed', [
                 'path' => $request->path(),
@@ -53,7 +51,6 @@ class QRTokenMiddleware
             ], 401);
         }
 
-        // 3. Validate/resolve QR token using QRResolutionService
         $resolution = QRResolutionService::resolveQRToken($qrToken);
 
         if (!$resolution['success']) {
@@ -72,7 +69,6 @@ class QRTokenMiddleware
             ], 401);
         }
 
-        // 4. Determine hotel from resolution data
         $hotelId = $resolution['data']['hotel_id'] ?? null;
 
         if (!$hotelId) {
@@ -88,7 +84,6 @@ class QRTokenMiddleware
             ], 500);
         }
 
-        // 5. Verify hotel exists and is active
         $hotel = Hotel::find($hotelId);
 
         if (!$hotel || !$hotel->isActive()) {
@@ -104,10 +99,8 @@ class QRTokenMiddleware
             ], 403);
         }
 
-        // 6. Set TenantContext with hotel and no membership (guest context)
         $this->tenantContext->setHotel($hotel, null);
 
-        // 7. Attach resolution data to request for downstream use
         $request->attributes->set('qr_resolution', $resolution);
         $request->attributes->set('qr_token', $qrToken);
         $request->attributes->set('guest_hotel_id', $hotelId);
@@ -125,37 +118,32 @@ class QRTokenMiddleware
 
     /**
      * Extract QR token from multiple sources in priority order.
-     * 
+     *
      * @param \Illuminate\Http\Request $request
      * @return string|null
      */
     protected function extractQRToken(Request $request): ?string
     {
-        // 1. Try route parameter: {qrToken}
         $token = $request->route('qrToken');
         if ($token) {
             return $token;
         }
 
-        // 2. Try query parameter: ?qr_token=...
         $token = $request->query('qr_token');
         if ($token) {
             return $token;
         }
 
-        // 3. Try JSON body: {"qr_token": "..."}
         $token = $request->json('qr_token');
         if ($token) {
             return $token;
         }
 
-        // 4. Try header: X-QR-Token
         $token = $request->header('X-QR-Token');
         if ($token) {
             return $token;
         }
 
-        // 5. Try form-data: qr_token in POST body
         $token = $request->input('qr_token');
         if ($token) {
             return $token;
@@ -164,3 +152,4 @@ class QRTokenMiddleware
         return null;
     }
 }
+

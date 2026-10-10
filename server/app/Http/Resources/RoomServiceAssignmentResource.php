@@ -12,3 +12,4 @@ class RoomServiceAssignmentResource extends JsonResource
         return parent::toArray($request);
     }
 }
+

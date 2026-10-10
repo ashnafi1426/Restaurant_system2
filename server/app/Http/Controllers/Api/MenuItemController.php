@@ -155,3 +155,4 @@ class MenuItemController extends Controller
         ]);
     }
 }
+

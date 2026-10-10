@@ -280,3 +280,4 @@ class Payment extends Model
         return $this->belongsTo(Guest::class, 'guest_id');
     }
 }
+

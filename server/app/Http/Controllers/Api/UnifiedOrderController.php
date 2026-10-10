@@ -49,3 +49,4 @@ class UnifiedOrderController extends Controller
         return $this->guestOrderService->calculateOrderTotal($items, $targetHotelId);
     }
 }
+

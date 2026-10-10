@@ -46,20 +46,17 @@ class WaiterTableAssignmentService
                 });
             }
 
-            // Ensure shift_id is nullable
             try {
                 DB::statement("ALTER TABLE `waiter_table_assignments` MODIFY `shift_id` CHAR(36) NULL");
             } catch (\Throwable $e) {
-                // Ignore if already nullable or driver difference
             }
 
-            // Drop legacy restrictive unique index if exists to allow multiple waiters on the same table
             try {
                 $indexes = DB::select("
-                    SELECT INDEX_NAME 
-                    FROM INFORMATION_SCHEMA.STATISTICS 
-                    WHERE TABLE_SCHEMA = DATABASE() 
-                      AND TABLE_NAME = 'waiter_table_assignments' 
+                    SELECT INDEX_NAME
+                    FROM INFORMATION_SCHEMA.STATISTICS
+                    WHERE TABLE_SCHEMA = DATABASE()
+                      AND TABLE_NAME = 'waiter_table_assignments'
                       AND INDEX_NAME = 'unique_table_shift_date_priority'
                 ");
                 if (!empty($indexes)) {
@@ -68,10 +65,8 @@ class WaiterTableAssignmentService
                     });
                 }
             } catch (\Throwable $e) {
-                // Ignore if driver or syntax differences
             }
 
-            // Synchronize any existing assignments where hotel_id is null with their table's hotel_id
             try {
                 DB::statement("
                     UPDATE waiter_table_assignments wta
@@ -80,7 +75,6 @@ class WaiterTableAssignmentService
                     WHERE wta.hotel_id IS NULL OR wta.hotel_id = ''
                 ");
             } catch (\Throwable $e) {
-                // Ignore if driver or syntax differences
             }
         } catch (\Throwable $e) {
             Log::error('ensureTableExists error: ' . $e->getMessage());
@@ -89,7 +83,6 @@ class WaiterTableAssignmentService
 
     public function autoSeedAssignmentsIfEmpty()
     {
-        // Auto-seeding disabled to prevent un-scoped cross-tenant pollution
         return;
     }
 
@@ -161,7 +154,7 @@ class WaiterTableAssignmentService
         }
 
         $query->orderByRaw("
-            CASE 
+            CASE
                 WHEN priority = 'primary' THEN 1
                 WHEN priority = 'secondary' THEN 2
                 WHEN priority = 'backup' THEN 3
@@ -170,7 +163,7 @@ class WaiterTableAssignmentService
         ")->orderBy('created_at', 'desc');
 
         $perPage = $filters['per_page'] ?? 100;
-        
+
         return $query->paginate($perPage);
     }
 
@@ -198,7 +191,7 @@ class WaiterTableAssignmentService
         ->active()
         ->today()
         ->orderByRaw("
-            CASE 
+            CASE
                 WHEN priority = 'primary' THEN 1
                 WHEN priority = 'secondary' THEN 2
                 WHEN priority = 'backup' THEN 3
@@ -214,7 +207,7 @@ class WaiterTableAssignmentService
         $errors = [];
 
         DB::beginTransaction();
-        
+
         try {
             $hotelId = $this->getHotelId();
 
@@ -243,8 +236,8 @@ class WaiterTableAssignmentService
                         continue;
                     }
 
-                    $resolvedShiftId = !empty($assignmentData['shift_id']) 
-                        ? $assignmentData['shift_id'] 
+                    $resolvedShiftId = !empty($assignmentData['shift_id'])
+                        ? $assignmentData['shift_id']
                         : HotelShift::where('is_active', true)->when($effectiveHotelId, fn($q) => $q->where('hotel_id', $effectiveHotelId))->value('id');
 
                     $createPayload = [
@@ -335,7 +328,7 @@ class WaiterTableAssignmentService
     public function deleteAssignment(string $assignmentId)
     {
         $assignment = WaiterTableAssignment::findOrFail($assignmentId);
-        
+
         Log::info('Deleting table assignment', [
             'assignment_id' => $assignmentId,
             'waiter_id' => $assignment->waiter_id,
@@ -393,7 +386,7 @@ class WaiterTableAssignmentService
     public function getAssignedWaiterForTable(string $tableId)
     {
         $currentTime = Carbon::now()->format('H:i:s');
-        
+
         $currentShift = HotelShift::where('is_active', true)
             ->where('start_time', '<=', $currentTime)
             ->where('end_time', '>=', $currentTime)
@@ -426,7 +419,6 @@ class WaiterTableAssignmentService
             throw new \Exception('Waiter not found');
         }
 
-        // Only active waiters can be assigned
         if (strtolower($waiter->status ?? 'active') !== 'active') {
             throw new \Exception("Waiter '{$waiter->name}' is inactive. Only active waiters can be assigned.");
         }
@@ -461,3 +453,4 @@ class WaiterTableAssignmentService
         }
     }
 }
+

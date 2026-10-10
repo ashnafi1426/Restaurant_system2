@@ -15,7 +15,7 @@ class UpdateWaiterRequest extends FormRequest
     public function rules(): array
     {
         $waiterId = $this->route('waiter') ?? $this->route('id');
-        
+
         return [
             'phone' => [
                 'sometimes',
@@ -97,3 +97,4 @@ class UpdateWaiterRequest extends FormRequest
         ]);
     }
 }
+

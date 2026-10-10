@@ -148,7 +148,6 @@ class OrderStatusService
     {
         $updateData = ['status' => Order::STATUS_PREPARING];
 
-        // If a chef initiated and order has no chef_id yet, assign them
         if (!$order->chef_id && $actor && in_array(strtolower($actor->role ?? ''), ['chef', 'cook', 'kitchen_staff'])) {
             $updateData['chef_id'] = $actor->id;
         }
@@ -167,17 +166,14 @@ class OrderStatusService
         $order->update(['status' => Order::STATUS_READY]);
         $freshOrder = $this->loadOrderRelations($order->fresh());
 
-        // 1. Notify or assign waiter
         $this->notifyAssignedWaiterOnReady($freshOrder);
 
-        // 2. Dispatch OrderReadyEvent for external/broadcast listeners
         try {
             OrderReadyEvent::dispatch($freshOrder);
         } catch (\Throwable $e) {
             Log::error("Failed to dispatch OrderReadyEvent for order #{$order->id}: {$e->getMessage()}");
         }
 
-        // 3. Notify kitchen staff / chefs
         $this->notifyChefs(
             'order_ready',
             'Order Ready for Pickup',
@@ -199,7 +195,6 @@ class OrderStatusService
             'served_at' => now(),
         ]);
 
-        // Release restaurant table back to available
         if ($order->table_id && $order->table) {
             try {
                 $order->table->update(['status' => \App\Models\RestaurantTable::STATUS_AVAILABLE]);
@@ -208,7 +203,6 @@ class OrderStatusService
             }
         }
 
-        // Complete delivery task if active
         try {
             $activeTasks = DeliveryTask::withoutGlobalScopes()
                 ->where('order_id', $order->id)
@@ -229,14 +223,12 @@ class OrderStatusService
             Log::warning("Failed to update DeliveryTask status for order #{$order->id}: {$e->getMessage()}");
         }
 
-        // Post to folio/charges if room service
         try {
             $this->restaurantChargeService->createFromOrder($order);
         } catch (\Throwable $e) {
             Log::warning("Restaurant charge creation failed for order #{$order->id}: {$e->getMessage()}");
         }
 
-        // Notify chefs
         $this->notifyChefs(
             'order_completed',
             'Order Completed',
@@ -257,7 +249,6 @@ class OrderStatusService
             'cancelled_at' => now(),
         ]);
 
-        // Cancel pending/active delivery tasks
         try {
             $activeTasks = DeliveryTask::withoutGlobalScopes()
                 ->where('order_id', $order->id)
@@ -293,7 +284,6 @@ class OrderStatusService
                 ->where('status', '!=', 'cancelled')
                 ->first();
 
-            // If task exists and has waiter assigned, notify them directly
             if ($deliveryTask && $deliveryTask->waiter_id) {
                 $waiter = Waiter::find($deliveryTask->waiter_id);
                 if ($waiter) {
@@ -302,7 +292,6 @@ class OrderStatusService
                         $this->waiterNotificationService->notifyOrderReady($waiterUser, $deliveryTask);
                     }
 
-                    // Create structured WaiterNotification record
                     WaiterNotification::create([
                         'hotel_id' => $order->hotel_id,
                         'user_id' => $waiter->user_id ?? $waiterUser?->id,
@@ -328,7 +317,6 @@ class OrderStatusService
                 }
             }
 
-            // If no delivery task yet or no waiter assigned, trigger automatic assignment engine
             $assignResult = $this->waiterAssignmentService->assignWaiterToReadyOrder($order);
             Log::info("[ORDER_STATUS] Executed automatic waiter assignment on ready order #{$order->order_number}", $assignResult);
 
@@ -388,3 +376,4 @@ class OrderStatusService
         ]);
     }
 }
+

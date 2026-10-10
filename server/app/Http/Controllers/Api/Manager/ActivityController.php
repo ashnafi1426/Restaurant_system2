@@ -25,7 +25,7 @@ class ActivityController extends Controller
     {
         try {
             $activities = $this->service->activityLogs();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => ManagerActivityLogResource::collection($activities),
@@ -83,3 +83,4 @@ class ActivityController extends Controller
         return new ManagerNotificationResource($notification);
     }
 }
+

@@ -46,3 +46,4 @@ class Receptionist extends Model
         return $query->where('status', 'active');
     }
 }
+

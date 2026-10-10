@@ -47,3 +47,4 @@ class UpdateCheckInRequest extends FormRequest
         ];
     }
 }
+

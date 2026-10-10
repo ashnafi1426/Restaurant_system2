@@ -17,3 +17,4 @@ class DuplicateVoteException extends Exception
         parent::__construct($message);
     }
 }
+

@@ -63,3 +63,4 @@ class FrontLang
         return (string)$text;
     }
 }
+

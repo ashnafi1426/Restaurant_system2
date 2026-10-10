@@ -12,7 +12,7 @@ class UpdateHotelRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization should be handled by middleware/policies
+        return true;
     }
 
     /**
@@ -23,7 +23,7 @@ class UpdateHotelRequest extends FormRequest
     public function rules(): array
     {
         $hotelId = $this->route('id');
-        
+
         return [
             'name' => 'sometimes|string|max:255',
             'slug' => ['sometimes', 'string', 'max:100', Rule::unique('hotels', 'slug')->ignore($hotelId)],
@@ -52,3 +52,4 @@ class UpdateHotelRequest extends FormRequest
         ];
     }
 }
+

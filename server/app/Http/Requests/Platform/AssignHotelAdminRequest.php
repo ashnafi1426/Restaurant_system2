@@ -11,7 +11,7 @@ class AssignHotelAdminRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true; // Authorization should be handled by middleware/policies
+        return true;
     }
 
     /**
@@ -46,3 +46,4 @@ class AssignHotelAdminRequest extends FormRequest
         ];
     }
 }
+

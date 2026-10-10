@@ -249,3 +249,4 @@ class NotificationController extends Controller
         }
     }
 }
+

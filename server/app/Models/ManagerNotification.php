@@ -84,3 +84,4 @@ class ManagerNotification extends Model
         return $query->orderBy('created_at', 'desc')->limit($limit);
     }
 }
+

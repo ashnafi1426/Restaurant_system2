@@ -32,15 +32,12 @@ class RoleMiddleware
 
         $userRole = strtolower($user->role ?? '');
 
-        // 1. Platform Admin or Admin user has full system access
         if ($user->isPlatformAdmin() || $this->authService->hasRole($user, 'admin') || $userRole === 'admin') {
             return $next($request);
         }
 
-        // 2. Specific role match (case-insensitive)
         $allowedRoles = array_map('trim', explode('|', strtolower($roles)));
 
-        // If 'staff' is in allowed roles, allow any restaurant personnel
         $isStaffRole = in_array($userRole, ['staff', 'waiter', 'manager', 'chef', 'receptionist', 'kitchen', 'cashier']);
         if (in_array('staff', $allowedRoles) && $isStaffRole) {
             return $next($request);
@@ -54,7 +51,6 @@ class RoleMiddleware
             return $next($request);
         }
 
-        // 3. Dynamic Custom Role Support:
         $activeRoles = $this->authService->getActiveRoles($user);
         if ($activeRoles->isNotEmpty()) {
             return $next($request);
@@ -66,3 +62,4 @@ class RoleMiddleware
         ], 403);
     }
 }
+

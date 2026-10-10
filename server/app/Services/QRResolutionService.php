@@ -96,8 +96,8 @@ class QRResolutionService
                         'can_order' => $canOrder,
                         'eligibility_message' => $eligibilityMessage,
                     ],
-                    'message' => $canOrder 
-                        ? 'QR code belongs to a hotel room' 
+                    'message' => $canOrder
+                        ? 'QR code belongs to a hotel room'
                         : $eligibilityMessage,
                 ];
             }
@@ -118,7 +118,7 @@ class QRResolutionService
             if ($table && $table->is_active !== false) {
                 $assignedWaiter = null;
                 $currentShift = \App\Models\HotelShift::getCurrentShift();
-                
+
                 if ($currentShift && \Illuminate\Support\Facades\Schema::hasTable('waiter_table_assignments')) {
                     try {
                         $assignment = \App\Models\WaiterTableAssignment::getAssignedWaiter(
@@ -276,3 +276,4 @@ class QRResolutionService
         return $room !== null;
     }
 }
+

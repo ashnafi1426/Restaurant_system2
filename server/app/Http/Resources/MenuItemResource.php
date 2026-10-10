@@ -10,7 +10,7 @@ class MenuItemResource extends JsonResource
     public function toArray(Request $request): array
     {
         $imageUrl = null;
-        
+
         if ($this->image) {
             if (filter_var($this->image, FILTER_VALIDATE_URL)) {
                 $imageUrl = $this->image;
@@ -18,7 +18,7 @@ class MenuItemResource extends JsonResource
                 $imageUrl = asset('storage/' . $this->image);
             }
         }
-        
+
         $price = (float) $this->price;
         $taxRateModel = $this->relationLoaded('taxRate') ? $this->taxRate : $this->taxRate;
         $rate = $taxRateModel ? (float) $taxRateModel->rate : 0.0;
@@ -39,7 +39,7 @@ class MenuItemResource extends JsonResource
             $taxAmount = 0.0;
             $totalPrice = $price;
         }
-        
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -68,3 +68,4 @@ class MenuItemResource extends JsonResource
         ];
     }
 }
+

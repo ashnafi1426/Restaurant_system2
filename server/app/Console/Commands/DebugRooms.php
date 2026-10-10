@@ -15,12 +15,10 @@ class DebugRooms extends Command
         $this->info('=== ROOM DATABASE DEBUG ===');
         $this->newLine();
 
-        // Check total rooms
         $totalRooms = Room::count();
         $this->info("Total rooms in database: {$totalRooms}");
         $this->newLine();
 
-        // Get all rooms with their relationships
         $rooms = Room::with('roomType')->get();
 
         if ($rooms->isEmpty()) {
@@ -46,7 +44,7 @@ class DebugRooms extends Command
         $this->newLine();
         $this->info('=== SEARCHING FOR ROOM 202 ===');
         $room202 = Room::where('room_number', '202')->first();
-        
+
         if ($room202) {
             $this->info('✓ Room 202 FOUND');
             $this->info("  Room Number: {$room202->room_number}");
@@ -77,3 +75,4 @@ class DebugRooms extends Command
         $this->info("Cache Prefix: " . config('cache.prefix'));
     }
 }
+

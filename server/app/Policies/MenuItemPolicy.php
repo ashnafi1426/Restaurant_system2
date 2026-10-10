@@ -28,31 +28,32 @@ class MenuItemPolicy
 
     public function viewAny(User $user): bool
     {
-        return $this->checkTenantAccess($user, null) 
+        return $this->checkTenantAccess($user, null)
             && $this->authService->hasPermission($user, 'menu.view');
     }
 
     public function view(User $user, MenuItem $item): bool
     {
-        return $this->checkTenantAccess($user, $item->hotel_id) 
+        return $this->checkTenantAccess($user, $item->hotel_id)
             && $this->authService->hasPermission($user, 'menu.view');
     }
 
     public function create(User $user): bool
     {
-        return $this->checkTenantAccess($user, null) 
+        return $this->checkTenantAccess($user, null)
             && $this->authService->hasPermission($user, 'menu.create');
     }
 
     public function update(User $user, MenuItem $item): bool
     {
-        return $this->checkTenantAccess($user, $item->hotel_id) 
+        return $this->checkTenantAccess($user, $item->hotel_id)
             && $this->authService->hasPermission($user, 'menu.update');
     }
 
     public function delete(User $user, MenuItem $item): bool
     {
-        return $this->checkTenantAccess($user, $item->hotel_id) 
+        return $this->checkTenantAccess($user, $item->hotel_id)
             && $this->authService->hasPermission($user, 'menu.delete');
     }
 }
+

@@ -66,7 +66,6 @@ class FloorManagementService
             return;
         }
 
-        // 1. Backfill from distinct room floor numbers
         $existingRoomFloors = Room::withoutTenant()
             ->where('hotel_id', $hotelId)
             ->whereNotNull('floor')
@@ -93,7 +92,6 @@ class FloorManagementService
             }
         }
 
-        // 2. Default floor 1 if still empty
         if (Floor::withoutTenant()->where('hotel_id', $hotelId)->count() === 0) {
             Floor::withoutTenant()->firstOrCreate(
                 ['hotel_id' => $hotelId, 'floor_number' => 1],
@@ -167,7 +165,6 @@ class FloorManagementService
      */
     public function deleteFloor(Floor $floor): void
     {
-        // 1. Check for active waiter assignments
         $activeAssignments = $floor->waiterAssignments()
             ->where(function ($q) {
                 $q->where('is_active', true)->orWhere('status', 'active');
@@ -180,7 +177,6 @@ class FloorManagementService
             ]);
         }
 
-        // 2. Check for assigned rooms
         $roomCount = $floor->rooms()->count();
         if ($roomCount > 0) {
             throw ValidationException::withMessages([
@@ -276,3 +272,4 @@ class FloorManagementService
         ];
     }
 }
+

@@ -49,7 +49,7 @@ class MenuItem extends Model
     }
     public function getImageUrlAttribute()
     {
-        return $this->image 
+        return $this->image
             ? asset('storage/' . $this->image)
             : null;
     }
@@ -100,3 +100,4 @@ class MenuItem extends Model
         return $distribution;
     }
 }
+

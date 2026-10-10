@@ -102,3 +102,4 @@ class PerformanceMetric extends Model
         return round(array_sum($scores), 2);
     }
 }
+

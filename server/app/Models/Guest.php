@@ -112,22 +112,23 @@ class Guest extends Model
             ->where('guest_id', $this->id)
             ->whereIn('status', [Order::STATUS_SERVED, 'completed'])
             ->first();
-        
+
         if (!$order) {
             return false;
         }
-        
+
         $hasMenuItem = $order->orderItems()->where('menu_item_id', $menuItemId)->exists();
-        
+
         if (!$hasMenuItem) {
             return false;
         }
-        
+
         $reviewExists = MenuItemReview::where('guest_id', $this->id)
             ->where('order_id', $orderId)
             ->where('menu_item_id', $menuItemId)
             ->exists();
-        
+
         return !$reviewExists;
     }
 }
+

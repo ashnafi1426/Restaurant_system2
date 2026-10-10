@@ -40,7 +40,6 @@ class CashierDashboardController extends Controller
 
             $baseQuery = Payment::when($hotelId, fn($q) => $q->where('hotel_id', $hotelId));
 
-            // Consolidated counts in a single query
             $counts = (clone $baseQuery)->selectRaw("
                 COUNT(*) as total_transactions,
                 SUM(CASE WHEN status IN (?, ?) THEN 1 ELSE 0 END) as completed_payments,
@@ -120,8 +119,8 @@ class CashierDashboardController extends Controller
                     'payment_provider' => $payment->payment_provider,
                     'payment_method' => $payment->payment_method,
                     'type' => $payment->reservation_id ? 'Reservation' : 'Restaurant Order',
-                    'reference' => $payment->reservation_id 
-                        ? $payment->reservation?->id 
+                    'reference' => $payment->reservation_id
+                        ? $payment->reservation?->id
                         : $payment->order?->id,
                     'paid_at' => $payment->paid_at?->format('Y-m-d H:i:s'),
                     'created_at' => $payment->created_at->format('Y-m-d H:i:s'),
@@ -226,7 +225,6 @@ class CashierDashboardController extends Controller
         try {
             $hotelId = $this->getHotelId();
 
-            // Single query grouped by date for past 7 days
             $revenues = Payment::whereBetween('paid_at', [now()->subDays(6)->startOfDay(), now()->endOfDay()])
                 ->when($hotelId, fn($q) => $q->where('hotel_id', $hotelId))
                 ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])
@@ -357,7 +355,6 @@ class CashierDashboardController extends Controller
                 });
             }
 
-            // Payment status / Tab filter
             $paymentStatus = $request->query('payment_status', $filter);
             if ($paymentStatus === 'paid') {
                 $query->whereHas('payments', fn($pq) => $pq->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED]));
@@ -371,19 +368,16 @@ class CashierDashboardController extends Controller
                       ->where('status', '!=', Order::STATUS_CANCELLED);
             }
 
-            // Kitchen / Order status filter
             $orderStatus = $request->query('order_status');
             if ($orderStatus && $orderStatus !== 'all') {
                 $query->where('status', $orderStatus);
             }
 
-            // Order type filter (dine_in, room_service, takeaway, etc.)
             $orderType = $request->query('order_type');
             if ($orderType && $orderType !== 'all') {
                 $query->where('order_type', $orderType);
             }
 
-            // Payment method filter
             $paymentMethod = $request->query('payment_method');
             if ($paymentMethod && $paymentMethod !== 'all') {
                 $query->where(function ($q) use ($paymentMethod) {
@@ -509,7 +503,7 @@ class CashierDashboardController extends Controller
             $paymentMethod = $request->input('payment_method', 'cash');
 
             return DB::transaction(function () use ($order, $markAsPaid, $paymentMethod) {
-                // 1. Check or record payment
+
                 $hasSuccessfulPayment = $order->payments()->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_VERIFIED])->exists();
 
                 if ($markAsPaid || !$hasSuccessfulPayment) {
@@ -539,13 +533,11 @@ class CashierDashboardController extends Controller
                     $order->update(['payment_type' => $paymentMethod]);
                 }
 
-                // 2. Mark order status as SERVED
                 $order->update([
                     'status' => Order::STATUS_SERVED,
                     'served_at' => $order->served_at ?? now(),
                 ]);
 
-                // 3. Complete any delivery task associated with this order
                 try {
                     \App\Models\DeliveryTask::withoutGlobalScopes()
                         ->where('order_id', $order->id)
@@ -558,7 +550,6 @@ class CashierDashboardController extends Controller
                     Log::warning('DeliveryTask update warning on clearOrder: ' . $te->getMessage());
                 }
 
-                // 4. Free up the table if one is assigned
                 $tableNumber = null;
                 if ($order->table_id && $order->table) {
                     $tableNumber = $order->table->table_number;
@@ -567,7 +558,6 @@ class CashierDashboardController extends Controller
                     ]);
                 }
 
-                // 5. Invalidate customer order cache and broadcast real-time websocket events
                 try {
                     \Illuminate\Support\Facades\Cache::forget("customer_order_status_{$order->id}");
                     broadcast(new \App\Events\OrderStatusUpdated($order))->toOthers();
@@ -601,3 +591,4 @@ class CashierDashboardController extends Controller
         }
     }
 }
+

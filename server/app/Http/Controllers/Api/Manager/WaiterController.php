@@ -47,7 +47,7 @@ class WaiterController extends Controller
                         'hire_date' => $waiter->hire_date,
                     ];
                 });
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $waiters,
@@ -58,7 +58,7 @@ class WaiterController extends Controller
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load waiters: ' . $e->getMessage(),
@@ -75,7 +75,7 @@ class WaiterController extends Controller
             ]);
 
             $isNewUser = empty($request->input('user_id'));
-            
+
             $rules = [
                 'section' => 'required|string|max:100',
                 'shift' => 'required|in:morning,afternoon,evening,night',
@@ -98,14 +98,14 @@ class WaiterController extends Controller
                     'user_id' => 'required|uuid|exists:users,id',
                 ]);
             }
-            
+
             \Log::info('Waiter validation rules', [
                 'is_new_user' => $isNewUser,
                 'rules' => array_keys($rules)
             ]);
-            
+
             $validated = $request->validate($rules);
-            
+
             \Log::info('Waiter validation passed', [
                 'validated_keys' => array_keys($validated)
             ]);
@@ -113,7 +113,7 @@ class WaiterController extends Controller
             if ($isNewUser) {
                 try {
                     $hashedPassword = \Illuminate\Support\Facades\Hash::make($validated['password']);
-                    
+
                     $user = \App\Models\User::create([
                         'first_name' => $validated['first_name'],
                         'last_name' => $validated['last_name'],
@@ -125,7 +125,7 @@ class WaiterController extends Controller
                     ]);
 
                     $validated['user_id'] = $user->id;
-                    
+
                     \Log::info('Waiter user created successfully', [
                         'user_id' => $user->id,
                         'email' => $user->email
@@ -135,7 +135,7 @@ class WaiterController extends Controller
                         'message' => $dbError->getMessage(),
                         'sql' => $dbError->getSql() ?? 'N/A',
                     ]);
-                    
+
                     return response()->json([
                         'success' => false,
                         'message' => 'Database error: ' . $dbError->getMessage(),
@@ -146,7 +146,7 @@ class WaiterController extends Controller
                         'file' => $userError->getFile(),
                         'line' => $userError->getLine(),
                     ]);
-                    
+
                     return response()->json([
                         'success' => false,
                         'message' => 'Failed to create user: ' . $userError->getMessage(),
@@ -169,7 +169,7 @@ class WaiterController extends Controller
                     'maximum_orders' => $validated['maximum_orders'],
                     'employee_number' => $validated['employee_number'] ?? null,
                 ];
-                
+
                 \Log::info('Creating waiter with data', $waiterData);
 
                 $waiter = \App\Models\Waiter::create($waiterData);
@@ -182,7 +182,7 @@ class WaiterController extends Controller
                 ]);
 
                 $responseData = $waiter->load('user');
-                
+
                 \Log::info('Response being sent to client', [
                     'data' => $responseData
                 ]);
@@ -197,7 +197,7 @@ class WaiterController extends Controller
                     'message' => $dbError->getMessage(),
                     'sql' => $dbError->getSql() ?? 'N/A',
                 ]);
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Database error: ' . $dbError->getMessage(),
@@ -208,7 +208,7 @@ class WaiterController extends Controller
                     'file' => $waiterError->getFile(),
                     'line' => $waiterError->getLine(),
                 ]);
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to create waiter: ' . $waiterError->getMessage(),
@@ -219,7 +219,7 @@ class WaiterController extends Controller
                 'errors' => $validationError->errors(),
                 'request_data' => $request->all()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -232,7 +232,7 @@ class WaiterController extends Controller
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -266,7 +266,7 @@ class WaiterController extends Controller
     {
         try {
             $waiterData = $waiter->withStats()->first();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $waiterData,
@@ -415,3 +415,4 @@ class WaiterController extends Controller
         }
     }
 }
+
