@@ -528,69 +528,142 @@ onUnmounted(() => {
 
 <style scoped>
 .stat-card {
-  @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5;
+  border-radius: 1rem;
+  padding: 1.25rem;
   will-change: auto;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+:global(.dark) .stat-card {
+  background-color: #0f172a;
+  border-color: #1e293b;
 }
 
 .stat-header {
-  @apply flex items-center justify-between mb-3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
 }
 
 .stat-label {
-  @apply text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+:global(.dark) .stat-label {
+  color: #94a3b8;
 }
 
 .stat-icon {
-  @apply w-4 h-4;
+  width: 1rem;
+  height: 1rem;
 }
 
 .stat-icon-emerald {
-  @apply text-emerald-600 dark:text-emerald-400;
+  color: #059669;
+}
+:global(.dark) .stat-icon-emerald {
+  color: #34d399;
 }
 
 .stat-icon-amber {
-  @apply text-amber-600 dark:text-amber-400;
+  color: #d97706;
+}
+:global(.dark) .stat-icon-amber {
+  color: #fbbf24;
 }
 
 .stat-icon-teal {
-  @apply text-teal-600 dark:text-teal-400;
+  color: #0d9488;
+}
+:global(.dark) .stat-icon-teal {
+  color: #2dd4bf;
 }
 
 .stat-icon-indigo {
-  @apply text-indigo-600 dark:text-indigo-400;
+  color: #4f46e5;
+}
+:global(.dark) .stat-icon-indigo {
+  color: #818cf8;
 }
 
 .stat-value {
-  @apply text-3xl font-extrabold text-slate-900 dark:text-white;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+:global(.dark) .stat-value {
+  color: #ffffff;
 }
 
 .stat-unit {
-  @apply text-sm font-bold text-slate-500 dark:text-slate-400 ml-1;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-left: 0.25rem;
+}
+:global(.dark) .stat-unit {
+  color: #94a3b8;
 }
 
 .stat-desc {
-  @apply text-xs text-slate-500 dark:text-slate-400 mt-1;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+:global(.dark) .stat-desc {
+  color: #94a3b8;
 }
 
 .active-delivery-banner {
-  @apply bg-emerald-600 text-white rounded-2xl p-6;
+  color: #ffffff;
+  border-radius: 1rem;
+  padding: 1.5rem;
   background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
 }
 
 .active-delivery-content {
-  @apply flex flex-col md:flex-row md:items-center justify-between gap-4;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+}
+@media (min-width: 768px) {
+  .active-delivery-content {
+    flex-direction: row;
+    align-items: center;
+  }
 }
 
 .active-delivery-info {
-  @apply space-y-1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .active-delivery-badge {
-  @apply inline-flex items-center gap-2 px-3 py-1 bg-white bg-opacity-20 rounded-full text-xs font-bold uppercase tracking-wider;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  width: fit-content;
 }
 
 .pulse-dot {
-  @apply w-2 h-2 rounded-full bg-white;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: #ffffff;
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
@@ -604,22 +677,43 @@ onUnmounted(() => {
 }
 
 .active-delivery-title {
-  @apply text-xl font-bold mt-2;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 0.5rem;
 }
 
 .active-delivery-details {
-  @apply text-xs text-emerald-100;
+  font-size: 0.75rem;
+  color: #ccfbf1;
 }
 
 .room-badge {
-  @apply font-extrabold text-white text-sm bg-white bg-opacity-20 px-2 py-0.5 rounded;
+  font-weight: 800;
+  color: #ffffff;
+  font-size: 0.875rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
 }
 
 .guest-name {
-  @apply font-semibold text-white;
+  font-weight: 600;
+  color: #ffffff;
 }
 
 .active-delivery-btn {
-  @apply px-5 py-2.5 bg-white text-emerald-700 hover:bg-emerald-50 rounded-xl text-xs font-bold transition whitespace-nowrap inline-block;
+  padding: 0.625rem 1.25rem;
+  background-color: #ffffff;
+  color: #047857;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-block;
+  transition: background-color 0.15s ease;
+  text-decoration: none;
+}
+.active-delivery-btn:hover {
+  background-color: #ecfdf5;
 }
 </style>

@@ -84,6 +84,40 @@ const currentPage = ref(1)
 const lastPage = ref(1)
 const totalHotels = ref(0)
 
+// Fullscreen Controls
+const isFullscreen = ref(false)
+
+const toggleFullscreen = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen?.().then(() => {
+      isFullscreen.value = true
+    }).catch(() => {})
+  } else {
+    document.exitFullscreen?.().then(() => {
+      isFullscreen.value = false
+    }).catch(() => {})
+  }
+}
+
+const onFullscreenChange = () => {
+  isFullscreen.value = Boolean(document.fullscreenElement)
+}
+
+// Currency Formatter
+const formatCurrency = (val: number | string | null | undefined, currency?: string) => {
+  const num = Number(val) || 0
+  const curr = currency || 'ETB'
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: curr,
+      maximumFractionDigits: 2,
+    }).format(num)
+  } catch {
+    return `${curr} ${num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  }
+}
+
 // Active action dropdown ID
 const activeDropdownId = ref<string | null>(null)
 
@@ -176,11 +210,13 @@ const handleOutsideClick = () => {
 onMounted(() => {
   loadHotels()
   window.addEventListener('click', handleOutsideClick)
+  document.addEventListener('fullscreenchange', onFullscreenChange)
 })
 
 onUnmounted(() => {
   if (messageTimeout) clearTimeout(messageTimeout)
   window.removeEventListener('click', handleOutsideClick)
+  document.removeEventListener('fullscreenchange', onFullscreenChange)
 })
 
 watch([searchQuery, selectedStatus, selectedCity], () => {
