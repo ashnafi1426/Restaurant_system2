@@ -1,16 +1,26 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import paymentService from '@/services/paymentService'
 
-interface Payment {
+export interface Payment {
   id?: string
   tx_ref: string
   amount?: number
   currency?: string
+  formatted_amount?: string
   first_name?: string
   last_name?: string
   email?: string
   phone?: string
   status?: string
+  is_verified?: boolean
+  is_failed?: boolean
+  created_at?: string
+  customer?: {
+    name?: string
+    email?: string
+    phone?: string
+  }
   checkout_url?: string
   payment_provider?: string
   metadata?: any
@@ -53,6 +63,49 @@ export const usePaymentStore = defineStore('payment', () => {
     isVerifying.value = state
   }
 
+  async function verifyPayment(txRef: string): Promise<Payment> {
+    isVerifying.value = true
+    try {
+      const res = await paymentService.verifyPayment(txRef)
+      const paymentData = res.payment || res
+      const isVerified =
+        res.status === 'success' ||
+        res.status === 'completed' ||
+        paymentData.status === 'success' ||
+        paymentData.status === 'completed'
+      const isFailed =
+        res.status === 'failed' ||
+        res.status === 'cancelled' ||
+        paymentData.status === 'failed' ||
+        paymentData.status === 'cancelled'
+
+      const mapped: Payment = {
+        tx_ref: txRef,
+        ...paymentData,
+        formatted_amount:
+          paymentData.formatted_amount ||
+          (paymentData.amount ? `ETB ${paymentData.amount}` : undefined),
+        customer: paymentData.customer || {
+          name:
+            paymentData.customer_name ||
+            `${paymentData.first_name || ''} ${paymentData.last_name || ''}`.trim() ||
+            'Guest',
+          email: paymentData.email || '',
+          phone: paymentData.phone || '',
+        },
+        is_verified: isVerified,
+        is_failed: isFailed,
+      }
+      currentPayment.value = mapped
+      return mapped
+    } catch (err: any) {
+      error.value = err?.message || 'Verification failed'
+      throw err
+    } finally {
+      isVerifying.value = false
+    }
+  }
+
   return {
     currentPayment,
     error,
@@ -70,5 +123,6 @@ export const usePaymentStore = defineStore('payment', () => {
     setInitializing,
     setLoading,
     setVerifying,
+    verifyPayment,
   }
 })
