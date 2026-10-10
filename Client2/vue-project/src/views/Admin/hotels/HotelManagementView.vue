@@ -28,6 +28,14 @@ import {
   Clock,
   RotateCcw,
   Loader2,
+  Maximize2,
+  Minimize2,
+  BedDouble,
+  Users,
+  UserCheck,
+  CalendarCheck,
+  Utensils,
+  DollarSign,
 } from 'lucide-vue-next'
 
 const router = useRouter()

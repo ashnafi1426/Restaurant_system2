@@ -130,6 +130,7 @@ export interface WaiterDashboard {
     month: PerformanceMetrics
   }
   recent_assignments: WaiterAssignment[]
+  active_delivery?: any | null
   pending_count: number
   active_count: number
 }
