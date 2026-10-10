@@ -94,7 +94,7 @@ export async function getRefundReport(filters?: ReportFilters) {
 }
 
 export interface CashierOrderFilters {
-  filter?: 'all' | 'paid' | 'unpaid' | 'cleared' | 'pending_clear'
+  filter?: 'all' | 'paid' | 'unpaid' | 'cleared' | 'pending_clear' | string
   search?: string
   page?: number
   per_page?: number

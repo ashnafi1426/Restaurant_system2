@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import cashierService, { type PaymentFilters, type ReportFilters } from '@/services/cashierService'
+import cashierService, {
+  type PaymentFilters,
+  type ReportFilters,
+  type CashierOrderFilters,
+} from '@/services/cashierService'
 
 export interface DashboardStats {
   today_revenue: number
@@ -239,16 +243,7 @@ export const useCashierStore = defineStore('cashier', () => {
     }
   }
 
-  async function fetchOrders(filters?: {
-    filter?: string
-    search?: string
-    page?: number
-    per_page?: number
-    payment_status?: string
-    order_status?: string
-    order_type?: string
-    payment_method?: string
-  }) {
+  async function fetchOrders(filters?: CashierOrderFilters) {
     try {
       const params = {
         page: filters?.page ?? orderPagination.value.current_page,
