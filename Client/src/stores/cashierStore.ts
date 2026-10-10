@@ -245,7 +245,7 @@ export const useCashierStore = defineStore('cashier', () => {
 
   async function fetchOrders(filters?: CashierOrderFilters) {
     try {
-      const params = {
+      const params: CashierOrderFilters = {
         page: filters?.page ?? orderPagination.value.current_page,
         per_page: filters?.per_page ?? orderPagination.value.per_page,
         filter: filters?.filter,
